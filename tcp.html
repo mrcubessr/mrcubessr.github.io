@@ -9,7 +9,7 @@
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0d0d0d url('assets/images/background4.webp') center/cover fixed;
+    background: #0d0d0d;
     color: #e0e0e0;
     min-height: 100vh;
     line-height: 1.6;
@@ -19,8 +19,24 @@
     content: '';
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
     z-index: 0;
+    background:
+      /* subtle grid */
+      linear-gradient(rgba(96,165,250,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(96,165,250,0.06) 1px, transparent 1px),
+      /* diagonal accent */
+      linear-gradient(135deg, rgba(96,165,250,0.04) 0%, transparent 40%, transparent 60%, rgba(244,114,182,0.04) 100%),
+      linear-gradient(225deg, rgba(244,114,182,0.03) 0%, transparent 50%, transparent 70%, rgba(96,165,250,0.03) 100%),
+      /* corner glows */
+      radial-gradient(ellipse at 20% 20%, rgba(96,165,250,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
+    background-size:
+      80px 80px,
+      80px 80px,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%;
   }
 
   .container {
@@ -163,32 +179,38 @@
   .case-row:last-child { border-bottom: none; }
   .case-row:hover { background: rgba(255,255,255,0.03); }
 
-  .case-tag {
+  .case-label {
     flex-shrink: 0;
-    font-size: 0.85rem;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 10px;
-    min-width: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    min-width: 64px;
+  }
+
+  .case-tag {
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 4px 14px;
+    border-radius: 12px;
     text-align: center;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
 
   .ou .case-tag { color: #60a5fa; background: rgba(96, 165, 250, 0.12); }
   .ji .case-tag { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
 
   .case-abbr {
-    flex-shrink: 0;
-    font-size: 0.82rem;
-    font-weight: 700;
-    min-width: 44px;
+    font-size: 1.2rem;
+    font-weight: 900;
     text-align: center;
-    letter-spacing: 0.08em;
-    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    letter-spacing: 0.04em;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 
-  .ou .case-abbr { color: #60a5fa; opacity: 0.75; }
-  .ji .case-abbr { color: #f472b6; opacity: 0.75; }
+  .ou .case-abbr { color: #60a5fa; }
+  .ji .case-abbr { color: #f472b6; }
 
   .case-cell {
     flex: 1;
@@ -196,7 +218,10 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: 8px 0;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
   }
 
   .case-img {
@@ -261,6 +286,7 @@
       <p>② 观察<span style="color:#f472b6;font-weight:600">粉色中心块</span>位置哪个与<span style="color:#60a5fa;font-weight:600">F面</span>同色，顶面左边位置记为"左"，顶面右边位置记为"右"，前面位置（即该中心已归位，顶面无该颜色中心）记为"无"。</p>
       <p>③ 观察左右两边<span style="color:#60a5fa;font-weight:600">青色位置</span>，左边连色记为"左"，右边连色记为"右"，都无连色记为"无"。</p>
       <p>依次串联三个观察点得到的记号以确定是下文哪种情况（感谢@2017SUNNO2 提供的观察方法）</p>
+      <p style="font-size:0.82rem;color:#888;margin-top:12px;">本网站内容来自中国转面八面体（FTO）魔方交流群 <span style="color:#fbbf24;font-weight:600;">272010376</span>　　制作人：<span style="color:#60a5fa;font-weight:600;">魔方先生SSR</span>　<span style="color:#f472b6;font-weight:600;">2009ZHAN24</span></p>
     </div>
   </div>
 
@@ -271,81 +297,99 @@
       <div class="col-header ou">偶</div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶右右</span>
         <span class="case-abbr">OYY</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OYY.png" alt="OYY">
           <span class="case-formula"><span class="auf">{U, BR}</span> R' L R L'</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶左左</span>
         <span class="case-abbr">OZZ</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OZZ.png" alt="OZZ">
           <span class="case-formula"><span class="auf">{U, BR}</span> R B' R' B</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶右左</span>
         <span class="case-abbr">OYZ</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OYZ.png" alt="OYZ">
           <span class="case-formula"><span class="auf">{B, U}</span> U' <span class="grp">(R U R D)</span> <span class="grp">(R' U' R D')</span> R' U R'</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶左右</span>
         <span class="case-abbr">OZY</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OZY.png" alt="OZY">
           <span class="case-formula"><span class="auf">{B, BL}</span> U <span class="grp">(R' U' R' D')</span> <span class="grp">(R U R' D)</span> R U' R</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶右无</span>
         <span class="case-abbr">OYW</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OYW.png" alt="OYW">
           <span class="case-formula"><span class="auf">{B, U}</span> U' R' D <span class="grp">(R' U R D')</span> R</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶左无</span>
         <span class="case-abbr">OZW</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OZW.png" alt="OZW">
           <span class="case-formula"><span class="auf">{B, BL}</span> U R D' <span class="grp">(R U' R' D)</span> R'</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶无右</span>
         <span class="case-abbr">OWY</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OWY.png" alt="OWY">
           <span class="case-formula"><span class="auf">{R, BR}</span> <span class="grp">(R' U' R Rw U')</span> <span class="grp">(R U R' Rw U)</span></span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶无左</span>
         <span class="case-abbr">OWZ</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OWZ.png" alt="OWZ">
           <span class="case-formula"><span class="auf">{L, U}</span> <span class="grp">(R U R' Rw U)</span> <span class="grp">(R' U' R Rw U')</span></span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">偶无无</span>
         <span class="case-abbr">OWW</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/OWW.png" alt="OWW">
           <span class="case-formula"><span class="grp">(R B' R' B)</span> <span class="grp">(R' L R L')</span></span>
         </div>
@@ -357,81 +401,99 @@
       <div class="col-header ji">奇</div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇右右</span>
         <span class="case-abbr">JYY</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JYY.png" alt="JYY">
           <span class="case-formula">U <span class="auf">{B, BL}</span> R D <span class="grp">(R' U R D)</span> <span class="grp">(R U' R' D)</span> R'</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇左左</span>
         <span class="case-abbr">JZZ</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JZZ.png" alt="JZZ">
           <span class="case-formula">U' <span class="auf">{B, U}</span> R' D' <span class="grp">(R U' R' D')</span> <span class="grp">(R' U R D')</span> R</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇右左</span>
         <span class="case-abbr">JYZ</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JYZ.png" alt="JYZ">
           <span class="case-formula"><span class="auf">{L, U}</span> U' D <span class="grp">(R' U R D')</span> <span class="auf">{F, D}</span> <span class="grp">(R' L R L')</span></span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇左右</span>
         <span class="case-abbr">JZY</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JZY.png" alt="JZY">
           <span class="case-formula"><span class="auf">{R, BR}</span> U D' <span class="grp">(R U' R' D)</span> <span class="auf">{BR, F}</span> <span class="grp">(R B' R' B)</span></span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇右无</span>
         <span class="case-abbr">JYW</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JYW.png" alt="JYW">
           <span class="case-formula">U <span class="auf">{B, BL}</span> R D <span class="grp">(R' U R D')</span> R U' R</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇左无</span>
         <span class="case-abbr">JZW</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JZW.png" alt="JZW">
           <span class="case-formula">U' <span class="auf">{B, U}</span> R' D' <span class="grp">(R U' R' D)</span> R U R2</span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇无右</span>
         <span class="case-abbr">JWY</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JWY.png" alt="JWY">
           <span class="case-formula"><span class="auf">{R, BR}</span> U <span class="grp">(Rw U' R U)</span> <span class="grp">(Rw R2' U' R)</span></span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇无左</span>
         <span class="case-abbr">JWZ</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JWZ.png" alt="JWZ">
           <span class="case-formula"><span class="auf">{L, U}</span> U' <span class="grp">(Rw U R' U')</span> <span class="grp">(R2 Rw' U R')</span></span>
         </div>
       </div>
 
       <div class="case-row">
+        <div class="case-label">
         <span class="case-tag">奇无无</span>
         <span class="case-abbr">JWW</span>
-                <div class="case-cell">
+        </div>
+        <div class="case-cell">
           <img class="case-img" src="assets/images/cases/JWW.png" alt="JWW">
           <span class="case-formula"><span class="auf">{B, BR}</span> <span class="grp">(R' U' R D')</span> <span class="grp">(R U' R' D)</span> <span class="grp">(R' U' R)</span></span>
         </div>
