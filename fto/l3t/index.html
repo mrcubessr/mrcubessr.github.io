@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3-Look L3T — FTO Tutorial</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #0d0d0d;
+    color: #e0e0e0;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(rgba(96,165,250,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(96,165,250,0.06) 1px, transparent 1px),
+      linear-gradient(135deg, rgba(96,165,250,0.04) 0%, transparent 40%, transparent 60%, rgba(244,114,182,0.04) 100%),
+      linear-gradient(225deg, rgba(244,114,182,0.03) 0%, transparent 50%, transparent 70%, rgba(96,165,250,0.03) 100%),
+      radial-gradient(ellipse at 20% 20%, rgba(96,165,250,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
+    background-size:
+      80px 80px,
+      80px 80px,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 0 12px;
+  }
+
+  .top-nav a {
+    color: #999;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+  .page-title {
+    text-align: center;
+    padding: 16px 0 8px;
+  }
+
+  .page-title h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
+
+  .page-title .subtitle {
+    margin-top: 6px;
+    font-size: 0.92rem;
+    color: #888;
+  }
+
+  .dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .col-panel {
+    background: rgba(18, 18, 30, 0.75);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .col-header {
+    text-align: center;
+    padding: 14px 16px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .col-header.pf {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.08);
+    border-bottom: 1px solid rgba(96,165,250,0.15);
+  }
+
+  .col-header.tl {
+    color: #f472b6;
+    background: rgba(244, 114, 182, 0.08);
+    border-bottom: 1px solid rgba(244,114,182,0.15);
+  }
+
+  .sub-header {
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #f472b6;
+    background: rgba(244, 114, 182, 0.05);
+    border-bottom: 1px solid rgba(244,114,182,0.1);
+    border-top: 1px solid rgba(244,114,182,0.1);
+  }
+
+  .case-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+  }
+
+  .case-row:last-child { border-bottom: none; }
+  .case-row:hover { background: rgba(255,255,255,0.03); }
+
+  .case-label {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    min-width: 64px;
+  }
+
+  .case-tag {
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 4px 14px;
+    border-radius: 12px;
+    text-align: center;
+    letter-spacing: 0.06em;
+  }
+
+  .pf .case-tag { color: #60a5fa; background: rgba(96, 165, 250, 0.12); }
+  .tl .case-tag { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
+
+  .case-dir {
+    font-size: 0.72rem;
+    color: #888;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .case-abbr {
+    font-size: 1.2rem;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 0.04em;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  }
+
+  .pf .case-abbr { color: #60a5fa; }
+  .tl .case-abbr { color: #f472b6; }
+
+  .case-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .l3t-images {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .case-img {
+    width: 144px;
+    height: 144px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .dir-img {
+    height: 48px;
+    width: auto;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .l3t-formulas {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .case-formula {
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+  }
+
+  .case-setup {
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #777;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+  }
+
+  .attribution {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #999;
+    background: rgba(18, 18, 30, 0.6);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    line-height: 1.8;
+  }
+
+  @media (max-width: 700px) {
+    .dual-grid { grid-template-columns: 1fr; }
+    .page-title h1 { font-size: 1.6rem; }
+    .case-formula { font-size: 0.78rem; white-space: normal; }
+    .case-img { width: 120px; height: 120px; }
+  }
+
+  @media (max-width: 400px) {
+    .case-row { gap: 8px; padding: 10px 12px; }
+    .case-tag { font-size: 0.7rem; padding: 2px 8px; min-width: 44px; }
+    .case-formula { font-size: 0.74rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="/fto/tcp">TCP</a>
+    <a href="/fto/l3t" class="active">L3T</a>
+  </div>
+
+  <div class="page-title">
+    <h1>3-Look L3T</h1>
+    <p class="subtitle">FTO Last Three Triplets — 3-step method</p>
+  </div>
+
+  <div class="dual-grid">
+
+    <!-- ========== PF (Pair Formation) ========== -->
+    <div class="col-panel pf">
+      <div class="col-header pf">PF — Pair Formation</div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">1</span>
+          <span class="case-dir">U</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/1-FfffcfffffUcccccccccLcccccccccRcccccccccDcccccccccEcfcccccccIccccccccc.png" alt="PF case 1">
+            <img class="dir-img" src="/assets/fto-img/U.png" alt="U">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R F</span>
+            <span class="case-setup">F' R'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">2</span>
+          <span class="case-dir">U</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/2-FcfffcfcffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIccccfcccc.png" alt="PF case 2">
+            <img class="dir-img" src="/assets/fto-img/U.png" alt="U">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F' U F</span>
+            <span class="case-setup">F' U' F R</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">3</span>
+          <span class="case-dir">U</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/3-FffffcfffcUcccccccccLcccccccccRcccccccccDccccccccfEcccccccccIccccfcccc.png" alt="PF case 3">
+            <img class="dir-img" src="/assets/fto-img/U.png" alt="U">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F' R' F</span>
+            <span class="case-setup">F' R F R</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">4</span>
+          <span class="case-dir">L</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/4-FfcfcfffffUcccccccccLcccccccccRcccccccccDccccccfccEcccccccccIcccfccccc.png" alt="PF case 4">
+            <img class="dir-img" src="/assets/fto-img/L.png" alt="L">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F' R' F'</span>
+            <span class="case-setup">F R F R</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">5</span>
+          <span class="case-dir">L</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/5-FccffcffffUcccccccccLcccccccccRcccccccccDcccccccccEfccccccccIcccffcccc.png" alt="PF case 5">
+            <img class="dir-img" src="/assets/fto-img/L.png" alt="L">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R F'</span>
+            <span class="case-setup">F R'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">6</span>
+          <span class="case-dir">R</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/6-FcffccffffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIccccfcccc.png" alt="PF case 6">
+            <img class="dir-img" src="/assets/fto-img/R.png" alt="R">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F</span>
+            <span class="case-setup">F' R</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">7</span>
+          <span class="case-dir">R</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/7-FccffcfcffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIcccffcccc.png" alt="PF case 7">
+            <img class="dir-img" src="/assets/fto-img/R.png" alt="R">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R F</span>
+            <span class="case-setup">F' R'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">8</span>
+          <span class="case-dir">L</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/8-FcffccfcffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIcccffcccc.png" alt="PF case 8">
+            <img class="dir-img" src="/assets/fto-img/L.png" alt="L">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F'</span>
+            <span class="case-setup">R F</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">9</span>
+          <span class="case-dir">R</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/9-FccfccfcffUcccccccccLcccccccccRcccccccccDccccccfccEffcccccccIcccffcccc.png" alt="PF case 9">
+            <img class="dir-img" src="/assets/fto-img/R.png" alt="R">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F' U' F'</span>
+            <span class="case-setup">F U F R</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">10</span>
+          <span class="case-dir">U</span>
+          <span class="case-abbr">PF</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/1-pf/10-FfcfcffcffUcccccccccLcccccccccRcccccccccDccccccfccEcfcccccccIcccfccccc.png" alt="PF case 10">
+            <img class="dir-img" src="/assets/fto-img/U.png" alt="U">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' F' R' F' U F</span>
+            <span class="case-setup">F U' F R F R</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========== TL + LT ========== -->
+    <div class="col-panel tl">
+      <div class="col-header tl">TL — Top Layer</div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">1</span>
+          <span class="case-abbr">TL</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/2-tl/1-FfffccfcfcUccccruuulLucllcccllRrrrcurcccDccccccfcfEcccccccccIcccffcccc.png" alt="TL case 1">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R</span>
+            <span class="case-setup">R'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">2</span>
+          <span class="case-abbr">TL</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/2-tl/2-FfffccfcfcUccccluuuuLrcllcccluRlrrcrrcccDccccccfcfEcccccccccIcccffcccc.png" alt="TL case 2">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">U</span>
+            <span class="case-setup">U'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">3</span>
+          <span class="case-abbr">TL</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/2-tl/3-FccfccffffUccccluuurLucllcccllRurrcrrcccDcccccccccEffcccccccIcccffcccc.png" alt="TL case 3">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">U R</span>
+            <span class="case-setup">R' U'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">4</span>
+          <span class="case-abbr">TL</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/2-tl/4-FfffffffffUccccruuurLucllcccluRlrrclrcccDcccccccccEcccccccccIccccccccc.png" alt="TL case 4">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">R' U</span>
+            <span class="case-setup">U' R</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">5</span>
+          <span class="case-abbr">TL</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/2-tl/5-FfffffffffUccccluuulLrcllccclrRurrcurcccDcccccccccEcccccccccIccccccccc.png" alt="TL case 5">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">U' R</span>
+            <span class="case-setup">R' U</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LT sub-section -->
+      <div class="sub-header">LT — Last Triangles</div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">1</span>
+          <span class="case-abbr">LT</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/3-lt/1.png" alt="LT case 1">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">Uo Rw U R' U' R Rw' U R U' R' Uo'</span>
+            <span class="case-setup">Uo R U R' U' Rw R' U R U' Rw' Uo'</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">2</span>
+          <span class="case-abbr">LT</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/3-lt/2-FfffffffffRrrrrrrrrrLlllllllllUuuuuuuuuuDddddddeddEeieeeeeeeIiiidiiiii.png" alt="LT case 2">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">U' R U' R' Rw U R' U' R Rw' U'</span>
+            <span class="case-setup">U Rw R' U R U' Rw' R U R' U</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-row">
+        <div class="case-label">
+          <span class="case-tag">3</span>
+          <span class="case-abbr">LT</span>
+        </div>
+        <div class="case-cell">
+          <div class="l3t-images">
+            <img class="case-img" src="/assets/fto-img/3-lt/3-FfffffffffRrrrrrrrrrLlllllllllUuuuuuuuuuDddddddiddEedeeeeeeeIiiieiiiii.png" alt="LT case 3">
+          </div>
+          <div class="l3t-formulas">
+            <span class="case-formula">U Rw R' U R U' Rw' R U R' U</span>
+            <span class="case-setup">U' R U' R' Rw U R' U' R Rw' U'</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="attribution">
+    本网站内容来自中国转面八面体（FTO）魔方交流群 <span style="color:#fbbf24;font-weight:600;">272010376</span>　　制作人：<span style="color:#60a5fa;font-weight:600;">魔方先生SSR</span>　<span style="color:#f472b6;font-weight:600;">2009ZHAN24</span>
+  </div>
+
+</div>
+</body>
+</html>
