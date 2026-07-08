@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTO LBT 公式速查手册</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #0d0d0d;
+    color: #e0e0e0;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(rgba(96,165,250,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(96,165,250,0.06) 1px, transparent 1px),
+      linear-gradient(135deg, rgba(96,165,250,0.04) 0%, transparent 40%, transparent 60%, rgba(244,114,182,0.04) 100%),
+      linear-gradient(225deg, rgba(244,114,182,0.03) 0%, transparent 50%, transparent 70%, rgba(96,165,250,0.03) 100%),
+      radial-gradient(ellipse at 20% 20%, rgba(96,165,250,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
+    background-size:
+      80px 80px,
+      80px 80px,
+      100% 100%,
+      100% 100%,
+      100% 100%,
+      100% 100%;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 0 12px;
+    flex-wrap: wrap;
+  }
+
+  .top-nav a {
+    color: #999;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+  .page-title {
+    text-align: center;
+    padding: 16px 0 4px;
+  }
+
+  .page-title h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
+
+  .page-subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 28px;
+  }
+
+  .intro {
+    max-width: 1000px;
+    margin: 0 auto 36px;
+    padding: 24px;
+    background: rgba(24, 24, 36, 0.7);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #999;
+    line-height: 1.8;
+    backdrop-filter: blur(8px);
+  }
+
+  .intro h3 {
+    color: #FFD700;
+    font-size: 1.15rem;
+    margin-bottom: 14px;
+    border-left: 3px solid #FFD700;
+    padding-left: 12px;
+  }
+
+  .symbol-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin-bottom: 16px;
+  }
+
+  .symbol-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.9rem;
+  }
+
+  .symbol-item .sym {
+    color: #60a5fa;
+    font-weight: 700;
+    min-width: 28px;
+  }
+
+  .symbol-item .eq {
+    color: #f472b6;
+    font-weight: 600;
+  }
+
+  .intro .note {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 8px;
+  }
+
+  .intro .sign {
+    font-size: 0.82rem;
+    color: #888;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .col-panel {
+    background: rgba(18, 18, 30, 0.75);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+
+  .col-header {
+    text-align: center;
+    padding: 14px 16px;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .col-header.ou {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.08);
+    border-bottom: 1px solid rgba(96,165,250,0.15);
+  }
+
+  .col-header.ji {
+    color: #f472b6;
+    background: rgba(244, 114, 182, 0.08);
+    border-bottom: 1px solid rgba(244,114,182,0.15);
+  }
+
+  .chap-block {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .chap-block:last-child { border-bottom: none; }
+
+  .chap-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    padding: 12px 16px 8px;
+    letter-spacing: 0.03em;
+  }
+  .chap-block.ou .chap-title { color: #93c5fd; }
+  .chap-block.ji .chap-title { color: #f9a8d4; }
+
+  .formula-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 16px;
+    border-top: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.15s;
+  }
+  .formula-row:hover { background: rgba(255,255,255,0.03); }
+
+  .formula-num {
+    flex-shrink: 0;
+    min-width: 34px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  }
+  .chap-block.ou .formula-num { color: #60a5fa; background: rgba(96,165,250,0.1); }
+  .chap-block.ji .formula-num { color: #f472b6; background: rgba(244,114,182,0.1); }
+
+  .formula-text {
+    flex: 1;
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    letter-spacing: 0.01em;
+    line-height: 1.45;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+  .formula-text::-webkit-scrollbar { height: 4px; }
+  .formula-text::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  .formula-text .brk { color: #fbbf24; font-weight: 700; }
+
+  /* Chapter 4 dimmed */
+  .chap-block.dim {
+    opacity: 0.55;
+  }
+  .chap-block.dim .chap-title { color: #cbd5e1; }
+  .chap-block.dim .formula-num { color: #cbd5e1; background: rgba(255,255,255,0.06); }
+  .chap-block.dim .formula-text { color: #cbd5e1; }
+  .chap-block.dim .formula-text .brk { color: #e5c07b; }
+
+  @media (max-width: 700px) {
+    .dual-grid { grid-template-columns: 1fr; }
+    .page-title h1 { font-size: 1.6rem; }
+    .symbol-grid { grid-template-columns: 1fr; }
+    .formula-text { font-size: 0.78rem; }
+  }
+
+  @media (max-width: 400px) {
+    .formula-row { gap: 8px; padding: 8px 12px; }
+    .formula-num { min-width: 28px; font-size: 0.72rem; }
+    .formula-text { font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-nav">
+    <a href="../index.html">Home</a>
+    <a href="../tcp/index.html">TCP</a>
+    <a href="../l3t/index.html">L3T</a>
+    <a href="index.html" class="active">LBT</a>
+  </div>
+
+  <div class="page-title">
+    <h1>FTO LBT 公式速查手册</h1>
+  </div>
+  <div class="page-subtitle">2026 beta1</div>
+
+  <div class="intro">
+    <h3>符号说明</h3>
+    <div class="symbol-grid">
+      <div class="symbol-item"><span class="sym">S</span><span class="eq">= R' L R L'</span></div>
+      <div class="symbol-item"><span class="sym">S'</span><span class="eq">= L R' L' R</span></div>
+      <div class="symbol-item"><span class="sym">H</span><span class="eq">= R B' R' B</span></div>
+      <div class="symbol-item"><span class="sym">H'</span><span class="eq">= B' R B R'</span></div>
+    </div>
+    <p class="note">基础转动：R / L / U / B / F 及其逆（带撇号）。扩展转动：Uw / Uo / BL / BR / BLw / Fw / Us 等。<span class="brk" style="color:#fbbf24;font-weight:700;">[ ]</span> 内为可选/替换转动（如 [Uw'] 表示 Uw 的逆）。</p>
+    <p class="sign">本网站内容来自中国转面八面体（FTO）魔方交流群 <span style="color:#fbbf24;font-weight:600;">272010376</span>　　制作人：<span style="color:#60a5fa;font-weight:600;">魔方先生SSR</span>　<span style="color:#f472b6;font-weight:600;">2009ZHAN24</span></p>
+  </div>
+
+  <div class="dual-grid">
+
+    <!-- ========== 左栏：一、二 ========== -->
+    <div class="col-panel ou">
+
+      <div class="col-header ou">必备 · 进阶</div>
+
+      <!-- 第一章 -->
+      <div class="chap-block ou">
+        <div class="chap-title">一、整组角/半组角已组好，必备技术优先学习</div>
+
+        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">R' L' R L Uw R' L' R L</span></div>
+        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">R' L' R L <span class="brk">[Uw']</span> Uo' R L R' L'</span></div>
+        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">Uo' L R L' R'</span></div>
+        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text"><span class="brk">[Uw]</span> L' R' L R L R' L R L</span></div>
+        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">S U R' L' R L U H U' L' R' L R U</span></div>
+        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">S' U' R' L' R L U' H' U' R' L' R L U'</span></div>
+        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">S' U L' R' L R H' U L' R' L R U</span></div>
+        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">F S F' U' BL' H BL U L' U'</span></div>
+        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">S U L Uo' U' R U S' U' R' L U S U' L' Uo' R' U' S' U R</span></div>
+        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text">S' U' L' R' L R</span></div>
+        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text">S' U R' L' R L Uo' S' U' R' B' R B H U R' L' R L Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">S' U' R L R' L' S U L' R' L R</span></div>
+        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">F H F'</span></div>
+        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text"><span class="brk">[Uw']</span> R B' R' F R B R' F'</span></div>
+        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">BL' H' BL <span class="brk">[Uw']</span> BL' S' BL Uo' R U' S U R' L' U S' U' L</span></div>
+      </div>
+
+      <!-- 第二章 -->
+      <div class="chap-block ou">
+        <div class="chap-title">二、简单 setup + 四步/四步叠加，推荐进阶学习</div>
+
+        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">BL R' L' R L BL' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">BR' L R L' R' BR <span class="brk">[Uw']</span></span></div>
+        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">BL L' R' L R BL' <span class="brk">[Uw]</span> Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text">BR' R L R' L' BR</span></div>
+        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">BL' L R' L' BL L' R L <span class="brk">[U]</span></span></div>
+        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">R' L' R L U R' L' R L</span></div>
+        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">L' R' L R U' L' R' L R</span></div>
+        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">R' L' R L U' Uw' R' L' R L <span class="brk">[Uw']</span></span></div>
+        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">R' L' R L F S F'</span></div>
+        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text"><span class="brk">[Uw]</span> L' R' L R U L R' L R L</span></div>
+        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text"><span class="brk">[Uw']</span> L' U H U' L <span class="brk">[Uw]</span> L U' H' U L'</span></div>
+        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">BL' U BL S BL' U' BL</span></div>
+        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">BL' U' BL S BL' U BL</span></div>
+        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text">Uo' R U S' U' L R' L'</span></div>
+        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">L' U' S U R' L R U'</span></div>
+        <div class="formula-row"><span class="formula-num">16</span><span class="formula-text">L' U' H U L U L U H' U' L' U'</span></div>
+        <div class="formula-row"><span class="formula-num">17</span><span class="formula-text">L R' L R U' H U L U R L U' H' U L' R' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">18</span><span class="formula-text">L' R' U' S U R L R L U S' U' L' R' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">19</span><span class="formula-text"><span class="brk">[Uw]</span> R' U' S U R <span class="brk">[Uw']</span> L U S' U' L'</span></div>
+        <div class="formula-row"><span class="formula-num">20</span><span class="formula-text">L' R' L R U H U' R' L' R L H' U</span></div>
+        <div class="formula-row"><span class="formula-num">21</span><span class="formula-text">S U' L' R' L R Uo' L R' L' U' Uo H U L R' L R U H' U' L'</span></div>
+        <div class="formula-row"><span class="formula-num">22</span><span class="formula-text">F U H U' F'</span></div>
+        <div class="formula-row"><span class="formula-num">23</span><span class="formula-text">BL' U H' U' BL</span></div>
+      </div>
+
+    </div>
+
+    <!-- ========== 右栏：三、四 ========== -->
+    <div class="col-panel ji">
+
+      <div class="col-header ji">好认 · 控掉</div>
+
+      <!-- 第三章 -->
+      <div class="chap-block ji">
+        <div class="chap-title">三、好认但难遇到，"食之无味弃之可惜"</div>
+
+        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">F U' S' U F' U'</span></div>
+        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">BL' U H U' BL Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">BR U S' U' BR'</span></div>
+        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text">BL' U' S U BL Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">U' L' R' U S' U' R L U R L U' S U L' R'</span></div>
+        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">R' L' R L U BL' S' BL U L' R' L R U'</span></div>
+        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">Uw F H F' U BL' U' H U BL U F U S' U' F' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">U BR U H U' BR'</span></div>
+        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">U L U L' R' L R U' L' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text">U' R' U' R L R' L' U R U'</span></div>
+        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text">L' U' L' R' L R U L Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">U R U R L R' L' U' R'</span></div>
+        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">U L U H U' L' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text">U R U S U' R' U' S'</span></div>
+        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">U S U' R' L' R L Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">16</span><span class="formula-text">U S U' S' U L R L' R'</span></div>
+        <div class="formula-row"><span class="formula-num">17</span><span class="formula-text">U' S U' S' U R' L' R L Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">18</span><span class="formula-text">U S' U S U' L R L' R'</span></div>
+        <div class="formula-row"><span class="formula-num">19</span><span class="formula-text">U BL' S BL U R' L' R L</span></div>
+        <div class="formula-row"><span class="formula-num">20</span><span class="formula-text">F H' F' U L' R' L R BL' H BL U'</span></div>
+        <div class="formula-row"><span class="formula-num">21</span><span class="formula-text">L' R' L R U BL' U' H' U BL L' R' L R</span></div>
+        <div class="formula-row"><span class="formula-num">22</span><span class="formula-text">F S H F'</span></div>
+        <div class="formula-row"><span class="formula-num">23</span><span class="formula-text">BL' H S BL</span></div>
+        <div class="formula-row"><span class="formula-num">24</span><span class="formula-text">R F' L' R U' R' U L R' F</span></div>
+        <div class="formula-row"><span class="formula-num">25</span><span class="formula-text">BL' H U H' U' BL</span></div>
+      </div>
+
+      <!-- 第四章（弱化） -->
+      <div class="chap-block ji dim">
+        <div class="chap-title">四、尽量控掉或选取其他情况</div>
+
+        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">U' L' U' R B' R L' R L B U L U</span></div>
+        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">L U L' R B' R' B' L B' U' L'</span></div>
+        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">BLw' U' H U B' BLw</span></div>
+        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text">L Fw U H' U' R B' R' Uo'</span></div>
+        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">L R L' U' H U R'</span></div>
+        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">R' L' R U Uo' S U' R</span></div>
+        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">R F U L' R' L R U' F' R'</span></div>
+        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">U R F U R' L' R L U' F' R'</span></div>
+        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">L BL' B' BL S' BL' B BL L'</span></div>
+        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text">R' L' R L U' F R B' R' F' B</span></div>
+        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text">L R' L R U' H' U L U</span></div>
+        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">R' L' R U S U' L R'</span></div>
+        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">F' R' B' R' B R' F L' R L</span></div>
+        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text"><span class="brk">[Uw']</span> L U L' B L' B' R' L' R U' L'</span></div>
+        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">Us L U R' L' R L U' L R' L R</span></div>
+        <div class="formula-row"><span class="formula-num">16</span><span class="formula-text">R' L' R L' U H U' L'</span></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
