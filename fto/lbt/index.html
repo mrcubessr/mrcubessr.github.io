@@ -197,20 +197,32 @@
   .chap-block.ou .chap-title { color: #93c5fd; }
   .chap-block.ji .chap-title { color: #f9a8d4; }
 
+  /* --- Formula Card (image + formula) --- */
+  .formula-card {
+    border-top: 1px solid rgba(255,255,255,0.03);
+    transition: background 0.15s;
+    padding: 10px 16px;
+  }
+  .formula-card:hover { background: rgba(255,255,255,0.03); }
+
+  .formula-card img {
+    display: block;
+    max-height: 144px;
+    width: auto;
+    margin: 0 auto 8px;
+    image-rendering: auto;
+  }
+
   .formula-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 9px 16px;
-    border-top: 1px solid rgba(255,255,255,0.03);
-    transition: background 0.15s;
+    gap: 10px;
   }
-  .formula-row:hover { background: rgba(255,255,255,0.03); }
 
   .formula-num {
     flex-shrink: 0;
-    min-width: 34px;
-    height: 26px;
+    min-width: 30px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -260,6 +272,7 @@
     .formula-row { gap: 8px; padding: 8px 12px; }
     .formula-num { min-width: 28px; font-size: 0.72rem; }
     .formula-text { font-size: 0.72rem; }
+    .formula-card { padding: 8px 12px; }
   }
 </style>
 </head>
@@ -292,119 +305,764 @@
 
   <div class="dual-grid">
 
-    <!-- ========== 左栏：一、二 ========== -->
+    <!-- ========== 左栏：必备 + 进阶 ========== -->
     <div class="col-panel ou">
 
       <div class="col-header ou">必备 · 进阶</div>
 
-      <!-- 第一章 -->
+      <!-- 第一章：必备 -->
       <div class="chap-block ou">
         <div class="chap-title">一、整组角/半组角已组好，必备技术优先学习</div>
-
-        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">R' L' R L Uw R' L' R L</span></div>
-        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">R' L' R L <span class="brk">[Uw']</span> Uo' R L R' L'</span></div>
-        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">Uo' L R L' R'</span></div>
-        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text"><span class="brk">[Uw]</span> L' R' L R L R' L R L</span></div>
-        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">S U R' L' R L U H U' L' R' L R U</span></div>
-        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">S' U' R' L' R L U' H' U' R' L' R L U'</span></div>
-        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">S' U L' R' L R H' U L' R' L R U</span></div>
-        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">F S F' U' BL' H BL U L' U'</span></div>
-        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">S U L Uo' U' R U S' U' R' L U S U' L' Uo' R' U' S' U R</span></div>
-        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text">S' U' L' R' L R</span></div>
-        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text">S' U R' L' R L Uo' S' U' R' B' R B H U R' L' R L Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">S' U' R L R' L' S U L' R' L R</span></div>
-        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">F H F'</span></div>
-        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text"><span class="brk">[Uw']</span> R B' R' F R B R' F'</span></div>
-        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">BL' H' BL <span class="brk">[Uw']</span> BL' S' BL Uo' R U' S U R' L' U S' U' L</span></div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image9.png" alt="F1" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">1</span>
+            <span class="formula-text">Solved</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image11.png" alt="F2" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">2</span>
+            <span class="formula-text">R' L' R L' B L' B'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image11.png" alt="F3" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">3</span>
+            <span class="formula-text">R' L' R L Uw R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image11.png" alt="F4" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">4</span>
+            <span class="formula-text">R' L' R L Uo' R L R' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image13.png" alt="F5" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">5</span>
+            <span class="formula-text">R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image13.png" alt="F6" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">6</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> Uo' R L R' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image15.png" alt="F7" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">7</span>
+            <span class="formula-text">Uo' L R L' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image15.png" alt="F8" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">8</span>
+            <span class="formula-text"><span class="brk">[Uw]</span> L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image15.png" alt="F9" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">9</span>
+            <span class="formula-text">L R' L R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image17.png" alt="F10" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">10</span>
+            <span class="formula-text">S U R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image19.png" alt="F11" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">11</span>
+            <span class="formula-text">U H U' L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image21.png" alt="F12" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">12</span>
+            <span class="formula-text">U S' U' R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image21.png" alt="F13" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">13</span>
+            <span class="formula-text">U' H' U' R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image23.png" alt="F14" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">14</span>
+            <span class="formula-text">U' S' U L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image23.png" alt="F15" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">15</span>
+            <span class="formula-text">H' U L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image25.png" alt="F16" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">16</span>
+            <span class="formula-text">U F S F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image27.png" alt="F17" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">17</span>
+            <span class="formula-text">U' BL' H BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image29.png" alt="F18" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">18</span>
+            <span class="formula-text">U L' U' S U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image31.png" alt="F19" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">19</span>
+            <span class="formula-text">Uo' U' R U S' U' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image33.png" alt="F20" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">20</span>
+            <span class="formula-text">L U S U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image35.png" alt="F21" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">21</span>
+            <span class="formula-text">Uo' R' U' S' U R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image37.png" alt="F22" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">22</span>
+            <span class="formula-text">S' U' L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image39.png" alt="F23" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">23</span>
+            <span class="formula-text">S' U R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image41.png" alt="F24" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">24</span>
+            <span class="formula-text">Uo' S' U' R' B' R B</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image43.png" alt="F25" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">25</span>
+            <span class="formula-text">H U R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image45.png" alt="F26" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">26</span>
+            <span class="formula-text">Uo' S' U' R L R' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image47.png" alt="F27" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">27</span>
+            <span class="formula-text">S U L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image49.png" alt="F28" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">28</span>
+            <span class="formula-text">F H F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image49.png" alt="F29" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">29</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> R B' R' F R B R' F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image51.png" alt="F30" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">30</span>
+            <span class="formula-text">BL' H' BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image51.png" alt="F31" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">31</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> BL' S' BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image53.png" alt="F32" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">32</span>
+            <span class="formula-text">Uo' R U' S U R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image55.png" alt="F33" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">33</span>
+            <span class="formula-text">L' U S' U' L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image57.png" alt="F34" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">34</span>
+            <span class="formula-text">BL R' L' R L BL'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image59.png" alt="F35" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">35</span>
+            <span class="formula-text">Uo' BR' L R L' R' BR</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image61.png" alt="F36" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">36</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> BL L' R' L R BL'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image63.png" alt="F37" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">37</span>
+            <span class="formula-text"><span class="brk">[Uw]</span> Uo' BR' R L R' L' BR</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image65.png" alt="F38" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">38</span>
+            <span class="formula-text">BL' L R' L' BL L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image65.png" alt="F39" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">39</span>
+            <span class="formula-text"><span class="brk">[U]</span> R' L' R L U R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image67.png" alt="F40" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">40</span>
+            <span class="formula-text">L' R' L R U' L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image69.png" alt="F41" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">41</span>
+            <span class="formula-text">R' L' R L U' Uw' R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image69.png" alt="F42" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">42</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> R' L' R L F S F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image71.png" alt="F43" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">43</span>
+            <span class="formula-text"><span class="brk">[Uw]</span> L' R' L R U L R' L R L</span>
+          </div>
+        </div>
       </div>
 
-      <!-- 第二章 -->
+      <!-- 第二章：进阶 -->
       <div class="chap-block ou">
         <div class="chap-title">二、简单 setup + 四步/四步叠加，推荐进阶学习</div>
-
-        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">BL R' L' R L BL' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">BR' L R L' R' BR <span class="brk">[Uw']</span></span></div>
-        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">BL L' R' L R BL' <span class="brk">[Uw]</span> Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text">BR' R L R' L' BR</span></div>
-        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">BL' L R' L' BL L' R L <span class="brk">[U]</span></span></div>
-        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">R' L' R L U R' L' R L</span></div>
-        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">L' R' L R U' L' R' L R</span></div>
-        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">R' L' R L U' Uw' R' L' R L <span class="brk">[Uw']</span></span></div>
-        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">R' L' R L F S F'</span></div>
-        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text"><span class="brk">[Uw]</span> L' R' L R U L R' L R L</span></div>
-        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text"><span class="brk">[Uw']</span> L' U H U' L <span class="brk">[Uw]</span> L U' H' U L'</span></div>
-        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">BL' U BL S BL' U' BL</span></div>
-        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">BL' U' BL S BL' U BL</span></div>
-        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text">Uo' R U S' U' L R' L'</span></div>
-        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">L' U' S U R' L R U'</span></div>
-        <div class="formula-row"><span class="formula-num">16</span><span class="formula-text">L' U' H U L U L U H' U' L' U'</span></div>
-        <div class="formula-row"><span class="formula-num">17</span><span class="formula-text">L R' L R U' H U L U R L U' H' U L' R' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">18</span><span class="formula-text">L' R' U' S U R L R L U S' U' L' R' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">19</span><span class="formula-text"><span class="brk">[Uw]</span> R' U' S U R <span class="brk">[Uw']</span> L U S' U' L'</span></div>
-        <div class="formula-row"><span class="formula-num">20</span><span class="formula-text">L' R' L R U H U' R' L' R L H' U</span></div>
-        <div class="formula-row"><span class="formula-num">21</span><span class="formula-text">S U' L' R' L R Uo' L R' L' U' Uo H U L R' L R U H' U' L'</span></div>
-        <div class="formula-row"><span class="formula-num">22</span><span class="formula-text">F U H U' F'</span></div>
-        <div class="formula-row"><span class="formula-num">23</span><span class="formula-text">BL' U H' U' BL</span></div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image73.png" alt="F44" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">44</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> L' U H U' L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image75.png" alt="F45" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">45</span>
+            <span class="formula-text"><span class="brk">[Uw]</span> L U' H' U L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image77.png" alt="F46" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">46</span>
+            <span class="formula-text">BL' U BL S BL' U' BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image79.png" alt="F47" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">47</span>
+            <span class="formula-text">BL' U' BL S BL' U BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image81.png" alt="F48" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">48</span>
+            <span class="formula-text">Uo' R U S' U' L R' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image83.png" alt="F49" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">49</span>
+            <span class="formula-text">L' U' S U R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image85.png" alt="F50" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">50</span>
+            <span class="formula-text">U' L' U' H U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image87.png" alt="F51" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">51</span>
+            <span class="formula-text">U L U H' U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image89.png" alt="F52" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">52</span>
+            <span class="formula-text">U' L R' L R U' H U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image91.png" alt="F53" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">53</span>
+            <span class="formula-text">U R L U' H' U L' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image93.png" alt="F54" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">54</span>
+            <span class="formula-text">Uo' L' R' U' S U R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image95.png" alt="F55" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">55</span>
+            <span class="formula-text">R L U S' U' L' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image97.png" alt="F56" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">56</span>
+            <span class="formula-text">Uo' <span class="brk">[Uw]</span> R' U' S U R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image99.png" alt="F57" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">57</span>
+            <span class="formula-text"><span class="brk">[Uw']</span> L U S' U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image101.png" alt="F58" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">58</span>
+            <span class="formula-text">L' R' L R U H U' R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image103.png" alt="F59" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">59</span>
+            <span class="formula-text">H' U S U' L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image105.png" alt="F60" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">60</span>
+            <span class="formula-text">Uo' L R' L' U' Uo H U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image107.png" alt="F61" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">61</span>
+            <span class="formula-text">R' L R U H' U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image109.png" alt="F62" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">62</span>
+            <span class="formula-text">F U H U' F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image111.png" alt="F63" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">63</span>
+            <span class="formula-text">BL' U H' U' BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image113.png" alt="F64" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">64</span>
+            <span class="formula-text">F U' S' U F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image115.png" alt="F65" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">65</span>
+            <span class="formula-text">U' BL' U H U' BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image117.png" alt="F66" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">66</span>
+            <span class="formula-text">Uo' BR U S' U' BR'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image119.png" alt="F67" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">67</span>
+            <span class="formula-text">BL' U' S U BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image121.png" alt="F68" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">68</span>
+            <span class="formula-text">Uo' U' L' R' U S' U' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image123.png" alt="F69" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">69</span>
+            <span class="formula-text">U R L U' S U L' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image125.png" alt="F70" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">70</span>
+            <span class="formula-text">R' L' R L U BL' S' BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image127.png" alt="F71" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">71</span>
+            <span class="formula-text">U L' R' L R U' Uw F H F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image129.png" alt="F72" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">72</span>
+            <span class="formula-text">U BL' U' H U BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image131.png" alt="F73" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">73</span>
+            <span class="formula-text">U F U S' U' F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image131.png" alt="F74" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">74</span>
+            <span class="formula-text">Uo' U BR U H U' BR'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image133.png" alt="F75" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">75</span>
+            <span class="formula-text">U L U L' R' L R U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image135.png" alt="F76" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">76</span>
+            <span class="formula-text">Uo' U' R' U' R L R' L' U R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image137.png" alt="F77" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">77</span>
+            <span class="formula-text">U' L' U' L' R' L R U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image139.png" alt="F78" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">78</span>
+            <span class="formula-text">Uo' U R U R L R' L' U' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image141.png" alt="F79" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">79</span>
+            <span class="formula-text">U L U H U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image143.png" alt="F80" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">80</span>
+            <span class="formula-text">Uo' U R U S U' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image145.png" alt="F81" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">81</span>
+            <span class="formula-text">U' S' U S U' R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image147.png" alt="F82" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">82</span>
+            <span class="formula-text">Uo' U S U' S' U L R L' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image149.png" alt="F83" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">83</span>
+            <span class="formula-text">U' S U' S' U R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image151.png" alt="F84" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">84</span>
+            <span class="formula-text">Uo' U S' U S U' L R L' R'</span>
+          </div>
+        </div>
       </div>
 
     </div>
 
-    <!-- ========== 右栏：三、四 ========== -->
+    <!-- ========== 右栏：好认 + 控掉 ========== -->
     <div class="col-panel ji">
 
       <div class="col-header ji">好认 · 控掉</div>
 
-      <!-- 第三章 -->
+      <!-- 第三章：好认 -->
       <div class="chap-block ji">
         <div class="chap-title">三、好认但难遇到，"食之无味弃之可惜"</div>
-
-        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">F U' S' U F' U'</span></div>
-        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">BL' U H U' BL Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">BR U S' U' BR'</span></div>
-        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text">BL' U' S U BL Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">U' L' R' U S' U' R L U R L U' S U L' R'</span></div>
-        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">R' L' R L U BL' S' BL U L' R' L R U'</span></div>
-        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">Uw F H F' U BL' U' H U BL U F U S' U' F' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">U BR U H U' BR'</span></div>
-        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">U L U L' R' L R U' L' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text">U' R' U' R L R' L' U R U'</span></div>
-        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text">L' U' L' R' L R U L Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">U R U R L R' L' U' R'</span></div>
-        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">U L U H U' L' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text">U R U S U' R' U' S'</span></div>
-        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">U S U' R' L' R L Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">16</span><span class="formula-text">U S U' S' U L R L' R'</span></div>
-        <div class="formula-row"><span class="formula-num">17</span><span class="formula-text">U' S U' S' U R' L' R L Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">18</span><span class="formula-text">U S' U S U' L R L' R'</span></div>
-        <div class="formula-row"><span class="formula-num">19</span><span class="formula-text">U BL' S BL U R' L' R L</span></div>
-        <div class="formula-row"><span class="formula-num">20</span><span class="formula-text">F H' F' U L' R' L R BL' H BL U'</span></div>
-        <div class="formula-row"><span class="formula-num">21</span><span class="formula-text">L' R' L R U BL' U' H' U BL L' R' L R</span></div>
-        <div class="formula-row"><span class="formula-num">22</span><span class="formula-text">F S H F'</span></div>
-        <div class="formula-row"><span class="formula-num">23</span><span class="formula-text">BL' H S BL</span></div>
-        <div class="formula-row"><span class="formula-num">24</span><span class="formula-text">R F' L' R U' R' U L R' F</span></div>
-        <div class="formula-row"><span class="formula-num">25</span><span class="formula-text">BL' H U H' U' BL</span></div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image153.png" alt="F1" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">1</span>
+            <span class="formula-text">U BL' S BL U R' L' R L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image155.png" alt="F2" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">2</span>
+            <span class="formula-text">F H' F' U L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image157.png" alt="F3" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">3</span>
+            <span class="formula-text">BL' H BL U' L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image159.png" alt="F4" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">4</span>
+            <span class="formula-text">U BL' U' H' U BL L' R' L R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          
+          <div class="formula-row">
+            <span class="formula-num">5</span>
+            <span class="formula-text">F S H F'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          
+          <div class="formula-row">
+            <span class="formula-num">6</span>
+            <span class="formula-text">BL' H S BL</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          
+          <div class="formula-row">
+            <span class="formula-num">7</span>
+            <span class="formula-text">R F' L' R U' R' U L R' F</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          
+          <div class="formula-row">
+            <span class="formula-num">8</span>
+            <span class="formula-text">BL' H U H' U' BL</span>
+          </div>
+        </div>
       </div>
 
-      <!-- 第四章（弱化） -->
+      <!-- 第四章：控掉（弱化） -->
       <div class="chap-block ji dim">
         <div class="chap-title">四、尽量控掉或选取其他情况</div>
-
-        <div class="formula-row"><span class="formula-num">1</span><span class="formula-text">U' L' U' R B' R L' R L B U L U</span></div>
-        <div class="formula-row"><span class="formula-num">2</span><span class="formula-text">L U L' R B' R' B' L B' U' L'</span></div>
-        <div class="formula-row"><span class="formula-num">3</span><span class="formula-text">BLw' U' H U B' BLw</span></div>
-        <div class="formula-row"><span class="formula-num">4</span><span class="formula-text">L Fw U H' U' R B' R' Uo'</span></div>
-        <div class="formula-row"><span class="formula-num">5</span><span class="formula-text">L R L' U' H U R'</span></div>
-        <div class="formula-row"><span class="formula-num">6</span><span class="formula-text">R' L' R U Uo' S U' R</span></div>
-        <div class="formula-row"><span class="formula-num">7</span><span class="formula-text">R F U L' R' L R U' F' R'</span></div>
-        <div class="formula-row"><span class="formula-num">8</span><span class="formula-text">U R F U R' L' R L U' F' R'</span></div>
-        <div class="formula-row"><span class="formula-num">9</span><span class="formula-text">L BL' B' BL S' BL' B BL L'</span></div>
-        <div class="formula-row"><span class="formula-num">10</span><span class="formula-text">R' L' R L U' F R B' R' F' B</span></div>
-        <div class="formula-row"><span class="formula-num">11</span><span class="formula-text">L R' L R U' H' U L U</span></div>
-        <div class="formula-row"><span class="formula-num">12</span><span class="formula-text">R' L' R U S U' L R'</span></div>
-        <div class="formula-row"><span class="formula-num">13</span><span class="formula-text">F' R' B' R' B R' F L' R L</span></div>
-        <div class="formula-row"><span class="formula-num">14</span><span class="formula-text"><span class="brk">[Uw']</span> L U L' B L' B' R' L' R U' L'</span></div>
-        <div class="formula-row"><span class="formula-num">15</span><span class="formula-text">Us L U R' L' R L U' L R' L R</span></div>
-        <div class="formula-row"><span class="formula-num">16</span><span class="formula-text">R' L' R L' U H U' L'</span></div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image169.png" alt="F9" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">9</span>
+            <span class="formula-text">U' L' U' R B' R L' R L B U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image171.png" alt="F10" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">10</span>
+            <span class="formula-text">U L U L' R B' R' B' L B' U' L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image173.png" alt="F11" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">11</span>
+            <span class="formula-text">BLw' U' H U B' BLw L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image175.png" alt="F12" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">12</span>
+            <span class="formula-text">Fw U H' U' R B' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image177.png" alt="F13" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">13</span>
+            <span class="formula-text">Uo' L R L' U' H U R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image179.png" alt="F14" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">14</span>
+            <span class="formula-text">R' L' R U Uo' S U' R</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image181.png" alt="F15" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">15</span>
+            <span class="formula-text">R F U L' R' L R U' F' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image183.png" alt="F16" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">16</span>
+            <span class="formula-text">U R F U R' L' R L U' F' R'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image185.png" alt="F17" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">17</span>
+            <span class="formula-text">L BL' B' BL S' BL' B BL L'</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image187.png" alt="F18" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">18</span>
+            <span class="formula-text">R' L' R L U' F R B' R' F' B</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image189.png" alt="F19" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">19</span>
+            <span class="formula-text">L R' L R U' H' U L</span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <img src="/assets/images/lbt/image191.png" alt="F20" loading="lazy">
+          <div class="formula-row">
+            <span class="formula-num">20</span>
+            <span class="formula-text">U R' L' R U S U' L</span>
+          </div>
+        </div>
       </div>
 
     </div>
