@@ -27,264 +27,72 @@
       linear-gradient(225deg, rgba(244,114,182,0.03) 0%, transparent 50%, transparent 70%, rgba(96,165,250,0.03) 100%),
       radial-gradient(ellipse at 20% 20%, rgba(96,165,250,0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
-    background-size:
-      80px 80px,
-      80px 80px,
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      100% 100%;
+    background-size: 80px 80px, 80px 80px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   }
 
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 20px 16px 60px;
-  }
+  .container { position: relative; z-index: 1; max-width: 1800px; margin: 0 auto; padding: 12px 24px 40px; }
 
-  .top-nav {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 16px 0 12px;
-    flex-wrap: wrap;
-  }
+  .top-nav { display: flex; justify-content: center; gap: 8px; padding: 16px 0 12px; flex-wrap: wrap; }
 
-  .top-nav a {
-    color: #999;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 6px 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    transition: all 0.2s;
-    background: rgba(255,255,255,0.03);
-  }
+  .top-nav a { color: #999; text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 6px 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; transition: all 0.2s; background: rgba(255,255,255,0.03); }
 
   .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
   .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
 
-  .page-title {
-    text-align: center;
-    padding: 16px 0 4px;
-  }
+  .page-title { text-align: center; padding: 16px 0 4px; }
+  .page-title h1 { font-size: 2.2rem; font-weight: 800; color: #fff; letter-spacing: 0.04em; }
+  .page-subtitle { text-align: center; color: #888; font-size: 0.95rem; letter-spacing: 0.08em; margin-bottom: 28px; }
 
-  .page-title h1 {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: 0.04em;
-  }
+  .intro { max-width: 1000px; margin: 0 auto 36px; padding: 24px; background: rgba(24, 24, 36, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.95rem; color: #999; line-height: 1.8; backdrop-filter: blur(8px); }
+  .intro h3 { color: #FFD700; font-size: 1.15rem; margin-bottom: 14px; border-left: 3px solid #FFD700; padding-left: 12px; }
+  .symbol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 16px; }
+  .symbol-item { display: flex; align-items: center; gap: 10px; font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace; font-size: 0.9rem; }
+  .symbol-item .sym { color: #60a5fa; font-weight: 700; min-width: 28px; }
+  .symbol-item .eq { color: #f472b6; font-weight: 600; }
+  .intro .note { font-size: 0.85rem; color: #888; margin-top: 8px; }
+  .intro .sign { font-size: 0.82rem; color: #888; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
 
-  .page-subtitle {
-    text-align: center;
-    color: #888;
-    font-size: 0.95rem;
-    letter-spacing: 0.08em;
-    margin-bottom: 28px;
-  }
+  .dual-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 
-  .intro {
-    max-width: 1000px;
-    margin: 0 auto 36px;
-    padding: 24px;
-    background: rgba(24, 24, 36, 0.7);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    font-size: 0.95rem;
-    color: #999;
-    line-height: 1.8;
-    backdrop-filter: blur(8px);
-  }
+  .col-panel { background: rgba(18, 18, 30, 0.75); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; overflow: hidden; backdrop-filter: blur(10px); }
 
-  .intro h3 {
-    color: #FFD700;
-    font-size: 1.15rem;
-    margin-bottom: 14px;
-    border-left: 3px solid #FFD700;
-    padding-left: 12px;
-  }
+  .col-header { text-align: center; padding: 10px 16px; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.06em; }
 
-  .symbol-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px 24px;
-    margin-bottom: 16px;
-  }
+  .col-header.bibei, .col-header.jinjie { color: #60a5fa; background: rgba(96, 165, 250, 0.08); border-bottom: 1px solid rgba(96,165,250,0.15); }
+  .col-header.haoren { color: #f472b6; background: rgba(244, 114, 182, 0.08); border-bottom: 1px solid rgba(244,114,182,0.15); }
+  .col-header.kongdiao { color: #f472b6; background: rgba(244, 114, 182, 0.05); border-bottom: 1px solid rgba(244,114,182,0.08); }
 
-  .symbol-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
-    font-size: 0.9rem;
-  }
+  .case-grid { display: grid; gap: 10px; padding: 12px; }
+  .case-grid.bibei { grid-template-columns: repeat(6, 1fr); }
+  .case-grid.jinjie { grid-template-columns: repeat(6, 1fr); }
+  .case-grid.haoren { grid-template-columns: repeat(4, 1fr); }
+  .case-grid.kongdiao { grid-template-columns: repeat(4, 1fr); }
 
-  .symbol-item .sym {
-    color: #60a5fa;
-    font-weight: 700;
-    min-width: 28px;
-  }
+  .case-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.02); transition: background 0.15s; }
+  .case-card:hover { background: rgba(255,255,255,0.04); }
 
-  .symbol-item .eq {
-    color: #f472b6;
-    font-weight: 600;
-  }
+  .case-label { display: flex; align-items: center; gap: 6px; padding: 0; }
+  .case-tag { font-size: 0.85rem; font-weight: 800; padding: 2px 10px; border-radius: 10px; text-align: center; letter-spacing: 0.04em; }
+  .bibei .case-tag, .jinjie .case-tag { color: #60a5fa; background: rgba(96,165,250,0.12); }
+  .haoren .case-tag { color: #f472b6; background: rgba(244,114,182,0.12); }
+  .kongdiao .case-tag { color: #cbd5e1; background: rgba(255,255,255,0.06); }
 
-  .intro .note {
-    font-size: 0.85rem;
-    color: #888;
-    margin-top: 8px;
-  }
+  .case-abbr { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.03em; }
+  .bibei .case-abbr, .jinjie .case-abbr { color: #60a5fa; }
+  .haoren .case-abbr { color: #f472b6; }
+  .kongdiao .case-abbr { color: #cbd5e1; }
 
-  .intro .sign {
-    font-size: 0.82rem;
-    color: #888;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-  }
+  .case-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .case-img { width: 110px; height: 110px; border-radius: 8px; object-fit: contain; }
+  .case-formula { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace; font-size: 0.78rem; font-weight: 600; color: #e2e8f0; letter-spacing: 0.01em; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
+  .kongdiao .case-formula { color: #cbd5e1; }
+  .case-formula .brk { color: #fbbf24; font-weight: 700; }
 
-  .dual-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 12px;
-    align-items: start;
-  }
+  .attribution { max-width: 1000px; margin: 0 auto; padding: 24px; text-align: center; font-size: 0.9rem; color: #999; background: rgba(18, 18, 30, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; backdrop-filter: blur(8px); line-height: 1.8; }
 
-  .col-panel {
-    background: rgba(18, 18, 30, 0.75);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
-  }
-
-  .col-header {
-    text-align: center;
-    padding: 10px 8px;
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-  }
-
-  .col-header.ou {
-    color: #60a5fa;
-    background: rgba(96, 165, 250, 0.08);
-    border-bottom: 1px solid rgba(96,165,250,0.15);
-  }
-
-  .col-header.ji {
-    color: #f472b6;
-    background: rgba(244, 114, 182, 0.08);
-    border-bottom: 1px solid rgba(244,114,182,0.15);
-  }
-
-  .chap-block {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .chap-block:last-child { border-bottom: none; }
-
-  .chap-title {
-    font-size: 0.82rem;
-    font-weight: 700;
-    padding: 10px 10px 6px;
-    letter-spacing: 0.02em;
-  }
-  .chap-block.ou .chap-title { color: #93c5fd; }
-  .chap-block.ji .chap-title { color: #f9a8d4; }
-
-  /* --- Formula Card (image + formula) --- */
-  .formula-card {
-    border-top: 1px solid rgba(255,255,255,0.03);
-    transition: background 0.15s;
-    padding: 8px 10px;
-  }
-  .formula-card:hover { background: rgba(255,255,255,0.03); }
-
-  .formula-card img {
-    display: block;
-    max-height: 120px;
-    width: auto;
-    margin: 0 auto 6px;
-    image-rendering: auto;
-  }
-
-  .formula-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .formula-num {
-    flex-shrink: 0;
-    min-width: 26px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 700;
-    border-radius: 6px;
-    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
-  }
-  .chap-block.ou .formula-num { color: #60a5fa; background: rgba(96,165,250,0.1); }
-  .chap-block.ji .formula-num { color: #f472b6; background: rgba(244,114,182,0.1); }
-
-  .formula-text {
-    flex: 1;
-    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    letter-spacing: 0.01em;
-    line-height: 1.4;
-    white-space: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-  }
-  .formula-text::-webkit-scrollbar { height: 4px; }
-  .formula-text::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
-
-  .formula-text .brk { color: #fbbf24; font-weight: 700; }
-
-  /* Chapter 4 dimmed */
-  .chap-block.dim {
-    opacity: 0.55;
-  }
-  .chap-block.dim .chap-title { color: #cbd5e1; }
-  .chap-block.dim .formula-num { color: #cbd5e1; background: rgba(255,255,255,0.06); }
-  .chap-block.dim .formula-text { color: #cbd5e1; }
-  .chap-block.dim .formula-text .brk { color: #e5c07b; }
-
-  @media (max-width: 1200px) {
-    .dual-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-    .formula-text { font-size: 0.82rem; }
-    .formula-card { padding: 10px 14px; }
-    .formula-card img { max-height: 144px; }
-    .col-header { font-size: 1.15rem; padding: 12px 14px; }
-    .chap-title { font-size: 0.88rem; padding: 12px 14px 8px; }
-    .formula-num { min-width: 28px; height: 24px; font-size: 0.76rem; }
-    .formula-row { gap: 8px; }
-  }
-
-  @media (max-width: 700px) {
-    .dual-grid { grid-template-columns: 1fr; }
-    .page-title h1 { font-size: 1.6rem; }
-    .symbol-grid { grid-template-columns: 1fr; }
-    .formula-text { font-size: 0.82rem; }
-  }
-
-  @media (max-width: 400px) {
-    .formula-row { gap: 8px; padding: 8px 12px; }
-    .formula-num { min-width: 28px; font-size: 0.72rem; }
-    .formula-text { font-size: 0.72rem; }
-    .formula-card { padding: 8px 12px; }
-  }
+  @media (max-width: 1200px) { .case-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+  @media (max-width: 700px) { .case-grid { grid-template-columns: 1fr !important; } .page-title h1 { font-size: 1.6rem; } .symbol-grid { grid-template-columns: 1fr; } .case-img { width: 100px; height: 100px; } .case-formula { font-size: 0.74rem; white-space: normal; } }
+  @media (max-width: 400px) { .case-card { gap: 4px; padding: 8px 10px; } .case-tag { font-size: 0.7rem; padding: 2px 8px; } .case-formula { font-size: 0.7rem; } }
 </style>
 </head>
 <body>
@@ -315,758 +123,1067 @@
   </div>
 
   <div class="dual-grid">
-    <div class="col-panel ou">
-      <div class="col-header ou">必备技术</div>
-      <div class="chap-block ou">
-        <div class="chap-title">一、整组角/半组角已组好，必备技术优先学习</div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image9.png" alt="F1" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">1</span>
-            <span class="formula-text">Solved</span>
-          </div>
+
+    <div class="col-panel bibei">
+      <div class="col-header bibei">必备技术 — 整组角/半组角已组好，必备技术优先学习</div>
+      <div class="case-grid bibei">
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">1</span>
+          <span class="case-abbr">必备</span>
         </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image11.png" alt="F2" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">2</span>
-            <span class="formula-text">R' L' R L' B L' B'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image11.png" alt="F3" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">3</span>
-            <span class="formula-text">R' L' R L Uw R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image11.png" alt="F4" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">4</span>
-            <span class="formula-text">R' L' R L Uo' R L R' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image13.png" alt="F5" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">5</span>
-            <span class="formula-text">R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image13.png" alt="F6" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">6</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> Uo' R L R' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image15.png" alt="F7" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">7</span>
-            <span class="formula-text">Uo' L R L' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image15.png" alt="F8" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">8</span>
-            <span class="formula-text"><span class="brk">[Uw]</span> L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image15.png" alt="F9" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">9</span>
-            <span class="formula-text">L R' L R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image17.png" alt="F10" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">10</span>
-            <span class="formula-text">S U R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image19.png" alt="F11" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">11</span>
-            <span class="formula-text">U H U' L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image21.png" alt="F12" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">12</span>
-            <span class="formula-text">U S' U' R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image21.png" alt="F13" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">13</span>
-            <span class="formula-text">U' H' U' R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image23.png" alt="F14" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">14</span>
-            <span class="formula-text">U' S' U L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image23.png" alt="F15" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">15</span>
-            <span class="formula-text">H' U L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image25.png" alt="F16" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">16</span>
-            <span class="formula-text">U F S F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image27.png" alt="F17" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">17</span>
-            <span class="formula-text">U' BL' H BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image29.png" alt="F18" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">18</span>
-            <span class="formula-text">U L' U' S U L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image31.png" alt="F19" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">19</span>
-            <span class="formula-text">Uo' U' R U S' U' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image33.png" alt="F20" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">20</span>
-            <span class="formula-text">L U S U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image35.png" alt="F21" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">21</span>
-            <span class="formula-text">Uo' R' U' S' U R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image37.png" alt="F22" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">22</span>
-            <span class="formula-text">S' U' L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image39.png" alt="F23" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">23</span>
-            <span class="formula-text">S' U R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image41.png" alt="F24" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">24</span>
-            <span class="formula-text">Uo' S' U' R' B' R B</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image43.png" alt="F25" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">25</span>
-            <span class="formula-text">H U R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image45.png" alt="F26" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">26</span>
-            <span class="formula-text">Uo' S' U' R L R' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image47.png" alt="F27" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">27</span>
-            <span class="formula-text">S U L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image49.png" alt="F28" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">28</span>
-            <span class="formula-text">F H F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image49.png" alt="F29" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">29</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> R B' R' F R B R' F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image51.png" alt="F30" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">30</span>
-            <span class="formula-text">BL' H' BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image51.png" alt="F31" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">31</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> BL' S' BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image53.png" alt="F32" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">32</span>
-            <span class="formula-text">Uo' R U' S U R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image55.png" alt="F33" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">33</span>
-            <span class="formula-text">L' U S' U' L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image57.png" alt="F34" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">34</span>
-            <span class="formula-text">BL R' L' R L BL'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image59.png" alt="F35" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">35</span>
-            <span class="formula-text">Uo' BR' L R L' R' BR</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image61.png" alt="F36" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">36</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> BL L' R' L R BL'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image63.png" alt="F37" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">37</span>
-            <span class="formula-text"><span class="brk">[Uw]</span> Uo' BR' R L R' L' BR</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image65.png" alt="F38" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">38</span>
-            <span class="formula-text">BL' L R' L' BL L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image65.png" alt="F39" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">39</span>
-            <span class="formula-text"><span class="brk">[U]</span> R' L' R L U R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image67.png" alt="F40" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">40</span>
-            <span class="formula-text">L' R' L R U' L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image69.png" alt="F41" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">41</span>
-            <span class="formula-text">R' L' R L U' Uw' R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image69.png" alt="F42" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">42</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> R' L' R L F S F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image71.png" alt="F43" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">43</span>
-            <span class="formula-text"><span class="brk">[Uw]</span> L' R' L R U L R' L R L</span>
-          </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image9.png" alt="F1" loading="lazy">
+          <span class="case-formula">Solved</span>
         </div>
       </div>
-    </div>
-    <div class="col-panel ou">
-      <div class="col-header ou">进阶推荐</div>
-      <div class="chap-block ou">
-        <div class="chap-title">二、简单 setup + 四步/四步叠加，推荐进阶学习</div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image73.png" alt="F44" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">44</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> L' U H U' L</span>
-          </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">2</span>
+          <span class="case-abbr">必备</span>
         </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image75.png" alt="F45" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">45</span>
-            <span class="formula-text"><span class="brk">[Uw]</span> L U' H' U L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image77.png" alt="F46" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">46</span>
-            <span class="formula-text">BL' U BL S BL' U' BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image79.png" alt="F47" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">47</span>
-            <span class="formula-text">BL' U' BL S BL' U BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image81.png" alt="F48" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">48</span>
-            <span class="formula-text">Uo' R U S' U' L R' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image83.png" alt="F49" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">49</span>
-            <span class="formula-text">L' U' S U R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image85.png" alt="F50" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">50</span>
-            <span class="formula-text">U' L' U' H U L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image87.png" alt="F51" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">51</span>
-            <span class="formula-text">U L U H' U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image89.png" alt="F52" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">52</span>
-            <span class="formula-text">U' L R' L R U' H U L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image91.png" alt="F53" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">53</span>
-            <span class="formula-text">U R L U' H' U L' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image93.png" alt="F54" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">54</span>
-            <span class="formula-text">Uo' L' R' U' S U R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image95.png" alt="F55" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">55</span>
-            <span class="formula-text">R L U S' U' L' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image97.png" alt="F56" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">56</span>
-            <span class="formula-text">Uo' <span class="brk">[Uw]</span> R' U' S U R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image99.png" alt="F57" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">57</span>
-            <span class="formula-text"><span class="brk">[Uw']</span> L U S' U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image101.png" alt="F58" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">58</span>
-            <span class="formula-text">L' R' L R U H U' R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image103.png" alt="F59" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">59</span>
-            <span class="formula-text">H' U S U' L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image105.png" alt="F60" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">60</span>
-            <span class="formula-text">Uo' L R' L' U' Uo H U L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image107.png" alt="F61" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">61</span>
-            <span class="formula-text">R' L R U H' U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image109.png" alt="F62" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">62</span>
-            <span class="formula-text">F U H U' F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image111.png" alt="F63" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">63</span>
-            <span class="formula-text">BL' U H' U' BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image113.png" alt="F64" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">64</span>
-            <span class="formula-text">F U' S' U F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image115.png" alt="F65" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">65</span>
-            <span class="formula-text">U' BL' U H U' BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image117.png" alt="F66" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">66</span>
-            <span class="formula-text">Uo' BR U S' U' BR'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image119.png" alt="F67" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">67</span>
-            <span class="formula-text">BL' U' S U BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image121.png" alt="F68" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">68</span>
-            <span class="formula-text">Uo' U' L' R' U S' U' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image123.png" alt="F69" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">69</span>
-            <span class="formula-text">U R L U' S U L' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image125.png" alt="F70" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">70</span>
-            <span class="formula-text">R' L' R L U BL' S' BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image127.png" alt="F71" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">71</span>
-            <span class="formula-text">U L' R' L R U' Uw F H F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image129.png" alt="F72" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">72</span>
-            <span class="formula-text">U BL' U' H U BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image131.png" alt="F73" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">73</span>
-            <span class="formula-text">U F U S' U' F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image131.png" alt="F74" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">74</span>
-            <span class="formula-text">Uo' U BR U H U' BR'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image133.png" alt="F75" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">75</span>
-            <span class="formula-text">U L U L' R' L R U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image135.png" alt="F76" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">76</span>
-            <span class="formula-text">Uo' U' R' U' R L R' L' U R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image137.png" alt="F77" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">77</span>
-            <span class="formula-text">U' L' U' L' R' L R U L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image139.png" alt="F78" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">78</span>
-            <span class="formula-text">Uo' U R U R L R' L' U' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image141.png" alt="F79" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">79</span>
-            <span class="formula-text">U L U H U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image143.png" alt="F80" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">80</span>
-            <span class="formula-text">Uo' U R U S U' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image145.png" alt="F81" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">81</span>
-            <span class="formula-text">U' S' U S U' R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image147.png" alt="F82" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">82</span>
-            <span class="formula-text">Uo' U S U' S' U L R L' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image149.png" alt="F83" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">83</span>
-            <span class="formula-text">U' S U' S' U R' L' R L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image151.png" alt="F84" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">84</span>
-            <span class="formula-text">Uo' U S' U S U' L R L' R'</span>
-          </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image11.png" alt="F2" loading="lazy">
+          <span class="case-formula">R' L' R L' B L' B'</span>
         </div>
       </div>
-    </div>
-    <div class="col-panel ji">
-      <div class="col-header ji">好认难遇</div>
-      <div class="chap-block ji">
-        <div class="chap-title">三、好认但难遇到，"食之无味弃之可惜"</div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image153.png" alt="F1" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">1</span>
-            <span class="formula-text">U BL' S BL U R' L' R L</span>
-          </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">3</span>
+          <span class="case-abbr">必备</span>
         </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image155.png" alt="F2" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">2</span>
-            <span class="formula-text">F H' F' U L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image157.png" alt="F3" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">3</span>
-            <span class="formula-text">BL' H BL U' L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image159.png" alt="F4" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">4</span>
-            <span class="formula-text">U BL' U' H' U BL L' R' L R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          
-          <div class="formula-row">
-            <span class="formula-num">5</span>
-            <span class="formula-text">F S H F'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          
-          <div class="formula-row">
-            <span class="formula-num">6</span>
-            <span class="formula-text">BL' H S BL</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          
-          <div class="formula-row">
-            <span class="formula-num">7</span>
-            <span class="formula-text">R F' L' R U' R' U L R' F</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          
-          <div class="formula-row">
-            <span class="formula-num">8</span>
-            <span class="formula-text">BL' H U H' U' BL</span>
-          </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image11.png" alt="F3" loading="lazy">
+          <span class="case-formula">R' L' R L Uw R' L' R L</span>
         </div>
       </div>
-    </div>
-    <div class="col-panel ji">
-      <div class="col-header ji">尽量控掉</div>
-      <div class="chap-block ji dim">
-        <div class="chap-title">四、尽量控掉或选取其他情况</div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image169.png" alt="F9" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">9</span>
-            <span class="formula-text">U' L' U' R B' R L' R L B U L</span>
-          </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">4</span>
+          <span class="case-abbr">必备</span>
         </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image171.png" alt="F10" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">10</span>
-            <span class="formula-text">U L U L' R B' R' B' L B' U' L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image173.png" alt="F11" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">11</span>
-            <span class="formula-text">BLw' U' H U B' BLw L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image175.png" alt="F12" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">12</span>
-            <span class="formula-text">Fw U H' U' R B' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image177.png" alt="F13" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">13</span>
-            <span class="formula-text">Uo' L R L' U' H U R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image179.png" alt="F14" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">14</span>
-            <span class="formula-text">R' L' R U Uo' S U' R</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image181.png" alt="F15" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">15</span>
-            <span class="formula-text">R F U L' R' L R U' F' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image183.png" alt="F16" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">16</span>
-            <span class="formula-text">U R F U R' L' R L U' F' R'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image185.png" alt="F17" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">17</span>
-            <span class="formula-text">L BL' B' BL S' BL' B BL L'</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image187.png" alt="F18" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">18</span>
-            <span class="formula-text">R' L' R L U' F R B' R' F' B</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image189.png" alt="F19" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">19</span>
-            <span class="formula-text">L R' L R U' H' U L</span>
-          </div>
-        </div>
-        <div class="formula-card">
-          <img src="/assets/images/lbt/image191.png" alt="F20" loading="lazy">
-          <div class="formula-row">
-            <span class="formula-num">20</span>
-            <span class="formula-text">U R' L' R U S U' L</span>
-          </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image11.png" alt="F4" loading="lazy">
+          <span class="case-formula">R' L' R L Uo' R L R' L'</span>
         </div>
       </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">5</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image13.png" alt="F5" loading="lazy">
+          <span class="case-formula">R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">6</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image13.png" alt="F6" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> Uo' R L R' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">7</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image15.png" alt="F7" loading="lazy">
+          <span class="case-formula">Uo' L R L' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">8</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image15.png" alt="F8" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw]</span> L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">9</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image15.png" alt="F9" loading="lazy">
+          <span class="case-formula">L R' L R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">10</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image17.png" alt="F10" loading="lazy">
+          <span class="case-formula">S U R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">11</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image19.png" alt="F11" loading="lazy">
+          <span class="case-formula">U H U' L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">12</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image21.png" alt="F12" loading="lazy">
+          <span class="case-formula">U S' U' R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">13</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image21.png" alt="F13" loading="lazy">
+          <span class="case-formula">U' H' U' R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">14</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image23.png" alt="F14" loading="lazy">
+          <span class="case-formula">U' S' U L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">15</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image23.png" alt="F15" loading="lazy">
+          <span class="case-formula">H' U L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">16</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image25.png" alt="F16" loading="lazy">
+          <span class="case-formula">U F S F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">17</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image27.png" alt="F17" loading="lazy">
+          <span class="case-formula">U' BL' H BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">18</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image29.png" alt="F18" loading="lazy">
+          <span class="case-formula">U L' U' S U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">19</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image31.png" alt="F19" loading="lazy">
+          <span class="case-formula">Uo' U' R U S' U' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">20</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image33.png" alt="F20" loading="lazy">
+          <span class="case-formula">L U S U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">21</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image35.png" alt="F21" loading="lazy">
+          <span class="case-formula">Uo' R' U' S' U R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">22</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image37.png" alt="F22" loading="lazy">
+          <span class="case-formula">S' U' L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">23</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image39.png" alt="F23" loading="lazy">
+          <span class="case-formula">S' U R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">24</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image41.png" alt="F24" loading="lazy">
+          <span class="case-formula">Uo' S' U' R' B' R B</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">25</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image43.png" alt="F25" loading="lazy">
+          <span class="case-formula">H U R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">26</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image45.png" alt="F26" loading="lazy">
+          <span class="case-formula">Uo' S' U' R L R' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">27</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image47.png" alt="F27" loading="lazy">
+          <span class="case-formula">S U L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">28</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image49.png" alt="F28" loading="lazy">
+          <span class="case-formula">F H F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">29</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image49.png" alt="F29" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> R B' R' F R B R' F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">30</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image51.png" alt="F30" loading="lazy">
+          <span class="case-formula">BL' H' BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">31</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image51.png" alt="F31" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> BL' S' BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">32</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image53.png" alt="F32" loading="lazy">
+          <span class="case-formula">Uo' R U' S U R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">33</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image55.png" alt="F33" loading="lazy">
+          <span class="case-formula">L' U S' U' L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">34</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image57.png" alt="F34" loading="lazy">
+          <span class="case-formula">BL R' L' R L BL'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">35</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image59.png" alt="F35" loading="lazy">
+          <span class="case-formula">Uo' BR' L R L' R' BR</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">36</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image61.png" alt="F36" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> BL L' R' L R BL'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">37</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image63.png" alt="F37" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw]</span> Uo' BR' R L R' L' BR</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">38</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image65.png" alt="F38" loading="lazy">
+          <span class="case-formula">BL' L R' L' BL L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">39</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image65.png" alt="F39" loading="lazy">
+          <span class="case-formula"><span class="brk">[U]</span> R' L' R L U R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">40</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image67.png" alt="F40" loading="lazy">
+          <span class="case-formula">L' R' L R U' L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">41</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image69.png" alt="F41" loading="lazy">
+          <span class="case-formula">R' L' R L U' Uw' R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">42</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image69.png" alt="F42" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> R' L' R L F S F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">43</span>
+          <span class="case-abbr">必备</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image71.png" alt="F43" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw]</span> L' R' L R U L R' L R L</span>
+        </div>
+      </div>
+      </div>
     </div>
+    <div class="col-panel jinjie">
+      <div class="col-header jinjie">进阶推荐 — 简单 setup + 四步/四步叠加，推荐进阶学习</div>
+      <div class="case-grid jinjie">
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">44</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image73.png" alt="F44" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> L' U H U' L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">45</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image75.png" alt="F45" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw]</span> L U' H' U L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">46</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image77.png" alt="F46" loading="lazy">
+          <span class="case-formula">BL' U BL S BL' U' BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">47</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image79.png" alt="F47" loading="lazy">
+          <span class="case-formula">BL' U' BL S BL' U BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">48</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image81.png" alt="F48" loading="lazy">
+          <span class="case-formula">Uo' R U S' U' L R' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">49</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image83.png" alt="F49" loading="lazy">
+          <span class="case-formula">L' U' S U R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">50</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image85.png" alt="F50" loading="lazy">
+          <span class="case-formula">U' L' U' H U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">51</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image87.png" alt="F51" loading="lazy">
+          <span class="case-formula">U L U H' U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">52</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image89.png" alt="F52" loading="lazy">
+          <span class="case-formula">U' L R' L R U' H U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">53</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image91.png" alt="F53" loading="lazy">
+          <span class="case-formula">U R L U' H' U L' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">54</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image93.png" alt="F54" loading="lazy">
+          <span class="case-formula">Uo' L' R' U' S U R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">55</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image95.png" alt="F55" loading="lazy">
+          <span class="case-formula">R L U S' U' L' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">56</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image97.png" alt="F56" loading="lazy">
+          <span class="case-formula">Uo' <span class="brk">[Uw]</span> R' U' S U R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">57</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image99.png" alt="F57" loading="lazy">
+          <span class="case-formula"><span class="brk">[Uw']</span> L U S' U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">58</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image101.png" alt="F58" loading="lazy">
+          <span class="case-formula">L' R' L R U H U' R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">59</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image103.png" alt="F59" loading="lazy">
+          <span class="case-formula">H' U S U' L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">60</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image105.png" alt="F60" loading="lazy">
+          <span class="case-formula">Uo' L R' L' U' Uo H U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">61</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image107.png" alt="F61" loading="lazy">
+          <span class="case-formula">R' L R U H' U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">62</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image109.png" alt="F62" loading="lazy">
+          <span class="case-formula">F U H U' F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">63</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image111.png" alt="F63" loading="lazy">
+          <span class="case-formula">BL' U H' U' BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">64</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image113.png" alt="F64" loading="lazy">
+          <span class="case-formula">F U' S' U F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">65</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image115.png" alt="F65" loading="lazy">
+          <span class="case-formula">U' BL' U H U' BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">66</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image117.png" alt="F66" loading="lazy">
+          <span class="case-formula">Uo' BR U S' U' BR'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">67</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image119.png" alt="F67" loading="lazy">
+          <span class="case-formula">BL' U' S U BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">68</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image121.png" alt="F68" loading="lazy">
+          <span class="case-formula">Uo' U' L' R' U S' U' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">69</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image123.png" alt="F69" loading="lazy">
+          <span class="case-formula">U R L U' S U L' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">70</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image125.png" alt="F70" loading="lazy">
+          <span class="case-formula">R' L' R L U BL' S' BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">71</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image127.png" alt="F71" loading="lazy">
+          <span class="case-formula">U L' R' L R U' Uw F H F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">72</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image129.png" alt="F72" loading="lazy">
+          <span class="case-formula">U BL' U' H U BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">73</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image131.png" alt="F73" loading="lazy">
+          <span class="case-formula">U F U S' U' F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">74</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image131.png" alt="F74" loading="lazy">
+          <span class="case-formula">Uo' U BR U H U' BR'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">75</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image133.png" alt="F75" loading="lazy">
+          <span class="case-formula">U L U L' R' L R U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">76</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image135.png" alt="F76" loading="lazy">
+          <span class="case-formula">Uo' U' R' U' R L R' L' U R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">77</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image137.png" alt="F77" loading="lazy">
+          <span class="case-formula">U' L' U' L' R' L R U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">78</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image139.png" alt="F78" loading="lazy">
+          <span class="case-formula">Uo' U R U R L R' L' U' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">79</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image141.png" alt="F79" loading="lazy">
+          <span class="case-formula">U L U H U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">80</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image143.png" alt="F80" loading="lazy">
+          <span class="case-formula">Uo' U R U S U' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">81</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image145.png" alt="F81" loading="lazy">
+          <span class="case-formula">U' S' U S U' R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">82</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image147.png" alt="F82" loading="lazy">
+          <span class="case-formula">Uo' U S U' S' U L R L' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">83</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image149.png" alt="F83" loading="lazy">
+          <span class="case-formula">U' S U' S' U R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">84</span>
+          <span class="case-abbr">进阶</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image151.png" alt="F84" loading="lazy">
+          <span class="case-formula">Uo' U S' U S U' L R L' R'</span>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="col-panel haoren">
+      <div class="col-header haoren">好认难遇 — 好认但难遇到，食之无味弃之可惜</div>
+      <div class="case-grid haoren">
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">1</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image153.png" alt="F1" loading="lazy">
+          <span class="case-formula">U BL' S BL U R' L' R L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">2</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image155.png" alt="F2" loading="lazy">
+          <span class="case-formula">F H' F' U L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">3</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image157.png" alt="F3" loading="lazy">
+          <span class="case-formula">BL' H BL U' L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">4</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image159.png" alt="F4" loading="lazy">
+          <span class="case-formula">U BL' U' H' U BL L' R' L R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">5</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+          <span class="case-formula">F S H F'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">6</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+          <span class="case-formula">BL' H S BL</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">7</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+          <span class="case-formula">R F' L' R U' R' U L R' F</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">8</span>
+          <span class="case-abbr">好认</span>
+        </div>
+        <div class="case-cell">
+          <span class="case-formula">BL' H U H' U' BL</span>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="col-panel kongdiao">
+      <div class="col-header kongdiao">尽量控掉 — 尽量控掉或选取其他情况</div>
+      <div class="case-grid kongdiao">
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">9</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image169.png" alt="F9" loading="lazy">
+          <span class="case-formula">U' L' U' R B' R L' R L B U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">10</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image171.png" alt="F10" loading="lazy">
+          <span class="case-formula">U L U L' R B' R' B' L B' U' L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">11</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image173.png" alt="F11" loading="lazy">
+          <span class="case-formula">BLw' U' H U B' BLw L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">12</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image175.png" alt="F12" loading="lazy">
+          <span class="case-formula">Fw U H' U' R B' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">13</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image177.png" alt="F13" loading="lazy">
+          <span class="case-formula">Uo' L R L' U' H U R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">14</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image179.png" alt="F14" loading="lazy">
+          <span class="case-formula">R' L' R U Uo' S U' R</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">15</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image181.png" alt="F15" loading="lazy">
+          <span class="case-formula">R F U L' R' L R U' F' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">16</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image183.png" alt="F16" loading="lazy">
+          <span class="case-formula">U R F U R' L' R L U' F' R'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">17</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image185.png" alt="F17" loading="lazy">
+          <span class="case-formula">L BL' B' BL S' BL' B BL L'</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">18</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image187.png" alt="F18" loading="lazy">
+          <span class="case-formula">R' L' R L U' F R B' R' F' B</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">19</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image189.png" alt="F19" loading="lazy">
+          <span class="case-formula">L R' L R U' H' U L</span>
+        </div>
+      </div>
+      <div class="case-card">
+        <div class="case-label">
+          <span class="case-tag">20</span>
+          <span class="case-abbr">控掉</span>
+        </div>
+        <div class="case-cell">
+            <img class="case-img" src="/assets/images/lbt/image191.png" alt="F20" loading="lazy">
+          <span class="case-formula">U R' L' R U S U' L</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="attribution">
+    本网站内容来自中国转面八面体（FTO）魔方交流群 <span style="color:#fbbf24;font-weight:600;">272010376</span>　　制作人：<span style="color:#60a5fa;font-weight:600;">魔方先生SSR</span>　<span style="color:#f472b6;font-weight:600;">2009ZHAN24</span>
   </div>
 
 </div>
