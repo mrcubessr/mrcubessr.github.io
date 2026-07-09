@@ -39,9 +39,9 @@
   .container {
     position: relative;
     z-index: 1;
-    max-width: 1100px;
+    max-width: 1800px;
     margin: 0 auto;
-    padding: 20px 16px 60px;
+    padding: 12px 24px 40px;
   }
 
   .top-nav {
@@ -86,8 +86,8 @@
 
   .dual-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
     margin-bottom: 28px;
   }
 
@@ -101,7 +101,7 @@
 
   .col-header {
     text-align: center;
-    padding: 14px 16px;
+    padding: 10px 16px;
     font-size: 1.25rem;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -114,6 +114,12 @@
   }
 
   .col-header.tl {
+    color: #f472b6;
+    background: rgba(244, 114, 182, 0.08);
+    border-bottom: 1px solid rgba(244,114,182,0.15);
+  }
+
+  .col-header.lt {
     color: #f472b6;
     background: rgba(244, 114, 182, 0.08);
     border-bottom: 1px solid rgba(244,114,182,0.15);
@@ -134,8 +140,8 @@
   .case-row {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
+    gap: 10px;
+    padding: 12px 14px;
     border-bottom: 1px solid rgba(255,255,255,0.04);
     transition: background 0.15s;
   }
@@ -150,11 +156,11 @@
     align-items: center;
     gap: 2px;
     padding: 8px 0;
-    min-width: 64px;
+    min-width: 52px;
   }
 
   .case-tag {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 800;
     padding: 4px 14px;
     border-radius: 12px;
@@ -174,7 +180,7 @@
   }
 
   .case-abbr {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 900;
     text-align: center;
     letter-spacing: 0.04em;
@@ -189,8 +195,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 12px;
+    gap: 4px;
+    padding: 10px;
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
     background: rgba(255,255,255,0.02);
@@ -203,8 +209,8 @@
   }
 
   .case-img {
-    width: 144px;
-    height: 144px;
+    width: 130px;
+    height: 130px;
     border-radius: 8px;
     object-fit: contain;
     flex-shrink: 0;
@@ -227,7 +233,7 @@
 
   .case-formula {
     font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
-    font-size: 0.92rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #e2e8f0;
     letter-spacing: 0.02em;
@@ -264,6 +270,10 @@
     border-radius: 12px;
     backdrop-filter: blur(8px);
     line-height: 1.8;
+  }
+
+  @media (max-width: 1200px) {
+    .dual-grid { grid-template-columns: 1fr 1fr; }
   }
 
   @media (max-width: 700px) {
@@ -482,7 +492,7 @@
 
     </div>
 
-    <!-- ========== TL + LT ========== -->
+    <!-- ========== TL ========== -->
     <div class="col-panel tl">
       <div class="col-header tl">TL — Top Layer</div>
 
@@ -566,8 +576,11 @@
         </div>
       </div>
 
-      <!-- LT sub-section -->
-      <div class="sub-header">LT — Last Triangles</div>
+    </div>
+
+    <!-- ========== LT ========== -->
+    <div class="col-panel tl">
+      <div class="col-header lt">LT — Last Triangles</div>
 
       <div class="case-row">
         <div class="case-label">
