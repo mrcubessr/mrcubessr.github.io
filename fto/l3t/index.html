@@ -86,8 +86,8 @@
 
   .dual-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 24px;
     margin-bottom: 28px;
   }
 
@@ -125,6 +125,24 @@
     border-bottom: 1px solid rgba(244,114,182,0.15);
   }
 
+  .case-grid {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .case-grid.pf {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .case-grid.tl {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .case-grid.lt {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   .sub-header {
     text-align: center;
     padding: 10px 16px;
@@ -148,6 +166,48 @@
 
   .case-row:last-child { border-bottom: none; }
   .case-row:hover { background: rgba(255,255,255,0.03); }
+
+  .case-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+    transition: background 0.15s;
+  }
+
+  .case-card:hover { background: rgba(255,255,255,0.04); }
+
+  .case-card .case-label {
+    flex-direction: row;
+    gap: 6px;
+    min-width: auto;
+    padding: 0;
+  }
+
+  .case-card .case-img {
+    width: 110px;
+    height: 110px;
+  }
+
+  .case-card .case-formula {
+    font-size: 0.78rem;
+  }
+
+  .case-card .case-setup {
+    font-size: 0.72rem;
+  }
+
+  .case-card .case-cell {
+    flex: none;
+    border: none;
+    background: none;
+    padding: 0;
+    gap: 4px;
+  }
 
   .case-label {
     flex-shrink: 0;
@@ -273,20 +333,19 @@
   }
 
   @media (max-width: 1200px) {
-    .dual-grid { grid-template-columns: 1fr 1fr; }
+    .case-grid.pf { grid-template-columns: repeat(3, 1fr); }
   }
 
   @media (max-width: 700px) {
-    .dual-grid { grid-template-columns: 1fr; }
+    .case-grid { grid-template-columns: 1fr; }
     .page-title h1 { font-size: 1.6rem; }
-    .case-formula { font-size: 0.78rem; white-space: normal; }
-    .case-img { width: 120px; height: 120px; }
+    .case-card .case-img { width: 100px; height: 100px; }
   }
 
   @media (max-width: 400px) {
-    .case-row { gap: 8px; padding: 10px 12px; }
-    .case-tag { font-size: 0.7rem; padding: 2px 8px; min-width: 44px; }
-    .case-formula { font-size: 0.74rem; }
+    .case-card { gap: 4px; padding: 8px 10px; }
+    .case-card .case-tag { font-size: 0.7rem; padding: 2px 8px; }
+    .case-card .case-formula { font-size: 0.7rem; }
   }
 </style>
 </head>
@@ -310,7 +369,8 @@
     <div class="col-panel pf">
       <div class="col-header pf">PF — Pair Formation</div>
 
-      <div class="case-row">
+      <div class="case-grid pf">
+<div class="case-card">
         <div class="case-label">
           <span class="case-tag">1</span>
           <span class="case-dir">U</span>
@@ -328,7 +388,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">2</span>
           <span class="case-dir">U</span>
@@ -346,7 +406,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">3</span>
           <span class="case-dir">U</span>
@@ -364,7 +424,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">4</span>
           <span class="case-dir">L</span>
@@ -382,7 +442,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">5</span>
           <span class="case-dir">L</span>
@@ -400,7 +460,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">6</span>
           <span class="case-dir">R</span>
@@ -418,7 +478,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">7</span>
           <span class="case-dir">R</span>
@@ -436,7 +496,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">8</span>
           <span class="case-dir">L</span>
@@ -454,7 +514,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">9</span>
           <span class="case-dir">R</span>
@@ -472,7 +532,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">10</span>
           <span class="case-dir">U</span>
@@ -489,6 +549,7 @@
           </div>
         </div>
       </div>
+      </div>
 
     </div>
 
@@ -496,7 +557,8 @@
     <div class="col-panel tl">
       <div class="col-header tl">TL — Top Layer</div>
 
-      <div class="case-row">
+      <div class="case-grid tl">
+<div class="case-card">
         <div class="case-label">
           <span class="case-tag">1</span>
           <span class="case-abbr">TL</span>
@@ -512,7 +574,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">2</span>
           <span class="case-abbr">TL</span>
@@ -528,7 +590,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">3</span>
           <span class="case-abbr">TL</span>
@@ -544,7 +606,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">4</span>
           <span class="case-abbr">TL</span>
@@ -560,7 +622,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">5</span>
           <span class="case-abbr">TL</span>
@@ -575,6 +637,7 @@
           </div>
         </div>
       </div>
+      </div>
 
     </div>
 
@@ -582,7 +645,8 @@
     <div class="col-panel tl">
       <div class="col-header lt">LT — Last Triangles</div>
 
-      <div class="case-row">
+      <div class="case-grid lt">
+<div class="case-card">
         <div class="case-label">
           <span class="case-tag">1</span>
           <span class="case-abbr">LT</span>
@@ -598,7 +662,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">2</span>
           <span class="case-abbr">LT</span>
@@ -614,7 +678,7 @@
         </div>
       </div>
 
-      <div class="case-row">
+      <div class="case-card">
         <div class="case-label">
           <span class="case-tag">3</span>
           <span class="case-abbr">LT</span>
@@ -628,6 +692,7 @@
             <span class="case-setup">U' R U' R' Rw U R' U' R Rw' U'</span>
           </div>
         </div>
+      </div>
       </div>
 
     </div>
