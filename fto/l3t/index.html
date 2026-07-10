@@ -248,15 +248,23 @@
   }
 
   .pf .case-abbr { color: #60a5fa; }
+    .symbol-note {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.85rem;
+    padding: 8px 0 4px;
+    line-height: 1.8;
+  }
+  .symbol-note p { margin: 0; }
+
   .tl .case-abbr { color: #f472b6; }
 
   .case-name {
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: #999;
-    font-style: italic;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #60a5fa;
     text-align: center;
-    margin-top: 1px;
+    margin-top: 2px;
   }
   .case-cell {
     flex: 1;
@@ -277,8 +285,8 @@
   }
 
   .case-img {
-    width: 130px;
-    height: 130px;
+    width: 20%;
+    height: auto;
     border-radius: 8px;
     object-fit: contain;
     flex-shrink: 0;
@@ -366,7 +374,10 @@
     <a href="/fto/l3t" class="active">L3T</a>
   </div>
 
-  <div style="text-align:center;color:#888;font-size:0.85rem;padding:8px 0 4px;">黄色面是U，坐标是cif坐标</div>
+  <div class="symbol-note">
+    <p>黄色面是F面 &nbsp; &nbsp; 符号使用 EIF 坐标:</p>
+    <p>S: R' L R L' &nbsp; &nbsp; S': L R' L' R &nbsp; &nbsp; H: R U' R' U &nbsp; &nbsp; H': U' R U R'</p>
+  </div>
 
   <div class="page-title">
     <h1>3-Look L3T</h1>
@@ -383,8 +394,6 @@
 <div class="case-card">
         <div class="case-label">
           <span class="case-tag">1</span>
-          <span class="case-dir">U</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Triangle</span>
         </div>
         <div class="case-cell">
@@ -394,7 +403,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">SF</span>
-            <span class="case-setup">F'S</span>
+            <span class="case-setup">setup: F'S</span>
           </div>
         </div>
       </div>
@@ -402,8 +411,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">2</span>
-          <span class="case-dir">U</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Diamond</span>
         </div>
         <div class="case-cell">
@@ -413,7 +420,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">S'F'HF</span>
-            <span class="case-setup">F'H'FS</span>
+            <span class="case-setup">setup: F'H'FS</span>
           </div>
         </div>
       </div>
@@ -421,8 +428,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">3</span>
-          <span class="case-dir">U</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Bird Head</span>
         </div>
         <div class="case-cell">
@@ -432,7 +437,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">S'F'S'F</span>
-            <span class="case-setup">F'SFS</span>
+            <span class="case-setup">setup: F'SFS</span>
           </div>
         </div>
       </div>
@@ -440,8 +445,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">4</span>
-          <span class="case-dir">L</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Eye</span>
         </div>
         <div class="case-cell">
@@ -451,7 +454,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">S'F'S'F'</span>
-            <span class="case-setup">FSFS</span>
+            <span class="case-setup">setup: FSFS</span>
           </div>
         </div>
       </div>
@@ -459,8 +462,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">5</span>
-          <span class="case-dir">L</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Left Stroller</span>
         </div>
         <div class="case-cell">
@@ -470,7 +471,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">SF'</span>
-            <span class="case-setup">FS'</span>
+            <span class="case-setup">setup: FS'</span>
           </div>
         </div>
       </div>
@@ -478,8 +479,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">6</span>
-          <span class="case-dir">R</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Right Stroller</span>
         </div>
         <div class="case-cell">
@@ -489,7 +488,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">S'F</span>
-            <span class="case-setup">F'S</span>
+            <span class="case-setup">setup: F'S</span>
           </div>
         </div>
       </div>
@@ -497,8 +496,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">7</span>
-          <span class="case-dir">R</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Left Dinosaur</span>
         </div>
         <div class="case-cell">
@@ -508,7 +505,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">SF</span>
-            <span class="case-setup">F'S'</span>
+            <span class="case-setup">setup: F'S'</span>
           </div>
         </div>
       </div>
@@ -516,8 +513,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">8</span>
-          <span class="case-dir">L</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Right Dinosaur</span>
         </div>
         <div class="case-cell">
@@ -527,7 +522,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">S'F'</span>
-            <span class="case-setup">FS</span>
+            <span class="case-setup">setup: FS</span>
           </div>
         </div>
       </div>
@@ -535,8 +530,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">9</span>
-          <span class="case-dir">R</span>
-          <span class="case-abbr">PF</span>
           <span class="case-name">Fan</span>
         </div>
         <div class="case-cell">
@@ -546,7 +539,7 @@
           </div>
           <div class="l3t-formulas">
             <span class="case-formula">S'F'H'F'</span>
-            <span class="case-setup">FHFS</span>
+            <span class="case-setup">setup: FHFS</span>
           </div>
         </div>
       </div>
@@ -554,8 +547,6 @@
       <div class="case-card">
         <div class="case-label">
           <span class="case-tag">10</span>
-          <span class="case-dir">U</span>
-          <span class="case-abbr">PF</span>
         </div>
         <div class="case-cell">
           <div class="l3t-images">
@@ -566,7 +557,7 @@
             
           <span class="case-name">Nuclear Radiation</span>
         <span class="case-formula">S'F'S'F'HF</span>
-            <span class="case-setup">F'H'FSFS</span>
+            <span class="case-setup">setup: F'H'FSFS</span>
           </div>
         </div>
       </div>
