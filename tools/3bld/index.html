@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三盲联想词出题器 — 3BLD Association</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: '微软雅黑', 'Microsoft YaHei', Arial, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 26px; color: #2E5E8E; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #888; }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #dde6f0;
+  }
+  .tab-btn {
+    padding: 10px 32px;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { color: #2E5E8E; border-bottom-color: #2E5E8E; font-weight: bold; }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #2E5E8E; color: white; }
+  .btn-primary:hover { background: #1e4070; }
+  .btn-secondary { background: #e8eef5; color: #2E5E8E; border: 1.5px solid #2E5E8E; }
+  .btn-secondary:hover { background: #d0dff0; }
+
+  .stats { text-align: center; font-size: 13px; color: #888; margin-bottom: 16px; }
+
+  .paper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 32px 36px;
+  }
+
+  .paper-title { text-align: center; margin-bottom: 20px; }
+  .paper-title h2 { font-size: 20px; color: #2E5E8E; margin-bottom: 4px; }
+  .paper-title .subtitle { font-size: 13px; color: #888; margin-bottom: 8px; }
+  .paper-title .info { font-size: 13px; color: #aaa; }
+
+  /* ===== 练习题模式 ===== */
+  .quiz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+  .quiz-col { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px dashed #e0e0e0;
+  }
+  .quiz-num { font-size: 12px; color: #aaa; min-width: 26px; }
+  .quiz-code { font-size: 17px; font-weight: bold; color: #2E5E8E; min-width: 42px; }
+  .quiz-line { flex: 1; border-bottom: 1px solid #555; height: 1px; margin-top: 2px; }
+
+  /* ===== 字母组模式：4行×5列网格，每格一个组 ===== */
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, auto);
+    gap: 12px;
+  }
+  
+  .group-box {
+    border: 1.5px solid #2E5E8E;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .group-box-header {
+    background: #2E5E8E;
+    color: white;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  
+  .group-box-letters {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 4px;
+    background: white;
+  }
+  
+  .group-box-letters span {
+    font-size: 15px;
+    font-weight: bold;
+    color: #222;
+  }
+
+  .btn-group-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media print {
+    @page { size: A4 portrait; margin: 15mm 12mm; }
+    body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: 100%; }
+    .toolbar, .stats, .tabs, .btn-group-row { display: none !important; }
+    .paper { box-shadow: none; border-radius: 0; padding: 0; }
+    .paper-title { margin-bottom: 16px; }
+    .paper-title h2 { font-size: 18px; }
+    .groups-grid { gap: 10px; }
+    .group-box-header { background: #2E5E8E !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .group-box-letters span { font-size: 14px; }
+  }
+  .top-nav {
+    max-width: 960px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .top-nav a {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+  </style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/">Home</a>
+  <a href="/fto/tcp">TCP</a>
+  <a href="/fto/l3t">L3T</a>
+  <a href="/fto/lbt">LBT</a>
+  <a href="/tools/scramble">打乱公式库</a>
+  <a href="/tools/3bld" class="active">三盲出题器</a>
+</div>
+
+
+<div class="container">
+  <div class="header">
+    <h1>🧩 三盲联想词出题器</h1>
+    <p>随机出题 · 一键打印 · 适合A4纸</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('quiz')">📝 练习题模式</button>
+    <button class="tab-btn" onclick="switchTab('groups')">🎯 字母组模式</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="generate()">🎲 随机出题</button>
+    <button class="btn btn-secondary" onclick="printPaper()">🖨️ 打印本页</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="paper" id="paper">
+
+    <!-- 练习题模式 -->
+    <div class="tab-content active" id="tab-quiz">
+      <div class="paper-title">
+        <h2>三盲联想词练习题</h2>
+        <div class="info">姓名：______________ &nbsp;&nbsp; 日期：______________ &nbsp;&nbsp; 用时：__________</div>
+      </div>
+      <div class="quiz-grid" id="quizGrid"></div>
+      <div class="btn-group-row">
+        <button class="btn btn-secondary" onclick="generate()">🔄 换一组</button>
+      </div>
+    </div>
+
+    <!-- 字母组模式：4行×5列网格 -->
+    <div class="tab-content" id="tab-groups">
+      <div class="paper-title">
+        <h2>三盲联想词随机练习（20组 × 6个）</h2>
+        <div class="subtitle">每组6个字母组合，遮住答案，根据联想词回忆字母编码</div>
+        <div class="info">姓名：______________ &nbsp;&nbsp; 日期：______________ &nbsp;&nbsp; 得分：__________</div>
+      </div>
+      <div class="groups-grid" id="groupsContainer"></div>
+      <div class="btn-group-row">
+        <button class="btn btn-secondary" onclick="generateGroups()">🔄 换一组</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ========== 联想词数据库 ==========
+const WORDS = {
+  AB:'阿波罗',AC:'鹌鹑蛋',AD:'AD钙奶',AE:'阿尔卑斯糖',AF:'埃弗尔铁塔',
+  AG:'阿哥',AH:'暗黑',AJ:'埃及',AK:'AK47',AL:'阿拉伯',
+  AM:'阿妹',AN:'安妮',AP:'阿飘',AQ:'安全带',AR:'矮人',
+  AS:'盎司',AT:'安徒生',AW:'艾薇儿',AX:'爱心',AY:'奥运',AZ:'袄子',
+  BA:'爸',BC:'蹦床',BD:'绷带',BE:'杯',BF:'绑匪',
+  BG:'八卦',BH:'壁虎',BJ:'簸箕',BK:'贝壳',BL:'宾利',
+  BM:'斑马',BN:'白娘子',BP:'鞭炮',BQ:'标枪',BR:'半人马',
+  BS:'别墅',BT:'鼻涕',BW:'布娃',BX:'冰箱',BY:'鲍鱼',BZ:'棒子',
+  CA:'叉',CB:'搓板',CD:'锉刀',CE:'车',CF:'吹风机',
+  CG:'唇膏',CH:'柴火',CJ:'餐巾',CK:'创可贴',CL:'成龙',
+  CM:'筹码',CN:'彩泥',CP:'脆皮',CQ:'充气船',CR:'超人',
+  CS:'穿山甲',CT:'锄头',CW:'刺猬',CX:'草鞋',CY:'苍蝇',CZ:'搋子',
+  DA:'档案',DB:'碉堡',DC:'单车',DE:'蝶',DF:'东风',
+  DG:'蛋糕',DH:'吊环',DJ:'独角兽',DK:'短裤',DL:'灯笼',
+  DM:'盗墓',DN:'豆奶',DP:'盾牌',DQ:'肚脐',DR:'多肉',
+  DS:'袋鼠',DT:'电梯',DW:'动物',DX:'大象',DY:'抖音',DZ:'队长',
+  EA:'鹅',EB:'耳包',EC:'耳垂',ED:'耳钉',EF:'耳返',
+  EG:'二锅头',EH:'二胡',EJ:'二阶魔方',EK:'尔康',EL:'二郎神',
+  EM:'鹅毛',EN:'摁',EP:'耳片',EQ:'恶犬',ER:'耳',
+  ES:'耳勺',ET:'ET',EW:'二维码',EX:'恩熙',EY:'鳄鱼',EZ:'儿子',
+  FA:'发',FB:'粪便',FC:'帆船',FD:'芬达',FE:'飞蛾',
+  FF:'发箍',FG:'发箍',FH:'凤凰',FJ:'佛经',FK:'饭卡',
+  FL:'凤梨',FM:'坟墓',FN:'肥牛',FP:'废品',FQ:'番茄',
+  FR:'缝纫机',FS:'富士',FT:'发条',FW:'福娃',FX:'方向盘',
+  FY:'放映机',FZ:'风筝',
+  GA:'干',GB:'鼓棒',GC:'棺材',GD:'高达',GE:'鸽',
+  GF:'盖饭',GG:'格格',GH:'篝火',GJ:'公交',GK:'钢盔',
+  GL:'咖喱',GM:'根苗',GN:'耕牛',GP:'瓜皮',GQ:'国旗',
+  GR:'光刃',GS:'怪兽',GT:'滚筒',GW:'格瓦斯',GX:'狗熊',
+  GY:'桂圆',GZ:'挂钟',
+  HA:'哈哈镜',HB:'怀表',HC:'红茶',HD:'憨豆',HE:'海尔',
+  HF:'汉服',HG:'黄瓜',HJ:'火炬',HK:'滑块',HL:'灰狼',
+  HM:'航母',HN:'浑南',HP:'画盘',HQ:'猴拳',HR:'黑人',
+  HS:'花生',HT:'核桃',HW:'护腕',HX:'浣熊',HY:'后羿',HZ:'耗子',
+  JA:'JAY',JB:'煎饼',JC:'卷尺',JD:'军刀',JE:'姐',
+  JF:'鸡粪',JG:'金刚',JH:'菊花',JK:'夹克',JL:'降落伞',
+  JM:'芥末',JN:'胶囊',JP:'键盘',JQ:'锦旗',JR:'巨人',
+  JS:'救生圈',JT:'掘土机',JW:'酒窝',JX:'夹心',JY:'鲸鱼',JZ:'镜子',
+  KA:'卡',KB:'挎包',KC:'快餐',KD:'蝌蚪',KE:'坑',
+  KF:'KFC',KG:'苦瓜',KH:'葵花',KJ:'坎肩',KK:'可可',
+  KL:'骷髅',KM:'孔明',KN:'国王',KP:'鲲鹏',KQ:'矿泉水',
+  KR:'扣肉',KS:'口水',KT:'空调',KW:'开卫',KX:'凯旋门',
+  KY:'烤鸭',KZ:'靠枕',
+  LA:'蜡',LB:'萝卜',LC:'凉茶',LD:'漏斗',LE:'灵儿',
+  LF:'雷锋',LG:'乐高',LH:'老虎',LJ:'棱镜',LK:'林肯',
+  LL:'李琳',LM:'龙猫',LN:'辽宁',LP:'脸谱',LQ:'篮球',
+  LR:'猎人',LS:'卵石',LT:'烙铁',LW:'芦苇',LX:'流星',
+  LY:'轮椅',LZ:'栗子',
+  MA:'马',MB:'面包',MC:'迷彩',MD:'麦兜',ME:'门',
+  MF:'蜜蜂',MG:'芒果',MH:'灭火器',MJ:'民警',MK:'棉裤',
+  ML:'牡蛎',MM:'慢慢',MN:'蒙牛',MP:'磨盘',MQ:'麻雀',
+  MR:'鸣人',MS:'猫舍',MT:'馒头',MW:'魔王',MX:'梅西',
+  MY:'木鱼',MZ:'帽子',
+  NA:'NASA',NB:'囊饼',NC:'纳粹',ND:'脑袋',NE:'哪吒',
+  NF:'聂风',NG:'南瓜',NH:'尿壶',NJ:'牛角',NK:'纽扣',
+  NL:'能量球',NM:'柠檬',NP:'弩炮',NQ:'泥鳅',NR:'鸟人',
+  NS:'暖水袋',NT:'奶糖',NW:'女娲',NX:'农械',NY:'内衣',NZ:'念珠',
+  PA:'派',PB:'破冰船',PC:'碰碰车',PD:'剖刀',PE:'普洱',
+  PF:'屏风',PG:'培根',PH:'喷壶',PJ:'盆景',PK:'扑克',
+  PL:'爬犁',PM:'泡面',PN:'匹诺曹',PP:'婆婆',PQ:'佩琪',
+  PR:'飘柔',PS:'磐石',PT:'拼图',PW:'牌位',PX:'螃蟹',
+  PY:'朋友',PZ:'胖子',
+  QA:'恰恰瓜子',QB:'跷板',QC:'雀巢',QD:'气垫',QE:'切格瓦拉',
+  QF:'樵夫',QG:'切割机',QH:'秦昊',QJ:'拳击',QK:'巧克力',
+  QL:'情侣',QM:'骑马',QN:'牵牛花',QP:'枪炮',QQ:'QQ',
+  QR:'穷人',QS:'潜水艇',QT:'蜻蜓',QW:'蔷薇',QX:'球鞋',
+  QY:'蚯蚓',QZ:'裙子',
+  RA:'瓤',RB:'绒布',RC:'若虫',RD:'热带鱼',RE:'瑞恩',
+  RF:'润发',RG:'染缸',RH:'润滑油',RJ:'肉夹馍',RK:'瑞克',
+  RL:'日历',RM:'人民币',RN:'乳牛',RP:'软盘',RQ:'热气球',
+  RR:'人人',RS:'燃烧弹',RT:'软糖',RW:'肉丸',RX:'绕线器',
+  RY:'如意',RZ:'忍者',
+  SA:'厦',SB:'扇贝',SC:'水车',SD:'圣诞树',SE:'蛇',
+  SF:'沙发',SG:'试管',SH:'珊瑚',SJ:'双截棍',SK:'烧烤',
+  SL:'神龙',SM:'酸梅汤',SN:'唢呐',SP:'算盘',SQ:'书签',
+  SR:'兽人',SS:'丝丝',ST:'薯条',SW:'筛网',SX:'速效救心丸',
+  SY:'收音机',SZ:'刷子',
+  TA:'塔',TB:'铜板',TC:'陶瓷',TD:'台灯',TE:'天鹅',
+  TF:'条幅',TG:'铁轨',TH:'糖葫芦',TJ:'头巾',TK:'坦克',
+  TL:'秃驴',TM:'汤姆',TN:'鸵鸟',TP:'托盘',TQ:'提琴',
+  TR:'坛肉',TS:'豚鼠',TT:'天天',TW:'套娃',TX:'腾讯',
+  TY:'太阳',TZ:'团子',
+  WA:'娃',WB:'王八',WC:'厕所',WD:'豌豆',WE:'尾',
+  WF:'汪峰',WG:'瓮缸',WH:'万花筒',WJ:'玩具',WK:'悟空',
+  WL:'瓦力',WM:'乌梅',WN:'蜗牛',WP:'卧铺',WQ:'网球',
+  WR:'温柔',WS:'卫生纸',WT:'外套',WX:'蚊香',WY:'望远镜',
+  WZ:'袜子',
+  XA:'虾',XB:'下巴',XC:'小丑',XD:'鞋垫',XE:'谢尔顿',
+  XF:'旋风',XG:'西瓜',XH:'绣花针',XJ:'陷阱',XK:'星空',
+  XL:'驯鹿',XM:'熊猫',XN:'仙女',XP:'芯片',XQ:'学前班',
+  XR:'雪人',XS:'香水',XT:'喜糖',XW:'漩涡',XX:'星星',
+  XY:'象牙',XZ:'勋章',
+  YA:'鸭',YB:'硬币',YC:'圆葱',YD:'腰带',YE:'椰',
+  YF:'孕妇',YG:'衣柜',YH:'樱花',YJ:'眼镜',YK:'泳裤',
+  YL:'哑铃',YM:'玉米',YN:'云南',YP:'优盘',YQ:'月球',
+  YR:'蚁人',YS:'钥匙',YT:'油条',YW:'阎王',YX:'音箱',
+  YZ:'印章',
+  ZA:'藏獒',ZB:'毡板',ZC:'轴承',ZD:'炸弹',ZE:'沼泽',
+  ZF:'张飞',ZG:'战鼓',ZH:'中华',ZJ:'坐骑',ZK:'竹筐',
+  ZL:'长老',ZM:'芝麻',ZN:'枣泥',ZP:'扎啤',ZQ:'蒸汽',
+  ZR:'猪人',ZS:'钻石',ZT:'枕头',ZW:'指纹',ZX:'准星',
+  ZY:'庄园',ZZ:'ZZ'
+};
+
+const CODES = Object.keys(WORDS).filter(k => k[0] !== k[1]);
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===== 练习题模式 =====
+function generate() {
+  const picked = shuffle(CODES).slice(0, 20);
+  const left = picked.slice(0, 10);
+  const right = picked.slice(10);
+  document.getElementById('quizGrid').innerHTML =
+    '<div class="quiz-col">' + left.map((code, i) => `
+      <div class="quiz-item">
+        <span class="quiz-num">${i+1}.</span>
+        <span class="quiz-code">${code}</span>
+        <span class="quiz-line"></span>
+      </div>`).join('') + '</div>' +
+    '<div class="quiz-col">' + right.map((code, i) => `
+      <div class="quiz-item">
+        <span class="quiz-num">${i+11}.</span>
+        <span class="quiz-code">${code}</span>
+        <span class="quiz-line"></span>
+      </div>`).join('') + '</div>';
+  document.getElementById('stats').textContent = `练习题模式 · 20题 · 共 ${CODES.length} 个联想词可选`;
+}
+
+// ===== 字母组模式：4行×5列网格，每格一个组 =====
+function generateGroups() {
+  const shuffled = shuffle(CODES);
+  const groups = [];
+  for (let i = 0; i < 20; i++) {
+    groups.push(shuffled.slice(i * 6, i * 6 + 6));
+  }
+
+  let html = '';
+  for (let g = 0; g < 20; g++) {
+    html += '<div class="group-box">';
+    html += `<div class="group-box-header">第${String(g + 1).padStart(2, '0')}组</div>`;
+    html += '<div class="group-box-letters">';
+    for (let k = 0; k < 6; k++) {
+      html += `<span>${groups[g][k]}</span>`;
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('groupsContainer').innerHTML = html;
+
+  document.getElementById('stats').textContent = `字母组模式 · 20组×6个 · 共 ${CODES.length} 个联想词可选`;
+}
+
+// ===== 切换标签 =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+function printPaper() { window.print(); }
+
+// 初始化
+generate();
+generateGroups();
+</script>
+</body>
+</html>
