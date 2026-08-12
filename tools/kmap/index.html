@@ -102,6 +102,16 @@ body{
 .mindmap .mm-group{margin-bottom:24px}
 .mindmap .mm-group:last-child{margin-bottom:0}
 .mindmap .mm-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--text2);margin-bottom:16px}
+  /* 思维导图缩略图 + lightbox */
+  .mindmap-thumb{max-width:460px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:zoom-in;transition:border-color .2s,transform .2s}
+  .mindmap-thumb:hover{border-color:var(--blue-l,#4da3ff);transform:translateY(-2px)}
+  .mindmap-thumb img{width:100%;height:auto;display:block}
+  .mindmap-hint{text-align:center;font-size:12px;color:var(--text3);margin-top:12px;letter-spacing:1px}
+  .lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:24px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:95vw;max-height:92vh;border-radius:8px;box-shadow:0 12px 60px rgba(0,0,0,.6)}
+  .lightbox-close{position:absolute;top:18px;right:22px;width:44px;height:44px;border:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:28px;line-height:1;cursor:pointer;transition:background .2s}
+  .lightbox-close:hover{background:rgba(255,255,255,.3)}
 .mm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .mm-node{
   width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;
@@ -287,12 +297,13 @@ body{
 </div>
 
     <div class="panel-c-row2">
-<!-- 公式推导思维导图 SVG -->
+<!-- 公式推导思维导图（缩略图 + lightbox 大图） -->
   <div class="mindmap">
     <div class="block-title yellow" style="margin-bottom:20px">公式推导 · 字母变化思维导图</div>
-    <div style="width:100%;overflow-x:auto">
-      <img src="/assets/images/二阶盲拧公式推导思维导图.png" alt="公式推导思维导图" style="width:100%;max-width:1000px;display:block;margin:0 auto">
+    <div class="mindmap-thumb" id="mindmapThumb" title="点击查看大图">
+      <img src="/assets/images/二阶盲拧公式推导思维导图.png" alt="公式推导思维导图">
     </div>
+    <div class="mindmap-hint">点击图片查看大图</div>
   </div>
 
   <!-- 全部公式速查（合并原 G拓展/D拓展/特殊/全部） -->
@@ -450,6 +461,35 @@ body{
   </div>
 </div>
 
-</div>
+  </div>
+
+  <div class="lightbox" id="mindmapLightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="关闭">&times;</button>
+    <img id="lightboxImg" src="" alt="公式推导思维导图大图">
+  </div>
+
+<script>
+(function () {
+  var thumb = document.getElementById('mindmapThumb');
+  var overlay = document.getElementById('mindmapLightbox');
+  var closeBtn = document.getElementById('lightboxClose');
+  var bigImg = document.getElementById('lightboxImg');
+  function openLightbox() {
+    bigImg.src = '/assets/images/二阶盲拧公式推导思维导图.png';
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  if (thumb) thumb.addEventListener('click', openLightbox);
+  if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+  if (overlay) overlay.addEventListener('click', function (e) { if (e.target === overlay) closeLightbox(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
+})();
+</script>
 </body>
 </html>
