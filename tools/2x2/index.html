@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二阶魔方公式练习工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+            position: relative;
+            padding: 10px 0;
+        }
+        
+        h1:before, h1:after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 30px;
+            height: 30px;
+            transform: translateY(-50%);
+            background-color: rgba(255, 87, 34, 0.1);
+            border-radius: 4px;
+        }
+        
+        h1:before {
+            left: 20px;
+        }
+        
+        h1:after {
+            right: 20px;
+        }
+        
+        .student-info {
+            text-align: right;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .student-info label {
+            margin-left: 15px;
+        }
+        
+        .underline {
+            display: inline-block;
+            min-width: 120px;
+            border-bottom: 1px solid #000;
+            margin: 0 5px;
+            text-align: center;
+        }
+        
+        .options {
+            margin-bottom: 20px;
+        }
+        
+        .options h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #555;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .checkbox-item:hover {
+            background-color: rgba(33, 150, 243, 0.05);
+        }
+        
+        .checkbox-item input {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        #resetBtn {
+            background-color: #f44336;
+        }
+        
+        #resetBtn:hover {
+            background-color: #d32f2f;
+        }
+        
+        .print-area {
+            border: 1px solid #ddd;
+            padding: 30px 40px;
+            min-height: 400px;
+            background-color: white;
+            page-break-inside: avoid;
+            position: relative;
+            border-radius: 8px;
+        }
+        
+        .formula-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .formula-column {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .formula-line {
+            margin-bottom: 25px;
+            font-size: 22px;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px dashed #f0f0f0;
+        }
+        
+        .line-number {
+            display: inline-block;
+            width: 35px;
+            font-weight: bold;
+            font-size: 22px;
+            color: #2196F3;
+        }
+        
+        .formula {
+            letter-spacing: 4px;
+            font-family: monospace;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* 角块编码认读练习样式 */
+        .hexagons-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-top: 20px;
+        }
+        
+        .hexagon-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .hexagon-container {
+            position: relative;
+            width: 83px; /* 约2.5厘米 */
+            height: 96px; /* 六边形高度 = 宽度 * √3 / 2 */
+        }
+        
+        .hexagon-border {
+            position: absolute;
+            width: 87px;
+            height: 100px;
+            top: -2px;
+            left: -2px;
+            clip-path: polygon(
+                50% 0%, 
+                100% 25%, 
+                100% 75%, 
+                50% 100%, 
+                0% 75%, 
+                0% 25%
+            );
+            background-color: black;
+            z-index: 1;
+        }
+        
+        .hexagon {
+            position: absolute;
+            width: 83px;
+            height: 96px;
+            clip-path: polygon(
+                50% 0%, 
+                100% 25%, 
+                100% 75%, 
+                50% 100%, 
+                0% 75%, 
+                0% 25%
+            );
+            z-index: 2;
+        }
+        
+        .hexagon-label {
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+            min-width: 25px;
+        }
+        
+        .hexagon-input {
+            width: 120px;
+            border: none;
+            border-bottom: 1px solid #000;
+            text-align: center;
+            font-size: 16px;
+            padding: 5px;
+        }
+        
+        /* 六边形颜色定义 */
+        .hexagon-1 {
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #FFEB3B 0deg 120deg,
+                #F44336 120deg 240deg,
+                #2196F3 240deg 360deg
+            );
+        }
+        
+        .hexagon-2 {
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #FFEB3B 0deg 120deg,
+                #2196F3 120deg 240deg,
+                #FF9800 240deg 360deg
+            );
+        }
+        
+        .hexagon-3 {
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #FFEB3B 0deg 120deg,
+                #FF9800 120deg 240deg,
+                #4CAF50 240deg 360deg
+            );
+        }
+        
+        .hexagon-4 {
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #FFFFFF 0deg 120deg,
+                #2196F3 120deg 240deg,
+                #F44336 240deg 360deg
+            );
+        }
+        
+        .hexagon-5 {
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #FFFFFF 0deg 120deg,
+                #FF9800 120deg 240deg,
+                #2196F3 240deg 360deg
+            );
+        }
+        
+        .hexagon-6 {
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #FFFFFF 0deg 120deg,
+                #4CAF50 120deg 240deg,
+                #FF9800 240deg 360deg
+            );
+        }
+        
+        /* 魔方装饰元素 */
+        .cube-decoration {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            opacity: 0.1;
+            z-index: 1;
+        }
+        
+        .cube-1 {
+            top: 50px;
+            left: 5%;
+            background: linear-gradient(135deg, #FF5722, #2196F3);
+            transform: rotate(15deg);
+            border-radius: 8px;
+        }
+        
+        .cube-2 {
+            bottom: 80px;
+            right: 5%;
+            background: linear-gradient(135deg, #4CAF50, #FFC107);
+            transform: rotate(-10deg);
+            border-radius: 8px;
+        }
+        
+        .cube-3 {
+            top: 30%;
+            right: 8%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #9C27B0, #E91E63);
+            transform: rotate(25deg);
+            border-radius: 6px;
+        }
+        
+        /* 打印样式 */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+                padding: 30px 40px;
+                margin: 0;
+            }
+            
+            .no-print {
+                display: none;
+            }
+            
+            .formula-line {
+                margin-bottom: 30px;
+            }
+            
+            .cube-decoration {
+                display: none;
+            }
+            
+            .hexagon-input {
+                border-bottom: 1px solid #000;
+            }
+        }
+    .top-nav {
+        max-width: 960px;
+        margin: 0 auto 20px;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .top-nav a {
+        color: #666;
+        text-decoration: none;
+        font-size: 0.85rem;
+        padding: 6px 16px;
+        border: 1px solid rgba(0,0,0,0.12);
+        background: #fff;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .top-nav a:hover { color: #333; border-color: rgba(0,0,0,0.25); }
+    .top-nav a.active { color: #2E5E8E; background: #e8f0fa; border-color: #2E5E8E; font-weight: 600; }
+
+    </style>
+</head>
+<body>
+<div class="top-nav">
+  <a href="/">Home</a>
+  <a href="/fto/tcp">TCP</a>
+  <a href="/fto/l3t">L3T</a>
+  <a href="/fto/lbt">LBT</a>
+  <a href="/tools/scramble">打乱公式库</a>
+  <a href="/tools/3bld">三盲出题器</a>
+  <a href="/tools/2x2" class="active">二阶魔方练习工具</a>
+</div>
+
+    <!-- 魔方装饰元素 -->
+    <div class="cube-decoration cube-1"></div>
+    <div class="cube-decoration cube-2"></div>
+    <div class="cube-decoration cube-3"></div>
+    
+    <div class="container no-print">
+        <h1>二阶魔方盲拧练习工具</h1>
+        
+        <div class="student-info">
+            <label>班级：<span class="underline"></span></label>
+            <label>姓名：<span class="underline"></span></label>
+        </div>
+        
+        <div class="options">
+            <h2>请选择练习类型（可多选）：</h2>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option1" value="ABC">
+                    <label for="option1">ABC</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option2" value="DEF">
+                    <label for="option2">DEF</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option3" value="GHI">
+                    <label for="option3">GHI</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option4" value="WMN">
+                    <label for="option4">WMN</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option5" value="OPQ">
+                    <label for="option5">OPQ</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option6" value="RST">
+                    <label for="option6">RST</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="option7" value="cornerBlock">
+                    <label for="option7">角块编码认读练习</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button id="generateBtn">生成练习</button>
+            <button id="resetBtn">重置</button>
+            <button id="printBtn">打印</button>
+        </div>
+    </div>
+    
+    <div class="container print-area" id="printArea">
+        <h1>二阶魔方盲拧练习</h1>
+        
+        <div class="student-info">
+            <label>班级：<span class="underline"></span></label>
+            <label>姓名：<span class="underline"></span></label>
+        </div>
+        
+        <div id="formulaContainer">
+            <!-- 公式将在这里生成 -->
+        </div>
+        
+        <div id="hexagonContainer" style="display: none;">
+            <!-- 六边形将在这里生成 -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const printBtn = document.getElementById('printBtn');
+            const formulaContainer = document.getElementById('formulaContainer');
+            const hexagonContainer = document.getElementById('hexagonContainer');
+            
+            // 生成符合规则的随机公式
+            function generateFormula(letters) {
+                // 确保前三个字母不重复
+                let firstThree = [];
+                let availableLetters = letters.split('');
+                
+                for (let i = 0; i < 3; i++) {
+                    const randomIndex = Math.floor(Math.random() * availableLetters.length);
+                    firstThree.push(availableLetters[randomIndex]);
+                    availableLetters.splice(randomIndex, 1);
+                }
+                
+                // 第四位是前三个字母的中间字母
+                const middleIndex = 1; // 因为前三个字母，中间的是索引1
+                const fourthLetter = firstThree[middleIndex];
+                
+                return firstThree.join('') + fourthLetter;
+            }
+            
+            // 生成角块编码认读练习
+            function generateCornerBlockExercise() {
+                hexagonContainer.style.display = 'block';
+                hexagonContainer.innerHTML = '<h2 style="text-align: center; margin-bottom: 20px;">角块编码认读练习</h2>';
+                
+                const hexagonsGrid = document.createElement('div');
+                hexagonsGrid.className = 'hexagons-container';
+                
+                // 创建六个六边形的数组
+                const hexagons = [1, 2, 3, 4, 5, 6];
+                
+                // 打乱顺序
+                for (let i = hexagons.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [hexagons[i], hexagons[j]] = [hexagons[j], hexagons[i]];
+                }
+                
+                // 生成六个六边形
+                for (let i = 0; i < 6; i++) {
+                    const hexagonItem = document.createElement('div');
+                    hexagonItem.className = 'hexagon-item';
+                    
+                    const hexagonLabel = document.createElement('div');
+                    hexagonLabel.className = 'hexagon-label';
+                    hexagonLabel.textContent = `${i + 1}.`;
+                    
+                    const hexagonContainerDiv = document.createElement('div');
+                    hexagonContainerDiv.className = 'hexagon-container';
+                    
+                    const hexagonBorder = document.createElement('div');
+                    hexagonBorder.className = 'hexagon-border';
+                    
+                    const hexagon = document.createElement('div');
+                    hexagon.className = `hexagon hexagon-${hexagons[i]}`;
+                    
+                    const hexagonInput = document.createElement('input');
+                    hexagonInput.type = 'text';
+                    hexagonInput.className = 'hexagon-input';
+                    
+                    hexagonContainerDiv.appendChild(hexagonBorder);
+                    hexagonContainerDiv.appendChild(hexagon);
+                    
+                    hexagonItem.appendChild(hexagonLabel);
+                    hexagonItem.appendChild(hexagonContainerDiv);
+                    hexagonItem.appendChild(hexagonInput);
+                    
+                    hexagonsGrid.appendChild(hexagonItem);
+                }
+                
+                hexagonContainer.appendChild(hexagonsGrid);
+            }
+            
+            // 生成练习
+            generateBtn.addEventListener('click', function() {
+                // 获取选中的选项
+                const selectedOptions = [];
+                for (let i = 1; i <= 7; i++) {
+                    const checkbox = document.getElementById(`option${i}`);
+                    if (checkbox.checked) {
+                        selectedOptions.push(checkbox.value);
+                    }
+                }
+                
+                // 清空容器
+                formulaContainer.innerHTML = '';
+                hexagonContainer.style.display = 'none';
+                hexagonContainer.innerHTML = '';
+                
+                // 如果没有选中任何选项，显示提示
+                if (selectedOptions.length === 0) {
+                    formulaContainer.innerHTML = '<p>请至少选择一个练习类型</p>';
+                    return;
+                }
+                
+                // 检查是否选择了角块编码认读练习
+                const hasCornerBlock = selectedOptions.includes('cornerBlock');
+                
+                // 如果选择了角块编码认读练习，生成六边形
+                if (hasCornerBlock) {
+                    generateCornerBlockExercise();
+                }
+                
+                // 检查是否有其他公式选项
+                const formulaOptions = selectedOptions.filter(option => option !== 'cornerBlock');
+                
+                // 如果有公式选项，生成公式练习
+                if (formulaOptions.length > 0) {
+                    // 创建两列
+                    const leftColumn = document.createElement('div');
+                    leftColumn.className = 'formula-column';
+                    
+                    const rightColumn = document.createElement('div');
+                    rightColumn.className = 'formula-column';
+                    
+                    // 生成10个公式，分别放入两列
+                    for (let i = 1; i <= 10; i++) {
+                        const lineDiv = document.createElement('div');
+                        lineDiv.className = 'formula-line';
+                        
+                        const lineNumber = document.createElement('span');
+                        lineNumber.className = 'line-number';
+                        lineNumber.textContent = `${i}.`;
+                        
+                        const formulaSpan = document.createElement('span');
+                        formulaSpan.className = 'formula';
+                        
+                        // 从选中的选项中随机选择一个
+                        const randomOptionIndex = Math.floor(Math.random() * formulaOptions.length);
+                        const selectedLetters = formulaOptions[randomOptionIndex];
+                        
+                        // 生成公式
+                        formulaSpan.textContent = generateFormula(selectedLetters);
+                        
+                        lineDiv.appendChild(lineNumber);
+                        lineDiv.appendChild(formulaSpan);
+                        
+                        // 前5个放入左列，后5个放入右列
+                        if (i <= 5) {
+                            leftColumn.appendChild(lineDiv);
+                        } else {
+                            rightColumn.appendChild(lineDiv);
+                        }
+                    }
+                    
+                    const formulaGrid = document.createElement('div');
+                    formulaGrid.className = 'formula-container';
+                    formulaGrid.appendChild(leftColumn);
+                    formulaGrid.appendChild(rightColumn);
+                    
+                    formulaContainer.appendChild(formulaGrid);
+                }
+            });
+            
+            // 重置按钮
+            resetBtn.addEventListener('click', function() {
+                // 清空所有复选框
+                for (let i = 1; i <= 7; i++) {
+                    document.getElementById(`option${i}`).checked = false;
+                }
+                
+                // 清空容器
+                formulaContainer.innerHTML = '';
+                hexagonContainer.style.display = 'none';
+                hexagonContainer.innerHTML = '';
+            });
+            
+            // 打印按钮
+            printBtn.addEventListener('click', function() {
+                window.print();
+            });
+        });
+    </script>
+</body>
+</html>
