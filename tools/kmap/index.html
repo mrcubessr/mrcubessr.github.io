@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二阶魔方盲拧 · 教学知识地图</title>
+<style>
+:root {
+  --bg:#121215; --bg-card:#1a1a1f; --bg-card2:#1e1e24;
+  --text:#e0e0e6; --text2:#9999a6; --text3:#6b6b78; --border:#2a2a32;
+  --orange:#E8782A; --orange-l:#F5A623;
+  --yellow:#D4A843; --yellow-l:#F0CF6A;
+  --teal:#2EA89A; --teal-l:#4ECDC4;
+  --blue:#4A90D9; --blue-l:#6DB3F2;
+  --purple:#9B59B6; --purple-l:#BB7FD6;
+  --red:#E85D3A; --green:#5B8C3E; --green-l:#7BAF4A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.7;
+  min-height:100vh;padding:24px;font-size:15px;
+}
+
+.map{max-width:2560px;margin:0 auto;display:grid;grid-template-columns:360px 1fr 360px;gap:20px}
+
+/* 顶部标题 */
+.map-header{
+  grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+  padding:24px 32px;background:var(--bg-card);border-radius:14px;border:1px solid var(--border);
+}
+.map-header .title-group h1{
+  font-size:28px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--orange-l),var(--orange));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.map-header .title-group .sub{
+  font-size:12px;color:var(--text3);letter-spacing:3px;margin-top:4px;
+}
+.map-header .meta{
+  text-align:right;font-size:13px;color:var(--text3);line-height:2;
+}
+
+/* 通用 */
+.block{
+  background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:22px;
+}
+.block-title{
+  font-size:13px;font-weight:700;letter-spacing:2px;
+  margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.block-title::before{content:'';width:4px;height:16px;border-radius:2px;flex-shrink:0}
+.block-title.orange::before{background:var(--orange)}
+.block-title.teal::before{background:var(--teal)}
+.block-title.blue::before{background:var(--blue)}
+.block-title.purple::before{background:var(--purple-l)}
+.block-title.yellow::before{background:var(--yellow-l)}
+.block-title.red::before{background:var(--red)}
+.block-title.green::before{background:var(--green-l)}
+
+.panel-l,.panel-c,.panel-r{display:flex;flex-direction:column;gap:16px}
+.panel-bottom{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+/* 中间面板紧凑二栏布局 */
+.panel-c-row2{display:grid;grid-template-columns:56fr 44fr;gap:16px}
+.panel-c-row3{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel-c-row2 .block,.panel-c-row3 .block,
+.panel-c-row2 .mindmap,.panel-c-row3 .mindmap{margin-bottom:0}
+.panel-c-row2 .block{padding:18px}
+.panel-c-row3 .block{padding:18px}
+
+
+/* 阶段卡片 */
+.stage-card{
+  background:var(--bg-card2);border-radius:10px;padding:16px 18px;margin-bottom:12px;
+  border-left:4px solid transparent;
+}
+.stage-card.s1{border-left-color:var(--orange)}
+.stage-card.s2{border-left-color:var(--teal)}
+.stage-card.s3{border-left-color:var(--yellow)}
+.stage-card.s4{border-left-color:var(--blue)}
+.stage-card .sn{font-size:11px;font-weight:700;letter-spacing:2px;margin-bottom:4px}
+.stage-card.s1 .sn{color:var(--orange)} .stage-card.s2 .sn{color:var(--teal)}
+.stage-card.s3 .sn{color:var(--yellow)} .stage-card.s4 .sn{color:var(--blue)}
+.stage-card .sname{font-size:17px;font-weight:700;margin-bottom:6px}
+.stage-card .sdesc{font-size:13px;color:var(--text3)}
+.stage-card:last-child{margin-bottom:0}
+
+/* 步骤列表 */
+.step-list{display:flex;flex-direction:column;gap:8px}
+.step-item{
+  display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
+  background:var(--bg-card2);border-radius:8px;font-size:13px;line-height:1.6;
+}
+.step-item .sn{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0}
+.step-item .si strong{display:block;font-size:14px;margin-bottom:2px}
+.step-item .si span{color:var(--text3);font-size:12px}
+.sn-o{background:var(--orange)}.sn-t{background:var(--teal)}.sn-b{background:var(--blue)}.sn-y{background:var(--yellow)}.sn-p{background:var(--purple)}.sn-r{background:var(--red)}
+
+/* 思维导图 */
+.mindmap{background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:22px}
+.mindmap .mm-group{margin-bottom:24px}
+.mindmap .mm-group:last-child{margin-bottom:0}
+.mindmap .mm-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--text2);margin-bottom:16px}
+.mm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.mm-node{
+  width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:900;flex-shrink:0;
+}
+.mm-node.final{width:62px;height:62px;border-radius:14px;font-size:24px}
+.mm-arrow{color:var(--text3);font-size:18px;font-weight:700;flex-shrink:0}
+.mm-bracket{color:var(--text3);font-size:22px;flex-shrink:0;font-weight:300}
+.mm-vert{width:2px;height:22px;background:var(--text3)}
+.mm-vgroup{display:flex;flex-direction:column;align-items:center;gap:4px}
+
+/* 节点色 */
+.mm-or{background:rgba(232,120,42,.18);color:var(--orange-l);border:1px solid rgba(232,120,42,.35)}
+.mm-te{background:rgba(46,168,154,.15);color:var(--teal-l);border:1px solid rgba(46,168,154,.3)}
+.mm-ye{background:rgba(212,168,67,.15);color:var(--yellow-l);border:1px solid rgba(212,168,67,.3)}
+.mm-bl{background:rgba(74,144,217,.15);color:var(--blue-l);border:1px solid rgba(74,144,217,.3)}
+.mm-pu{background:rgba(155,89,182,.15);color:var(--purple-l);border:1px solid rgba(155,89,182,.3)}
+.mm-rd{background:rgba(232,93,58,.15);color:var(--red);border:1px solid rgba(232,93,58,.35)}
+
+.mm-sub{font-size:11px;color:var(--text3);text-align:center;margin-top:10px}
+
+/* 表格统一样式 */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:6px 10px;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border)}
+.tbl td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2)}
+.tbl td:first-child{font-weight:700}
+.tbl tr:hover td{color:var(--text)}
+.tbl td.g-c{color:var(--orange-l);font-size:15px}
+.tbl td.b-c{color:var(--blue-l);font-size:15px}
+
+/* 标签 */
+.tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1px}
+.tag.or{background:rgba(232,120,42,.15);color:var(--orange-l)}
+.tag.te{background:rgba(46,168,154,.12);color:var(--teal-l)}
+.tag.bl{background:rgba(74,144,217,.12);color:var(--blue-l)}
+.tag.ye{background:rgba(212,168,67,.12);color:var(--yellow-l)}
+.tag.pu{background:rgba(155,89,182,.12);color:var(--purple-l)}
+.tag.rd{background:rgba(232,93,58,.12);color:var(--red)}
+
+/* 课程表 */
+.tbl-course td:first-child{color:var(--orange-l);font-weight:600}
+
+/* 公式汇总网格 */
+.formula-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;font-size:14px}
+.formula-grid .fg-item{padding:8px 0}
+.formula-grid .fg-item code{color:var(--orange-l);font-weight:700;font-size:20px;margin-right:8px}
+.formula-grid .fg-item .fg-form{color:var(--text2);font-size:15px}
+.fg-hard code{color:var(--red)!important}
+
+/* 响应式 */
+@media(max-width:1700px){
+  .map{grid-template-columns:1fr;max-width:900px}
+  .panel-l{order:2}.panel-c{order:1}.panel-r{order:3}
+  .panel-bottom{order:4;grid-template-columns:1fr}
+}
+  .top-nav {
+    max-width: 960px;
+    margin: 0 auto 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .top-nav a {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/">Home</a>
+  <a href="/fto/tcp">TCP</a>
+  <a href="/fto/l3t">L3T</a>
+  <a href="/fto/lbt">LBT</a>
+  <a href="/tools/scramble">打乱公式库</a>
+  <a href="/tools/3bld">三盲出题器</a>
+  <a href="/tools/2x2">二阶魔方练习工具</a>
+  <a href="/tools/kmap" class="active">教学知识地图</a>
+</div>
+
+<div class="map">
+
+<!-- ======== 顶部 ======== -->
+<div class="map-header">
+  <div class="title-group">
+    <h1>二阶魔方盲拧 · 教学内容知识地图</h1>
+    <div class="sub">2×2 BLINDFOLDED SOLVING — 14步 · 4阶段 · 13课 · 17条公式</div>
+  </div>
+  <div class="meta">
+    定稿 2026.06.15 · 吴亦晨（优尔教育）<br>
+    小程序「魔族学堂」辅助训练
+  </div>
+</div>
+
+<!-- ======== 左侧面板 ======== -->
+<div class="panel-l">
+
+  <!-- 教学阶段 -->
+  <div class="block">
+    <div class="block-title orange">教学四阶段</div>
+    <div class="stage-card s1">
+      <div class="sn">第一阶段</div>
+      <div class="sname">编码识别</div>
+      <div class="sdesc">建立角块编码认知，点读法训练，小程序闯关</div>
+    </div>
+    <div class="stage-card s2">
+      <div class="sn">第二阶段</div>
+      <div class="sname">学习公式</div>
+      <div class="sdesc">G 族 / D 族 17条公式，肌肉记忆训练</div>
+    </div>
+    <div class="stage-card s3">
+      <div class="sn">第三阶段</div>
+      <div class="sname">学习读码规则</div>
+      <div class="sdesc">3码→4码 · 小循环 · 借位 · 翻射角块</div>
+    </div>
+    <div class="stage-card s4">
+      <div class="sn">第四阶段</div>
+      <div class="sname">实战练习</div>
+      <div class="sdesc">记忆优化 · 蒙眼还原 · 提速强化</div>
+    </div>
+  </div>
+
+  <!-- 魔方转动符号 -->
+  <div class="block">
+    <div class="block-title teal">魔方转动符号</div>
+    <table class="tbl">
+      <thead><tr><th>符号</th><th>操作说明</th><th>简易口诀</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;font-size:15px">R</td><td>右侧面顺时针转 90°</td><td>右顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">U</td><td>顶层顺时针转 90°</td><td>顶顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">F</td><td>正面顺时针转 90°</td><td>前顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">R'</td><td>右侧面逆时针转 90°</td><td>右逆 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">U'</td><td>顶层逆时针转 90°</td><td>顶逆 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">F'</td><td>正面逆时针转 90°</td><td>前逆 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">R2</td><td>右侧面转 180°（半圈）</td><td>右转半圈</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">U2</td><td>顶层转 180°（半圈）</td><td>顶转半圈</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">F2</td><td>正面转 180°（半圈）</td><td>前转半圈</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ======== 中央面板 ======== -->
+<div class="panel-c">
+
+<div style="display:grid;grid-template-columns:1fr 420px;gap:16px;margin-bottom:4px">
+  <!-- 盲拧实战流程 -->
+  <div class="block" style="background:var(--bg-card2)">
+    <div class="block-title purple">盲拧实战流程</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:600">
+      <div style="background:rgba(232,120,42,.15);color:var(--orange-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(232,120,42,.3)">观察</div>
+      <span style="color:var(--text3);font-size:16px">→</span>
+      <div style="background:rgba(212,168,67,.12);color:var(--yellow-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(212,168,67,.25)">转变成编码</div>
+      <span style="color:var(--text3);font-size:16px">→</span>
+      <div style="background:rgba(46,168,154,.12);color:var(--teal-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(46,168,154,.25)">记忆编码串</div>
+      <span style="color:var(--text3);font-size:16px">→</span>
+      <div style="background:rgba(74,144,217,.12);color:var(--blue-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(74,144,217,.25)">回忆编码</div>
+      <span style="color:var(--text3);font-size:16px">→</span>
+      <div style="background:rgba(155,89,182,.12);color:var(--purple-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(155,89,182,.25)">执行对应公式</div>
+      <span style="color:var(--text3);font-size:16px">→</span>
+      <div style="background:rgba(91,140,62,.12);color:var(--green-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(91,140,62,.25)">复原魔方</div>
+    </div>
+  </div>
+
+  <!-- 角块编码图 -->
+  <div class="block">
+    <div class="block-title teal">角块编码图 · 24字母体系</div>
+    <div style="margin-bottom:6px">
+      <img src="二阶魔方编码图.svg" alt="二阶魔方编码图" style="width:100%;display:block">
+    </div>
+  </div>
+
+</div>
+
+    <div class="panel-c-row2">
+<!-- 公式推导思维导图 SVG -->
+  <div class="mindmap">
+    <div class="block-title yellow" style="margin-bottom:20px">公式推导 · 字母变化思维导图</div>
+    <div style="width:100%;overflow-x:auto">
+      <img src="/assets/images/二阶盲拧公式推导思维导图.png" alt="公式推导思维导图" style="width:100%;max-width:1000px;display:block;margin:0 auto">
+    </div>
+  </div>
+
+  <!-- 全部公式速查（合并原 G拓展/D拓展/特殊/全部） -->
+  <div class="block">
+    <div class="block-title orange">全部 17 条公式 · 分类速查</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px 24px">
+
+      <!-- G族 -->
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--orange-l);letter-spacing:2px;margin-bottom:10px">
+          核心 G <span style="font-size:10px;color:var(--text3)">互换公式</span>
+        </div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>G</code><span class="fg-form">G 基础互换</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--yellow-l);letter-spacing:1px;margin:10px 0 6px">G 拓展（背面）</div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>S</code><span class="fg-form">弹 + G + 背</span></div>
+          <div class="fg-item"><code>E</code><span class="fg-form">背 + G + 弹</span></div>
+          <div class="fg-item"><code>O</code><span class="fg-form">背背 + G + 弹弹</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue-l);letter-spacing:1px;margin:10px 0 6px">G 拓展（上下）</div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>A</code><span class="fg-form">上上 + 背背 + G + 弹弹 + 下下</span></div>
+          <div class="fg-item"><code>F</code><span class="fg-form">上 + 背背 + G + 弹弹 + 下</span></div>
+          <div class="fg-item"><code>N</code><span class="fg-form">下 + 背背 + G + 弹弹 + 上</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--red);letter-spacing:1px;margin:10px 0 6px">特殊（基于 G）</div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>C</code><span class="fg-form">上 + 背 + G + 弹 + 下</span></div>
+          <div class="fg-item"><code>M</code><span class="fg-form">上上 + 背 + G + 弹 + 下下</span></div>
+        </div>
+      </div>
+
+      <!-- D族 -->
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--blue-l);letter-spacing:2px;margin-bottom:10px">
+          核心 D <span style="font-size:10px;color:var(--text3)">互换公式</span>
+        </div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>D</code><span class="fg-form">D 基础互换</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue-l);letter-spacing:1px;margin:10px 0 6px">D 拓展（背面）</div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>I</code><span class="fg-form">弹 + D + 背</span></div>
+          <div class="fg-item"><code>Q</code><span class="fg-form">背 + D + 弹</span></div>
+          <div class="fg-item"><code>R</code><span class="fg-form">背背 + D + 弹弹</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--purple-l);letter-spacing:1px;margin:10px 0 6px">D 拓展（上下）</div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item"><code>W</code><span class="fg-form">上上 + D + 下下</span></div>
+          <div class="fg-item"><code>B</code><span class="fg-form">上 + D + 下</span></div>
+          <div class="fg-item"><code>P</code><span class="fg-form">下 + D + 上</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--red);letter-spacing:1px;margin:10px 0 6px">特殊（基于 D）</div>
+        <div class="formula-grid" style="grid-template-columns:1fr">
+          <div class="fg-item fg-hard"><code>T</code><span class="fg-form">背下 + D + 上弹</span></div>
+          <div class="fg-item fg-hard"><code>H</code><span class="fg-form">背背下 + D + 上弹弹</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+</div>
+
+<!-- ======== 右侧面板 ======== -->
+<div class="panel-r">
+
+  <!-- 公式分组自检 -->
+  <div class="block">
+    <div class="block-title purple">公式分组自检</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">复原魔方做完下列编码，魔方恢复原状则正确</div>
+    <table class="tbl">
+      <thead><tr><th width="24">#</th><th>基础组合</th><th width="24">#</th><th>拓展组合</th></tr></thead>
+      <tbody>
+        <tr><td class="g-c">1</td><td>B C A C</td><td class="g-c">1</td><td>D E A C B C F E</td></tr>
+        <tr><td class="g-c">2</td><td>G H I H</td><td class="g-c">2</td><td>G H A C B C I H</td></tr>
+        <tr><td class="g-c">3</td><td>O P Q P</td><td class="g-c">3</td><td>P Q W M N M O Q</td></tr>
+        <tr><td class="g-c">4</td><td>E F D F</td><td class="g-c">4</td><td>C B F E D E A B</td></tr>
+        <tr><td class="g-c">5</td><td>W M N M</td><td class="g-c">5</td><td>E F W N M N D F</td></tr>
+        <tr><td class="g-c">6</td><td>S T R T</td><td class="g-c">6</td><td>B C S T R T A C</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 13节课程安排 -->
+  <div class="block">
+    <div class="block-title blue">13 节课程安排（45min/节）</div>
+    <table class="tbl tbl-course">
+      <thead><tr><th width="40">课次</th><th>内容</th><th width="80">作业</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>编码 + 点读法</td><td>闯关 10题</td></tr>
+        <tr><td>2</td><td>编码强化</td><td>10题 20秒</td></tr>
+        <tr><td>3</td><td>G·D 公式</td><td>每条 20遍</td></tr>
+        <tr><td>4</td><td>I·R·Q / E·O·S</td><td>公式推导</td></tr>
+        <tr><td>5</td><td>A·F·N·P</td><td>每条 20遍</td></tr>
+        <tr><td>6</td><td>B·P·W</td><td>每条 20遍</td></tr>
+        <tr><td>7</td><td>C·M (特殊)</td><td>每条 20遍</td></tr>
+        <tr><td>8</td><td>H·T (最难)</td><td>重点攻破</td></tr>
+        <tr><td>9</td><td>4码儿 + 打卡</td><td>专属练习</td></tr>
+        <tr><td>10</td><td>读编码 + 循环</td><td>专项训练</td></tr>
+        <tr><td>11</td><td>翻射 + 好坏法</td><td>翻射练习</td></tr>
+        <tr><td>12</td><td>组合读码 + 记忆</td><td>记忆训练</td></tr>
+        <tr><td>13</td><td>完整盲拧实战</td><td>全程盲拧</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 读码与记忆 -->
+  <div class="block">
+    <div class="block-title teal">读码 & 记忆体系</div>
+    <div style="font-size:13px;color:var(--text2);line-height:2">
+      <strong style="color:var(--teal-l)">读码</strong>
+      <div style="margin-left:8px">● 快速识别编码 —— 不借助书写<br>● 循环借位技巧 —— GDA 优先原则<br>● 翻色处理方法 —— 特殊小循环</div>
+      <strong style="color:var(--blue-l)">记忆</strong>
+      <div style="margin-left:8px">● 单字母读音 —— 音变规则<br>● 分段记忆 —— 厘清小循环<br>● 空间记忆 —— 画线辅助<br>● 翻色记忆法 —— 好与坏<br>● 故事串联法 —— 解决长编码</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ======== 底部 ======== -->
+<div class="panel-bottom">
+  <div class="block">
+    <div class="block-title green">达标标准</div>
+    <ul style="font-size:13px;color:var(--text2);padding-left:18px;line-height:2.2">
+      <li>点读速度 ≤ 20秒/10题</li>
+      <li>每条公式 20遍肌肉记忆</li>
+      <li>4码儿练习闭眼完成</li>
+      <li>翻色+小循环组合无误</li>
+      <li>分组练习编码复原验证</li>
+      <li>完整盲拧成功还原</li>
+    </ul>
+  </div>
+  <div class="block">
+    <div class="block-title yellow">打卡跟进</div>
+    <ul style="font-size:13px;color:var(--text2);padding-left:18px;line-height:2.2">
+      <li>每日固定打卡任务</li>
+      <li>记录各学生薄弱板块</li>
+      <li>针对性打乱专项补强</li>
+      <li>个别跟进逐一突破</li>
+      <li>车轮战多轮连续训练</li>
+    </ul>
+  </div>
+  <div class="block">
+    <div class="block-title red">待补充</div>
+    <ul style="font-size:13px;color:var(--text2);padding-left:18px;line-height:2.2">
+      <li>角块分组练习具体公式</li>
+      <li>大循环+小循环打乱公式</li>
+      <li>各阶段详细达标标准</li>
+      <li>小程序闯关具体题目</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
