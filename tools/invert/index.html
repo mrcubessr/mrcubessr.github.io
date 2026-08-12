@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔方公式逆序转换工具</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: #0d0d0d url('assets/images/background4.webp') center/cover fixed;
+    color: #e0e0e0;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .top-nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 0 20px;
+    flex-wrap: wrap;
+  }
+
+  .top-nav a {
+    color: #999;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    transition: all 0.2s;
+  }
+
+  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: #fff; border-color: rgba(147,197,253,0.5); background: rgba(147,197,253,0.12); }
+
+  header {
+    text-align: center;
+    padding: 40px 0 28px;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.02em;
+  }
+
+  header .subtitle {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #777;
+  }
+
+  .card {
+    background: rgba(24, 24, 32, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 24px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #93c5fd;
+    margin-bottom: 14px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: #e2e8f0;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 1.05rem;
+    padding: 14px;
+    resize: vertical;
+    outline: none;
+    letter-spacing: 0.04em;
+  }
+
+  textarea:focus { border-color: rgba(147,197,253,0.4); }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    margin: 14px 0;
+    font-size: 0.85rem;
+    color: #aaa;
+  }
+
+  .options label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+  .options input[type="checkbox"] { accent-color: #60a5fa; }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    color: #fff;
+  }
+
+  .btn-primary:hover { filter: brightness(1.1); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    color: #bbb;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+
+  .result-block {
+    min-height: 110px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(147,197,253,0.2);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #a5f3fc;
+    letter-spacing: 0.04em;
+    word-break: break-all;
+    white-space: pre-wrap;
+    margin-bottom: 14px;
+  }
+
+  .result-block.placeholder { color: #555; font-weight: 400; font-size: 0.95rem; }
+
+  .copy-tip {
+    font-size: 0.8rem;
+    color: #4ade80;
+    margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .copy-tip.show { opacity: 1; }
+
+  .hint {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 12px;
+    line-height: 1.8;
+  }
+
+  .hint code {
+    background: rgba(255,255,255,0.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #93c5fd;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.5rem; }
+    .card { padding: 18px; }
+    .btn-row .btn { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-nav">
+    <a href="/">Home</a>
+    <a href="/fto/tcp">TCP</a>
+    <a href="/fto/l3t">L3T</a>
+    <a href="/fto/lbt">LBT</a>
+    <a href="/tools/scramble">打乱公式库</a>
+    <a href="/tools/3bld">三盲出题器</a>
+    <a href="/tools/2x2">二阶魔方练习工具</a>
+    <a href="/tools/kmap">教学知识地图</a>
+    <a href="/tools/invert" class="active">公式逆序转换</a>
+  </div>
+
+  <header>
+    <h1>魔方公式逆序转换</h1>
+    <p class="subtitle">输入公式，一键生成逆序（Inverse）版本</p>
+  </header>
+
+  <div class="card">
+    <div class="card-title">原公式</div>
+    <textarea id="input" placeholder="例如：R U R' U' 或 (R U R' U') 2"></textarea>
+
+    <div class="options">
+      <label><input type="checkbox" id="expandGroup" checked> 展开括号分组（如 (R U)2 → R U R U）</label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doInvert()">转换</button>
+      <button class="btn btn-ghost" onclick="doCopy()">复制结果</button>
+      <button class="btn btn-ghost" onclick="clearAll()">清空</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">逆序结果</div>
+    <div class="result-block placeholder" id="result">等待转换…</div>
+    <div style="font-size:0.82rem;color:#777">动作说明：R↔R' 互换、R2 保持不变，顺序完全颠倒。例：<span style="color:#93c5fd">R U R' U'</span> 的逆序为 <span style="color:#a5f3fc">U R U' R'</span></div>
+  </div>
+
+  <div class="hint">
+    支持符号：<code>R L U D F B</code> 单层，<code>M E S</code> 中层，<code>x y z</code> 整体转动，<code>Rw Uw Fw</code> 等宽式（wide），后缀 <code>'</code>（逆）与 <code>2</code>（180°），括号分组 <code>(…)</code> 及数字重复 <code>(…)2</code>、<code>(…)3</code>、<code>(…)'</code>。
+    小写兼容：<code>r u l d f b</code> 等小写面字母自动识别，逆序结果保持输入的大小写；<code>RW</code> 大写 W 也支持。
+    撇号兼容：中文引号 <code>''</code>、全角撇 <code>＇</code>、prime <code>′</code>、重音 <code>´</code>、反引号等常见变体均自动识别。
+  </div>
+
+</div>
+
+<script>
+var SUPPORTED = /^([RULFDBMESxyzruldfbmes])([wW])?(['2]?)$/;
+
+function parseTokens(input) {
+  // 兼容多种撇号变体：中文引号、全角撇、prime、重音符号等统一为 ASCII 撇
+  input = input.replace(/['’‘‛`ʼˈ＇´‵′]/g, "'");
+  input = input.replace(/[（）]/g, function(m) { return m === '（' ? '(' : ')'; });
+  var tokens = [];
+  var i = 0;
+  while (i < input.length) {
+    var ch = input[i];
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') { i++; continue; }
+    if (ch === '(') {
+      var depth = 1;
+      var j = i + 1;
+      var inner = '';
+      while (j < input.length && depth > 0) {
+        if (input[j] === '(') depth++;
+        else if (input[j] === ')') depth--;
+        if (depth > 0) inner += input[j];
+        j++;
+      }
+      if (depth !== 0) { tokens.push({ type: 'invalid', raw: '(' }); i++; continue; }
+      var sub = parseTokens(inner);
+      var k = j;
+      var rep = '';
+      while (k < input.length && /[0-9']/.test(input[k])) { rep += input[k]; k++; }
+      tokens.push({ type: 'group', raw: input.slice(i, k), sub: sub, rep: rep });
+      i = k;
+      continue;
+    }
+    var match = input.slice(i, i + 3).match(SUPPORTED);
+    if (match) {
+      var face = match[1];
+      var wide = match[2] ? 'w' : '';
+      var suffix = match[3] || '';
+      tokens.push({ type: 'move', face: face, wide: wide, suffix: suffix, raw: face + wide + suffix });
+      i += match[0].length;
+      continue;
+    }
+    var m2 = input.slice(i, i + 2).match(SUPPORTED);
+    if (m2) {
+      tokens.push({ type: 'move', face: m2[1], wide: m2[2] ? 'w' : '', suffix: m2[3] || '', raw: m2[0] });
+      i += m2[0].length;
+      continue;
+    }
+    var m1 = input.slice(i, i + 1).match(SUPPORTED);
+    if (m1) {
+      tokens.push({ type: 'move', face: m1[1], wide: '', suffix: m1[3] || '', raw: m1[0] });
+      i += 1;
+      continue;
+    }
+    tokens.push({ type: 'invalid', raw: ch });
+    i++;
+  }
+  return tokens;
+}
+
+function expandTokens(tokens, expandGroup) {
+  var out = [];
+  tokens.forEach(function(t) {
+    if (t.type === 'move') {
+      out.push(t);
+    } else if (t.type === 'group') {
+      if (!expandGroup) {
+        out.push(t);
+        return;
+      }
+      var sub = expandTokens(t.sub, true);
+      var rep = t.rep || '';
+      var times = 1;
+      var invert = false;
+      if (/^[0-9]+$/.test(rep)) times = parseInt(rep, 10);
+      else if (rep === "'") { times = 1; invert = true; }
+      else if (rep === "2") times = 2;
+      else if (rep === "2'") { times = 2; invert = true; }
+      else if (rep === "3'") { times = 3; invert = true; }
+      // 分组整体取逆：(X)' 展开为 X 的逆序列（反序 + 逐个取逆）
+      var invSub = sub.slice().reverse().map(invertMove);
+      for (var n = 0; n < times; n++) {
+        var seq = invert ? invSub : sub;
+        seq.forEach(function(s) {
+          out.push({ type: 'move', face: s.face, wide: s.wide, suffix: s.suffix, raw: s.raw });
+        });
+      }
+    } else {
+      out.push(t);
+    }
+  });
+  return out;
+}
+
+function invertMove(t) {
+  var suffix = t.suffix;
+  if (suffix === '') suffix = "'";
+  else if (suffix === "'") suffix = '';
+  return { type: 'move', face: t.face, wide: t.wide, suffix: suffix, raw: t.face + t.wide + suffix };
+}
+
+function invertTokens(tokens) {
+  var out = [];
+  for (var i = tokens.length - 1; i >= 0; i--) {
+    var t = tokens[i];
+    if (t.type === 'move') {
+      out.push(invertMove(t));
+    } else if (t.type === 'group') {
+      var subInv = invertTokens(t.sub);
+      var rep = t.rep || '';
+      var outRep = rep;
+      if (rep === "'") outRep = '';
+      else if (rep === '') outRep = "'";
+      out.push({ type: 'group', sub: subInv, rep: outRep, raw: '' });
+    } else {
+      out.push(t);
+    }
+  }
+  return out;
+}
+
+function renderTokens(tokens) {
+  var parts = [];
+  tokens.forEach(function(t) {
+    if (t.type === 'move') {
+      parts.push(t.raw);
+    } else if (t.type === 'group') {
+      parts.push('(' + renderTokens(t.sub) + ')' + t.rep);
+    }
+  });
+  return parts.join(' ');
+}
+
+function doInvert() {
+  var raw = document.getElementById('input').value.trim();
+  var expandGroup = document.getElementById('expandGroup').checked;
+  var resultEl = document.getElementById('result');
+
+  if (!raw) {
+    resultEl.textContent = '请输入公式';
+    resultEl.className = 'result-block placeholder';
+    return;
+  }
+
+  var tokens = parseTokens(raw);
+  var hasInvalid = tokens.some(function(t) { return t.type === 'invalid'; });
+
+  var expanded = expandTokens(tokens, expandGroup);
+  var inverted = invertTokens(expanded);
+
+  var out = renderTokens(inverted).replace(/\s+/g, ' ').trim();
+
+  resultEl.textContent = out;
+  resultEl.className = 'result-block';
+
+  if (hasInvalid) {
+    var tip = document.createElement('div');
+    tip.style.cssText = 'font-size:0.78rem;color:#f87171;margin-top:8px';
+    tip.textContent = '提示：检测到无法识别的字符，已忽略处理。';
+    resultEl.appendChild(tip);
+  }
+}
+
+function doCopy() {
+  var text = document.getElementById('result').textContent;
+  if (!text || text === '等待转换…' || text === '请输入公式') return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showTip, function() { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); showTip(); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+function showTip() {
+  var tip = document.getElementById('copyTip');
+  if (!tip) {
+    tip = document.createElement('span');
+    tip.id = 'copyTip';
+    tip.className = 'copy-tip';
+    tip.textContent = '已复制';
+    document.getElementById('copyTipAnchor').appendChild(tip);
+  }
+  tip.classList.add('show');
+  setTimeout(function() { tip.classList.remove('show'); }, 1500);
+}
+
+function clearAll() {
+  document.getElementById('input').value = '';
+  var resultEl = document.getElementById('result');
+  resultEl.textContent = '等待转换…';
+  resultEl.className = 'result-block placeholder';
+}
+</script>
+</body>
+</html>
