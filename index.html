@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3-Look L3T — FTO Tutorial</title>
+<title>Cube Projects</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     background: #0d0d0d url('assets/images/background4.webp') center/cover fixed;
@@ -26,43 +26,18 @@
   .container {
     position: relative;
     z-index: 1;
-    max-width: 960px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px 16px 60px;
   }
 
-  /* Nav */
-  .nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0;
-    margin-bottom: 8px;
-  }
-
-  .nav a {
-    color: #93c5fd;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 6px 14px;
-    border: 1px solid rgba(147, 197, 253, 0.2);
-    border-radius: 8px;
-    transition: background 0.2s, border-color 0.2s;
-  }
-
-  .nav a:hover {
-    background: rgba(147, 197, 253, 0.1);
-    border-color: rgba(147, 197, 253, 0.4);
-  }
-
   header {
     text-align: center;
-    padding: 48px 0 32px;
+    padding: 80px 0 64px;
   }
 
   header h1 {
-    font-size: 2.4rem;
+    font-size: 2.8rem;
     font-weight: 700;
     background: linear-gradient(135deg, #60a5fa, #a78bfa);
     -webkit-background-clip: text;
@@ -72,495 +47,136 @@
   }
 
   header .subtitle {
-    margin-top: 8px;
-    font-size: 0.95rem;
-    color: #888;
+    margin-top: 12px;
+    font-size: 1rem;
+    color: #777;
   }
 
-  /* Section */
-  .section {
+  .project-group {
     margin-bottom: 48px;
   }
 
-  .section-title {
-    font-size: 1.6rem;
+  .group-title {
+    font-size: 1.4rem;
     font-weight: 700;
     color: #93c5fd;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 2px solid rgba(147, 197, 253, 0.2);
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    border-bottom: 2px solid rgba(147, 197, 253, 0.15);
   }
 
-  .section-title .badge {
-    font-size: 0.8rem;
-    background: rgba(147, 197, 253, 0.15);
-    color: #93c5fd;
-    padding: 3px 12px;
-    border-radius: 12px;
-    font-weight: 500;
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
   }
 
-  /* Case Card */
-  .case-grid {
+  .card {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-  }
-
-  .case-card {
+    align-items: center;
+    justify-content: center;
     background: rgba(24, 24, 32, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
-    padding: 24px;
+    padding: 28px 20px;
+    text-decoration: none;
     backdrop-filter: blur(12px);
-    transition: border-color 0.2s, transform 0.2s;
+    transition: border-color 0.2s, transform 0.2s, background 0.2s;
   }
 
-  .case-card:hover {
-    border-color: rgba(147, 197, 253, 0.25);
-    transform: translateY(-1px);
+  .card:hover {
+    border-color: rgba(147, 197, 253, 0.3);
+    transform: translateY(-2px);
+    background: rgba(32, 32, 44, 0.9);
   }
 
-  .case-card .case-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
+  .card-icon {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
   }
 
-  .case-card .case-num {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #93c5fd;
-    background: rgba(147, 197, 253, 0.1);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
-
-  .case-card .case-dir {
-    font-size: 0.8rem;
-    color: #888;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .case-body {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .case-images {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
-
-  .case-images img {
-    height: 120px;
-    width: auto;
-    border-radius: 8px;
-    background: rgba(0,0,0,0.3);
-  }
-
-  .case-images .dir-img {
-    height: 80px;
-    width: auto;
-    align-self: center;
-  }
-
-  .case-info {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 200px;
-  }
-
-  .formula-block {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 12px 16px;
-  }
-
-  .formula-block .label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #666;
-    margin-bottom: 4px;
-  }
-
-  .formula-block .algo {
-    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
-    font-size: 1.15rem;
+  .card-title {
+    font-size: 1rem;
     font-weight: 600;
     color: #e2e8f0;
-    letter-spacing: 0.04em;
-    word-break: break-all;
+    text-align: center;
   }
 
-  .formula-block.setup {
-    opacity: 0.65;
+  .card-desc {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 6px;
+    text-align: center;
   }
 
-  .formula-block.setup .algo {
-    font-size: 0.9rem;
-    font-weight: 400;
-    color: #999;
+  footer {
+    text-align: center;
+    padding: 48px 0 32px;
+    color: #444;
+    font-size: 0.8rem;
   }
 
-  .formula-block.setup .label {
-    color: #555;
-  }
-
-  /* LT special - no direction column */
-  .lt-case .case-body {
-    flex-direction: column;
-  }
-
-  .lt-case .case-images img {
-    height: 140px;
-  }
-
-  /* Responsive */
   @media (max-width: 640px) {
-    header h1 { font-size: 1.6rem; }
-    header { padding: 32px 0 20px; }
-    .case-card { padding: 16px; }
-    .case-body {
-      flex-direction: column;
-    }
-    .case-images img {
-      height: 100px;
-    }
-    .case-images .dir-img {
-      height: 64px;
-    }
-    .formula-block .algo {
-      font-size: 1rem;
-    }
-    .section-title { font-size: 1.3rem; }
+    header { padding: 48px 0 40px; }
+    header h1 { font-size: 2rem; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .card { padding: 20px 14px; }
   }
 
   @media (max-width: 380px) {
-    .case-images img {
-      height: 80px;
-    }
-    .case-images .dir-img {
-      height: 52px;
-    }
+    .card-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <div class="nav">
-    <a href="/fto/tcp">TCP &rarr;</a>
-    <span style="color:#555;font-size:0.85rem;">FTO Tutorial</span>
-  </div>
-
   <header>
-  <h1>3-Look L3T</h1>
-  <p class="subtitle">FTO Last Three Triplets &mdash; 3-step method</p>
-</header>
+    <h1>Cube Projects</h1>
+    <p class="subtitle">魔方项目集合</p>
+  </header>
 
-<!-- ==================== PF ==================== -->
-<section class="section">
-  <h2 class="section-title">PF <span class="badge">Pair Formation</span></h2>
-  <div class="case-grid">
-
-    <!-- PF-1 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">1</span><span class="case-dir">Direction: U</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/1-FfffcfffffUcccccccccLcccccccccRcccccccccDcccccccccEcfcccccccIccccccccc.png" alt="PF case 1">
-          <img class="dir-img" src="assets/fto-img/U.png" alt="U direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R F</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F' R'</div></div>
-        </div>
-      </div>
+  <div class="project-group">
+    <h2 class="group-title">FTO 魔方</h2>
+    <div class="card-grid">
+      <a class="card" href="/fto/tcp/">
+        <div class="card-icon">&#x1F9E9;</div>
+        <div class="card-title">TCP</div>
+        <div class="card-desc">Triplet Center Pairing</div>
+      </a>
+      <a class="card" href="/fto/l3t/">
+        <div class="card-icon">&#x1F9E9;</div>
+        <div class="card-title">L3T</div>
+        <div class="card-desc">3-Look Last Three Triplets</div>
+      </a>
+      <a class="card" href="/fto/lbt/">
+        <div class="card-icon">&#x1F9E9;</div>
+        <div class="card-title">LBT</div>
+        <div class="card-desc">Last Bottom Triplets</div>
+      </a>
     </div>
-
-    <!-- PF-2 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">2</span><span class="case-dir">Direction: U</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/2-FcfffcfcffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIccccfcccc.png" alt="PF case 2">
-          <img class="dir-img" src="assets/fto-img/U.png" alt="U direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F' U F</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F' U' F R</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-3 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">3</span><span class="case-dir">Direction: U</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/3-FffffcfffcUcccccccccLcccccccccRcccccccccDccccccccfEcccccccccIccccfcccc.png" alt="PF case 3">
-          <img class="dir-img" src="assets/fto-img/U.png" alt="U direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F' R' F</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F' R F R</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-4 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">4</span><span class="case-dir">Direction: L</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/4-FfcfcfffffUcccccccccLcccccccccRcccccccccDccccccfccEcccccccccIcccfccccc.png" alt="PF case 4">
-          <img class="dir-img" src="assets/fto-img/L.png" alt="L direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F' R' F'</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F R F R</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-5 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">5</span><span class="case-dir">Direction: L</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/5-FccffcffffUcccccccccLcccccccccRcccccccccDcccccccccEfccccccccIcccffcccc.png" alt="PF case 5">
-          <img class="dir-img" src="assets/fto-img/L.png" alt="L direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R F'</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F R'</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-6 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">6</span><span class="case-dir">Direction: R</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/6-FcffccffffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIccccfcccc.png" alt="PF case 6">
-          <img class="dir-img" src="assets/fto-img/R.png" alt="R direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F' R</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-7 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">7</span><span class="case-dir">Direction: R</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/7-FccffcfcffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIcccffcccc.png" alt="PF case 7">
-          <img class="dir-img" src="assets/fto-img/R.png" alt="R direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R F</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F' R'</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-8 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">8</span><span class="case-dir">Direction: L</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/8-FcffccfcffUcccccccccLcccccccccRcccccccccDcccccccccEffcccccccIcccffcccc.png" alt="PF case 8">
-          <img class="dir-img" src="assets/fto-img/L.png" alt="L direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F'</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">R F</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-9 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">9</span><span class="case-dir">Direction: R</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/9-FccfccfcffUcccccccccLcccccccccRcccccccccDccccccfccEffcccccccIcccffcccc.png" alt="PF case 9">
-          <img class="dir-img" src="assets/fto-img/R.png" alt="R direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F' U' F'</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F U F R</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PF-10 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">10</span><span class="case-dir">Direction: U</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/1-pf/10-FfcfcffcffUcccccccccLcccccccccRcccccccccDccccccfccEcfcccccccIcccfccccc.png" alt="PF case 10">
-          <img class="dir-img" src="assets/fto-img/U.png" alt="U direction">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' F' R' F' U F</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">F U' F R F R</div></div>
-        </div>
-      </div>
-    </div>
-
   </div>
-</section>
 
-<!-- ==================== TL ==================== -->
-<section class="section">
-  <h2 class="section-title">TL <span class="badge">Top Layer</span></h2>
-  <div class="case-grid">
-
-    <!-- TL-1 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">1</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/2-tl/1-FfffccfcfcUccccruuulLucllcccllRrrrcurcccDccccccfcfEcccccccccIcccffcccc.png" alt="TL case 1">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">R'</div></div>
-        </div>
-      </div>
+  <div class="project-group">
+    <h2 class="group-title">魔方个人工具</h2>
+    <div class="card-grid">
+      <a class="card" href="/tools/scramble/">
+        <div class="card-icon">&#x1F3B2;</div>
+        <div class="card-title">打乱公式库</div>
+        <div class="card-desc">三盲 D~X 组棱练习</div>
+      </a>
+      <a class="card" href="/tools/3bld/">
+        <div class="card-icon">&#x1F9E0;</div>
+        <div class="card-title">三盲出题器</div>
+        <div class="card-desc">联想词出题工具</div>
+      </a>
     </div>
-
-    <!-- TL-2 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">2</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/2-tl/2-FfffccfcfcUccccluuuuLrcllcccluRlrrcrrcccDccccccfcfEcccccccccIcccffcccc.png" alt="TL case 2">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">U</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">U'</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TL-3 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">3</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/2-tl/3-FccfccffffUccccluuurLucllcccllRurrcrrcccDcccccccccEffcccccccIcccffcccc.png" alt="TL case 3">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">U R</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">R' U'</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TL-4 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">4</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/2-tl/4-FfffffffffUccccruuurLucllcccluRlrrclrcccDcccccccccEcccccccccIccccccccc.png" alt="TL case 4">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">R' U</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">U' R</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TL-5 -->
-    <div class="case-card">
-      <div class="case-header"><span class="case-num">5</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/2-tl/5-FfffffffffUccccluuulLrcllccclrRurrcurcccDcccccccccEcccccccccIccccccccc.png" alt="TL case 5">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">U' R</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">R' U</div></div>
-        </div>
-      </div>
-    </div>
-
   </div>
-</section>
 
-<!-- ==================== LT ==================== -->
-<section class="section">
-  <h2 class="section-title">LT <span class="badge">Last Triangles</span></h2>
-  <div class="case-grid">
-
-    <!-- LT-1 -->
-    <div class="case-card lt-case">
-      <div class="case-header"><span class="case-num">1</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/3-lt/1.png" alt="LT case 1">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">Uo Rw U R' U' R Rw' U R U' R' Uo'</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">Uo R U R' U' Rw R' U R U' Rw' Uo'</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LT-2 -->
-    <div class="case-card lt-case">
-      <div class="case-header"><span class="case-num">2</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/3-lt/2-FfffffffffRrrrrrrrrrLlllllllllUuuuuuuuuuDddddddeddEeieeeeeeeIiiidiiiii.png" alt="LT case 2">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">U' R U' R' Rw U R' U' R Rw' U'</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">U Rw R' U R U' Rw' R U R' U</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LT-3 -->
-    <div class="case-card lt-case">
-      <div class="case-header"><span class="case-num">3</span></div>
-      <div class="case-body">
-        <div class="case-images">
-          <img src="assets/fto-img/3-lt/3-FfffffffffRrrrrrrrrrLlllllllllUuuuuuuuuuDddddddiddEedeeeeeeeIiiieiiiii.png" alt="LT case 3">
-        </div>
-        <div class="case-info">
-          <div class="formula-block"><div class="label">Algorithm</div><div class="algo">U Rw R' U R U' Rw' R U R' U</div></div>
-          <div class="formula-block setup"><div class="label">Setup</div><div class="algo">U' R U' R' Rw U R' U' R Rw' U'</div></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
+  <footer>
+    &copy; 2026 Cube Projects
+  </footer>
 
 </div>
 </body>
