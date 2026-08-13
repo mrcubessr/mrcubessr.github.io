@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔方工具导航</title>
+<style>
+  :root {
+    --bg: #12141a;
+    --panel: #1c1f27;
+    --border: #2b2f3a;
+    --text: #e6e8ee;
+    --muted: #9aa0ae;
+    --accent: #60a5fa;
+    --accent2: #f472b6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    min-height: 100vh;
+  }
+  .top-nav {
+    max-width: 1200px;
+    margin: 16px auto 0;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .top-nav a {
+    color: #d7dce6;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: #1c1f27;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .top-nav a:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  .top-nav a.active { color: #fff; background: #2E5E8E; border-color: #2E5E8E; font-weight: 600; }
+  .page-head {
+    text-align: center;
+    margin: 18px 0 20px;
+  }
+  .page-head h1 {
+    font-size: 26px;
+    color: var(--text);
+  }
+  .page-head p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+  .section-title {
+    font-size: 15px;
+    color: var(--accent);
+    margin: 28px 0 14px;
+    padding-left: 10px;
+    border-left: 3px solid var(--accent);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(96,165,250,0.12);
+  }
+  .card .name {
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .card .url {
+    font-size: 12px;
+    color: var(--muted);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .site-footer {
+    text-align: center;
+    padding: 24px 16px 36px;
+  }
+  .site-footer p {
+    font-size: 0.82rem;
+    color: #888;
+    margin-top: 12px;
+  }
+  .site-footer .g { color: #fbbf24; font-weight: 600; }
+  .site-footer .a { color: #60a5fa; font-weight: 600; }
+  .site-footer .z { color: #f472b6; font-weight: 600; }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/">Home</a>
+  <a href="/fto/tcp">TCP</a>
+  <a href="/fto/l3t">L3T</a>
+  <a href="/fto/lbt">LBT</a>
+  <a href="/tools/scramble">打乱公式库</a>
+  <a href="/tools/3bld">三盲出题器</a>
+  <a href="/tools/2x2">二阶练习</a>
+  <a href="/tools/kmap">教学知识地图</a>
+  <a href="/tools/invert">公式逆序转换</a>
+  <a href="/tools/practice">魔方练习题生成器</a>
+  <a href="/tools/nav" class="active">魔方工具导航</a>
+</div>
+
+<div class="page-head">
+  <h1>魔方工具导航</h1>
+  <p>常用魔方工具、公式库与训练资源汇总</p>
+</div>
+
+<div class="container">
+
+  <div class="section-title">常用工具</div>
+  <div class="grid">
+    <a class="card" href="https://rubiks-cube-solver.com/" target="_blank" rel="noopener">
+      <div class="name">魔方画图求解</div>
+      <div class="url">rubiks-cube-solver.com</div>
+    </a>
+    <a class="card" href="https://cube.rider.biz/visualcube.php" target="_blank" rel="noopener">
+      <div class="name">三阶魔方画图网站</div>
+      <div class="url">cube.rider.biz/visualcube.php</div>
+    </a>
+    <a class="card" href="https://cubing.pro/welcome" target="_blank" rel="noopener">
+      <div class="name">魔方解法工具网站</div>
+      <div class="url">cubing.pro/welcome</div>
+    </a>
+    <a class="card" href="https://cubing.net/mark2/" target="_blank" rel="noopener">
+      <div class="name">魔方打乱生成工具</div>
+      <div class="url">cubing.net/mark2</div>
+    </a>
+    <a class="card" href="https://alg.cubing.net/" target="_blank" rel="noopener">
+      <div class="name">逆向公式工具</div>
+      <div class="url">alg.cubing.net</div>
+    </a>
+    <a class="card" href="https://cstimer.net/" target="_blank" rel="noopener">
+      <div class="name">魔方计时器</div>
+      <div class="url">cstimer.net</div>
+    </a>
+  </div>
+
+  <div class="section-title">公式库</div>
+  <div class="grid">
+    <a class="card" href="https://www.speedcubedb.com/" target="_blank" rel="noopener">
+      <div class="name">魔方公式库</div>
+      <div class="url">speedcubedb.com</div>
+    </a>
+    <a class="card" href="http://blddb.net/corner.html" target="_blank" rel="noopener">
+      <div class="name">魔方盲拧公式库</div>
+      <div class="url">blddb.net/corner.html</div>
+    </a>
+  </div>
+
+  <div class="section-title">盲拧训练</div>
+  <div class="grid">
+    <a class="card" href="https://pineapple-not-on-pizza.github.io/COLPI/" target="_blank" rel="noopener">
+      <div class="name">魔方盲拧联想词查询</div>
+      <div class="url">pineapple-not-on-pizza.github.io/COLPI</div>
+    </a>
+    <a class="card" href="https://spooncuber.github.io" target="_blank" rel="noopener">
+      <div class="name">盲拧训练助手</div>
+      <div class="url">spooncuber.github.io</div>
+    </a>
+  </div>
+
+  <div class="section-title">赛事与系统</div>
+  <div class="grid">
+    <a class="card" href="https://cubing.pro/welcome/" target="_blank" rel="noopener">
+      <div class="name">魔方线上赛</div>
+      <div class="url">cubing.pro/welcome</div>
+    </a>
+    <a class="card" href="http://train.cube.chesscoacher.com/login" target="_blank" rel="noopener">
+      <div class="name">魔方训练管理系统</div>
+      <div class="url">train.cube.chesscoacher.com/login</div>
+    </a>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <p>本网站内容来自中国转面八面体（FTO）魔方交流群 <span class="g">272010376</span>　　制作人：<span class="a">魔方先生SSR</span>　<span class="z">2009ZHAN24</span></p>
+</footer>
+
+</body>
+</html>
