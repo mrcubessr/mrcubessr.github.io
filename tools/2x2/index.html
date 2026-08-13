@@ -409,22 +409,48 @@
     }
     .top-nav a:hover { color: #333; border-color: rgba(0,0,0,0.25); }
     .top-nav a.active { color: #2E5E8E; background: #e8f0fa; border-color: #2E5E8E; font-weight: 600; }
+    .top-nav .nav-group {
+        color: #999;
+        font-size: 0.75rem;
+        padding: 6px 4px 6px 10px;
+        letter-spacing: 0.08em;
+        user-select: none;
+        align-self: center;
+    }
+    .top-nav a.soon {
+        color: #aaa;
+        border-style: dashed;
+        background: transparent;
+        cursor: default;
+    }
+    .top-nav a.soon:hover {
+        color: #aaa;
+        border-color: rgba(0,0,0,0.12);
+        background: transparent;
+    }
 
     </style>
 </head>
 <body>
 <div class="top-nav">
   <a href="/">Home</a>
+  <span class="nav-group">教程</span>
   <a href="/fto/tcp">TCP</a>
   <a href="/fto/l3t">L3T</a>
   <a href="/fto/lbt">LBT</a>
-  <a href="/tools/scramble">打乱公式库</a>
-  <a href="/tools/3bld">三盲出题器</a>
-  <a href="/tools/2x2" class="active">二阶魔方练习工具</a>
-  <a href="/tools/kmap">教学知识地图</a>
-  <a href="/tools/invert">公式逆序转换</a>
-  <a href="/tools/practice">魔方练习题生成器</a>
-  <a href="/tools/nav">魔方工具导航</a></div>
+  <a class="soon" title="即将上线">二阶</a>
+  <a class="soon" title="即将上线">三阶</a>
+  <a class="soon" title="即将上线">金字塔</a>
+  <span class="nav-group">个人训练工具</span>
+  <a href="/tools/scramble">公式库</a>
+  <a href="/tools/3bld">出题器</a>
+  <a href="/tools/2x2" class="active">二阶练习</a>
+  <a href="/tools/kmap">知识地图</a>
+  <a href="/tools/invert">逆序转换</a>
+  <a href="/tools/practice">练习纸生成</a>
+  <span class="nav-group">外链</span>
+  <a href="/tools/nav">工具导航</a>
+</div>
 
     <!-- 魔方装饰元素 -->
     <div class="cube-decoration cube-1"></div>
