@@ -384,6 +384,8 @@ function normalizeFormulaText(str) {
     }
     if (/[a-zA-Z]/.test(ch)) {
       let t = ch; i++;
+      // 宽层 w/W 与字母一体，如 Rw/Lw 不可拆分
+      if (i < s.length && (s[i] === 'w' || s[i] === 'W')) { t += s[i]; i++; }
       if (i < s.length && PRIME_CHARS.has(s[i])) { t += s[i]; i++; }
       if (i < s.length && s[i] === '2') { t += s[i]; i++; }
       toks.push(t);
