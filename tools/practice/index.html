@@ -656,9 +656,9 @@ function drawFace(ctx, face, cube, ox, oy, stickerSize, size) {
   const faceData = cube.faces[face];
   const faceSize = stickerSize * s;
 
-  // 面底板：深色，比面大 2px 形成深色边框
+  // 面底板：深色，比面大 1px 形成深色边框
   ctx.fillStyle = '#1a1a2e';
-  ctx.fillRect(ox - 2, oy - 2, faceSize + 4, faceSize + 4);
+  ctx.fillRect(ox - 1, oy - 1, faceSize + 2, faceSize + 2);
 
   // 2x2 贴纸：贴纸间 2px 间隙（1px 偏移 + 尺寸减 2）
   for (let r = 0; r < s; r++) {
