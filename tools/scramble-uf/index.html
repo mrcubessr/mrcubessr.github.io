@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UF缓冲公式连拧专项训练</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .top-nav {
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+  .top-nav a {
+    color: #d7dce6;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: #1c1f27;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .top-nav a:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+  .top-nav a.active { color: #fff; background: #2E5E8E; border-color: #2E5E8E; font-weight: 600; }
+  .top-nav .nav-group {
+    color: #8a91a0;
+    font-size: 0.75rem;
+    padding: 6px 4px 6px 10px;
+    letter-spacing: 0.08em;
+    user-select: none;
+    align-self: center;
+  }
+  .top-nav a.soon {
+    color: #6b7280;
+    border-style: dashed;
+    background: transparent;
+    cursor: default;
+  }
+  .top-nav a.soon:hover {
+    color: #6b7280;
+    border-color: rgba(255,255,255,0.18);
+    background: transparent;
+  }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    background: #0d0d1a;
+    color: #d4cfc4;
+    min-height: 100vh;
+    padding: 30px 24px;
+  }
+  .header {
+    text-align: center;
+    padding: 28px 0 20px;
+    margin-bottom: 32px;
+    border-bottom: 2px solid rgba(100,180,255,0.25);
+  }
+  .header h1 {
+    font-size: 30px;
+    letter-spacing: 5px;
+    color: #64b4ff;
+    text-shadow: 0 0 24px rgba(100,180,255,0.2);
+    margin-bottom: 6px;
+  }
+  .header .sub {
+    font-size: 13px;
+    color: #6b7280;
+    letter-spacing: 2px;
+  }
+  .entries {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .entry {
+    background: linear-gradient(160deg, #15152a 0%, #1a1a32 100%);
+    border: 1px solid rgba(100,180,255,0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+    transition: border-color 0.3s;
+  }
+  .entry:hover {
+    border-color: rgba(100,180,255,0.3);
+  }
+  .entry-header {
+    background: linear-gradient(135deg, rgba(100,180,255,0.1), rgba(80,140,220,0.05));
+    padding: 14px 24px;
+    border-bottom: 1px solid rgba(100,180,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .entry-header .index {
+    width: 32px; height: 32px;
+    line-height: 32px;
+    text-align: center;
+    background: #64b4ff;
+    color: #0d0d1a;
+    border-radius: 6px;
+    font-weight: 900;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .entry-header h2 {
+    font-size: 17px;
+    color: #8ec8ff;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .entry-body {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+  }
+  @media (max-width: 720px) {
+    .entry-body { grid-template-columns: 1fr; }
+  }
+  .diagram {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.02);
+    border-right: 1px solid rgba(100,180,255,0.08);
+  }
+  .diagram img {
+    max-width: 240px;
+    border-radius: 8px;
+    image-rendering: auto;
+  }
+  .info-panel {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+  }
+  .info-panel .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #5b6e8a;
+    font-weight: 600;
+  }
+  .order-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .order-tag {
+    display: inline-block;
+    font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #64b4ff;
+    background: rgba(100,180,255,0.08);
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: 1px solid rgba(100,180,255,0.15);
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .order-tag.current {
+    color: #f0a050;
+    background: rgba(240,160,80,0.12);
+    border-color: rgba(240,160,80,0.3);
+    box-shadow: 0 0 12px rgba(240,160,80,0.15);
+  }
+  .arrow {
+    color: #3a4a60;
+    font-size: 12px;
+  }
+  .formula-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .formula-block code {
+    display: block;
+    font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+    font-size: 14px;
+    color: #e0d5c1;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.06);
+    letter-spacing: 1.5px;
+    word-break: break-all;
+    border-left: 3px solid #f0a050;
+  }
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 16px 0;
+    font-size: 11px;
+    color: #3a3f50;
+    letter-spacing: 2px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  @media print {
+    body { background: #0d0d1a; padding: 10px; }
+    .entry { box-shadow: none; break-inside: avoid; }
+    .header h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="top-nav">
+  <a href="/">Home</a>
+  <span class="nav-group">教程</span>
+  <a href="/fto/tcp">TCP</a>
+  <a href="/fto/l3t">L3T</a>
+  <a href="/fto/lbt">LBT</a>
+  <a class="soon" title="即将上线">二阶</a>
+  <a href="/tools/3x3">三阶</a>
+  <a class="soon" title="即将上线">金字塔</a>
+  <span class="nav-group">个人训练工具</span>
+  <a href="/tools/scramble">公式库</a>
+  <a href="/tools/scramble-uf" class="active">UF公式库</a>
+  <a href="/tools/3bld">出题器</a>
+  <a href="/tools/2x2">二阶练习</a>
+  <a href="/tools/kmap">知识地图</a>
+  <a href="/tools/invert">逆序转换</a>
+  <a href="/tools/practice">练习纸生成</a>
+  <span class="nav-group">外链</span>
+  <a href="/tools/nav">工具导航</a>
+</div>
+
+
+<div class="header">
+  <h1>UF缓冲公式连拧专项训练</h1>
+  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UF缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
+</div>
+
+<div class="entries">
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">1</span>
+      <h2>C组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="C组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>F2 R2 F2 R2 D U R2 F2 D F' U L F2 D2 U' R U' R' U2</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">CE</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CF</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CG</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CH</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CI</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CJ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">CZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">2</span>
+      <h2>D组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="D组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>R2' F2' L2' U2' R2' D2' B2' R' D' B F' R F2' L2' B F L U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">DE</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DF</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DG</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DH</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DI</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DJ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">DZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">3</span>
+      <h2>E组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAX0AAAEiCAIAAACaw5UkAAARS0lEQVR4nO3df2hUZ77H8eeMSTSJiWHEolbjj6mmKKRW7D/9x1YJS2glLIVStQSXwO5/+0f+EFqoS1lYCFcupSAXwpIlklQqtSlSmuXeXnY7xDHVITGhuli4veAmmmQSzcbdmcyJmXOZTBvdu8wknud5vuZk3q9/VoblO0+fc/LJOfMjH8fzPAUAgkKSTwYA5A6AZ4DrHQDSyB0A0sgdANLIHQDSyB0A0sgdANLIHQDSSsSfMdiGh291d19Sxa2t7YNnvQQEG7nz1Lq6PlNFrL5+37NeAgKP3PHv5Mnk3r1zjuN/QjIZ6usr6+tbu/hIc/PbdXURR2NoMpmKRq9Go/1WZwI6HL4X+lSGh281Nh5XSp079+Do0VllwunTNZcvlyul2tvPNjQcNjKztfVMT0+vjZn19ft6ey8YGYiixevKftTWzpsKHaXUsWMppdSOHdtMBYRSqqmp0dJMQB+540dVVUaZEw5np1VXVxmdWWNpJqCP3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdzxtWsWtk2nZ0ZyJqCP3PFjbGyNMmdkJDttbGzC6My7lmYC+sgdPxKJ0PnzlQa2XynXVd3dFUqpiYnJjg4zvVSu63Z2XrQ0E9BHb5/P3j6l1MGDbiTySOdWJpVy+vvLEonHV0+HDr0UiewMadzIJZOpWOx6IjFlaSa9fdBH7vjPneJE7kAf/eirvx/9eLmzp9RxPM//TOXE0pkrru8BwD8hd3wy1Y9+6pT5fvSWlhOL/egfb3BeX5tLMa33tprLQ+/NZL40Vs6Mosbryqu5H337GvVT6BjwhrlRKHLkzmruR68KmUyKMCcLDOFUAiCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3FnN/egcXaxMnJmruR993OSfn1ejRqehmJE7q7kfPTHvdSU9MzOV+sTQKICe4tXfj/5yqdpdonUXl/LUt643uXC9Q08x9NEX6t/AQNnAQJkyKh4fiseHzM4cnFODc1yqYAUhd/wLSpe5s/0dZ/0LnkZPsZNJeZMxbyrmewLwJHLHp6B0mTsHPnI2vaY7USmn9l313fveva/0xgBZvK7sR1C6zJ2KbbnQMWPzm8ZGobiRO34Epsu8pNrgTFWWXSegj9wBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cASCN3AEgjdwBII3cAUDuAFjtuN4BII3cASCN3AEgjdwBII3cWdVd5hbWCegjd/wITJf57LjBmc7sqMFpKGbkjh9B6TL30pPenW4jM1XGzdz51MwoFD360f33o6/8LvMf1RxwKncpR+N3zHzKm7qm3En60WEEfaFF0GU+fcObvmF4JqCB3HlqbW0f6Ow4AO6zAEjjdWUA0sgdANLIHQDSyB0AK+n9rOHhW93dl1Rx+3/vXrEn7Annif47v0u8j97V9ZkqYvX1+/71QfaEPeE88fez89Sf3/nF4XTd1nlH+f9IW9INffOXkj/fKl18xNn+jrP+BU/5/3Suk0l5kzFvKrb4SHPz23V1EZ3vbSaTqWj0ajTa/0z25OTJ5N69czofWE4mQ319ZX19axcfOV7u7Cl1HE9jncqJpTNX3KX/nzaey8Y+S+6JjfN8a9OWyl0VWt97mc3cjz94EJ+2OlMrdzp+9fBn9XNK2y+PqF93Vl66lv2RcA585Gx6LfsPvZlO7bvqu/e9e18ppdrbzzY0HNZfZ0vLidbWMz09vcJ7cu7cg6NHZ/VnnjqlTp+uuXy5XCn18Qbn9bW5Pdba6eby0HszmS8Lrs7Gc9nYZ8k9sXGe7//wxY2vhpW259/acrvt+/GvJy3N1HpdecemjJEDn/PzV7K/IJyKbbmDYcbmN7Pr3LHNSOjkNDU1Cu9Jbe28kdDJOXYspZTavkb99ANmwBsFR9l4Lhv7LLknNs7z8q3rjAREzqYjz1maqZs7G8pNfl1o4/qFLyyWVBucqcpqlFLV1VUGR4bD2ZmSe1JVZfIPYYTDCzNDJv/+TrjgyWLjuazss+Ce2DjP11Sa/G5TaU2JpZmF8T46AGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOgJWXOzqdKpJDdbprnv65zM8MhYL9WyUUlH1Wgmyc5yEViJmFLf2E96ZNLuqvU2uy/zM7bnCmMzuqlBobmzA4c2TkrvCejI0t7IwhIyPZaeMm/1S8Gi04zcZz2dhnyT2xcZ6nE8uo7Fq29Fja0szClj6uE39zfv+ndUYW5D5Sf/gmW2DkpSe9O91GZqqMm7nzaXadE5MdHReMjHRdt7PzovCeJBKh8+crzcx0VVdXtoAtMe91Jc1UMrhKfVJwlI3nsrLPgnti4zx377ujn98zM3IuM/rFPUszC1tWf8VvPqv4cqB0z+aMzr3AP9LOldslEzM/jvBu/5s3/l9O5S6ti7z5lDd1Tbk/loT99rf/3tv735HIzpDGQpPJVCx2PZGYEtiTZNrpe2JPfve76j/+cV0k8kjn8jyVcvr7yxKJH6+e2v7u/Wfa212idcWf8tS3rje51JWCjeeysc+Se2LjPP+f//jfRHSyorZCa+RsZnpw2r0/Z29mAcvtzbn+Q+n1H5Rh0ze86RtmR8bjQ/H4kBJhY08GBsoGBsrMzhycU4NzJouohJ/Lxj5L7omN83zm5sOZmw9X/kzd3LHRnUzv9errvQ7KMbWxznxsdN47Aelc18odG93J9F6vvt7roBxTG+vMx0bnvROQzvUClr6Zs9GdTO/16uu9DsoxtbHOfGx03jsB6VzXzR0b3cn0Xq++3uugHFMb68zHRue9CkjnemF8XhmANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgfACuxHt9HHTO+1zD4L/loJyjG1sU7JznsVkM71wpZ+QhvdyfRer77e66AcUxvrzMdG570KSOd6YUsfAxvdyfRer77e66AcUxvrzMds5313d0WAOtcLW1Z/hY3uZHqvV1/vdVCOqY115mOj894LSOd6ASXPsDuZ3uvV13sdlGNqY52SnfcqIJ3rurljo0+6ufnturqIo/GLIJlMRaNXo9F+q73RQe+9trHOfGwc06Dscz421n884J3xy8odG33S7e1nGxoO689saTnR2nqmp6fXUm900HuvbawzHxvHNCj7nI+N9X8c8M74Zb2ubKNPeseObUZO0JympkZLvdFB7722sc58bBzToOxzPjbWvz3gnfHLzR0bfdLV1VUGZ4bDNZZ6o4Pee21lnXnYOKZB2ed8bKy/KuCd8Tl8XhmANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgfACuxHt9An7dgZqqQEpffayjoFj2lQ9lly/aGAd8Yv97/CRp/02NiEwZkjI3ct9UYHvffayjrzsHFMg7LP+dhY/3jAO+Nzln4+G33SExOTHR0XzMx03c7Oi5Z6o4Pee21jnfnYOKZB2ed8bKw/EfDO+BzHy185ODx8q7HxeO7fr+ye0+yT/kfaufLPfdKHDr0UiewMaQxNJlOx2PVEYurxQzUHDPZG19fv6+29kG9PDh50zfZeG1+/jXUW3hMbx3Tl77P8efJyqTLbGW/8Z/xf98RPT7GNPul4fCgeH1r5vdFB7722sk7BYxqUfZZc/2DAO+OXyJ22tg+EFhIc7Al7wnmiqdB9FgDYwOd3AEgjdwBII3cASCN3AEhb7vvoyBkevtXdfanId4N39KCJ3HlqXV2fqSJWX7/vWS8BgUfu+He83NlT6jgaH0RIKieWzlxxHz/S3Px2XV1E5zuWyWQqGr0ajfYvPrK1aUvlrkJfcVhSZjZzP/7gQXxaZwiwiNzx6eMNzutrc+mg9WXe5vLQezOZL2ez/25vP9vQcFhpa2k50dp6pqenVym1/8MXN74a1p/5/Ftbbrd9P/71469fAL7xurIf29eon0LHgDcWRu3Ysc1I6OQ0NTUqpcq3rjMSOjmbjjxnahSKHLnjR1XI5B8sCS8chOrqKpMzwzVKqTWVJq9nS2u4OoYZ5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeQOAGnkDgBp5A4AaeTOStk1ne6avDM5vFiRODH9GM+YPAajC9PGxiYMzhwZuauUSieeqObSlh5LG5yGYkbu+JGY97qS/uv6nuQq9cnCqImJyY6OC2Zmum5n58XsP+67o5/fMzIzM5cZ/cLMKMDxNOoui9Dw8K3GxuO5f79cqnaXaN0dpTz1retNPnH1dOjQS5HIzlDI/++DZDIVi11PJKYWH6neX1VRW6FzzzU/m5kenHbvz+V6int7zeQjihaNSP4NzqnBOcOpHY8PxeNDZmfO3Hw4c/Oh2ZmADnLHP2f7O876FzyNnmInk/ImY95UbPGRkyeTe/fO6VxEJZOhvr6yvr61i4/84nC6buu8ozR63N3QN38p+fOtUv/LAp5A7vjkHPjI2fSabju6Uk7tu+q79717Xymlzp17cPToQlO6nlOn1OnTNZcvlyulOn718Gf12fsjTb88on7dWXnp2uM4A3zjdWU/nIptudAxY/ObSqna2nkjoZNz7Fgq27m+KWMkdHJ+/orJd8dQzMgdX0qqTR6EsmyXeVWVyTfnw+HstA3lJl9+2rje6McHUMTIHQDSyB0A0sgdANLIHQDSyB0A0sgdANLIHQDSyB0A0sgdANLIHQDSyB0A0sgdANLIHQDSyB0A0sgdANLIHQDSyB0A0sgdANLIHQDSyB1fLHSZa1T1SS4TMIDc8WV2XJnjzI4u9KOvMThzZCQ77d60yeP71ymTK0QxI3f88NKT3p1uM0cg42bufJrtXE+Ezp+vNDLSdVVXV0W2c/1vzu//tM7MzEfqD99QngUz6Ef334+uag44lbuUVvF4ypu6ptzJxQcOHnQjkUc690eplNPfX5ZIPL42eWX33J7NGZ37uGTa6btdMjGTHUE/OvTRF6ph+oY3fUMZNTBQNjBQZnbm9R9Kr/9gdiSghdzxb2vTlspd2dsZ3zKzmfvxBw/i04uPNDe/XVcXcTQueJLJVDR6NRrtt7pOQAe549P+D1/c+GpYaXv+rS23274f/zp7q9Xefrah4bD+zJaWE62tZ3p6ei2tE9DE68p+lG9dZ+SHOWfTkeeyXeY7thkJnZympkZL6wT0kTt+rKk0eZ1YWpOdVl1dZXBmOFxjaZ2APnIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyB4A0cgeANHIHgDRyxw+dqr68My2UmdtYJ6CPE9OPdMI1OW0svdCPPmFw5sjIXUvrBPSRO364993Rz+8Z2H6lMnOZ0S+yoyYmJjs6LhiZ6bpuZ+dFS+sE9NGP7r8fvXp/VUVthVY9+mxmenDavT+3+MihQy9FIjtDGmXmyWQqFrueSEwtPmJ2nfSjQx+NSP7N3Hw4c/OhMioeH4rHh1b+OgEd5M5Ta2v7QGvLgaLHfRYAabyuDEAauQNAGrkDQBq5A0AauQNAGrkDQBq5A0AauQNACfs/y0kdDsPR6/cAAAAASUVORK5CYII=" alt="E组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>L2' R2' D F2' L2' B2' U' L2' B2' D2' L B' D' B' L R D F D R'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">EG</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EH</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EI</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EJ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">ER</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">ES</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">ET</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">EZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">4</span>
+      <h2>F组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="F组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>D2' B2' R2' F2' D' L2' R2' U' L2' F2' R D2' U2' L B' D' B' F L F</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">FG</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FH</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FI</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FJ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">FZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">5</span>
+      <h2>G组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="G组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>D2' B2' R2' B2' U' R2' B2' R2' D' L2' R D L R' D2' U2' F' R D U</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">GI</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GJ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">GZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">6</span>
+      <h2>H组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="H组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>F2' R2' U' L2' R2' F2' D2' U' L2' F2' R B2' F2' L U L R F' L' R'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">HI</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HJ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">HZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">7</span>
+      <h2>I组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="I组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>L2' R2' U2' L2' F2' U' L2' R2' D B2' R' F D' B F' R B F2' L' U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">IK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">IZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">8</span>
+      <h2>J组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="J组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>R2' F2' R2' F2' U' B2' D2' L2' B2' D2' R' D B F' R' B F' L' U R2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">JK</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JL</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">JZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">9</span>
+      <h2>K组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="K组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>U B2' R2' D2' B2' D B2' F2' U R2' B' L U B L' D' F' U' F' U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">KM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">KZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">10</span>
+      <h2>L组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="L组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>B2 R2 U L2 B2 L2 U L2 D' U L' U R B L R' D' B' U' B</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">LM</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LN</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">LZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">11</span>
+      <h2>M组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="M组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>B2' U L2' B2' L2' D L2' F2' D U2' R B F U' B' F L U2' R' U</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">MO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">MZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">12</span>
+      <h2>N组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="N组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>D L2' F2' R2' U' B2' F2' U' L2' B2' R B2' F2' L B' F R' B F' U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">NO</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NP</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">NZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">13</span>
+      <h2>O组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="O组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>D U B2' R2' B2' U L2' F2' R D L R' D2' U2' F' R D U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">OQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">OZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">14</span>
+      <h2>P组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="P组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>R2' D2' F2' D' L2' F2' L2' D' F2' U2' R' D B F' R' B F' L' U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">PQ</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PR</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">PZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">15</span>
+      <h2>Q组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="Q组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>F2' L2' B2' D2' B2' D2' R2' D2' U B D2' U2' F' U' L' U2' F2' D2' R</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">QS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">QT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">QW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">QX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">QY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">QZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">16</span>
+      <h2>R组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="R组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>B2' D2' F2' R2' U R2' D2' R2' U2' L' D U' F' D R F2' U2' F2' R'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">RS</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">RT</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">RW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">RX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">RY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">RZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">17</span>
+      <h2>S组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="S组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>R2' B2' D' L2' R2' D L2' U B2' U2' B F2' U' L' D' L D' R F R'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">SW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">SX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">SY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">SZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">18</span>
+      <h2>T组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="T组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>F2' L2' B2' D R2' F2' D U2' L F D F' R2' F U' R' F' U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">TW</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">TX</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">TY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">TZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">19</span>
+      <h2>W组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAX0AAAEiCAIAAACaw5UkAAAPYElEQVR4nO3df2jV9R7H8c/3uE3n3BwTQ003delCYXlF/+kfS5EYJSOCyAwxhPqvP/xDKLBLBMG4cYlALkgslC0pNEOiRbdLOeYyN6aONAzygrk2dzZds87ZOXPne9mWP7ixs/n9fN5vz8fzfPy1TvI+Hz/fj6+dX9srCMPQAICimOadAQC5A+A+4PEOAG3kDgBt5A4AbeQOAG3kDgBt5A4AbeQOAG0F6vfot+7uC83NR01+a2jYd7+XAL+RO/esqemIyWO1tWvu9xLgPXInup07n6+pqQ6CIPKERCLZ2vpda+sp72YCNgJ+LvSedHdfqKvbbow5cODdrVs3GRf27Hnz2LEWX2bW1q5paTnsZCDyFq8rR1FVtdTVP2ZjTH19nUczAXvkThRlZaXGnYqKco9mAvbIHQDayB0A2sgdANrIHQDayB0A2sgdANrIHQDayB0A2sgdANrIHQDayB0A2sgdANrIHQDayB0A2sgdANrIHQDayB0A2sgdANrIHQDayJ0obDphfJ8J2CN3oujr6zfuXLnyq0czAXvkThT9/QONjW46pNLp9MGDn3g0E7BHb1/E3j5jzIYNj1VXL4/Fomd3IpFsb++Ixwdv35L7M+ntgz1yJ3ru5CdyB/boR49ue3GwqjAIwjDyhIQJ2lOZk+k7t9CPjnxA7kT0/vzgydmT7xZZvWe0szj2+nDm8xHjsMt89+4Xnfej3z0TsMTrylEsm2VuhY4DT0+Moh8d+YPciaI05vJzMRUTF4F+dOQPcgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnInV3aNfnTkD3IniqsZl9egZ2Ia/ejIH+ROFPGxsCkRva7vbmljPpoYRT868gc9xdF7iv9WaFYWBDaNNsnQfJ8OB+569EQ/OvIBfaHRnRk1Z0bdPOq5rbPzXGfnudyfCdggd3KrH92XznXABrmTQ/3ovnSuA5Z4XTlX+tF96VwH7JE7udKP7kvnOmCP3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBQO4AeNDxeAeANnIHgDZyB4A2cgeANnInV3bNl851wB65kyv96L50rgP2yJ1c6Uf3pXMdsEdvX0QNv4dfpUK3/egSM99++58tLf+prl4ei0X/HpNIJNvbO+LxQYt1AXeQO7nVj+5L5zpgg9y5Zw0N+6y2HMh7QRg6/u4KANnxujIAbeQOAG3kDgBt5A6AXHo/q7v7QnPzUZPf/u/dK/aEPeGc2L/zO8376E1NR0weq61d89cb2RP2hHMS7d/OPX9+J1j2QjDvkdBE/yRtkEmGA+3hYPvtW7YXB6sKg8DijfyECdpTmZPpO7fs2JFYvXrU5gO/iUSsra2orW32tH9SYv1L6heXrJgbeaAxJjOSudZ5/XrnkOg6fd8TifM8FYkz+fKm1KNLxoyx2Od07MSPBd9eKLx7Zs2SscDpTKvcCda9Fyx8YvyLyCuanFP5kvnhjbD3C2PM+/ODJ2dPzrOaurM49vpw5vOR8a/377++ZcvEV3Z27TJ795YfP16c5c9IrH/tW48ueLzCWHv4ucUXG366+vWA0Dp93xOJ8zwViTPZ+OqNp2pH7We+stm8drDk6OnZQjOtXlcO5i6dvEhuLHrGGLNslrl1QB14emJUZeWYkws8adu2ZJb/K7H+4iVznPwDm7Rw80NC6/R9TyTO81QkzmTVwoyTgJj07Ma00Ezr97MKyoxDReXGmNKYy98LUzHxlygtdfmLJCoqsk2TWP+sEpc/s1JYXiC0Tt/3ROI8T0XiTM4vdvkDBgvmSc3MjvfRAWgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AORg7tgUcES/13ufqRihEncVxPz+ruLLnkicZ80zGQReb8mfZrAxI1cd3l8w0mOMuery112bnolpfX2zHM68ciXbNIn1p+IzqKeasVRfSmidvu+JxHmeisSZ7B1yGWa/DErNzG76+wtTA+HlZjcryqQzlz82xsTHwqaEm19hnzbmo4lR8Xjs0KESNzPTprk5W1GcxPrT19I9n/Y6mZkZzfR81iu0Tt/3ROI8T0XiTPb/FnzwzRw3M2+aD0/MFpqZ3Yx6QsKL/wiv/jsoWWH1wHcsGQ6eNumBP7uTfw+/SoUrC6we4iVD8306HLj1nfadd8q+/HJOdfVNm6HJZHDqVFE8Pk1mS6z/53/9N946MLdyrtU2j2SGzgylr43KrdP3PZE4z1OROJN/PzL3867CVYsyNs/jEqmg7WJB/3BMbmYWM+4nGjobDp01Tp0ZNWdGXRb3GGO6uoq6uoqMCon1D5+/MXz+Ru6v0/c9kTjPmmey41JhxyWT+zNtc0ei91qij1mz41miY1uiC1yzM15i/yXOnmY/ui/97ksE1mmVOxK91753PEt0bEt0gWt2xkvsv8TZ0+xH96Xffa3AOrOY/pmYRO+17x3PEh3bEl3gmp3xEvsvcfY0+9F96XcvFlinbe5I9F573/Es0LEt0o+u2Bkvsf8i/e6K/ei+9LvPklhnVnxeGYA2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB4A2cgeANnIHgDZyB0Du5Y4vFdWqHc8CdybSj674bUVi/0WWr3hQfOl3D9Qffkx/hxK91953PAt0bEt0gWt2xkvsv0i/u2I/ui/97imJdWY1/VmR6L32veNZomNbpB9dsTNeYv8lzp5mP7ov/e5pgXVmN6P+Conea987niU6tiW6wDU74yX2X+Lsafaj+9Lv/rPAOrMouI+91753PEt0bEt0gWt2xkvsv0i/u2I/ui/97sMS67TMHYk+Zonebs2OZ196rzX70XfufL6mpjqwuLNEItna+l1r66kH5pz4ck1fFui2t8odiT5mid5uzY5nX3qvNfvRDxx4d+vWTfb3tXv3i3v2vHnsWMsDcE58uaaNAt32WUz/ZE6ij1mit1uz49mX3mvVfvSqpU5CZ1J9fd0DcE58uaZVAt322c3gRSSBPmaJ3m7Njmdfeq81+9HLykqd3teDcE58uabzBbrts+PzygC0kTsAtJE7ALSROwC0kTsAtJE7ALSROwC0kTsAtJE7ALSROwC0kTsAtJE7ALSROwC0kTsAtJE7ALSROwC0kTsAtJE7ALSROwByMHcE+pglers1O5596b3W7Uf3Y/2qXeC+7ElglM3gLyHQxyzR263Z8exL77VmP3pfX7/T+/r1ATgnvlzTXoFu++ymvz+JPmaJ3m7Njmdfeq9V+9H7BxobDzu6r/TBg588AOfEl2vaL9Btn10QhlNWWHR3X6ir2/7nf5Svc94nvX592nlvd9naUocdz7W1a1paDk+1J27vy5d9zr4nGzY8Vl29PGbxZCCRSLa3d8Tjg0Lr1z8nuX9NJ21cOWrZbf9HKjh5q9v+r3tyt4L72Mcs0dut2fHsS++1Zj96Z+e5zs5zbmf6fk58uaYdAt32EXOnoWGf0kL8wZ6wJ5wTS9meZwGABD6/A0AbuQNAG7kDQBu5A0DbjN9Hx4Tu7gvNzUfzfDN4Rw+WyJ171tR0xOSx2to193sJ8B65E92OHYnVq0dtPjOaSMTa2ora2u58rnznzudraqptfsYykUi2tn7X2nrq9i1L6heXrMj2Iw7TyoxkrnVev945ZDMEuI3ciWj//utbtowYa7t2mb17y48fLzbGHDjw7tatm+xn7t794p49bx471mKMWfvWowser7Cf+fBziy82/HT16zsf1Qci43XlKCorx5yEzqRt25LGmKqqpU5CZ1J9fZ0xpnjJHCehM2nh5odcjUKeI3eiKC3NOLwGFRXj08rKSp3OLDfGzCpx+Xi2sJxHx3CD3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdwBoI3cAaCN3AGgjdyJtGsC22bTXTPlTC4vchIHM4q+vlkOr8GVK+PT+vr6nc781RiTiqcdzkz1pRxOQz4jd6KIx2OHDpU4uQDptGluHi/V6+8faGw87Ghm+uDBT8a/uJbu+bTXyczMaKbnMzejgCAMQ3Zh5rq7L9TVbZ/8ev36dHX1TZunR8lkcOpUUTx+59HThg2PVVcvj1k8kUskku3tHfH44O1bytaWzq2ca/Oca2wkM3RmKH1tdLKnuKXFTT4ib9GIFF1XV1FXV5HDi2GM6ew819l5zu3M4fM3hs/fcDsTsEHuRCfRZS7RuR4seyGY90hoog8NMslwoD0cbI++LOAu5E5EEl3mEp3rwbr3goVPjH9hNzOofMn88EbY+4X98gBeV45CostconM9mLt0MnTcWPSMs1HIb+ROFBJd5hKd66agzOFMUzS+TsAeuQNAG7kDQBu5A0AbuQNAG7kDQBu5A0AbuQNAG7kDQBu5A0AbuQNAG7kDQBu5A0AbuQNAG7kDQBu5A0AbuQNAG7kDQBu5A0AbuQNAG7mTK13mEp3rRmCdgD1yJwqJLnOJznUzctXhzGCkx+E05DNyJwqJLnO3netNTeOd62FqILzc7GSmyaQzlz92Mwp5j3706P3oEl3mEp3rpnxdULLCWBWkJ8PB0yY9QD86nKAvNLe6zCU6183Q2XDorOOZgAVyJ7qXN6VqlowFJow8IZGOnfix4NsLhd7NBGyQOxE1vnrjqdpRY+2Vzea1gyVHT8/2aCZgideVo6hamHHyj3nSsxvTHs0E7JE7Ucwvjv6c5a8WzMt4NBOwR+4A0EbuANBG7gDQRu4A0EbuANBG7gDQRu4A0EbuANBG7gDQRu4A0EbuANBG7gDQRu4A0EbuANBG7gDQRu4A0EbuANBG7gDQRu4A0Ebu5ErtuC8zAXvkThS9Qy737ZfBWR7NBOyRO1H0/xZ88M0cB9tvTPqm+fDEbI9mAvboR4/ej75x5eiqRRmLenSTSAVtFwv6h++MsJ/5Ryo46Xrm3eusrV3T0nI4+iyAvlAbHZcKOy7l6UzABj3F96yhYZ/VlgN5j+dZALTxujIAbeQOAG3kDgBt5A4AbeQOAG3kDgBt5A4AbeQOAKPsf8WAIPqRi+qTAAAAAElFTkSuQmCC" alt="W组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>B2' L2' F2' L2' F2' R2' D F2' U' F' R U F R D R' B' R U'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">WY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">WZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">20</span>
+      <h2>X组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAX0AAAEiCAIAAACaw5UkAAAPIUlEQVR4nO3dYWhV5x3H8efcaDSJSUOKwzqNbdPqsJC64t7sjW1FhrQiY1DaWsQhbO/2whdCC3YMQQgrpRRkIMOhJC0tdQ4pTelWtoU0TWuIGlpHB+3AxRpzk5rZ7t7kxNwz9K5WNryJ53n+P+/p/X5eSSL/8+Q55/xyc+9NflGSJA4AhHLKgwEAuQPgNuDxDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANQWyY+YbSMjZ3t6jrna1tW173YvAdlG7tyy7u43XA3r7Fx/u5eAzCN30tu584l16zqiKEo9oVAo9vW939c3mLmZgI+I3wu9JSMjZ7dufco5d+jQC1u2bHIh7Nnz/PHjvVmZ2dm5vrf31SADUbN4XjmNNWtWhbqZnXPbt2/N0EzAH7mTRktLswunra01QzMBf+QOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANTIHQBq5A4ANXIHgBq5A0CN3EnDpxMm6zMBf+ROGmNj4y6c0dHPMzQT8EfupDE+PnH4cJgOqTiOjxx5PUMzAX/09qXs7XPObdz4YEfH3blc+uwuFIoDAyfz+cnrH6n+mfT2wR+5kz53ahO5A3/0o6f3VEN0/+IoSpLUEwouGpgpvRc70y7zaPWT0bL7Epd+ZlQqJhMDyeRA6gnAjcidlF6+I3pkSflO9nrNaGdD7tnLpTenXcAu8927n77ejx5teCla/rDvKp2L2p9xHz2XXHjLf3kAzyunsbrOfR06ATx2bZRFl3nUuKocOmGseDzYKNQ2cieN5lzI98W0XTsJJl3mi1oCznT19KMjDHIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7lTLrpl0mdOPjqpE7qRxsRTyHJy/Ns2ky3z6YsCZ0fT5gNNQy8idNPJzSXchfV3fjWLnXrk2yqLLPJmZSM71BJnpSnHp3GthRqHm0VOcvqf4+4vdvYu8fpIpJu6DOJm44dGTRT+6a90QNd3jIo/vMXPFZPJDF0/QU4wg6AtN79SsOzUb5lHPdUNDZ4aGzoSd6aZOJ1OnA88EPJA76Vl0mVt0rlvMBHyQOylZdJlbdK5bzAQ88bxyGhZd5had6xYzAX/kThoWXeYWnesWMwF/XEoA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANTIHQBq5A4ANXIHgBq5A0CN3AFA7gD4tuPxDgA1cgeAGrkDQI3cAaBG7lRLl7nFmeDsojpxZaZh0WVu0bluMRPwR+6kYdFlbtG5bjET8EdvX0r797/Y2/tu2C7zrq+Sd2aSsJ3rFjMBT+ROdXWZW3SuW8wEfJA7t6yra5/XlgM1L0oSvhMCkOJ5ZQBq5A4ANXIHgBq5A6CaXs8aGTnb03PM1bb/efWKPWFPuE78X/md53X07u43XA3r7Fz//x9kT9gTrpN0984tv3/np5tm1q2ci1z6F90Lce6vf1v0l7OLTWdGq5+Mlt2XuPTvzo1KxWRiIJkcmPd/PtUQ3b84ijzeiFBw0cBM6b3Yma5/5fa7mu5pTD3QOVeaLn0xdOnS0NS8/3PHjsLatbM+b44uFHL9/fX9/UtM16+8TnbufGLdug6f3yUuFIp9fe/39Q2a7onF/eiVO4d//uWPOmedt5896n5xpOnYh0uMZkYbXoqWP3z1H34zo/Zn3EfPJRfeqvB/Xr4jemRJ+TheR9vZkHv2cunNaWe0/gd+9b07f9jmvH33J3d90vX3i3+aqPB/Dh68tHnzta/Ez65dbu/e1hMnGozWr7xODh16YcuWTc7b7t1P79nz/PHjvUZ7YnE/ej2vvGZ5KciCyn78g9hoZtS4qnwxhbHi8QqfXF3nvg6dAB67Nspi/Q0rlwa5QMuWP/qdCp9tb58LEjpl27YVjdavvE7WrFkVJHTKtm/farQnFvejb+7c0RDyDc13LisZzXSLWgLOdPWtFT7ZnAv593fayifBYP11TSF/D2Zxa6Vpzc0hf220ra1ktX7hddLS0hzwUG1tVufU5H6siNfRAaiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANTIHQDVlzs+nSTKmTZDhWltsP5I+G0lZ3Ask/ULrxOf7hrlngi35L/m/yIuTIX8Qv85WWc0001fDDgzmj5f4bMXQ/4Jc3e+PM1g/TP5+f+y/8LNjM1U+OzY2LWzEMjoaJ3V+oXXydjYeMBjjY5+brQnJvdjRfMfb/xf0W//vDTIguIr7nd/XWI0M5mZSM71BJnpSnHp3GsVPp+fS7oLYf4Ef+zcK9dGWaw//iI+//sLYUbOls7/odKofD539GhTkGPFsevpaTRav/I6GR+fOHz41SCHiuP4yJHXjfbE4n6sbEGdGL98o/HN4cX3ryj5PJb+90z03ieLxi/nAs4szET9N8xMPvl1cvGPUdM9Xg9G54rJ5Icunpin+/mr5J2Z5N5FXg9Ri4n7IE4mvn70ZLH+T3/zj3zfRGN7o9fI6dLUqan4i3kqlg4caHn77aUdHVd8NqVYjAYH6/P5Orv1K6+T/ftf7O19t6Pj7pzHhV4oFAcGTubzk3Z7YnE/VrDQLp6Tny0++Vn6BclmuqnTydRpJ3Fq1p2aDVk8ZLT+yx9/efnjL53E8HD98HB9BtYvvE6Ghs4MDZ2p/j05aXE/euaORZ90VjrXb8biWBa918p+dIs9seiht5ip7EePDO5HZWf8gnLHok86K53rN2NxLIvea2U/usWeWPTQW8xU9qNHBvejsjN+Ya+jG/RJZ6Vz/WYsjmXRe63sR7fYE4seeouZyn70yOB+VHbGly3gSSSDPunMdK7fhMWxLHqvlf3oFnti0UNv0m0v7Ed3Fv3uws74Mt6vDECN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gCowtyx6HjOSue68Fgmvde5bO9JLuPfaS360V1WZvqeBYM+6cx0rt+ExbEseq+V/egWe2LRQ2/SbS/sR3cW/e7Czviy+a8Viz7prHSu34zFsSx6r5X96BZ7YtFDbzFT2Y+eGNyPys74sgX1nFj0SVv0MSs7ni2OZdF7rexHt9gTix56i5nKfvTE4H5UdsbfQk+xRZ90ZjrXhcey6L1W9qNb7IlFD71Jt72wH91Z9LsLO+MXmjtZ6ahW9qNb9I7v2FFYu3bW5xtxoZDr76/v719yW/rRLc5p1vfE4ppcabD+qutHz0pHtbIf3aJ3/ODBS5s3V2zbXphdu9zeva0nTjSI+9EtzmnW98TimnzAYP1V14+elY5qZT+6Re94e/tckBusbNu2orgf3eKcZn1PLK7JBoP1V2M/elY6qpX96Ba9483NIV/gbWuz6lyXXicZ3xOLa7LOYv30owP41uP3JACokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANTIHQBq5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwCqL3ey0lEt7Uc3+AJ8uu6qoR/d5DrJ+J6YVJnnXE30o2elo1rZj27ROz42VumIt2p01Kpz/WYszmnW98TimpyxWH8V9qNnpaNa2Y9u0Tuez+eOHm0KMjOOXXd3o7gf3eQ6CbonPT3qPbG4JmOD9VdpP3pWOqqV/egWveMHDrS8/fbSjo4rPptSLEaDg/X5fJ2+H93inGZ9TyyuyU8N1l+l/ehZ6ahW9qNb9I4PD9cPD9dntx/d4pxmfU8srsnLFuuvnn70rq59mnVkCHvCnnCdeIqSJPB3JwCojPfvAFAjdwCokTsA1MgdAGoLfR0dZSMjZ3t6jtX4bvCKHjyRO7esu/sNV8M6O9ff7iUg88id9HbsKKxdO+vzPtpCIdffX9/f/83vZOzc+cS6dR2Rx9BCodjX935f36DpOgEf5E5KBw9e2rx52nnbtcvt3dt64kSDc+7QoRe2bNnkP3P37qf37Hn++PFeo3UCnnheOY329rkgN3PZtm1F59yaNauChE7Z9u1bjdYJ+CN30mhuDvlHH9rark5raWkOOrPVaJ2AP3IHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7qTaNYNt8+muUa4T8MeFmcbYWJ0LZ3T06rSxsfGgMz83Wifgj9xJI5/PHT3aFGD7nYtj19PT6JwbH584fPjVQDPjI0deN1on4C9KkiTAmJoxMnJ269anyv9+6KG4o+OKz49HxWI0OFifz3/zOGLjxgc7Ou7OefyAVCgUBwZO5vOT1z8Sdp2dnet7e8PkI2oWfaHpDQ/XDw/XBzwZzrmhoTNDQ2eqf52AD3Invax0mdOPjmpD7qSUlS5z+tFRhXheOY2sdJnTj47qRO6kkZUuc/rRUZ3IHQBq5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrnzbe4ypx8d1YncSSMrXeb0o6M6kTtpVH+XeXf31S5z+tFRnehHT9+PXv1d5hYz6UeHP/pCv/1d5vSjo9qQO+lFq5+Mlt2XuPQPJKJSMZkYSCYHrn+EfnTUAnInpWjDS9Hyh6/+w+8ERO3PuI+eSy68RT86agfPK6cRNa4qh04YKx6nHx01hdxJZVFLyJNQTz86agu5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3dSoR8d8EDupDJ90YUTTZ+nHx01hdxJI5mZSM71hDkDpbh07jX60VFT6EdP34/uWjdETfe4yCO754rJ5Icunrj+AfrRUQvoC/UwdTqZOu2Coh8dtYDcuWVdXfsszgRQO/g5C4AazysDUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwB4MT+A3efLhhUagN0AAAAAElFTkSuQmCC" alt="X组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>R2' U B2' R2' F2' D' B2' U2' L2' U2' F R B R B' L U' L' F' U</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">XY</span>
+        <span class="arrow">→</span>
+        <span class="order-tag">XZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">21</span>
+      <h2>Y组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,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" alt="Y组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>L2' D F2' R2' B2' D2' U' B2' D2' F2' L' U' F D U' R' D R' B2' U2'</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">YZ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <span class="index">22</span>
+      <h2>Z组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAX0AAAEiCAIAAACaw5UkAAAN20lEQVR4nO3dX2jd5R3H8ed3msQmMbFEKrZqq2a2UuG4SXfjjdNSRnGlDEFWO0pHYbvbRS8KDurwRgjzYghlUEZHS44yaa0UWWQTNkOM1YbUhrWjwhy41qY5aZu120lyYs5vJNFaNn61+T3P99PzeN6vG0uQ7+/J85zzyfmXfJI0TR0ACBWUFwMAcgfALcDjHQBq5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKg1ya8Yt5GR06XSYdfYenr23OolIG7kzqL19h5yDaxYXHerl4DokTv5bd/+7Nq13UmS5J5QqUz297/f338supmAj4TfC12UkZHTmzZtdc7t2/fyxo1PuBB27XrhyJG+WGYWi+v6+l4LMhANi9eV81i9+t5Qd2bn3JYtmyKaCfgjd/Lo7Oxw4XR1LYtoJuCP3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7efh0wsQ+E/BH7uQxOjrmwjl79rOIZgL+yJ08xsbG9+8P0yFVrVYPHHg9opmAP3r7cvb2OefWr3+0u/v+QiF/dlcqk4ODx8vli9e+Uv8z6e2DP3Inf+40JnIH/uhHz29ra/JQc5Kkae4JFZcMTtfeq371FfrR0QjInZxeuSN58raFd4u83jPa3lp4/krtrSkXsMt8587ngvejXz8T8MTrynnct8R9GToBPD0/in50NA5yJ4+OQsjPxXTNHwL96Ggc5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cqZddox8djYPcyeNCLeQZnJufRj86Gge5k0d5Nu2t5K/ru17VuVfnR9GPjsZBT3H+nuLvNLsHmxKfRpvJ1H1QTceve/REPzoaAX2h+Z2YcSdmwjzquWZo6OTQ0Mn6nwn4IHfys+gyj6VzHfBB7uRk0TseS+c64InXlfOw6DKPpXMd8Efu5GHRZR5L5zrgj9wBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANTIHQBq5A4AcgfANx2PdwCokTsA1MgdAGrkDgA1cqdeusxj6VwH/JE7eVh0mcfSuQ74I3fysOgyj6VzHfBHP3r+fnSLLvP671wvFtf19YXJMjQs+kLrq3c8ls51wAe5s2g9PXu8thxoeDzPAqDG68oA1MgdAGrkDgA1cgdAPb2fNTJyulQ67Brb/7x7xZ6wJ9xO/N/5/Zr30Xt7D7kGViyu+/8vsifsCbeTfPedRX9+5ydPTK9dOZu4/B9pq1QL7/6t6S+nm699ZWtr8lBzkqQeM10yOF17r2q7ziwrt6xof6At94Wcc7Wp2qWhy5eHJq59JbnvR8nt30pd/k8sJ7XJdHwwvThous4sFme6bVtlzZoZnw9xVyqFgYGWgYHbTNeZJZYzTQzW6ZU7+3929fvFGeftp0+5nx9oP/zh3PG/ckfy5G0L36HX70xvby08f6X21pTVOrM88uLDdz7e5X+te55Zcabn4wvvjM9txLd/nSz/nu+OOJes+rH76y/S838wWmcWizPdu/fyhg3z//KzY4fbvXvZ0aOtRuvMEsuZJgbr9HpdefXyWpA784IffnfuB8R9S9yXBx/A0/OjLNaZpXXl0iAHv2D5U3fNHVjbvQsHH8bdPzBaZxaLM121ajZI6CzYvHnSaJ1ZYjnTxGCdvrlzR2vIXxe68/a5X1jsKIT8uzBdBat1ZlnSHvL3S5qXzU9r6gw407Uss1pnBosz7egI+cdBurqsbnuZYjnTpvDrvDHeRwegRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cA1F/u+PSH5L/q4lmsM/NakXwDJuvMYHGpQiHyn7SxnGkivPPM+/pv4vxEyG/0nxeXOOcuhPxz3e5czWqdWabLN1GbdNOmR6fn/jN1IeDMZOqc1TozWJzp6OiNTmGxzp61uu1liuVMp8Kv88a+/r469q/kt39eGmRB1c/d796dK6Uqz6a9lTD1D1XnXp0fZbHOzP/hUvXcG+eDXKs2Uzv35tyodHo8/bQUZKarVWuf/t5onVkszrRcLhw82B5mZtWVSm1G68wSy5mmBuu8sZvqxPjloba3hpsfurvm87j3P9PJe2eaxq58MaLn3+kfp9MHm7we4U2m7oNqOl4Luc7KdDJw3Tqz/P03/yj3j7etavN53Ds7VZs4MVG99EXtV3rmV+mFPyXtD3g9mJ6dTC9+6KrjduvMYnGmL73U+fbbS7u7P/cZOjmZHDvWUi4vsVtnlljONDVY5w3cbBfP8U+aj3/iwjox407MhCy9Mlpnliunrl45dTXw0ImP0omPIlin8EyHh1uGh1vqf53Rn+lE+HXWYz96LDOzWFwr9t5riz2x6DJXdsZb7H9iMNOih77u+tFjmZnF4lqx915b7IlFl7myM95i/xODmRY99HXXjx7LzCwW14q999piTyy6zJWd8Rb7nxjMtOihr8d+9FhmZrG4Vuy91xZ7YtFlruyMN9n/pvAzLXrob4zPKwNQI3cAqJE7ANTIHQBq5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsAGqMfPZaZymvF3nttcSmTLVH+qI3khl6QP/y4Nf3osczMYnGt2HuvLfbEostc2Rlvsv9T4Wda9NDXYz96LDOzWFwr9t5riz2x6DJXdsZb7H9qMDNsD31vb1v99qNbdJkr+9EtrhV777XFnlh0mSs74y32PzWYadFDX6f96LHMVF4r9t5riz2x6DJXdsab7P9E+JkWPfT12I9u0Xut7EePpctc2QVucaYWvd0W68wSy5kmBuusu350i95rZT96LF3myi5wizO16O22WGeWWM40MVhn3fWjW/ReK/vRY+kyV3aBW5ypRW+3xTqzxHKmicE667Ef3aL3WtmPHkuXubIL3OJMLXq7LdaZKZYzbTLocb8hPq8MQI3cAaBG7gBQI3cAqJE7ANTIHQBq5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAGiMfvTIq8Cj6TJXdoFbXMqit1v6kzaWM02Ed55b2I9u0Xut7EePpctc2QVucaYWvd0W68wUy5lOGfS412E/ukXvtbIfPZYuc2UXuMWZhu3tLpXajNaZJZYzTQ3WWaf96Ba918p+9Fi6zJVd4BZnatHbbbHOLLGcaWqwzjrtR7fovVb2o8fSZa7sArc4U4vebot1Rn+mEwY97vlyp6dnj2YdEWFP2BNuJ56S1KOaHgBy4PM7ANTIHQBq5A4ANXIHgNrNvo+OBSMjp0ulww2+G7yjB0/kzqL19h5yDaxYXHerl4DokTv5bdtWWbNmxudDr5VKYWCgZWDgq9/J2L792bVruxOPoZXKZH//+/39x0zXCfggd3Lau/fyhg1TztuOHW737mVHj7Y65/bte3njxif8Z+7c+dyuXS8cOdJntE7AE68r57Fq1WyQO/OCzZsnnXOrV98bJHQWbNmyyWidgD9yJ4+OjpB/TKGra25aZ2dH0JnLjNYJ+CN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cAaBG7gBQI3cAqJE7ANTIHQBq5E6uXTPYNp/uGuU6AX/cMPMYHV3iwjl7dm7a6OhY0JmfGa0T8Efu5FEuFw4ebA+w/c5Vq65UanPOjY2N79//WqCZ1QMHXjdaJ+AvSdM0wJiGMTJyetOmrQv/fuyxanf35z5PjyYnk2PHWsrlrx5HrF//aHf3/QWPJ0iVyuTg4PFy+eK1r4RdZ7G4rq8vTD6iYdEXmt/wcMvwcEvAw3DODQ2dHBo6Wf/rBHyQO/nF0mW+csuK9ge8niLVpmqXhi5fHprwGQJcQ+7kFEuX+SMvPnzn413+M+95ZsWZno8vvDPuPwrgdeU8Yukyb125NEjoLFj+1F2hRqHBkTt5xNJlvqQ95OPZ5mU8OkYY5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3c+SZ3mSccL+oSN8w8Yukyny5XA86cHp0OOA2NjNzJo/67zHt754r6qpeq5944H2RmbaZ27s0wowD60fP3o9d/l/mCzkc62la1+Tznmp2qTZyYqF6aoR8dQdCI9M3vMr9y6uqVU1fDzgR8kDv5WXSZxzIT8EHu5GTRZR7LTMATryvnYdFlHstMwB+5k4dFl3ksMwF/5A4ANXIHgBq5A0CN3AGgRu4AUCN3AKiROwDUyB0AauQOADVyB4AauQNAjdwBoEbuAFAjdwCokTsA1MgdAGrkDgA1cgeAGrkDQI3cybVrhcadCfjjhpmHRZd5LDMBf+ROHmG7zEulNqN+dIt1Av7oR8/fj27RZV7/M4vFdX19r+WfBdAXWm9d5rHMBHzQU7xoPT17vLYcaHg8zwKgxuvKANTIHQBq5A4ANXIHgBq5A0CN3AGgRu4AUCN3ADix/wLI4S2IUMB5LQAAAABJRU5ErkJggg==" alt="Z组棱练习打乱效果图" />
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>F2' R2' B2' L2' F2' R2' D2' B2' F2' D R' B D B F' R' F' L U</code>
+        </div>
+        <div class="order-list">
+          <span class="label">练习顺序</span>
+        <span class="order-tag">ZY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">SCRAMBLE LIBRARY · MADE WITH PRECISION</div>
+
+</body>
+</html>
