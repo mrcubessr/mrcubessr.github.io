@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>盲拧打乱公式生成器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d1a;
+    color: #d4cfc4;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .top-nav {
+    max-width: 960px;
+    margin: 0 auto 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 18px 12px 0;
+  }
+  .top-nav a {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+  .header {
+    text-align: center;
+    padding: 26px 16px 10px;
+  }
+  .header h1 {
+    color: #64b4ff;
+    font-size: 1.9rem;
+    letter-spacing: 3px;
+    text-shadow: 0 0 18px rgba(100,180,255,0.35);
+    border-bottom: 1px solid rgba(100,180,255,0.25);
+    display: inline-block;
+    padding-bottom: 10px;
+  }
+  .header .sub {
+    color: #8ec8ff;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+    flex: 1;
+    width: 100%;
+  }
+  @media (max-width: 820px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: linear-gradient(160deg, #15152a, #1a1a32);
+    border: 1px solid rgba(100,180,255,0.12);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 7px 22px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .tab.active {
+    color: #fff;
+    background: rgba(100,180,255,0.18);
+    border-color: rgba(100,180,255,0.5);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .field label {
+    flex: 0 0 78px;
+    font-size: 0.85rem;
+    color: #b8b2a4;
+  }
+  .field input, .field select {
+    flex: 1;
+    background: #10101f;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: #e8e3d8;
+    padding: 7px 10px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: rgba(100,180,255,0.5); }
+
+  .group-title {
+    font-size: 0.85rem;
+    color: #64b4ff;
+    margin: 16px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(100,180,255,0.15);
+    letter-spacing: 1px;
+  }
+  .group-title:first-of-type { margin-top: 4px; }
+
+  .count-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .count-row input { flex: 1; }
+  .btn-start {
+    flex: 0 0 auto;
+    padding: 9px 26px;
+    background: linear-gradient(135deg, #64b4ff, #3d8fd9);
+    color: #0d0d1a;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 2px;
+  }
+  .btn-start:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-start:active { transform: translateY(0); }
+
+  .output-area {
+    background: #0a0a14;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px;
+    min-height: 480px;
+    max-height: 680px;
+    overflow: auto;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #e8e3d8;
+  }
+  .output-area .scramble { color: #64b4ff; }
+  .output-area .code-line { color: #8a8578; font-size: 0.8rem; }
+  .placeholder { color: #4a4f60; text-align: center; padding-top: 180px; }
+
+  .status {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    min-height: 20px;
+  }
+  .status.err { color: #ff7a7a; }
+  .status.ok { color: #7ad99a; }
+
+  /* 弹窗 */
+  .toast {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(10,10,20,0.92);
+    border: 1px solid rgba(100,180,255,0.3);
+    border-radius: 14px;
+    padding: 28px 42px;
+    color: #fff;
+    font-size: 1.05rem;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s;
+    z-index: 99;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .toast .tick {
+    display: inline-block;
+    width: 34px; height: 34px;
+    line-height: 30px;
+    border-radius: 50%;
+    background: rgba(122,217,154,0.2);
+    color: #7ad99a;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 16px 0 24px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .footer .grp { color: #fbbf24; }
+  .footer .author { color: #60a5fa; }
+  .footer .zh { color: #f472b6; }
+
+  .hint {
+    font-size: 0.78rem;
+    color: #6a6f80;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/">Home</a>
+  <a href="/fto/tcp">TCP</a>
+  <a href="/fto/l3t">L3T</a>
+  <a href="/fto/lbt">LBT</a>
+  <a href="/tools/scramble">打乱公式库</a>
+  <a href="/tools/3bld">三盲出题器</a>
+  <a href="/tools/2x2">二阶魔方练习工具</a>
+  <a href="/tools/kmap">教学知识地图</a>
+  <a href="/tools/invert">公式逆序转换</a>
+  <a href="/tools/practice">魔方练习题生成器</a>
+  <a href="/tools/bldscramble" class="active">盲拧打乱生成器</a>
+</div>
+
+<div class="header">
+  <h1>盲拧打乱生成器</h1>
+  <div class="sub">彳亍编码 · 按编码特征生成 WCA 打乱 · 严格满足参数</div>
+</div>
+
+<div class="container">
+  <!-- 左侧参数面板 -->
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" data-panel="menu">菜单</button>
+      <button class="tab" data-panel="settings">设置</button>
+    </div>
+
+    <!-- 菜单面板 -->
+    <div class="panel active" id="panel-menu">
+      <div class="count-row">
+        <input type="number" id="count" value="1" min="1" max="50">
+        <button class="btn-start" id="btnStart">开始</button>
+      </div>
+
+      <div class="group-title">棱</div>
+      <div class="field"><label>编码长度</label><input type="number" id="eLen" min="0" placeholder="不限"></div>
+      <div class="field"><label>奇偶</label>
+        <select id="eParity">
+          <option value="any">任意</option>
+          <option value="odd">奇</option>
+          <option value="even">偶</option>
+        </select>
+      </div>
+      <div class="field"><label>翻色数量</label><input type="number" id="eFlip" min="0" placeholder="不限"></div>
+      <div class="field"><label>色向</label>
+        <select id="eOrient">
+          <option value="any">任意</option>
+          <option value="all">全对</option>
+          <option value="none">全错</option>
+        </select>
+      </div>
+      <div class="field"><label>大循环长</label><input type="number" id="eBig" min="0" placeholder="不限"></div>
+      <div class="field"><label>小循环数</label><input type="number" id="eSmall" min="0" placeholder="不限"></div>
+      <div class="field"><label>小循环包含</label><input type="text" id="eContain" placeholder="如 IK, 逗号分隔"></div>
+
+      <div class="group-title">角</div>
+      <div class="field"><label>编码长度</label><input type="number" id="cLen" min="0" placeholder="不限"></div>
+      <div class="field"><label>奇偶</label>
+        <select id="cParity">
+          <option value="any">任意</option>
+          <option value="odd">奇</option>
+          <option value="even">偶</option>
+        </select>
+      </div>
+      <div class="field"><label>翻色数量</label><input type="number" id="cFlip" min="0" placeholder="不限"></div>
+      <div class="field"><label>色向</label>
+        <select id="cOrient">
+          <option value="any">任意</option>
+          <option value="all">全对</option>
+          <option value="none">全错</option>
+        </select>
+      </div>
+      <div class="field"><label>大循环长</label><input type="number" id="cBig" min="0" placeholder="不限"></div>
+      <div class="field"><label>小循环数</label><input type="number" id="cSmall" min="0" placeholder="不限"></div>
+      <div class="field"><label>小循环包含</label><input type="text" id="cContain" placeholder="如 IK, 逗号分隔"></div>
+
+      <div class="hint">编码方案：彳亍法（棱缓冲 UF、角缓冲 UBL）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。</div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="panel" id="panel-settings">
+      <div class="field"><label>公式序号</label>
+        <select id="setNo">
+          <option value="1">显示序号</option>
+          <option value="0">不显示</option>
+        </select>
+      </div>
+      <div class="field"><label>打乱坐标</label>
+        <select id="setCoord">
+          <option value="yellow-red">黄顶红前</option>
+          <option value="white-green">白顶绿前</option>
+        </select>
+      </div>
+      <div class="field"><label>显示编码</label>
+        <select id="setCode">
+          <option value="1">显示棱/角编码</option>
+          <option value="0">仅打乱步骤</option>
+        </select>
+      </div>
+      <div class="field"><label>结尾双层转动</label>
+        <input type="text" id="setWide" placeholder="留空不追加，如 Rw' Uw2">
+      </div>
+      <div class="hint">「结尾双层转动」为练习工具可选功能，非 WCA 官方打乱规范；填写后每条打乱末尾会追加该步骤。</div>
+    </div>
+  </div>
+
+  <!-- 右侧输出区 -->
+  <div class="card">
+    <div class="output-area" id="output">
+      <div class="placeholder">点击「开始」生成盲拧打乱公式</div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<div class="footer">
+  <span class="grp">本网站内容来自中国转面八面体（FTO）魔方交流群272010376</span>
+  <span class="author"> 制作人：魔方先生SSR </span>
+  <span class="zh">2009ZHAN24</span>
+</div>
+
+<div class="toast" id="toast"><div class="tick">✓</div><div>已添加到剪贴板</div></div>
+
+<script>
+// ========== 彳亍编码表（棱 UF 缓冲 / 角 UBL 缓冲） ==========
+// 贴纸位编号：棱 24 位（每棱 2 贴纸），角 24 位（每角 3 贴纸）
+// 棱贴纸位：UF(U=0,F=1) UR(2,3) UB(4,5) UL(6,7) FR(8,9) FL(10,11) BL(12,13) BR(14,15) DF(16,17) DR(18,19) DB(20,21) DL(22,23)
+// 角贴纸位：UBL(U=0,B=1,L=2) UBR(3,4,5) UFR(6,7,8) UFL(9,10,11) DFL(12,13,14) DFR(15,16,17) DBR(18,19,20) DBL(21,22,23)
+
+const EDGE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
+const CORNER_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
+
+// ========== 三阶魔方贴纸级转动（CW 映射：newState[i] = state[map[i]]） ==========
+const MAP_U_C = [9,10,11, 0,1,2, 3,4,5, 6,7,8, 12,13,14, 15,16,17, 18,19,20, 21,22,23];
+const MAP_U_E = [2,3, 4,5, 6,7, 0,1, 8,9, 10,11, 12,13, 14,15, 16,17, 18,19, 20,21, 22,23];
+const MAP_D_C = [0,1,2, 3,4,5, 6,7,8, 9,10,11, 21,22,23, 12,13,14, 15,16,17, 18,19,20];
+const MAP_D_E = [0,1, 2,3, 4,5, 6,7, 8,9, 10,11, 12,13, 14,15, 22,23, 16,17, 18,19, 20,21];
+const MAP_F_C = [0,1,2, 3,4,5, 11,10,9, 14,13,12, 17,16,15, 8,7,6, 18,19,20, 21,22,23];
+const MAP_F_E = [11,10, 2,3, 4,5, 6,7, 1,0, 17,16, 12,13, 14,15, 9,8, 18,19, 20,21, 22,23];
+const MAP_B_C = [5,4,3, 20,19,18, 6,7,8, 9,10,11, 12,13,14, 15,16,17, 23,22,21, 2,1,0];
+const MAP_B_E = [0,1, 2,3, 15,14, 6,7, 8,9, 10,11, 5,4, 21,20, 16,17, 18,19, 13,12, 22,23];
+const MAP_R_C = [0,1,2, 7,6,8, 16,15,17, 9,10,11, 12,13,14, 19,18,20, 4,3,5, 21,22,23];
+const MAP_R_E = [0,1, 8,9, 4,5, 6,7, 18,19, 10,11, 12,13, 2,3, 16,17, 14,15, 20,21, 22,23];
+const MAP_L_C = [22,21,23, 3,4,5, 6,7,8, 1,0,2, 10,9,11, 15,16,17, 18,19,20, 13,12,14];
+const MAP_L_E = [0,1, 2,3, 4,5, 12,13, 8,9, 6,7, 22,23, 14,15, 16,17, 18,19, 20,21, 10,11];
+
+function applyMap(arr, map) {
+  const ns = new Array(arr.length);
+  for (let i = 0; i < arr.length; i++) ns[i] = arr[map[i]];
+  return ns;
+}
+
+const FACE_MAPS = {
+  U: [MAP_U_C, MAP_U_E], D: [MAP_D_C, MAP_D_E], F: [MAP_F_C, MAP_F_E],
+  B: [MAP_B_C, MAP_B_E], R: [MAP_R_C, MAP_R_E], L: [MAP_L_C, MAP_L_E]
+};
+
+function applyMove(corner, edge, face, count) {
+  let c = corner, e = edge;
+  const n = ((count % 4) + 4) % 4;
+  if (n === 0) return [corner, edge];
+  const [mc, me] = FACE_MAPS[face];
+  for (let k = 0; k < n; k++) { c = applyMap(c, mc); e = applyMap(e, me); }
+  return [c, e];
+}
+
+// ========== WCA 风格随机打乱 ==========
+function randInt(n) { return Math.floor(Math.random() * n); }
+
+function generateScramble(len) {
+  const faces = ['U','D','F','B','R','L'];
+  const suffix = ['', "'", '2'];
+  const moves = [];
+  let lastFace = '', lastFace2 = '';
+  const axis = { U:'D', D:'U', F:'B', B:'F', R:'L', L:'R' };
+  for (let i = 0; i < len; i++) {
+    let f;
+    let guard = 0;
+    do {
+      f = faces[randInt(6)];
+      guard++;
+    } while ((f === lastFace) || (f === lastFace2 && f === axis[lastFace]) || guard > 20);
+    lastFace2 = lastFace;
+    lastFace = f;
+    moves.push(f + suffix[randInt(3)]);
+  }
+  return moves;
+}
+
+// ========== 彳亍编码计算 ==========
+function edgeFlipCount(edge) {
+  let cnt = 0;
+  for (let b = 0; b < 12; b++) {
+    if (edge[2*b] % 2 === 1) cnt++;  // 高级色贴纸位(2b)上非高级色贴纸 → 翻棱
+  }
+  return cnt;
+}
+function cornerFlipCount(corner) {
+  let cnt = 0;
+  for (let b = 0; b < 8; b++) {
+    if (corner[3*b] % 2 === 1) cnt++;  // U/D 贴纸位上非 U/D 色贴纸 → 翻角
+  }
+  return cnt;
+}
+
+function computeEdgeCode(edge) {
+  const code = [], cycles = [];
+  const visitedBlocks = new Set(), visitedPos = new Set();
+  let pos = 0, closed = false, cur = [];
+  while (true) {
+    if (closed) {
+      let start = -1;
+      for (let b = 0; b < 12; b++) {
+        if (visitedBlocks.has(b) || b === 0) continue;
+        if (edge[2*b] === 2*b && edge[2*b+1] === 2*b+1) continue;
+        start = 2*b; break;
+      }
+      if (start === -1) { if (cur.length) cycles.push(cur); break; }
+      const L = EDGE_LETTERS[start];
+      code.push(L); cur.push(L);
+      visitedBlocks.add(start >> 1);
+      visitedPos.add(start);
+      pos = start;
+      closed = false;
+      continue;
+    }
+    if (visitedPos.has(pos)) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
+    visitedPos.add(pos);
+    const X = edge[pos];
+    visitedBlocks.add(X >> 1);
+    if (X === 0) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
+    let t = (X === 1) ? edge.indexOf(0) : X;
+    const L = EDGE_LETTERS[t];
+    code.push(L); cur.push(L);
+    pos = t;
+  }
+  return { code, cycles, flipCount: edgeFlipCount(edge) };
+}
+
+function computeCornerCode(corner) {
+  const code = [], cycles = [];
+  const visitedBlocks = new Set(), visitedPos = new Set();
+  let pos = 0, closed = false, cur = [];
+  while (true) {
+    if (closed) {
+      let start = -1;
+      for (let b = 0; b < 8; b++) {
+        if (visitedBlocks.has(b) || b === 0) continue;
+        if (corner[3*b] === 3*b && corner[3*b+1] === 3*b+1 && corner[3*b+2] === 3*b+2) continue;
+        start = 3*b; break;
+      }
+      if (start === -1) { if (cur.length) cycles.push(cur); break; }
+      const L = CORNER_LETTERS[start];
+      code.push(L); cur.push(L);
+      visitedBlocks.add((start / 3) | 0);
+      visitedPos.add(start);
+      pos = start;
+      closed = false;
+      continue;
+    }
+    if (visitedPos.has(pos)) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
+    visitedPos.add(pos);
+    const X = corner[pos];
+    visitedBlocks.add((X / 3) | 0);
+    if (X === 0) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
+    let t = (X === 1 || X === 2) ? corner.indexOf(0) : X;
+    const L = CORNER_LETTERS[t];
+    code.push(L); cur.push(L);
+    pos = t;
+  }
+  return { code, cycles, flipCount: cornerFlipCount(corner) };
+}
+
+// ========== 参数校验 ==========
+function getVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const v = el.value.trim();
+  return v === '' ? null : parseInt(v, 10);
+}
+
+function parseContain(str) {
+  if (!str) return null;
+  return str.trim().toUpperCase().split(/[,\s]+/).filter(Boolean);
+}
+
+function checkSide(info, pLen, pParity, pFlip, pOrient, pBig, pSmall, pContain) {
+  const len = info.code.length;
+  if (pLen !== null && len !== pLen) return false;
+  if (pParity !== 'any' && len % 2 !== (pParity === 'odd' ? 1 : 0)) return false;
+  if (pFlip !== null && info.flipCount !== pFlip) return false;
+  if (pOrient === 'all' && info.flipCount !== 0) return false;
+  if (pOrient === 'none') {
+    const total = info === edgeInfo ? 12 : 8;
+    if (info.flipCount !== total) return false;
+  }
+  if (pBig !== null) {
+    const maxL = info.cycles.reduce((m, cy) => Math.max(m, cy.length), 0);
+    if (maxL !== pBig) return false;
+  }
+  if (pSmall !== null) {
+    const small = Math.max(0, info.cycles.length - 1);
+    if (small !== pSmall) return false;
+  }
+  if (pContain) {
+    const smallCycles = info.cycles.slice(1);
+    for (const ch of pContain) {
+      const found = smallCycles.some(cy => cy.includes(ch));
+      if (!found) return false;
+    }
+  }
+  return true;
+}
+
+let edgeInfo = null;
+function checkParams(edge, corner, ep, cp) {
+  return checkSide(edge, ep.len, ep.parity, ep.flip, ep.orient, ep.big, ep.small, ep.contain) &&
+         checkSide(corner, cp.len, cp.parity, cp.flip, cp.orient, cp.big, cp.small, cp.contain);
+}
+
+// ========== 生成 ==========
+const SCRAMBLE_LEN = 25;
+const MAX_TRIES = 8000;
+
+function simulateScramble(moves, coord) {
+  let corner = Array.from({length: 24}, (_, i) => i);
+  let edge = Array.from({length: 24}, (_, i) => i);
+  for (const m of moves) {
+    const face = m[0];
+    const count = m.endsWith("'") ? 3 : (m.endsWith('2') ? 2 : 1);
+    const r = applyMove(corner, edge, face, count);
+    corner = r[0]; edge = r[1];
+  }
+  // 彳亍编码是魔方状态的物理属性，与观察视角无关；坐标选择仅影响显示，不影响编码计算
+  return [corner, edge];
+}
+
+function tryGenerate(coord, ep, cp, wideTail) {
+  for (let t = 0; t < MAX_TRIES; t++) {
+    const moves = generateScramble(SCRAMBLE_LEN);
+    const [corner, edge] = simulateScramble(moves, coord);
+    edgeInfo = computeEdgeCode(edge);
+    const cornerInfo = computeCornerCode(corner);
+    if (checkParams(edgeInfo, cornerInfo, ep, cp)) {
+      if (wideTail) moves.push(wideTail);
+      return { moves, edgeInfo, cornerInfo };
+    }
+  }
+  return null;
+}
+
+// ========== UI ==========
+const $ = id => document.getElementById(id);
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+
+function showToast() {
+  const t = $('toast');
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e2) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function fmtCode(letters) {
+  const s = letters.join('');
+  return s;
+}
+
+function render() {
+  const count = Math.max(1, parseInt($('count').value, 10) || 1);
+  const coord = $('setCoord').value;
+  const showNo = $('setNo').value === '1';
+  const showCode = $('setCode').value === '1';
+  const wideTail = $('setWide').value.trim();
+
+  const ep = {
+    len: getVal('eLen'), parity: $('eParity').value, flip: getVal('eFlip'),
+    orient: $('eOrient').value, big: getVal('eBig'), small: getVal('eSmall'),
+    contain: parseContain($('eContain').value)
+  };
+  const cp = {
+    len: getVal('cLen'), parity: $('cParity').value, flip: getVal('cFlip'),
+    orient: $('cOrient').value, big: getVal('cBig'), small: getVal('cSmall'),
+    contain: parseContain($('cContain').value)
+  };
+
+  const status = $('status');
+  status.className = 'status';
+  status.textContent = '生成中…';
+  const out = $('output');
+
+  // 异步分批，避免卡 UI
+  setTimeout(() => {
+    const results = [];
+    const startTime = Date.now();
+    for (let i = 0; i < count; i++) {
+      const r = tryGenerate(coord, ep, cp, wideTail);
+      if (!r) {
+        status.className = 'status err';
+        status.textContent = '参数过严：连续 ' + MAX_TRIES + ' 次未命中，请放宽参数（如编码长度/大循环长/翻色数量）后重试';
+        if (results.length === 0) {
+          out.innerHTML = '<div class="placeholder">未生成成功，请调整参数</div>';
+        } else {
+          out.innerHTML = results.join('\n');
+        }
+        return;
+      }
+      const seq = r.moves.join(' ');
+      const lines = [];
+      if (showNo) lines.push((i + 1) + '. ' + seq);
+      else lines.push(seq);
+      if (showCode) {
+        lines.push('  棱: ' + fmtCode(r.edgeInfo.code) + '  角: ' + fmtCode(r.cornerInfo.code));
+      }
+      results.push('<span class="scramble">' + lines[0] + '</span>' + (lines[1] ? '\n<span class="code-line">' + lines[1] + '</span>' : ''));
+    }
+    out.innerHTML = results.join('\n\n');
+    status.className = 'status ok';
+    const ms = Date.now() - startTime;
+    status.textContent = '已生成 ' + count + ' 条（' + ms + 'ms）' + (coord === 'yellow-red' ? ' · 黄顶红前' : ' · 白顶绿前');
+
+    // 复制纯文本
+    const plain = results.map((_, i) => {
+      const seq = results[i].replace(/<[^>]+>/g, '');
+      return seq;
+    }).join('\n\n');
+    copyText(plain);
+    showToast();
+  }, 30);
+}
+
+$('btnStart').addEventListener('click', render);
+$('count').addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
+</script>
+</body>
+</html>
