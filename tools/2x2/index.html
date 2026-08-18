@@ -13,7 +13,7 @@
         }
         
         body {
-            background-color: #f5f5f5;
+            background-color: #0d0d1a;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -25,7 +25,7 @@
         .container {
             width: 100%;
             max-width: 800px;
-            background-color: white;
+            background-color: #15152a;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             padding: 20px;
@@ -37,7 +37,7 @@
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            color: #333;
+            color: #e0d5c1;
             position: relative;
             padding: 10px 0;
         }
@@ -65,7 +65,7 @@
             text-align: right;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 1px dashed #ccc;
+            border-bottom: 1px dashed rgba(100, 180, 255, 0.15);
         }
         
         .student-info label {
@@ -75,7 +75,7 @@
         .underline {
             display: inline-block;
             min-width: 120px;
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid #64b4ff;
             margin: 0 5px;
             text-align: center;
         }
@@ -87,7 +87,7 @@
         .options h2 {
             margin-bottom: 15px;
             font-size: 18px;
-            color: #555;
+            color: #b9c0cf;
         }
         
         .checkbox-group {
@@ -105,7 +105,7 @@
         }
         
         .checkbox-item:hover {
-            background-color: rgba(33, 150, 243, 0.05);
+            background-color: rgba(100, 180, 255, 0.1);
         }
         
         .checkbox-item input {
@@ -147,10 +147,10 @@
         }
         
         .print-area {
-            border: 1px solid #ddd;
+            border: 1px solid rgba(100, 180, 255, 0.15);
             padding: 30px 40px;
             min-height: 400px;
-            background-color: white;
+            background-color: #15152a;
             page-break-inside: avoid;
             position: relative;
             border-radius: 8px;
@@ -174,7 +174,7 @@
             display: flex;
             align-items: center;
             padding: 5px 0;
-            border-bottom: 1px dashed #f0f0f0;
+            border-bottom: 1px dashed rgba(100, 180, 255, 0.1);
         }
         
         .line-number {
@@ -190,7 +190,7 @@
             font-family: monospace;
             font-size: 28px;
             font-weight: bold;
-            color: #333;
+            color: #e0d5c1;
         }
         
         /* 角块编码认读练习样式 */
@@ -248,7 +248,7 @@
         
         .hexagon-label {
             font-size: 16px;
-            color: #333;
+            color: #e0d5c1;
             font-weight: bold;
             min-width: 25px;
         }
@@ -256,7 +256,7 @@
         .hexagon-input {
             width: 120px;
             border: none;
-            border-bottom: 1px solid #000;
+            border-bottom: 1px solid #64b4ff;
             text-align: center;
             font-size: 16px;
             padding: 5px;
@@ -371,6 +371,27 @@
                 box-shadow: none;
                 padding: 30px 40px;
                 margin: 0;
+                background-color: white !important;
+            }
+            
+            .print-area h1,
+            .print-area .formula,
+            .print-area .hexagon-label {
+                color: #333 !important;
+            }
+            
+            .print-area .underline,
+            .print-area .hexagon-input {
+                border-bottom-color: #000 !important;
+            }
+            
+            .print-area .print-area,
+            .print-area .formula-line {
+                border-bottom-color: #f0f0f0 !important;
+            }
+            
+            .print-area .student-info {
+                border-bottom-color: #ccc !important;
             }
             
             .no-print {
@@ -389,72 +410,52 @@
                 border-bottom: 1px solid #000;
             }
         }
-    .top-nav {
-        max-width: 960px;
-        margin: 0 auto 20px;
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .top-nav a {
-        color: #666;
-        text-decoration: none;
-        font-size: 0.85rem;
-        padding: 6px 16px;
-        border: 1px solid rgba(0,0,0,0.12);
-        background: #fff;
-        border-radius: 6px;
-        transition: all 0.2s;
-    }
-    .top-nav a:hover { color: #333; border-color: rgba(0,0,0,0.25); }
-    .top-nav a.active { color: #2E5E8E; background: #e8f0fa; border-color: #2E5E8E; font-weight: 600; }
-    .top-nav .nav-group {
-        color: #999;
-        font-size: 0.75rem;
-        padding: 6px 4px 6px 10px;
-        letter-spacing: 0.08em;
-        user-select: none;
-        align-self: center;
-    }
-    .top-nav a.soon {
-        color: #aaa;
-        border-style: dashed;
-        background: transparent;
-        cursor: default;
-    }
-    .top-nav a.soon:hover {
-        color: #aaa;
-        border-color: rgba(0,0,0,0.12);
-        background: transparent;
-    }
 
     </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-<div class="top-nav">
-  <a href="/">Home</a>
-  <span class="nav-group">教程</span>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a class="soon" title="即将上线">二阶</a>
-  <a href="/tools/3x3">三阶</a>
-  <a class="soon" title="即将上线">金字塔</a>
-  <span class="nav-group">个人训练工具</span>
-  <a href="/tools/scramble">公式库</a>
-  <a href="/tools/scramble-uf">UF公式库</a>
-  <a href="/tools/3bld">出题器</a>
-  <a href="/tools/2x2" class="active">二阶练习</a>
-  <a href="/tools/kmap">知识地图</a>
-  <a href="/tools/invert">逆序转换</a>
-  <a href="/tools/practice">练习纸生成</a>
-<a href="/tools/bldscramble">盲拧打乱</a>
-  <span class="nav-group">外链</span>
-  <a href="/tools/nav">工具导航</a>
-</div>
-
-    <!-- 魔方装饰元素 -->
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">Cube Projects</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto/tcp" data-nav="tcp">TCP</a>
+          <a href="/fto/l3t" data-nav="l3t">L3T</a>
+          <a href="/fto/lbt" data-nav="lbt">LBT</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble" data-nav="scramble">公式库</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式库</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- 魔方装饰元素 -->
     <div class="cube-decoration cube-1"></div>
     <div class="cube-decoration cube-2"></div>
     <div class="cube-decoration cube-3"></div>
@@ -704,5 +705,6 @@
             });
         });
     </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

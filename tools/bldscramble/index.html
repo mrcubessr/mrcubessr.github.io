@@ -14,26 +14,6 @@
     display: flex;
     flex-direction: column;
   }
-  .top-nav {
-    max-width: 960px;
-    margin: 0 auto 24px;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 18px 12px 0;
-  }
-  .top-nav a {
-    color: #aaa;
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
-  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
 
   .header {
     text-align: center;
@@ -233,22 +213,49 @@
     line-height: 1.6;
   }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-
-<div class="top-nav">
-  <a href="/">Home</a>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a href="/tools/scramble">打乱公式库</a>
-  <a href="/tools/3bld">三盲出题器</a>
-  <a href="/tools/2x2">二阶魔方练习工具</a>
-  <a href="/tools/kmap">教学知识地图</a>
-  <a href="/tools/invert">公式逆序转换</a>
-  <a href="/tools/practice">魔方练习题生成器</a>
-  <a href="/tools/bldscramble" class="active">盲拧打乱生成器</a>
-</div>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">Cube Projects</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto/tcp" data-nav="tcp">TCP</a>
+          <a href="/fto/l3t" data-nav="l3t">L3T</a>
+          <a href="/fto/lbt" data-nav="lbt">LBT</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble" data-nav="scramble">公式库</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式库</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <div class="header">
   <h1>盲拧打乱生成器</h1>
@@ -690,5 +697,6 @@ function render() {
 $('btnStart').addEventListener('click', render);
 $('count').addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

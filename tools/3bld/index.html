@@ -9,7 +9,7 @@
 
   body {
     font-family: '微软雅黑', 'Microsoft YaHei', Arial, sans-serif;
-    background: #f0f4f8;
+    background: #0d0d1a;
     min-height: 100vh;
     padding: 24px 16px;
   }
@@ -17,14 +17,14 @@
   .container { max-width: 1100px; margin: 0 auto; }
 
   .header { text-align: center; margin-bottom: 24px; }
-  .header h1 { font-size: 26px; color: #2E5E8E; margin-bottom: 6px; }
-  .header p { font-size: 14px; color: #888; }
+  .header h1 { font-size: 26px; color: #64b4ff; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #b9c0cf; }
 
   .tabs {
     display: flex;
     justify-content: center;
     margin-bottom: 24px;
-    border-bottom: 2px solid #dde6f0;
+    border-bottom: 2px solid rgba(100, 180, 255, 0.15);
   }
   .tab-btn {
     padding: 10px 32px;
@@ -32,13 +32,13 @@
     background: none;
     font-size: 15px;
     font-family: inherit;
-    color: #888;
+    color: #b9c0cf;
     cursor: pointer;
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: all 0.2s;
   }
-  .tab-btn.active { color: #2E5E8E; border-bottom-color: #2E5E8E; font-weight: bold; }
+  .tab-btn.active { color: #64b4ff; border-bottom-color: #64b4ff; font-weight: bold; }
 
   .toolbar {
     display: flex;
@@ -56,24 +56,24 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  .btn-primary { background: #2E5E8E; color: white; }
-  .btn-primary:hover { background: #1e4070; }
-  .btn-secondary { background: #e8eef5; color: #2E5E8E; border: 1.5px solid #2E5E8E; }
-  .btn-secondary:hover { background: #d0dff0; }
+  .btn-primary { background: #64b4ff; color: #0d0d1a; }
+  .btn-primary:hover { background: #4a9ae0; }
+  .btn-secondary { background: rgba(100, 180, 255, 0.1); color: #64b4ff; border: 1.5px solid #64b4ff; }
+  .btn-secondary:hover { background: rgba(100, 180, 255, 0.2); }
 
-  .stats { text-align: center; font-size: 13px; color: #888; margin-bottom: 16px; }
+  .stats { text-align: center; font-size: 13px; color: #b9c0cf; margin-bottom: 16px; }
 
   .paper {
-    background: white;
+    background: #15152a;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     padding: 32px 36px;
   }
 
   .paper-title { text-align: center; margin-bottom: 20px; }
-  .paper-title h2 { font-size: 20px; color: #2E5E8E; margin-bottom: 4px; }
-  .paper-title .subtitle { font-size: 13px; color: #888; margin-bottom: 8px; }
-  .paper-title .info { font-size: 13px; color: #aaa; }
+  .paper-title h2 { font-size: 20px; color: #64b4ff; margin-bottom: 4px; }
+  .paper-title .subtitle { font-size: 13px; color: #b9c0cf; margin-bottom: 8px; }
+  .paper-title .info { font-size: 13px; color: #8a90a0; }
 
   /* ===== 练习题模式 ===== */
   .quiz-grid {
@@ -87,11 +87,11 @@
     align-items: baseline;
     gap: 10px;
     padding: 5px 0;
-    border-bottom: 1px dashed #e0e0e0;
+    border-bottom: 1px dashed rgba(100, 180, 255, 0.1);
   }
-  .quiz-num { font-size: 12px; color: #aaa; min-width: 26px; }
-  .quiz-code { font-size: 17px; font-weight: bold; color: #2E5E8E; min-width: 42px; }
-  .quiz-line { flex: 1; border-bottom: 1px solid #555; height: 1px; margin-top: 2px; }
+  .quiz-num { font-size: 12px; color: #8a90a0; min-width: 26px; }
+  .quiz-code { font-size: 17px; font-weight: bold; color: #64b4ff; min-width: 42px; }
+  .quiz-line { flex: 1; border-bottom: 1px solid #64b4ff; height: 1px; margin-top: 2px; }
 
   /* ===== 字母组模式：4行×5列网格，每格一个组 ===== */
   .groups-grid {
@@ -102,14 +102,14 @@
   }
   
   .group-box {
-    border: 1.5px solid #2E5E8E;
+    border: 1.5px solid #64b4ff;
     border-radius: 4px;
     overflow: hidden;
   }
   
   .group-box-header {
-    background: #2E5E8E;
-    color: white;
+    background: #64b4ff;
+    color: #0d0d1a;
     text-align: center;
     padding: 6px 4px;
     font-size: 13px;
@@ -120,13 +120,13 @@
     display: flex;
     justify-content: space-around;
     padding: 10px 4px;
-    background: white;
+    background: #1a1a30;
   }
   
   .group-box-letters span {
     font-size: 15px;
     font-weight: bold;
-    color: #222;
+    color: #e0d5c1;
   }
 
   .btn-group-row {
@@ -144,78 +144,65 @@
     body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .container { max-width: 100%; }
     .toolbar, .stats, .tabs, .btn-group-row { display: none !important; }
-    .paper { box-shadow: none; border-radius: 0; padding: 0; }
+    .paper { box-shadow: none; border-radius: 0; padding: 0; background: white !important; }
+    .paper-title h2, .quiz-code, .group-box { color: #2E5E8E; border-color: #2E5E8E !important; }
+    .paper-title .subtitle, .paper-title .info, .quiz-num, .stats { color: #888 !important; }
+    .group-box-letters { background: white !important; }
+    .group-box-letters span { color: #222 !important; }
+    .quiz-line { border-bottom-color: #555 !important; }
+    .quiz-item { border-bottom-color: #e0e0e0 !important; }
+    .group-box-header { color: white !important; }
     .paper-title { margin-bottom: 16px; }
     .paper-title h2 { font-size: 18px; }
     .groups-grid { gap: 10px; }
     .group-box-header { background: #2E5E8E !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .group-box-letters span { font-size: 14px; }
   }
-  .top-nav {
-    max-width: 960px;
-    margin: 0 auto 20px;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .top-nav a {
-    color: #aaa;
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
-  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-  .top-nav .nav-group {
-    color: #8a91a0;
-    font-size: 0.75rem;
-    padding: 6px 4px 6px 10px;
-    letter-spacing: 0.08em;
-    user-select: none;
-    align-self: center;
-  }
-  .top-nav a.soon {
-    color: #6b7280;
-    border-style: dashed;
-    background: transparent;
-    cursor: default;
-  }
-  .top-nav a.soon:hover {
-    color: #6b7280;
-    border-color: rgba(255,255,255,0.18);
-    background: transparent;
-  }
 
   </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-
-<div class="top-nav">
-  <a href="/">Home</a>
-  <span class="nav-group">教程</span>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a class="soon" title="即将上线">二阶</a>
-  <a href="/tools/3x3">三阶</a>
-  <a class="soon" title="即将上线">金字塔</a>
-  <span class="nav-group">个人训练工具</span>
-  <a href="/tools/scramble">公式库</a>
-  <a href="/tools/scramble-uf">UF公式库</a>
-  <a href="/tools/3bld" class="active">出题器</a>
-  <a href="/tools/2x2">二阶练习</a>
-  <a href="/tools/kmap">知识地图</a>
-  <a href="/tools/invert">逆序转换</a>
-  <a href="/tools/practice">练习纸生成</a>
-<a href="/tools/bldscramble">盲拧打乱</a>
-  <span class="nav-group">外链</span>
-  <a href="/tools/nav">工具导航</a>
-</div>
-
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">Cube Projects</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto/tcp" data-nav="tcp">TCP</a>
+          <a href="/fto/l3t" data-nav="l3t">L3T</a>
+          <a href="/fto/lbt" data-nav="lbt">LBT</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble" data-nav="scramble">公式库</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式库</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <div class="container">
   <div class="header">
@@ -441,5 +428,6 @@ function printPaper() { window.print(); }
 generate();
 generateGroups();
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>
