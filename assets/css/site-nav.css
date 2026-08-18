@@ -138,6 +138,38 @@
   background: transparent;
 }
 
+/* 二级下拉菜单 */
+.site-nav .nav-drop.sub {
+  position: relative;
+}
+
+.site-nav .nav-drop.sub > .nav-drop-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-nav .nav-drop.sub .nav-menu.sub-menu {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 4px);
+  transform: translateX(-6px) translateY(0);
+  min-width: 140px;
+}
+
+.site-nav .nav-drop.sub.open .nav-menu.sub-menu {
+  transform: translateX(0) translateY(0);
+}
+
+.site-nav .nav-drop.sub .nav-drop-toggle .caret {
+  transform: rotate(-90deg);
+}
+
+.site-nav .nav-drop.sub.open .nav-drop-toggle .caret {
+  transform: rotate(0deg);
+}
+
 /* 汉堡按钮 */
 .site-nav .nav-toggle-btn {
   display: none;
@@ -214,5 +246,32 @@
     transform: none;
     display: block;
     visibility: visible;
+  }
+
+  /* 移动端二级菜单 */
+  .site-nav .nav-drop.sub .nav-menu.sub-menu {
+    position: static;
+    transform: none;
+    left: auto;
+    top: auto;
+    min-width: 0;
+    margin: 2px 0 6px 12px;
+    display: none;
+    visibility: hidden;
+    border-left: 2px solid rgba(100, 180, 255, 0.2);
+  }
+
+  .site-nav .nav-drop.sub.open .nav-menu.sub-menu {
+    transform: none;
+    display: block;
+    visibility: visible;
+  }
+
+  .site-nav .nav-drop.sub .nav-drop-toggle .caret {
+    transform: rotate(0deg);
+  }
+
+  .site-nav .nav-drop.sub.open .nav-drop-toggle .caret {
+    transform: rotate(180deg);
   }
 }

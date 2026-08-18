@@ -19,16 +19,26 @@
       });
     }
 
-    // 下拉菜单：点击切换
+    // 下拉菜单：点击切换（支持任意层级）
     var drops = nav.querySelectorAll('.nav-drop');
     drops.forEach(function (drop) {
-      var toggle = drop.querySelector('.nav-drop-toggle');
+      var toggle = drop.querySelector(':scope > .nav-drop-toggle');
       if (!toggle) return;
       toggle.addEventListener('click', function (e) {
         e.stopPropagation();
         var isOpen = drop.classList.contains('open');
-        // 关闭其它下拉
-        drops.forEach(function (d) { d.classList.remove('open'); });
+        // 关闭同层其它下拉
+        var parent = drop.parentElement.closest('.nav-drop') || nav;
+        parent.querySelectorAll(':scope > .nav-drop').forEach(function (d) {
+          d.classList.remove('open');
+        });
+        // 父级 .nav-menu 容器下的同级兄弟下拉也关闭
+        var menu = drop.parentElement;
+        if (menu && menu.classList && menu.classList.contains('nav-menu')) {
+          menu.querySelectorAll(':scope > .nav-drop').forEach(function (d) {
+            d.classList.remove('open');
+          });
+        }
         if (!isOpen) drop.classList.add('open');
       });
     });
@@ -58,11 +68,12 @@
       nav.querySelectorAll('[data-nav]').forEach(function (el) {
         if (el.getAttribute('data-nav') === current) {
           el.classList.add('active');
-          // 若在子菜单中，同时高亮父级
+          // 逐级高亮所有祖先下拉的 toggle
           var drop = el.closest('.nav-drop');
-          if (drop) {
-            var parentToggle = drop.querySelector('.nav-drop-toggle');
+          while (drop) {
+            var parentToggle = drop.querySelector(':scope > .nav-drop-toggle');
             if (parentToggle) parentToggle.classList.add('active');
+            drop = drop.parentElement.closest('.nav-drop');
           }
         }
       });
