@@ -232,6 +232,21 @@
     margin-top: 12px;
     line-height: 1.6;
   }
+
+  /* 移动端适配 */
+  @media (max-width: 640px) {
+    .top-nav { padding: 10px 8px 0; gap: 8px; }
+    .top-nav a { padding: 5px 10px; font-size: 0.78rem; }
+    .header { padding: 18px 12px 8px; }
+    .header h1 { font-size: 1.35rem; letter-spacing: 1px; }
+    .container { padding: 0 10px; gap: 14px; }
+    .card { padding: 14px; }
+    .tabs { flex-wrap: wrap; gap: 6px; }
+    .tab { padding: 7px 13px; font-size: 0.82rem; }
+    .field label { flex-basis: 60px; }
+    .output-area { min-height: 360px; max-height: none; font-size: 0.85rem; padding: 12px; }
+    .placeholder { padding-top: 120px; }
+  }
 </style>
 </head>
 <body>

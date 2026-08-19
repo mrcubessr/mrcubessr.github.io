@@ -164,6 +164,19 @@
     .page-wrap canvas { width: 210mm; }
     .page-label { display: none; }
   }
+  @media (max-width: 640px) {
+    .container { padding: 14px 10px 40px; }
+    .page-head h1 { font-size: 20px; }
+    .page-head { margin: 12px 0 14px; }
+    .panel { padding: 14px 12px; }
+    .row { gap: 10px; }
+    .field { flex-wrap: wrap; width: 100%; }
+    .field label { min-width: 60px; }
+    .field input[type="text"] { width: 100%; flex: 1; }
+    .btns { flex-direction: column; }
+    .btns .btn { width: 100%; text-align: center; }
+    .page-wrap { max-width: 100%; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>

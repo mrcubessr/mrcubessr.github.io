@@ -159,6 +159,22 @@
     .group-box-letters span { font-size: 14px; }
   }
 
+  /* 移动端适配 */
+  @media (max-width: 640px) {
+    body { padding: 12px 10px; }
+    .header h1 { font-size: 20px; }
+    .tabs { gap: 2px; }
+    .tab-btn { padding: 10px 10px; font-size: 13px; }
+    .paper { padding: 18px 12px; }
+    .quiz-grid { grid-template-columns: 1fr; gap: 0; }
+    .quiz-code { font-size: 16px; min-width: 36px; }
+    .groups-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; gap: 8px; }
+    .group-box-letters { padding: 8px 2px; }
+    .group-box-letters span { font-size: 13px; }
+    .group-box-header { font-size: 12px; }
+    .btn-group-row { flex-wrap: wrap; }
+  }
+
   </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>

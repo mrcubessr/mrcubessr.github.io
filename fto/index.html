@@ -115,6 +115,18 @@
     color: #64748b;
     font-size: 0.85rem;
   }
+
+  /* 移动端适配 */
+  @media (max-width: 640px) {
+    header { padding: 28px 0 20px; }
+    header h1 { font-size: 1.6rem; }
+    .subtitle { font-size: 0.85rem; }
+    .container { padding: 12px 14px 48px; }
+    .card-grid { grid-template-columns: 1fr; gap: 12px; }
+    .card { padding: 26px 16px; }
+    .card-icon { font-size: 2.1rem; margin-bottom: 8px; }
+    .card-title { font-size: 1.15rem; }
+  }
 </style>
 </head>
 <body data-nav="fto">

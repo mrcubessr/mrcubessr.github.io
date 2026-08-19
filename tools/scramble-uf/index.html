@@ -171,6 +171,19 @@
     .entry { box-shadow: none; break-inside: avoid; }
     .header h1 { font-size: 24px; }
   }
+
+  /* 移动端适配 */
+  @media (max-width: 640px) {
+    body { padding: 14px 12px; }
+    .header { padding: 20px 0 14px; margin-bottom: 22px; }
+    .header h1 { font-size: 22px; letter-spacing: 2px; }
+    .entry-header { padding: 12px 14px; }
+    .entry-header h2 { font-size: 15px; }
+    .diagram { border-right: none; border-bottom: 1px solid rgba(100,180,255,0.08); padding: 14px; }
+    .diagram img { max-width: 180px; }
+    .info-panel { padding: 14px; gap: 12px; }
+    .formula-block code { font-size: 12px; letter-spacing: 1px; padding: 8px 10px; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>

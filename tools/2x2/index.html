@@ -411,6 +411,28 @@
             }
         }
 
+        /* 移动端适配 */
+        @media (max-width: 640px) {
+            body { padding: 10px; }
+            .container { padding: 14px 12px; }
+            h1 { font-size: 19px; }
+            h1:before, h1:after { display: none; }
+            .student-info { text-align: left; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+            .student-info label { margin-left: 0; }
+            .underline { min-width: 80px; }
+            .checkbox-group { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .checkbox-item { padding: 6px; }
+            .actions { flex-wrap: wrap; }
+            .actions button { flex: 1 1 100%; }
+            .print-area { padding: 16px 12px; min-height: 0; }
+            .formula-container { grid-template-columns: 1fr; gap: 2px; }
+            .formula-line { font-size: 18px; margin-bottom: 14px; }
+            .line-number { font-size: 18px; }
+            .formula { font-size: 24px; letter-spacing: 2px; }
+            .hexagons-container { grid-template-columns: 1fr; gap: 14px; }
+            .hexagon-input { width: 90px; }
+        }
+
     </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
