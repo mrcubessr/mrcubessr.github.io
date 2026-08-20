@@ -232,21 +232,6 @@
     margin-top: 12px;
     line-height: 1.6;
   }
-
-  /* 移动端适配 */
-  @media (max-width: 640px) {
-    .top-nav { padding: 10px 8px 0; gap: 8px; }
-    .top-nav a { padding: 5px 10px; font-size: 0.78rem; }
-    .header { padding: 18px 12px 8px; }
-    .header h1 { font-size: 1.35rem; letter-spacing: 1px; }
-    .container { padding: 0 10px; gap: 14px; }
-    .card { padding: 14px; }
-    .tabs { flex-wrap: wrap; gap: 6px; }
-    .tab { padding: 7px 13px; font-size: 0.82rem; }
-    .field label { flex-basis: 60px; }
-    .output-area { min-height: 360px; max-height: none; font-size: 0.85rem; padding: 12px; }
-    .placeholder { padding-top: 120px; }
-  }
 </style>
 </head>
 <body>
@@ -327,7 +312,7 @@
       <div class="field"><label>小循环数</label><input type="number" id="cSmall" min="0" placeholder="不限"></div>
       <div class="field"><label>小循环包含</label><input type="text" id="cContain" placeholder="如 IK, 逗号分隔"></div>
 
-      <div class="hint">编码方案：彳亍法（棱缓冲 UF、角缓冲 UBL）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。<br>角编码设为 0 时自动采用中层转动（M/E/S）commutator 公式，角块天然完全复原。</div>
+      <div class="hint">编码方案：彳亍法（棱缓冲 UF、角缓冲 UBL）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。<br>角编码设为 0 时自动采用纯六面共轭公式（X·A·X'），角块完全复原且输出符合 WCA 标准（无 M/E/S）。</div>
     </div>
 
     <!-- 设置面板 -->
@@ -384,9 +369,9 @@ const EDGE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
 const CORNER_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
 
 // ========== 三阶魔方贴纸级转动（CW 映射：newState[i] = state[map[i]]） ==========
-const MAP_U_C = [9,10,11, 0,1,2, 3,4,5, 6,7,8, 12,13,14, 15,16,17, 18,19,20, 21,22,23];
+const MAP_U_C = [9,11,10, 0,2,1, 3,5,4, 6,8,7, 12,13,14, 15,16,17, 18,19,20, 21,22,23];
 const MAP_U_E = [2,3, 4,5, 6,7, 0,1, 8,9, 10,11, 12,13, 14,15, 16,17, 18,19, 20,21, 22,23];
-const MAP_D_C = [0,1,2, 3,4,5, 6,7,8, 9,10,11, 21,22,23, 12,13,14, 15,16,17, 18,19,20];
+const MAP_D_C = [0,1,2, 3,4,5, 6,7,8, 9,10,11, 21,23,22, 12,14,13, 15,17,16, 18,20,19];
 const MAP_D_E = [0,1, 2,3, 4,5, 6,7, 8,9, 10,11, 12,13, 14,15, 22,23, 16,17, 18,19, 20,21];
 const MAP_F_C = [0,1,2, 3,4,5, 11,10,9, 14,13,12, 17,16,15, 8,7,6, 18,19,20, 21,22,23];
 const MAP_F_E = [11,10, 2,3, 4,5, 6,7, 1,0, 17,16, 12,13, 14,15, 9,8, 18,19, 20,21, 22,23];
@@ -468,6 +453,46 @@ function generateCommScramble(nComm) {
     moves.push(mid + fmt(midC), out + fmt(outC), mid + fmt(invC), out + fmt(invOut));
   }
   return moves;
+}
+
+// ========== 角不动共轭打乱（纯六面，WCA 标准） ==========
+// 需求角编码=0（角块完全复原）时，六面随机转动必然扰动角块几乎无法命中。
+// 方案：共轭公式 X·A·X' 串联，其中 A = R2 U2 R2 U2 R2 U2 是角块完全复原的纯六面公式。
+// 共轭保持"角块复原"性质（X 先动角、A 复原、X' 还原），棱块被 X/A 扰动产生目标编码。
+// 输出仅含 U/D/F/B/R/L，符合 WCA 打乱规范（无 M/E/S）。
+const CONJ_A = ['R2','U2','R2','U2','R2','U2'];
+
+function invertMoves(moves) {
+  const inv = { U:'U\'', D:'D\'', F:'F\'', B:'B\'', R:'R\'', L:'L\'', U2:'U2', D2:'D2', F2:'F2', B2:'B2', R2:'R2', L2:'L2', "U'":'U', "D'":'D', "F'":'F', "B'":'B', "R'":'R', "L'":'L' };
+  const res = [];
+  for (let i = moves.length - 1; i >= 0; i--) res.push(inv[moves[i]]);
+  return res;
+}
+
+function simplifyMoves(moves) {
+  const cnt = m => m.endsWith("'") ? 3 : (m.endsWith('2') ? 2 : 1);
+  const fmt = (f, v) => v === 1 ? f : (v === 2 ? f + '2' : f + "'");
+  const out = [];
+  for (const mv of moves) {
+    const f = mv[0];
+    if (out.length && out[out.length - 1][0] === f) {
+      const nv = (out[out.length - 1][1] + cnt(mv)) % 4;
+      out.pop();
+      if (nv !== 0) out.push([f, nv]);
+    } else {
+      out.push([f, cnt(mv)]);
+    }
+  }
+  return out.map(([f, v]) => fmt(f, v));
+}
+
+function generateConjScramble(nUnit, xLen) {
+  const seq = [];
+  for (let i = 0; i < nUnit; i++) {
+    const X = generateScramble(xLen);
+    seq.push(...X, ...CONJ_A, ...invertMoves(X));
+  }
+  return simplifyMoves(seq);
 }
 
 // ========== 彳亍编码计算 ==========
@@ -619,10 +644,10 @@ function simulateScramble(moves, coord) {
 }
 
 function tryGenerate(coord, ep, cp, wideTail) {
-  // 角编码长度要求为 0：角块必须完全复原，改用中层 commutator 生成（角天然不动）
+  // 角编码长度要求为 0：角块必须完全复原，改用纯六面共轭公式（X·A·X'）生成，角块天然复原且输出符合 WCA（无 M/E/S）
   const cornerZeroMode = (cp.len === 0);
   for (let t = 0; t < MAX_TRIES; t++) {
-    const moves = cornerZeroMode ? generateCommScramble(5) : generateScramble(SCRAMBLE_LEN);
+    const moves = cornerZeroMode ? generateConjScramble(4, 2) : generateScramble(SCRAMBLE_LEN);
     const [corner, edge] = simulateScramble(moves, coord);
     edgeInfo = computeEdgeCode(edge);
     const cornerInfo = computeCornerCode(corner);
@@ -722,7 +747,7 @@ function render() {
     out.innerHTML = results.join('\n\n');
     status.className = 'status ok';
     const ms = Date.now() - startTime;
-    status.textContent = '已生成 ' + count + ' 条（' + ms + 'ms）' + (coord === 'yellow-red' ? ' · 黄顶红前' : ' · 白顶绿前') + (cp.len === 0 ? ' · 角0中层模式' : '');
+    status.textContent = '已生成 ' + count + ' 条（' + ms + 'ms）' + (coord === 'yellow-red' ? ' · 黄顶红前' : ' · 白顶绿前') + (cp.len === 0 ? ' · 角0六面模式' : '');
 
     // 复制纯文本
     const plain = results.map((_, i) => {
