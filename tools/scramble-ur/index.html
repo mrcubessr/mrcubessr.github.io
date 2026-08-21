@@ -172,12 +172,13 @@
     .header h1 { font-size: 24px; }
   }
 
-  .formula-editor {
+
+  .ref-formula {
     margin-top: 14px;
     padding-top: 10px;
     border-top: 1px dashed rgba(100,180,255,0.25);
   }
-  .formula-toggle {
+  .ref-toggle {
     display: inline-block;
     background: #1c1f27;
     color: #d7dce6;
@@ -189,24 +190,38 @@
     transition: all 0.2s;
     font-family: inherit;
   }
-  .formula-toggle:hover { color: #64b4ff; border-color: rgba(100,180,255,0.5); }
-  .formula-input-wrap { margin-top: 10px; }
-  .formula-textarea {
-    width: 100%;
-    min-height: 90px;
-    box-sizing: border-box;
-    background: #12121f;
-    color: #d4cfc4;
-    border: 1px solid rgba(255,255,255,0.15);
+  .ref-toggle:hover { color: #64b4ff; border-color: rgba(100,180,255,0.5); }
+  .ref-panel { margin-top: 10px; }
+  .ref-loading, .ref-error { color: #8a91a0; font-size: 13px; padding: 4px 0; }
+  .ref-error { color: #f0a050; }
+  .ref-item {
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 6px;
-    padding: 10px;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 13px;
-    line-height: 1.6;
-    resize: vertical;
+    padding: 8px 12px;
+    margin-bottom: 8px;
   }
-  .formula-textarea:focus { outline: none; border-color: rgba(100,180,255,0.5); }
-
+  .ref-item:last-child { margin-bottom: 0; }
+  .ref-code {
+    display: block;
+    font-weight: 600;
+    color: #64b4ff;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .ref-algs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ref-algs code {
+    display: inline-block;
+    color: #e0d5c1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    word-break: break-all;
+  }
+  .ref-empty { color: #8a91a0; }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
@@ -314,13 +329,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="C组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="C组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="C组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -378,13 +392,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="D组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="D组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="D组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -438,13 +451,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="E组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="E组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="E组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -498,13 +510,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="F组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="F组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="F组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -554,13 +565,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="I组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="I组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="I组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -610,13 +620,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="J组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="J组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="J组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -662,13 +671,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="K组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="K组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="K组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -715,13 +723,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="L组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="L组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="L组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -764,13 +771,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="M组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="M组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="M组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -813,13 +819,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="N组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="N组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="N组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -858,13 +863,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="O组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="O组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="O组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -903,13 +907,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="P组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="P组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="P组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -944,13 +947,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="Q组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="Q组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="Q组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -985,13 +987,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="R组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="R组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="R组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
   <div class="entry">
@@ -1022,13 +1023,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="S组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="S组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="S组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
 
@@ -1064,13 +1064,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="T组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="T组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="T组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 
 
@@ -1104,13 +1103,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="W组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="W组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="W组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
   <div class="entry">
     <div class="entry-header">
@@ -1143,13 +1141,12 @@
         </div>
       </div>
     </div>
-    <div class="formula-editor">
-      <button type="button" class="formula-toggle" data-key="X组棱练习">展开公式编辑</button>
-      <div class="formula-input-wrap" data-key="X组棱练习" style="display:none;">
-        <textarea class="formula-textarea" data-key="X组棱练习" placeholder="在此粘贴该组公式，内容会自动保存到本地缓存"></textarea>
-      </div>
-    </div>
   </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+
 
 </div>
 
@@ -1157,29 +1154,89 @@
 
 <script src="/assets/js/site-nav.js"></script>
 
+
+
+
 <script>
 (function () {
-  var PREFIX = 'scramble_formula_';
-  var toggles = document.querySelectorAll('.formula-toggle');
-  Array.prototype.forEach.call(toggles, function (btn) {
-    var key = btn.getAttribute('data-key');
-    var wrap = btn.nextElementSibling;
-    var ta = wrap.querySelector('.formula-textarea');
-    try {
-      var saved = localStorage.getItem(PREFIX + key);
-      if (saved !== null && saved !== undefined) { ta.value = saved; }
-    } catch (e) {}
-    btn.addEventListener('click', function () {
-      var hidden = wrap.style.display === 'none' || wrap.style.display === '';
-      wrap.style.display = hidden ? 'block' : 'none';
-      btn.textContent = hidden ? '收起公式编辑' : '展开公式编辑';
+  var DATA_URL = 'https://blddb.net/assets/json/edgeAlgToInfo.json';
+  var algData = null;
+  var dataPromise = null;
+
+  function getAlgData() {
+    if (algData) return Promise.resolve(algData);
+    if (!dataPromise) {
+      dataPromise = fetch(DATA_URL)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (json) {
+          algData = json;
+          return json;
+        })
+        .catch(function (err) {
+          dataPromise = null;
+          throw err;
+        });
+    }
+    return dataPromise;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderPanel(btn, panel) {
+    panel.innerHTML = '<div class="ref-loading">加载中…</div>';
+    var entry = btn.closest('.entry');
+    var codes = [];
+    var tags = entry.querySelectorAll('.order-tag');
+    Array.prototype.forEach.call(tags, function (t) {
+      var c = t.textContent.trim();
+      if (c) codes.push(c);
     });
-    ta.addEventListener('input', function () {
-      try { localStorage.setItem(PREFIX + key, ta.value); } catch (e) {}
+    getAlgData().then(function (data) {
+      var html = '';
+      codes.forEach(function (code) {
+        var algs = data['G' + code] || [];
+        html += '<div class="ref-item"><span class="ref-code">' + escapeHtml(code) + '</span><div class="ref-algs">';
+        if (!algs.length) {
+          html += '<code class="ref-empty">（暂无公式）</code>';
+        } else {
+          algs.forEach(function (alg) {
+            html += '<code>' + escapeHtml(alg) + '</code>';
+          });
+        }
+        html += '</div></div>';
+      });
+      panel.innerHTML = html;
+      panel.setAttribute('data-loaded', '1');
+    }).catch(function (err) {
+      panel.innerHTML = '<div class="ref-error">公式数据加载失败：' + escapeHtml(err.message) + '，请稍后重试。</div>';
+    });
+  }
+
+  var toggles = document.querySelectorAll('.ref-toggle');
+  Array.prototype.forEach.call(toggles, function (btn) {
+    btn.addEventListener('click', function () {
+      var panel = btn.nextElementSibling;
+      var isOpen = panel.style.display !== 'none';
+      if (isOpen) {
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'block';
+      if (panel.getAttribute('data-loaded') !== '1') {
+        renderPanel(btn, panel);
+      }
     });
   });
 })();
 </script>
-
 </body>
 </html>
