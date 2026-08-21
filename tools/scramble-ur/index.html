@@ -1153,7 +1153,8 @@
 <script src="/assets/js/site-nav.js"></script>
 <script>
 (function () {
-  var DATA_URL = 'https://blddb.net/assets/json/edgeAlgToInfo.json';
+  var DATA_URL = 'edgeAlgToInfo.json';
+  var DATA_URL_BACKUP = 'https://blddb.net/assets/json/edgeAlgToInfo.json';
   var algData = null;
   var dataPromise = null;
 
@@ -1168,6 +1169,19 @@
         .then(function (json) {
           algData = json;
           return json;
+        })
+        .catch(function (err) {
+          // 本地文件加载失败时回退到 blddb 远程源
+          dataPromise = null;
+          return fetch(DATA_URL_BACKUP)
+            .then(function (r) {
+              if (!r.ok) throw new Error('HTTP ' + r.status);
+              return r.json();
+            })
+            .then(function (json) {
+              algData = json;
+              return json;
+            });
         })
         .catch(function (err) {
           dataPromise = null;
