@@ -172,10 +172,10 @@
     .header h1 { font-size: 24px; }
   }
 
-  /* 参考公式 */
+    /* 参考公式 */
   .ref-formula {
-    margin-top: 14px;
-    padding-top: 10px;
+    margin: 14px 24px 20px;
+    padding-top: 12px;
     border-top: 1px dashed rgba(100,180,255,0.25);
   }
   .ref-toggle {
@@ -191,37 +191,103 @@
     font-family: inherit;
   }
   .ref-toggle:hover { color: #64b4ff; border-color: rgba(100,180,255,0.5); }
-  .ref-panel { margin-top: 10px; }
+  .ref-panel { margin-top: 12px; }
   .ref-loading, .ref-error { color: #8a91a0; font-size: 13px; padding: 4px 0; }
   .ref-error { color: #f0a050; }
-  .ref-item {
-    background: rgba(0,0,0,0.22);
+  .ref-table {
+    display: grid;
+    grid-template-columns: 76px 1fr;
     border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
   }
-  .ref-item:last-child { margin-bottom: 0; }
-  .ref-code {
-    display: block;
-    font-weight: 600;
+  .ref-row { display: contents; }
+  .ref-code-col {
+    padding: 7px 12px;
+    font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+    font-weight: 700;
     color: #64b4ff;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
+    background: rgba(100,180,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
   }
-  .ref-algs { display: flex; flex-wrap: wrap; gap: 6px; }
-  .ref-algs code {
-    display: inline-block;
-    color: #e0d5c1;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 12px;
-    letter-spacing: 0.4px;
+  .ref-sel-col {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: relative;
+    background: rgba(0,0,0,0.15);
+  }
+  .ref-row:last-child .ref-code-col,
+  .ref-row:last-child .ref-sel-col { border-bottom: none; }
+  .ref-sel-box {
+    width: 100%;
+    text-align: left;
+    background: #14141f;
+    color: #8a91a0;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.5;
     word-break: break-all;
   }
-  .ref-empty { color: #8a91a0; }
+  .ref-sel-box:hover { border-color: rgba(100,180,255,0.5); color: #d7dce6; }
+  .ref-sel-box.ref-selected {
+    color: #e0d5c1;
+    background: rgba(100,180,255,0.08);
+    border-color: rgba(100,180,255,0.35);
+  }
+  .ref-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: #1c1f27;
+    border: 1px solid rgba(100,180,255,0.3);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+  }
+  .ref-dropdown.open { display: block; }
+  .ref-opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #d7dce6;
+    font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+    line-height: 1.5;
+    word-break: break-all;
+  }
+  .ref-opt:last-child { border-bottom: none; }
+  .ref-opt:hover { background: rgba(100,180,255,0.12); color: #fff; }
+  .ref-opt.ref-hidden { display: none; }
+  .ref-more-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-top: 1px dashed rgba(255,255,255,0.15);
+    color: #8ec8ff;
+    font-size: 12px;
+    padding: 6px;
+    cursor: pointer;
+  }
+  .ref-more-btn:hover { color: #64b4ff; }
+  .ref-empty { color: #8a91a0; padding: 6px 10px; font-size: 13px; }
 
   /* 移动端适配 */
   @media (max-width: 640px) {
@@ -234,6 +300,8 @@
     .diagram img { max-width: 180px; }
     .info-panel { padding: 14px; gap: 12px; }
     .formula-block code { font-size: 12px; letter-spacing: 1px; padding: 8px 10px; }
+    .ref-formula { margin: 12px 14px 16px; }
+    .ref-table { grid-template-columns: 60px 1fr; }
   }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -1199,6 +1267,26 @@
       .replace(/"/g, '&quot;');
   }
 
+  var STORAGE_KEY = 'ur_ref_selections';
+
+  function getGroupName(entry) {
+    var h2 = entry.querySelector('.entry-header h2');
+    if (!h2) return '';
+    var t = h2.textContent.trim();
+    var m = t.match(/^([A-Za-z]+)组/);
+    return m ? m[1] : t;
+  }
+
+  function loadSelections() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+
+  function saveSelections(selections) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(selections)); }
+    catch (e) {}
+  }
+
   function renderPanel(btn, panel) {
     panel.innerHTML = '<div class="ref-loading">加载中…</div>';
     var entry = btn.closest('.entry');
@@ -1208,26 +1296,93 @@
       var c = t.textContent.trim();
       if (c) codes.push(c);
     });
+    var group = getGroupName(entry);
     getAlgData().then(function (data) {
-      var html = '';
+      var selections = loadSelections();
+      var groupSel = selections[group] || {};
+      var html = '<div class="ref-table">';
       codes.forEach(function (code) {
+        html += '<div class="ref-row">';
+        html += '<div class="ref-code-col">' + escapeHtml(code) + '</div>';
         var algs = data['G' + code] || [];
-        html += '<div class="ref-item"><span class="ref-code">' + escapeHtml(code) + '</span><div class="ref-algs">';
+        var saved = groupSel[code] || '';
+        html += '<div class="ref-sel-col">';
+        html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + '" data-code="' + code + '">' + (saved ? escapeHtml(saved) : '点击选择公式') + '</button>';
         if (!algs.length) {
-          html += '<code class="ref-empty">（暂无公式）</code>';
+          html += '<div class="ref-empty">（暂无公式）</div>';
         } else {
-          algs.forEach(function (alg) {
-            html += '<code>' + escapeHtml(alg) + '</code>';
+          html += '<div class="ref-dropdown" data-code="' + code + '">';
+          algs.forEach(function (alg, idx) {
+            var cls = 'ref-opt' + (idx >= 5 ? ' ref-hidden' : '');
+            html += '<button type="button" class="' + cls + '" data-alg="' + escapeHtml(alg) + '">' + escapeHtml(alg) + '</button>';
           });
+          if (algs.length > 5) {
+            html += '<button type="button" class="ref-more-btn">展开更多（共 ' + algs.length + ' 条）</button>';
+          }
+          html += '</div>';
         }
-        html += '</div></div>';
+        html += '</div>';
+        html += '</div>';
       });
+      html += '</div>';
       panel.innerHTML = html;
       panel.setAttribute('data-loaded', '1');
+      bindRefEvents(entry, group);
     }).catch(function (err) {
       panel.innerHTML = '<div class="ref-error">公式数据加载失败：' + escapeHtml(err.message) + '，请稍后重试。</div>';
     });
   }
+
+  function closeAllDropdowns(entry) {
+    var dds = entry.querySelectorAll('.ref-dropdown.open');
+    Array.prototype.forEach.call(dds, function (d) { d.classList.remove('open'); });
+  }
+
+  function bindRefEvents(entry, group) {
+    var selBoxes = entry.querySelectorAll('.ref-sel-box');
+    Array.prototype.forEach.call(selBoxes, function (box) {
+      box.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeAllDropdowns(entry);
+        var dd = entry.querySelector('.ref-dropdown[data-code="' + box.getAttribute('data-code') + '"]');
+        if (!dd) return;
+        dd.classList.toggle('open');
+      });
+    });
+    var opts = entry.querySelectorAll('.ref-opt');
+    Array.prototype.forEach.call(opts, function (opt) {
+      opt.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var code = opt.parentElement.getAttribute('data-code');
+        var alg = opt.getAttribute('data-alg');
+        var box = entry.querySelector('.ref-sel-box[data-code="' + code + '"]');
+        if (box) {
+          box.textContent = alg;
+          box.classList.add('ref-selected');
+        }
+        closeAllDropdowns(entry);
+        var selections = loadSelections();
+        if (!selections[group]) selections[group] = {};
+        selections[group][code] = alg;
+        saveSelections(selections);
+      });
+    });
+    var moreBtns = entry.querySelectorAll('.ref-more-btn');
+    Array.prototype.forEach.call(moreBtns, function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var dd = btn.parentElement;
+        var hidden = dd.querySelectorAll('.ref-opt.ref-hidden');
+        Array.prototype.forEach.call(hidden, function (h) { h.classList.remove('ref-hidden'); });
+        btn.style.display = 'none';
+      });
+    });
+  }
+
+  document.addEventListener('click', function () {
+    var entries = document.querySelectorAll('.entry');
+    Array.prototype.forEach.call(entries, function (en) { closeAllDropdowns(en); });
+  });
 
   var toggles = document.querySelectorAll('.ref-toggle');
   Array.prototype.forEach.call(toggles, function (btn) {
