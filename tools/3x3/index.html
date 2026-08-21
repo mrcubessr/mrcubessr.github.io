@@ -40,19 +40,6 @@ body {
 }
 a { color: var(--accent); text-decoration: none; }
 
-.top-nav {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
-  padding: 12px 24px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
-  position: sticky; top: 0; z-index: 20;
-}
-.top-nav .nav-group { color: var(--muted); font-size: 0.75rem; margin: 0 2px; }
-.top-nav a { color: var(--text); padding: 2px 0; }
-.top-nav a:hover { color: var(--accent); }
-.top-nav a.active { color: var(--accent); font-weight: 600; border-bottom: 2px solid var(--accent); }
-.top-nav a.soon { color: var(--muted); cursor: not-allowed; }
 
 .page-head {
   max-width: 1200px; margin: 0 auto; padding: 24px 24px 0;
@@ -208,29 +195,48 @@ a { color: var(--accent); text-decoration: none; }
 @media (max-width: 760px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px)  { .grid { grid-template-columns: 1fr; } }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-
-<div class="top-nav">
-  <a href="/">Home</a>
-  <span class="nav-group">教程</span>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a href="/tools/3x3" class="active">三阶</a>
-  <a class="soon" title="即将上线">二阶</a>
-  <a class="soon" title="即将上线">金字塔</a>
-  <span class="nav-group">个人训练工具</span>
-  <a href="/tools/scramble-ur">UR公式训练</a>
-  <a href="/tools/3bld">出题器</a>
-  <a href="/tools/2x2">二阶练习</a>
-  <a href="/tools/kmap">知识地图</a>
-  <a href="/tools/invert">逆序转换</a>
-  <a href="/tools/practice">练习纸生成</a>
-<a href="/tools/bldscramble">盲拧打乱</a>
-  <span class="nav-group">外链</span>
-  <a href="/tools/nav">工具导航</a>
-</div>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <div class="page-head">
   <a href="/" title="返回主页">&larr; 返回</a>
@@ -263,8 +269,8 @@ a { color: var(--accent); text-decoration: none; }
 </div>
 
 <footer class="site-footer">
-  <p>本网站内容来自中国转面八面体（FTO）魔方交流群 <span class="g">272010376</span>　　制作人：<span class="a">魔方先生SSR</span>　<span class="z">2009ZHAN24</span></p>
-  <p class="src">F2L 公式数据来源：Cubing Pro（cubing.pro/algs/333/F2L）</p>
+  <p>制作人：B站博主：<span class="a">魔方先生SSR</span>　WCAID : <span class="z">2009ZHAN24</span></p>
+  <p>抖音ID : 魔方总动员</p>
 </footer>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -443,5 +449,6 @@ document.getElementById("themeBtn").addEventListener("click", () => {
 
 render();
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

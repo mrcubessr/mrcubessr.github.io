@@ -172,7 +172,7 @@
     .header h1 { font-size: 24px; }
   }
 
-
+  /* 参考公式 */
   .ref-formula {
     margin-top: 14px;
     padding-top: 10px;
@@ -222,13 +222,26 @@
     word-break: break-all;
   }
   .ref-empty { color: #8a91a0; }
+
+  /* 移动端适配 */
+  @media (max-width: 640px) {
+    body { padding: 14px 12px; }
+    .header { padding: 20px 0 14px; margin-bottom: 22px; }
+    .header h1 { font-size: 22px; letter-spacing: 2px; }
+    .entry-header { padding: 12px 14px; }
+    .entry-header h2 { font-size: 15px; }
+    .diagram { border-right: none; border-bottom: 1px solid rgba(100,180,255,0.08); padding: 14px; }
+    .diagram img { max-width: 180px; }
+    .info-panel { padding: 14px; gap: 12px; }
+    .formula-block code { font-size: 12px; letter-spacing: 1px; padding: 8px 10px; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
 <nav class="site-nav" id="siteNav">
   <div class="nav-inner">
-    <a class="nav-logo" href="/">Cube Projects</a>
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
     <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -237,12 +250,11 @@
       <div class="nav-drop">
         <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
         <div class="nav-menu">
-          <a href="/fto/tcp" data-nav="tcp">TCP</a>
-          <a href="/fto/l3t" data-nav="l3t">L3T</a>
-          <a href="/fto/lbt" data-nav="lbt">LBT</a>
-          <a class="nav-soon" title="即将上线">二阶</a>
+          <a href="/fto" data-nav="fto">FTO</a>
           <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
           <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
         </div>
       </div>
       <div class="nav-drop">
@@ -1050,11 +1062,7 @@
           <span class="label">练习顺序</span>
         </div>
         <div class="order-list">
-          <span class="order-tag current">TS</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">TT</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">TW</span>
+          <span class="order-tag current">TW</span>
           <span class="arrow">→</span>
           <span class="order-tag">TX</span>
           <span class="arrow">→</span>
@@ -1091,13 +1099,7 @@
           <span class="label">练习顺序</span>
         </div>
         <div class="order-list">
-          <span class="order-tag current">WS</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">WT</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">WX</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">WY</span>
+          <span class="order-tag current">WY</span>
           <span class="arrow">→</span>
           <span class="order-tag">WZ</span>
         </div>
@@ -1129,13 +1131,7 @@
           <span class="label">练习顺序</span>
         </div>
         <div class="order-list">
-          <span class="order-tag current">XS</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">XT</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">XW</span>
-          <span class="arrow">→</span>
-          <span class="order-tag">XY</span>
+          <span class="order-tag current">XY</span>
           <span class="arrow">→</span>
           <span class="order-tag">XZ</span>
         </div>
@@ -1150,13 +1146,11 @@
 </div>
 </div>
 
-<div class="footer">SCRAMBLE LIBRARY · MADE WITH PRECISION</div>
+<div class="footer">
+  制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24<br>抖音ID : 魔方总动员
+</div>
 
 <script src="/assets/js/site-nav.js"></script>
-
-
-
-
 <script>
 (function () {
   var DATA_URL = 'https://blddb.net/assets/json/edgeAlgToInfo.json';

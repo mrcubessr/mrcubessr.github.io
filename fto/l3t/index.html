@@ -44,27 +44,8 @@
     padding: 12px 24px 40px;
   }
 
-  .top-nav {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 16px 0 12px;
-  }
 
-  .top-nav a {
-    color: #999;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 6px 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    transition: all 0.2s;
-    background: rgba(255,255,255,0.03);
-  }
 
-  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
-  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
 
   .page-title {
     text-align: center;
@@ -364,16 +345,49 @@
     .case-card .case-formula { font-size: 0.7rem; }
   }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-<div class="container">
-
-  <div class="top-nav">
-    <a href="/">Home</a>
-    <a href="/fto/tcp">TCP</a>
-    <a href="/fto/l3t" class="active">L3T</a>
-    <a href="/fto/lbt">LBT</a>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
   </div>
+</nav>
+<div class="container">
 
   <div class="symbol-note">
     <p>黄色面是F面 &nbsp; &nbsp; 符号使用 EIF 坐标:</p>
@@ -572,9 +586,10 @@
   </div>
 
   <div class="attribution">
-    本网站内容来自中国转面八面体（FTO）魔方交流群 <span style="color:#fbbf24;font-weight:600;">272010376</span>　　制作人：<span style="color:#60a5fa;font-weight:600;">魔方先生SSR</span>　<span style="color:#f472b6;font-weight:600;">2009ZHAN24</span>
-  </div>
+  制作人：B站博主：<span style="color:#60a5fa;font-weight:600;">魔方先生SSR</span>　WCAID : <span style="color:#f472b6;font-weight:600;">2009ZHAN24</span><br>抖音ID : 魔方总动员
+</div>
 
 </div>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

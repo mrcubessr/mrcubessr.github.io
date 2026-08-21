@@ -167,69 +167,72 @@ body{
   .panel-l{order:2}.panel-c{order:1}.panel-r{order:3}
   .panel-bottom{order:4;grid-template-columns:1fr}
 }
-  .top-nav {
-    max-width: 960px;
-    margin: 0 auto 24px;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .top-nav a {
-    color: #aaa;
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
-  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-  .top-nav .nav-group {
-    color: #8a91a0;
-    font-size: 0.75rem;
-    padding: 6px 4px 6px 10px;
-    letter-spacing: 0.08em;
-    user-select: none;
-    align-self: center;
-  }
-  .top-nav a.soon {
-    color: #6b7280;
-    border-style: dashed;
-    background: transparent;
-    cursor: default;
-  }
-  .top-nav a.soon:hover {
-    color: #6b7280;
-    border-color: rgba(255,255,255,0.18);
-    background: transparent;
-  }
+
+/* 移动端适配 */
+@media(max-width:640px){
+  body{padding:14px 10px;font-size:14px}
+  .map{max-width:100%}
+  .map-header{flex-direction:column;align-items:flex-start;gap:10px;padding:18px 16px}
+  .map-header .meta{text-align:left}
+  .map-header .title-group h1{font-size:20px;letter-spacing:1px}
+  .map-header .title-group .sub{letter-spacing:1px}
+  .block{padding:16px 14px}
+  .panel-c > div[style*="grid-template-columns"]{grid-template-columns:1fr !important}
+  .panel-c-row2,.panel-c-row3{grid-template-columns:1fr !important}
+  .panel-c-row2 .block,.panel-c-row3 .block{padding:16px 14px}
+  .panel-c [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
+  .formula-grid{grid-template-columns:1fr}
+  .tbl{font-size:12px}
+  .tbl th,.tbl td{padding:4px 6px}
+  .mindmap-thumb{max-width:100%}
+  .mm-node{width:44px;height:44px;font-size:16px}
+  .mm-node.final{width:50px;height:50px;font-size:20px}
+  .mm-arrow{font-size:15px}
+  .panel-bottom{grid-template-columns:1fr}
+}
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-
-<div class="top-nav">
-  <a href="/">Home</a>
-  <span class="nav-group">教程</span>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a class="soon" title="即将上线">二阶</a>
-  <a href="/tools/3x3">三阶</a>
-  <a class="soon" title="即将上线">金字塔</a>
-  <span class="nav-group">个人训练工具</span>
-  <a href="/tools/scramble-ur">UR公式训练</a>
-  <a href="/tools/scramble-uf">UF公式训练</a>
-  <a href="/tools/3bld">出题器</a>
-  <a href="/tools/2x2">二阶练习</a>
-  <a href="/tools/kmap" class="active">知识地图</a>
-  <a href="/tools/invert">逆序转换</a>
-  <a href="/tools/practice">练习纸生成</a>
-<a href="/tools/bldscramble">盲拧打乱</a>
-  <span class="nav-group">外链</span>
-  <a href="/tools/nav">工具导航</a>
-</div>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <div class="map">
 
@@ -520,5 +523,6 @@ body{
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
 })();
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

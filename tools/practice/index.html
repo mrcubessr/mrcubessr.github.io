@@ -21,46 +21,6 @@
     font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
     min-height: 100vh;
   }
-  .top-nav {
-    max-width: 1200px;
-    margin: 16px auto 0;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 0 16px;
-  }
-  .top-nav a {
-    color: #d7dce6;
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 16px;
-    border: 1px solid rgba(255,255,255,0.18);
-    background: #1c1f27;
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-  .top-nav a:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
-  .top-nav a.active { color: #fff; background: #2E5E8E; border-color: #2E5E8E; font-weight: 600; }
-  .top-nav .nav-group {
-    color: #8a91a0;
-    font-size: 0.75rem;
-    padding: 6px 4px 6px 10px;
-    letter-spacing: 0.08em;
-    user-select: none;
-    align-self: center;
-  }
-  .top-nav a.soon {
-    color: #6b7280;
-    border-style: dashed;
-    background: transparent;
-    cursor: default;
-  }
-  .top-nav a.soon:hover {
-    color: #6b7280;
-    border-color: rgba(255,255,255,0.18);
-    background: transparent;
-  }
   .page-head {
     text-align: center;
     margin: 18px 0 20px;
@@ -198,38 +158,68 @@
   .status.err { color: #f87171; }
   @media print {
     body { background: #fff; }
-    .top-nav, .container > .panel, .no-print { display: none !important; }
     .container { padding: 0; max-width: none; }
     .pages { gap: 0; padding: 0; }
     .page-wrap { box-shadow: none; border-radius: 0; break-after: page; }
     .page-wrap canvas { width: 210mm; }
     .page-label { display: none; }
   }
+  @media (max-width: 640px) {
+    .container { padding: 14px 10px 40px; }
+    .page-head h1 { font-size: 20px; }
+    .page-head { margin: 12px 0 14px; }
+    .panel { padding: 14px 12px; }
+    .row { gap: 10px; }
+    .field { flex-wrap: wrap; width: 100%; }
+    .field label { min-width: 60px; }
+    .field input[type="text"] { width: 100%; flex: 1; }
+    .btns { flex-direction: column; }
+    .btns .btn { width: 100%; text-align: center; }
+    .page-wrap { max-width: 100%; }
+  }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
-<div class="top-nav">
-  <a href="/">Home</a>
-  <span class="nav-group">教程</span>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a class="soon" title="即将上线">二阶</a>
-  <a href="/tools/3x3">三阶</a>
-  <a class="soon" title="即将上线">金字塔</a>
-  <span class="nav-group">个人训练工具</span>
-  <a href="/tools/scramble-ur">UR公式训练</a>
-  <a href="/tools/scramble-uf">UF公式训练</a>
-  <a href="/tools/3bld">出题器</a>
-  <a href="/tools/2x2">二阶练习</a>
-  <a href="/tools/kmap">知识地图</a>
-  <a href="/tools/invert">逆序转换</a>
-  <a href="/tools/practice" class="active">练习纸生成</a>
-<a href="/tools/bldscramble">盲拧打乱</a>
-  <span class="nav-group">外链</span>
-  <a href="/tools/nav">工具导航</a>
-</div>
-
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 <div class="page-head">
   <h1>魔方练习题生成器</h1>
   <p>输入公式，一键生成可打印练习纸</p>
@@ -423,19 +413,34 @@ class Cube {
   constructor(size, orientation) {
     this.size = size;
     this.faces = {};
-    // 拿法：white-green=白顶绿前（标准 WCA）；yellow-red=黄顶红前
-    const colors = orientation === 'yellow-red'
-      ? { U: 'D', D: 'U', F: 'R', B: 'L', R: 'F', L: 'B' }
-      : { U: 'U', D: 'D', F: 'F', B: 'B', R: 'R', L: 'L' };
-    for (const [face, color] of Object.entries(colors)) {
+    // 拿法说明：white-green=白顶绿前（标准 WCA）；yellow-red=黄顶红前
+    // 黄顶红前不在此处做整体旋转初始化（会导致 _moveEdges 邻接边索引错位）。
+    // 正确实现：solveState 中按白顶绿前坐标系执行映射公式，最后统一 rotateM 渲染。
+    for (const face of ['U', 'D', 'F', 'B', 'R', 'L']) {
       this.faces[face] = [];
       for (let r = 0; r < size; r++) {
         this.faces[face][r] = [];
         for (let c = 0; c < size; c++) {
-          this.faces[face][r][c] = color;
+          this.faces[face][r][c] = face;
         }
       }
     }
+  }
+
+  // 整体旋转坐标系 M:(x,y,z)->(z,-y,x)：黄顶红前 = 原D顶、原R前
+  // 新U=原D、新D=原U、新F=原R、新R=原F、新B=原L、新L=原B
+  rotateM() {
+    const n = this.size - 1;
+    const u = this.faces.U, d = this.faces.D, ff = this.faces.F;
+    const b = this.faces.B, r = this.faces.R, l = this.faces.L;
+    this.faces = {
+      U: d.map((row, i) => row.map((_, j) => d[n - j][n - i])),
+      D: u.map((row, i) => row.map((_, j) => u[n - j][n - i])),
+      F: r.map((row, i) => row.map((_, j) => r[n - i][n - j])),
+      R: ff.map((row, i) => row.map((_, j) => ff[n - i][j])),
+      B: l.map((row, i) => row.map((_, j) => l[n - i][n - j])),
+      L: b.map((row, i) => row.map((_, j) => b[n - i][n - j])),
+    };
   }
 
   getFace(face) { return this.faces[face]; }
@@ -534,16 +539,16 @@ class Cube {
         const b = this.faces.R[0][i];
         const c = this.faces.B[0][i];
         const d = this.faces.L[0][i];
-        if (dir === 1) { // CW: F→R→B→L→F
+        if (dir === 1) { // CW: F→L→B→R→F
+          this.faces.F[0][i] = b;
+          this.faces.L[0][i] = a;
+          this.faces.B[0][i] = d;
+          this.faces.R[0][i] = c;
+        } else { // CCW: F→R→B→L→F
           this.faces.F[0][i] = d;
           this.faces.R[0][i] = a;
           this.faces.B[0][i] = b;
           this.faces.L[0][i] = c;
-        } else {
-          this.faces.F[0][i] = b;
-          this.faces.R[0][i] = c;
-          this.faces.B[0][i] = d;
-          this.faces.L[0][i] = a;
         }
       }
     } else if (face === 'D') {
@@ -552,16 +557,16 @@ class Cube {
         const b = this.faces.L[n][i];
         const c = this.faces.B[n][i];
         const d = this.faces.R[n][i];
-        if (dir === 1) { // CW: F→L→B→R→F
+        if (dir === 1) { // CW: F→R→B→L→F
+          this.faces.F[n][i] = b;
+          this.faces.R[n][i] = a;
+          this.faces.B[n][i] = d;
+          this.faces.L[n][i] = c;
+        } else { // CCW: F→L→B→R→F
           this.faces.F[n][i] = d;
           this.faces.L[n][i] = a;
           this.faces.B[n][i] = b;
           this.faces.R[n][i] = c;
-        } else {
-          this.faces.F[n][i] = b;
-          this.faces.L[n][i] = c;
-          this.faces.B[n][i] = d;
-          this.faces.R[n][i] = a;
         }
       }
     } else if (face === 'F') {
@@ -609,10 +614,19 @@ const FACE_COLORS = { U: '#F9F9F9', D: '#F2F215', F: '#58D568', B: '#1C5FFE', R:
 
 function solveState(formulaStr, size, orientation) {
   const moves = parseFormula(formulaStr);
-  const cube = new Cube(size || 2, orientation);
+  const cube = new Cube(size || 2); // 始终按白顶绿前坐标系构造与执行
   const FACE_NAMES = ['U', 'D', 'F', 'B', 'R', 'L'];
-  for (const mv of moves) {
-    cube.applyMove({ face: FACE_NAMES[mv.face], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
+  if (orientation === 'yellow-red') {
+    // 黄顶红前 = 原D顶、原R前：公式 move X 映射为白顶绿前 move map[X] 后执行，最后整体旋转坐标系渲染
+    const MOVE_MAP = { U: 'D', D: 'U', F: 'R', B: 'L', R: 'F', L: 'B' };
+    for (const mv of moves) {
+      cube.applyMove({ face: MOVE_MAP[FACE_NAMES[mv.face]], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
+    }
+    cube.rotateM();
+  } else {
+    for (const mv of moves) {
+      cube.applyMove({ face: FACE_NAMES[mv.face], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
+    }
   }
   return cube;
 }
@@ -914,5 +928,6 @@ function loadSample() {
 // 自动载入示例
 loadSample();
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

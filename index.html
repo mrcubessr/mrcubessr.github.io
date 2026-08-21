@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cube Projects</title>
+<title>魔方先生SSR魔方训练中心</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -142,47 +142,82 @@
     .card-grid { grid-template-columns: 1fr; }
   }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 <div class="container">
 
   <header>
-    <h1>Cube Projects</h1>
+    <h1>魔方先生SSR魔方训练中心</h1>
     <p class="subtitle">魔方项目集合</p>
   </header>
 
     <div class="project-group">
     <h2 class="group-title">教程与公式库</h2>
     <div class="card-grid">
-      <a class="card" href="/fto/tcp/">
+      <a class="card" href="/fto/">
         <div class="card-icon">&#x1F9E9;</div>
-        <div class="card-title">TCP</div>
-        <div class="card-desc">Triplet Center Pairing</div>
+        <div class="card-title">FTO</div>
+        <div class="card-desc">转面八面体 · TCP / L3T / LBT</div>
       </a>
-      <a class="card" href="/fto/l3t/">
-        <div class="card-icon">&#x1F9E9;</div>
-        <div class="card-title">L3T</div>
-        <div class="card-desc">3-Look Last Three Triplets</div>
-      </a>
-      <a class="card" href="/fto/lbt/">
-        <div class="card-icon">&#x1F9E9;</div>
-        <div class="card-title">LBT</div>
-        <div class="card-desc">Last Bottom Triplets</div>
-      </a>
-      <div class="card card-soon">
-        <div class="card-icon">&#x1F9E9;</div>
-        <div class="card-title">二阶魔方公式库</div>
-        <div class="card-desc">即将上线</div>
-      </div>
       <a class="card" href="/tools/3x3/">
         <div class="card-icon">&#x1F9E9;</div>
-        <div class="card-title">三阶魔方公式库</div>
+        <div class="card-title">三阶</div>
         <div class="card-desc">F2L 公式库 · 41 Case</div>
       </a>
       <div class="card card-soon">
         <div class="card-icon">&#x1F9E9;</div>
-        <div class="card-title">金字塔魔方公式库</div>
+        <div class="card-title">二阶</div>
         <div class="card-desc">即将上线</div>
+      </div>
+      <div class="card card-soon">
+        <div class="card-icon">&#x1F9E9;</div>
+        <div class="card-title">金字塔</div>
+        <div class="card-desc">即将上线</div>
+      </div>
+      <div class="card card-soon">
+        <div class="card-icon">&#x1F9E9;</div>
+        <div class="card-title">三盲</div>
+        <div class="card-desc">暂时预留</div>
       </div>
     </div>
   </div>
@@ -245,9 +280,10 @@
   </div>
 
 <footer>
-    &copy; 2026 Cube Projects
+    &copy; 2026 mrcubessr
   </footer>
 
 </div>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>
