@@ -42,7 +42,7 @@
     background: linear-gradient(160deg, #15152a 0%, #1a1a32 100%);
     border: 1px solid rgba(100,180,255,0.12);
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 4px 32px rgba(0,0,0,0.5);
     transition: border-color 0.3s;
   }
@@ -51,6 +51,7 @@
   }
   .entry-header {
     background: linear-gradient(135deg, rgba(100,180,255,0.1), rgba(80,140,220,0.05));
+    border-radius: 11px 11px 0 0;
     padding: 14px 24px;
     border-bottom: 1px solid rgba(100,180,255,0.1);
     display: flex;
@@ -199,9 +200,11 @@
     grid-template-columns: 76px 1fr;
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
   }
   .ref-row { display: contents; }
+  .ref-table .ref-row:first-child .ref-code-col { border-radius: 8px 0 0 0; }
+  .ref-table .ref-row:first-child .ref-sel-col { border-radius: 0 8px 0 0; }
   .ref-code-col {
     padding: 7px 12px;
     font-family: "Consolas", "SF Mono", "Fira Code", monospace;
@@ -246,7 +249,7 @@
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    z-index: 50;
+    z-index: 1000;
     background: #1c1f27;
     border: 1px solid rgba(100,180,255,0.3);
     border-radius: 6px;
@@ -288,6 +291,42 @@
   }
   .ref-more-btn:hover { color: #64b4ff; }
   .ref-empty { color: #8a91a0; padding: 6px 10px; font-size: 13px; }
+  .ref-style-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .ref-style-label { font-size: 13px; color: #8a91a0; }
+  .ref-style-select {
+    background: #1c1f27;
+    color: #d7dce6;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .ref-style-select:hover { border-color: rgba(100,180,255,0.5); }
+  .ref-style-hint { font-size: 12px; color: #5a6270; }
+  .ref-opt-marked { color: #ffd166; background: rgba(255,209,102,0.07); }
+  .ref-opt-marked::after { content: '【噩梦】'; margin-left: 6px; color: #ff9f43; font-size: 11px; }
+  .ref-opt-src { color: #5a6270; font-size: 11px; margin-left: 4px; }
+  .ref-manual-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-top: 1px dashed rgba(255,255,255,0.15);
+    color: #9fb6d8;
+    font-size: 12px;
+    padding: 6px;
+    cursor: pointer;
+  }
+  .ref-manual-btn:hover { color: #64b4ff; }
 
   /* 移动端适配 */
   @media (max-width: 640px) {
@@ -1221,43 +1260,15 @@
 <script src="/assets/js/site-nav.js"></script>
 <script>
 (function () {
-  var DATA_URL = 'edgeAlgToInfo.json';
-  var DATA_URL_BACKUP = 'https://blddb.net/assets/json/edgeAlgToInfo.json';
-  var algData = null;
-  var dataPromise = null;
-
-  function getAlgData() {
-    if (algData) return Promise.resolve(algData);
-    if (!dataPromise) {
-      dataPromise = fetch(DATA_URL)
-        .then(function (r) {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json();
-        })
-        .then(function (json) {
-          algData = json;
-          return json;
-        })
-        .catch(function (err) {
-          // 本地文件加载失败时回退到 blddb 远程源
-          dataPromise = null;
-          return fetch(DATA_URL_BACKUP)
-            .then(function (r) {
-              if (!r.ok) throw new Error('HTTP ' + r.status);
-              return r.json();
-            })
-            .then(function (json) {
-              algData = json;
-              return json;
-            });
-        })
-        .catch(function (err) {
-          dataPromise = null;
-          throw err;
-        });
-    }
-    return dataPromise;
-  }
+  var STYLE_SOURCES = {
+    info:      { url: 'edgeAlgToInfo.json',          backup: 'https://blddb.net/assets/json/edgeAlgToInfo.json',          kind: 'list' },
+    manmade:   { url: 'edgeAlgToInfoManmade.json',   backup: 'https://blddb.net/assets/json/edgeAlgToInfoManmade.json',   kind: 'manmade' },
+    nightmare: { url: 'edgeAlgToNightmare.json',     backup: 'https://blddb.net/assets/json/edgeAlgToNightmare.json',     kind: 'nightmare' }
+  };
+  var STYLE_STORAGE_KEY = 'ur_ref_style';
+  var STORAGE_KEY = 'ur_ref_selections';
+  var algCache = {};
+  var dataPromises = {};
 
   function escapeHtml(s) {
     return String(s)
@@ -1267,7 +1278,45 @@
       .replace(/"/g, '&quot;');
   }
 
-  var STORAGE_KEY = 'ur_ref_selections';
+  function loadStyleData(style) {
+    if (algCache[style]) return Promise.resolve(algCache[style]);
+    if (!dataPromises[style]) {
+      var src = STYLE_SOURCES[style];
+      dataPromises[style] = fetch(src.url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (json) {
+          algCache[style] = json;
+          return json;
+        })
+        .catch(function () {
+          dataPromises[style] = null;
+          return fetch(src.backup)
+            .then(function (r) {
+              if (!r.ok) throw new Error('HTTP ' + r.status);
+              return r.json();
+            })
+            .then(function (json) {
+              algCache[style] = json;
+              return json;
+            });
+        })
+        .catch(function (err) {
+          dataPromises[style] = null;
+          throw err;
+        });
+    }
+    return dataPromises[style];
+  }
+
+  function getCurrentStyle() {
+    try { return localStorage.getItem(STYLE_STORAGE_KEY) || 'info'; } catch (e) { return 'info'; }
+  }
+  function setCurrentStyle(s) {
+    try { localStorage.setItem(STYLE_STORAGE_KEY, s); } catch (e) {}
+  }
 
   function getGroupName(entry) {
     var h2 = entry.querySelector('.entry-header h2');
@@ -1287,7 +1336,41 @@
     catch (e) {}
   }
 
+  function buildAlgItems(style, code, data) {
+    var key = 'G' + code;
+    var items = [];
+    if (style === 'manmade') {
+      var man = data[key];
+      if (Array.isArray(man)) {
+        man.forEach(function (pair) {
+          var algList = (pair && pair[0]) ? pair[0] : [];
+          var srcList = (pair && pair[1]) ? pair[1] : [];
+          algList.forEach(function (alg, idx) {
+            items.push({ text: String(alg), source: srcList[idx] ? String(srcList[idx]) : '' });
+          });
+        });
+      }
+      return items;
+    }
+    if (style === 'nightmare') {
+      var nmMap = algCache['nightmare'];
+      var nm = nmMap ? nmMap[key] : undefined;
+      var infoData = algCache['info'];
+      var base = (infoData && Array.isArray(infoData[key])) ? infoData[key] : [];
+      base.forEach(function (alg) {
+        items.push({ text: String(alg), marked: typeof nm === 'string' && nm === alg });
+      });
+      return items;
+    }
+    var list = data[key];
+    if (Array.isArray(list)) {
+      list.forEach(function (alg) { items.push({ text: String(alg) }); });
+    }
+    return items;
+  }
+
   function renderPanel(btn, panel) {
+    var style = getCurrentStyle();
     panel.innerHTML = '<div class="ref-loading">加载中…</div>';
     var entry = btn.closest('.entry');
     var codes = [];
@@ -1297,30 +1380,42 @@
       if (c) codes.push(c);
     });
     var group = getGroupName(entry);
-    getAlgData().then(function (data) {
+    var dataPromise = (style === 'nightmare')
+      ? loadStyleData('nightmare').then(function () { return loadStyleData('info'); })
+      : loadStyleData(style);
+    dataPromise.then(function (data) {
       var selections = loadSelections();
       var groupSel = selections[group] || {};
-      var html = '<div class="ref-table">';
+      var html = '<div class="ref-style-bar">'
+        + '<span class="ref-style-label">公式风格</span>'
+        + '<select class="ref-style-select" data-style-select="1">'
+        + '<option value="info"' + (style === 'info' ? ' selected' : '') + '>标准</option>'
+        + '<option value="manmade"' + (style === 'manmade' ? ' selected' : '') + '>人造</option>'
+        + '<option value="nightmare"' + (style === 'nightmare' ? ' selected' : '') + '>噩梦</option>'
+        + '</select>'
+        + '<span class="ref-style-hint">切换风格后公式列表自动更新，已选参考公式保持不变</span>'
+        + '</div>';
+      html += '<div class="ref-table">';
       codes.forEach(function (code) {
+        var items = buildAlgItems(style, code, data);
+        var saved = groupSel[code] || '';
         html += '<div class="ref-row">';
         html += '<div class="ref-code-col">' + escapeHtml(code) + '</div>';
-        var algs = data['G' + code] || [];
-        var saved = groupSel[code] || '';
         html += '<div class="ref-sel-col">';
         html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + '" data-code="' + code + '">' + (saved ? escapeHtml(saved) : '点击选择公式') + '</button>';
-        if (!algs.length) {
-          html += '<div class="ref-empty">（暂无公式）</div>';
-        } else {
-          html += '<div class="ref-dropdown" data-code="' + code + '">';
-          algs.forEach(function (alg, idx) {
-            var cls = 'ref-opt' + (idx >= 5 ? ' ref-hidden' : '');
-            html += '<button type="button" class="' + cls + '" data-alg="' + escapeHtml(alg) + '">' + escapeHtml(alg) + '</button>';
-          });
-          if (algs.length > 5) {
-            html += '<button type="button" class="ref-more-btn">展开更多（共 ' + algs.length + ' 条）</button>';
-          }
-          html += '</div>';
+        html += '<div class="ref-dropdown" data-code="' + code + '">';
+        items.forEach(function (item, idx) {
+          var cls = 'ref-opt' + (idx >= 5 ? ' ref-hidden' : '');
+          if (item.marked) cls += ' ref-opt-marked';
+          var label = escapeHtml(item.text);
+          if (item.source) label += '<span class="ref-opt-src">（' + escapeHtml(item.source) + '）</span>';
+          html += '<button type="button" class="' + cls + '" data-alg="' + escapeHtml(item.text) + '">' + label + '</button>';
+        });
+        if (items.length > 5) {
+          html += '<button type="button" class="ref-more-btn">展开更多（共 ' + items.length + ' 条）</button>';
         }
+        html += '<button type="button" class="ref-manual-btn" data-code="' + code + '">✎ 手动输入公式…</button>';
+        html += '</div>';
         html += '</div>';
         html += '</div>';
       });
@@ -1338,7 +1433,34 @@
     Array.prototype.forEach.call(dds, function (d) { d.classList.remove('open'); });
   }
 
+  function manualInput(entry, group, code) {
+    var box = entry.querySelector('.ref-sel-box[data-code="' + code + '"]');
+    var current = box ? box.textContent : '';
+    var input = prompt('输入该编码的参考公式（公式库没有时可手动填写）：', current === '点击选择公式' ? '' : current);
+    if (input === null) return;
+    var alg = input.trim();
+    if (!alg) return;
+    if (box) {
+      box.textContent = alg;
+      box.classList.add('ref-selected');
+    }
+    closeAllDropdowns(entry);
+    var selections = loadSelections();
+    if (!selections[group]) selections[group] = {};
+    selections[group][code] = alg;
+    saveSelections(selections);
+  }
+
   function bindRefEvents(entry, group) {
+    var styleSel = entry.querySelector('.ref-style-select');
+    if (styleSel) {
+      styleSel.addEventListener('change', function () {
+        setCurrentStyle(styleSel.value);
+        var panel = entry.querySelector('.ref-panel');
+        var btn = entry.querySelector('.ref-toggle');
+        if (panel && btn) renderPanel(btn, panel);
+      });
+    }
     var selBoxes = entry.querySelectorAll('.ref-sel-box');
     Array.prototype.forEach.call(selBoxes, function (box) {
       box.addEventListener('click', function (e) {
@@ -1365,6 +1487,13 @@
         if (!selections[group]) selections[group] = {};
         selections[group][code] = alg;
         saveSelections(selections);
+      });
+    });
+    var manualBtns = entry.querySelectorAll('.ref-manual-btn');
+    Array.prototype.forEach.call(manualBtns, function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        manualInput(entry, group, btn.getAttribute('data-code'));
       });
     });
     var moreBtns = entry.querySelectorAll('.ref-more-btn');
@@ -1400,6 +1529,7 @@
     });
   });
 })();
+
 </script>
 </body>
 </html>
