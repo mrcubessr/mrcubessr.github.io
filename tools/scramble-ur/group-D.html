@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D组棱练习 - UR缓冲公式连拧专项训练</title>
+<link rel="stylesheet" href="ur-common.css">
+</head>
+<body data-nav="scramble-ur">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="header">
+  <h1>UR缓冲公式连拧专项训练</h1>
+  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
+</div>
+<a class="back-link" href="index.html">← 返回训练组总览</a>
+<div class="entries">
+  <div class="entry single">
+    <div class="entry-header">
+      <span class="index">2</span>
+      <h2>D组棱练习</h2>
+    </div>
+    <div class="entry-body">
+      <div class="diagram">
+        <canvas class="ur-cube" data-formula="B2 U' F2 D2 R2 D R2 F2 L2 U' F R2 U' B D' L' D U L' B"></canvas>
+      </div>
+      <div class="info-panel">
+        <div class="formula-block">
+          <span class="label">打乱公式</span>
+          <code>B2 U' F2 D2 R2 D R2 F2 L2 U' F R2 U' B D' L' D U L' B</code>
+        </div>
+        <div>
+          <span class="label">练习顺序</span>
+        </div>
+        <div class="order-list">
+          <span class="order-tag current">DE</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DF</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DI</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DJ</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DK</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DL</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DM</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DN</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DO</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DP</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DQ</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DR</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DS</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DT</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DW</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DX</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DY</span>
+          <span class="arrow">→</span>
+          <span class="order-tag">DZ</span>
+        </div>
+        <div class="timer-block" id="timer-group" data-group="D">
+          <span class="label">计时器</span>
+        </div>
+      </div>
+    </div>
+    <div class="ref-formula">
+      <button type="button" class="ref-toggle">参考公式</button>
+      <div class="ref-panel" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24<br>抖音ID : 魔方总动员
+</div>
+<script src="/assets/js/site-nav.js"></script>
+<script src="ur-cube.js"></script>
+<script src="ur-ref.js"></script>
+<script src="ur-timer.js"></script>
+</body>
+</html>
