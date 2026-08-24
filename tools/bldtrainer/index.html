@@ -1,0 +1,3818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+<title>三盲读码还原助手 bldtrainer（复刻版）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0d1a;color:#e0e0e0;font-family:"Tahoma","Microsoft YaHei",Helvetica,sans-serif;font-size:15px;line-height:1.7;}
+#wrapper{max-width:1500px;margin:0 auto;padding:1.2em 1.5em;}
+#header{display:flex;justify-content:space-between;align-items:center;padding:0.4em 0 0.9em;border-bottom:1px solid #2a2a45;}
+.logo{display:flex;align-items:center;gap:0.6em;text-decoration:none;color:#e0e0e0;}
+.logo .symbol img{width:2.2em;height:2.2em;display:block;}
+.logo .title{font-size:1.4em;font-weight:700;color:#64b4ff;}
+#main>header h2{text-align:center;margin:0.9em 0;color:#64b4ff;font-size:1.3em;}
+.flexcontainer{display:flex;flex-wrap:wrap;gap:1.2em;justify-content:space-around;align-items:flex-start;}
+.flexitem{flex:1;min-width:20em;background:#14142b;border:1px solid #2a2a45;border-radius:10px;padding:1.1em 1.2em;}
+.flexitem strong{color:#64b4ff;}
+select,input[type=text],textarea{background:#1a1a35;color:#e0e0e0;border:1px solid #3a3a5a;border-radius:5px;padding:0.3em 0.5em;font-size:1em;font-family:inherit;}
+select:focus,input:focus,textarea:focus{outline:none;border-color:#64b4ff;}
+button{background:#64b4ff;color:#0d0d1a;border:none;border-radius:5px;padding:0.4em 1em;font-size:0.95em;font-weight:700;cursor:pointer;font-family:inherit;}
+button:hover{background:#8cc6ff;}
+#solvelist{list-style:none;margin-top:0.5em;}
+#solvelist li{background:#1a1a35;border:1px solid #3a3a5a;border-radius:6px;padding:0.45em 0.7em;margin-bottom:0.5em;cursor:grab;}
+#solvelist li:hover{border-color:#64b4ff;}
+#solvelist li input{width:10em;}
+#player{width:100%;height:340px;background:#0d0d1a;border-radius:8px;display:block;cursor:grab;touch-action:none;}
+.help{position:relative;cursor:help;}
+.help-content{display:none;position:absolute;background:#1a1a35;border:1px solid #64b4ff;border-radius:6px;padding:0.5em 0.8em;z-index:10;font-size:0.85em;color:#e0e0e0;width:15em;font-weight:400;}
+.help:hover .help-content{display:block;}
+#alartoutput1,#alartoutput2{color:#ff6b6b;font-size:0.95em;}
+#outputScrs{width:100%;min-height:4em;border-style:dashed;border-color:#3a3a5a;background:#1a1a35;color:#e0e0e0;padding:0.5em;resize:none;}
+#scrinput{width:100%;min-height:1.2em;resize:none;overflow:auto;}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:0.5em;margin:0.4em 0;}
+footer#footer{text-align:center;margin-top:2em;padding-top:1em;border-top:1px solid #2a2a45;color:#888;font-size:0.9em;}
+footer a{color:#64b4ff;text-decoration:none;}
+footer ul{list-style:none;}
+footer li{display:inline;margin:0 0.6em;}
+@media screen and (max-width:800px){
+  .flexitem{min-width:100%;}
+  #player{height:280px;}
+}
+</style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+</head>
+<body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer" class="active">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<div id="wrapper">
+  <header id="header">
+    <div class="inner" style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+      <a class="logo" href="#">
+        <span class="symbol"><svg width="34" height="34" viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" rx="12" fill="#14142b" stroke="#64b4ff" stroke-width="4"/><rect x="20" y="20" width="26" height="26" fill="#ffffff"/><rect x="54" y="20" width="26" height="26" fill="#b71234"/><rect x="20" y="54" width="26" height="26" fill="#009b48"/><rect x="54" y="54" width="26" height="26" fill="#ffd500"/></svg></span>
+        <span class="title">bldtrainer</span>
+      </a>
+      <span style="color:#888;font-size:0.9em;">三盲读码还原助手 · 复刻版</span>
+    </div>
+  </header>
+  <div id="main">
+    <header><h2>读码还原助手</h2></header>
+    <div class="flexcontainer">
+      <!-- 设置列 -->
+      <div class="flexitem">
+        <strong>棱块缓冲：</strong>
+        <select style="width:8em;text-align:center" id="edgebuffer" onchange="helperEnter()">
+          <option>A</option><option>G</option><option>E</option><option>C</option>
+          <option>I</option><option>K</option><option>M</option><option>O</option>
+          <option>Q</option><option>S</option><option>W</option><option>Y</option>
+        </select>
+        <br>
+        <strong>借位顺序：</strong>
+        <input type="text" id="edgeorder" maxlength="11" value="GECIKMOQSWY"
+          style="text-align:center;width:8em;text-transform:uppercase;" autocomplete="off" onkeyup="helperEnter()">
+        <br>
+        <strong>角块缓冲：</strong>
+        <select style="width:8em;text-align:center" id="cornerbuffer" onchange="helperEnter()">
+          <option>J</option><option>A</option><option>G</option><option>D</option>
+          <option>W</option><option>O</option><option>R</option><option>X</option>
+        </select>
+        <br>
+        <strong>借位顺序：</strong>
+        <input type="text" id="cornerorder" maxlength="7" value="GADXWRO"
+          style="text-align:center;width:8em;text-transform:uppercase" autocomplete="off" onkeyup="helperEnter()">
+        <br>
+        <strong>打乱/还原坐标：</strong>
+        <select style="width:8em;text-align:left" id="cubeorientation" onchange="helperEnter()">
+          <option value=0>白顶绿前</option><option value=1>白顶红前</option>
+          <option value=2>白顶蓝前</option><option value=3>白顶橙前</option>
+          <option value=4>黄顶蓝前</option><option value=5>黄顶红前</option>
+          <option value=6>黄顶绿前</option><option value=7>黄顶橙前</option>
+          <option value=8>绿顶黄前</option><option value=9>绿顶红前</option>
+          <option value=10>绿顶白前</option><option value=11>绿顶橙前</option>
+          <option value=12>蓝顶白前</option><option value=13>蓝顶红前</option>
+          <option value=14>蓝顶黄前</option><option value=15>蓝顶橙前</option>
+          <option value=16>红顶绿前</option><option value=17>红顶黄前</option>
+          <option value=18>红顶蓝前</option><option value=19>红顶白前</option>
+          <option value=20>橙顶绿前</option><option value=21>橙顶白前</option>
+          <option value=22>橙顶蓝前</option><option value=23>橙顶黄前</option>
+        </select>
+        <br>
+        <input type="checkbox" id="edgeorientflag" onchange="helperEnter()">
+        <label style="line-height:1em" for="edgeorientflag" class="help">棱块保持色相借位<sup>[?]</sup><span class="help-content">根据教程选择</span></label>
+        <br>
+        <input type="checkbox" id="cornerorientflag" onchange="helperEnter()">
+        <label style="line-height:1em" for="cornerorientflag" class="help">角块保持色相借位<sup>[?]</sup><span class="help-content">根据教程选择</span></label>
+        <br>
+        <input type="checkbox" id="edgeskipcyclenum" onchange="helperEnter();">
+        <label style="line-height:1em" for="edgeskipcyclenum" class="help">棱块跳编法<sup>[?]</sup><span class="help-content">即“固定借位法”，新手不用选</span></label>
+        <br>
+        <input type="checkbox" id="cornerskipcyclenum" onchange="helperEnter()">
+        <label style="line-height:1em" for="cornerskipcyclenum" class="help">角块跳编法<sup>[?]</sup><span class="help-content">即“固定借位法”，新手不用选</span></label>
+        <br>
+        <strong>打乱公式：</strong>
+        <button onclick="randomScramble()">随机打乱</button>
+        <br>
+        <textarea id="scrinput" onkeyup="helperEnter()" rows="1" style="min-height:1.2em;resize:none;overflow:auto;"></textarea>
+        <br>
+        <span id="alartoutput1"></span>
+      </div>
+
+      <!-- 读码+还原列 -->
+      <div class="flexitem">
+        <strong class="help">读码结果<sup>[?]</sup>：<span class="help-content">由于存在还原顺序差异，请结合实际教程学习</span></strong><br>
+        <span id="edge">棱块读码：</span><br>
+        <span id="flip">棱块翻色：</span><br>
+        <span id="corn">角块读码：</span><br>
+        <span id="twis">角块翻色：</span><br>
+        <br>
+        <strong>请输入还原编码（拖拽可交换执行顺序）</strong>
+        <ol id="solvelist">
+          <li id="li1" draggable="true" ondragstart="drag(event)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <span class="help">棱块还原<sup>[?]</sup>：<span class="help-content">例：XY为缓冲块-X-Y的三棱换</span></span>
+            <input type="text" id="edgesolve" maxlength="100" value="" style="text-align:left;text-transform:uppercase" onkeyup="helperEnter()" autocomplete="off">
+          </li>
+          <li id="li2" draggable="true" ondragstart="drag(event)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <span class="help">角块还原<sup>[?]</sup>：<span class="help-content">例：ZY为缓冲块-Z-Y的三角块</span></span>
+            <input type="text" id="cornersolve" maxlength="100" value="" style="text-align:left;text-transform:uppercase" onkeyup="helperEnter()" autocomplete="off">
+          </li>
+          <li id="li3" draggable="true" ondragstart="drag(event)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <span class="help">奇偶还原<sup>[?]</sup>：<span class="help-content">先棱后角，例：MX为棱缓冲与M交换、角缓冲与X交换。</span></span>
+            <input type="text" id="paritysolve" maxlength="100" value="" style="text-align:left;text-transform:uppercase" onkeyup="helperEnter()" autocomplete="off">
+          </li>
+          <li id="li4" draggable="true" ondragstart="drag(event)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <span class="help">翻棱编码<sup>[?]</sup>：<span class="help-content">例：NM为缓冲块与MN块翻棱。</span></span>
+            <input type="text" id="flipsolve" maxlength="100" value="" style="text-align:left;text-transform:uppercase" onkeyup="helperEnter()" autocomplete="off">
+          </li>
+          <li id="li5" draggable="true" ondragstart="drag(event)" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <span class="help">翻角编码<sup>[?]</sup>：<span class="help-content">例：ZX为缓冲块逆翻与XYZ块顺翻。</span></span>
+            <input type="text" id="twistsolve" maxlength="100" value="" style="text-align:left;text-transform:uppercase" onkeyup="helperEnter()" autocomplete="off">
+          </li>
+        </ol>
+        <span id="alartoutput2"></span>
+      </div>
+
+      <!-- 展开图列 -->
+      <div class="flexitem">
+        <canvas id="player"></canvas>
+        <div class="btnrow">
+          <button onclick="getNowScramble()">生成当前状态打乱</button>
+          <button id="copyBtn" style="display:none;" onclick="copyScrs()">复制打乱</button>
+        </div>
+        <textarea readonly id="outputScrs" style="border-style:dashed;padding-left:0.5em;"></textarea>
+      </div>
+    </div>
+  </div>
+  <footer id="footer">
+    <div class="inner">
+      <ul class="copyright">
+        <li>© 2024 Zhi Qiao. All rights reserved.</li>
+        <li>Github: <a href="https://github.com/spooncuber/spooncuber.github.io">bldtrainer</a></li>
+        <li>License: <a href="https://www.gnu.org/licenses">GPL-3.0 license</a></li>
+        <li>Powered by <a href="http://html5up.net">HTML5 UP</a></li>
+      </ul>
+    </div>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+var min2phase = (function() {
+	var USE_TWIST_FLIP_PRUN = true;
+	var PARTIAL_INIT_LEVEL = 2;
+
+	var MAX_PRE_MOVES = 20;
+	var TRY_INVERSE = true;
+	var TRY_THREE_AXES = true;
+
+	var USE_COMBP_PRUN = true; //USE_TWIST_FLIP_PRUN;
+	var USE_CONJ_PRUN = USE_TWIST_FLIP_PRUN;
+	var MIN_P1LENGTH_PRE = 7;
+	var MAX_DEPTH2 = 13;
+
+	var INVERSE_SOLUTION = 0x2;
+
+	function Search() {
+		this.move = [];
+		this.moveSol = [];
+
+		this.nodeUD = [];
+
+		this.valid1 = 0;
+		this.allowShorter = false;
+		this.cc = new CubieCube();
+		this.urfCubieCube = [];
+		this.urfCoordCube = [];
+		this.phase1Cubie = [];
+
+		this.preMoveCubes = [];
+		this.preMoves = [];
+		this.preMoveLen = 0;
+		this.maxPreMoves = 0;
+
+		this.isRec = false;
+		for (var i = 0; i < 21; i++) {
+			this.nodeUD[i] = new CoordCube();
+			this.phase1Cubie[i] = new CubieCube();
+		}
+		for (var i = 0; i < 6; i++) {
+			this.urfCubieCube[i] = new CubieCube();
+			this.urfCoordCube[i] = new CoordCube();
+		}
+		for (var i = 0; i < MAX_PRE_MOVES; i++) {
+			this.preMoveCubes[i + 1] = new CubieCube();
+		}
+	}
+
+	var Ux1 = 0;
+	var Ux2 = 1;
+	var Ux3 = 2;
+	var Rx1 = 3;
+	var Rx2 = 4;
+	var Rx3 = 5;
+	var Fx1 = 6;
+	var Fx2 = 7;
+	var Fx3 = 8;
+	var Dx1 = 9;
+	var Dx2 = 10;
+	var Dx3 = 11;
+	var Lx1 = 12;
+	var Lx2 = 13;
+	var Lx3 = 14;
+	var Bx1 = 15;
+	var Bx2 = 16;
+	var Bx3 = 17;
+
+	var N_MOVES = 18;
+	var N_MOVES2 = 10;
+	var N_FLIP = 2048;
+	var N_FLIP_SYM = 336;
+	var N_TWIST = 2187;
+	var N_TWIST_SYM = 324;
+	var N_PERM = 40320;
+	var N_PERM_SYM = 2768;
+	var N_MPERM = 24;
+	var N_SLICE = 495;
+	var N_COMB = USE_COMBP_PRUN ? 140 : 70;
+	var P2_PARITY_MOVE = USE_COMBP_PRUN ? 0xA5 : 0;
+
+	var SYM_E2C_MAGIC = 0x00DDDD00;
+	var Cnk = [];
+	var fact = [1];
+	var move2str = [
+		"U ", "U2", "U'", "R ", "R2", "R'", "F ", "F2", "F'",
+		"D ", "D2", "D'", "L ", "L2", "L'", "B ", "B2", "B'"
+	];
+	var ud2std = [Ux1, Ux2, Ux3, Rx2, Fx2, Dx1, Dx2, Dx3, Lx2, Bx2, Rx1, Rx3, Fx1, Fx3, Lx1, Lx3, Bx1, Bx3];
+	var std2ud = [];
+	var ckmv2bit = [];
+	var urfMove = [
+		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+		[6, 7, 8, 0, 1, 2, 3, 4, 5, 15, 16, 17, 9, 10, 11, 12, 13, 14],
+		[3, 4, 5, 6, 7, 8, 0, 1, 2, 12, 13, 14, 15, 16, 17, 9, 10, 11],
+		[2, 1, 0, 5, 4, 3, 8, 7, 6, 11, 10, 9, 14, 13, 12, 17, 16, 15],
+		[8, 7, 6, 2, 1, 0, 5, 4, 3, 17, 16, 15, 11, 10, 9, 14, 13, 12],
+		[5, 4, 3, 8, 7, 6, 2, 1, 0, 14, 13, 12, 17, 16, 15, 11, 10, 9]
+	];
+
+	{ // init util
+		for (var i = 0; i < 18; i++) {
+			std2ud[ud2std[i]] = i;
+		}
+		for (var i = 0; i < 10; i++) {
+			var ix = ~~(ud2std[i] / 3);
+			ckmv2bit[i] = 0;
+			for (var j = 0; j < 10; j++) {
+				var jx = ~~(ud2std[j] / 3);
+				ckmv2bit[i] |= ((ix == jx) || ((ix % 3 == jx % 3) && (ix >= jx)) ? 1 : 0) << j;
+			}
+		}
+		ckmv2bit[10] = 0;
+		for (var i = 0; i < 13; i++) {
+			Cnk[i] = [];
+			fact[i + 1] = fact[i] * (i + 1);
+			Cnk[i][0] = Cnk[i][i] = 1;
+			for (var j = 1; j < 13; j++) {
+				Cnk[i][j] = j <= i ? Cnk[i - 1][j - 1] + Cnk[i - 1][j] : 0;
+			}
+		}
+	}
+
+	function setVal(val0, val, isEdge) {
+		return isEdge ? (val << 1 | val0 & 1) : (val | val0 & 0xf8);
+	}
+
+	function getVal(val0, isEdge) {
+		return isEdge ? val0 >> 1 : val0 & 7;
+	}
+
+	function setPruning(table, index, value) {
+		table[index >> 3] ^= value << (index << 2); // index << 2 <=> (index & 7) << 2
+	}
+
+	function getPruning(table, index) {
+		return table[index >> 3] >> (index << 2) & 0xf; // index << 2 <=> (index & 7) << 2
+	}
+
+	function getPruningMax(maxValue, table, index) {
+		return Math.min(maxValue, table[index >> 3] >> (index << 2) & 0xf);
+	}
+
+	function hasZero(val) {
+		return ((val - 0x11111111) & ~val & 0x88888888) != 0;
+	}
+
+	function ESym2CSym(idx) {
+		return idx ^ (SYM_E2C_MAGIC >> ((idx & 0xf) << 1) & 3);
+	}
+
+	function getPermSymInv(idx, sym, isCorner) {
+		var idxi = PermInvEdgeSym[idx];
+		if (isCorner) {
+			idxi = ESym2CSym(idxi);
+		}
+		return idxi & 0xfff0 | SymMult[idxi & 0xf][sym];
+	}
+
+	function CubieCube() {
+		this.ca = [0, 1, 2, 3, 4, 5, 6, 7];
+		this.ea = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22];
+	}
+
+	function setNPerm(arr, idx, n, isEdge) {
+		n--;
+		var val = 0x76543210;
+		for (var i = 0; i < n; ++i) {
+			var p = fact[n - i];
+			var v = ~~(idx / p);
+			idx %= p;
+			v <<= 2;
+			arr[i] = setVal(arr[i], val >> v & 0xf, isEdge);
+			var m = (1 << v) - 1;
+			val = (val & m) + (val >> 4 & ~m);
+		}
+		arr[n] = setVal(arr[n], val & 0xf, isEdge);
+	}
+
+	function getNPerm(arr, n, isEdge) {
+		var idx = 0,
+			val = 0x76543210;
+		for (var i = 0; i < n - 1; ++i) {
+			var v = getVal(arr[i], isEdge) << 2;
+			idx = (n - i) * idx + (val >> v & 0xf);
+			val -= 0x11111110 << v;
+		}
+		return idx;
+	}
+
+	function setNPermFull(arr, idx, n, isEdge) {
+		arr[n - 1] = setVal(arr[n - 1], 0, isEdge);;
+		for (var i = n - 2; i >= 0; --i) {
+			arr[i] = setVal(arr[i], idx % (n - i), isEdge);
+			idx = ~~(idx / (n - i));
+			for (var j = i + 1; j < n; ++j) {
+				if (getVal(arr[j], isEdge) >= getVal(arr[i], isEdge)) {
+					arr[j] = setVal(arr[j], getVal(arr[j], isEdge) + 1, isEdge);
+				}
+			}
+		}
+	}
+
+	function getNPermFull(arr, n, isEdge) {
+		var idx = 0;
+		for (var i = 0; i < n; ++i) {
+			idx *= n - i;
+			for (var j = i + 1; j < n; ++j) {
+				if (getVal(arr[j], isEdge) < getVal(arr[i], isEdge)) {
+					++idx;
+				}
+			}
+		}
+		return idx;
+	}
+
+	function getComb(arr, mask, isEdge) {
+		var end = arr.length - 1;
+		var idxC = 0,
+			r = 4;
+		for (var i = end; i >= 0; i--) {
+			var perm = getVal(arr[i], isEdge);
+			if ((perm & 0xc) == mask) {
+				idxC += Cnk[i][r--];
+			}
+		}
+		return idxC;
+	}
+
+	function setComb(arr, idxC, mask, isEdge) {
+		var end = arr.length - 1;
+		var r = 4,
+			fill = end;
+		for (var i = end; i >= 0; i--) {
+			if (idxC >= Cnk[i][r]) {
+				idxC -= Cnk[i][r--];
+				arr[i] = setVal(arr[i], r | mask, isEdge);
+			} else {
+				if ((fill & 0xc) == mask) {
+					fill -= 4;
+				}
+				arr[i] = setVal(arr[i], fill--, isEdge);
+			}
+		}
+	}
+
+	function getNParity(idx, n) {
+		var p = 0;
+		for (var i = n - 2; i >= 0; i--) {
+			p ^= idx % (n - i);
+			idx = ~~(idx / (n - i));
+		}
+		return p & 1;
+	}
+	CubieCube.EdgeMult = function(a, b, prod) {
+		for (var ed = 0; ed < 12; ed++) {
+			prod.ea[ed] = a.ea[b.ea[ed] >> 1] ^ (b.ea[ed] & 1);
+		}
+	}
+	CubieCube.CornMult = function(a, b, prod) {
+		for (var corn = 0; corn < 8; corn++) {
+			var ori = ((a.ca[b.ca[corn] & 7] >> 3) + (b.ca[corn] >> 3)) % 3;
+			prod.ca[corn] = a.ca[b.ca[corn] & 7] & 7 | ori << 3;
+		}
+	}
+	CubieCube.CornMultFull = function(a, b, prod) {
+		for (var corn = 0; corn < 8; corn++) {
+			var oriA = a.ca[b.ca[corn] & 7] >> 3;
+			var oriB = b.ca[corn] >> 3;
+			var ori = oriA + ((oriA < 3) ? oriB : 6 - oriB);
+			ori = ori % 3 + ((oriA < 3) == (oriB < 3) ? 0 : 3);
+			prod.ca[corn] = a.ca[b.ca[corn] & 7] & 7 | ori << 3;
+		}
+	}
+	CubieCube.CornConjugate = function(a, idx, b) {
+		var sinv = SymCube[SymMultInv[0][idx]];
+		var s = SymCube[idx];
+		for (var corn = 0; corn < 8; corn++) {
+			var oriA = sinv.ca[a.ca[s.ca[corn] & 7] & 7] >> 3;
+			var oriB = a.ca[s.ca[corn] & 7] >> 3;
+			var ori = (oriA < 3) ? oriB : (3 - oriB) % 3;
+			b.ca[corn] = sinv.ca[a.ca[s.ca[corn] & 7] & 7] & 7 | ori << 3;
+		}
+	}
+	CubieCube.EdgeConjugate = function(a, idx, b) {
+		var sinv = SymCube[SymMultInv[0][idx]];
+		var s = SymCube[idx];
+		for (var ed = 0; ed < 12; ed++) {
+			b.ea[ed] = sinv.ea[a.ea[s.ea[ed] >> 1] >> 1] ^ (a.ea[s.ea[ed] >> 1] & 1) ^ (s.ea[ed] & 1);
+		}
+	}
+	CubieCube.prototype.init = function(ca, ea) {
+		this.ca = ca.slice();
+		this.ea = ea.slice();
+		return this;
+	}
+	CubieCube.prototype.initCoord = function(cperm, twist, eperm, flip) {
+		setNPerm(this.ca, cperm, 8, false);
+		this.setTwist(twist);
+		setNPermFull(this.ea, eperm, 12, true);
+		this.setFlip(flip);
+		return this;
+	}
+	CubieCube.prototype.isEqual = function(c) {
+		for (var i = 0; i < 8; i++) {
+			if (this.ca[i] != c.ca[i]) {
+				return false;
+			}
+		}
+		for (var i = 0; i < 12; i++) {
+			if (this.ea[i] != c.ea[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	CubieCube.prototype.setFlip = function(idx) {
+		var parity = 0,
+			val;
+		for (var i = 10; i >= 0; i--, idx >>= 1) {
+			parity ^= (val = idx & 1);
+			this.ea[i] = this.ea[i] & 0xfe | val;
+		}
+		this.ea[11] = this.ea[11] & 0xfe | parity;
+	}
+	CubieCube.prototype.getFlip = function() {
+		var idx = 0;
+		for (var i = 0; i < 11; i++) {
+			idx = idx << 1 | this.ea[i] & 1;
+		}
+		return idx;
+	}
+	CubieCube.prototype.getFlipSym = function() {
+		return FlipR2S[this.getFlip()];
+	}
+	CubieCube.prototype.setTwist = function(idx) {
+		var twst = 15,
+			val;
+		for (var i = 6; i >= 0; i--, idx = ~~(idx / 3)) {
+			twst -= (val = idx % 3);
+			this.ca[i] = this.ca[i] & 0x7 | val << 3;
+		}
+		this.ca[7] = this.ca[7] & 0x7 | (twst % 3) << 3;
+	}
+	CubieCube.prototype.getTwist = function() {
+		var idx = 0;
+		for (var i = 0; i < 7; i++) {
+			idx += (idx << 1) + (this.ca[i] >> 3);
+		}
+		return idx;
+	}
+	CubieCube.prototype.getTwistSym = function() {
+		return TwistR2S[this.getTwist()];
+
+	}
+	CubieCube.prototype.setCPerm = function(idx) {
+		setNPerm(this.ca, idx, 8, false);
+	}
+	CubieCube.prototype.getCPerm = function() {
+		return getNPerm(this.ca, 8, false);
+	}
+	CubieCube.prototype.getCPermSym = function() {
+		return ESym2CSym(EPermR2S[getNPerm(this.ca, 8, false)]);
+	}
+	CubieCube.prototype.setEPerm = function(idx) {
+		setNPerm(this.ea, idx, 8, true);
+	}
+	CubieCube.prototype.getEPerm = function() {
+		return getNPerm(this.ea, 8, true);
+	}
+	CubieCube.prototype.getEPermSym = function() {
+		return EPermR2S[getNPerm(this.ea, 8, true)];
+	}
+	CubieCube.prototype.getUDSlice = function() {
+		return 494 - getComb(this.ea, 8, true);
+	}
+	CubieCube.prototype.setUDSlice = function(idx) {
+		setComb(this.ea, 494 - idx, 8, true);
+	}
+	CubieCube.prototype.getMPerm = function() {
+		return getNPermFull(this.ea, 12, true) % 24;
+	}
+	CubieCube.prototype.setMPerm = function(idx) {
+		setNPermFull(this.ea, idx, 12, true);
+	}
+	CubieCube.prototype.getCComb = function() {
+		return getComb(this.ca, 0, false);
+	}
+	CubieCube.prototype.setCComb = function(idx) {
+		setComb(this.ca, idx, 0, false);
+	}
+	CubieCube.prototype.URFConjugate = function() {
+		var temps = new CubieCube();
+		CubieCube.CornMult(CubieCube.urf2, this, temps);
+		CubieCube.CornMult(temps, CubieCube.urf1, this);
+		CubieCube.EdgeMult(CubieCube.urf2, this, temps);
+		CubieCube.EdgeMult(temps, CubieCube.urf1, this);
+	}
+	var cornerFacelet = [
+		[8, 9, 20],
+		[6, 18, 38],
+		[0, 36, 47],
+		[2, 45, 11],
+		[29, 26, 15],
+		[27, 44, 24],
+		[33, 53, 42],
+		[35, 17, 51]
+	];
+	var edgeFacelet = [
+		[5, 10],
+		[7, 19],
+		[3, 37],
+		[1, 46],
+		[32, 16],
+		[28, 25],
+		[30, 43],
+		[34, 52],
+		[23, 12],
+		[21, 41],
+		[50, 39],
+		[48, 14]
+	];
+	CubieCube.prototype.toFaceCube = function(cFacelet, eFacelet) {
+		cFacelet = cFacelet || cornerFacelet;
+		eFacelet = eFacelet || edgeFacelet;
+		var ts = "URFDLB";
+		var f = [];
+		for (var i = 0; i < 54; i++) {
+			f[i] = ts[~~(i / 9)];
+		}
+		for (var c = 0; c < 8; c++) {
+			var j = this.ca[c] & 0x7; // cornercubie with index j is at
+			var ori = this.ca[c] >> 3; // Orientation of this cubie
+			for (var n = 0; n < 3; n++)
+				f[cFacelet[c][(n + ori) % 3]] = ts[~~(cFacelet[j][n] / 9)];
+		}
+		for (var e = 0; e < 12; e++) {
+			var j = this.ea[e] >> 1; // edgecubie with index j is at edgeposition
+			var ori = this.ea[e] & 1; // Orientation of this cubie
+			for (var n = 0; n < 2; n++)
+				f[eFacelet[e][(n + ori) % 2]] = ts[~~(eFacelet[j][n] / 9)];
+		}
+		return f.join("");
+	}
+	CubieCube.prototype.invFrom = function(cc) {
+		for (var edge = 0; edge < 12; edge++) {
+			this.ea[cc.ea[edge] >> 1] = edge << 1 | cc.ea[edge] & 1;
+		}
+		for (var corn = 0; corn < 8; corn++) {
+			this.ca[cc.ca[corn] & 0x7] = corn | 0x20 >> (cc.ca[corn] >> 3) & 0x18;
+		}
+		return this;
+	}
+	CubieCube.prototype.fromFacelet = function(facelet, cFacelet, eFacelet) {
+		cFacelet = cFacelet || cornerFacelet;
+		eFacelet = eFacelet || edgeFacelet;
+		var count = 0;
+		var f = [];
+		var centers = facelet[4] + facelet[13] + facelet[22] + facelet[31] + facelet[40] + facelet[49];
+		for (var i = 0; i < 54; ++i) {
+			f[i] = centers.indexOf(facelet[i]);
+			if (f[i] == -1) {
+				return -1;
+			}
+			count += 1 << (f[i] << 2);
+		}
+		if (count != 0x999999) {
+			return -1;
+		}
+		var col1, col2, i, j, ori;
+		for (i = 0; i < 8; ++i) {
+			for (ori = 0; ori < 3; ++ori)
+				if (f[cFacelet[i][ori]] == 0 || f[cFacelet[i][ori]] == 3)
+					break;
+			col1 = f[cFacelet[i][(ori + 1) % 3]];
+			col2 = f[cFacelet[i][(ori + 2) % 3]];
+			for (j = 0; j < 8; ++j) {
+				if (col1 == ~~(cFacelet[j][1] / 9) && col2 == ~~(cFacelet[j][2] / 9)) {
+					this.ca[i] = j | ori % 3 << 3;
+					break;
+				}
+			}
+		}
+		for (i = 0; i < 12; ++i) {
+			for (j = 0; j < 12; ++j) {
+				if (f[eFacelet[i][0]] == ~~(eFacelet[j][0] / 9) && f[eFacelet[i][1]] == ~~(eFacelet[j][1] / 9)) {
+					this.ea[i] = j << 1;
+					break;
+				}
+				if (f[eFacelet[i][0]] == ~~(eFacelet[j][1] / 9) && f[eFacelet[i][1]] == ~~(eFacelet[j][0] / 9)) {
+					this.ea[i] = j << 1 | 1;
+					break;
+				}
+			}
+		}
+	}
+
+	function CoordCube() {
+		this.twist = 0;
+		this.tsym = 0;
+		this.flip = 0;
+		this.fsym = 0;
+		this.slice = 0;
+		this.prun = 0;
+		this.twistc = 0;
+		this.flipc = 0;
+	}
+	CoordCube.prototype.set = function(node) {
+		this.twist = node.twist;
+		this.tsym = node.tsym;
+		this.flip = node.flip;
+		this.fsym = node.fsym;
+		this.slice = node.slice;
+		this.prun = node.prun;
+		if (USE_CONJ_PRUN) {
+			this.twistc = node.twistc;
+			this.flipc = node.flipc;
+		}
+	}
+	CoordCube.prototype.calcPruning = function(isPhase1) {
+		this.prun = Math.max(
+			Math.max(
+				getPruningMax(UDSliceTwistPrunMax, UDSliceTwistPrun,
+					this.twist * N_SLICE + UDSliceConj[this.slice][this.tsym]),
+				getPruningMax(UDSliceFlipPrunMax, UDSliceFlipPrun,
+					this.flip * N_SLICE + UDSliceConj[this.slice][this.fsym])),
+			Math.max(
+				USE_CONJ_PRUN ? getPruningMax(TwistFlipPrunMax, TwistFlipPrun,
+					(this.twistc >> 3) << 11 | FlipS2RF[this.flipc ^ (this.twistc & 7)]) : 0,
+				USE_TWIST_FLIP_PRUN ? getPruningMax(TwistFlipPrunMax, TwistFlipPrun,
+					this.twist << 11 | FlipS2RF[this.flip << 3 | (this.fsym ^ this.tsym)]) : 0));
+	}
+	CoordCube.prototype.setWithPrun = function(cc, depth) {
+		this.twist = cc.getTwistSym();
+		this.flip = cc.getFlipSym();
+		this.tsym = this.twist & 7;
+		this.twist = this.twist >> 3;
+		this.prun = USE_TWIST_FLIP_PRUN ? getPruningMax(TwistFlipPrunMax, TwistFlipPrun,
+			this.twist << 11 | FlipS2RF[this.flip ^ this.tsym]) : 0;
+		if (this.prun > depth) {
+			return false;
+		}
+		this.fsym = this.flip & 7;
+		this.flip = this.flip >> 3;
+		this.slice = cc.getUDSlice();
+		this.prun = Math.max(this.prun, Math.max(
+			getPruningMax(UDSliceTwistPrunMax, UDSliceTwistPrun,
+				this.twist * N_SLICE + UDSliceConj[this.slice][this.tsym]),
+			getPruningMax(UDSliceFlipPrunMax, UDSliceFlipPrun,
+				this.flip * N_SLICE + UDSliceConj[this.slice][this.fsym])));
+		if (this.prun > depth) {
+			return false;
+		}
+		if (USE_CONJ_PRUN) {
+			var pc = new CubieCube();
+			CubieCube.CornConjugate(cc, 1, pc);
+			CubieCube.EdgeConjugate(cc, 1, pc);
+			this.twistc = pc.getTwistSym();
+			this.flipc = pc.getFlipSym();
+			this.prun = Math.max(this.prun,
+				getPruningMax(TwistFlipPrunMax, TwistFlipPrun,
+					(this.twistc >> 3) << 11 | FlipS2RF[this.flipc ^ (this.twistc & 7)]));
+		}
+		return this.prun <= depth;
+	}
+	CoordCube.prototype.doMovePrun = function(cc, m, isPhase1) {
+		this.slice = UDSliceMove[cc.slice][m];
+		this.flip = FlipMove[cc.flip][Sym8Move[m << 3 | cc.fsym]];
+		this.fsym = (this.flip & 7) ^ cc.fsym;
+		this.flip >>= 3;
+		this.twist = TwistMove[cc.twist][Sym8Move[m << 3 | cc.tsym]];
+		this.tsym = (this.twist & 7) ^ cc.tsym;
+		this.twist >>= 3;
+		this.prun = Math.max(
+			Math.max(
+				getPruningMax(UDSliceTwistPrunMax, UDSliceTwistPrun,
+					this.twist * N_SLICE + UDSliceConj[this.slice][this.tsym]),
+				getPruningMax(UDSliceFlipPrunMax, UDSliceFlipPrun,
+					this.flip * N_SLICE + UDSliceConj[this.slice][this.fsym])),
+			USE_TWIST_FLIP_PRUN ? getPruningMax(TwistFlipPrunMax, TwistFlipPrun,
+				this.twist << 11 | FlipS2RF[this.flip << 3 | (this.fsym ^ this.tsym)]) : 0);
+		return this.prun;
+	}
+	CoordCube.prototype.doMovePrunConj = function(cc, m) {
+		m = SymMove[3][m];
+		this.flipc = FlipMove[cc.flipc >> 3][Sym8Move[m << 3 | cc.flipc & 7]] ^ (cc.flipc & 7);
+		this.twistc = TwistMove[cc.twistc >> 3][Sym8Move[m << 3 | cc.twistc & 7]] ^ (cc.twistc & 7);
+		return getPruningMax(TwistFlipPrunMax, TwistFlipPrun,
+			(this.twistc >> 3) << 11 | FlipS2RF[this.flipc ^ (this.twistc & 7)]);
+	}
+	Search.prototype.solution = function(facelets, maxDepth, probeMax, probeMin, verbose) {
+		initPrunTables();
+		var check = this.verify(facelets);
+		if (check != 0) {
+			return "Error " + Math.abs(check);
+		}
+		if (maxDepth === undefined) {
+			maxDepth = 21;
+		}
+		if (probeMax === undefined) {
+			probeMax = 1e9;
+		}
+		if (probeMin === undefined) {
+			probeMin = 0;
+		}
+		if (verbose === undefined) {
+			verbose = 0;
+		}
+		this.sol = maxDepth + 1;
+		this.probe = 0;
+		this.probeMax = probeMax;
+		this.probeMin = Math.min(probeMin, probeMax);
+		this.verbose = verbose;
+		this.moveSol = null;
+		this.isRec = false;
+		this.initSearch();
+		return this.search();
+	}
+
+	Search.prototype.initSearch = function() {
+		this.conjMask = (TRY_INVERSE ? 0 : 0x38) | (TRY_THREE_AXES ? 0 : 0x36);
+		this.maxPreMoves = this.conjMask > 7 ? 0 : MAX_PRE_MOVES;
+
+		for (var i = 0; i < 6; i++) {
+			this.urfCubieCube[i].init(this.cc.ca, this.cc.ea);
+			this.urfCoordCube[i].setWithPrun(this.urfCubieCube[i], 20);
+			this.cc.URFConjugate();
+			if (i % 3 == 2) {
+				var tmp = new CubieCube().invFrom(this.cc);
+				this.cc.init(tmp.ca, tmp.ea);
+			}
+		}
+	}
+
+	Search.prototype.next = function(probeMax, probeMin, verbose) {
+		if (probeMax === undefined) {
+			probeMax = 1e9;
+		}
+		if (probeMin === undefined) {
+			probeMin = 0;
+		}
+		if (verbose === undefined) {
+			verbose = 0;
+		}
+		this.probe = 0;
+		this.probeMax = probeMax;
+		this.probeMin = Math.min(probeMin, probeMax);
+		this.moveSol = null;
+		this.isRec = true;
+		this.verbose = verbose;
+		return this.search();
+	}
+
+	Search.prototype.verify = function(facelets) {
+		if (this.cc.fromFacelet(facelets) == -1) {
+			return -1;
+		}
+		var sum = 0;
+		var edgeMask = 0;
+		for (var e = 0; e < 12; e++) {
+			edgeMask |= 1 << (this.cc.ea[e] >> 1);
+			sum ^= this.cc.ea[e] & 1;
+		}
+		if (edgeMask != 0xfff) {
+			return -2; // missing edges
+		}
+		if (sum != 0) {
+			return -3;
+		}
+		var cornMask = 0;
+		sum = 0;
+		for (var c = 0; c < 8; c++) {
+			cornMask |= 1 << (this.cc.ca[c] & 7);
+			sum += this.cc.ca[c] >> 3;
+		}
+		if (cornMask != 0xff) {
+			return -4; // missing corners
+		}
+		if (sum % 3 != 0) {
+			return -5; // twisted corner
+		}
+		if ((getNParity(getNPermFull(this.cc.ea, 12, true), 12) ^ getNParity(this.cc.getCPerm(), 8)) != 0) {
+			return -6; // parity error
+		}
+		return 0; // cube ok
+	}
+
+	Search.prototype.phase1PreMoves = function(maxl, lm, cc) {
+		this.preMoveLen = this.maxPreMoves - maxl;
+		if (this.isRec ? (this.depth1 == this.length1 - this.preMoveLen) :
+			(this.preMoveLen == 0 || (0x36FB7 >> lm & 1) == 0)) {
+			this.depth1 = this.length1 - this.preMoveLen;
+			this.phase1Cubie[0].init(cc.ca, cc.ea) /* = cc*/ ;
+			this.allowShorter = this.depth1 == MIN_P1LENGTH_PRE && this.preMoveLen != 0;
+
+			if (this.nodeUD[this.depth1 + 1].setWithPrun(cc, this.depth1) &&
+				this.phase1(this.nodeUD[this.depth1 + 1], this.depth1, -1) == 0) {
+				return 0;
+			}
+		}
+
+		if (maxl == 0 || this.preMoveLen + MIN_P1LENGTH_PRE >= this.length1) {
+			return 1;
+		}
+
+		var skipMoves = 0;
+		if (maxl == 1 || this.preMoveLen + 1 + MIN_P1LENGTH_PRE >= this.length1) { //last pre move
+			skipMoves |= 0x36FB7; // 11 0110 1111 1011 0111
+		}
+
+		lm = ~~(lm / 3) * 3;
+		for (var m = 0; m < 18; m++) {
+			if (m == lm || m == lm - 9 || m == lm + 9) {
+				m += 2;
+				continue;
+			}
+			if (this.isRec && m != this.preMoves[this.maxPreMoves - maxl] || (skipMoves & 1 << m) != 0) {
+				continue;
+			}
+			CubieCube.CornMult(moveCube[m], cc, this.preMoveCubes[maxl]);
+			CubieCube.EdgeMult(moveCube[m], cc, this.preMoveCubes[maxl]);
+			this.preMoves[this.maxPreMoves - maxl] = m;
+			var ret = this.phase1PreMoves(maxl - 1, m, this.preMoveCubes[maxl]);
+			if (ret == 0) {
+				return 0;
+			}
+		}
+		return 1;
+	}
+
+	Search.prototype.search = function() {
+		for (this.length1 = this.isRec ? this.length1 : 0; this.length1 < this.sol; this.length1++) {
+			for (this.urfIdx = this.isRec ? this.urfIdx : 0; this.urfIdx < 6; this.urfIdx++) {
+				if ((this.conjMask & 1 << this.urfIdx) != 0) {
+					continue;
+				}
+				if (this.phase1PreMoves(this.maxPreMoves, -30, this.urfCubieCube[this.urfIdx], 0) == 0) {
+					return this.moveSol == null ? "Error 8" : this.moveSol;
+				}
+			}
+		}
+		return this.moveSol == null ? "Error 7" : this.moveSol;
+	}
+
+	Search.prototype.initPhase2Pre = function() {
+		this.isRec = false;
+		if (this.probe >= (this.moveSol == null ? this.probeMax : this.probeMin)) {
+			return 0;
+		}
+		++this.probe;
+
+		for (var i = this.valid1; i < this.depth1; i++) {
+			CubieCube.CornMult(this.phase1Cubie[i], moveCube[this.move[i]], this.phase1Cubie[i + 1]);
+			CubieCube.EdgeMult(this.phase1Cubie[i], moveCube[this.move[i]], this.phase1Cubie[i + 1]);
+		}
+		this.valid1 = this.depth1;
+
+		var ret = this.initPhase2(this.phase1Cubie[this.depth1]);
+		if (ret == 0 || this.preMoveLen == 0 || ret == 2) {
+			return ret;
+		}
+
+		var m = ~~(this.preMoves[this.preMoveLen - 1] / 3) * 3 + 1;
+		CubieCube.CornMult(moveCube[m], this.phase1Cubie[this.depth1], this.phase1Cubie[this.depth1 + 1]);
+		CubieCube.EdgeMult(moveCube[m], this.phase1Cubie[this.depth1], this.phase1Cubie[this.depth1 + 1]);
+
+		this.preMoves[this.preMoveLen - 1] += 2 - this.preMoves[this.preMoveLen - 1] % 3 * 2;
+		ret = this.initPhase2(this.phase1Cubie[this.depth1 + 1]);
+		this.preMoves[this.preMoveLen - 1] += 2 - this.preMoves[this.preMoveLen - 1] % 3 * 2;
+		return ret;
+	}
+	Search.prototype.initPhase2 = function(phase2Cubie) {
+		var p2corn = phase2Cubie.getCPermSym();
+		var p2csym = p2corn & 0xf;
+		p2corn >>= 4;
+		var p2edge = phase2Cubie.getEPermSym();
+		var p2esym = p2edge & 0xf;
+		p2edge >>= 4;
+		var p2mid = phase2Cubie.getMPerm();
+		var p2edgei = getPermSymInv(p2edge, p2esym, false);
+		var p2corni = getPermSymInv(p2corn, p2csym, true);
+		var prun = Math.max(
+			getPruningMax(MCPermPrunMax, MCPermPrun,
+				p2corn * N_MPERM + MPermConj[p2mid][p2csym]),
+			getPruningMax(EPermCCombPPrunMax, EPermCCombPPrun,
+				p2edge * N_COMB + CCombPConj[Perm2CombP[p2corn] & 0xff][SymMultInv[p2esym][p2csym]]),
+			getPruningMax(EPermCCombPPrunMax, EPermCCombPPrun,
+				(p2edgei >> 4) * N_COMB + CCombPConj[Perm2CombP[p2corni >> 4] & 0xff][SymMultInv[p2edgei & 0xf][p2corni & 0xf]])
+		);
+		var maxDep2 = Math.min(MAX_DEPTH2, this.sol - this.length1);
+		if (prun >= maxDep2) {
+			return prun > maxDep2 ? 2 : 1;
+		}
+		var depth2;
+		for (depth2 = maxDep2 - 1; depth2 >= prun; depth2--) {
+			var ret = this.phase2(p2edge, p2esym, p2corn, p2csym, p2mid, depth2, this.depth1, 10);
+			if (ret < 0) {
+				break;
+			}
+			depth2 -= ret;
+			this.moveSol = [];
+			for (var i = 0; i < this.depth1 + depth2; i++) {
+				this.appendSolMove(this.move[i]);
+			}
+			for (var i = this.preMoveLen - 1; i >= 0; i--) {
+				this.appendSolMove(this.preMoves[i]);
+			}
+			this.sol = this.moveSol.length;
+			this.moveSol = this.solutionToString();
+		}
+		if (depth2 != maxDep2 - 1) { //At least one solution has been found.
+			return this.probe >= this.probeMin ? 0 : 1;
+		} else {
+			return 1;
+		}
+	}
+	Search.prototype.phase1 = function(node, maxl, lm) {
+		if (node.prun == 0 && maxl < 5) {
+			if (this.allowShorter || maxl == 0) {
+				this.depth1 -= maxl;
+				var ret = this.initPhase2Pre();
+				this.depth1 += maxl;
+				return ret;
+			} else {
+				return 1;
+			}
+		}
+		for (var axis = 0; axis < 18; axis += 3) {
+			if (axis == lm || axis == lm - 9) {
+				continue;
+			}
+			for (var power = 0; power < 3; power++) {
+				var m = axis + power;
+
+				if (this.isRec && m != this.move[this.depth1 - maxl]) {
+					continue;
+				}
+
+				var prun = this.nodeUD[maxl].doMovePrun(node, m, true);
+				if (prun > maxl) {
+					break;
+				} else if (prun == maxl) {
+					continue;
+				}
+
+				if (USE_CONJ_PRUN) {
+					prun = this.nodeUD[maxl].doMovePrunConj(node, m);
+					if (prun > maxl) {
+						break;
+					} else if (prun == maxl) {
+						continue;
+					}
+				}
+				this.move[this.depth1 - maxl] = m;
+				this.valid1 = Math.min(this.valid1, this.depth1 - maxl);
+				var ret = this.phase1(this.nodeUD[maxl], maxl - 1, axis);
+				if (ret == 0) {
+					return 0;
+				} else if (ret == 2) {
+					break;
+				}
+			}
+		}
+		return 1;
+	}
+	Search.prototype.appendSolMove = function(curMove) {
+		if (this.moveSol.length == 0) {
+			this.moveSol.push(curMove);
+			return;
+		}
+		var axisCur = ~~(curMove / 3);
+		var axisLast = ~~(this.moveSol[this.moveSol.length - 1] / 3);
+		if (axisCur == axisLast) {
+			var pow = (curMove % 3 + this.moveSol[this.moveSol.length - 1] % 3 + 1) % 4;
+			if (pow == 3) {
+				this.moveSol.pop();
+			} else {
+				this.moveSol[this.moveSol.length - 1] = axisCur * 3 + pow;
+			}
+			return;
+		}
+		if (this.moveSol.length > 1 &&
+			axisCur % 3 == axisLast % 3 &&
+			axisCur == ~~(this.moveSol[this.moveSol.length - 2] / 3)) {
+			var pow = (curMove % 3 + this.moveSol[this.moveSol.length - 2] % 3 + 1) % 4;
+			if (pow == 3) {
+				this.moveSol[this.moveSol.length - 2] = this.moveSol[this.moveSol.length - 1];
+				this.moveSol.pop();
+			} else {
+				this.moveSol[this.moveSol.length - 2] = axisCur * 3 + pow;
+			}
+			return;
+		}
+		this.moveSol.push(curMove);
+	}
+	Search.prototype.phase2 = function(edge, esym, corn, csym, mid, maxl, depth, lm) {
+		if (edge == 0 && corn == 0 && mid == 0) {
+			return maxl;
+		}
+		var moveMask = ckmv2bit[lm];
+		for (var m = 0; m < 10; m++) {
+			if ((moveMask >> m & 1) != 0) {
+				m += 0x42 >> m & 3;
+				continue;
+			}
+			var midx = MPermMove[mid][m];
+			var cornx = CPermMove[corn][SymMoveUD[csym][m]];
+			var csymx = SymMult[cornx & 0xf][csym];
+			cornx >>= 4;
+			var edgex = EPermMove[edge][SymMoveUD[esym][m]];
+			var esymx = SymMult[edgex & 0xf][esym];
+			edgex >>= 4;
+			var edgei = getPermSymInv(edgex, esymx, false);
+			var corni = getPermSymInv(cornx, csymx, true);
+			var prun = getPruningMax(EPermCCombPPrunMax, EPermCCombPPrun,
+				(edgei >> 4) * N_COMB + CCombPConj[Perm2CombP[corni >> 4] & 0xff][SymMultInv[edgei & 0xf][corni & 0xf]]);
+			if (prun > maxl + 1) {
+				break;
+			} else if (prun >= maxl) {
+				m += 0x42 >> m & 3 & (maxl - prun);
+				continue;
+			}
+			prun = Math.max(
+				getPruningMax(EPermCCombPPrunMax, EPermCCombPPrun,
+					edgex * N_COMB + CCombPConj[Perm2CombP[cornx] & 0xff][SymMultInv[esymx][csymx]]),
+				getPruningMax(MCPermPrunMax, MCPermPrun,
+					cornx * N_MPERM + MPermConj[midx][csymx])
+			);
+			if (prun >= maxl) {
+				m += 0x42 >> m & 3 & (maxl - prun);
+				continue;
+			}
+			var ret = this.phase2(edgex, esymx, cornx, csymx, midx, maxl - 1, depth + 1, m);
+			if (ret >= 0) {
+				this.move[depth] = ud2std[m];
+				return ret;
+			}
+		}
+		return -1;
+	}
+	Search.prototype.solutionToString = function() {
+		var sb = '';
+		var urf = (this.verbose & INVERSE_SOLUTION) != 0 ? (this.urfIdx + 3) % 6 : this.urfIdx;
+		if (urf < 3) {
+			for (var s = 0; s < this.moveSol.length; ++s) {
+				sb += move2str[urfMove[urf][this.moveSol[s]]] + ' ';
+			}
+		} else {
+			for (var s = this.moveSol.length - 1; s >= 0; --s) {
+				sb += move2str[urfMove[urf][this.moveSol[s]]] + ' ';
+			}
+		}
+		return sb;
+	}
+
+	var moveCube = [];
+	var SymCube = [];
+	var SymMult = [];
+	var SymMultInv = [];
+	var SymMove = [];
+	var SymMoveUD = [];
+	var Sym8Move = [];
+	var FlipS2R = [];
+	var FlipR2S = [];
+	var TwistS2R = [];
+	var TwistR2S = [];
+	var EPermS2R = [];
+	var EPermR2S = [];
+	var SymStateFlip = [];
+	var SymStateTwist = [];
+	var SymStatePerm = [];
+	var FlipS2RF = [];
+	var Perm2CombP = [];
+	var PermInvEdgeSym = [];
+	var UDSliceMove = [];
+	var TwistMove = [];
+	var FlipMove = [];
+	var UDSliceConj = [];
+	var UDSliceTwistPrun = [];
+	var UDSliceFlipPrun = [];
+	var TwistFlipPrun = [];
+
+	//phase2
+	var CPermMove = [];
+	var EPermMove = [];
+	var MPermMove = [];
+	var MPermConj = [];
+	var CCombPMove = []; // = new char[N_COMB][N_MOVES2];
+	var CCombPConj = [];
+	var MCPermPrun = [];
+	var EPermCCombPPrun = [];
+
+	var TwistFlipPrunMax = 15;
+	var UDSliceTwistPrunMax = 15;
+	var UDSliceFlipPrunMax = 15;
+	var MCPermPrunMax = 15;
+	var EPermCCombPPrunMax = 15;
+
+	{ //init move cubes
+		for (var i = 0; i < 18; i++) {
+			moveCube[i] = new CubieCube()
+		}
+		moveCube[0].initCoord(15120, 0, 119750400, 0);
+		moveCube[3].initCoord(21021, 1494, 323403417, 0);
+		moveCube[6].initCoord(8064, 1236, 29441808, 550);
+		moveCube[9].initCoord(9, 0, 5880, 0);
+		moveCube[12].initCoord(1230, 412, 2949660, 0);
+		moveCube[15].initCoord(224, 137, 328552, 137);
+		for (var a = 0; a < 18; a += 3) {
+			for (var p = 0; p < 2; p++) {
+				CubieCube.EdgeMult(moveCube[a + p], moveCube[a], moveCube[a + p + 1]);
+				CubieCube.CornMult(moveCube[a + p], moveCube[a], moveCube[a + p + 1]);
+			}
+		}
+		CubieCube.urf1 = new CubieCube().initCoord(2531, 1373, 67026819, 1367);
+		CubieCube.urf2 = new CubieCube().initCoord(2089, 1906, 322752913, 2040);
+	}
+
+	function initBasic() {
+		{ //init sym cubes
+			var c = new CubieCube();
+			var d = new CubieCube();
+			var t;
+
+			var f2 = new CubieCube().initCoord(28783, 0, 259268407, 0);
+			var u4 = new CubieCube().initCoord(15138, 0, 119765538, 7);
+			var lr2 = new CubieCube().initCoord(5167, 0, 83473207, 0);
+			for (var i = 0; i < 8; i++) {
+				lr2.ca[i] |= 3 << 3;
+			}
+			for (var i = 0; i < 16; i++) {
+				SymCube[i] = new CubieCube().init(c.ca, c.ea);
+				CubieCube.CornMultFull(c, u4, d);
+				CubieCube.EdgeMult(c, u4, d);
+				c.init(d.ca, d.ea);
+				if (i % 4 == 3) {
+					CubieCube.CornMultFull(c, lr2, d);
+					CubieCube.EdgeMult(c, lr2, d);
+					c.init(d.ca, d.ea);
+				}
+				if (i % 8 == 7) {
+					CubieCube.CornMultFull(c, f2, d);
+					CubieCube.EdgeMult(c, f2, d);
+					c.init(d.ca, d.ea);
+				}
+			}
+		} { // gen sym tables
+
+
+			for (var i = 0; i < 16; i++) {
+				SymMult[i] = [];
+				SymMultInv[i] = [];
+				SymMove[i] = [];
+				Sym8Move[i] = [];
+				SymMoveUD[i] = [];
+			}
+			for (var i = 0; i < 16; i++) {
+				for (var j = 0; j < 16; j++) {
+					SymMult[i][j] = i ^ j ^ (0x14ab4 >> j & i << 1 & 2); // SymMult[i][j] = (i ^ j ^ (0x14ab4 >> j & i << 1 & 2)));
+					SymMultInv[SymMult[i][j]][j] = i;
+				}
+			}
+
+			var c = new CubieCube();
+			for (var s = 0; s < 16; s++) {
+				for (var j = 0; j < 18; j++) {
+					CubieCube.CornConjugate(moveCube[j], SymMultInv[0][s], c);
+					outloop: for (var m = 0; m < 18; m++) {
+						for (var t = 0; t < 8; t++) {
+							if (moveCube[m].ca[t] != c.ca[t]) {
+								continue outloop;
+							}
+						}
+						SymMove[s][j] = m;
+						SymMoveUD[s][std2ud[j]] = std2ud[m];
+						break;
+					}
+					if (s % 2 == 0) {
+						Sym8Move[j << 3 | s >> 1] = SymMove[s][j];
+					}
+				}
+			}
+		} { // init sym 2 raw tables
+			function initSym2Raw(N_RAW, Sym2Raw, Raw2Sym, SymState, coord, setFunc, getFunc) {
+				var N_RAW_HALF = (N_RAW + 1) >> 1;
+				var c = new CubieCube();
+				var d = new CubieCube();
+				var count = 0;
+				var sym_inc = coord >= 2 ? 1 : 2;
+				var conjFunc = coord != 1 ? CubieCube.EdgeConjugate : CubieCube.CornConjugate;
+
+				for (var i = 0; i < N_RAW; i++) {
+					if (Raw2Sym[i] !== undefined) {
+						continue;
+					}
+					setFunc.call(c, i);
+					for (var s = 0; s < 16; s += sym_inc) {
+						conjFunc(c, s, d);
+						var idx = getFunc.call(d);
+						if (USE_TWIST_FLIP_PRUN && coord == 0) {
+							FlipS2RF[count << 3 | s >> 1] = idx;
+						}
+						if (idx == i) {
+							SymState[count] |= 1 << (s / sym_inc);
+						}
+						Raw2Sym[idx] = (count << 4 | s) / sym_inc;
+					}
+					Sym2Raw[count++] = i;
+				}
+				return count;
+			}
+
+			initSym2Raw(N_FLIP, FlipS2R, FlipR2S, SymStateFlip, 0, CubieCube.prototype.setFlip, CubieCube.prototype.getFlip);
+			initSym2Raw(N_TWIST, TwistS2R, TwistR2S, SymStateTwist, 1, CubieCube.prototype.setTwist, CubieCube.prototype.getTwist);
+			initSym2Raw(N_PERM, EPermS2R, EPermR2S, SymStatePerm, 2, CubieCube.prototype.setEPerm, CubieCube.prototype.getEPerm);
+			var cc = new CubieCube();
+			for (var i = 0; i < N_PERM_SYM; i++) {
+				setNPerm(cc.ea, EPermS2R[i], 8, true);
+				Perm2CombP[i] = getComb(cc.ea, 0, true) + (USE_COMBP_PRUN ? getNParity(EPermS2R[i], 8) * 70 : 0);
+				c.invFrom(cc);
+				PermInvEdgeSym[i] = EPermR2S[c.getEPerm()];
+			}
+		} { // init coord tables
+
+			var c = new CubieCube();
+			var d = new CubieCube();
+
+			function initSymMoveTable(moveTable, SymS2R, N_SIZE, N_MOVES, setFunc, getFunc, multFunc, ud2std) {
+				for (var i = 0; i < N_SIZE; i++) {
+					moveTable[i] = [];
+					setFunc.call(c, SymS2R[i]);
+					for (var j = 0; j < N_MOVES; j++) {
+						multFunc(c, moveCube[ud2std ? ud2std[j] : j], d);
+						moveTable[i][j] = getFunc.call(d);
+					}
+				}
+			}
+
+			initSymMoveTable(FlipMove, FlipS2R, N_FLIP_SYM, N_MOVES,
+				CubieCube.prototype.setFlip, CubieCube.prototype.getFlipSym, CubieCube.EdgeMult);
+			initSymMoveTable(TwistMove, TwistS2R, N_TWIST_SYM, N_MOVES,
+				CubieCube.prototype.setTwist, CubieCube.prototype.getTwistSym, CubieCube.CornMult);
+			initSymMoveTable(EPermMove, EPermS2R, N_PERM_SYM, N_MOVES2,
+				CubieCube.prototype.setEPerm, CubieCube.prototype.getEPermSym, CubieCube.EdgeMult, ud2std);
+			initSymMoveTable(CPermMove, EPermS2R, N_PERM_SYM, N_MOVES2,
+				CubieCube.prototype.setCPerm, CubieCube.prototype.getCPermSym, CubieCube.CornMult, ud2std);
+
+			for (var i = 0; i < N_SLICE; i++) {
+				UDSliceMove[i] = [];
+				UDSliceConj[i] = [];
+				c.setUDSlice(i);
+				for (var j = 0; j < N_MOVES; j++) {
+					CubieCube.EdgeMult(c, moveCube[j], d);
+					UDSliceMove[i][j] = d.getUDSlice();
+				}
+				for (var j = 0; j < 16; j += 2) {
+					CubieCube.EdgeConjugate(c, SymMultInv[0][j], d);
+					UDSliceConj[i][j >> 1] = d.getUDSlice();
+				}
+			}
+
+			for (var i = 0; i < N_MPERM; i++) {
+				MPermMove[i] = [];
+				MPermConj[i] = [];
+				c.setMPerm(i);
+				for (var j = 0; j < N_MOVES2; j++) {
+					CubieCube.EdgeMult(c, moveCube[ud2std[j]], d);
+					MPermMove[i][j] = d.getMPerm();
+				}
+				for (var j = 0; j < 16; j++) {
+					CubieCube.EdgeConjugate(c, SymMultInv[0][j], d);
+					MPermConj[i][j] = d.getMPerm();
+				}
+			}
+
+			for (var i = 0; i < N_COMB; i++) {
+				CCombPMove[i] = [];
+				CCombPConj[i] = [];
+				c.setCComb(i % 70);
+				for (var j = 0; j < N_MOVES2; j++) {
+					CubieCube.CornMult(c, moveCube[ud2std[j]], d);
+					CCombPMove[i][j] = d.getCComb() + 70 * ((P2_PARITY_MOVE >> j & 1) ^ ~~(i / 70));
+				}
+				for (var j = 0; j < 16; j++) {
+					CubieCube.CornConjugate(c, SymMultInv[0][j], d);
+					CCombPConj[i][j] = d.getCComb() + 70 * ~~(i / 70);
+				}
+			}
+		}
+	}
+
+	//init pruning tables
+	var InitPrunProgress = -1;
+
+	function initRawSymPrun(PrunTable, N_RAW, N_SYM, RawMove, RawConj, SymMove, SymState, PrunFlag) {
+		var SYM_SHIFT = PrunFlag & 0xf;
+		var SYM_E2C_MAGIC = ((PrunFlag >> 4) & 1) == 1 ? 0x00DDDD00 : 0x00000000;
+		var IS_PHASE2 = ((PrunFlag >> 5) & 1) == 1;
+		var INV_DEPTH = PrunFlag >> 8 & 0xf;
+		var MAX_DEPTH = PrunFlag >> 12 & 0xf;
+		var MIN_DEPTH = PrunFlag >> 16 & 0xf;
+
+		var SYM_MASK = (1 << SYM_SHIFT) - 1;
+		var ISTFP = RawMove == null;
+		var N_SIZE = N_RAW * N_SYM;
+		var N_MOVES = IS_PHASE2 ? 10 : 18;
+		var NEXT_AXIS_MAGIC = N_MOVES == 10 ? 0x42 : 0x92492;
+
+		var depth = getPruning(PrunTable, N_SIZE) - 1;
+
+		if (depth == -1) {
+			for (var i = 0; i < (N_SIZE >> 3) + 1; i++) {
+				PrunTable[i] = 0xffffffff;
+			}
+			setPruning(PrunTable, 0, 0 ^ 0xf);
+			depth = 0;
+		} else {
+			setPruning(PrunTable, N_SIZE, 0xf ^ (depth + 1));
+		}
+
+		var SEARCH_DEPTH = PARTIAL_INIT_LEVEL > 0 ?
+			Math.min(Math.max(depth + 1, MIN_DEPTH), MAX_DEPTH) : MAX_DEPTH;
+
+		while (depth < SEARCH_DEPTH) {
+			var inv = depth > INV_DEPTH;
+			var select = inv ? 0xf : depth;
+			var selArrMask = select * 0x11111111;
+			var check = inv ? depth : 0xf;
+			depth++;
+			InitPrunProgress++;
+			var xorVal = depth ^ 0xf;
+			var done = 0;
+			var val = 0;
+			for (var i = 0; i < N_SIZE; i++, val >>= 4) {
+				if ((i & 7) == 0) {
+					val = PrunTable[i >> 3];
+					if (!hasZero(val ^ selArrMask)) {
+						i += 7;
+						continue;
+					}
+				}
+				if ((val & 0xf) != select) {
+					continue;
+				}
+				var raw = i % N_RAW;
+				var sym = ~~(i / N_RAW);
+				var flip = 0,
+					fsym = 0;
+				if (ISTFP) {
+					flip = FlipR2S[raw];
+					fsym = flip & 7;
+					flip >>= 3;
+				}
+
+				for (var m = 0; m < N_MOVES; m++) {
+					var symx = SymMove[sym][m];
+					var rawx;
+					if (ISTFP) {
+						rawx = FlipS2RF[
+							FlipMove[flip][Sym8Move[m << 3 | fsym]] ^
+							fsym ^ (symx & SYM_MASK)];
+					} else {
+						rawx = RawConj[RawMove[raw][m]][symx & SYM_MASK];
+					}
+					symx >>= SYM_SHIFT;
+					var idx = symx * N_RAW + rawx;
+					var prun = getPruning(PrunTable, idx);
+					if (prun != check) {
+						if (prun < depth - 1) {
+							m += NEXT_AXIS_MAGIC >> m & 3;
+						}
+						continue;
+					}
+					done++;
+					if (inv) {
+						setPruning(PrunTable, i, xorVal);
+						break;
+					}
+					setPruning(PrunTable, idx, xorVal);
+					for (var j = 1, symState = SymState[symx];
+						(symState >>= 1) != 0; j++) {
+						if ((symState & 1) != 1) {
+							continue;
+						}
+						var idxx = symx * N_RAW;
+						if (ISTFP) {
+							idxx += FlipS2RF[FlipR2S[rawx] ^ j];
+						} else {
+							idxx += RawConj[rawx][j ^ (SYM_E2C_MAGIC >> (j << 1) & 3)];
+						}
+						if (getPruning(PrunTable, idxx) == check) {
+							setPruning(PrunTable, idxx, xorVal);
+							done++;
+						}
+					}
+				}
+			}
+			// console.log(depth, done, InitPrunProgress);
+		}
+		setPruning(PrunTable, N_SIZE, (depth + 1) ^ 0xf);
+		return depth + 1;
+	}
+
+	function doInitPrunTables(targetProgress) {
+		if (USE_TWIST_FLIP_PRUN) {
+			TwistFlipPrunMax = initRawSymPrun(
+				TwistFlipPrun, 2048, 324,
+				null, null,
+				TwistMove, SymStateTwist, 0x19603
+			);
+		}
+		if (InitPrunProgress > targetProgress) {
+			return;
+		}
+		UDSliceTwistPrunMax = initRawSymPrun(
+			UDSliceTwistPrun, 495, 324,
+			UDSliceMove, UDSliceConj,
+			TwistMove, SymStateTwist, 0x69603
+		);
+		if (InitPrunProgress > targetProgress) {
+			return;
+		}
+		UDSliceFlipPrunMax = initRawSymPrun(
+			UDSliceFlipPrun, 495, 336,
+			UDSliceMove, UDSliceConj,
+			FlipMove, SymStateFlip, 0x69603
+		);
+		if (InitPrunProgress > targetProgress) {
+			return;
+		}
+		MCPermPrunMax = initRawSymPrun(
+			MCPermPrun, 24, 2768,
+			MPermMove, MPermConj,
+			CPermMove, SymStatePerm, 0x8ea34
+		);
+		if (InitPrunProgress > targetProgress) {
+			return;
+		}
+		EPermCCombPPrunMax = initRawSymPrun(
+			EPermCCombPPrun, N_COMB, 2768,
+			CCombPMove, CCombPConj,
+			EPermMove, SymStatePerm, 0x7d824
+		);
+	}
+
+	function initPrunTables() {
+		if (InitPrunProgress < 0) {
+			initBasic();
+			InitPrunProgress = 0;
+		}
+		if (InitPrunProgress == 0) {
+			doInitPrunTables(99);
+		} else if (InitPrunProgress < 54) {
+			doInitPrunTables(InitPrunProgress);
+		} else {
+			return true;
+		}
+		return false;
+	}
+
+	function randomCube() {
+		var ep, cp;
+		var eo = ~~(Math.random() * 2048);
+		var co = ~~(Math.random() * 2187);
+		do {
+			ep = ~~(Math.random() * fact[12]);
+			cp = ~~(Math.random() * fact[8]);
+		} while (getNParity(cp, 8) != getNParity(ep, 12));
+		var cc = new CubieCube().initCoord(cp, co, ep, eo);
+		return cc.toFaceCube();
+	}
+
+	function fromScramble(s) {
+		var j = 0;
+		var axis = -1;
+		var c1 = new CubieCube();
+		var c2 = new CubieCube();
+		for (var i = 0; i < s.length; i++) {
+			switch (s[i]) {
+				case 'U':
+				case 'R':
+				case 'F':
+				case 'D':
+				case 'L':
+				case 'B':
+					axis = "URFDLB".indexOf(s[i]) * 3;
+					break;
+				case ' ':
+					if (axis != -1) {
+						CubieCube.CornMult(c1, moveCube[axis], c2);
+						CubieCube.EdgeMult(c1, moveCube[axis], c2);
+						c1.init(c2.ca, c2.ea);
+					}
+					axis = -1;
+					break;
+				case '2':
+					axis++;
+					break;
+				case '\'':
+					axis += 2;
+					break;
+				default:
+					continue;
+			}
+		}
+		if (axis != -1) {
+			CubieCube.CornMult(c1, moveCube[axis], c2);
+			CubieCube.EdgeMult(c1, moveCube[axis], c2);
+			c1.init(c2.ca, c2.ea);
+		}
+		return c2.toFaceCube();
+	}
+
+	return {
+		Search: Search,
+		solve: function(facelet) {
+			return new Search().solution(facelet);
+		},
+		randomCube: randomCube,
+		fromScramble: fromScramble,
+		initFull: function() {
+			PARTIAL_INIT_LEVEL = 0;
+			initPrunTables();
+		}
+	}
+})();
+
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+	module.exports = min2phase;
+}
+</script>
+<script>
+"use strict";
+
+const globalState = 'ABCDEFGHIJKLWMNOPQRSTXYZabcdefghijklmnopqrstwxyz123456';
+const eglobalState = 'abcdefghijklmnopqrstwxyz';
+const cglobalState = 'ABCDEFGHIJKLWMNOPQRSTXYZ';
+
+function m2p(input_state) {
+    // globalState is cube's code in chichu with chichu's order
+    // cube's code in CE with chichu's order
+    var color = 'uflulbubrurfdlfdbldrbdfrufuluburdfdldbdrfrflblbrudfbrl';
+    // code's code in chichu with CE's order (the face's order is urfdlb）
+    var order = 'DeGc1gAaJKhIr5zZpSBbLs3qNjYWiXk2oOmREdCx6tQlMHfFy4wTnP';
+    // DeGc1gAaJ KhIr5zZpS BbLs3qNjY WiXk2oOmR EdCx6tQlM HfFy4wTnP (this line is set to check clearly)
+
+    var m2pCodeList = [];
+
+    for (let i = 0; i < input_state.length; i += 1) {
+        var chichu = input_state[globalState.indexOf(order[i])];
+        m2pCodeList.push(color[globalState.indexOf(chichu)]);
+    }
+
+    var m2pCode = m2pCodeList.join("").toUpperCase();
+
+    var search = new min2phase.Search();
+    var ret = search.solution(m2pCode, 21);
+    ret = ret.replaceAll("  ", " ");
+    return ret;
+}
+
+
+function mover2scr(mover) {
+    let inputArr = operatealg(mover);
+    let transArr = [[], [], [], [], [], []];
+    transArr[0] = inputArr[1].slice(1);
+    transArr[1] = inputArr[4].slice(1);
+    transArr[2] = inputArr[5].slice(1);
+    transArr[3] = inputArr[2].slice(1);
+    transArr[4] = inputArr[3].slice(1);
+    transArr[5] = inputArr[6].slice(1);
+
+    transArr[0][4] = "1";
+    transArr[1][4] = "5";
+    transArr[2][4] = "3";
+    transArr[3][4] = "2";
+    transArr[4][4] = "6";
+    transArr[5][4] = "4";
+
+    for (let i = 0; i < 6; i += 1) {
+        for (let j = 1; j < 9; j += 2) {
+            transArr[i][j] = transArr[i][j].toLowerCase();
+        }
+    }
+
+    let input_code = transArr.flat().join("");
+
+    // globalState is cube's code in chichu with chichu's order
+    // cube's code in CE with chichu's order
+    var face = 'uuuuuuuuurrrrrrrrrfffffffffdddddddddlllllllllbbbbbbbbb';
+    // code's code in chichu with CE's order (the face's order is urfdlb）
+    var order = 'DeGc1gAaJKhIr5zZpSBbLs3qNjYWiXk2oOmREdCx6tQlMHfFy4wTnP';
+    // DeGc1gAaJ KhIr5zZpS BbLs3qNjY WiXk2oOmR EdCx6tQlM HfFy4wTnP (this line is set to check clearly)
+
+    var m2pCodeList = [];
+
+    for (let i = 0; i < input_code.length; i += 1) {
+        m2pCodeList.push(face[order.indexOf(input_code[i])]);
+    }
+
+    var m2pCode = m2pCodeList.join("").toUpperCase();
+
+    var search = new min2phase.Search();
+    var ret = search.solution(m2pCode, 21);
+    ret = ret.replaceAll("  ", " ");
+    
+    return inverse_scramble(ret);
+}
+
+function integreteCode(first_input, second_input, input_state) {
+
+    var output_state = codeTrans(first_input, input_state);
+    output_state = codeTrans(second_input, output_state);
+
+    return output_state;
+}
+
+function codeTrans(input_code, input_state) {
+    // test input data
+    // input_code = 'angqy'
+    // input_state = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+    //                'W', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'X', 'Y', 'Z',
+    //                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+    //                'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'w', 'x', 'y', 'z',
+    //                '1', '2', '3', '4', '5', '6']
+
+    // first assign input to output
+    var output_state = input_state;
+
+    // transfer code by exchanging every two code. (1 a-n; 2 a-g; 3 a-q; 4 a-y)
+    for (let i = 0; i < input_code.length; i += 1) {
+        output_state = exCode([input_code[0], input_code[i]], output_state);
+    }
+    return output_state;
+}
+
+// Input two codes and state and output the state with exchanging of the two codes
+function exCode(input_code, input_state) {
+    // recognize which group current code is.(corner, edge or centre)
+    const { div, indexNum } = groupRecog(input_code[0]);
+
+    // theindexOfes of two code in globalState
+    var index1 = globalState.indexOf(input_code[0]) - indexNum;
+    var index2 = globalState.indexOf(input_code[1]) - indexNum;
+
+    // assign input_state to output_state
+    var output_list = Array.from(input_state);
+    // exchange two position of codes with new order
+    for (let i = 0; i < div; i += 1) {
+        var order1 = reOrder(index1, div);
+        var order2 = reOrder(index2, div);
+        output_list[order1[i] + indexNum] = input_state[order2[i] + indexNum];
+        output_list[order2[i] + indexNum] = input_state[order1[i] + indexNum];
+    }
+    var output_state = output_list.join("");
+    return output_state;
+}
+
+// this function defines the exchanging order
+// input a number and divisor, output a list with new order
+// for example, input(1,3) to output [1 2 0];(17,3) to [17 15 16]; (5,2) to output (5,4).
+function reOrder(num, div) {
+    // if input (17, 3) the first of list will be 15
+    var order_first = ~~(num / div) * div;
+
+    var order_double, order_output;
+    if (div == 3) {
+        // extend 17 to [15 16 17 15 16 17]
+        order_double = [order_first, order_first + 1, order_first + 2, order_first, order_first + 1, order_first + 2];
+        // reOrder list from 17, and output 17 15 16&
+        order_output = [order_double[order_double.indexOf(num)], order_double[order_double.indexOf(num) + 1], order_double[order_double.indexOf(num) + 2]];
+    }
+    else if (div == 2) {
+        order_double = [order_first, order_first + 1, order_first, order_first + 1];
+        order_output = [order_double[order_double.indexOf(num)], order_double[order_double.indexOf(num) + 1]];
+    }
+    else {
+        order_double = [order_first, order_first];
+        order_output = [order_double[order_double.indexOf(num)]];
+    }
+    return order_output;
+}
+
+function groupRecog(input_code) {
+    // if it"s corner code, then the divisor(orientations) will be 3 and it"s first num is 0. edge"s are 2 and 24
+    var div, indexNum;
+    if (input_code.charCodeAt() >= 65 && input_code.charCodeAt() <= 90) {
+        div = 3;
+        indexNum = 0;
+    }
+    else if (input_code.charCodeAt() >= 97 && input_code.charCodeAt() <= 122) {
+        div = 2;
+        indexNum = 24;
+    }
+    else {
+        div = 1;
+        indexNum = 48;
+    }
+    return { div, indexNum };
+}
+
+function algSetGenerator(codes) {
+
+    // global cube state(0-23 mean corners; 24-47 mean edges; 48-55 mean centre). It"s a constant.
+    const { div, indexNum } = groupRecog(codes[0]);
+
+    var posList = []
+
+    for (let i = 0; i < codes.length; i += 1) {
+        posList.push(~~((globalState.indexOf(codes[i]) - indexNum) / div));
+    }
+
+    var alg_set = [];
+    // add corner alg set
+    for (let i = 0; i < 24; i += 1) {
+        var first_pos = ~~(i / div);
+        if (posList.indexOf(first_pos) == -1) {
+            for (let j = 0; j < 24; j += 1) {
+                var second_pos = ~~(j / div);
+                if (second_pos != first_pos && posList.indexOf(second_pos) == -1) {
+                    alg_set.push(globalState[i + indexNum] + globalState[j + indexNum]);
+                }
+            }
+        }
+    }
+
+    return alg_set;
+}
+
+function posChichu(input_code) {
+    if(globalState.indexOf(input_code) === -1){
+        return -1;
+    }
+    if (input_code.charCodeAt() >= 65 && input_code.charCodeAt() <= 90) {
+        return ~~(globalState.indexOf(input_code) / 3);
+    }
+    else if (input_code.charCodeAt() >= 97 && input_code.charCodeAt() <= 122) {
+        return ~~((globalState.indexOf(input_code) - 24) / 2);
+    }
+    else {
+        return globalState.indexOf(input_code) - 48;
+    }
+}
+
+
+function randomEdge(parity) {
+    var exTimes = 0;
+    var output_state = globalState;
+    if (parity === 0) {
+        exTimes = 24;
+    } else {
+        exTimes = 25;
+    }
+
+    for (let i = 0; i < exTimes; i++) {
+        var code2 = globalState[~~(Math.random() * 22) + 26];
+        output_state = exCode(["a", code2], output_state);
+    }
+
+    return output_state;
+}
+
+function randomEdge1(parity, codeList, output_state) {
+    var exTimes = 0;
+    if (parity === 0) {
+        exTimes = 24;
+    } else {
+        exTimes = 25;
+    }
+
+    let posList = Array.from({ length: 12 }, (_, i) => i);;
+    if (codeList.length > 0) {
+        let inputList = [];
+        for (let i = 0; i < codeList.length; i++) {
+            inputList.push(posChichu(codeList[i]));
+        }
+        posList = posList.filter(item => !inputList.includes(item));
+    }
+    var pos0 = posList[0];
+    posList.splice(0, 1);
+
+    for (let i = 0; i < exTimes; i++) {
+        var pos = posList[~~(Math.random() * posList.length)];
+        var code = eglobalState[pos * 2 + ~~(Math.random() * 2)];
+        output_state = exCode([eglobalState[pos0 * 2], code], output_state);
+    }
+
+    return output_state;
+}
+
+function randomCorner(parity) {
+    var exTimes = 0;
+    var output_state = globalState;
+    if (parity === 0) {
+        exTimes = 24;
+    } else {
+        exTimes = 25;
+    }
+
+    for (let i = 0; i < exTimes; i++) {
+        var code2 = globalState[~~(Math.random() * 21) + 3];
+        output_state = exCode(["A", code2], output_state);
+    }
+
+    return output_state;
+}
+
+function randomCorner1(parity, codeList, output_state) {
+    var exTimes = 0;
+    if (parity === 0) {
+        exTimes = 24;
+    } else {
+        exTimes = 25;
+    }
+
+    let posList = Array.from({ length: 8 }, (_, i) => i);;
+    if (codeList.length > 0) {
+        let inputList = [];
+        for (let i = 0; i < codeList.length; i++) {
+            inputList.push(posChichu(codeList[i]));
+        }
+        posList = posList.filter(item => !inputList.includes(item));
+    }
+    var pos0 = posList[0];
+    posList.splice(0, 1);
+
+    for (let i = 0; i < exTimes; i++) {
+        var pos = posList[~~(Math.random() * posList.length)];
+        var code = globalState[pos * 3 + ~~(Math.random() * 3)];
+        output_state = exCode([globalState[pos0 * 3], code], output_state);
+    }
+
+    return output_state;
+}
+
+function mergeState(cornerstate, edgestate) {
+    return cornerstate.substr(0, 24).concat(edgestate.substr(24, 24)).concat('123456');
+}
+</script>
+<script>
+"use strict";
+
+let cornerCh = " JKLGHIABCDEFXYZWMNRSTOPQ",
+    edgeCh = " GHABCDEFOPKLQRSTYZIJWXMN";
+
+const arra = [[0], [0], [0], [0], [0], [0], [0]];
+const arrc = [[0], [0], [0], [0], [0], [0], [0]];
+function transformation1(transa, transb, transc, transd) {
+    arrc[transa][transb] = arra[transa][transb];
+    arra[transa][transb] = arrc[transc][transd];
+}
+
+function transformation2(transa, transb, transc, transd) {
+    arrc[transa][transb] = arra[transa][transb];
+    arra[transa][transb] = arra[transc][transd];
+}
+
+function movef() {
+    for (let i = 1; i <= 9; i++) {
+        arrc[5][i] = arra[5][i];
+    }
+    arra[5][1] = arra[5][7];
+    arra[5][7] = arra[5][9];
+    arra[5][9] = arra[5][3];
+    arra[5][3] = arrc[5][1];
+    arra[5][2] = arra[5][4];
+    arra[5][4] = arra[5][8];
+    arra[5][8] = arra[5][6];
+    arra[5][6] = arrc[5][2];
+    for (let i = 1; i <= 3; i++) {
+        transformation2(3, 3 * i, 2, i);
+    }
+    for (let i = 1; i <= 3; i++) {
+        transformation2(2, i, 4, 10 - 3 * i);
+    }
+    for (let i = 1; i <= 3; i++) {
+        transformation2(4, 3 * i - 2, 1, 6 + i);
+    }
+    for (let i = 1; i <= 3; i++) {
+        transformation1(1, 6 + i, 3, 12 - 3 * i);
+    }
+}
+
+function movex() {
+    for (let i = 1; i <= 9; i++) {
+        arrc[3][i] = arra[3][i];
+        arrc[4][i] = arra[4][i];
+    }
+    arra[3][1] = arra[3][3];
+    arra[3][3] = arra[3][9];
+    arra[3][9] = arra[3][7];
+    arra[3][7] = arrc[3][1];
+    arra[3][2] = arra[3][6];
+    arra[3][6] = arra[3][8];
+    arra[3][8] = arra[3][4];
+    arra[3][4] = arrc[3][2];
+    arra[4][1] = arra[4][7];
+    arra[4][7] = arra[4][9];
+    arra[4][9] = arra[4][3];
+    arra[4][3] = arrc[4][1];
+    arra[4][2] = arra[4][4];
+    arra[4][4] = arra[4][8];
+    arra[4][8] = arra[4][6];
+    arra[4][6] = arrc[4][2];
+    for (let i = 1; i <= 9; i++) {
+        transformation2(6, i, 1, 10 - i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation1(2, i, 6, 10 - i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation1(5, i, 2, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation1(1, i, 5, i);
+    }
+}
+
+function movey() {
+    for (let i = 1; i <= 9; i++) {
+        arrc[1][i] = arra[1][i];
+        arrc[2][i] = arra[2][i];
+    }
+    arra[2][1] = arra[2][3];
+    arra[2][3] = arra[2][9];
+    arra[2][9] = arra[2][7];
+    arra[2][7] = arrc[2][1];
+    arra[2][2] = arra[2][6];
+    arra[2][6] = arra[2][8];
+    arra[2][8] = arra[2][4];
+    arra[2][4] = arrc[2][2];
+    arra[1][1] = arra[1][7];
+    arra[1][7] = arra[1][9];
+    arra[1][9] = arra[1][3];
+    arra[1][3] = arrc[1][1];
+    arra[1][2] = arra[1][4];
+    arra[1][4] = arra[1][8];
+    arra[1][8] = arra[1][6];
+    arra[1][6] = arrc[1][2];
+    for (let i = 1; i <= 9; i++) {
+        transformation2(6, i, 3, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation2(3, i, 5, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation2(5, i, 4, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        arra[4][i] = arrc[6][i];
+    }
+}
+
+function initialize() {
+    arra[1][1] = "D";
+    arra[1][2] = "E";
+    arra[1][3] = "G";
+    arra[1][4] = "C";
+    arra[1][5] = "U";
+    arra[1][6] = "G";
+    arra[1][7] = "A";
+    arra[1][8] = "A";
+    arra[1][9] = "J";
+    arra[2][1] = "W";
+    arra[2][2] = "I";
+    arra[2][3] = "X";
+    arra[2][4] = "K";
+    arra[2][5] = "D";
+    arra[2][6] = "O";
+    arra[2][7] = "O";
+    arra[2][8] = "M";
+    arra[2][9] = "R";
+    arra[3][1] = "E";
+    arra[3][2] = "D";
+    arra[3][3] = "C";
+    arra[3][4] = "X";
+    arra[3][5] = "L";
+    arra[3][6] = "T";
+    arra[3][7] = "Q";
+    arra[3][8] = "L";
+    arra[3][9] = "M";
+    arra[4][1] = "K";
+    arra[4][2] = "H";
+    arra[4][3] = "I";
+    arra[4][4] = "R";
+    arra[4][5] = "R";
+    arra[4][6] = "Z";
+    arra[4][7] = "Z";
+    arra[4][8] = "P";
+    arra[4][9] = "S";
+    arra[5][1] = "B";
+    arra[5][2] = "B";
+    arra[5][3] = "L";
+    arra[5][4] = "S";
+    arra[5][5] = "F";
+    arra[5][6] = "Q";
+    arra[5][7] = "N";
+    arra[5][8] = "J";
+    arra[5][9] = "Y";
+    arra[6][1] = "H";
+    arra[6][2] = "F";
+    arra[6][3] = "F";
+    arra[6][4] = "Y";
+    arra[6][5] = "B";
+    arra[6][6] = "W";
+    arra[6][7] = "T";
+    arra[6][8] = "N";
+    arra[6][9] = "P";
+}
+
+function movez() {
+    movex();
+    movey();
+    movex();
+    movex();
+    movex();
+}
+function movel() {
+    movey();
+    movey();
+    movey();
+    movef();
+    movey();
+}
+function moveu() {
+    movex();
+    movex();
+    movex();
+    movef();
+    movex();
+}
+function moveb() {
+    movex();
+    movex();
+    movef();
+    movex();
+    movex();
+}
+function mover() {
+    movey();
+    movef();
+    movey();
+    movey();
+    movey();
+}
+function moved() {
+    movex();
+    movef();
+    movex();
+    movex();
+    movex();
+}
+function movedi() {
+    moved();
+    moved();
+    moved();
+}
+function moveli() {
+    movel();
+    movel();
+    movel();
+}
+function moveri() {
+    mover();
+    mover();
+    mover();
+}
+function movefi() {
+    movef();
+    movef();
+    movef();
+}
+function moveui() {
+    moveu();
+    moveu();
+    moveu();
+}
+function movebi() {
+    moveb();
+    moveb();
+    moveb();
+}
+function moved2() {
+    moved();
+    moved();
+}
+function movel2() {
+    movel();
+    movel();
+}
+function mover2() {
+    mover();
+    mover();
+}
+function movef2() {
+    movef();
+    movef();
+}
+function moveu2() {
+    moveu();
+    moveu();
+}
+function moveb2() {
+    moveb();
+    moveb();
+}
+function movexr() {
+    movel();
+    movex();
+}
+function movexf() {
+    moveb();
+    movez();
+}
+function movexu() {
+    moved();
+    movey();
+}
+function movexd() {
+    moveu();
+    movey();
+    movey();
+    movey();
+}
+function movexl() {
+    mover();
+    movex();
+    movex();
+    movex();
+}
+function movexb() {
+    movef();
+    movez();
+    movez();
+    movez();
+}
+function movex2() {
+    movex();
+    movex();
+}
+function movey2() {
+    movey();
+    movey();
+}
+function movez2() {
+    movez();
+    movez();
+}
+function movexi() {
+    movex();
+    movex();
+    movex();
+}
+function moveyi() {
+    movey();
+    movey();
+    movey();
+}
+function movezi() {
+    movez();
+    movez();
+    movez();
+}
+function movem() {
+    mover();
+    moveli();
+    movex();
+    movex();
+    movex();
+}
+function movem2() {
+    mover2();
+    movel2();
+    movex2();
+}
+function movemi() {
+    movex();
+    movel();
+    mover();
+    mover();
+    mover();
+}
+function moves() {
+    movef();
+    movef();
+    movef();
+    moveb();
+    movez();
+}
+function moves2() {
+    movef2();
+    moveb2();
+    movez2();
+}
+function movesi() {
+    movez();
+    movez();
+    movez();
+    moveb();
+    moveb();
+    moveb();
+    movef();
+}
+function movee() {
+    moveu();
+    moved();
+    moved();
+    moved();
+    movey();
+    movey();
+    movey();
+}
+function movee2() {
+    moveu2();
+    moved2();
+    movey2();
+}
+function moveei() {
+    movey();
+    moved();
+    moveu();
+    moveu();
+    moveu();
+}
+function movexr2() {
+    movexr();
+    movexr();
+}
+function movexf2() {
+    movexf();
+    movexf();
+}
+function movexu2() {
+    movexu();
+    movexu();
+}
+function movexd2() {
+    movexd();
+    movexd();
+}
+function movexl2() {
+    movexl();
+    movexl();
+}
+function movexb2() {
+    movexb();
+    movexb();
+}
+function movexri() {
+    movexr();
+    movexr();
+    movexr();
+}
+function movexfi() {
+    movexf();
+    movexf();
+    movexf();
+}
+function movexui() {
+    movexu();
+    movexu();
+    movexu();
+}
+function movexdi() {
+    movexd();
+    movexd();
+    movexd();
+}
+function movexli() {
+    movexl();
+    movexl();
+    movexl();
+}
+function movexbi() {
+    movexb();
+    movexb();
+    movexb();
+}
+
+function operate(operateChar) {
+    switch (operateChar) {
+        case "R":
+            mover();
+            break;
+        case "L":
+            movel();
+            break;
+        case "F":
+            movef();
+            break;
+        case "B":
+            moveb();
+            break;
+        case "U":
+            moveu();
+            break;
+        case "D":
+            moved();
+            break;
+        case "R2":
+            mover2();
+            break;
+        case "L2":
+            movel2();
+            break;
+        case "F2":
+            movef2();
+            break;
+        case "B2":
+            moveb2();
+            break;
+        case "U2":
+            moveu2();
+            break;
+        case "D2":
+            moved2();
+            break;
+        case "R'":
+            moveri();
+            break;
+        case "L'":
+            moveli();
+            break;
+        case "F'":
+            movefi();
+            break;
+        case "B'":
+            movebi();
+            break;
+        case "U'":
+            moveui();
+            break;
+        case "D'":
+            movedi();
+            break;
+        case "x":
+            movex();
+            break;
+        case "x2":
+            movex2();
+            break;
+        case "x'":
+            movexi();
+            break;
+        case "y":
+            movey();
+            break;
+        case "y2":
+            movey2();
+            break;
+        case "y'":
+            moveyi();
+            break;
+        case "z":
+            movez();
+            break;
+        case "z2":
+            movez2();
+            break;
+        case "z'":
+            movezi();
+            break;
+        case "r":
+            movexr();
+            break;
+        case "r2":
+            movexr2();
+            break;
+        case "r'":
+            movexri();
+            break;
+        case "f":
+            movexf();
+            break;
+        case "f2":
+            movexf2();
+            break;
+        case "f'":
+            movexfi();
+            break;
+        case "u":
+            movexu();
+            break;
+        case "u2":
+            movexu2();
+            break;
+        case "u'":
+            movexui();
+            break;
+        case "d":
+            movexd();
+            break;
+        case "d2":
+            movexd2();
+            break;
+        case "d'":
+            movexdi();
+            break;
+        case "l":
+            movexl();
+            break;
+        case "l2":
+            movexl2();
+            break;
+        case "l'":
+            movexli();
+            break;
+        case "b":
+            movexb();
+            break;
+        case "b2":
+            movexb2();
+            break;
+        case "b'":
+            movexbi();
+            break;
+        case "S":
+            moves();
+            break;
+        case "S2":
+            moves2();
+            break;
+        case "S'":
+            movesi();
+            break;
+        case "M":
+            movem();
+            break;
+        case "M2":
+            movem2();
+            break;
+        case "M'":
+            movemi();
+            break;
+        case "E":
+            movee();
+            break;
+        case "E2":
+            movee2();
+            break;
+        case "E'":
+            moveei();
+            break;
+        case "Rw":
+            movexr();
+            break;
+        case "Rw2":
+            movexr2();
+            break;
+        case "Rw'":
+            movexri();
+            break;
+        case "Fw":
+            movexf();
+            break;
+        case "Fw2":
+            movexf2();
+            break;
+        case "Fw'":
+            movexfi();
+            break;
+        case "Uw":
+            movexu();
+            break;
+        case "Uw2":
+            movexu2();
+            break;
+        case "Uw'":
+            movexui();
+            break;
+        case "Dw":
+            movexd();
+            break;
+        case "Dw2":
+            movexd2();
+            break;
+        case "Dw'":
+            movexdi();
+            break;
+        case "Lw":
+            movexl();
+            break;
+        case "Lw2":
+            movexl2();
+            break;
+        case "Lw'":
+            movexli();
+            break;
+        case "Bw":
+            movexb();
+            break;
+        case "Bw2":
+            movexb2();
+            break;
+        case "Bw'":
+            movexbi();
+            break;
+        default:
+            break;
+    }
+}
+
+function operatealg(s1) {
+    initialize();
+    const arr = s1.split(" ");
+    const validMoves = [
+        "R", "L", "F", "B", "U", "D", "R2", "L2", "F2", "B2", "U2", "D2", "R'", "L'", "F'", "B'", "U'", "D'",
+        "x", "x2", "x'", "y", "y2", "y'", "z", "z2", "z'",
+        "r", "r2", "r'", "f", "f2", "f'", "u", "u2", "u'", "d", "d2", "d'", "l", "l2", "l'", "b", "b2", "b'",
+        "S", "S2", "S'", "M", "M2", "M'", "E", "E2", "E'",
+        "Rw", "Rw2", "Rw'", "Fw", "Fw2", "Fw'", "Uw", "Uw2", "Uw'", "Dw", "Dw2", "Dw'", "Lw", "Lw2", "Lw'", "Bw", "Bw2", "Bw'"
+    ];
+    for (let i = 0; i < arr.length; i++) {
+        if (validMoves.indexOf(arr[i]) > -1) {
+            operate(arr[i]);
+        } else {
+            //initialize();
+            //return false;
+        }
+    }
+    let outarr = arra;
+    return outarr;
+}
+
+function track1(track1Str) {
+    switch (track1Str) {
+        case "A": return arra[1][8];
+        case "B": return arra[5][2];
+        case "C": return arra[1][4];
+        case "D": return arra[3][2];
+        case "E": return arra[1][2];
+        case "F": return arra[6][2];
+        case "G": return arra[1][6];
+        case "H": return arra[4][2];
+        case "I": return arra[2][2];
+        case "J": return arra[5][8];
+        case "K": return arra[2][4];
+        case "L": return arra[3][8];
+        case "M": return arra[2][8];
+        case "N": return arra[6][8];
+        case "O": return arra[2][6];
+        case "P": return arra[4][8];
+        case "Q": return arra[5][6];
+        case "R": return arra[4][4];
+        case "S": return arra[5][4];
+        case "T": return arra[3][6];
+        case "W": return arra[6][6];
+        case "X": return arra[3][4];
+        case "Y": return arra[6][4];
+        case "Z": return arra[4][6];
+        default: return 0;
+    }
+}
+
+function track2(track2Str) {
+    switch (track2Str) {
+        case "A": return arra[1][7];
+        case "B": return arra[5][1];
+        case "C": return arra[3][3];
+        case "D": return arra[1][1];
+        case "E": return arra[3][1];
+        case "F": return arra[6][3];
+        case "G": return arra[1][3];
+        case "H": return arra[6][1];
+        case "I": return arra[4][3];
+        case "J": return arra[1][9];
+        case "K": return arra[4][1];
+        case "L": return arra[5][3];
+        case "W": return arra[2][1];
+        case "M": return arra[3][9];
+        case "N": return arra[5][7];
+        case "O": return arra[2][7];
+        case "P": return arra[6][9];
+        case "Q": return arra[3][7];
+        case "R": return arra[2][9];
+        case "S": return arra[4][9];
+        case "T": return arra[6][7];
+        case "X": return arra[2][3];
+        case "Y": return arra[5][9];
+        case "Z": return arra[4][7];
+        default: return 0;
+    }
+}
+
+function cornerfull(s1) {
+    initialize();
+    let cornerfullChar = "";
+    operatealg(s1);
+    for (let i = 1; i <= 24; i = i + 3) {
+        if (cornerfullChar.indexOf(cornerCh[i]) === -1 && cornerfullChar.indexOf(cornerCh[i + 1]) === -1 && cornerfullChar.indexOf(cornerCh[i + 2]) === -1) {
+            let cornerpartChar = cornerCh[i];
+            while (track2(cornerpartChar[cornerpartChar.length - 1]) !== cornerpartChar[0]) {
+                cornerpartChar = cornerpartChar + track2(cornerpartChar[cornerpartChar.length - 1]);
+            }
+            if (cornerpartChar !== cornerCh[i]) {
+                cornerfullChar = cornerfullChar + cornerpartChar + cornerCh[i];
+            }
+        }
+    }
+    return cornerfullChar;
+}
+
+function edgefull(s1) {
+    initialize();
+    let edgefullChar = "";
+    operatealg(s1);
+    for (let i = 1; i <= 24; i = i + 2) {
+        if (edgefullChar.indexOf(edgeCh[i]) === -1 && edgefullChar.indexOf(edgeCh[i + 1]) === -1) {
+            let edgepartChar = edgeCh[i];
+            while (track1(edgepartChar[edgepartChar.length - 1]) !== edgepartChar[0]) {
+                edgepartChar = edgepartChar + track1(edgepartChar[edgepartChar.length - 1]);
+            }
+            if (edgepartChar !== edgeCh[i]) {
+                edgefullChar = edgefullChar + edgepartChar + edgeCh[i];
+            }
+        }
+    }
+    return edgefullChar;
+}
+
+function nearcorner(s1) {
+    const cornerChtemp = " JKLGHIABCDEFXYZWMNRSTOPQ";
+    if (cornerChtemp.indexOf(s1) % 3 === 0) {
+        return cornerChtemp[cornerChtemp.indexOf(s1) - 2];
+    }
+    return cornerChtemp[cornerChtemp.indexOf(s1) + 1];
+}
+
+function nearedge(s1) {
+    const edgeChtemp = " GHABCDEFOPKLQRSTYZIJWXMN";
+    if (edgeChtemp.indexOf(s1) % 2 === 1) {
+        return edgeChtemp[edgeChtemp.indexOf(s1) + 1];
+    }
+    return edgeChtemp[edgeChtemp.indexOf(s1) - 1];
+}
+
+function edgeorientation(s1) {
+    operatealg(s1);
+    let edgeorientationOut = "";
+    for (let i = 3; i <= 24; i = i + 2) {
+        if (track1(edgeCh[i]) === edgeCh[i + 1]) {
+            edgeorientationOut = `${edgeorientationOut + edgeCh[i + 1] + edgeCh[i]} `;
+        }
+    }
+    edgeorientationOut = edgeorientationOut.slice(0, edgeorientationOut.length - 1);
+    return edgeorientationOut;
+}
+
+function printout() {
+    for (let i = 1; i <= 6; i++) {
+        for (let j = 1; j <= 9; j++) {
+            console.log(arra[i][j]);
+        }
+    }
+}
+
+function edgeread(s1) {
+    operatealg(s1);
+
+    let cycleList = [];
+    let cycleOrders = [];
+    let edgereadChar = "";
+    let edgereadpartChar = "";
+    let sumorient = 0;
+
+    const orientFlag = Number(document.getElementById("edgeorientflag").checked);
+    const skipCycleNum = Number(document.getElementById("edgeskipcyclenum").checked);
+    const edgebuffer = String(document.getElementById("edgebuffer").value).toUpperCase();
+    const edgeorder = String(document.getElementById("edgeorder").value).toUpperCase();
+
+    edgeCh = ` ${edgebuffer}${nearedge(edgebuffer)}`;
+    for (let i = 0; i <= edgeorder.length - 1; i++) {
+        edgeCh = edgeCh + edgeorder[i] + nearedge(edgeorder[i]);
+    }
+
+    for (let i = 1; i <= 24; i = i + 2) {
+        if (edgereadChar.indexOf(edgeCh[i]) === -1 && edgereadChar.indexOf(edgeCh[i + 1]) === -1) {
+            edgereadpartChar = edgeCh[i];
+            while (track1(edgereadpartChar[edgereadpartChar.length - 1]) !== edgereadpartChar[0]
+                && nearedge(track1(edgereadpartChar[edgereadpartChar.length - 1])) !== edgereadpartChar[0]) {
+                edgereadpartChar = edgereadpartChar + track1(edgereadpartChar[edgereadpartChar.length - 1]);
+            }
+            if (edgereadpartChar !== edgeCh[i] || i === 1) {
+                edgereadpartChar = edgereadpartChar + track1(edgereadpartChar[edgereadpartChar.length - 1]);
+                edgereadChar = edgereadChar + edgereadpartChar;
+                cycleList.push(edgereadpartChar);
+                cycleOrders.push(~~((i - 1) / 2));
+            }
+            sumorient += edgeCh.indexOf(edgereadpartChar[edgereadpartChar.length - 1]) - edgeCh.indexOf(edgereadpartChar[0]);            
+        }
+    }
+
+    let orientLast = 0;
+    let edgereadOut = "";
+    let endList = "";
+    let codenum = 0;
+    for (let i = 0; i < cycleList.length; i++) {
+        if (i > 0) {
+            orientLast += edgeCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - edgeCh.indexOf(cycleList[i - 1][0]);
+        }
+        //跳编法如果按借位绝对顺序跳（如跳一次则只跳G，G已经被还原就算有小循环也不再跳）则需要使用cycleOrders[i]，如果按小循环出现的顺序跳，直接用i即可。
+        for (let j = 0; j < cycleList[i].length; j++) {
+            let code = cycleList[i][j];
+            if (i > 0 && (orientFlag === 1 || (orientFlag === 0 && cycleOrders[i] <= skipCycleNum))) {
+                for (let k = 0; k < orientLast; k++) {
+                    code = nearedge(code);
+                }
+            }
+            //丑陋，要改
+            if (j === cycleList[i].length - 1 && cycleOrders[i] === 0) continue;
+            if (j === cycleList[i].length - 1 && cycleOrders[i] <= skipCycleNum) {
+                //先将跳过的编码加到最后，默认为高级色编码，需要再根据色相总和进行处理
+                let lastcode = eglobalState[~~posChichu(code.toLowerCase())*2].toUpperCase();
+                for (let k = 0; k < sumorient % 2; k++) {
+                    lastcode = nearedge(lastcode);
+                }
+                endList += lastcode;
+            } else {
+                // edgereadOut += code;
+                if(i>0 && j===0){
+                    edgereadOut += `<span style='color:blue'>${code}</span>` ;
+                }else if(i>0 && j===cycleList[i].length-1){
+                    edgereadOut += `<span style='color:green'>${code}</span>`;
+                }else{
+                    edgereadOut += code;
+                }
+                codenum+=1;
+                if (codenum > 1 && codenum % 2 === 1) {
+                    edgereadOut += " ";
+                }
+            }
+        }
+    }
+    if (skipCycleNum > 0) {
+        edgereadOut += `<span style='color:green'>${endList.split('').reverse().join('')}</span>` ;
+    }
+
+    edgereadOut = edgereadOut.slice(1, edgereadOut.length);
+    return edgereadOut;
+}
+
+function cornerread(s1) {
+    operatealg(s1);
+
+    const orientFlag = Number(document.getElementById("cornerorientflag").checked);
+    const skipCycleNum = Number(document.getElementById("cornerskipcyclenum").checked);
+    const cornerbuffer = String(document.getElementById("cornerbuffer").value).toUpperCase();
+    const cornerorder = String(document.getElementById("cornerorder").value).toUpperCase();
+
+    cornerCh = ` ${cornerbuffer}${nearcorner(cornerbuffer)}${nearcorner(nearcorner(cornerbuffer))}`;
+    for (let i = 0; i <= cornerorder.length - 1; i++) {
+        cornerCh = cornerCh + cornerorder[i] + nearcorner(cornerorder[i]) + nearcorner(nearcorner(cornerorder[i]));
+    }
+
+    let cycleList = [];
+    let cycleOrders = [];
+    let cornerreadChar = "";
+    let cornerreadpartChar = "";
+    let sumorient = 0;
+
+    for (let i = 1; i <= 24; i = i + 3) {
+        if (cornerreadChar.indexOf(cornerCh[i]) === -1 && cornerreadChar.indexOf(cornerCh[i + 1]) === -1 && cornerreadChar.indexOf(cornerCh[i + 2]) === -1) {
+            cornerreadpartChar = cornerCh[i];
+            while (track2(cornerreadpartChar[cornerreadpartChar.length - 1]) !== cornerreadpartChar[0]
+                && nearcorner(track2(cornerreadpartChar[cornerreadpartChar.length - 1])) !== cornerreadpartChar[0]
+                && track2(cornerreadpartChar[cornerreadpartChar.length - 1]) !== nearcorner(cornerreadpartChar[0])) {
+                cornerreadpartChar = cornerreadpartChar + track2(cornerreadpartChar[cornerreadpartChar.length - 1]);
+            }
+            if (cornerreadpartChar !== cornerCh[i] || i === 1) {
+                cornerreadpartChar = cornerreadpartChar + track2(cornerreadpartChar[cornerreadpartChar.length - 1]);
+                cornerreadChar = cornerreadChar + cornerreadpartChar;
+                cycleList.push(cornerreadpartChar);
+                cycleOrders.push(~~((i - 1) / 3));
+            }
+            sumorient += cornerCh.indexOf(cornerreadpartChar[cornerreadpartChar.length - 1]) - cornerCh.indexOf(cornerreadpartChar[0]);      
+        }
+    }
+
+    let orientLast = 0;
+    let cornerreadOut = "";
+    let endList = "";
+    let codenum = 0;
+    for (let i = 0; i < cycleList.length; i++) {
+        if (i > 0) {
+            orientLast += cornerCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - cornerCh.indexOf(cycleList[i - 1][0]);
+        }
+        //跳编法如果按借位绝对顺序跳（如跳一次则只跳G，G已经被还原就算有小循环也不再跳）则需要使用cycleOrders[i]，如果按小循环出现的顺序跳，直接用i即可。
+        for (let j = 0; j < cycleList[i].length; j++) {
+            let code = cycleList[i][j];
+            if (i > 0 && (orientFlag === 1 || (orientFlag === 0 && cycleOrders[i] <= skipCycleNum))) {
+                for (let k = 0; k < orientLast; k++) {
+                    code = nearcorner(code);
+                }
+            }
+            //丑陋，要改
+            if (j === cycleList[i].length - 1 && cycleOrders[i] === 0) continue;
+            if (j === cycleList[i].length - 1 && cycleOrders[i] <= skipCycleNum) {
+                let lastcode = cglobalState[~~posChichu(code)*3];
+                for (let k = 0; k < sumorient % 3; k++) {
+                    lastcode = nearcorner(lastcode);
+                }
+                endList += lastcode;
+            } else {
+                // cornerreadOut += code;
+                if(i>0 && j===0){
+                    cornerreadOut += `<span style='color:blue'>${code}</span>` ;
+                }else if(i>0 && j===cycleList[i].length-1){
+                    cornerreadOut += `<span style='color:green'>${code}</span>`;
+                }else{
+                    cornerreadOut += code;
+                }
+                codenum+=1;
+                if (codenum > 1 && codenum % 2 === 1) {
+                    cornerreadOut += " ";
+                }
+            }
+        }
+    }
+    if (skipCycleNum > 0) {
+        cornerreadOut += `<span style='color:green'>${endList.split('').reverse().join('')}</span>` ;
+    }
+
+    cornerreadOut = cornerreadOut.slice(1, cornerreadOut.length);
+    return cornerreadOut;
+}
+
+function cornerorientation(s1) {
+    operatealg(s1);
+    let cornerorientationOut = "";
+    for (let i = 4; i <= 24; i = i + 3) {
+        if (track2(cornerCh[i]) === cornerCh[i + 1]) {
+            cornerorientationOut = `${cornerorientationOut + cornerCh[i + 2] + cornerCh[i]} `;
+        }
+        if (track2(cornerCh[i]) === cornerCh[i + 2]) {
+            cornerorientationOut = `${cornerorientationOut + cornerCh[i + 1] + cornerCh[i]} `;
+        }
+    }
+    cornerorientationOut = cornerorientationOut.slice(0, cornerorientationOut.length - 1);
+    return cornerorientationOut;
+}
+
+function analyse() {
+    let scr = document.getElementById("scrinput").value;
+    
+    while(scr.charAt(scr.length-1) === " "){
+        scr = scr.slice(0, -1);
+    }
+    while(alg.charAt(0) === " "){
+        scr = scr.slice(1);
+    }    
+    
+    if(scr.length === 0){
+        return;
+    }
+    if(operatealg(scr)===false){
+        return;
+    }
+
+    let out = `棱块读码：${edgeread(scr)}<br>`;
+    out = `${out}棱块翻色：${edgeorientation(scr)}<br>`;
+    out = `${out}角块读码：${cornerread(scr)}<br>`;
+    out = `${out}角块翻色：${cornerorientation(scr)}<br>`;
+    return out;
+}
+
+
+function track1kongxue(track1Str) {
+    switch (track1Str) {
+        case "A": return arra[1][8];
+        case "C": return arra[1][4];
+        case "E": return arra[1][2];
+        case "G": return arra[1][6];
+        case "I": return arra[2][2];
+        case "K": return arra[2][4];
+        case "M": return arra[2][8];
+        case "O": return arra[2][6];
+        case "Q": return arra[5][6];
+        case "S": return arra[5][4];
+        case "W": return arra[6][6];
+        case "Y": return arra[6][4];
+        default: return 0;
+    }
+}
+
+function edgemap(track2Str) {
+    switch (track2Str) {
+        case "A": return "UF";
+        case "C": return "UL";
+        case "E": return "UB";
+        case "G": return "UR";
+        case "I": return "DF";
+        case "K": return "DL";
+        case "M": return "DB";
+        case "O": return "DR";
+        case "Q": return "FR";
+        case "S": return "FL";
+        case "W": return "BL";
+        case "Y": return "BR";
+        default: return 0;
+    }
+}
+
+function track2kongxue(track2Str) {
+    switch (track2Str) {
+        case "A": return arra[1][7];
+        case "D": return arra[1][1];
+        case "G": return arra[1][3];
+        case "J": return arra[1][9];
+        case "W": return arra[2][1];
+        case "O": return arra[2][7];
+        case "R": return arra[2][9];
+        case "X": return arra[2][3];
+        default: return 0;
+    }
+}
+
+function cornermap(track2Str) {
+    switch (track2Str) {
+        case "A": return "UFL";
+        case "D": return "UBL";
+        case "G": return "UBR";
+        case "J": return "UFR";
+        case "W": return "DFL";
+        case "O": return "DBL";
+        case "R": return "DBR";
+        case "X": return "DFR";
+        default: return 0;
+    }
+}
+
+function kongxuecorner(str) {
+    const arr1 = str.split("[");
+    if (arr1.length !== 2) {
+        return "";
+    }
+    const s1 = arr1[1].split(",")[0];
+    const s2 = arr1[1].split(",")[1].split("]")[0];
+    const cornerloc = ["A", "D", "G", "J", "W", "O", "R", "X"];
+    const list1 = [];
+    const kongxuecornerlist = [];
+    operatealg(s1);
+    for (const i in cornerloc) {
+        if (track2kongxue(cornerloc[i]) !== cornerloc[i]) {
+            list1.push(cornerloc[i]);
+        }
+    }
+    operatealg(s2);
+    for (const i in cornerloc) {
+        if (track2kongxue(cornerloc[i]) !== cornerloc[i] && list1.indexOf(cornerloc[i]) > -1) {
+            kongxuecornerlist.push(cornermap(cornerloc[i]));
+        }
+    }
+    return kongxuecornerlist;
+}
+
+function kongxueedge(str) {
+    const arr1 = str.split("[");
+    if (arr1.length !== 2) {
+        return "";
+    }
+    const s1 = arr1[1].split(",")[0];
+    const s2 = arr1[1].split(",")[1].split("]")[0];
+    const edgeloc = ["A", "C", "E", "G", "I", "K", "M", "O", "Q", "S", "W", "Y"];
+    const list1 = [];
+    const kongxueedgelist = [];
+    operatealg(s1);
+    for (const i in edgeloc) {
+        if (track1kongxue(edgeloc[i]) !== edgeloc[i]) {
+            list1.push(edgeloc[i]);
+        }
+    }
+    operatealg(s2);
+    for (const i in edgeloc) {
+        if (track1kongxue(edgeloc[i]) !== edgeloc[i] && list1.indexOf(edgeloc[i]) > -1) {
+            kongxueedgelist.push(edgemap(edgeloc[i]));
+        }
+    }
+    return kongxueedgelist;
+}
+
+function stm(s1) {
+    return count(s1, " ") + 1;
+}
+
+function qtm(s1) {
+    return count(s1, " ") + count(s1, "2") + 1;
+}
+
+function count(str, substr) {
+    return str.split(substr).length - 1;
+}
+
+function getParity(alg) {
+    if ((stm(alg) * 2 - qtm(alg)) % 2 === 0) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+function edgeOrderCheck(){
+    const edgebuffer = String(document.getElementById("edgebuffer").value).toLowerCase();
+    const edgeorder = String(document.getElementById("edgeorder").value).toLowerCase();
+
+    if(edgeorder.length + edgebuffer.length === 12){
+        let allcodes = edgebuffer + edgeorder;
+        let allpos = [];
+        for(let i = 0;i < allcodes.length; i++){
+            allpos.push(posChichu(allcodes[i]));
+        }       
+        let posSet = new Set(allpos);
+        if(posSet.size !== 12){
+            window.alert("您输入的棱缓冲与棱顺序有误，请检查。");
+            return false;
+        } 
+    }
+    return true;
+}
+
+function cornerOrderCheck(){
+    const cornerbuffer = String(document.getElementById("cornerbuffer").value).toUpperCase();
+    const cornerorder = String(document.getElementById("cornerorder").value).toUpperCase();
+
+
+    if(cornerorder.length + cornerbuffer.length === 8){
+        let allcodes = cornerbuffer + cornerorder;
+        let allpos = [];
+        for(let i = 0;i < allcodes.length; i++){
+            allpos.push(posChichu(allcodes[i]));
+        }       
+        let posSet = new Set(allpos);
+        if(posSet.size !== 8){
+            window.alert("您输入的角缓冲与角顺序有误，请检查。");
+            return false;
+        } 
+    }
+    return true;
+}
+
+function fixorientation(scr) {
+    operatealg(scr);
+    const cubeorientation = arra[1][5] + arra[5][5]; 
+
+    switch (cubeorientation) {
+        case "UF": return "";
+        case "UR": return "y'";
+        case "UB": return "y2";
+        case "UL": return "y";
+        case "DB": return "x2";
+        case "DR": return "y' x2";
+        case "DF": return "y2 x2";
+        case "DL": return "y x2";
+        case "FD": return "x'";
+        case "FR": return "y' x'";
+        case "FU": return "y2 x'";
+        case "FL": return "y x'";
+        case "BU": return "x";
+        case "BR": return "y' x";
+        case "BD": return "y2 x";
+        case "BL": return "y x";
+        case "RF": return "z";
+        case "RD": return "y' z";
+        case "RB": return "y2 z";
+        case "RU": return "y z";
+        case "LF": return "z'";
+        case "LU": return "y' z'";
+        case "LB": return "y2 z'";
+        case "LD": return "y z'";
+    }
+}
+
+function inverse_scramble(s) {
+	var arr = s.split(" ");
+	var result = "";
+	for (var i = 0; i < arr.length; i++)
+	{
+		var it = arr[i];
+		if (it.length == 0)
+			continue;
+		if (it[it.length - 1] == '2')
+			result = it + " " + result;
+		else if (it[it.length - 1] == '\'')
+			result = it.substr(0, it.length - 1) + " " + result;
+		else
+			result = it + "' " + result;
+	}
+	
+	return result;
+}
+
+</script>
+<script>
+"use strict";
+
+const template = [
+    "R", "L", "F", "B", "U", "D", "R2", "L2", "F2", "B2", "U2", "D2", "R'", "L'", "F'", "B'", "U'", "D'",
+];
+
+function getScramble() {
+    let moveList = [];
+    for (let i = 0; i < 100; i++) {
+        var randomPos = Math.floor(Math.random() * 18);
+        if (i == 0) {
+            moveList.push(template[randomPos]);
+        }
+        else {
+            if (template[randomPos][0] != moveList.slice(-1).toString()[0]) {
+                if (i > 1 && template[randomPos][0] != moveList.slice(-2).toString()[0]) {
+                    moveList.push(template[randomPos]);
+                }
+            }
+        }
+        if (moveList.length == 20) {
+            break;
+        }
+    }   
+    return moveList.join(" ");
+}
+
+</script>
+<script>
+"use strict";
+
+function shuffle(array) {
+    let res = [], random;
+    while (array.length) {
+        random = Math.floor(Math.random() * array.length);
+        res.push(array[random]);
+        array.splice(random, 1);
+    }
+    return res;
+}
+
+function isAlphabet(char) {
+    const code = char.charCodeAt(0);
+    if(code === 85 || code === 86 || code === 117 || code === 118){
+        return false;
+    }else if((code >= 65 && code <= 90) || (code >= 97 && code <= 122)){
+        return true;
+    }
+    return false;
+}
+
+function findDuplicates(arr) {
+    return arr.filter((item, index) => arr.indexOf(item) !== index);
+}
+
+function hasUniqueElements(arr) {
+    return new Set(arr).size === arr.length;
+}
+
+function showPopup() {
+    document.getElementById("popup").style.display = "block";
+}
+
+function hidePopup() {
+    document.getElementById("popup").style.display = "none";
+}
+
+function clearPopup(){    
+    let result = confirm("确认清空输入编码吗？");  
+    if (result) {
+        document.getElementById("inputCodes").value = "";
+    }
+}
+
+function hideJump() {
+    document.getElementById("jumpdiv").style.display = "none";
+}
+
+function copyScrs() {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(document.getElementById("outputScrs").value);
+        alert('一键复制成功！');
+    }else{
+        alert('当前设备暂不支持一键复制，请手动全选复制。');
+    }
+}
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === "Escape" && document.getElementById('popup')) {
+        document.getElementById('popup').style.display = 'none';
+    }
+});
+
+function isPC() {
+    var sUserAgent = navigator.userAgent.toLowerCase();
+    if (/ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(sUserAgent)) {
+        document.getElementById("innerdiv").style.width = $('html').css('max-width');
+        alert('mobile');
+    } else {
+        document.getElementById("innerdiv").style.width = $('html').css('max-width') / 2;
+        alert('pc');
+    }
+}
+
+</script>
+<script>
+
+// ===== 主逻辑（复刻自原站 helper.js，3D 魔方替换为平面展开图） =====
+let scr = "";
+let globalcomms = "";
+
+function helperEnter() {
+    if (edgeOrderCheck() === false || cornerOrderCheck() === false) {
+        return;
+    }
+    scr = document.getElementById("scrinput").value;
+
+    var regex = /(([URFBLD])(w?)(['2]?))|([EMSxyzurfbld](['2]?))/g;
+    var temp = scr.replace(/\s+/g, "");
+    var res = temp.match(regex);
+    if (res === null) {
+        scr = "";
+    } else {
+        scr = res.join(' ');
+    }
+
+    codereader();
+    solver();
+    resizeTextarea();
+}
+
+function codereader() {
+    if (edgeOrderCheck() === false || cornerOrderCheck() === false) {
+        return;
+    }
+    if (fixorientation(scr).length > 0) {
+        scr += " " + fixorientation(scr);
+    }
+
+    drawScrambleNet(cubeorientation() + scr);
+
+    document.getElementById("edge").innerHTML = "棱块读码：" + edgeread(scr);
+    document.getElementById("flip").innerHTML = "棱块翻色：" + edgeorientation(scr);
+    document.getElementById("corn").innerHTML = "角块读码：" + cornerread(scr);
+    document.getElementById("twis").innerHTML = "角块翻色：" + cornerorientation(scr);
+
+    document.getElementById("alartoutput1").style.display = "none";
+    document.getElementById("alartoutput1").innerHTML = "";
+}
+
+function solver() {
+    if (edgeOrderCheck() === false || cornerOrderCheck() === false) {
+        return;
+    }
+
+    document.getElementById("alartoutput2").innerHTML = "";
+
+    const cornerbuffer = String(document.getElementById("cornerbuffer").value).toUpperCase();
+    const edgebuffer = String(document.getElementById("edgebuffer").value).toUpperCase();
+
+    let edgecode = document.getElementById("edgesolve").value.replace(/\s/g, "").toUpperCase();
+    let cornercode = document.getElementById("cornersolve").value.replace(/\s/g, "").toUpperCase();
+    let paritycode = document.getElementById("paritysolve").value.replace(/\s/g, "").toUpperCase();
+    let flipcode = document.getElementById("flipsolve").value.replace(/\s/g, "").toUpperCase();
+    let twistcode = document.getElementById("twistsolve").value.replace(/\s/g, "").toUpperCase();
+
+    if (edgecode.length % 2 === 1 || cornercode.length % 2 === 1 || paritycode.length % 2 === 1 || flipcode.length % 2 === 1 || twistcode.length % 2 === 1) {
+        document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现单数编码！";
+    }
+
+    let comms = " ";
+    let liList = document.getElementsByTagName('li');
+    for (let i = 0; i < liList.length; i++) {
+        for (let j = 0; j < liList[i].children.length; j++) {
+            let solveType = liList[i].children[j].id;
+            switch (solveType) {
+                case "edgesolve":
+                    for (let i = 0; i < ~~(edgecode.length/2)*2; i += 2) {
+                        if (!isAlphabet(edgecode[i]) || !isAlphabet(edgecode[i+1]) ) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 输入非法编码！";
+                        }else if (posChichu(edgecode[i].toLowerCase()) === posChichu(edgebuffer.toLowerCase()) || posChichu(edgecode[i + 1].toLowerCase()) === posChichu(edgebuffer.toLowerCase())) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现缓冲块编码！";
+                        } else if (posChichu(edgecode[i].toLowerCase()) === posChichu(edgecode[i + 1].toLowerCase())) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现同位置编码！";
+                        } else {
+                            let state = codeTrans((edgebuffer + edgecode[i+1] + edgecode[i]).toLowerCase(), globalState);
+                            comms += m2p(state);
+                        }
+                    }
+                    break;
+                case "flipsolve":
+                    for (let i = 0; i < ~~(flipcode.length/2)*2; i += 2) {
+                        if (!isAlphabet(flipcode[i]) || !isAlphabet(flipcode[i+1]) ) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 输入非法编码！";
+                        }else if (posChichu(flipcode[i].toLowerCase()) === posChichu(edgebuffer.toLowerCase()) || posChichu(flipcode[i + 1].toLowerCase()) === posChichu(edgebuffer.toLowerCase())) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现缓冲块编码！";
+                        } else if (posChichu(flipcode[i].toLowerCase()) !== posChichu(flipcode[i + 1].toLowerCase())) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 只能出现同位置编码！";
+                        } else {
+                            let state = codeTrans((edgebuffer + flipcode[i+1] + flipcode[i]).toLowerCase(), globalState);
+                            comms += m2p(state);
+                        }
+                    }
+                    break;
+                case "cornersolve":
+                    for (let i = 0; i < ~~(cornercode.length/2)*2; i += 2) {
+                        if (!isAlphabet(cornercode[i]) || !isAlphabet(cornercode[i+1]) ) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 输入非法编码！";
+                        }else if (posChichu(cornercode[i]) === posChichu(cornerbuffer) || posChichu(cornercode[i + 1]) === posChichu(cornerbuffer)) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现缓冲块编码！";
+                        } else if (posChichu(cornercode[i]) === posChichu(cornercode[i + 1])) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现同位置编码！";
+                        } else {
+                            let state = codeTrans((cornerbuffer + cornercode[i + 1] + cornercode[i]), globalState);
+                            comms += m2p(state);
+                        }
+                    }
+                    break;
+                case "twistsolve":
+                    for (let i = 0; i < ~~(twistcode.length/2)*2; i += 2) {
+                        if (!isAlphabet(twistcode[i]) || !isAlphabet(twistcode[i+1]) ) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 输入非法编码！";
+                        }else if (posChichu(twistcode[i]) === posChichu(cornerbuffer) || posChichu(twistcode[i + 1]) === posChichu(cornerbuffer)) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现缓冲块编码！";
+                        } else if (posChichu(twistcode[i]) !== posChichu(twistcode[i + 1])) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 只能出现同位置编码！";
+                        } else {
+                            let state = codeTrans((cornerbuffer + twistcode[i+1] + twistcode[i]), globalState);
+                            comms += m2p(state);
+                        }
+                    }
+                    break;
+                case "paritysolve":
+                    for (let i = 0; i < ~~(paritycode.length/2)*2; i += 2) {
+                        if (!isAlphabet(paritycode[i]) || !isAlphabet(paritycode[i+1]) ) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 输入非法编码！";
+                        }else if (posChichu(paritycode[i].toLowerCase()) === posChichu(edgebuffer.toLowerCase()) || posChichu(paritycode[i + 1]) === posChichu(cornerbuffer)) {
+                            document.getElementById("alartoutput2").innerHTML = "&#9888 不能出现缓冲块编码！";
+                        } else {
+                            let state1 = codeTrans((edgebuffer + paritycode[i]).toLowerCase(), globalState);
+                            let state2 = codeTrans((cornerbuffer + paritycode[i + 1]), state1);
+                            comms += m2p(state2);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    globalcomms = comms;
+    drawScrambleNet(cubeorientation() + scr + comms);
+}
+
+function getNowScramble() {
+    document.getElementById("outputScrs").value = mover2scr(scr + globalcomms);
+    document.getElementById("copyBtn").style.display = "block";
+}
+
+function randomScramble() {
+    document.getElementById('scrinput').value = getScramble();
+    document.getElementById("edgesolve").value = "";
+    document.getElementById("cornersolve").value = "";
+    document.getElementById("paritysolve").value = "";
+    document.getElementById("flipsolve").value = "";
+    document.getElementById("twistsolve").value = "";
+    helperEnter();
+}
+
+const solveList = document.getElementById("solvelist");
+
+function drag(event) {
+    event.dataTransfer.setData("text/plain", event.target.id);
+}
+function allowDrop(event) {
+    event.preventDefault();
+}
+function drop(event) {
+    const edgecode = document.getElementById("edgesolve").value;
+    const cornercode = document.getElementById("cornersolve").value;
+    const paritycode = document.getElementById("paritysolve").value;
+    const flipcode = document.getElementById("flipsolve").value;
+    const twistcode = document.getElementById("twistsolve").value;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    let data = event.dataTransfer.getData("text/plain");
+    const dragHTML = document.getElementById(data).innerHTML;
+    let targetElement;
+    if (event.target.nodeName === "LI") {
+        targetElement = event.target;
+    } else if (event.target.parentElement.nodeName === "LI") {
+        targetElement = event.target.parentElement;
+    }
+    const targetHTML = targetElement.innerHTML;
+
+    if (solveList.dragSrcEl !== event.target) {
+        targetElement.innerHTML = dragHTML;
+        document.getElementById(data).innerHTML = targetHTML;
+    }
+
+    document.getElementById("edgesolve").value = edgecode;
+    document.getElementById("cornersolve").value = cornercode;
+    document.getElementById("paritysolve").value = paritycode;
+    document.getElementById("flipsolve").value = flipcode;
+    document.getElementById("twistsolve").value = twistcode;
+    helperEnter();
+}
+
+function cubeorientation() {
+    let cubeorientation = Number(document.getElementById("cubeorientation").value);
+    switch (cubeorientation) {
+        case 0: return "";
+        case 1: return "y ";
+        case 2: return "y2 ";
+        case 3: return "y' ";
+        case 4: return "x2 ";
+        case 5: return "x2 y ";
+        case 6: return "x2 y2 ";
+        case 7: return "x2 y' ";
+        case 8: return "x ";
+        case 9: return "x y ";
+        case 10: return "x y2 ";
+        case 11: return "x y' ";
+        case 12: return "x' ";
+        case 13: return "x' y ";
+        case 14: return "x' y2 ";
+        case 15: return "x' y' ";
+        case 16: return "z' ";
+        case 17: return "z' y ";
+        case 18: return "z' y2 ";
+        case 19: return "z' y' ";
+        case 20: return "z ";
+        case 21: return "z y ";
+        case 22: return "z y2 ";
+        case 23: return "z y' ";
+    }
+}
+
+function resizeTextarea() {
+    let elem = document.getElementById("scrinput");
+    let rowsValue = Math.floor(elem.value.length / (elem.cols * 1));
+    if (rowsValue === 0) {
+        elem.rows = 1;
+    } else if (rowsValue > 0) {
+        elem.rows = rowsValue;
+    }
+}
+
+function copyScrs() {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(document.getElementById("outputScrs").value);
+        alert('一键复制成功！');
+    } else {
+        alert('当前设备暂不支持一键复制，请手动全选复制。');
+    }
+}
+
+</script>
+<script>
+
+// ===== 平面展开图渲染模块：基于标准方向 Cube 类（贴纸级模拟） =====
+const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
+
+class Cube {
+    constructor(size){
+        this.size = size;
+        this.faces = {};
+        const colors = { U:'U', D:'D', F:'F', B:'B', R:'R', L:'L' };
+        for (const [face, color] of Object.entries(colors)) {
+            this.faces[face] = [];
+            for (let r = 0; r < size; r++) {
+                this.faces[face][r] = [];
+                for (let c = 0; c < size; c++) this.faces[face][r][c] = color;
+            }
+        }
+    }
+    getFace(face){ return this.faces[face]; }
+    rotateFaceCW(face){
+        const s=this.size, m=this.faces[face], n=[];
+        for(let r=0;r<s;r++){ n[r]=[]; for(let c=0;c<s;c++) n[r][c]=m[s-1-c][r]; }
+        this.faces[face]=n;
+    }
+    rotateFaceCCW(face){
+        const s=this.size, m=this.faces[face], n=[];
+        for(let r=0;r<s;r++){ n[r]=[]; for(let c=0;c<s;c++) n[r][c]=m[c][s-1-r]; }
+        this.faces[face]=n;
+    }
+    // 面转动（标准 WCA 方向）
+    applyMove(move){
+        const face=move.face, dir=move.dir; // 1=CW -1=CCW 2=180
+        const doCW=()=>{ this.rotateFaceCW(face); this._moveEdges(face,1); };
+        const doCCW=()=>{ this.rotateFaceCCW(face); this._moveEdges(face,-1); };
+        if(dir===2){ doCW(); doCW(); }
+        else if(dir===1){ doCW(); }
+        else { doCCW(); }
+    }
+    _moveEdges(face, dir){
+        const s=this.size, n=s-1;
+        if(face==='R'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.U[i][n], b=this.faces.F[i][n], c=this.faces.D[i][n], d=this.faces.B[s-1-i][0];
+                if(dir===1){ this.faces.U[i][n]=d; this.faces.F[i][n]=a; this.faces.D[i][n]=b; this.faces.B[s-1-i][0]=c; }
+                else { this.faces.U[i][n]=b; this.faces.F[i][n]=c; this.faces.D[i][n]=d; this.faces.B[s-1-i][0]=a; }
+            }
+        } else if(face==='L'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.U[i][0], b=this.faces.B[s-1-i][n], c=this.faces.D[i][0], d=this.faces.F[i][0];
+                if(dir===1){ this.faces.U[i][0]=d; this.faces.B[s-1-i][n]=a; this.faces.D[i][0]=b; this.faces.F[i][0]=c; }
+                else { this.faces.U[i][0]=b; this.faces.B[s-1-i][n]=c; this.faces.D[i][0]=d; this.faces.F[i][0]=a; }
+            }
+        } else if(face==='U'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.F[0][i], b=this.faces.R[0][i], c=this.faces.B[0][i], d=this.faces.L[0][i];
+                if(dir===1){ this.faces.F[0][i]=d; this.faces.R[0][i]=a; this.faces.B[0][i]=b; this.faces.L[0][i]=c; }
+                else { this.faces.F[0][i]=b; this.faces.R[0][i]=c; this.faces.B[0][i]=d; this.faces.L[0][i]=a; }
+            }
+        } else if(face==='D'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.F[n][i], b=this.faces.L[n][i], c=this.faces.B[n][i], d=this.faces.R[n][i];
+                if(dir===1){ this.faces.F[n][i]=d; this.faces.L[n][i]=a; this.faces.B[n][i]=b; this.faces.R[n][i]=c; }
+                else { this.faces.F[n][i]=b; this.faces.L[n][i]=c; this.faces.B[n][i]=d; this.faces.R[n][i]=a; }
+            }
+        } else if(face==='F'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.U[n][i], b=this.faces.R[i][0], c=this.faces.D[0][s-1-i], d=this.faces.L[s-1-i][n];
+                if(dir===1){ this.faces.U[n][i]=d; this.faces.R[i][0]=a; this.faces.D[0][s-1-i]=b; this.faces.L[s-1-i][n]=c; }
+                else { this.faces.U[n][i]=b; this.faces.R[i][0]=c; this.faces.D[0][s-1-i]=d; this.faces.L[s-1-i][n]=a; }
+            }
+        } else if(face==='B'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.U[0][s-1-i], b=this.faces.L[i][0], c=this.faces.D[n][i], d=this.faces.R[s-1-i][n];
+                if(dir===1){ this.faces.U[0][s-1-i]=d; this.faces.L[i][0]=a; this.faces.D[n][i]=b; this.faces.R[s-1-i][n]=c; }
+                else { this.faces.U[0][s-1-i]=b; this.faces.L[i][0]=c; this.faces.D[n][i]=d; this.faces.R[s-1-i][n]=a; }
+            }
+        }
+    }
+    // 中层转动（标准方向：M与L同向、E与U同向、S与F同向）
+    _moveMiddle(axis, dir){
+        const s=this.size, n=s-1, m=Math.floor(s/2);
+        if(axis==='M'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.U[i][m], b=this.faces.F[i][m], c=this.faces.D[i][m], d=this.faces.B[s-1-i][m];
+                if(dir===1){ this.faces.U[i][m]=b; this.faces.F[i][m]=c; this.faces.D[i][m]=d; this.faces.B[s-1-i][m]=a; }
+                else { this.faces.U[i][m]=d; this.faces.F[i][m]=a; this.faces.D[i][m]=b; this.faces.B[s-1-i][m]=c; }
+            }
+        } else if(axis==='E'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.F[m][i], b=this.faces.R[m][i], c=this.faces.B[m][i], d=this.faces.L[m][i];
+                if(dir===1){ this.faces.F[m][i]=d; this.faces.R[m][i]=a; this.faces.B[m][i]=b; this.faces.L[m][i]=c; }
+                else { this.faces.F[m][i]=b; this.faces.R[m][i]=c; this.faces.B[m][i]=d; this.faces.L[m][i]=a; }
+            }
+        } else if(axis==='S'){
+            for(let i=0;i<s;i++){
+                const a=this.faces.U[i][m], b=this.faces.R[m][i], c=this.faces.D[s-1-i][m], d=this.faces.L[s-1-i][m];
+                if(dir===1){ this.faces.U[i][m]=d; this.faces.R[m][i]=a; this.faces.D[s-1-i][m]=b; this.faces.L[s-1-i][m]=c; }
+                else { this.faces.U[i][m]=b; this.faces.R[m][i]=c; this.faces.D[s-1-i][m]=d; this.faces.L[s-1-i][m]=a; }
+            }
+        }
+    }
+    applyAlg(alg){
+        for(const mv of parseScrambleNet(alg)){
+            if(mv.mid) this._moveMiddle(mv.mid, mv.dir);
+            else this.applyMove(mv);
+        }
+    }
+}
+
+// 公式解析：支持 R L U D F B M E S r l u d f b x y z + ' 2
+function parseScrambleNet(str){
+    const cleaned = String(str||'').replace(/\s+/g,' ').trim();
+    if(!cleaned) return [];
+    const tokens = cleaned.split(/\s+/);
+    const out = [];
+    for(const tok of tokens){
+        const m = tok.match(/^([RULDFBMESrludfbxyz])(2)?(')?$/);
+        if(!m) continue;
+        const base = m[1];
+        let dir = 1;
+        if(m[3]) dir = -1; else if(m[2]) dir = 2;
+        // 展开为基本面转动序列
+        const seq = expandMoveNet(base, dir);
+        for(const sm of seq) out.push(sm);
+    }
+    return out;
+}
+function expandMoveNet(base, dir){
+    // 返回 {face,dir} 序列；宽转/中层/整体转分解为面转动+中层转动
+    const seq = [];
+    const push = (face, d) => seq.push({face, dir: d});
+    const pushMid = (axis, d) => seq.push({mid: axis, dir: d});
+    switch(base){
+        case 'R': push('R',dir); break;
+        case 'L': push('L',dir); break;
+        case 'U': push('U',dir); break;
+        case 'D': push('D',dir); break;
+        case 'F': push('F',dir); break;
+        case 'B': push('B',dir); break;
+        case 'M': pushMid('M',dir); break;
+        case 'E': pushMid('E',dir); break;
+        case 'S': pushMid('S',dir); break;
+        case 'r': // r = R M'
+            push('R',dir); pushMid('M',-dir); break;
+        case 'l': // l = L M
+            push('L',dir); pushMid('M',dir); break;
+        case 'u': // u = U E'
+            push('U',dir); pushMid('E',-dir); break;
+        case 'd': // d = D E
+            push('D',dir); pushMid('E',dir); break;
+        case 'f': // f = F S
+            push('F',dir); pushMid('S',dir); break;
+        case 'b': // b = B S'
+            push('B',dir); pushMid('S',-dir); break;
+        case 'x': // x = R M' L'
+            push('R',dir); pushMid('M',-dir); push('L',-dir); break;
+        case 'y': // y = U E' D'
+            push('U',dir); pushMid('E',-dir); push('D',-dir); break;
+        case 'z': // z = F S B'
+            push('F',dir); pushMid('S',dir); push('B',-dir); break;
+    }
+    return seq;
+}
+
+// 绘制标准十字展开图
+function drawScrambleNet(alg){
+    const canvas = document.getElementById("player");
+    if(!canvas) return;
+    const cube = new Cube(3);
+    cube.applyAlg(alg);
+    const colors = NET_COLORS;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const availW = Math.max(rect.width, 240);
+    const availH = Math.max(rect.height, 280);
+    const dpr = window.devicePixelRatio || 1;
+    const s = cube.size;
+    const gap = 6, padding = 16;
+    const baseSticker = 34;
+    const faceSize0 = baseSticker * s;
+    const totalW0 = 4*faceSize0 + 3*gap + 2*padding;
+    const totalH0 = 3*faceSize0 + 2*gap + 2*padding;
+    const scale = Math.min(availW/totalW0, availH/totalH0, 1.1);
+    const stickerSize = baseSticker * scale;
+    const faceSize = stickerSize * s;
+    const totalW = 4*faceSize + 3*gap + 2*padding;
+    const totalH = 3*faceSize + 2*gap + 2*padding;
+    canvas.width = totalW * dpr;
+    canvas.height = totalH * dpr;
+    canvas.style.width = totalW + 'px';
+    canvas.style.height = totalH + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0,0,totalW,totalH);
+
+    const uX = faceSize + gap + padding, uY = padding;
+    const lX = padding, lY = faceSize + gap + padding;
+    const fX = faceSize + gap + padding, fY = faceSize + gap + padding;
+    const rX = 2*faceSize + 2*gap + padding, rY = faceSize + gap + padding;
+    const bX = 3*faceSize + 3*gap + padding, bY = faceSize + gap + padding;
+    const dX = faceSize + gap + padding, dY = 2*faceSize + 2*gap + padding;
+    const facePositions = {
+        U:{x:uX,y:uY}, L:{x:lX,y:lY}, F:{x:fX,y:fY},
+        R:{x:rX,y:rY}, B:{x:bX,y:bY}, D:{x:dX,y:dY}
+    };
+    for(const [face,pos] of Object.entries(facePositions)){
+        drawNetFace(ctx, cube, face, pos.x, pos.y, stickerSize, colors);
+    }
+}
+
+function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
+    const s = cube.size;
+    const faceData = cube.getFace(face);
+    const faceSize = stickerSize * s;
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(ox-2, oy-2, faceSize+4, faceSize+4);
+    ctx.fillStyle = '#888';
+    ctx.font = '12px "Microsoft YaHei"';
+    ctx.textAlign = 'center';
+    ctx.fillText(face, ox + faceSize/2, oy - 6);
+    for(let r=0;r<s;r++){
+        for(let c=0;c<s;c++){
+            const colorKey = faceData[r][c];
+            const stickerColor = colors[colorKey];
+            const x = ox + c*stickerSize + 1;
+            const y = oy + r*stickerSize + 1;
+            const ss = stickerSize - 2;
+            ctx.fillStyle = stickerColor;
+            ctx.fillRect(x, y, ss, ss);
+            if(stickerColor === '#FFFFFF'){
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 0.5;
+                ctx.strokeRect(x, y, ss, ss);
+            }
+        }
+    }
+}
+
+</script>
+<script>
+drawScrambleNet("");
+window.onload = function () {
+    document.getElementById("scrinput").style.width = "100%";
+};
+</script>
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>
