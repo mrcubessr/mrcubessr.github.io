@@ -174,6 +174,7 @@
   }
   .output-area .scramble { color: #64b4ff; }
   .output-area .code-line { color: #8a8578; font-size: 0.8rem; }
+  .output-area .code-line .hi { color: #ff6b6b; font-weight: 700; }
   .placeholder { color: #4a4f60; text-align: center; padding-top: 180px; }
 
   .status {
@@ -183,6 +184,7 @@
   }
   .status.err { color: #ff7a7a; }
   .status.ok { color: #7ad99a; }
+  .status.warn { color: #ffd07a; }
 
   /* 弹窗 */
   .toast {
@@ -214,24 +216,13 @@
     margin-bottom: 10px;
   }
 
-  .footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 16px 0 24px;
-    font-size: 12px;
-    letter-spacing: 1px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-  }
-  .footer .grp { color: #fbbf24; }
-  .footer .author { color: #60a5fa; }
-  .footer .zh { color: #f472b6; }
-
   .hint {
     font-size: 0.78rem;
     color: #6a6f80;
     margin-top: 12px;
     line-height: 1.6;
   }
+
 </style>
 </head>
 <body>
@@ -279,7 +270,7 @@
           <option value="even">偶</option>
         </select>
       </div>
-      <div class="field"><label>翻色数量</label><input type="number" id="eFlip" min="0" placeholder="不限"></div>
+      <div class="field"><label>翻色数量</label><input type="number" id="eFlip" min="0" placeholder="留空=不限，填0=无翻色"></div>
       <div class="field"><label>色向</label>
         <select id="eOrient">
           <option value="any">任意</option>
@@ -300,7 +291,7 @@
           <option value="even">偶</option>
         </select>
       </div>
-      <div class="field"><label>翻色数量</label><input type="number" id="cFlip" min="0" placeholder="不限"></div>
+      <div class="field"><label>翻色数量</label><input type="number" id="cFlip" min="0" placeholder="留空=不限，填0=无翻色"></div>
       <div class="field"><label>色向</label>
         <select id="cOrient">
           <option value="any">任意</option>
@@ -312,7 +303,7 @@
       <div class="field"><label>小循环数</label><input type="number" id="cSmall" min="0" placeholder="不限"></div>
       <div class="field"><label>小循环包含</label><input type="text" id="cContain" placeholder="如 IK, 逗号分隔"></div>
 
-      <div class="hint">编码方案：彳亍法（棱缓冲 UF、角缓冲 UBL）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。<br>角编码设为 0 时自动采用纯六面共轭公式（X·A·X'），角块完全复原且输出符合 WCA 标准（无 M/E/S）。</div>
+      <div class="hint">编码方案：彳亍法（spooncuber 读码引擎，物理贴纸字母，A=UF / G=UR 等）。<br>棱/角缓冲与颜色方案可在「设置」中调整（默认棱 UF、角 UFR）。<br>参数留空 = 不限制；翻色数量 = 块在自己位置上且色相相反/方向错误的块数（不含缓冲块），填 0 = 无翻色。<br>注意：长编码下位置正确的块很少，翻色需求建议配短编码（如棱 2-6）使用。<br>角编码设为 0 时自动采用纯六面共轭公式（X·A·X'），角块完全复原且输出符合 WCA 标准（无 M/E/S）。</div>
     </div>
 
     <!-- 设置面板 -->
@@ -335,10 +326,44 @@
           <option value="0">仅打乱步骤</option>
         </select>
       </div>
+      <div class="field"><label>棱缓冲</label>
+        <select id="setEdgeBuf">
+          <option value="UF" selected>UF (A)</option>
+          <option value="UR">UR (G)</option>
+          <option value="UL">UL (C)</option>
+          <option value="UB">UB (E)</option>
+          <option value="DR">DR (O)</option>
+          <option value="DL">DL (K)</option>
+          <option value="FR">FR (Q)</option>
+          <option value="FL">FL (S)</option>
+          <option value="BL">BL (Y)</option>
+          <option value="DF">DF (I)</option>
+          <option value="BR">BR (W)</option>
+          <option value="DB">DB (M)</option>
+        </select>
+      </div>
+      <div class="field"><label>角缓冲</label>
+        <select id="setCornerBuf">
+          <option value="UFR" selected>UFR (J)</option>
+          <option value="UBR">UBR (G)</option>
+          <option value="UFL">UFL (A)</option>
+          <option value="UBL">UBL (D)</option>
+          <option value="DFR">DFR (X)</option>
+          <option value="DFL">DFL (W)</option>
+          <option value="DBR">DBR (R)</option>
+          <option value="DBL">DBL (O)</option>
+        </select>
+      </div>
+      <div class="field"><label>颜色方案</label>
+        <select id="setColor">
+          <option value="0" selected>单色编码</option>
+          <option value="1">高低色标记 (H/L)</option>
+        </select>
+      </div>
       <div class="field"><label>结尾双层转动</label>
         <input type="text" id="setWide" placeholder="留空不追加，如 Rw' Uw2">
       </div>
-      <div class="hint">「结尾双层转动」为练习工具可选功能，非 WCA 官方打乱规范；填写后每条打乱末尾会追加该步骤。</div>
+      <div class="hint">「棱缓冲/角缓冲」决定彳亍法读码起点（默认棱 UF、角 UFR，与 spooncuber 一致）。<br>「高低色标记」将高色贴纸字母加粗着色，便于记忆区分。<br>「结尾双层转动」为练习工具可选功能，非 WCA 官方打乱规范；填写后每条打乱末尾会追加该步骤。</div>
     </div>
   </div>
 
@@ -351,11 +376,6 @@
   </div>
 </div>
 
-<div class="footer">
-  <span class="grp">本网站内容来自中国转面八面体（FTO）魔方交流群272010376</span>
-  <span class="author"> 制作人：魔方先生SSR </span>
-  <span class="zh">2009ZHAN24</span>
-</div>
 
 <div class="toast" id="toast"><div class="tick">✓</div><div>已添加到剪贴板</div></div>
 
@@ -1760,6 +1780,994 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
 	module.exports = min2phase;
 }
 
+// ========== spooncuber 读码引擎：任意棱/角缓冲 + H/L 高低色标记（继承自 spoon_module.js） ==========
+// spooncuber 读码引擎模块：任意棱/角缓冲，完整移植原版 readEdge/readCorner（含翻色/跳编）
+const SPOON = (function () {
+let cornerCh = " JKLGHIABCDEFXYZWMNRSTOPQ",
+    edgeCh = " GHABCDEFOPKLQRSTYZIJWXMN";
+
+const arra = [[0], [0], [0], [0], [0], [0], [0]];
+const arrc = [[0], [0], [0], [0], [0], [0], [0]];
+function transformation1(transa, transb, transc, transd) {
+    arrc[transa][transb] = arra[transa][transb];
+    arra[transa][transb] = arrc[transc][transd];
+}
+
+function transformation2(transa, transb, transc, transd) {
+    arrc[transa][transb] = arra[transa][transb];
+    arra[transa][transb] = arra[transc][transd];
+}
+
+function movef() {
+    for (let i = 1; i <= 9; i++) {
+        arrc[5][i] = arra[5][i];
+    }
+    arra[5][1] = arra[5][7];
+    arra[5][7] = arra[5][9];
+    arra[5][9] = arra[5][3];
+    arra[5][3] = arrc[5][1];
+    arra[5][2] = arra[5][4];
+    arra[5][4] = arra[5][8];
+    arra[5][8] = arra[5][6];
+    arra[5][6] = arrc[5][2];
+    for (let i = 1; i <= 3; i++) {
+        transformation2(3, 3 * i, 2, i);
+    }
+    for (let i = 1; i <= 3; i++) {
+        transformation2(2, i, 4, 10 - 3 * i);
+    }
+    for (let i = 1; i <= 3; i++) {
+        transformation2(4, 3 * i - 2, 1, 6 + i);
+    }
+    for (let i = 1; i <= 3; i++) {
+        transformation1(1, 6 + i, 3, 12 - 3 * i);
+    }
+}
+
+function movex() {
+    for (let i = 1; i <= 9; i++) {
+        arrc[3][i] = arra[3][i];
+        arrc[4][i] = arra[4][i];
+    }
+    arra[3][1] = arra[3][3];
+    arra[3][3] = arra[3][9];
+    arra[3][9] = arra[3][7];
+    arra[3][7] = arrc[3][1];
+    arra[3][2] = arra[3][6];
+    arra[3][6] = arra[3][8];
+    arra[3][8] = arra[3][4];
+    arra[3][4] = arrc[3][2];
+    arra[4][1] = arra[4][7];
+    arra[4][7] = arra[4][9];
+    arra[4][9] = arra[4][3];
+    arra[4][3] = arrc[4][1];
+    arra[4][2] = arra[4][4];
+    arra[4][4] = arra[4][8];
+    arra[4][8] = arra[4][6];
+    arra[4][6] = arrc[4][2];
+    for (let i = 1; i <= 9; i++) {
+        transformation2(6, i, 1, 10 - i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation1(2, i, 6, 10 - i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation1(5, i, 2, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation1(1, i, 5, i);
+    }
+}
+
+function movey() {
+    for (let i = 1; i <= 9; i++) {
+        arrc[1][i] = arra[1][i];
+        arrc[2][i] = arra[2][i];
+    }
+    arra[2][1] = arra[2][3];
+    arra[2][3] = arra[2][9];
+    arra[2][9] = arra[2][7];
+    arra[2][7] = arrc[2][1];
+    arra[2][2] = arra[2][6];
+    arra[2][6] = arra[2][8];
+    arra[2][8] = arra[2][4];
+    arra[2][4] = arrc[2][2];
+    arra[1][1] = arra[1][7];
+    arra[1][7] = arra[1][9];
+    arra[1][9] = arra[1][3];
+    arra[1][3] = arrc[1][1];
+    arra[1][2] = arra[1][4];
+    arra[1][4] = arra[1][8];
+    arra[1][8] = arra[1][6];
+    arra[1][6] = arrc[1][2];
+    for (let i = 1; i <= 9; i++) {
+        transformation2(6, i, 3, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation2(3, i, 5, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        transformation2(5, i, 4, i);
+    }
+    for (let i = 1; i <= 9; i++) {
+        arra[4][i] = arrc[6][i];
+    }
+}
+
+function initialize() {
+    arra[1][1] = "D";
+    arra[1][2] = "E";
+    arra[1][3] = "G";
+    arra[1][4] = "C";
+    arra[1][5] = "U";
+    arra[1][6] = "G";
+    arra[1][7] = "A";
+    arra[1][8] = "A";
+    arra[1][9] = "J";
+    arra[2][1] = "W";
+    arra[2][2] = "I";
+    arra[2][3] = "X";
+    arra[2][4] = "K";
+    arra[2][5] = "D";
+    arra[2][6] = "O";
+    arra[2][7] = "O";
+    arra[2][8] = "M";
+    arra[2][9] = "R";
+    arra[3][1] = "E";
+    arra[3][2] = "D";
+    arra[3][3] = "C";
+    arra[3][4] = "X";
+    arra[3][5] = "L";
+    arra[3][6] = "T";
+    arra[3][7] = "Q";
+    arra[3][8] = "L";
+    arra[3][9] = "M";
+    arra[4][1] = "K";
+    arra[4][2] = "H";
+    arra[4][3] = "I";
+    arra[4][4] = "R";
+    arra[4][5] = "R";
+    arra[4][6] = "Z";
+    arra[4][7] = "Z";
+    arra[4][8] = "P";
+    arra[4][9] = "S";
+    arra[5][1] = "B";
+    arra[5][2] = "B";
+    arra[5][3] = "L";
+    arra[5][4] = "S";
+    arra[5][5] = "F";
+    arra[5][6] = "Q";
+    arra[5][7] = "N";
+    arra[5][8] = "J";
+    arra[5][9] = "Y";
+    arra[6][1] = "H";
+    arra[6][2] = "F";
+    arra[6][3] = "F";
+    arra[6][4] = "Y";
+    arra[6][5] = "B";
+    arra[6][6] = "W";
+    arra[6][7] = "T";
+    arra[6][8] = "N";
+    arra[6][9] = "P";
+}
+
+function movez() {
+    movex();
+    movey();
+    movex();
+    movex();
+    movex();
+}
+function movel() {
+    movey();
+    movey();
+    movey();
+    movef();
+    movey();
+}
+function moveu() {
+    movex();
+    movex();
+    movex();
+    movef();
+    movex();
+}
+function moveb() {
+    movex();
+    movex();
+    movef();
+    movex();
+    movex();
+}
+function mover() {
+    movey();
+    movef();
+    movey();
+    movey();
+    movey();
+}
+function moved() {
+    movex();
+    movef();
+    movex();
+    movex();
+    movex();
+}
+function movedi() {
+    moved();
+    moved();
+    moved();
+}
+function moveli() {
+    movel();
+    movel();
+    movel();
+}
+function moveri() {
+    mover();
+    mover();
+    mover();
+}
+function movefi() {
+    movef();
+    movef();
+    movef();
+}
+function moveui() {
+    moveu();
+    moveu();
+    moveu();
+}
+function movebi() {
+    moveb();
+    moveb();
+    moveb();
+}
+function moved2() {
+    moved();
+    moved();
+}
+function movel2() {
+    movel();
+    movel();
+}
+function mover2() {
+    mover();
+    mover();
+}
+function movef2() {
+    movef();
+    movef();
+}
+function moveu2() {
+    moveu();
+    moveu();
+}
+function moveb2() {
+    moveb();
+    moveb();
+}
+function movexr() {
+    movel();
+    movex();
+}
+function movexf() {
+    moveb();
+    movez();
+}
+function movexu() {
+    moved();
+    movey();
+}
+function movexd() {
+    moveu();
+    movey();
+    movey();
+    movey();
+}
+function movexl() {
+    mover();
+    movex();
+    movex();
+    movex();
+}
+function movexb() {
+    movef();
+    movez();
+    movez();
+    movez();
+}
+function movex2() {
+    movex();
+    movex();
+}
+function movey2() {
+    movey();
+    movey();
+}
+function movez2() {
+    movez();
+    movez();
+}
+function movexi() {
+    movex();
+    movex();
+    movex();
+}
+function moveyi() {
+    movey();
+    movey();
+    movey();
+}
+function movezi() {
+    movez();
+    movez();
+    movez();
+}
+function movem() {
+    mover();
+    moveli();
+    movex();
+    movex();
+    movex();
+}
+function movem2() {
+    mover2();
+    movel2();
+    movex2();
+}
+function movemi() {
+    movex();
+    movel();
+    mover();
+    mover();
+    mover();
+}
+function moves() {
+    movef();
+    movef();
+    movef();
+    moveb();
+    movez();
+}
+function moves2() {
+    movef2();
+    moveb2();
+    movez2();
+}
+function movesi() {
+    movez();
+    movez();
+    movez();
+    moveb();
+    moveb();
+    moveb();
+    movef();
+}
+function movee() {
+    moveu();
+    moved();
+    moved();
+    moved();
+    movey();
+    movey();
+    movey();
+}
+function movee2() {
+    moveu2();
+    moved2();
+    movey2();
+}
+function moveei() {
+    movey();
+    moved();
+    moveu();
+    moveu();
+    moveu();
+}
+function movexr2() {
+    movexr();
+    movexr();
+}
+function movexf2() {
+    movexf();
+    movexf();
+}
+function movexu2() {
+    movexu();
+    movexu();
+}
+function movexd2() {
+    movexd();
+    movexd();
+}
+function movexl2() {
+    movexl();
+    movexl();
+}
+function movexb2() {
+    movexb();
+    movexb();
+}
+function movexri() {
+    movexr();
+    movexr();
+    movexr();
+}
+function movexfi() {
+    movexf();
+    movexf();
+    movexf();
+}
+function movexui() {
+    movexu();
+    movexu();
+    movexu();
+}
+function movexdi() {
+    movexd();
+    movexd();
+    movexd();
+}
+function movexli() {
+    movexl();
+    movexl();
+    movexl();
+}
+function movexbi() {
+    movexb();
+    movexb();
+    movexb();
+}
+
+function operate(operateChar) {
+    switch (operateChar) {
+        case "R":
+            mover();
+            break;
+        case "L":
+            movel();
+            break;
+        case "F":
+            movef();
+            break;
+        case "B":
+            moveb();
+            break;
+        case "U":
+            moveu();
+            break;
+        case "D":
+            moved();
+            break;
+        case "R2":
+            mover2();
+            break;
+        case "L2":
+            movel2();
+            break;
+        case "F2":
+            movef2();
+            break;
+        case "B2":
+            moveb2();
+            break;
+        case "U2":
+            moveu2();
+            break;
+        case "D2":
+            moved2();
+            break;
+        case "R'":
+            moveri();
+            break;
+        case "L'":
+            moveli();
+            break;
+        case "F'":
+            movefi();
+            break;
+        case "B'":
+            movebi();
+            break;
+        case "U'":
+            moveui();
+            break;
+        case "D'":
+            movedi();
+            break;
+        case "x":
+            movex();
+            break;
+        case "x2":
+            movex2();
+            break;
+        case "x'":
+            movexi();
+            break;
+        case "y":
+            movey();
+            break;
+        case "y2":
+            movey2();
+            break;
+        case "y'":
+            moveyi();
+            break;
+        case "z":
+            movez();
+            break;
+        case "z2":
+            movez2();
+            break;
+        case "z'":
+            movezi();
+            break;
+        case "r":
+            movexr();
+            break;
+        case "r2":
+            movexr2();
+            break;
+        case "r'":
+            movexri();
+            break;
+        case "f":
+            movexf();
+            break;
+        case "f2":
+            movexf2();
+            break;
+        case "f'":
+            movexfi();
+            break;
+        case "u":
+            movexu();
+            break;
+        case "u2":
+            movexu2();
+            break;
+        case "u'":
+            movexui();
+            break;
+        case "d":
+            movexd();
+            break;
+        case "d2":
+            movexd2();
+            break;
+        case "d'":
+            movexdi();
+            break;
+        case "l":
+            movexl();
+            break;
+        case "l2":
+            movexl2();
+            break;
+        case "l'":
+            movexli();
+            break;
+        case "b":
+            movexb();
+            break;
+        case "b2":
+            movexb2();
+            break;
+        case "b'":
+            movexbi();
+            break;
+        case "S":
+            moves();
+            break;
+        case "S2":
+            moves2();
+            break;
+        case "S'":
+            movesi();
+            break;
+        case "M":
+            movem();
+            break;
+        case "M2":
+            movem2();
+            break;
+        case "M'":
+            movemi();
+            break;
+        case "E":
+            movee();
+            break;
+        case "E2":
+            movee2();
+            break;
+        case "E'":
+            moveei();
+            break;
+        case "Rw":
+            movexr();
+            break;
+        case "Rw2":
+            movexr2();
+            break;
+        case "Rw'":
+            movexri();
+            break;
+        case "Fw":
+            movexf();
+            break;
+        case "Fw2":
+            movexf2();
+            break;
+        case "Fw'":
+            movexfi();
+            break;
+        case "Uw":
+            movexu();
+            break;
+        case "Uw2":
+            movexu2();
+            break;
+        case "Uw'":
+            movexui();
+            break;
+        case "Dw":
+            movexd();
+            break;
+        case "Dw2":
+            movexd2();
+            break;
+        case "Dw'":
+            movexdi();
+            break;
+        case "Lw":
+            movexl();
+            break;
+        case "Lw2":
+            movexl2();
+            break;
+        case "Lw'":
+            movexli();
+            break;
+        case "Bw":
+            movexb();
+            break;
+        case "Bw2":
+            movexb2();
+            break;
+        case "Bw'":
+            movexbi();
+            break;
+        default:
+            break;
+    }
+}
+
+function operatealg(s1) {
+    initialize();
+    const arr = s1.split(" ");
+    const validMoves = [
+        "R", "L", "F", "B", "U", "D", "R2", "L2", "F2", "B2", "U2", "D2", "R'", "L'", "F'", "B'", "U'", "D'",
+        "x", "x2", "x'", "y", "y2", "y'", "z", "z2", "z'",
+        "r", "r2", "r'", "f", "f2", "f'", "u", "u2", "u'", "d", "d2", "d'", "l", "l2", "l'", "b", "b2", "b'",
+        "S", "S2", "S'", "M", "M2", "M'", "E", "E2", "E'",
+        "Rw", "Rw2", "Rw'", "Fw", "Fw2", "Fw'", "Uw", "Uw2", "Uw'", "Dw", "Dw2", "Dw'", "Lw", "Lw2", "Lw'", "Bw", "Bw2", "Bw'"
+    ];
+    for (let i = 0; i < arr.length; i++) {
+        if (validMoves.indexOf(arr[i]) > -1) {
+            operate(arr[i]);
+        } else {
+            //initialize();
+            //return false;
+        }
+    }
+    let outarr = arra;
+    return outarr;
+}
+
+function track1(track1Str) {
+    switch (track1Str) {
+        case "A": return arra[1][8];
+        case "B": return arra[5][2];
+        case "C": return arra[1][4];
+        case "D": return arra[3][2];
+        case "E": return arra[1][2];
+        case "F": return arra[6][2];
+        case "G": return arra[1][6];
+        case "H": return arra[4][2];
+        case "I": return arra[2][2];
+        case "J": return arra[5][8];
+        case "K": return arra[2][4];
+        case "L": return arra[3][8];
+        case "M": return arra[2][8];
+        case "N": return arra[6][8];
+        case "O": return arra[2][6];
+        case "P": return arra[4][8];
+        case "Q": return arra[5][6];
+        case "R": return arra[4][4];
+        case "S": return arra[5][4];
+        case "T": return arra[3][6];
+        case "W": return arra[6][6];
+        case "X": return arra[3][4];
+        case "Y": return arra[6][4];
+        case "Z": return arra[4][6];
+        default: return 0;
+    }
+}
+
+function track2(track2Str) {
+    switch (track2Str) {
+        case "A": return arra[1][7];
+        case "B": return arra[5][1];
+        case "C": return arra[3][3];
+        case "D": return arra[1][1];
+        case "E": return arra[3][1];
+        case "F": return arra[6][3];
+        case "G": return arra[1][3];
+        case "H": return arra[6][1];
+        case "I": return arra[4][3];
+        case "J": return arra[1][9];
+        case "K": return arra[4][1];
+        case "L": return arra[5][3];
+        case "W": return arra[2][1];
+        case "M": return arra[3][9];
+        case "N": return arra[5][7];
+        case "O": return arra[2][7];
+        case "P": return arra[6][9];
+        case "Q": return arra[3][7];
+        case "R": return arra[2][9];
+        case "S": return arra[4][9];
+        case "T": return arra[6][7];
+        case "X": return arra[2][3];
+        case "Y": return arra[5][9];
+        case "Z": return arra[4][7];
+        default: return 0;
+    }
+}
+
+
+
+  // ---- 同块邻贴纸（固定常量表，与原版一致） ----
+  function nearcorner(s1) {
+    const cornerChtemp = " JKLGHIABCDEFXYZWMNRSTOPQ";
+    if (cornerChtemp.indexOf(s1) % 3 === 0) {
+        return cornerChtemp[cornerChtemp.indexOf(s1) - 2];
+    }
+    return cornerChtemp[cornerChtemp.indexOf(s1) + 1];
+  }
+  function nearedge(s1) {
+    const edgeChtemp = " GHABCDEFOPKLQRSTYZIJWXMN";
+    if (edgeChtemp.indexOf(s1) % 2 === 1) {
+        return edgeChtemp[edgeChtemp.indexOf(s1) + 1];
+    }
+    return edgeChtemp[edgeChtemp.indexOf(s1) - 1];
+  }
+
+  // ---- 块映射（spooncuber 物理贴纸位，经 track1/track2 验证） ----
+  // 棱：组内两字母 = 同棱两贴纸；组首字母 = U/D 高级色贴纸
+  const EDGE_BLOCKS = {UR:['G','H'],UF:['A','B'],UL:['C','D'],UB:['E','F'],DR:['O','P'],DL:['K','L'],FR:['Q','R'],FL:['S','T'],BL:['Y','Z'],DF:['I','J'],BR:['W','X'],DB:['M','N']};
+  // 角：组内三字母 = 同角三贴纸；组首字母 = U/D 高级色贴纸
+  const CORNER_BLOCKS = {UFR:['J','K','L'],UBR:['G','H','I'],UFL:['A','B','C'],UBL:['D','E','F'],DFR:['X','Y','Z'],DFL:['W','M','N'],DBR:['R','S','T'],DBL:['O','P','Q']};
+  const EDGE_ORDER = ['UR','UF','UL','UB','DR','DL','FR','FL','BL','DF','BR','DB'];
+  const CORNER_ORDER = ['UFR','UBR','UFL','UBL','DFR','DFL','DBR','DBL'];
+
+  // 高级色贴纸集合（组首字母，即 U/D 面贴纸）
+  const ADV_EDGE = new Set(['G','A','C','E','O','K','Q','S','Y','I','W','M']);
+  const ADV_CORNER = new Set(['J','G','A','D','X','W','R','O']);
+
+  // 缓冲参数归一：'UF'/'A' 均可 → 返回块名
+  function normEdgeBuf(buf) {
+    const b = String(buf || '').trim().toUpperCase();
+    if (EDGE_BLOCKS[b]) return b;
+    for (const k in EDGE_BLOCKS) {
+      if (EDGE_BLOCKS[k][0] === b) return k;
+    }
+    return 'UF'; // 默认
+  }
+  function normCornerBuf(buf) {
+    const b = String(buf || '').trim().toUpperCase();
+    if (CORNER_BLOCKS[b]) return b;
+    for (const k in CORNER_BLOCKS) {
+      if (CORNER_BLOCKS[k][0] === b) return k;
+    }
+    return 'UFR';
+  }
+
+  // 构建缓冲对应的字母表（缓冲组置首，其余按固定序）
+  function edgeChOf(buf) {
+    const k = normEdgeBuf(buf);
+    const p = EDGE_BLOCKS[k];
+    let ch = ' ' + p[0] + p[1];
+    for (const b of EDGE_ORDER) {
+      if (b === k) continue;
+      ch += EDGE_BLOCKS[b][0] + EDGE_BLOCKS[b][1];
+    }
+    return ch;
+  }
+  function cornerChOf(buf) {
+    const k = normCornerBuf(buf);
+    const p = CORNER_BLOCKS[k];
+    let ch = ' ' + p[0] + p[1] + p[2];
+    for (const b of CORNER_ORDER) {
+      if (b === k) continue;
+      ch += CORNER_BLOCKS[b][0] + CORNER_BLOCKS[b][1] + CORNER_BLOCKS[b][2];
+    }
+    return ch;
+  }
+
+  // 高级色对应字母（同块回归到组首字母；传入低色字母返回同组高色）
+  const EDGE_GROUP = {}; for (const k in EDGE_BLOCKS) { const p = EDGE_BLOCKS[k]; EDGE_GROUP[p[0]] = p[0]; EDGE_GROUP[p[1]] = p[0]; }
+  const CORNER_GROUP = {}; for (const k in CORNER_BLOCKS) { const p = CORNER_BLOCKS[k]; CORNER_GROUP[p[0]] = p[0]; CORNER_GROUP[p[1]] = p[0]; CORNER_GROUP[p[2]] = p[0]; }
+
+  // 读棱编码（需先 operatealg）
+  // opts: {orientFlag: 0/1, skipCycleNum: 0..}
+  function readEdge(buf, opts) {
+    opts = opts || {};
+    const orientFlag = opts.orientFlag === undefined ? 1 : Number(opts.orientFlag);
+    const skipCycleNum = opts.skipCycleNum === undefined ? 0 : Number(opts.skipCycleNum);
+    const ch = edgeChOf(buf);
+    const cycleList = [], cycleOrders = [];
+    let readChar = '', sumorient = 0;
+    for (let i = 1; i <= 24; i += 2) {
+      if (readChar.indexOf(ch[i]) === -1 && readChar.indexOf(ch[i + 1]) === -1) {
+        let part = ch[i];
+        while (track1(part[part.length - 1]) !== part[0]
+            && nearedge(track1(part[part.length - 1])) !== part[0]) {
+          part += track1(part[part.length - 1]);
+        }
+        if (part !== ch[i] || i === 1) {
+          part += track1(part[part.length - 1]);
+          readChar += part;
+          cycleList.push(part);
+          cycleOrders.push(~~((i - 1) / 2));
+        }
+        sumorient += ch.indexOf(part[part.length - 1]) - ch.indexOf(part[0]);
+      }
+    }
+    // 输出阶段（与原版一致：缓冲循环去回归字母、小循环翻色、跳编）
+    // 修正：缓冲块已归位（缓冲循环仅 'AA' 两字母）时编码为空
+    const code = [], colors = [];
+    let orientLast = 0, endList = '';
+    for (let i = 0; i < cycleList.length; i++) {
+      if (i === 0 && cycleList[i].length === 2) continue; // 缓冲块归位，无编码
+      if (i > 0) {
+        orientLast += ch.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - ch.indexOf(cycleList[i - 1][0]);
+      }
+      for (let j = 0; j < cycleList[i].length; j++) {
+        let c = cycleList[i][j];
+        if (i === 0 && j === 0) continue; // 标准彳亍：大循环不编码缓冲字母（缓冲只作起点，不参与编码）
+        if (i > 0 && (orientFlag === 1 || (orientFlag === 0 && cycleOrders[i] <= skipCycleNum))) {
+          for (let k = 0; k < orientLast; k++) c = nearedge(c);
+        }
+        if (j === cycleList[i].length - 1 && cycleOrders[i] === 0) continue;
+        if (j === cycleList[i].length - 1 && cycleOrders[i] <= skipCycleNum) {
+          let lastcode = EDGE_GROUP[c];
+          for (let k = 0; k < sumorient % 2; k++) lastcode = nearedge(lastcode);
+          endList += lastcode;
+        } else {
+          code.push(c);
+          colors.push(ch.indexOf(c) % 2 === 1 ? 'H' : 'L'); // 组首(奇数位)=高色
+        }
+      }
+    }
+    // 翻棱统计：高级色位放非高级色贴纸（物理翻块数，含缓冲块）
+    let flip = 0;
+    for (let i = 1; i <= 24; i += 2) {
+      if (!ADV_EDGE.has(track1(ch[i]))) flip++;
+    }
+    // 缓冲块方向是否错误：行业口径翻色数不含缓冲块，需从 flipCount 中排除
+    const bufferBad = !ADV_EDGE.has(track1(ch[1]));
+    // 翻棱（用户口径）：块在自己的位置上且色相相反（贴纸对互换）
+    let flipHome = 0;
+    const flipBlocks = [];
+    for (let i = 1; i <= 24; i += 2) {
+      if (track1(ch[i]) === ch[i + 1] && track1(ch[i + 1]) === ch[i]) {
+        flipHome++;
+        if (i !== 1) flipBlocks.push(track1(ch[i]) + track1(ch[i + 1])); // 缓冲块不入翻色显示；按当前位置贴纸顺序
+      }
+    }
+    const bufHomeFlip = (track1(ch[1]) === ch[2] && track1(ch[2]) === ch[1]);
+    if (skipCycleNum > 0) {
+      const tail = endList.split('').reverse();
+      code.push(...tail);
+      for (const tc of tail) colors.push(ch.indexOf(tc) % 2 === 1 ? 'H' : 'L');
+    }
+    return { code, colors, cycles: cycleList, flipCount: flip, sumorient, orientLast, bufferBad, flipHome, bufHomeFlip, flipBlocks };
+  }
+
+  // 读角编码（需先 operatealg）
+  function readCorner(buf, opts) {
+    opts = opts || {};
+    const orientFlag = opts.orientFlag === undefined ? 1 : Number(opts.orientFlag);
+    const skipCycleNum = opts.skipCycleNum === undefined ? 0 : Number(opts.skipCycleNum);
+    const ch = cornerChOf(buf);
+    const cycleList = [], cycleOrders = [];
+    let readChar = '', sumorient = 0;
+    for (let i = 1; i <= 24; i += 3) {
+      if (readChar.indexOf(ch[i]) === -1 && readChar.indexOf(ch[i + 1]) === -1 && readChar.indexOf(ch[i + 2]) === -1) {
+        let part = ch[i];
+        while (track2(part[part.length - 1]) !== part[0]
+            && nearcorner(track2(part[part.length - 1])) !== part[0]
+            && track2(part[part.length - 1]) !== nearcorner(part[0])) {
+          part += track2(part[part.length - 1]);
+        }
+        if (part !== ch[i] || i === 1) {
+          part += track2(part[part.length - 1]);
+          readChar += part;
+          cycleList.push(part);
+          cycleOrders.push(~~((i - 1) / 3));
+        }
+        sumorient += ch.indexOf(part[part.length - 1]) - ch.indexOf(part[0]);
+      }
+    }
+    const code = [], colors = [];
+    let orientLast = 0, endList = '';
+    for (let i = 0; i < cycleList.length; i++) {
+      if (i === 0 && cycleList[i].length === 2) continue; // 角缓冲块归位，无编码
+      if (i > 0) {
+        orientLast += ch.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - ch.indexOf(cycleList[i - 1][0]);
+      }
+      for (let j = 0; j < cycleList[i].length; j++) {
+        let c = cycleList[i][j];
+        if (i === 0 && j === 0) continue; // 标准彳亍：大循环不编码缓冲字母（缓冲只作起点，不参与编码）
+        if (i > 0 && (orientFlag === 1 || (orientFlag === 0 && cycleOrders[i] <= skipCycleNum))) {
+          for (let k = 0; k < orientLast; k++) c = nearcorner(c);
+        }
+        if (j === cycleList[i].length - 1 && cycleOrders[i] === 0) continue;
+        if (j === cycleList[i].length - 1 && cycleOrders[i] <= skipCycleNum) {
+          let lastcode = CORNER_GROUP[c];
+          for (let k = 0; k < sumorient % 3; k++) lastcode = nearcorner(lastcode);
+          endList += lastcode;
+        } else {
+          code.push(c);
+          colors.push(ch.indexOf(c) % 3 === 1 ? 'H' : 'L'); // 每组首字母(位置%3==1)=高色
+        }
+      }
+    }
+    let flip = 0;
+    for (let i = 1; i <= 24; i += 3) {
+      if (!ADV_CORNER.has(track2(ch[i]))) flip++;
+    }
+    // 缓冲角方向是否错误：行业口径翻色数不含缓冲块，需从 flipCount 中排除
+    const bufferBad = !ADV_CORNER.has(track2(ch[1]));
+    // 翻角（用户口径）：块在自己的位置上且方向错误（贴纸集合在本位但组首非高级色贴纸）
+    let flipHome = 0;
+    const flipBlocks = [];
+    for (let i = 1; i <= 24; i += 3) {
+      const here = [track2(ch[i]), track2(ch[i + 1]), track2(ch[i + 2])].sort().join('');
+      const home = [ch[i], ch[i + 1], ch[i + 2]].sort().join('');
+      if (here === home && track2(ch[i]) !== ch[i]) {
+        flipHome++;
+        if (i !== 1) flipBlocks.push(track2(ch[i]) + track2(ch[i + 1]) + track2(ch[i + 2])); // 缓冲块不入翻色显示；按当前位置贴纸顺序
+      }
+    }
+    const bufHomeFlip = (() => {
+      const here = [track2(ch[1]), track2(ch[2]), track2(ch[3])].sort().join('');
+      const home = [ch[1], ch[2], ch[3]].sort().join('');
+      return here === home && track2(ch[1]) !== ch[1];
+    })();
+    if (skipCycleNum > 0) {
+      const tail = endList.split('').reverse();
+      code.push(...tail);
+      for (const tc of tail) colors.push(ch.indexOf(tc) % 3 === 1 ? 'H' : 'L');
+    }
+    return { code, colors, cycles: cycleList, flipCount: flip, sumorient, orientLast, bufferBad, flipHome, bufHomeFlip, flipBlocks };
+  }
+
+  // 主入口：一次模拟同时读棱/角
+  function readMoves(movesStr, edgeBuf, cornerBuf, opts) {
+    operatealg(movesStr);
+    return {
+      edge: readEdge(edgeBuf, opts),
+      corner: readCorner(cornerBuf, opts)
+    };
+  }
+
+  return { readMoves, readEdge, readCorner, edgeChOf, cornerChOf, EDGE_BLOCKS, CORNER_BLOCKS, normEdgeBuf, normCornerBuf };
+})();
+if (typeof module !== 'undefined') module.exports = SPOON;
+
+
 
 // ========== 状态 → facelet（min2phase 求解用） ==========
 // 页面贴纸→面：角 UBL(0,1,2)=U,B,L UBR(3,4,5)=U,B,R UFR(6,7,8)=U,F,R UFL(9,10,11)=U,F,L DFL(12,13,14)=D,F,L DFR(15,16,17)=D,F,R DBR(18,19,20)=D,B,R DBL(21,22,23)=D,B,L
@@ -1805,9 +2813,6 @@ function shortestScramble(corner, edge) {
 // 贴纸位编号：棱 24 位（每棱 2 贴纸），角 24 位（每角 3 贴纸）
 // 棱贴纸位：UF(U=0,F=1) UR(2,3) UB(4,5) UL(6,7) FR(8,9) FL(10,11) BL(12,13) BR(14,15) DF(16,17) DR(18,19) DB(20,21) DL(22,23)
 // 角贴纸位：UBL(U=0,B=1,L=2) UBR(3,4,5) UFR(6,7,8) UFL(9,10,11) DFL(12,13,14) DFR(15,16,17) DBR(18,19,20) DBL(21,22,23)
-
-const EDGE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
-const CORNER_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
 
 // ========== 三阶魔方贴纸级转动（CW 映射：newState[i] = state[map[i]]） ==========
 const MAP_U_C = [9,11,10, 0,2,1, 3,5,4, 6,8,7, 12,13,14, 15,16,17, 18,19,20, 21,22,23];
@@ -1938,90 +2943,6 @@ function generateConjScramble(xLens) {
   return simplifyMoves(seq);
 }
 
-// ========== 彳亍编码计算 ==========
-function edgeFlipCount(edge) {
-  let cnt = 0;
-  for (let b = 0; b < 12; b++) {
-    if (edge[2*b] % 2 === 1) cnt++;  // 高级色贴纸位(2b)上非高级色贴纸 → 翻棱
-  }
-  return cnt;
-}
-function cornerFlipCount(corner) {
-  let cnt = 0;
-  for (let b = 0; b < 8; b++) {
-    if (corner[3*b] % 2 === 1) cnt++;  // U/D 贴纸位上非 U/D 色贴纸 → 翻角
-  }
-  return cnt;
-}
-
-function computeEdgeCode(edge) {
-  const code = [], cycles = [];
-  const visitedBlocks = new Set(), visitedPos = new Set();
-  let pos = 0, closed = false, cur = [];
-  while (true) {
-    if (closed) {
-      let start = -1;
-      for (let b = 0; b < 12; b++) {
-        if (visitedBlocks.has(b) || b === 0) continue;
-        if (edge[2*b] === 2*b && edge[2*b+1] === 2*b+1) continue;
-        start = 2*b; break;
-      }
-      if (start === -1) { if (cur.length) cycles.push(cur); break; }
-      const L = EDGE_LETTERS[start];
-      code.push(L); cur.push(L);
-      visitedBlocks.add(start >> 1);
-      visitedPos.add(start);
-      pos = start;
-      closed = false;
-      continue;
-    }
-    if (visitedPos.has(pos)) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
-    visitedPos.add(pos);
-    const X = edge[pos];
-    visitedBlocks.add(X >> 1);
-    if (X === 0) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
-    let t = (X === 1) ? edge.indexOf(0) : X;
-    const L = EDGE_LETTERS[t];
-    code.push(L); cur.push(L);
-    pos = t;
-  }
-  return { code, cycles, flipCount: edgeFlipCount(edge) };
-}
-
-function computeCornerCode(corner) {
-  const code = [], cycles = [];
-  const visitedBlocks = new Set(), visitedPos = new Set();
-  let pos = 0, closed = false, cur = [];
-  while (true) {
-    if (closed) {
-      let start = -1;
-      for (let b = 0; b < 8; b++) {
-        if (visitedBlocks.has(b) || b === 0) continue;
-        if (corner[3*b] === 3*b && corner[3*b+1] === 3*b+1 && corner[3*b+2] === 3*b+2) continue;
-        start = 3*b; break;
-      }
-      if (start === -1) { if (cur.length) cycles.push(cur); break; }
-      const L = CORNER_LETTERS[start];
-      code.push(L); cur.push(L);
-      visitedBlocks.add((start / 3) | 0);
-      visitedPos.add(start);
-      pos = start;
-      closed = false;
-      continue;
-    }
-    if (visitedPos.has(pos)) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
-    visitedPos.add(pos);
-    const X = corner[pos];
-    visitedBlocks.add((X / 3) | 0);
-    if (X === 0) { closed = true; if (cur.length) cycles.push(cur); cur = []; continue; }
-    let t = (X === 1 || X === 2) ? corner.indexOf(0) : X;
-    const L = CORNER_LETTERS[t];
-    code.push(L); cur.push(L);
-    pos = t;
-  }
-  return { code, cycles, flipCount: cornerFlipCount(corner) };
-}
-
 // ========== 参数校验 ==========
 function getVal(id) {
   const el = document.getElementById(id);
@@ -2035,16 +2956,15 @@ function parseContain(str) {
   return str.trim().toUpperCase().split(/[,\s]+/).filter(Boolean);
 }
 
-function checkSide(info, pLen, pParity, pFlip, pOrient, pBig, pSmall, pContain) {
+function checkSide(info, pLen, pParity, pFlip, pOrient, pBig, pSmall, pContain, maxPhysFlip) {
   const len = info.code.length;
+  // 翻色口径（用户定义）：块在自己的位置上且色相相反/方向错误，不含缓冲块
+  const homeFlip = info.flipHome - (info.bufHomeFlip ? 1 : 0);
   if (pLen !== null && len !== pLen) return false;
   if (pParity !== 'any' && len % 2 !== (pParity === 'odd' ? 1 : 0)) return false;
-  if (pFlip !== null && info.flipCount !== pFlip) return false;
-  if (pOrient === 'all' && info.flipCount !== 0) return false;
-  if (pOrient === 'none') {
-    const total = info === edgeInfo ? 12 : 8;
-    if (info.flipCount !== total) return false;
-  }
+  if (pFlip !== null && homeFlip !== pFlip) return false;
+  if (pOrient === 'all' && homeFlip !== 0) return false;
+  if (pOrient === 'none' && homeFlip !== maxPhysFlip) return false;
   if (pBig !== null) {
     const maxL = info.cycles.reduce((m, cy) => Math.max(m, cy.length), 0);
     if (maxL !== pBig) return false;
@@ -2065,8 +2985,9 @@ function checkSide(info, pLen, pParity, pFlip, pOrient, pBig, pSmall, pContain) 
 
 let edgeInfo = null;
 function checkParams(edge, corner, ep, cp) {
-  return checkSide(edge, ep.len, ep.parity, ep.flip, ep.orient, ep.big, ep.small, ep.contain) &&
-         checkSide(corner, cp.len, cp.parity, cp.flip, cp.orient, cp.big, cp.small, cp.contain);
+  // 物理翻块数上限（不含缓冲块）：棱 11 / 角 7
+  return checkSide(edge, ep.len, ep.parity, ep.flip, ep.orient, ep.big, ep.small, ep.contain, 11) &&
+         checkSide(corner, cp.len, cp.parity, cp.flip, cp.orient, cp.big, cp.small, cp.contain, 7);
 }
 
 // ========== 生成 ==========
@@ -2086,24 +3007,48 @@ function simulateScramble(moves, coord) {
   return [corner, edge];
 }
 
-function tryGenerate(coord, ep, cp, wideTail) {
+// 根据目标编码长度与翻色需求选择打乱长度：
+// 翻色需求含 0 时用短打乱（长打乱翻色必然多，无法命中），
+// 无零翻色需求时按编码长度递增。
+function pickScrambleLen(ep, cp) {
+  if (ep.len === 0 && cp.len === 0) return 6;
+  const maxLen = Math.max(ep.len || 0, cp.len || 0);
+  const flips = [ep.flip, cp.flip].filter(v => v !== null && v !== undefined);
+  const wantZero = flips.includes(0);
+  const maxFlip = flips.length ? Math.max(...flips) : 0;
+  let L;
+  if (wantZero) {
+    L = Math.min(10, Math.max(6, Math.round(maxLen * 0.6) + (maxFlip > 4 ? 2 : 0)));
+  } else {
+    L = Math.min(25, Math.max(8, Math.round(maxLen * 1.2) + maxFlip * 2));
+  }
+  return L;
+}
+
+function tryGenerate(coord, ep, cp, wideTail, maxTries) {
   // 角编码长度要求为 0：角块必须完全复原，改用纯六面共轭公式（X·A·X'）生成，角块天然复原且输出符合 WCA（无 M/E/S）
   const cornerZeroMode = (cp.len === 0);
-  for (let t = 0; t < MAX_TRIES; t++) {
-    let moves = cornerZeroMode ? generateConjScramble([3, 2, 2]) : generateScramble(SCRAMBLE_LEN);
-    const [corner, edge] = simulateScramble(moves, coord);
-    edgeInfo = computeEdgeCode(edge);
-    const cornerInfo = computeCornerCode(corner);
+  const edgeBuf = SPOON.normEdgeBuf($('setEdgeBuf').value);
+  const cornerBuf = SPOON.normCornerBuf($('setCornerBuf').value);
+  const scrambleLen = cornerZeroMode ? 0 : pickScrambleLen(ep, cp);
+  const limit = maxTries || MAX_TRIES;
+  for (let t = 0; t < limit; t++) {
+    let moves = cornerZeroMode ? generateConjScramble([3, 2, 2]) : generateScramble(scrambleLen);
+    // spooncuber 读码引擎：任意棱/角缓冲 + H/L 高低色标记，替换旧 compute 函数
+    const info = SPOON.readMoves(moves.join(' '), edgeBuf, cornerBuf);
+    edgeInfo = info.edge;
+    const cornerInfo = info.corner;
     if (checkParams(edgeInfo, cornerInfo, ep, cp)) {
       if (cornerZeroMode) {
         // 共轭公式仅用于生成满足参数的状态；输出前用求解器求最短解法并逆序，压缩打乱步数
+        const [corner, edge] = simulateScramble(moves, coord);
         moves = shortestScramble(corner, edge);
       }
       if (wideTail) moves.push(wideTail);
-      return { moves, edgeInfo, cornerInfo };
+      return { ok: true, moves, edgeInfo, cornerInfo, tries: t + 1 };
     }
   }
-  return null;
+  return { ok: false, tries: limit };
 }
 
 // ========== UI ==========
@@ -2138,9 +3083,20 @@ async function copyText(text) {
   }
 }
 
-function fmtCode(letters) {
-  const s = letters.join('');
-  return s;
+function fmtCode(letters, colors, colorMode) {
+  // colorMode=1 时按 H/L 高低色标记渲染（H 高色加粗着色）
+  if (!colorMode || !colors || !colors.length) return letters.join('');
+  return letters.map((c, i) => (colors[i] === 'H' ? '<b class="hi">' + c + '</b>' : c)).join('');
+}
+
+function fmtGroups(letters, colors, colorMode) {
+  // 读码按彳亍法公式对分组显示（每 2 个字母一组，空格分隔）
+  if (!letters || !letters.length) return '';
+  const parts = [];
+  for (let i = 0; i < letters.length; i += 2) {
+    parts.push(fmtCode(letters.slice(i, i + 2), colors ? colors.slice(i, i + 2) : null, colorMode));
+  }
+  return parts.join(' ');
 }
 
 function render() {
@@ -2166,35 +3122,56 @@ function render() {
   status.textContent = '生成中…';
   const out = $('output');
 
-  // 异步分批，避免卡 UI
+  // 异步分批，避免卡 UI；批量生成采用总预算制：单条失败不中断，跳过继续搜索，尽力凑满 count
   setTimeout(() => {
     const results = [];
     const startTime = Date.now();
-    for (let i = 0; i < count; i++) {
-      const r = tryGenerate(coord, ep, cp, wideTail);
-      if (!r) {
-        status.className = 'status err';
-        status.textContent = '参数过严：连续 ' + MAX_TRIES + ' 次未命中，请放宽参数（如编码长度/大循环长/翻色数量）后重试';
-        if (results.length === 0) {
-          out.innerHTML = '<div class="placeholder">未生成成功，请调整参数</div>';
-        } else {
-          out.innerHTML = results.join('\n');
-        }
-        return;
-      }
+    const perTry = MAX_TRIES;
+    const totalBudget = count * perTry;
+    let used = 0;
+    while (results.length < count && used < totalBudget) {
+      const r = tryGenerate(coord, ep, cp, wideTail, Math.min(perTry, totalBudget - used));
+      used += r.tries;
+      if (!r.ok) continue;
       const seq = r.moves.join(' ');
       const lines = [];
-      if (showNo) lines.push((i + 1) + '. ' + seq);
+      if (showNo) lines.push((results.length + 1) + '. ' + seq);
       else lines.push(seq);
       if (showCode) {
-        lines.push('  棱: ' + fmtCode(r.edgeInfo.code) + '  角: ' + fmtCode(r.cornerInfo.code));
+        const colorMode = $('setColor').value === '1';
+        // 翻色标注 = 块在自己位置上且色相相反/方向错误的块数（不含缓冲块）；未设置翻色且色向不限时标注"不限"
+        const eFlipN = r.edgeInfo.flipHome - (r.edgeInfo.bufHomeFlip ? 1 : 0);
+        const cFlipN = r.cornerInfo.flipHome - (r.cornerInfo.bufHomeFlip ? 1 : 0);
+        const eTag = (ep.flip === null && ep.orient === 'any') ? '不限' : ('翻' + eFlipN);
+        const cTag = (cp.flip === null && cp.orient === 'any') ? '不限' : ('翻' + cFlipN);
+        const eCodeStr = fmtGroups(r.edgeInfo.code, r.edgeInfo.colors, colorMode);
+        const cCodeStr = fmtGroups(r.cornerInfo.code, r.cornerInfo.colors, colorMode);
+        const eFlipStr = (r.edgeInfo.flipBlocks || []).join(' ');
+        const cFlipStr = (r.cornerInfo.flipBlocks || []).join(' ');
+        let codeLine = '  棱块读码：' + (eCodeStr || '');
+        if (eFlipStr) codeLine += '\n  棱块翻色：' + eFlipStr;
+        codeLine += '\n  角块读码：' + (cCodeStr || '');
+        if (cFlipStr) codeLine += '\n  角块翻色：' + cFlipStr;
+        lines.push(codeLine);
       }
       results.push('<span class="scramble">' + lines[0] + '</span>' + (lines[1] ? '\n<span class="code-line">' + lines[1] + '</span>' : ''));
     }
-    out.innerHTML = results.join('\n\n');
-    status.className = 'status ok';
     const ms = Date.now() - startTime;
-    status.textContent = '已生成 ' + count + ' 条（' + ms + 'ms）' + (coord === 'yellow-red' ? ' · 黄顶红前' : ' · 白顶绿前') + (cp.len === 0 ? ' · 角0六面模式' : '');
+    const tailNote = (coord === 'yellow-red' ? ' · 黄顶红前' : ' · 白顶绿前') + (cp.len === 0 ? ' · 角0六面模式' : '');
+    if (results.length === 0) {
+      status.className = 'status err';
+      status.textContent = '参数过严：' + used + ' 次尝试未命中，请放宽参数（如编码长度/大循环长/翻色数量）后重试';
+      out.innerHTML = '<div class="placeholder">未生成成功，请调整参数</div>';
+      return;
+    }
+    out.innerHTML = results.join('\n\n');
+    if (results.length < count) {
+      status.className = 'status warn';
+      status.textContent = '已生成 ' + results.length + '/' + count + ' 条（' + ms + 'ms）· 参数组合较罕见，尝试 ' + used + ' 次未凑满，可放宽翻色数/编码长度后重试' + tailNote;
+    } else {
+      status.className = 'status ok';
+      status.textContent = '已生成 ' + count + ' 条（' + ms + 'ms）' + tailNote;
+    }
 
     // 复制纯文本
     const plain = results.map((_, i) => {
