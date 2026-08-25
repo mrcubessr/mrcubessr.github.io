@@ -4,6 +4,7 @@
  */
 (function () {
   var STORAGE_KEY = 'ur_times';
+  var activeCtrl = null; // 当前活跃计时器控制器（空格状态机入口），bind 时更新
   function getGroup() {
     var el = document.getElementById('timer-group');
     return el ? (el.getAttribute('data-group') || 'C') : 'C';
@@ -64,6 +65,8 @@
     var startTime = 0;
     var acc = 0;
     var raf = 0;
+    var prepTimer = 0;
+    var prepState = ''; // '' 无准备 | 'red' 按住未满3秒 | 'green' 可触发
     function tick() {
       var ms = acc + (Date.now() - startTime);
       display.textContent = fmt(ms);
@@ -76,31 +79,75 @@
       display.setAttribute('data-state', 'idle');
       display.textContent = fmt(0);
     }
+    function startRun() {
+      running = true;
+      startTime = Date.now();
+      acc = 0;
+      display.setAttribute('data-state', 'running');
+      tick();
+    }
+    function stopRun() {
+      var ms = acc + (Date.now() - startTime);
+      resetUI();
+      var group = getGroup();
+      var all = loadAll();
+      if (!all[group]) all[group] = [];
+      all[group].push(ms);
+      saveAll(all);
+      render(block);
+      bind(block);
+    }
+    function clearPrep() {
+      if (prepState) {
+        clearTimeout(prepTimer);
+        prepState = '';
+        display.setAttribute('data-state', 'idle');
+        display.textContent = fmt(0);
+      }
+    }
+    function keydownSpace(e) {
+      if (running) {
+        stopRun();
+        return;
+      }
+      clearPrep();
+      prepState = 'red';
+      display.setAttribute('data-state', 'prep');
+      prepTimer = setTimeout(function () {
+        if (prepState === 'red') {
+          prepState = 'green';
+          display.setAttribute('data-state', 'green');
+        }
+      }, 3000);
+    }
+    function keyupSpace(e) {
+      if (!prepState) return;
+      clearTimeout(prepTimer);
+      if (prepState === 'green') {
+        prepState = '';
+        startRun();
+      } else {
+        clearPrep();
+      }
+    }
     display.addEventListener('mousedown', function (e) {
       if (e.button !== 0) return;
       e.preventDefault();
+      clearPrep();
       if (!running) {
-        running = true;
-        startTime = Date.now();
-        acc = 0;
-        display.setAttribute('data-state', 'running');
-        tick();
+        startRun();
       } else {
-        var ms = acc + (Date.now() - startTime);
-        resetUI();
-        var group = getGroup();
-        var all = loadAll();
-        if (!all[group]) all[group] = [];
-        all[group].push(ms);
-        saveAll(all);
-        render(block);
-        bind(block);
+        stopRun();
       }
     });
     display.addEventListener('contextmenu', function (e) {
       e.preventDefault();
       resetUI();
     });
+    activeCtrl = {
+      keydownSpace: keydownSpace,
+      keyupSpace: keyupSpace
+    };
     block.querySelector('.timer-btn-del').addEventListener('click', function () {
       var group = getGroup();
       var all = loadAll();
@@ -124,7 +171,7 @@
       bind(block);
     });
   }
-  // 空格键触发：与鼠标左键同逻辑（开始/停止），全局监听一次；输入类元素与长按重复跳过
+  // 空格键触发：按住进入准备（红）→ 3秒变绿 → 松开开始；计时中按空格停止。全局监听一次，输入类元素与长按重复跳过
   document.addEventListener('keydown', function (e) {
     if (e.repeat) return;
     var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
@@ -132,10 +179,14 @@
     var t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
     e.preventDefault();
-    var display = document.querySelector('.timer-block .timer-display');
-    if (display) {
-      display.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true }));
-    }
+    if (activeCtrl) activeCtrl.keydownSpace(e);
+  });
+  document.addEventListener('keyup', function (e) {
+    var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+    if (!isSpace) return;
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (activeCtrl) activeCtrl.keyupSpace(e);
   });
 
   var blocks = document.querySelectorAll('.timer-block');
