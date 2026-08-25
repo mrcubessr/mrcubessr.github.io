@@ -1,5 +1,6 @@
 /** ur-timer.js - 各组迷你计时器
  * localStorage 键 ur_times = {"C":[毫秒,...]}，按组独立；展示 本次/最快/平均/次数/最近5次；支持删除单次与清空
+ * 触发方式：空格键或鼠标左键开始/停止，鼠标右键取消
  */
 (function () {
   var STORAGE_KEY = 'ur_times';
@@ -123,6 +124,20 @@
       bind(block);
     });
   }
+  // 空格键触发：与鼠标左键同逻辑（开始/停止），全局监听一次；输入类元素与长按重复跳过
+  document.addEventListener('keydown', function (e) {
+    if (e.repeat) return;
+    var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+    if (!isSpace) return;
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    e.preventDefault();
+    var display = document.querySelector('.timer-block .timer-display');
+    if (display) {
+      display.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true }));
+    }
+  });
+
   var blocks = document.querySelectorAll('.timer-block');
   Array.prototype.forEach.call(blocks, function (b) {
     render(b);
