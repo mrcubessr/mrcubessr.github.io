@@ -13,7 +13,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px 16px 32px;
+  padding: 28px 16px;
 }
 .container { width: 100%; max-width: 520px; }
 .card {
@@ -67,7 +67,12 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .ov-label { font-size: 12px; color: #7a8aa0; margin-top: 3px; }
 .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .progress-text { font-size: 14px; font-weight: 600; color: #52667d; }
-.score-text { font-size: 14px; font-weight: 600; color: #3a7cf0; }
+.score-text {
+  font-size: 14px; font-weight: 600; color: #3a7cf0;
+  background: rgba(58, 124, 240, 0.10);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
 .mode-badge {
   display: inline-block; font-size: 11px; font-weight: 700;
   padding: 2px 8px; border-radius: 8px; margin-left: 6px;
@@ -75,7 +80,13 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 }
 .progress-bar { height: 6px; background: #e9eef4; border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
 .progress-bar > div { height: 100%; background: linear-gradient(90deg, #4d96ff, #6bcb77); border-radius: 3px; transition: width 0.3s ease; }
-.canvas-wrap { text-align: center; padding: 6px 0 2px; }
+.canvas-wrap {
+  text-align: center;
+  background: linear-gradient(180deg, #f4f8fd, #eef3fa);
+  border-radius: 18px;
+  padding: 18px 0 14px;
+  box-shadow: inset 0 2px 8px rgba(31, 45, 61, 0.06);
+}
 #cubeCanvas { max-width: 100%; height: auto; }
 .question { text-align: center; font-size: 16px; font-weight: 600; color: #1f2d3d; margin: 6px 0 18px; }
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -101,6 +112,7 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .feedback.no { color: #e03131; }
 .result-score { text-align: center; font-size: 52px; font-weight: 800; color: #1f2d3d; margin: 10px 0 2px; }
 .result-sub { text-align: center; color: #7a8aa0; font-size: 14px; margin-bottom: 8px; }
+.result-time { text-align: center; color: #3a7cf0; font-size: 15px; font-weight: 700; margin-bottom: 12px; font-variant-numeric: tabular-nums; }
 .saved-tip { text-align: center; font-size: 12px; color: #6bcb77; font-weight: 600; margin-bottom: 14px; }
 .review-list { margin: 6px 0 20px; }
 .review-item {
@@ -125,6 +137,7 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .rec-time { font-size: 13px; font-weight: 600; color: #1f2d3d; }
 .rec-score { font-size: 13px; font-weight: 700; color: #3a7cf0; }
 .rec-score.bad { color: #e03131; }
+.rec-dur { font-size: 12px; font-weight: 600; color: #7a8aa0; margin-left: 10px; font-variant-numeric: tabular-nums; }
 .rec-detail { margin-top: 10px; border-top: 1px dashed #dde4ec; padding-top: 8px; }
 .rec-line { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; color: #52667d; }
 .rec-line .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -133,102 +146,8 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .empty-tip { text-align: center; color: #9aa8b8; font-size: 13px; padding: 20px 0; }
 .hidden { display: none; }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
-<style>
-/* ===== 白色导航覆盖（浅色页面专用）===== */
-.site-nav {
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(31, 45, 61, 0.08);
-  box-shadow: 0 6px 24px rgba(31, 45, 61, 0.08);
-}
-.site-nav .nav-inner { height: 56px; }
-.site-nav .nav-logo {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.site-nav .nav-link { color: #5b6b82; }
-.site-nav .nav-link:hover { color: #2563eb; background: rgba(37, 99, 235, 0.08); }
-.site-nav .nav-link.active { color: #2563eb; background: rgba(37, 99, 235, 0.12); }
-.site-nav .nav-menu {
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(31, 45, 61, 0.10);
-  box-shadow: 0 16px 44px rgba(31, 45, 61, 0.16);
-}
-.site-nav .nav-menu a { color: #5b6b82; }
-.site-nav .nav-menu a:hover { color: #2563eb; background: rgba(37, 99, 235, 0.08); }
-.site-nav .nav-menu a.active { color: #2563eb; background: rgba(37, 99, 235, 0.12); }
-.site-nav .nav-menu .nav-soon,
-.site-nav .nav-menu .nav-soon:hover { color: #a8b3c4; background: transparent; }
-.site-nav .nav-toggle-btn { border-color: rgba(31, 45, 61, 0.16); }
-.site-nav .nav-toggle-btn span { background: #5b6b82; }
-@media (max-width: 900px) {
-  .site-nav .nav-links {
-    background: rgba(255, 255, 255, 0.98);
-    border-bottom: 1px solid rgba(31, 45, 61, 0.10);
-  }
-  .site-nav .nav-menu { border-left-color: rgba(37, 99, 235, 0.25); }
-  .site-nav .nav-drop.sub .nav-menu.sub-menu { border-left-color: rgba(37, 99, 235, 0.25); }
-}
-/* ===== 页面细节优化 ===== */
-.canvas-wrap {
-  background: linear-gradient(180deg, #f4f8fd, #eef3fa);
-  border-radius: 18px;
-  padding: 18px 0 14px;
-  box-shadow: inset 0 2px 8px rgba(31, 45, 61, 0.06);
-}
-.score-text {
-  background: rgba(58, 124, 240, 0.10);
-  padding: 4px 12px;
-  border-radius: 999px;
-}
-</style>
 </head>
-<body data-nav="corner-trainer">
-<nav class="site-nav" id="siteNav">
-  <div class="nav-inner">
-    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
-    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="navLinks">
-      <a href="/" class="nav-link" data-nav="home">首页</a>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/fto" data-nav="fto">FTO</a>
-          <a href="/tools/3x3" data-nav="3x3">三阶</a>
-          <a class="nav-soon" title="即将上线">二阶</a>
-          <a class="nav-soon" title="即将上线">金字塔</a>
-          <a class="nav-soon" title="暂时预留">三盲</a>
-        </div>
-      </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
-          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
-          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
-          <a href="/tools/3bld" data-nav="3bld">出题器</a>
-          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
-          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
-          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
-          <a href="/tools/invert" data-nav="invert">逆序转换</a>
-          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
-        </div>
-      </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/nav" data-nav="nav">工具导航</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<body>
 <div class="container">
 
   <div id="startPanel" class="card">
@@ -281,7 +200,7 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
     <div id="recordList"></div>
   </div>
 
-<footer style="text-align:center;color:#9aa3b2;font-size:13px;padding:18px 0 8px;">&copy; 2026 mrcubessr</footer>
+</div>
 
 <script>
 // ============ 角块数据（颜色顺序与编码顺序一一对应）============
@@ -495,6 +414,29 @@ let score = 0;
 let wrongList = [];
 let currentMode = "normal";
 let details = [];
+let groupStartTime = 0;
+let timerInterval = null;
+
+function formatTime(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+}
+
+function startTimer() {
+  stopTimer();
+  groupStartTime = Date.now();
+  const el = document.getElementById("timerText");
+  el.textContent = "用时 00:00";
+  timerInterval = setInterval(() => {
+    el.textContent = "用时 " + formatTime((Date.now() - groupStartTime) / 1000);
+  }, 500);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
 
 function genQuiz(mode) {
   const qs = [];
@@ -583,6 +525,9 @@ function nextQuestion() {
 
 // ============ 结果面板 ============
 function showResult() {
+  stopTimer();
+  const elapsed = groupStartTime ? Math.round((Date.now() - groupStartTime) / 1000) : 0;
+  document.getElementById("resultTime").textContent = "用时 " + formatTime(elapsed);
   document.getElementById("quizPanel").classList.add("hidden");
   const rp = document.getElementById("resultPanel");
   rp.classList.remove("hidden");
@@ -609,6 +554,7 @@ function showResult() {
     mode: currentMode === "special" ? "专项训练" : "普通训练",
     total: QUIZ_LEN,
     score: score,
+    duration: elapsed,
     details: details.slice()
   };
   records.unshift(rec);
@@ -665,7 +611,7 @@ function renderRecordList() {
     html += `<div class="rec-item">
       <div class="rec-head">
         <span class="rec-time">${rec.date}${rec.mode === "专项训练" ? ' <span class="mode-badge">专项</span>' : ""}</span>
-        <span class="rec-score ${cls}">${rec.score} / ${rec.total}</span>
+        <span><span class="rec-score ${cls}">${rec.score} / ${rec.total}</span>${rec.duration != null ? `<span class="rec-dur">用时 ${formatTime(rec.duration)}</span>` : ""}</span>
       </div>
       <div class="rec-detail">`;
     rec.details.forEach((d, i) => {
@@ -699,6 +645,7 @@ function startQuiz(mode) {
   document.getElementById("historyPanel").classList.add("hidden");
   document.getElementById("quizPanel").classList.remove("hidden");
   modeBadge.classList.toggle("hidden", mode !== "special");
+  startTimer();
   renderQuestion();
 }
 
@@ -716,6 +663,5 @@ document.getElementById("backBtn").addEventListener("click", () => {
 renderTable();
 renderOverview();
 </script>
-<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>
