@@ -118,7 +118,7 @@
           prepState = 'green';
           display.setAttribute('data-state', 'green');
         }
-      }, 1000);
+      }, 500);
     }
     function keyupSpace(e) {
       if (!prepState) return;
