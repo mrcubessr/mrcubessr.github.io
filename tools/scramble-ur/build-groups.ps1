@@ -17,12 +17,12 @@ $groups = @(
     @{ index='10'; name='N组棱练习'; formula='F2 L2 B2 R2 D U2 B2 D2 U2 R2 B'' L2 B'' D'' L'' U'' L2 D F'''; codes=@('NO','NP','NQ','NR','NS','NT','NW','NX','NY','NZ') }
     @{ index='11'; name='O组棱练习'; formula='B2 D B2 U B2 F2 U'' L2 U'' L2 B'' U'' B D U'' L R2 D L'; codes=@('OQ','OR','OS','OT','OW','OX','OY','OZ') }
     @{ index='12'; name='P组棱练习'; formula='F D2 U2 B'' D2 U2 F D'' U L'' D U'''; codes=@('PQ','PR','PS','PT','PW','PX','PY','PZ') }
-    @{ index='13'; name='Q组棱练习'; formula='F D2 U2 B'' D2 U2 F D'' U L'' D U'''; codes=@('QS','QT','QW','QX','QY','QZ') }
-    @{ index='14'; name='R组棱练习'; formula='U'' B2 D R2 D'' B2 U'' L2 U'' L'' F D F2 U'' F'' R D'''; codes=@('RS','RT','RW','RX','RY','RZ') }
+    @{ index='13'; name='Q组棱练习'; formula='U'' L2 D'' U'' L D2 F2 U2 R D'''; codes=@('QS','QT','QW','QX','QY','QZ') }
+    @{ index='14'; name='R组棱练习'; formula='F U2 L2 D2 B'' D2 L2 D'' U'' L'' D U'' F'''; codes=@('RS','RT','RW','RX','RY','RZ') }
     @{ index='15'; name='S组棱练习'; formula='D R2 D2 B2 U2 L'' D2 F2 U2 R D'''; codes=@('SW','SX','SY','SZ') }
-    @{ index='16'; name='T组棱练习'; formula='L2 D2 B2 R2 D'' U'' F2 R2 F2 D'' L'' F'' U'' F2 D F R D'''; codes=@('TW','TX','TY','TZ') }
-    @{ index='17'; name='W组棱练习'; formula='U2 R2 D2 B'' D2 R2 U2 F'''; codes=@('WY','WZ') }
-    @{ index='18'; name='X组棱练习'; formula='F U2 R2 D2 B D2 R2 U2'; codes=@('XY','XZ') }
+    @{ index='16'; name='T组棱练习'; formula='D2 B'' L2 D2 R2 F'' U2 F2 D'' U L'' D U'' F'' R2'; codes=@('TW','TX','TY','TZ') }
+    @{ index='17'; name='W组棱练习'; formula='z2 y'' E L S'' L2 S L E'''; codes=@('WY','WZ') }
+    @{ index='18'; name='X组棱练习'; formula='z2 y'' L U2 L'' E L U2 L'' E'''; codes=@('XY','XZ') }
 )
 
 $nav = @'
@@ -82,6 +82,7 @@ $head = @'
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
 <link rel="stylesheet" href="ur-common.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body data-nav="scramble-ur">
 '@

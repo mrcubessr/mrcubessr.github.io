@@ -35,8 +35,17 @@ function parseFormula(str) {
   }
   function parseToken() {
     const ch = s[i];
-    const face = FACES[ch.toUpperCase()];
-    if (face === undefined) { i++; return null; }
+    const upper = ch.toUpperCase();
+    let face = FACES[upper];
+    if (face === undefined) {
+      if (upper === 'E') face = 6;        // 中层 E（随 D）
+      else if (upper === 'M') face = 7;   // 中层 M（随 L）
+      else if (upper === 'S') face = 8;   // 中层 S（随 F）
+      else if (upper === 'X') face = 9;   // 整体转动 x（绕 R 轴）
+      else if (upper === 'Y') face = 10;  // 整体转动 y（绕 U 轴）
+      else if (upper === 'Z') face = 11;  // 整体转动 z（绕 F 轴）
+      else { i++; return null; }
+    }
     i++;
     let prime = false;
     if (i < s.length && PRIME_CHARS.has(s[i])) { prime = true; i++; }
@@ -188,6 +197,9 @@ class Cube {
     const face = move.face;
     const dir = move.dir; // 1 = CW, -1 = CCW, 2 = double
 
+    if (face >= 6 && face <= 8) { this._applyMiddle(face, dir); return; }
+    if (face >= 9 && face <= 11) { this._applyRotate(face, dir); return; }
+
     const doCW = () => {
       this.rotateFaceCW(face);
       this._moveEdges(face, 1);
@@ -320,6 +332,88 @@ class Cube {
       }
     }
   }
+
+  // 中层转动（仅三阶 size=3 支持）：mid 6=E(随D) 7=M(随L) 8=S(随F)，dir 1=CW -1=CCW 2=double
+  _applyMiddle(mid, dir) {
+    const s = this.size;
+    const n = s - 1;
+    if (s !== 3) return;
+    const i = 1;
+    if (dir === 2) { this._applyMiddle(mid, 1); this._applyMiddle(mid, 1); return; }
+    if (mid === 7) { // M（随 L）：U/D/B/F 的 col 1
+      for (let k = 0; k < s; k++) {
+        const a = this.faces.U[k][i];
+        const b = this.faces.B[n - k][i];
+        const c = this.faces.D[k][i];
+        const d = this.faces.F[k][i];
+        if (dir === 1) { // CW: U→B→D→F→U（同 L）
+          this.faces.U[k][i] = d;
+          this.faces.B[n - k][i] = a;
+          this.faces.D[k][i] = b;
+          this.faces.F[k][i] = c;
+        } else {
+          this.faces.U[k][i] = b;
+          this.faces.B[n - k][i] = c;
+          this.faces.D[k][i] = d;
+          this.faces.F[k][i] = a;
+        }
+      }
+    } else if (mid === 8) { // S（随 F）：U/D 的 row 1、R/L 的 col 1
+      for (let k = 0; k < s; k++) {
+        const a = this.faces.U[i][k];
+        const b = this.faces.R[k][i];
+        const c = this.faces.D[i][n - k];
+        const d = this.faces.L[n - k][i];
+        if (dir === 1) { // CW: U→R→D→L→U（同 F）
+          this.faces.U[i][k] = d;
+          this.faces.R[k][i] = a;
+          this.faces.D[i][n - k] = b;
+          this.faces.L[n - k][i] = c;
+        } else {
+          this.faces.U[i][k] = b;
+          this.faces.R[k][i] = c;
+          this.faces.D[i][n - k] = d;
+          this.faces.L[n - k][i] = a;
+        }
+      }
+    } else { // E（随 D）：F/R/B/L 的 row 1
+      for (let k = 0; k < s; k++) {
+        const a = this.faces.F[i][k];
+        const b = this.faces.L[i][k];
+        const c = this.faces.B[i][k];
+        const d = this.faces.R[i][k];
+        if (dir === 1) { // CW: F→R→B→L→F（同 D）
+          this.faces.F[i][k] = b;
+          this.faces.R[i][k] = a;
+          this.faces.B[i][k] = d;
+          this.faces.L[i][k] = c;
+        } else {
+          this.faces.F[i][k] = d;
+          this.faces.R[i][k] = c;
+          this.faces.B[i][k] = b;
+          this.faces.L[i][k] = a;
+        }
+      }
+    }
+  }
+
+  // 整体转动：rot 9=x(绕R) 10=y(绕U) 11=z(绕F)，dir 1=CW -1=CCW 2=double
+  // 等价恒等式：x=R+M'  y=U+E'  z=F+S'
+  _applyRotate(rot, dir) {
+    const FACES_R = { 9: 'R', 10: 'U', 11: 'F' };   // R / U / F
+    const MID_R = { 9: 7, 10: 6, 11: 8 };     // M / E / S
+    const f = FACES_R[rot], m = MID_R[rot];
+    if (dir === 2) {
+      this.applyMove({ face: f, dir: 2 });
+      this._applyMiddle(m, 2);
+    } else if (dir === 1) {
+      this.applyMove({ face: f, dir: 1 });
+      this._applyMiddle(m, -1);
+    } else {
+      this.applyMove({ face: f, dir: -1 });
+      this._applyMiddle(m, 1);
+    }
+  }
 }
 
 // 展开图配色：与 cube_scramble_viewer standard 方案一致
@@ -333,12 +427,13 @@ function solveState(formulaStr, size, orientation) {
     // 黄顶红前 = 原D顶、原R前：公式 move X 映射为白顶绿前 move map[X] 后执行，最后整体旋转坐标系渲染
     const MOVE_MAP = { U: 'D', D: 'U', F: 'R', B: 'L', R: 'F', L: 'B' };
     for (const mv of moves) {
-      cube.applyMove({ face: MOVE_MAP[FACE_NAMES[mv.face]], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
+      const nm = FACE_NAMES[mv.face];
+      cube.applyMove({ face: mv.face >= 6 ? mv.face : MOVE_MAP[nm], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
     }
     cube.rotateM();
   } else {
     for (const mv of moves) {
-      cube.applyMove({ face: FACE_NAMES[mv.face], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
+      cube.applyMove({ face: mv.face >= 6 ? mv.face : FACE_NAMES[mv.face], dir: mv.dbl ? 2 : (mv.prime ? -1 : 1) });
     }
   }
   return cube;
