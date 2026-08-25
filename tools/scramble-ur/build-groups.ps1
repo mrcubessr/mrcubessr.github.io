@@ -5,7 +5,7 @@ $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $dir
 
 $groups = @(
-    @{ index='1'; name='C组棱练习'; formula='D L2 B2 L2 D U B2 L2 F'' L F'' R'' F2 D'' R'' D L U'''; codes=@('CE','CF','CI','CJ','CK','CL','CM','CN','CO','CP','CQ','CR','CS','CT','CW','CX','CY','CZ') }
+    @{ index='1'; name='C组棱练习'; formula='U2 F L2 F R2 D2 F2 D2 R2 D2 F2 D'' U'' R'' F2 R'' D'' U'''; codes=@('CE','CF','CI','CJ','CK','CL','CM','CN','CO','CP','CQ','CR','CS','CT','CW','CX','CY','CZ') }
     @{ index='2'; name='D组棱练习'; formula='B2 U'' F2 D2 R2 D R2 F2 L2 U'' F R2 U'' B D'' L'' D U L'' B'; codes=@('DE','DF','DI','DJ','DK','DL','DM','DN','DO','DP','DQ','DR','DS','DT','DW','DX','DY','DZ') }
     @{ index='3'; name='E组棱练习'; formula='F2 R2 F2 U'' B2 D'' R2 F2 L2 U'' R2 D2 R'' U B2 F2 L'' R F'' R U'; codes=@('EI','EJ','EK','EL','EM','EN','EO','EP','EQ','ER','ES','ET','EW','EX','EY','EZ') }
     @{ index='4'; name='F组棱练习'; formula='L2 D F2 R2 F2 D R2 B2 D2 U'' L2 U F'' L'' U'' F'' L2 F'' L U F'; codes=@('FI','FJ','FK','FL','FM','FN','FO','FP','FQ','FR','FS','FT','FW','FX','FY','FZ') }
