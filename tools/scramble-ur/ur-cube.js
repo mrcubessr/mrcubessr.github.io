@@ -433,15 +433,18 @@ function drawURCube(canvas, formulaStr) {
   var cssW = canvas.clientWidth || 240;
   var faceSize = 28 * 3;
   var gap = 8;
-  var total = 3 * faceSize + 2 * gap;
+  // 展开图实际范围：横向 L/F/R/B 四面 + 3 间隙 = 360；纵向 U/F/D 三面 + 2 间隙 = 268
+  var totalW = 4 * faceSize + 3 * gap;
+  var totalH = 3 * faceSize + 2 * gap;
+  var offsetX = (totalW - totalH) / 2;   // 横向多出的部分左右均分，保证内容居中
   var ctx = canvas.getContext('2d');
   canvas.width = Math.max(1, Math.round(cssW * dpr));
-  canvas.height = canvas.width;
+  canvas.height = Math.max(1, Math.round(cssW * totalH / totalW * dpr));
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.scale(dpr, dpr);
-  ctx.scale(cssW / total, cssW / total);
-  drawExpansion(ctx, state, total / 2, total / 2, 3);
+  ctx.scale(cssW / totalW, cssW / totalW);
+  drawExpansion(ctx, state, totalW / 2 - offsetX, totalH / 2, 3);
 }
 
 function initURCubes(root) {

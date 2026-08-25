@@ -400,7 +400,7 @@
 
 /* ===== 动态展开图 canvas ===== */
 .diagram canvas.ur-cube {
-  max-width: 240px;
+  max-width: 320px;
   width: 100%;
   height: auto;
   border-radius: 8px;
