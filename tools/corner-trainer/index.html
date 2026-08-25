@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角块编码识别训练</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e3e9f0 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 88px 16px 28px;
+}
+.container { width: 100%; max-width: 520px; }
+.card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(31, 45, 61, 0.10);
+  padding: 28px 24px;
+  margin-bottom: 20px;
+}
+h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; letter-spacing: 1px; }
+.subtitle { text-align: center; color: #7a8aa0; font-size: 13px; margin: 6px 0 22px; }
+.section-title { font-size: 14px; font-weight: 600; color: #52667d; margin-bottom: 14px; }
+.corner-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 12px; margin-bottom: 8px; background: #f7f9fc;
+}
+.corner-name { flex: 1; font-size: 14px; font-weight: 600; color: #1f2d3d; text-align: right; }
+.letter-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 10px;
+  font-size: 20px; font-weight: 800; color: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+.letter-chip.dark-text { color: #20242b; }
+.tip { font-size: 13px; color: #7a8aa0; line-height: 1.7; margin: 10px 0 18px; }
+.btn {
+  display: block; width: 100%; padding: 15px 0;
+  border: none; border-radius: 14px;
+  font-size: 17px; font-weight: 700; cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, opacity 0.15s ease;
+}
+.btn + .btn { margin-top: 12px; }
+.btn-primary {
+  background: linear-gradient(135deg, #4d96ff, #3a7cf0); color: #fff;
+  box-shadow: 0 6px 16px rgba(61, 124, 240, 0.30);
+}
+.btn-secondary {
+  background: linear-gradient(135deg, #ff9f43, #ff8c1a); color: #fff;
+  box-shadow: 0 6px 16px rgba(255, 140, 26, 0.30);
+}
+.btn-ghost {
+  background: #f2f5f9; color: #52667d;
+  border: 1.5px solid #dde4ec;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.overview { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 4px 0 20px; }
+.ov-item { background: #f7f9fc; border-radius: 14px; padding: 12px 6px; text-align: center; }
+.ov-num { font-size: 22px; font-weight: 800; color: #1f2d3d; }
+.ov-label { font-size: 12px; color: #7a8aa0; margin-top: 3px; }
+.quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-text { font-size: 14px; font-weight: 600; color: #52667d; }
+.score-text { font-size: 14px; font-weight: 600; color: #3a7cf0; }
+.mode-badge {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 8px; margin-left: 6px;
+  background: #fff1e6; color: #ff8c1a;
+}
+.progress-bar { height: 6px; background: #e9eef4; border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+.progress-bar > div { height: 100%; background: linear-gradient(90deg, #4d96ff, #6bcb77); border-radius: 3px; transition: width 0.3s ease; }
+.canvas-wrap { text-align: center; padding: 6px 0 2px; }
+#cubeCanvas { max-width: 100%; height: auto; }
+.question { text-align: center; font-size: 16px; font-weight: 600; color: #1f2d3d; margin: 6px 0 18px; }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.opt {
+  padding: 18px 0; border-radius: 14px; border: 2.5px solid #dde4ec;
+  background: #ffffff; font-size: 30px; font-weight: 800; color: #1f2d3d;
+  cursor: pointer; text-align: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.opt:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(31,45,61,0.12); }
+.opt:active { transform: scale(0.97); }
+.opt.correct { background: #6bcb77; border-color: #4fae5c; color: #fff; animation: pop 0.25s ease; }
+.opt.wrong { background: #ff6b6b; border-color: #e74c3c; color: #fff; animation: shake 0.3s ease; }
+.opt.disabled { pointer-events: none; opacity: 0.85; }
+@keyframes pop { 0% { transform: scale(0.92); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.feedback { text-align: center; font-size: 15px; font-weight: 600; min-height: 24px; margin-top: 16px; color: #52667d; }
+.feedback.ok { color: #2f9e44; }
+.feedback.no { color: #e03131; }
+.result-score { text-align: center; font-size: 52px; font-weight: 800; color: #1f2d3d; margin: 10px 0 2px; }
+.result-sub { text-align: center; color: #7a8aa0; font-size: 14px; margin-bottom: 8px; }
+.saved-tip { text-align: center; font-size: 12px; color: #6bcb77; font-weight: 600; margin-bottom: 14px; }
+.review-list { margin: 6px 0 20px; }
+.review-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 10px; background: #fdf3f3;
+  margin-bottom: 6px; font-size: 13px; color: #4a3f3f;
+}
+.review-item .rev-correct { margin-left: auto; font-weight: 700; color: #2f9e44; }
+.back-row { margin-bottom: 16px; }
+.stat-table { width: 100%; border-collapse: collapse; margin: 6px 0 18px; font-size: 13px; }
+.stat-table th { background: #f2f5f9; color: #52667d; padding: 8px 6px; font-weight: 600; text-align: center; }
+.stat-table td { padding: 7px 6px; text-align: center; border-bottom: 1px solid #eef1f6; }
+.stat-table td:first-child { font-weight: 800; font-size: 16px; }
+.bar-cell { text-align: left; }
+.bar-wrap { background: #eef1f6; border-radius: 5px; height: 12px; overflow: hidden; min-width: 80px; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, #ff9f43, #ff6b6b); border-radius: 5px; }
+.rec-item {
+  border: 1.5px solid #e6ebf2; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px;
+  background: #fafbfd;
+}
+.rec-head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.rec-time { font-size: 13px; font-weight: 600; color: #1f2d3d; }
+.rec-score { font-size: 13px; font-weight: 700; color: #3a7cf0; }
+.rec-score.bad { color: #e03131; }
+.rec-detail { margin-top: 10px; border-top: 1px dashed #dde4ec; padding-top: 8px; }
+.rec-line { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; color: #52667d; }
+.rec-line .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot.ok { background: #6bcb77; }
+.dot.no { background: #ff6b6b; }
+.empty-tip { text-align: center; color: #9aa8b8; font-size: 13px; padding: 20px 0; }
+.hidden { display: none; }
+</style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+</head>
+<body data-nav="corner-trainer">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container">
+
+  <div id="startPanel" class="card">
+    <h1>角块编码识别训练</h1>
+    <p class="subtitle">二阶魔方盲拧 · 角块色块编码认读</p>
+    <div class="section-title">我的训练数据</div>
+    <div class="overview">
+      <div class="ov-item"><div class="ov-num" id="ovCount">0</div><div class="ov-label">累计组数</div></div>
+      <div class="ov-item"><div class="ov-num" id="ovRate">--</div><div class="ov-label">总正确率</div></div>
+      <div class="ov-item"><div class="ov-num" id="ovWrong">0</div><div class="ov-label">错题字母</div></div>
+    </div>
+    <div class="section-title">编码对照表</div>
+    <div id="cornerTable"></div>
+    <p class="tip">规则：每组 10 题。每道题随机展示一个角块，加粗线框圈出的色块就是要考的色块，从 4 个选项中选出它的编码。练习记录会自动保存在本设备浏览器中。</p>
+    <button class="btn btn-primary" id="startBtn">开始训练</button>
+    <button class="btn btn-secondary" id="specialBtn">错题专项训练</button>
+    <button class="btn btn-ghost" id="historyBtn">查看练习记录与错题统计</button>
+  </div>
+
+  <div id="quizPanel" class="card hidden">
+    <div class="quiz-top">
+      <span class="progress-text" id="progressText">第 1 / 10 题</span>
+      <span class="score-text" id="scoreText">得分 <span id="scoreNum">0</span><span class="mode-badge hidden" id="modeBadge">专项</span></span>
+    </div>
+    <div class="progress-bar"><div id="progressFill" style="width:10%"></div></div>
+    <div class="canvas-wrap">
+      <canvas id="cubeCanvas" width="340" height="300"></canvas>
+    </div>
+    <div class="question">该色块的编码是？</div>
+    <div class="options" id="optionsBox"></div>
+    <div class="feedback" id="feedbackBox"></div>
+  </div>
+
+  <div id="resultPanel" class="card hidden">
+    <h1>训练完成</h1>
+    <div class="result-score" id="resultScore">0 / 10</div>
+    <div class="result-sub" id="resultSub">正确率 0%</div>
+    <div class="saved-tip hidden" id="savedTip">本次记录已保存</div>
+    <div class="section-title">错题回顾</div>
+    <div id="reviewList" class="review-list"></div>
+    <button class="btn btn-primary" id="againBtn">再练一组</button>
+  </div>
+
+  <div id="historyPanel" class="card hidden">
+    <div class="back-row"><button class="btn btn-ghost" id="backBtn">返回首页</button></div>
+    <h1>练习记录与错题统计</h1>
+    <div class="section-title" style="margin-top:18px">错题统计</div>
+    <div id="wrongStats"></div>
+    <div class="section-title">练习记录</div>
+    <div id="recordList"></div>
+  </div>
+
+<footer style="text-align:center;color:#9aa3b2;font-size:13px;padding:18px 0 8px;">&copy; 2026 mrcubessr</footer>
+
+<script>
+// ============ 角块数据（颜色顺序与编码顺序一一对应）============
+const CORNERS = [
+  { name: "黄红蓝", colors: ["#FFD500", "#C41E3A", "#0051BA"], letters: ["A", "B", "C"] },
+  { name: "黄蓝橘", colors: ["#FFD500", "#0051BA", "#FF5800"], letters: ["D", "E", "F"] },
+  { name: "黄橘绿", colors: ["#FFD500", "#FF5800", "#009E60"], letters: ["G", "H", "I"] },
+  { name: "白蓝红", colors: ["#FFFFFF", "#0051BA", "#C41E3A"], letters: ["W", "M", "N"] },
+  { name: "白橘蓝", colors: ["#FFFFFF", "#FF5800", "#0051BA"], letters: ["O", "P", "Q"] },
+  { name: "白绿橘", colors: ["#FFFFFF", "#009E60", "#FF5800"], letters: ["R", "S", "T"] }
+];
+const ALL_LETTERS = CORNERS.flatMap(c => c.letters);
+
+// ============ 本地存储（localStorage）============
+const STORE_KEY = "corner_trainer_records_v1";
+const MAX_RECORDS = 500;
+function loadRecords() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+function saveRecords(records) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(records)); } catch (e) {}
+}
+let records = loadRecords();
+
+// ============ 工具函数 ============
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function isLight(hex) {
+  const v = hex.replace("#", "");
+  const r = parseInt(v.substr(0, 2), 16);
+  const g = parseInt(v.substr(2, 2), 16);
+  const b = parseInt(v.substr(4, 2), 16);
+  return (r * 0.299 + g * 0.587 + b * 0.114) > 180;
+}
+function findLetter(letter) {
+  for (let ci = 0; ci < CORNERS.length; ci++) {
+    const fi = CORNERS[ci].letters.indexOf(letter);
+    if (fi >= 0) return { ci, fi };
+  }
+  return { ci: 0, fi: 0 };
+}
+function formatDate(d) {
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+// ============ 绘制角块（标准等距立方体角）============
+function shadeColor(hex, percent) {
+  const v = hex.replace("#", "");
+  const r = Math.min(255, Math.max(0, parseInt(v.substr(0, 2), 16) + Math.round(255 * percent)));
+  const g = Math.min(255, Math.max(0, parseInt(v.substr(2, 2), 16) + Math.round(255 * percent)));
+  const b = Math.min(255, Math.max(0, parseInt(v.substr(4, 2), 16) + Math.round(255 * percent)));
+  return "rgb(" + r + "," + g + "," + b + ")";
+}
+function drawCorner(canvas, colors, highlight) {
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2;
+  // 标准等距立方体角：顶面为菱形，左右两侧为平行四边形（外棱竖直）
+  const s = Math.min(W, H) * 0.30;
+  const w = s * 0.866, h = s * 0.5;
+  const V0 = [cx, cy];           // 三面公共的中心顶点（最靠近观察者）
+  const V1 = [cx - w, cy - h];   // 左上
+  const V2 = [cx + w, cy - h];   // 右上
+  const V3 = [cx, cy - s];       // 上
+  const V4 = [cx - w, cy + h];   // 左下
+  const V5 = [cx + w, cy + h];   // 右下
+  const V6 = [cx, cy + s];       // 底
+  const faces = [
+    { pts: [V1, V3, V2, V0], from: V3, to: V0 },  // 顶面
+    { pts: [V2, V5, V6, V0], from: V2, to: V6 },  // 右面
+    { pts: [V1, V4, V6, V0], from: V1, to: V6 }   // 左面
+  ];
+  // 地面投影
+  ctx.save();
+  ctx.fillStyle = "rgba(25,35,55,0.10)";
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + s * 0.66, w * 1.05, s * 0.16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  // 三个面：渐变填充（受光面亮、底部暗）+ 细描边
+  const order = [0, 1, 2].filter(i => i !== highlight).concat(highlight);
+  for (const i of order) {
+    if (i < 0) continue;
+    const p = faces[i].pts;
+    const g = ctx.createLinearGradient(faces[i].from[0], faces[i].from[1], faces[i].to[0], faces[i].to[1]);
+    g.addColorStop(0, shadeColor(colors[i], 0.16));
+    g.addColorStop(1, shadeColor(colors[i], -0.20));
+    ctx.beginPath();
+    ctx.moveTo(p[0][0], p[0][1]);
+    for (let j = 1; j < p.length; j++) ctx.lineTo(p[j][0], p[j][1]);
+    ctx.closePath();
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(20,25,35,0.55)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  // 外轮廓粗线（六边形外圈：V1-V3-V2-V5-V6-V4）
+  ctx.beginPath();
+  ctx.moveTo(V1[0], V1[1]); ctx.lineTo(V3[0], V3[1]); ctx.lineTo(V2[0], V2[1]);
+  ctx.lineTo(V5[0], V5[1]); ctx.lineTo(V6[0], V6[1]); ctx.lineTo(V4[0], V4[1]);
+  ctx.closePath();
+  ctx.strokeStyle = "rgba(25,32,44,0.85)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  // 中心公共棱（细线：V0 与 V1/V2/V6 相连）
+  ctx.beginPath();
+  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V1[0], V1[1]);
+  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V2[0], V2[1]);
+  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V6[0], V6[1]);
+  ctx.strokeStyle = "rgba(25,32,44,0.55)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  // 被考色块高亮：加粗深色线框 + 白色内描边 + 发光
+  if (highlight >= 0) {
+    const p = faces[highlight].pts;
+    ctx.save();
+    ctx.shadowColor = "rgba(255,255,255,0.9)";
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.moveTo(p[0][0], p[0][1]);
+    for (let j = 1; j < p.length; j++) ctx.lineTo(p[j][0], p[j][1]);
+    ctx.closePath();
+    ctx.strokeStyle = "rgba(25,32,44,0.95)";
+    ctx.lineWidth = 6;
+    ctx.stroke();
+    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(p[0][0], p[0][1]);
+    for (let j = 1; j < p.length; j++) ctx.lineTo(p[j][0], p[j][1]);
+    ctx.closePath();
+    ctx.strokeStyle = isLight(colors[highlight]) ? "#ffffff" : "rgba(255,255,255,0.75)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+// ============ 渲染编码对照表 ============
+function renderTable() {
+  const box = document.getElementById("cornerTable");
+  box.innerHTML = "";
+  for (const corner of CORNERS) {
+    const row = document.createElement("div");
+    row.className = "corner-row";
+    let chips = "";
+    for (let i = 0; i < corner.colors.length; i++) {
+      const dark = isLight(corner.colors[i]);
+      chips += `<span class="letter-chip ${dark ? "dark-text" : ""}" style="background:${corner.colors[i]}">${corner.letters[i]}</span>`;
+    }
+    row.innerHTML = chips + `<span class="corner-name">${corner.name}</span>`;
+    box.appendChild(row);
+  }
+}
+
+// ============ 统计 ============
+function computeStats() {
+  const stat = {};
+  let totalQ = 0, correctQ = 0;
+  for (const rec of records) {
+    for (const d of rec.details) {
+      totalQ++;
+      if (d.correct) correctQ++;
+      if (!stat[d.answer]) stat[d.answer] = { asked: 0, wrong: 0 };
+      stat[d.answer].asked++;
+      if (!d.correct) stat[d.answer].wrong++;
+    }
+  }
+  return { stat, totalQ, correctQ };
+}
+function wrongLetterPool() {
+  const { stat } = computeStats();
+  const pool = [];
+  for (const k in stat) {
+    for (let i = 0; i < stat[k].wrong; i++) pool.push(k);
+  }
+  return pool;
+}
+function renderOverview() {
+  const { totalQ, correctQ } = computeStats();
+  const pool = wrongLetterPool();
+  document.getElementById("ovCount").textContent = records.length;
+  document.getElementById("ovRate").textContent = totalQ ? Math.round(correctQ / totalQ * 100) + "%" : "--";
+  document.getElementById("ovWrong").textContent = pool.length;
+  const btn = document.getElementById("specialBtn");
+  if (pool.length === 0) {
+    btn.disabled = true;
+    btn.textContent = "错题专项训练（暂无错题）";
+  } else {
+    btn.disabled = false;
+    btn.textContent = "错题专项训练（" + pool.length + " 道错题）";
+  }
+}
+
+// ============ 题目与训练状态 ============
+const QUIZ_LEN = 10;
+let questions = [];
+let qIndex = 0;
+let score = 0;
+let wrongList = [];
+let currentMode = "normal";
+let details = [];
+
+function genQuiz(mode) {
+  const qs = [];
+  const pool = mode === "special" ? wrongLetterPool() : [];
+  for (let i = 0; i < QUIZ_LEN; i++) {
+    let ci, fi;
+    if (mode === "special" && pool.length > 0) {
+      const letter = pool[Math.floor(Math.random() * pool.length)];
+      const pos = findLetter(letter);
+      ci = pos.ci; fi = pos.fi;
+    } else {
+      ci = Math.floor(Math.random() * CORNERS.length);
+      fi = Math.floor(Math.random() * 3);
+    }
+    const corner = CORNERS[ci];
+    const answer = corner.letters[fi];
+    const poolLetters = shuffle(ALL_LETTERS.filter(l => l !== answer));
+    const options = shuffle([answer, poolLetters[0], poolLetters[1], poolLetters[2]]);
+    qs.push({ ci, fi, answer, options });
+  }
+  return qs;
+}
+
+const canvas = document.getElementById("cubeCanvas");
+const progressText = document.getElementById("progressText");
+const scoreText = document.getElementById("scoreText");
+const scoreNum = document.getElementById("scoreNum");
+const progressFill = document.getElementById("progressFill");
+const optionsBox = document.getElementById("optionsBox");
+const feedbackBox = document.getElementById("feedbackBox");
+const modeBadge = document.getElementById("modeBadge");
+
+function renderQuestion() {
+  const q = questions[qIndex];
+  const corner = CORNERS[q.ci];
+  drawCorner(canvas, corner.colors, q.fi);
+  progressText.textContent = `第 ${qIndex + 1} / ${QUIZ_LEN} 题`;
+  scoreNum.textContent = `得分 ${score}`;
+  progressFill.style.width = ((qIndex + 1) / QUIZ_LEN * 100) + "%";
+  feedbackBox.textContent = "";
+  feedbackBox.className = "feedback";
+  optionsBox.innerHTML = "";
+  const borderColors = ["#ff9f43", "#6bcb77", "#4d96ff", "#ff6b9d"];
+  q.options.forEach((letter, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.textContent = letter;
+    btn.style.borderColor = borderColors[idx % 4];
+    btn.addEventListener("click", () => handleAnswer(btn, letter));
+    optionsBox.appendChild(btn);
+  });
+}
+
+function handleAnswer(btn, chosen) {
+  const q = questions[qIndex];
+  const buttons = [...optionsBox.children];
+  buttons.forEach(b => b.classList.add("disabled"));
+  const correctBtn = buttons.find(b => b.textContent === q.answer);
+  const isCorrect = chosen === q.answer;
+  details.push({ answer: q.answer, chosen: chosen, correct: isCorrect });
+  if (isCorrect) {
+    btn.classList.add("correct");
+    score++;
+    scoreNum.textContent = `得分 ${score}`;
+    feedbackBox.textContent = "回答正确！";
+    feedbackBox.className = "feedback ok";
+  } else {
+    btn.classList.add("wrong");
+    correctBtn.classList.add("correct");
+    const corner = CORNERS[q.ci];
+    wrongList.push({ corner: corner.name, answer: q.answer, chosen: chosen });
+    feedbackBox.textContent = `回答错误，正确答案是 ${q.answer}`;
+    feedbackBox.className = "feedback no";
+  }
+  setTimeout(nextQuestion, 1100);
+}
+
+function nextQuestion() {
+  qIndex++;
+  if (qIndex >= QUIZ_LEN) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ============ 结果面板 ============
+function showResult() {
+  document.getElementById("quizPanel").classList.add("hidden");
+  const rp = document.getElementById("resultPanel");
+  rp.classList.remove("hidden");
+  document.getElementById("resultScore").textContent = `${score} / ${QUIZ_LEN}`;
+  const pct = Math.round(score / QUIZ_LEN * 100);
+  document.getElementById("resultSub").textContent =
+    pct >= 80 ? `正确率 ${pct}%，非常棒！` : (pct >= 60 ? `正确率 ${pct}%，继续加油！` : `正确率 ${pct}%，建议先熟悉编码表`);
+  const list = document.getElementById("reviewList");
+  list.innerHTML = "";
+  if (wrongList.length === 0) {
+    list.innerHTML = `<p class="tip" style="margin:0">全对，没有错题。</p>`;
+  } else {
+    wrongList.forEach(w => {
+      const item = document.createElement("div");
+      item.className = "review-item";
+      item.innerHTML = `<span>${w.corner} 角块 · 考点 ${w.answer}</span><span style="color:#e03131">你选 ${w.chosen}</span><span class="rev-correct">正确 ${w.answer}</span>`;
+      list.appendChild(item);
+    });
+  }
+  // 保存记录
+  const rec = {
+    id: Date.now(),
+    date: formatDate(new Date()),
+    mode: currentMode === "special" ? "专项训练" : "普通训练",
+    total: QUIZ_LEN,
+    score: score,
+    details: details.slice()
+  };
+  records.unshift(rec);
+  if (records.length > MAX_RECORDS) records.length = MAX_RECORDS;
+  saveRecords(records);
+  const tip = document.getElementById("savedTip");
+  tip.classList.remove("hidden");
+  tip.textContent = "本次记录已保存";
+  document.getElementById("resultPanel").scrollIntoView({ behavior: "smooth" });
+}
+
+// ============ 历史面板 ============
+function showHistory() {
+  document.getElementById("startPanel").classList.add("hidden");
+  document.getElementById("resultPanel").classList.add("hidden");
+  document.getElementById("quizPanel").classList.add("hidden");
+  const hp = document.getElementById("historyPanel");
+  hp.classList.remove("hidden");
+  renderWrongStats();
+  renderRecordList();
+  hp.scrollIntoView({ behavior: "smooth" });
+}
+
+function renderWrongStats() {
+  const box = document.getElementById("wrongStats");
+  const { stat, totalQ, correctQ } = computeStats();
+  const entries = Object.keys(stat).map(k => ({ letter: k, ...stat[k] }));
+  entries.sort((a, b) => b.wrong - a.wrong || b.asked - a.asked);
+  if (entries.length === 0) {
+    box.innerHTML = `<p class="empty-tip">暂无记录，完成训练后这里会显示每个字母的错题统计。</p>`;
+    return;
+  }
+  const maxWrong = Math.max(...entries.map(e => e.wrong), 1);
+  let html = `<table class="stat-table"><tr><th>字母</th><th>考过</th><th>错误</th><th style="width:38%">错误比例</th></tr>`;
+  for (const e of entries) {
+    const rate = e.asked ? Math.round(e.wrong / e.asked * 100) : 0;
+    const barW = Math.round(e.wrong / maxWrong * 100);
+    html += `<tr><td>${e.letter}</td><td>${e.asked}</td><td>${e.wrong}</td><td class="bar-cell"><div class="bar-wrap"><div class="bar-fill" style="width:${barW}%"></div></div></td></tr>`;
+  }
+  html += `</table>`;
+  html += `<p class="tip">总题数 ${totalQ} · 总正确率 ${totalQ ? Math.round(correctQ / totalQ * 100) : 0}%</p>`;
+  box.innerHTML = html;
+}
+
+function renderRecordList() {
+  const box = document.getElementById("recordList");
+  if (records.length === 0) {
+    box.innerHTML = `<p class="empty-tip">还没有练习记录，先去练一组吧。</p>`;
+    return;
+  }
+  let html = "";
+  for (const rec of records) {
+    const cls = rec.score / rec.total < 0.6 ? "bad" : "";
+    html += `<div class="rec-item">
+      <div class="rec-head">
+        <span class="rec-time">${rec.date}${rec.mode === "专项训练" ? ' <span class="mode-badge">专项</span>' : ""}</span>
+        <span class="rec-score ${cls}">${rec.score} / ${rec.total}</span>
+      </div>
+      <div class="rec-detail">`;
+    rec.details.forEach((d, i) => {
+      const mark = d.correct ? "ok" : "no";
+      const ans = d.correct ? `答对 ${d.answer}` : `答错（你选 ${d.chosen}，正确 ${d.answer}）`;
+      html += `<div class="rec-line"><span class="dot ${mark}"></span><span>第${i + 1}题 · 考点 ${d.answer}</span><span style="margin-left:auto">${ans}</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+  box.innerHTML = html;
+  // 点击展开/收起
+  box.querySelectorAll(".rec-head").forEach(h => {
+    h.addEventListener("click", () => {
+      const d = h.nextElementSibling;
+      d.style.display = d.style.display === "none" ? "block" : "none";
+    });
+  });
+  box.querySelectorAll(".rec-detail").forEach(d => { d.style.display = "none"; });
+}
+
+// ============ 流程控制 ============
+function startQuiz(mode) {
+  currentMode = mode;
+  questions = genQuiz(mode);
+  qIndex = 0;
+  score = 0;
+  wrongList = [];
+  details = [];
+  document.getElementById("startPanel").classList.add("hidden");
+  document.getElementById("resultPanel").classList.add("hidden");
+  document.getElementById("historyPanel").classList.add("hidden");
+  document.getElementById("quizPanel").classList.remove("hidden");
+  modeBadge.classList.toggle("hidden", mode !== "special");
+  renderQuestion();
+}
+
+document.getElementById("startBtn").addEventListener("click", () => startQuiz("normal"));
+document.getElementById("specialBtn").addEventListener("click", () => startQuiz("special"));
+document.getElementById("againBtn").addEventListener("click", () => startQuiz(currentMode));
+document.getElementById("historyBtn").addEventListener("click", showHistory);
+document.getElementById("backBtn").addEventListener("click", () => {
+  document.getElementById("historyPanel").classList.add("hidden");
+  document.getElementById("startPanel").classList.remove("hidden");
+  renderOverview();
+});
+
+// 初始化
+renderTable();
+renderOverview();
+</script>
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>
