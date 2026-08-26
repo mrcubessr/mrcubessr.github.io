@@ -304,9 +304,9 @@ function expandMoveNet(base, dir){
 }
 
 
-// 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas
+// 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas（也支持直接传入 canvas 元素）
 function drawScrambleNet(alg, canvasId){
-    const canvas = canvasId ? document.getElementById(canvasId) : document.getElementById("player");
+    const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
     if(!canvas) return;
     const cube = new Cube(3);
     cube.applyAlg(alg);
@@ -373,3 +373,26 @@ function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
         }
     }
 }
+
+// 自动初始化：扫描 .ur-cube[data-formula] 画布并绘制展开图（兼容原 uf-cube.js 的调用方式）
+function initScrambleNetCubes(root) {
+    const scope = root || document;
+    const cvs = scope.querySelectorAll ? scope.querySelectorAll('.ur-cube') : [];
+    Array.prototype.forEach.call(cvs, function (cv) {
+        const f = cv.getAttribute('data-formula');
+        if (f) { try { drawScrambleNet(f, cv); } catch (e) {} }
+    });
+}
+
+(function () {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { initScrambleNetCubes(); });
+    } else {
+        initScrambleNetCubes();
+    }
+    var resizeTimer = null;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () { initScrambleNetCubes(); }, 120);
+    });
+})();

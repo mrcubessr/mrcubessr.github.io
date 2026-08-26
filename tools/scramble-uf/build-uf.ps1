@@ -173,7 +173,7 @@ __HEAD__
 
 __FOOTER__
 <script src="/assets/js/site-nav.js"></script>
-<script src="uf-cube.js"></script>
+<script src="/assets/js/cube-net.js"></script>
 <script src="uf-ref.js"></script>
 <script src="uf-timer.js"></script>
 </body>
