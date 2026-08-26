@@ -74,7 +74,7 @@
     <option value="yellow-red">黄顶红前</option>
     <option value="yellow-blue">黄顶蓝前</option>
   </select>
-  <span class="orientation-hint">切换后展开图与打乱公式会按所选拿法坐标系显示</span>
+  <span class="orientation-hint">打乱固定白顶绿前；切换复原拿法后，展开图与参考公式按所选拿法坐标系显示</span>
 </div>
 <div class="entries">
   <div class="entry single">
@@ -170,8 +170,7 @@
       try { drawScrambleNet(f, canvas, ori); } catch (e) {}
     }
     if (formulaEl) {
-      formulaEl.textContent = (window.mapAlgOrientation && ori !== 'white-green')
-        ? mapAlgOrientation(f, ori) : f;
+      formulaEl.textContent = f;
     }
     try { localStorage.setItem('uf-orientation', ori); } catch (e) {}
   }
