@@ -66,7 +66,9 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .ov-num { font-size: 22px; font-weight: 800; color: #1f2d3d; }
 .ov-label { font-size: 12px; color: #7a8aa0; margin-top: 3px; }
 .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.quiz-left { display: flex; align-items: center; gap: 12px; }
 .progress-text { font-size: 14px; font-weight: 600; color: #52667d; }
+.timer-text { font-size: 14px; font-weight: 700; color: #3a7cf0; font-variant-numeric: tabular-nums; }
 .score-text {
   font-size: 14px; font-weight: 600; color: #3a7cf0;
   background: rgba(58, 124, 240, 0.10);
@@ -169,7 +171,10 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 
   <div id="quizPanel" class="card hidden">
     <div class="quiz-top">
-      <span class="progress-text" id="progressText">第 1 / 10 题</span>
+      <div class="quiz-left">
+        <span class="progress-text" id="progressText">第 1 / 10 题</span>
+        <span class="timer-text" id="timerText">用时 00:00</span>
+      </div>
       <span class="score-text" id="scoreText">得分 <span id="scoreNum">0</span><span class="mode-badge hidden" id="modeBadge">专项</span></span>
     </div>
     <div class="progress-bar"><div id="progressFill" style="width:10%"></div></div>
@@ -185,6 +190,7 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
     <h1>训练完成</h1>
     <div class="result-score" id="resultScore">0 / 10</div>
     <div class="result-sub" id="resultSub">正确率 0%</div>
+    <div class="result-time" id="resultTime">用时 --:--</div>
     <div class="saved-tip hidden" id="savedTip">本次记录已保存</div>
     <div class="section-title">错题回顾</div>
     <div id="reviewList" class="review-list"></div>
