@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C组棱练习 - UF缓冲公式连拧专项训练</title>
 <link rel="stylesheet" href="uf-common.css">
+<style>
+.orientation-selector {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; margin: 12px 0;
+  background: #1a1a2e; border-radius: 8px; flex-wrap: wrap;
+}
+.orientation-selector select {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid #444;
+  background: #0d1117; color: #e6edf3; font-size: 14px;
+}
+.orientation-selector .orientation-label { color: #e6edf3; font-weight: 600; }
+.orientation-selector .orientation-hint { color: #8b949e; font-size: 12px; }
+</style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body data-nav="scramble-uf">
@@ -54,6 +67,15 @@
   <div class="sub">白顶绿前打乱，打乱之后按照顺序做UF缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
+<div class="orientation-selector">
+  <span class="orientation-label">拿法选择</span>
+  <select id="orientationSelect">
+    <option value="white-green">白顶绿前（默认）</option>
+    <option value="yellow-red">黄顶红前</option>
+    <option value="yellow-blue">黄顶蓝前</option>
+  </select>
+  <span class="orientation-hint">切换后展开图与打乱公式会按所选拿法坐标系显示</span>
+</div>
 <div class="entries">
   <div class="entry single">
     <div class="entry-header">
@@ -130,6 +152,33 @@
 </div>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/assets/js/cube-net.js"></script>
+<script>
+(function () {
+  var select = document.getElementById('orientationSelect');
+  var canvas = document.querySelector('.ur-cube');
+  var formulaEl = document.querySelector('.formula-block code');
+  var saved = null;
+  try { saved = localStorage.getItem('uf-orientation'); } catch (e) {}
+  if (saved && ['white-green', 'yellow-red', 'yellow-blue'].indexOf(saved) >= 0) {
+    select.value = saved;
+  }
+  function apply() {
+    var ori = select.value;
+    canvas.setAttribute('data-orientation', ori);
+    var f = canvas.getAttribute('data-formula');
+    if (window.drawScrambleNet) {
+      try { drawScrambleNet(f, canvas, ori); } catch (e) {}
+    }
+    if (formulaEl) {
+      formulaEl.textContent = (window.mapAlgOrientation && ori !== 'white-green')
+        ? mapAlgOrientation(f, ori) : f;
+    }
+    try { localStorage.setItem('uf-orientation', ori); } catch (e) {}
+  }
+  select.addEventListener('change', apply);
+  apply();
+})();
+</script>
 <script src="uf-ref.js"></script>
 <script src="uf-timer.js"></script>
 </body>

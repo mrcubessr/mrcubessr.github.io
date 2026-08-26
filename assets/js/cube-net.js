@@ -1,4 +1,4 @@
-﻿
+
 // ===== 统一基准模块 v2 =====
 // practice 页已验证 Cube 类（标准 WCA U/D 方向）+ net 中层/宽转/整体转 + 修正版 parseScrambleNet
 const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
@@ -25,19 +25,37 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
   // 新U=原D、新D=原U、新F=原R、新R=原F、新B=原L、新L=原B
   rotateM() {
     const n = this.size - 1;
+    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
     const u = this.faces.U, d = this.faces.D, ff = this.faces.F;
     const b = this.faces.B, r = this.faces.R, l = this.faces.L;
     this.faces = {
-      U: d.map((row, i) => row.map((_, j) => d[n - j][n - i])),
-      D: u.map((row, i) => row.map((_, j) => u[n - j][n - i])),
-      F: r.map((row, i) => row.map((_, j) => r[n - i][n - j])),
-      R: ff.map((row, i) => row.map((_, j) => ff[n - i][j])),
-      B: l.map((row, i) => row.map((_, j) => l[n - i][n - j])),
-      L: b.map((row, i) => row.map((_, j) => b[n - i][n - j])),
+      U: rot(d), D: rot(u), F: rot(r), R: rot(ff), B: rot(l), L: rot(b),
     };
   }
 
   getFace(face) { return this.faces[face]; }
+
+  // 黄顶蓝前：绕 x 轴（R-L 方向）180°，新U=原D、新F=原B、新R=原R
+  rotateX180() {
+    const n = this.size - 1;
+    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
+    this.faces = {
+      U: rot(this.faces.D), D: rot(this.faces.U),
+      F: rot(this.faces.B), B: rot(this.faces.F),
+      R: rot(this.faces.R), L: rot(this.faces.L),
+    };
+  }
+
+  // 黄顶绿前：绕 z 轴（F-B 方向）180°，新U=原D、新F=原F、新R=原L
+  rotateZ180() {
+    const n = this.size - 1;
+    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
+    this.faces = {
+      U: rot(this.faces.D), D: rot(this.faces.U),
+      F: rot(this.faces.F), B: rot(this.faces.B),
+      R: rot(this.faces.L), L: rot(this.faces.R),
+    };
+  }
 
   rotateFaceCW(face) {
     const s = this.size;
@@ -304,12 +322,62 @@ function expandMoveNet(base, dir){
 }
 
 
+// 拿法坐标系公式映射：把白顶绿前坐标系的公式转换为目标拿法坐标系下的等价公式
+// orientation: 'white-green'（默认）| 'yellow-red' | 'yellow-blue'
+// 映射表含义：黄顶红前/黄顶蓝前坐标下的字母 -> 等价的标准白顶绿前坐标字母（物理等价）
+// yellow-red  = 整体旋转 M (x,y,z)->(z,-y,x)：新U=原D 新F=原R 新R=原F 新B=原L 新L=原B
+//   x轴->新z轴、y轴->新-x轴、z轴->新-y轴；M<->S、E 反向；x<->z、y/y'、z<->x
+// yellow-blue = 绕 x 轴 180°：新U=原D 新F=原B 新R=原R；M 保持、E/S 反向、y/z 反向
+var ORIENT_MAP = {
+  'yellow-red': {
+    map: { R:'F', L:'B', U:'D', D:'U', F:'R', B:'L',
+           M:'S', S:'M', E:'E',
+           x:'z', y:'y', z:'x',
+           r:'f', f:'r', u:'d', d:'u', l:'b', b:'l' },
+    rev: { E:1, y:1, u:1, d:1, l:1, b:1 }
+  },
+  'yellow-blue': {
+    map: { R:'R', L:'L', U:'D', D:'U', F:'B', B:'F',
+           M:'M', E:'E', S:'S',
+           x:'x', y:'y', z:'z',
+           r:'r', l:'l', u:'d', d:'u', f:'b', b:'f' },
+    rev: { E:1, S:1, y:1, z:1, u:1, d:1 }
+  }
+};
+function mapAlgOrientation(alg, orientation) {
+  var cleaned = String(alg || '').replace(/\s+/g, ' ').trim();
+  if (!orientation || orientation === 'white-green' || !cleaned) return cleaned;
+  var cfg = ORIENT_MAP[orientation] || {};
+  var map = cfg.map || {};
+  var rev = cfg.rev || {};
+  var tokens = cleaned.split(/\s+/);
+  var out = [];
+  for (var i = 0; i < tokens.length; i++) {
+    var tok = tokens[i];
+    var m = tok.match(/^([RULDFBMESrludfbxyz])(2)?(')?$/);
+    if (!m) { out.push(tok); continue; }
+    var base = m[1];
+    var dir = m[2] ? 2 : (m[3] ? -1 : 1);
+    var mappedBase = map[base] || base;
+    if (rev[base] && dir !== 2) dir = -dir;
+    var suf = '';
+    if (dir === 2) suf = '2';
+    else if (dir === -1) suf = "'";
+    out.push(mappedBase + suf);
+  }
+  return out.join(' ');
+}
+
 // 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas（也支持直接传入 canvas 元素）
-function drawScrambleNet(alg, canvasId){
+// orientation: 'white-green' | 'yellow-red' | 'yellow-blue'，决定整体旋转渲染
+function drawScrambleNet(alg, canvasId, orientation) {
     const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
     if(!canvas) return;
     const cube = new Cube(3);
     cube.applyAlg(alg);
+    if (orientation === 'yellow-red') cube.rotateM();
+    else if (orientation === 'yellow-blue') cube.rotateX180();
+    else if (orientation === 'yellow-green') cube.rotateZ180();
     const colors = NET_COLORS;
     const ctx = canvas.getContext('2d');
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -379,7 +447,7 @@ function initScrambleNetCubes(root) {
     const cvs = scope.querySelectorAll ? scope.querySelectorAll('.ur-cube') : [];
     Array.prototype.forEach.call(cvs, function (cv) {
         const f = cv.getAttribute('data-formula');
-        if (f) { try { drawScrambleNet(f, cv); } catch (e) {} }
+        if (f) { try { drawScrambleNet(f, cv, cv.getAttribute('data-orientation') || 'white-green'); } catch (e) {} }
     });
 }
 
