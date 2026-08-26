@@ -135,7 +135,7 @@ __HEAD__
 
 <div class="header">
   <h1>UF缓冲公式连拧专项训练</h1>
-  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
+  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UF缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
 <div class="entries">
@@ -224,7 +224,7 @@ __HEAD__
 
 <div class="header">
   <h1>UF缓冲公式连拧专项训练</h1>
-  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。点击组卡片进入对应子页训练。</div>
+  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UF缓冲的复原公式，按照顺序做完，魔方会是复原状态。点击组卡片进入对应子页训练。</div>
 </div>
 <div class="entries">
   <div class="group-grid">

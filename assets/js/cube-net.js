@@ -1,4 +1,4 @@
-
+﻿
 // ===== 统一基准模块 v2 =====
 // practice 页已验证 Cube 类（标准 WCA U/D 方向）+ net 中层/宽转/整体转 + 修正版 parseScrambleNet
 const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
@@ -332,8 +332,7 @@ function drawScrambleNet(alg, canvasId){
     canvas.style.width = totalW + 'px';
     canvas.style.height = totalH + 'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.fillStyle = '#0d1117';
-    ctx.fillRect(0,0,totalW,totalH);
+    ctx.clearRect(0,0,totalW,totalH);
 
     const uX = faceSize + gap + padding, uY = padding;
     const lX = padding, lY = faceSize + gap + padding;
