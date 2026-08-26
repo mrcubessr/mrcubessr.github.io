@@ -342,6 +342,13 @@ var ORIENT_MAP = {
            x:'x', y:'y', z:'z',
            r:'r', l:'l', u:'d', d:'u', f:'b', b:'f' },
     rev: { E:1, S:1, y:1, z:1, u:1, d:1 }
+  },
+  'yellow-green': {
+    map: { R:'L', L:'R', U:'D', D:'U', F:'F', B:'B',
+           M:'M', E:'E', S:'S',
+           x:'x', y:'y', z:'z',
+           r:'l', l:'r', u:'d', d:'u', f:'f', b:'b' },
+    rev: { M:1, E:1, x:1, y:1, u:1, d:1 }
   }
 };
 function mapAlgOrientation(alg, orientation) {

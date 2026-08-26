@@ -64,7 +64,7 @@
 
 <div class="header">
   <h1>UF缓冲公式连拧专项训练</h1>
-  <div class="sub">白顶绿前打乱（打乱公式固定不变），打乱之后切换复原拿法，按照所选拿法下的复原公式做完，魔方会是复原状态。</div>
+  <div class="sub">打乱时按所选拿法坐标系执行（打乱公式、展开图、参考公式三件套随拿法同步映射）；按所选拿法下的复原公式做完，魔方恢复复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
 <div class="orientation-selector">
@@ -73,8 +73,9 @@
     <option value="white-green">白顶绿前（默认）</option>
     <option value="yellow-red">黄顶红前</option>
     <option value="yellow-blue">黄顶蓝前</option>
+    <option value="yellow-green">黄顶绿前</option>
   </select>
-  <span class="orientation-hint">打乱固定白顶绿前；切换复原拿法后，展开图与参考公式按所选拿法坐标系显示</span>
+  <span class="orientation-hint">切换拿法后，打乱公式、展开图、参考公式三件套均按所选拿法坐标系显示；打乱执行按映射后的公式进行</span>
 </div>
 <div class="entries">
   <div class="entry single">
@@ -159,7 +160,7 @@
   var formulaEl = document.querySelector('.formula-block code');
   var saved = null;
   try { saved = localStorage.getItem('uf-orientation'); } catch (e) {}
-  if (saved && ['white-green', 'yellow-red', 'yellow-blue'].indexOf(saved) >= 0) {
+  if (saved && ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green'].indexOf(saved) >= 0) {
     select.value = saved;
   }
   function apply() {
@@ -170,7 +171,8 @@
       try { drawScrambleNet(f, canvas, ori); } catch (e) {}
     }
     if (formulaEl) {
-      formulaEl.textContent = f;
+      formulaEl.textContent = (window.mapAlgOrientation && ori !== 'white-green')
+        ? mapAlgOrientation(f, ori) : f;
     }
     try { localStorage.setItem('uf-orientation', ori); } catch (e) {}
   }
