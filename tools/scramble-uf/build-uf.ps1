@@ -147,7 +147,7 @@ __HEAD__
     <option value="yellow-green">黄顶绿前</option>
     <option value="yellow-orange">黄顶橘前</option>
   </select>
-  <span class="orientation-hint">打乱公式与展开图固定为白顶绿前；参考复原公式按所选拿法坐标系显示</span>
+  <span class="orientation-hint">打乱公式、展开图与参考复原公式均按所选拿法坐标系显示（物理效果等价于白顶绿前打乱）；按所选拿法下的复原公式做完，魔方恢复复原状态。</span>
 </div>
 <div class="entries">
   <div class="entry single">
@@ -162,7 +162,7 @@ __HEAD__
       <div class="info-panel">
         <div class="formula-block">
           <span class="label">打乱公式</span>
-          <code>__FORMULA__</code>
+          <code id="scramble-formula">__FORMULA__</code>
         </div>
         <div>
           <span class="label">练习顺序</span>
@@ -183,23 +183,39 @@ __HEAD__
 </div>
 
 __FOOTER__
+<script src="/assets/js/site-nav.js"></script>
+<script src="/assets/js/cube-net.js"></script>
 <script>
 (function () {
   var sel = document.getElementById('orientationSelect');
   if (!sel) return;
+  var cvs = document.querySelector('.ur-cube');
+  var codeEl = document.getElementById('scramble-formula');
+  var baseAlg = cvs ? (cvs.getAttribute('data-formula') || '') : '';
+  var valid = ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'];
+  function applyOri(ori) {
+    if (typeof mapAlgOrientation === 'undefined') return;
+    if (cvs) {
+      cvs.setAttribute('data-orientation', ori);
+      if (typeof drawScrambleNet === 'function') {
+        try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
+      }
+    }
+    if (codeEl) {
+      codeEl.textContent = (ori === 'white-green') ? baseAlg : mapAlgOrientation(baseAlg, ori);
+    }
+  }
   try {
     var saved = localStorage.getItem('uf-orientation');
-    if (saved && ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'].indexOf(saved) >= 0) {
-      sel.value = saved;
-    }
+    if (saved && valid.indexOf(saved) >= 0) { sel.value = saved; }
   } catch (e) {}
+  applyOri(sel.value);
   sel.addEventListener('change', function () {
+    applyOri(sel.value);
     try { localStorage.setItem('uf-orientation', sel.value); } catch (e) {}
   });
 })();
 </script>
-<script src="/assets/js/site-nav.js"></script>
-<script src="/assets/js/cube-net.js"></script>
 <script src="uf-ref.js"></script>
 <script src="uf-timer.js"></script>
 </body>
