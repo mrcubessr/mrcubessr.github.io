@@ -11,14 +11,14 @@
   var algCache = {};
   var dataPromises = {};
 
-  // 当前拿法：优先读页面选择器，其次读 localStorage（与 group-C.html 共享键）
+  // 当前拿法：优先读页面选择器，其次读 localStorage（与 group 页共享键）；默认黄顶红前
   function getCurrentOrientation() {
     try {
       var sel = document.getElementById('orientationSelect');
       if (sel && sel.value) return sel.value;
     } catch (e) {}
-    try { return localStorage.getItem(ORIENTATION_KEY) || 'white-green'; } catch (e) {}
-    return 'white-green';
+    try { return localStorage.getItem(ORIENTATION_KEY) || 'yellow-red'; } catch (e) {}
+    return 'yellow-red';
   }
   // 按当前拿法显示公式（存储值始终为白顶绿前基准，显示时才映射）
   function displayAlg(alg) {

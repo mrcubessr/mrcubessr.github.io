@@ -57,6 +57,17 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
     };
   }
 
+  // 黄顶橘前：红前姿态再绕 U-D 轴（原D顶轴）180°，新U=原D、新F=原L（橙前）、新R=原B
+  rotateY2() {
+    const n = this.size - 1;
+    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
+    this.faces = {
+      U: rot(this.faces.U), D: rot(this.faces.D),
+      F: rot(this.faces.B), B: rot(this.faces.F),
+      R: rot(this.faces.L), L: rot(this.faces.R),
+    };
+  }
+
   rotateFaceCW(face) {
     const s = this.size;
     const m = this.faces[face];
@@ -323,11 +334,15 @@ function expandMoveNet(base, dir){
 
 
 // 拿法坐标系公式映射：把白顶绿前坐标系的公式转换为目标拿法坐标系下的等价公式
-// orientation: 'white-green'（默认）| 'yellow-red' | 'yellow-blue'
-// 映射表含义：黄顶红前/黄顶蓝前坐标下的字母 -> 等价的标准白顶绿前坐标字母（物理等价）
+// orientation: 'white-green'（默认）| 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'
+// 映射表含义：黄顶X前坐标下的字母 -> 等价的标准白顶绿前坐标字母（物理等价）
 // yellow-red  = 整体旋转 M (x,y,z)->(z,-y,x)：新U=原D 新F=原R 新R=原F 新B=原L 新L=原B
 //   x轴->新z轴、y轴->新-x轴、z轴->新-y轴；M<->S、E 反向；x<->z、y/y'、z<->x
 // yellow-blue = 绕 x 轴 180°：新U=原D 新F=原B 新R=原R；M 保持、E/S 反向、y/z 反向
+// yellow-green = 绕 z 轴 180°：新U=原D 新F=原F 新R=原L；M/E 反向、x/y 反向
+// yellow-orange = (绕 x? ) 黄顶 + 前L(橙) = 红前姿态再绕 U-D(原D顶)轴 180°：
+//   新U=原D(黄顶)、新F=原F.. 实际读 rotateM 后 rotateY2：新U=原D 新F=原L 新R=原B
+//   face: R->B L->F U->D D->U F->L B->R；M<->S 反向、E 反向；x<->z 反向、z->x; y 反向；小写 r<->b、l->f、f->l、b->r 方向见 rev
 var ORIENT_MAP = {
   'yellow-red': {
     map: { R:'F', L:'B', U:'D', D:'U', F:'R', B:'L',
@@ -349,6 +364,13 @@ var ORIENT_MAP = {
            x:'x', y:'y', z:'z',
            r:'l', l:'r', u:'d', d:'u', f:'f', b:'b' },
     rev: { M:1, E:1, x:1, y:1, u:1, d:1 }
+  },
+  'yellow-orange': {
+    map: { R:'B', L:'F', U:'D', D:'U', F:'L', B:'R',
+           M:'S', S:'M', E:'E',
+           x:'z', y:'y', z:'x',
+           r:'b', l:'f', u:'d', d:'u', f:'l', b:'r' },
+    rev: { M:1, E:1, x:1, z:1, y:1, u:1, d:1, r:1, l:1, f:1, b:1 }
   }
 };
 function mapAlgOrientation(alg, orientation) {
@@ -376,7 +398,7 @@ function mapAlgOrientation(alg, orientation) {
 }
 
 // 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas（也支持直接传入 canvas 元素）
-// orientation: 'white-green' | 'yellow-red' | 'yellow-blue'，决定整体旋转渲染
+// orientation: 'white-green' | 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'，决定整体旋转渲染
 function drawScrambleNet(alg, canvasId, orientation) {
     const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
     if(!canvas) return;
@@ -385,6 +407,7 @@ function drawScrambleNet(alg, canvasId, orientation) {
     if (orientation === 'yellow-red') cube.rotateM();
     else if (orientation === 'yellow-blue') cube.rotateX180();
     else if (orientation === 'yellow-green') cube.rotateZ180();
+    else if (orientation === 'yellow-orange') { cube.rotateM(); cube.rotateY2(); }
     const colors = NET_COLORS;
     const ctx = canvas.getContext('2d');
     const rect = canvas.parentElement.getBoundingClientRect();

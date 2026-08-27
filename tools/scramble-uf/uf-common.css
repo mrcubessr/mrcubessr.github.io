@@ -476,3 +476,17 @@
 
 /* ===== 单组子页收窄容器 ===== */
 .entry.single { max-width: 720px; margin: 0 auto; }
+
+
+/* ===== UF group pages: orientation selector (recovery grip) ===== */
+.orientation-selector {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; margin: 12px auto; max-width: 720px;
+  background: #1a1a2e; border-radius: 8px; flex-wrap: wrap;
+}
+.orientation-selector select {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid #444;
+  background: #0d1117; color: #e6edf3; font-size: 14px;
+}
+.orientation-selector .orientation-label { color: #e6edf3; font-weight: 600; }
+.orientation-selector .orientation-hint { color: #8b949e; font-size: 12px; }

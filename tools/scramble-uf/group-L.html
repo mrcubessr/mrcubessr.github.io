@@ -54,6 +54,17 @@
   <div class="sub">白顶绿前打乱，打乱之后按照顺序做UF缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
+<div class="orientation-selector">
+  <span class="orientation-label">复原拿法坐标系</span>
+  <select id="orientationSelect">
+    <option value="white-green">白顶绿前</option>
+    <option value="yellow-red" selected>黄顶红前（默认）</option>
+    <option value="yellow-blue">黄顶蓝前</option>
+    <option value="yellow-green">黄顶绿前</option>
+    <option value="yellow-orange">黄顶橘前</option>
+  </select>
+  <span class="orientation-hint">打乱公式与展开图固定为白顶绿前；参考复原公式按所选拿法坐标系显示</span>
+</div>
 <div class="entries">
   <div class="entry single">
     <div class="entry-header">
@@ -62,7 +73,7 @@
     </div>
     <div class="entry-body">
       <div class="diagram">
-        <canvas class="ur-cube" data-formula="B2 R2 U L2 B2 L2 U L2 D' U L' U R B L R' D' B' U' B"></canvas>
+        <canvas class="ur-cube" data-formula="B2 R2 U L2 B2 L2 U L2 D' U L' U R B L R' D' B' U' B" data-orientation="white-green"></canvas>
       </div>
       <div class="info-panel">
         <div class="formula-block">
@@ -128,6 +139,21 @@
 <div class="footer">
   制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24<br>抖音ID : 魔方总动员
 </div>
+<script>
+(function () {
+  var sel = document.getElementById('orientationSelect');
+  if (!sel) return;
+  try {
+    var saved = localStorage.getItem('uf-orientation');
+    if (saved && ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'].indexOf(saved) >= 0) {
+      sel.value = saved;
+    }
+  } catch (e) {}
+  sel.addEventListener('change', function () {
+    try { localStorage.setItem('uf-orientation', sel.value); } catch (e) {}
+  });
+})();
+</script>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/assets/js/cube-net.js"></script>
 <script src="uf-ref.js"></script>
