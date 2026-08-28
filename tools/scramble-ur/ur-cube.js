@@ -228,16 +228,16 @@ class Cube {
         const b = this.faces.F[i][n];
         const c = this.faces.D[i][n];
         const d = this.faces.B[s - 1 - i][0];
-        if (dir === 1) { // CW: U→F→D→B→U
-          this.faces.U[i][n] = d;
-          this.faces.F[i][n] = a;
-          this.faces.D[i][n] = b;
-          this.faces.B[s - 1 - i][0] = c;
-        } else { // CCW
+        if (dir === 1) { // CCW
           this.faces.U[i][n] = b;
           this.faces.F[i][n] = c;
           this.faces.D[i][n] = d;
           this.faces.B[s - 1 - i][0] = a;
+        } else { // CW: U→F→D→B→U
+          this.faces.U[i][n] = d;
+          this.faces.F[i][n] = a;
+          this.faces.D[i][n] = b;
+          this.faces.B[s - 1 - i][0] = c;
         }
       }
     } else if (face === 'L') {
@@ -246,16 +246,16 @@ class Cube {
         const b = this.faces.B[s - 1 - i][n];
         const c = this.faces.D[i][0];
         const d = this.faces.F[i][0];
-        if (dir === 1) { // CW: U→B→D→F→U
-          this.faces.U[i][0] = d;
-          this.faces.B[s - 1 - i][n] = a;
-          this.faces.D[i][0] = b;
-          this.faces.F[i][0] = c;
-        } else {
+        if (dir === 1) {
           this.faces.U[i][0] = b;
           this.faces.B[s - 1 - i][n] = c;
           this.faces.D[i][0] = d;
           this.faces.F[i][0] = a;
+        } else { // CW: U→B→D→F→U
+          this.faces.U[i][0] = d;
+          this.faces.B[s - 1 - i][n] = a;
+          this.faces.D[i][0] = b;
+          this.faces.F[i][0] = c;
         }
       }
     } else if (face === 'U') {
@@ -338,80 +338,89 @@ class Cube {
     const s = this.size;
     const n = s - 1;
     if (s !== 3) return;
-    const i = 1;
-    if (dir === 2) { this._applyMiddle(mid, 1); this._applyMiddle(mid, 1); return; }
-    if (mid === 7) { // M（随 L）：U/D/B/F 的 col 1
+    const m = 1; // size=3 的中层行/列
+    if (dir === 2 || dir === -2) { this._applyMiddle(mid, dir > 0 ? 1 : -1); this._applyMiddle(mid, dir > 0 ? 1 : -1); return; }
+    if (mid === 7) { // M（随 L）：U/D/B/F 的 col 1；方向与 cube-net._moveMiddle('M') 一致
+      // 基准：M CW(=L CW) 环 U→F→D→B→U；M' 为逆环
       for (let k = 0; k < s; k++) {
-        const a = this.faces.U[k][i];
-        const b = this.faces.B[n - k][i];
-        const c = this.faces.D[k][i];
-        const d = this.faces.F[k][i];
-        if (dir === 1) { // CW: U→B→D→F→U（同 L）
-          this.faces.U[k][i] = d;
-          this.faces.B[n - k][i] = a;
-          this.faces.D[k][i] = b;
-          this.faces.F[k][i] = c;
+        const a = this.faces.U[k][m];
+        const b = this.faces.F[k][m];
+        const c = this.faces.D[k][m];
+        const d = this.faces.B[s - 1 - k][m];
+        if (dir === 1) {
+          this.faces.U[k][m] = d;
+          this.faces.F[k][m] = a;
+          this.faces.D[k][m] = b;
+          this.faces.B[s - 1 - k][m] = c;
         } else {
-          this.faces.U[k][i] = b;
-          this.faces.B[n - k][i] = c;
-          this.faces.D[k][i] = d;
-          this.faces.F[k][i] = a;
+          this.faces.B[s - 1 - k][m] = a;
+          this.faces.D[k][m] = d;
+          this.faces.F[k][m] = c;
+          this.faces.U[k][m] = b;
         }
       }
-    } else if (mid === 8) { // S（随 F）：U/D 的 row 1、R/L 的 col 1
+    } else if (mid === 8) { // S（随 F）：U/D 的 row 1、R/L 的 col 1；方向与 cube-net._moveMiddle('S') 一致
+      // 基准：S CW(=F CW) 环 U→R→D→L→U（R→D 翻转、L→U 翻转）
+      const u = [], r = [], d = [], l = [];
       for (let k = 0; k < s; k++) {
-        const a = this.faces.U[i][k];
-        const b = this.faces.R[k][i];
-        const c = this.faces.D[i][n - k];
-        const d = this.faces.L[n - k][i];
-        if (dir === 1) { // CW: U→R→D→L→U（同 F）
-          this.faces.U[i][k] = d;
-          this.faces.R[k][i] = a;
-          this.faces.D[i][n - k] = b;
-          this.faces.L[n - k][i] = c;
-        } else {
-          this.faces.U[i][k] = b;
-          this.faces.R[k][i] = c;
-          this.faces.D[i][n - k] = d;
-          this.faces.L[n - k][i] = a;
+        u.push(this.faces.U[m][k]); r.push(this.faces.R[k][m]);
+        d.push(this.faces.D[m][k]); l.push(this.faces.L[k][m]);
+      }
+      if (dir === 1) {
+        for (let k = 0; k < s; k++) {
+          this.faces.R[k][m] = u[k];
+          this.faces.D[m][s - 1 - k] = r[k];
+          this.faces.L[k][m] = d[k];
+          this.faces.U[m][s - 1 - k] = l[k];
+        }
+      } else {
+        for (let k = 0; k < s; k++) {
+          this.faces.L[k][m] = u[s - 1 - k];
+          this.faces.D[m][k] = l[k];
+          this.faces.R[k][m] = d[s - 1 - k];
+          this.faces.U[m][k] = r[k];
         }
       }
-    } else { // E（随 D）：F/R/B/L 的 row 1
+    } else { // E（随 D）：F/R/B/L 的 row 1；方向与 cube-net._moveMiddle('E') 一致
+      // 基准：E CW(=U CCW) 环 F→R→B→L→F（全同序）
       for (let k = 0; k < s; k++) {
-        const a = this.faces.F[i][k];
-        const b = this.faces.L[i][k];
-        const c = this.faces.B[i][k];
-        const d = this.faces.R[i][k];
-        if (dir === 1) { // CW: F→R→B→L→F（同 D）
-          this.faces.F[i][k] = b;
-          this.faces.R[i][k] = a;
-          this.faces.B[i][k] = d;
-          this.faces.L[i][k] = c;
+        const a = this.faces.F[m][k];
+        const b = this.faces.R[m][k];
+        const c = this.faces.B[m][k];
+        const d = this.faces.L[m][k];
+        if (dir === 1) {
+          this.faces.F[m][k] = d;
+          this.faces.R[m][k] = a;
+          this.faces.B[m][k] = b;
+          this.faces.L[m][k] = c;
         } else {
-          this.faces.F[i][k] = d;
-          this.faces.R[i][k] = c;
-          this.faces.B[i][k] = b;
-          this.faces.L[i][k] = a;
+          this.faces.F[m][k] = b;
+          this.faces.R[m][k] = c;
+          this.faces.B[m][k] = d;
+          this.faces.L[m][k] = a;
         }
       }
     }
   }
 
-  // 整体转动：rot 9=x(绕R) 10=y(绕U) 11=z(绕F)，dir 1=CW -1=CCW 2=double
-  // 等价恒等式：x=R+M'  y=U+E'  z=F+S'
   _applyRotate(rot, dir) {
-    const FACES_R = { 9: 'R', 10: 'U', 11: 'F' };   // R / U / F
-    const MID_R = { 9: 7, 10: 6, 11: 8 };     // M / E / S
-    const f = FACES_R[rot], m = MID_R[rot];
+    const FACES = { 9: ['R', 'L'], 10: ['U', 'D'], 11: ['F', 'B'] };
+    const MID = { 9: 7, 10: 6, 11: 8 };            // M / E / S
+    const a = FACES[rot][0], b = FACES[rot][1], m = MID[rot];
+    const am = rot === 11 ? 1 : -1;   // z 的中层 S 同向(+1)，x/y 的 M/E 反向(-1)
+    const bm = -1;                    // 对侧层 L/D/B 统一反向
     if (dir === 2) {
-      this.applyMove({ face: f, dir: 2 });
+      this.applyMove({ face: a, dir: 2 });
       this._applyMiddle(m, 2);
+      this.applyMove({ face: b, dir: 2 });
     } else if (dir === 1) {
-      this.applyMove({ face: f, dir: 1 });
-      this._applyMiddle(m, -1);
+      this.applyMove({ face: a, dir: 1 });
+      this._applyMiddle(m, am);
+      this.applyMove({ face: b, dir: bm });
     } else {
-      this.applyMove({ face: f, dir: -1 });
-      this._applyMiddle(m, 1);
+      this.applyMove({ face: a, dir: -1 });
+      this._applyMiddle(m, -am);
+      this.applyMove({ face: b, dir: -bm });
     }
   }
 }

@@ -505,16 +505,16 @@ class Cube {
         const b = this.faces.F[i][n];
         const c = this.faces.D[i][n];
         const d = this.faces.B[s - 1 - i][0];
-        if (dir === 1) { // CW: U→F→D→B→U
-          this.faces.U[i][n] = d;
-          this.faces.F[i][n] = a;
-          this.faces.D[i][n] = b;
-          this.faces.B[s - 1 - i][0] = c;
-        } else { // CCW
+        if (dir === 1) { // CW: U→B→D→F→U
           this.faces.U[i][n] = b;
           this.faces.F[i][n] = c;
           this.faces.D[i][n] = d;
           this.faces.B[s - 1 - i][0] = a;
+        } else { // CCW: U→F→D→B→U
+          this.faces.U[i][n] = d;
+          this.faces.F[i][n] = a;
+          this.faces.D[i][n] = b;
+          this.faces.B[s - 1 - i][0] = c;
         }
       }
     } else if (face === 'L') {
@@ -523,16 +523,16 @@ class Cube {
         const b = this.faces.B[s - 1 - i][n];
         const c = this.faces.D[i][0];
         const d = this.faces.F[i][0];
-        if (dir === 1) { // CW: U→B→D→F→U
+        if (dir === 1) { // CW: U→F→D→B→U
+          this.faces.U[i][0] = b;
+          this.faces.F[i][0] = a;
+          this.faces.D[i][0] = d;
+          this.faces.B[s - 1 - i][n] = c;
+        } else { // CCW: U→B→D→F→U
           this.faces.U[i][0] = d;
           this.faces.B[s - 1 - i][n] = a;
           this.faces.D[i][0] = b;
           this.faces.F[i][0] = c;
-        } else {
-          this.faces.U[i][0] = b;
-          this.faces.B[s - 1 - i][n] = c;
-          this.faces.D[i][0] = d;
-          this.faces.F[i][0] = a;
         }
       }
     } else if (face === 'U') {
