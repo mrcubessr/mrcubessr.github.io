@@ -23,25 +23,37 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
 
   // 整体旋转坐标系 M:(x,y,z)->(z,-y,x)：黄顶红前 = 原D顶、原R前
   // 新U=原D、新D=原U、新F=原R、新R=原F、新B=原L、新L=原B
+  // 内旋基准：以整体旋转与面转动交换律 M∘f==m(f)∘M 求解验证（D4 全变换枚举唯一解）
+  //   新U 读原D面 90°CW、新D 读原U面 90°CCW、F/R/B/L 读对应面 180°
   rotateM() {
     const n = this.size - 1;
-    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
     const u = this.faces.U, d = this.faces.D, ff = this.faces.F;
     const b = this.faces.B, r = this.faces.R, l = this.faces.L;
+    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j])); // 180°
+    const cw  = (m) => m.map((row, i) => row.map((_, j) => m[n - j][i]));     // 90°CW
+    const ccw = (m) => m.map((row, i) => row.map((_, j) => m[j][n - i]));     // 90°CCW
+    const rotV = (m) => m.map((row, i) => m[n - i]);                          // 垂直翻转 i->n-i
     this.faces = {
-      U: rot(d), D: rot(u), F: rot(r), R: rot(ff), B: rot(l), L: rot(b),
+      U: cw(d),
+      D: ccw(u),
+      F: rot(r),
+      R: rot(ff),
+      B: rotV(l),
+      L: rotV(b),
     };
   }
 
   getFace(face) { return this.faces[face]; }
 
   // 黄顶蓝前：绕 x 轴（R-L 方向）180°，新U=原D、新F=原B、新R=原R
+  // 内旋基准：与标准坐标系对拍（pycuber x2），U/D 面原样承接、F/B/R/L 面 180° 内旋
   rotateX180() {
     const n = this.size - 1;
     const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
+    const rotV = (m) => m.map((row, i) => m[n - i]);
     this.faces = {
-      U: rot(this.faces.D), D: rot(this.faces.U),
-      F: rot(this.faces.B), B: rot(this.faces.F),
+      U: this.faces.D, D: this.faces.U,
+      F: rotV(this.faces.B), B: rotV(this.faces.F),
       R: rot(this.faces.R), L: rot(this.faces.L),
     };
   }
@@ -58,13 +70,15 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
   }
 
   // 黄顶橘前：红前姿态再绕 U-D 轴（原D顶轴）180°，新U=原D、新F=原L（橙前）、新R=原B
+  // 内旋基准：与标准坐标系对拍（pycuber y2），U/D 面 180° 内旋、F/B/R/L 面原样承接
   rotateY2() {
     const n = this.size - 1;
     const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
+    const rotH = (m) => m.map((row) => row.slice().reverse());
     this.faces = {
       U: rot(this.faces.U), D: rot(this.faces.D),
-      F: rot(this.faces.B), B: rot(this.faces.F),
-      R: rot(this.faces.L), L: rot(this.faces.R),
+      F: rotH(this.faces.B), B: rotH(this.faces.F),
+      R: this.faces.L, L: this.faces.R,
     };
   }
 
@@ -167,111 +181,127 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
     const n = s - 1;
 
     if (face === 'R') {
+      // 标准R CW: U→F(同), F→D(同), D→B(反), B→U(反);  B 用右列
+      // 标准R CCW: U→B(反), B→D(反), D→F(同), F→U(同)
       for (let i = 0; i < s; i++) {
         const a = this.faces.U[i][n];
         const b = this.faces.F[i][n];
         const c = this.faces.D[i][n];
-        const d = this.faces.B[s - 1 - i][0];
-        if (dir === 1) { // CW: U→B→D→F→U
+        const d = this.faces.B[n - i][n];
+        if (dir === 1) {
           this.faces.U[i][n] = b;
           this.faces.F[i][n] = c;
           this.faces.D[i][n] = d;
-          this.faces.B[s - 1 - i][0] = a;
-        } else { // CCW: U→F→D→B→U
+          this.faces.B[n - i][n] = a;
+        } else {
           this.faces.U[i][n] = d;
-          this.faces.F[i][n] = a;
+          this.faces.B[n - i][n] = c;
           this.faces.D[i][n] = b;
-          this.faces.B[s - 1 - i][0] = c;
+          this.faces.F[i][n] = a;
         }
       }
     } else if (face === 'L') {
+      // 标准L CW: U→F(同), F→D(同), D→B(反), B→U(反);  B 用左列
+      // 标准L CCW: U→B(反), B→D(反), D→F(同), F→U(同)
       for (let i = 0; i < s; i++) {
         const a = this.faces.U[i][0];
-        const b = this.faces.B[s - 1 - i][n];
+        const b = this.faces.F[i][0];
         const c = this.faces.D[i][0];
-        const d = this.faces.F[i][0];
-        if (dir === 1) { // CW: U→F→D→B→U
-          this.faces.U[i][0] = b;
+        const d = this.faces.B[n - i][0];
+        if (dir === 1) {
           this.faces.F[i][0] = a;
-          this.faces.D[i][0] = d;
-          this.faces.B[s - 1 - i][n] = c;
-        } else { // CCW: U→B→D→F→U
-          this.faces.U[i][0] = d;
-          this.faces.B[s - 1 - i][n] = a;
           this.faces.D[i][0] = b;
+          this.faces.B[n - i][0] = c;
+          this.faces.U[i][0] = d;
+        } else {
+          this.faces.U[i][0] = b;
           this.faces.F[i][0] = c;
+          this.faces.D[i][0] = d;
+          this.faces.B[n - i][0] = a;
         }
       }
     } else if (face === 'U') {
+      // 标准U CW: F→R(同), R→B(反), B→L(反), L→F(同)  即 新F=旧R, 新L=旧F, 新B=旧L反, 新R=旧B反
+      // 标准U CCW: F→L(同), L→B(反), B→R(反), R→F(同)  即 新F=旧L, 新R=旧F, 新B=旧R反, 新L=旧B反
+      const uf = [], ur = [], ub = [], ul = [];
       for (let i = 0; i < s; i++) {
-        const a = this.faces.F[0][i];
-        const b = this.faces.R[0][i];
-        const c = this.faces.B[0][i];
-        const d = this.faces.L[0][i];
-        if (dir === 1) { // CW: F→L→B→R→F
-          this.faces.F[0][i] = b;
-          this.faces.L[0][i] = a;
-          this.faces.B[0][i] = d;
-          this.faces.R[0][i] = c;
-        } else { // CCW: F→R→B→L→F
-          this.faces.F[0][i] = d;
-          this.faces.R[0][i] = a;
-          this.faces.B[0][i] = b;
-          this.faces.L[0][i] = c;
+        uf.push(this.faces.F[0][i]); ur.push(this.faces.R[0][i]);
+        ub.push(this.faces.B[0][i]); ul.push(this.faces.L[0][i]);
+      }
+      for (let i = 0; i < s; i++) {
+        if (dir === 1) {
+          this.faces.F[0][i] = ur[i];
+          this.faces.L[0][i] = uf[i];
+          this.faces.B[0][i] = ul[n - i];
+          this.faces.R[0][i] = ub[n - i];
+        } else {
+          this.faces.F[0][i] = ul[i];
+          this.faces.R[0][i] = uf[i];
+          this.faces.B[0][i] = ur[n - i];
+          this.faces.L[0][i] = ub[n - i];
         }
       }
     } else if (face === 'D') {
+      // 标准D CW: F→R(同), R→B(反), B→L(反), L→F(同)
+      // 标准D CCW: F→L(同), L→B(反), B→R(反), R→F(同)
+      const df = [], dr = [], db = [], dl = [];
       for (let i = 0; i < s; i++) {
-        const a = this.faces.F[n][i];
-        const b = this.faces.L[n][i];
-        const c = this.faces.B[n][i];
-        const d = this.faces.R[n][i];
-        if (dir === 1) { // CW: F→R→B→L→F
-          this.faces.F[n][i] = b;
-          this.faces.R[n][i] = a;
-          this.faces.B[n][i] = d;
-          this.faces.L[n][i] = c;
-        } else { // CCW: F→L→B→R→F
-          this.faces.F[n][i] = d;
-          this.faces.L[n][i] = a;
-          this.faces.B[n][i] = b;
-          this.faces.R[n][i] = c;
+        df.push(this.faces.F[n][i]); dr.push(this.faces.R[n][i]);
+        db.push(this.faces.B[n][i]); dl.push(this.faces.L[n][i]);
+      }
+      for (let i = 0; i < s; i++) {
+        if (dir === 1) {
+          this.faces.F[n][i] = dl[i];
+          this.faces.R[n][i] = df[i];
+          this.faces.B[n][i] = dr[n - i];
+          this.faces.L[n][i] = db[n - i];
+        } else {
+          this.faces.F[n][i] = dr[i];
+          this.faces.L[n][i] = df[i];
+          this.faces.B[n][i] = dl[n - i];
+          this.faces.R[n][i] = db[n - i];
         }
       }
     } else if (face === 'F') {
+      // 标准F CW: U→R(同), R→D(反), D→L(同), L→U(反)  即 新R=旧U, 新D=旧R反, 新L=旧D, 新U=旧L反
+      // 标准F CCW: U→L(反), L→D(同), D→R(反), R→U(同)  即 新U=旧R反, 新L=旧U, 新D=旧L, 新R=旧D反
+      const fu = [], fr = [], fd = [], fl = [];
       for (let i = 0; i < s; i++) {
-        const a = this.faces.U[n][i];
-        const b = this.faces.R[i][0];
-        const c = this.faces.D[0][s - 1 - i];
-        const d = this.faces.L[s - 1 - i][n];
-        if (dir === 1) { // CW: U→R→D→L→U
-          this.faces.U[n][i] = d;
-          this.faces.R[i][0] = a;
-          this.faces.D[0][s - 1 - i] = b;
-          this.faces.L[s - 1 - i][n] = c;
+        fu.push(this.faces.U[n][i]); fr.push(this.faces.R[i][0]);
+        fd.push(this.faces.D[0][i]); fl.push(this.faces.L[i][n]);
+      }
+      for (let i = 0; i < s; i++) {
+        if (dir === 1) {
+          this.faces.R[i][0] = fu[i];
+          this.faces.D[0][i] = fr[n - i];
+          this.faces.L[i][n] = fd[i];
+          this.faces.U[n][i] = fl[n - i];
         } else {
-          this.faces.U[n][i] = b;
-          this.faces.R[i][0] = c;
-          this.faces.D[0][s - 1 - i] = d;
-          this.faces.L[s - 1 - i][n] = a;
+          this.faces.U[n][i] = fr[i];
+          this.faces.L[i][n] = fu[n - i];
+          this.faces.D[0][i] = fl[i];
+          this.faces.R[i][0] = fd[n - i];
         }
       }
     } else if (face === 'B') {
+      // 标准B CW: U→R(同), R→D(反), D→L(同), L→U(反)  即 新R=旧U, 新D=旧R反, 新L=旧D, 新U=旧L反
+      // 标准B CCW: U→L(反), L→D(同), D→R(反), R→U(同)  即 新U=旧R, 新R=旧D反, 新D=旧L, 新L=旧U反
+      const bu = [], bl = [], bd = [], br = [];
       for (let i = 0; i < s; i++) {
-        const a = this.faces.U[0][s - 1 - i];
-        const b = this.faces.L[i][0];
-        const c = this.faces.D[n][i];
-        const d = this.faces.R[s - 1 - i][n];
-        if (dir === 1) { // CW: U→L→D→R→U
-          this.faces.U[0][s - 1 - i] = d;
-          this.faces.L[i][0] = a;
-          this.faces.D[n][i] = b;
-          this.faces.R[s - 1 - i][n] = c;
+        bu.push(this.faces.U[0][i]); bl.push(this.faces.L[i][0]);
+        bd.push(this.faces.D[n][i]); br.push(this.faces.R[i][n]);
+      }
+      for (let i = 0; i < s; i++) {
+        if (dir === 1) {
+          this.faces.R[i][n] = bu[i];
+          this.faces.D[n][i] = br[n - i];
+          this.faces.L[i][0] = bd[i];
+          this.faces.U[0][i] = bl[n - i];
         } else {
-          this.faces.U[0][s - 1 - i] = b;
-          this.faces.L[i][0] = c;
-          this.faces.D[n][i] = d;
-          this.faces.R[s - 1 - i][n] = a;
+          this.faces.U[0][i] = br[i];
+          this.faces.R[i][n] = bd[n - i];
+          this.faces.D[n][i] = bl[i];
+          this.faces.L[i][0] = bu[n - i];
         }
       }
     }
