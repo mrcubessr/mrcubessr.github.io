@@ -155,11 +155,13 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
                 else { this.faces.B[s-1-i][m]=a; this.faces.D[i][m]=d; this.faces.F[i][m]=c; this.faces.U[i][m]=b; }
             }
         } else if(axis==='E'){
-            // 基准：E沿U'方向。E CW(=U CCW)环 F→R→B→L→F，全同序；E'(=U CW)环 F→L→B→R→F，全同序
+            // 基准：E与D同向（WCA）。E CW(=D CW方向)：新F=旧L同序、新R=旧F同序、新B=旧R反序、新L=旧B反序
+            // E CCW(=D CCW方向)：新F=旧R同序、新R=旧B反序、新B=旧L反序、新L=旧F同序
+            const frow=this.faces.F[m], rrow=this.faces.R[m], brow=this.faces.B[m], lrow=this.faces.L[m];
+            const f=frow.slice(), r=rrow.slice(), b=brow.slice(), l=lrow.slice();
             for(let i=0;i<s;i++){
-                const a=this.faces.F[m][i], b=this.faces.R[m][i], c=this.faces.B[m][i], d=this.faces.L[m][i];
-                if(dir===1){ this.faces.F[m][i]=d; this.faces.R[m][i]=a; this.faces.B[m][i]=b; this.faces.L[m][i]=c; }
-                else { this.faces.F[m][i]=b; this.faces.R[m][i]=c; this.faces.B[m][i]=d; this.faces.L[m][i]=a; }
+                if(dir===1){ frow[i]=l[i]; rrow[i]=f[i]; brow[i]=r[s-1-i]; lrow[i]=b[s-1-i]; }
+                else { frow[i]=r[i]; rrow[i]=b[s-1-i]; brow[i]=l[s-1-i]; lrow[i]=f[i]; }
             }
         } else if(axis==='S'){
             // 基准：S沿F方向。S CW(=F CW)环 U→R同序、R→D翻转、D→L同序、L→U翻转；S'(=F CCW)环 U→L翻转、L→D同序、D→R翻转、R→U同序
@@ -327,6 +329,11 @@ function parseScrambleNet(str){
 }
 function expandMoveNet(base, dir){
     // 返回 {face,dir} 序列；宽转/中层/整体转分解为面转动+中层转动
+    // 复合转（宽转/整体转）的 double：展开为两次单步，保证 x2/y2/z2 与 x x 等价，逆序还原一致
+    if (dir === 2 && ['r','l','u','d','f','b','x','y','z'].indexOf(base) >= 0) {
+        const once = expandMoveNet(base, 1);
+        return once.concat(once);
+    }
     const seq = [];
     const push = (face, d) => seq.push({face, dir: d});
     const pushMid = (axis, d) => seq.push({mid: axis, dir: d});
@@ -373,20 +380,21 @@ function expandMoveNet(base, dir){
 // yellow-orange = (绕 x? ) 黄顶 + 前L(橙) = 红前姿态再绕 U-D(原D顶)轴 180°：
 //   新U=原D(黄顶)、新F=原F.. 实际读 rotateM 后 rotateY2：新U=原D 新F=原L 新R=原B
 //   face: R->B L->F U->D D->U F->L B->R；M<->S 反向、E 反向；x<->z 反向、z->x; y 反向；小写 r<->b、l->f、f->l、b->r 方向见 rev
+// 方向语义：map[base] 为目标正转符号；若 base 在 rev 中，则目标方向需取反（base 的 ' 与不带 ' 互换）
 var ORIENT_MAP = {
   'yellow-red': {
     map: { R:'F', L:'B', U:'D', D:'U', F:'R', B:'L',
            M:'S', S:'M', E:'E',
            x:'z', y:'y', z:'x',
-           r:'f', f:'r', u:'d', d:'u', l:'b', b:'l' },
-    rev: { E:1, y:1, u:1, d:1, l:1, b:1 }
+           r:'f', l:'b', u:'d', d:'u', f:'r', b:'l' },
+    rev: { L:1, B:1, M:1, S:1, E:1, x:1, y:1, z:1, l:1, b:1 }
   },
   'yellow-blue': {
     map: { R:'R', L:'L', U:'D', D:'U', F:'B', B:'F',
            M:'M', E:'E', S:'S',
            x:'x', y:'y', z:'z',
            r:'r', l:'l', u:'d', d:'u', f:'b', b:'f' },
-    rev: { E:1, S:1, y:1, z:1, u:1, d:1 }
+    rev: { F:1, B:1, E:1, S:1, y:1, z:1, f:1, b:1 }
   },
   'yellow-green': {
     map: { R:'L', L:'R', U:'D', D:'U', F:'F', B:'B',
@@ -400,7 +408,7 @@ var ORIENT_MAP = {
            M:'S', S:'M', E:'E',
            x:'z', y:'y', z:'x',
            r:'b', l:'f', u:'d', d:'u', f:'l', b:'r' },
-    rev: { M:1, E:1, x:1, z:1, y:1, u:1, d:1, r:1, l:1, f:1, b:1 }
+    rev: { R:1, B:1, E:1, x:1, y:1, z:1, r:1, d:1, f:1, b:1 }
   }
 };
 function mapAlgOrientation(alg, orientation) {

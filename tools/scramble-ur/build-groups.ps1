@@ -134,6 +134,17 @@ __HEAD__
   <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
+<div class="orientation-selector">
+  <span class="orientation-label">复原拿法坐标系</span>
+  <select id="orientationSelect">
+    <option value="white-green">白顶绿前</option>
+    <option value="yellow-red" selected>黄顶红前（默认）</option>
+    <option value="yellow-blue">黄顶蓝前</option>
+    <option value="yellow-green">黄顶绿前</option>
+    <option value="yellow-orange">黄顶橘前</option>
+  </select>
+  <span class="orientation-hint">打乱公式、展开图与参考复原公式均按所选拿法坐标系显示（物理效果等价于白顶绿前打乱）；按所选拿法下的复原公式做完，魔方恢复复原状态。</span>
+</div>
 <div class="entries">
   <div class="entry single">
     <div class="entry-header">
@@ -142,12 +153,12 @@ __HEAD__
     </div>
     <div class="entry-body">
       <div class="diagram">
-        <canvas class="ur-cube" data-formula="__FORMULA__"></canvas>
+        <canvas class="ur-cube" data-formula="__FORMULA__" data-orientation="white-green"></canvas>
       </div>
       <div class="info-panel">
         <div class="formula-block">
           <span class="label">打乱公式</span>
-          <code>__FORMULA__</code>
+          <code id="scramble-formula">__FORMULA__</code>
         </div>
         <div>
           <span class="label">练习顺序</span>
@@ -169,7 +180,38 @@ __HEAD__
 
 __FOOTER__
 <script src="/assets/js/site-nav.js"></script>
-<script src="ur-cube.js"></script>
+<script src="/assets/js/cube-net.js"></script>
+<script>
+(function () {
+  var sel = document.getElementById('orientationSelect');
+  if (!sel) return;
+  var cvs = document.querySelector('.ur-cube');
+  var codeEl = document.getElementById('scramble-formula');
+  var baseAlg = cvs ? (cvs.getAttribute('data-formula') || '') : '';
+  var valid = ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'];
+  function applyOri(ori) {
+    if (typeof mapAlgOrientation === 'undefined') return;
+    if (cvs) {
+      cvs.setAttribute('data-orientation', ori);
+      if (typeof drawScrambleNet === 'function') {
+        try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
+      }
+    }
+    if (codeEl) {
+      codeEl.textContent = (ori === 'white-green') ? baseAlg : mapAlgOrientation(baseAlg, ori);
+    }
+  }
+  try {
+    var saved = localStorage.getItem('ur-orientation');
+    if (saved && valid.indexOf(saved) >= 0) { sel.value = saved; }
+  } catch (e) {}
+  applyOri(sel.value);
+  sel.addEventListener('change', function () {
+    applyOri(sel.value);
+    try { localStorage.setItem('ur-orientation', sel.value); } catch (e) {}
+  });
+})();
+</script>
 <script src="ur-ref.js"></script>
 <script src="ur-timer.js"></script>
 </body>

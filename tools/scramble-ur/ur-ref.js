@@ -7,8 +7,25 @@
   };
   var STYLE_STORAGE_KEY = 'ur_ref_style';
   var STORAGE_KEY = 'ur_ref_selections';
+  var ORIENTATION_KEY = 'ur-orientation';
   var algCache = {};
   var dataPromises = {};
+
+  // 当前拿法：优先读页面选择器，其次读 localStorage（与 group 页共享键）；默认黄顶红前
+  function getCurrentOrientation() {
+    try {
+      var sel = document.getElementById('orientationSelect');
+      if (sel && sel.value) return sel.value;
+    } catch (e) {}
+    try { return localStorage.getItem(ORIENTATION_KEY) || 'yellow-red'; } catch (e) {}
+    return 'yellow-red';
+  }
+  // 按当前拿法显示公式（存储值始终为白顶绿前基准，显示时才映射）
+  function displayAlg(alg) {
+    var ori = getCurrentOrientation();
+    return (window.mapAlgOrientation && ori !== 'white-green' && alg)
+      ? mapAlgOrientation(String(alg), ori) : String(alg);
+  }
 
   function escapeHtml(s) {
     return String(s)
@@ -142,12 +159,12 @@
         html += '<div class="ref-row">';
         html += '<div class="ref-code-col">' + escapeHtml(code) + '</div>';
         html += '<div class="ref-sel-col">';
-        html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + '" data-code="' + code + '">' + (saved ? escapeHtml(saved) : '点击选择公式') + '</button>';
+        html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + '" data-code="' + code + '">' + (saved ? escapeHtml(displayAlg(saved)) : '点击选择公式') + '</button>';
         html += '<div class="ref-dropdown" data-code="' + code + '">';
         items.forEach(function (item, idx) {
           var cls = 'ref-opt' + (idx >= 5 ? ' ref-hidden' : '');
           if (item.marked) cls += ' ref-opt-marked';
-          var label = escapeHtml(item.text);
+          var label = escapeHtml(displayAlg(item.text));
           if (item.source) label += '<span class="ref-opt-src">（' + escapeHtml(item.source) + '）</span>';
           html += '<button type="button" class="' + cls + '" data-alg="' + escapeHtml(item.text) + '">' + label + '</button>';
         });
@@ -180,14 +197,18 @@
     if (input === null) return;
     var alg = input.trim();
     if (!alg) return;
+    // 用户输入为当前拿法坐标，存储时逆映射回白顶绿前基准
+    var ori = getCurrentOrientation();
+    var stored = (window.mapAlgOrientation && ori !== 'white-green')
+      ? mapAlgOrientation(alg, ori) : alg;
     if (box) {
-      box.textContent = alg;
+      box.textContent = displayAlg(stored);
       box.classList.add('ref-selected');
     }
     closeAllDropdowns(entry);
     var selections = loadSelections();
     if (!selections[group]) selections[group] = {};
-    selections[group][code] = alg;
+    selections[group][code] = stored;
     saveSelections(selections);
   }
 
@@ -219,7 +240,7 @@
         var alg = opt.getAttribute('data-alg');
         var box = entry.querySelector('.ref-sel-box[data-code="' + code + '"]');
         if (box) {
-          box.textContent = alg;
+          box.textContent = displayAlg(alg);
           box.classList.add('ref-selected');
         }
         closeAllDropdowns(entry);
@@ -268,4 +289,17 @@
       }
     });
   });
+
+  // 拿法切换后，若参考面板已打开则按新拿法重绘
+  var oriSelect = document.getElementById('orientationSelect');
+  if (oriSelect) {
+    oriSelect.addEventListener('change', function () {
+      Array.prototype.forEach.call(toggles, function (btn) {
+        var panel = btn.nextElementSibling;
+        if (panel && panel.style.display !== 'none') {
+          renderPanel(btn, panel);
+        }
+      });
+    });
+  }
 })();

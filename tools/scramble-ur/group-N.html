@@ -53,6 +53,17 @@
   <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
+<div class="orientation-selector">
+  <span class="orientation-label">复原拿法坐标系</span>
+  <select id="orientationSelect">
+    <option value="white-green">白顶绿前</option>
+    <option value="yellow-red" selected>黄顶红前（默认）</option>
+    <option value="yellow-blue">黄顶蓝前</option>
+    <option value="yellow-green">黄顶绿前</option>
+    <option value="yellow-orange">黄顶橘前</option>
+  </select>
+  <span class="orientation-hint">打乱公式、展开图与参考复原公式均按所选拿法坐标系显示（物理效果等价于白顶绿前打乱）；按所选拿法下的复原公式做完，魔方恢复复原状态。</span>
+</div>
 <div class="entries">
   <div class="entry single">
     <div class="entry-header">
@@ -61,12 +72,12 @@
     </div>
     <div class="entry-body">
       <div class="diagram">
-        <canvas class="ur-cube" data-formula="F2 L2 B2 R2 D U2 B2 D2 U2 R2 B' L2 B' D' L' U' L2 D F'"></canvas>
+        <canvas class="ur-cube" data-formula="F2 L2 B2 R2 D U2 B2 D2 U2 R2 B' L2 B' D' L' U' L2 D F'" data-orientation="white-green"></canvas>
       </div>
       <div class="info-panel">
         <div class="formula-block">
           <span class="label">打乱公式</span>
-          <code>F2 L2 B2 R2 D U2 B2 D2 U2 R2 B' L2 B' D' L' U' L2 D F'</code>
+          <code id="scramble-formula">F2 L2 B2 R2 D U2 B2 D2 U2 R2 B' L2 B' D' L' U' L2 D F'</code>
         </div>
         <div>
           <span class="label">练习顺序</span>
@@ -107,7 +118,38 @@
   制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24<br>抖音ID : 魔方总动员
 </div>
 <script src="/assets/js/site-nav.js"></script>
-<script src="ur-cube.js"></script>
+<script src="/assets/js/cube-net.js"></script>
+<script>
+(function () {
+  var sel = document.getElementById('orientationSelect');
+  if (!sel) return;
+  var cvs = document.querySelector('.ur-cube');
+  var codeEl = document.getElementById('scramble-formula');
+  var baseAlg = cvs ? (cvs.getAttribute('data-formula') || '') : '';
+  var valid = ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'];
+  function applyOri(ori) {
+    if (typeof mapAlgOrientation === 'undefined') return;
+    if (cvs) {
+      cvs.setAttribute('data-orientation', ori);
+      if (typeof drawScrambleNet === 'function') {
+        try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
+      }
+    }
+    if (codeEl) {
+      codeEl.textContent = (ori === 'white-green') ? baseAlg : mapAlgOrientation(baseAlg, ori);
+    }
+  }
+  try {
+    var saved = localStorage.getItem('ur-orientation');
+    if (saved && valid.indexOf(saved) >= 0) { sel.value = saved; }
+  } catch (e) {}
+  applyOri(sel.value);
+  sel.addEventListener('change', function () {
+    applyOri(sel.value);
+    try { localStorage.setItem('ur-orientation', sel.value); } catch (e) {}
+  });
+})();
+</script>
 <script src="ur-ref.js"></script>
 <script src="ur-timer.js"></script>
 </body>
