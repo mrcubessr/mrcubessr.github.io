@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>原课件图库 · 三阶魔方教学</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="/assets/css/site-nav.css" />
+</head>
+<body data-nav="3x3teach">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">🖼️</span>
+      <div class="brand-text">
+        <strong>原课件图库</strong>
+        <small>12 课 · 原图存档 · 可投影</small>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="btnPresent" class="ghost-btn" title="投影模式（大屏教学）">投影模式</button>
+      <a id="btnBack3d" class="ghost-btn" href="index.html" title="回到 3D 课程">返回 3D 课程</a>
+    </div>
+  </header>
+
+  <div class="g-wrap">
+    <div class="g-head">
+      <h1>原课件图片库</h1>
+      <p>从《三阶魔方》原始课件中提取的全部教学图示，按 12 课分类。上课时可随时调出展示，点击图片可放大查看，支持键盘 ← → 翻图、Esc 关闭。完全离线可用。</p>
+    </div>
+    <div class="g-toolbar">
+      <input id="gSearch" class="g-search" type="search" placeholder="搜索图片说明（如：十字、眼睛、公式、小花）" />
+      <button id="btnPresent2" class="g-filter" title="投影模式">⛶ 投影</button>
+    </div>
+    <div class="g-filters" id="gFilters"><!-- JS 渲染 --></div>
+    <div class="g-grid" id="gGrid"><!-- JS 渲染 --></div>
+  </div>
+
+  <!-- 灯箱 -->
+  <div class="g-lightbox" id="gLightbox">
+    <div class="g-lb-count" id="gLbCount"></div>
+    <button class="g-lb-close" id="gLbClose" title="关闭">×</button>
+    <button class="g-lb-btn g-lb-prev" id="gLbPrev" title="上一张">‹</button>
+    <div class="g-lb-stage">
+      <img class="g-lb-img" id="gLbImg" src="" alt="" />
+      <div class="g-lb-cap" id="gLbCap"></div>
+    </div>
+    <button class="g-lb-btn g-lb-next" id="gLbNext" title="下一张">›</button>
+  </div>
+
+  <script src="js/courseware-data.js"></script>
+  <script src="js/gallery.js"></script>
+  <script src="/assets/js/site-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>三阶魔方趣味课堂 · 12 课教学网站</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="/assets/css/site-nav.css" />
+</head>
+<body data-nav="3x3teach">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">⬛</span>
+      <div class="brand-text">
+        <strong>三阶魔方趣味课堂</strong>
+        <small>12 课 · 动态 3D 教学</small>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <a id="btnGallery" class="ghost-btn" href="courseware.html" title="全部原课件图库">全部原课件</a>
+      <button id="btnLegend" class="ghost-btn" title="记号说明">记号说明</button>
+      <button id="btnPresent" class="ghost-btn" title="投影模式（大屏教学）">投影模式</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- 左侧：课程导航 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-title">课程目录</div>
+      <nav class="lesson-nav" id="lessonNav"><!-- JS 渲染 --></nav>
+    </aside>
+
+    <!-- 中间：3D 魔方 + 播放器 -->
+    <main class="stage">
+      <div class="stage-head">
+        <button class="round-btn" id="btnPrev" title="上一课">‹</button>
+        <div class="stage-titles">
+          <div class="stage-lesson">第 <span id="curNo">1</span> 课</div>
+          <div class="stage-name" id="curTitle">认识三阶魔方</div>
+          <div class="stage-sub" id="curSub">结构 · 颜色 · 起源</div>
+        </div>
+        <div class="mode-toggle" role="tablist" aria-label="视图模式">
+          <button id="modeTeach" class="active" type="button" title="动态 3D 教学">🧊 3D 教学</button>
+          <button id="modeCourse" type="button" title="原课件图文">📄 原课件</button>
+        </div>
+        <button class="round-btn" id="btnNext" title="下一课">›</button>
+      </div>
+
+      <div id="teachView">
+      <div class="cube-card">
+        <div id="cube" class="cube-canvas"></div>
+        <div class="cube-hint">拖动魔方表面可转动该层 · 拖空白处转视角 · 滚轮缩放</div>
+      </div>
+
+      <!-- 公式展示 -->
+      <div class="formula-bar">
+        <div class="formula-label">当前公式</div>
+        <div id="formulaChips" class="formula-chips">
+          <span class="formula-empty">点击下面的演示或自由转动来加载公式</span>
+        </div>
+        <div id="holdTag" class="hold-tag" hidden></div>
+      </div>
+
+      <!-- 播放控制 -->
+      <div class="transport">
+        <button id="btnPlay" class="primary-btn">▶ 播放</button>
+        <button id="btnStep" class="sec-btn">⏭ 单步</button>
+        <button id="btnLoop" class="sec-btn" title="循环播放：一遍结束后自动重来">🔁 循环</button>
+        <button id="btnSound" class="sec-btn on" title="语音播报：一边做一边念出动作（可关闭）">🔊 声音</button>
+        <button id="btnResetCube" class="sec-btn">↺ 复位魔方</button>
+        <label class="speed">
+          速度
+          <input type="range" id="speed" min="0.4" max="2.2" step="0.1" value="1" />
+          <span id="speedVal">1.0×</span>
+        </label>
+      </div>
+
+      <!-- 整体转体（第 8 课常用：把黄色面转到左手边等方向） -->
+      <div class="turn-toolbar">
+        <span class="turn-tip">整体转体（把黄色面转到想要的方向）：</span>
+        <div class="turn-btns">
+          <button class="turn-btn" data-move="Z'" title="黄面转到左手边">黄面朝左手</button>
+          <button class="turn-btn" data-move="X'" title="黄面朝向自己">黄面朝前</button>
+          <button class="turn-btn" data-move="X" title="黄面朝向背后">黄面朝后</button>
+          <button class="turn-btn" data-move="Y" title="魔方向左转">魔方向左转</button>
+          <button class="turn-btn" data-move="Y'" title="魔方向右转">魔方向右转</button>
+        </div>
+      </div>
+
+      <!-- 演示按钮 -->
+      <div class="demo-zone">
+        <div class="demo-zone-title">本课演示</div>
+        <div id="demoList" class="demo-list"><!-- JS 渲染 --></div>
+      </div>
+
+      <!-- 自由转动 -->
+      <details class="freeplay">
+        <summary>自由转动（老师手动演示）</summary>
+        <div class="pad">
+          <div class="pad-row" data-group="标准层">
+            <button class="pad-btn" data-move="R">R 上</button>
+            <button class="pad-btn" data-move="R'">R′ 下</button>
+            <button class="pad-btn" data-move="L">L</button>
+            <button class="pad-btn" data-move="L'">L′</button>
+            <button class="pad-btn" data-move="U">U 勾</button>
+            <button class="pad-btn" data-move="U'">U′ 回</button>
+            <button class="pad-btn" data-move="D">D 底</button>
+            <button class="pad-btn" data-move="D'">D′</button>
+            <button class="pad-btn" data-move="F">F 压</button>
+            <button class="pad-btn" data-move="F'">F′ 提</button>
+            <button class="pad-btn" data-move="B">B</button>
+            <button class="pad-btn" data-move="B'">B′</button>
+          </div>
+          <div class="pad-row" data-group="双转 / 整体">
+            <button class="pad-btn" data-move="R2">R2</button>
+            <button class="pad-btn" data-move="U2">U2</button>
+            <button class="pad-btn" data-move="F2">F2</button>
+            <button class="pad-btn" data-move="D2">D2</button>
+            <button class="pad-btn" data-move="X'">X′ 黄前</button>
+            <button class="pad-btn" data-move="X">X 黄后</button>
+            <button class="pad-btn" data-move="Y">Y 向左</button>
+            <button class="pad-btn" data-move="Y'">Y′ 向右</button>
+            <button class="pad-btn" data-move="Z">Z 前倾</button>
+          </div>
+          <div class="pad-row" data-group="工具">
+            <button class="pad-btn warn" id="btnScramble">随机打乱</button>
+            <button class="pad-btn warn" id="btnSolve">回到复原</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- 手法循环练习：点一下就循环做，可开/关声音 -->
+      <details class="loopplay" open>
+        <summary>手法循环练习（点一下就循环做，可开声音）</summary>
+        <div class="pad">
+          <div class="pad-row" data-group="基础手法（点一下即循环）">
+            <button class="loop-btn" data-formula="U R U' R'" data-name="勾上回下">勾上回下</button>
+            <button class="loop-btn" data-formula="R U R' U'" data-name="上左下右">上左下右</button>
+            <button class="loop-btn" data-formula="R' F R F'" data-name="下按上提">下按上提</button>
+            <button class="loop-btn" data-formula="U' R U R'" data-name="回上勾上">回上勾上</button>
+          </div>
+        </div>
+      </details>
+      </div><!-- /#teachView -->
+
+      <div id="coursewareView" class="courseware-view">
+        <div class="cw-head">
+          <div class="cw-head-left">
+            <h2 id="cwTitle"></h2>
+            <span class="cw-count" id="cwCount"></span>
+          </div>
+          <button id="btnSlidePlay" class="cw-play-btn" title="全屏幻灯片播放（自动翻页）">▶ 幻灯片播放</button>
+        </div>
+        <div class="cw-grid" id="cwGrid"></div>
+      </div>
+    </main>
+
+    <!-- 右侧：课程详情 -->
+    <aside class="content" id="content">
+      <section class="panel">
+        <h3>📘 知识点</h3>
+        <ul class="knowledge" id="knowledge"><!-- JS --></ul>
+      </section>
+
+      <section class="panel">
+        <h3>🧩 本课公式</h3>
+        <div class="formula-list" id="formulaList"><!-- JS --></div>
+      </section>
+
+      <section class="panel">
+        <h3>✅ 小练习</h3>
+        <div class="exercises" id="exercises"><!-- JS --></div>
+      </section>
+
+      <section class="panel note-panel">
+        <h3>💡 教学提示</h3>
+        <p id="lessonNote">演示加载后，这里会显示操作要点。</p>
+      </section>
+    </aside>
+  </div>
+
+  <!-- 课件幻灯片播放 -->
+  <div class="cw-slideshow" id="cwSlideshow">
+    <div class="cw-ss-top">
+      <div class="cw-ss-title" id="ssTitle">幻灯片</div>
+      <div class="cw-ss-top-right">
+        <button class="cw-ss-fs" id="ssFs" title="全屏 / 退出全屏">⛶</button>
+        <button class="cw-ss-close" id="ssClose" title="退出 (Esc)">×</button>
+      </div>
+    </div>
+    <button class="cw-ss-side cw-ss-prev" id="ssPrev" title="上一张 (←)">‹</button>
+    <div class="cw-ss-stage" id="ssStage">
+      <img class="cw-ss-img" id="ssImg" src="" alt="">
+    </div>
+    <button class="cw-ss-side cw-ss-next" id="ssNext" title="下一张 (→)">›</button>
+    <div class="cw-ss-progress"><div class="cw-ss-bar" id="ssBar"></div></div>
+    <div class="cw-ss-controls">
+      <button class="cw-ss-btn" id="ssPlay" title="播放 / 暂停 (空格)">▶ 播放</button>
+      <span class="cw-ss-count" id="ssCount">1 / 1</span>
+      <label class="cw-ss-speed">间隔
+        <input type="range" id="ssSpeed" min="2" max="12" step="1" value="5">
+        <span id="ssSpeedVal">5s</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 记号说明弹层 -->
+  <div class="modal" id="legendModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>记号说明（标准字母 ↔ 儿童口语）</h3>
+        <button class="modal-close" id="btnCloseLegend">×</button>
+      </div>
+      <div class="legend-grid" id="legendGrid"><!-- JS --></div>
+      <p class="legend-tip">视角说明：以<strong>学生第一视角</strong>为准——黄色朝上、蓝色朝前、红色在右手边。转动方向按“右手拿魔方、左手做动作”记。</p>
+    </div>
+  </div>
+
+  <script src="js/three.min.js"></script>
+  <script src="js/cube-model.js"></script>
+  <script src="js/cube-engine.js"></script>
+  <script src="js/courses-data.js"></script>
+  <script src="js/courseware-data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="/assets/js/site-nav.js"></script>
+</body>
+</html>
