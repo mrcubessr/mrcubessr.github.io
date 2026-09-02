@@ -19,8 +19,11 @@
   // 安全收尾当前动画
   function finishAnim() { if (engine.anim) engine._finishAnim(); }
 
-  // 第 8 课「顶层黄色面·七种情况」高亮：始终高亮【当前黄色面】所在的层。
-  // 旋转不变——整体转体把黄色转到左手边后，高亮仍跟着黄色面走（而不是错误地灰掉黄色面）。
+  // 第 8 课「顶层黄色面·七种情况」高亮：
+  //  - 黄色面所在的层：只保留黄面（黄色贴纸本色），侧面贴纸置灰；
+  //  - 其余（前两层等）整块保留本色。
+  // 旋转不变——整体转体后黄色中心法向随之改变，高亮自动跟着黄色面走；
+  // 灰色贴纸附着在 cubie 上，会随魔方一起转动。
   function yellowFaceLayer(c) {
     const st = engine.getState();
     let yn = [0, 1, 0];
@@ -28,7 +31,8 @@
       const cc = st[i];
       if (cc.s.length === 1 && cc.s[0].c === '黄') { yn = cc.s[0].n; break; }
     }
-    return c.p[0] * yn[0] + c.p[1] * yn[1] + c.p[2] * yn[2] === 1;
+    const onYellowFace = c.p[0] * yn[0] + c.p[1] * yn[1] + c.p[2] * yn[2] === 1;
+    return onYellowFace ? { keep: ['黄'] } : true;
   }
 
   // ---------- 公式播放器 ----------

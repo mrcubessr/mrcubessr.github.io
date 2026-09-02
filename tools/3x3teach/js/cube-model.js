@@ -155,8 +155,8 @@
   function isFlowerKeyCubie(c) {
     const colors = c.s.map(function (k) { return k.c; });
     if (c.s.length === 1) {
-      // 中心块：白心 / 黄心
-      return colors.indexOf('白') >= 0 || colors.indexOf('黄') >= 0;
+      // 中心块：6 个中心全部保留本色（白/黄/蓝/绿/红/橘），让魔方有中心颜色
+      return true;
     }
     if (c.s.length === 2) {
       // 棱块：含白色的（即四个有白色的棱块）
@@ -169,7 +169,7 @@
   // 即：黄色中心（方位参照）+ 任何含白色贴纸的块（白心、白棱、白角）保留本色，其余置灰。
   function isWhiteLayerKeyCubie(c) {
     const colors = c.s.map(function (k) { return k.c; });
-    if (c.s.length === 1 && colors[0] === '黄') return true; // 黄心：方位参照
+    if (c.s.length === 1) return true; // 6 个中心块全部保留本色（魔方有中心颜色）
     return colors.indexOf('白') >= 0; // 白心 / 白棱 / 白角
   }
 
