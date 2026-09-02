@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔方课堂教学系统</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --primary:#4f6ef7;--primary-light:#eef1fe;--accent:#f59e0b;
+    --green:#10b981;--red:#ef4444;--amber:#f59e0b;--gray:#9ca3af;
+    --text:#1f2937;--text-2:#4b5563;--text-3:#9ca3af;
+    --border:#e5e7eb;--bg:#f3f4f6;--card:#ffffff;--bg-soft:#f9fafb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:var(--text);background:var(--bg);line-height:1.6}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 16px;font-size:14px;background:var(--primary);color:#fff;transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.sec{background:#fff;color:var(--text-2);border:1px solid var(--border)}
+  button.ghost{background:transparent;color:var(--text-2)}
+  button.sm{padding:4px 10px;font-size:13px}
+  input,textarea,select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;outline:none;background:#fff;color:var(--text)}
+  input:focus,textarea:focus,select:focus{border-color:var(--primary)}
+  a{color:var(--primary);cursor:pointer}
+
+  /* 顶栏 */
+  .topbar{display:flex;align-items:center;gap:16px;padding:0 20px;height:56px;background:var(--card);border-bottom:1px solid var(--border);position:static;z-index:50}
+  .topbar .logo{font-weight:700;font-size:17px;white-space:nowrap}
+  .topbar nav{display:flex;gap:4px}
+  .topbar nav .nbtn{background:transparent;color:var(--text-2);padding:8px 14px;font-weight:500}
+  .topbar nav .nbtn.active{background:var(--primary-light);color:var(--primary)}
+  .topbar .spacer{flex:1}
+  .topbar .classpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-2)}
+
+  .wrap{max-width:1320px;margin:0 auto;padding:20px}
+  .view{display:none}.view.active{display:block}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
+  h2{font-size:24px;margin-bottom:4px}
+  h3{font-size:15px;margin:16px 0 8px;color:var(--text)}
+  .muted{color:var(--text-3);font-size:13px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
+
+  /* 计分方块网格 */
+  .scorebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .scorebar .meta{font-size:13px;color:var(--text-2)}
+  body.wide .wrap{max-width:none}                       /* 计分页撑满视口 */
+  #view-score .card{padding:12px 16px 14px}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;width:100%;margin:0 auto;justify-content:center}
+  .kid{border-radius:12px;padding:6px 4px 5px;text-align:center;color:#fff;position:relative;cursor:pointer;user-select:none;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.08);transition:transform .08s;container-type:size;overflow:hidden}
+  .kid:active{transform:scale(.96)}
+  .kid .num{font-size:34cqw;font-weight:800;line-height:1}
+  .kid .name{font-size:13cqw;font-weight:600;margin-top:1px;line-height:1.15}
+  .kid .nick{font-size:10.5cqw;opacity:.92;line-height:1.1}
+  .kid .sid{font-size:9cqw;opacity:.7}
+  .kid .undo{position:absolute;top:4cqw;right:4cqw;background:rgba(255,255,255,.34);border-radius:6px;font-size:10cqw;padding:1cqw 5cqw;font-weight:700;line-height:1.3}
+  .kid .undo:hover{background:rgba(255,255,255,.6)}
+  .kid.bump .num{animation:bump .3s}
+  @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+  /* 结算/表扬榜 */
+  .rank{display:flex;flex-direction:column;gap:8px}
+  .rrow{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px}
+  .rrow .rk{width:30px;text-align:center;font-weight:700;color:var(--text-3)}
+  .rrow.top1{background:#fff7ed;border-color:#fdba74}
+  .rrow.top1 .rk{color:#ea580c;font-size:18px}
+  .rrow.top2{background:#f0f9ff;border-color:#93c5fd}
+  .rrow.top2 .rk{color:#2563eb}
+  .rrow.top3{background:#f0fdf4;border-color:#86efac}
+  .rrow.top3 .rk{color:#16a34a}
+  .rrow .rname{flex:1;font-weight:600}
+  .rrow .rname .n{color:var(--text-3);font-weight:400;font-size:13px;margin-left:6px}
+  .rrow .rcnt{font-size:15px;font-weight:700;color:var(--primary)}
+  .rrow .rsc{font-size:14px;color:var(--text-2)}
+
+  /* 表格 */
+  table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+  table.tbl th{background:var(--primary-light);text-align:left;padding:9px 12px;border:1px solid var(--border)}
+  table.tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle}
+  table.tbl tr:nth-child(even) td{background:var(--bg-soft)}
+
+  /* 进度状态 */
+  .st{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:3px 12px;font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;white-space:nowrap}
+  .st.s0{background:#f3f4f6;color:#9ca3af}
+  .st.s1{background:#fef3c7;color:#b45309;border-color:#fcd34d}
+  .st.s2{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+  .st.s3{background:#fde8e8;color:#b91c1c;border-color:#fca5a5}
+  .skrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px dashed var(--border)}
+  .skrow:last-child{border:none}
+  .skrow .skname{min-width:130px;font-size:14px}
+  .skrow .note{font-size:12px;color:var(--text-3);font-style:italic}
+
+  /* 热力表 */
+  .heat th,.heat td{text-align:center;font-size:12px}
+  .heat th:first-child,.heat td:first-child{text-align:left}
+  .heatcell{width:30px;height:30px;border-radius:5px;cursor:pointer;border:1.5px solid rgba(0,0,0,.12);transition:transform .1s}
+  .heatcell:hover{transform:scale(1.15);z-index:2}
+  .hc0{background:#cbd5e1;border-color:#94a3b8}.hc1{background:#f59e0b;border-color:#d97706}.hc2{background:#22c55e;border-color:#16a34a}.hc3{background:#ef4444;border-color:#dc2626}
+
+  .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modalbg.show{display:flex}
+  .modal{background:#fff;border-radius:14px;padding:24px;max-width:720px;width:100%;max-height:88vh;overflow:auto}
+  .modal h3{margin-top:0}
+  .empty{text-align:center;color:var(--text-3);padding:40px 0}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text-2);margin:8px 0}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:4px;vertical-align:-2px}
+
+  /* 学生主页 */
+  .stu-topbar{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .stu-info{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .stu-info .avatar{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+  .stu-info .stats{display:flex;gap:14px;margin-left:auto}
+  .stu-info .stat{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:8px 18px;text-align:center;min-width:80px}
+  .stu-info .stat .v{font-size:22px;font-weight:700;color:var(--primary)}
+  .stu-info .stat .l{font-size:12px;color:var(--text-3)}
+  .radar-section{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
+  .radar-left{display:flex;justify-content:center}
+  .radar-sliders{display:flex;flex-direction:column;gap:7px}
+  .radar-slider{display:flex;align-items:center;gap:10px}
+  .radar-slider label{min-width:70px;font-size:14px;color:var(--text-2)}
+  .radar-slider input[type=range]{flex:1;accent-color:var(--primary)}
+  .radar-slider .val{min-width:30px;text-align:right;font-weight:700;color:var(--primary)}
+  .prog-bar{height:8px;border-radius:4px;background:#e5e7eb;overflow:hidden}
+  .prog-bar .fill{height:100%;background:var(--green);border-radius:4px;transition:width .3s}
+
+  /* 进度页 - 横条/饼图容器 */
+  #progContent{min-height:300px}
+  .rate-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .rate-row .rate-name{min-width:80px;font-size:14px;font-weight:600;cursor:pointer}
+  .rate-row .rate-name:hover{color:var(--primary)}
+  .rate-bar{flex:1;height:26px;border-radius:6px;background:#e2e8f0;overflow:hidden;position:relative}
+  .rate-bar .seg{height:100%;float:left;transition:width .3s}
+  .rate-bar .seg.s0{background:#cbd5e1}
+  .rate-bar .seg.s1{background:#f59e0b}
+  .rate-bar .seg.s2{background:#22c55e}
+  .rate-bar .seg.s3{background:#ef4444}
+  .rate-bar .rate-label{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--text-2)}
+  .pie-wrap{display:flex;gap:30px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .pie-chart{width:320px;height:320px}
+  .pie-stats{display:flex;flex-direction:column;gap:10px}
+  .pie-stats .ps-row{display:flex;align-items:center;gap:8px;font-size:14px}
+  .pie-stats .ps-row i{display:inline-block;width:16px;height:16px;border-radius:4px}
+  .prog-summary{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
+  .prog-summary .ps{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:10px 20px;text-align:center;min-width:100px}
+  .prog-summary .ps .v{font-size:24px;font-weight:700}
+  .prog-summary .ps .l{font-size:12px;color:var(--text-3)}
+  .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+</style>
+  <link rel="stylesheet" href="/assets/css/site-nav.css" />
+</head>
+<body data-nav="class-teach" style="padding-top:60px">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
+          <a href="/tools/class-teach" data-nav="class-teach">魔方课堂教学系统</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="topbar">
+  <div class="logo">🧩 魔方课堂教学系统</div>
+  <nav id="nav">
+    <button class="nbtn" data-view="home">首页</button>
+    <button class="nbtn" data-view="score">课堂计分</button>
+    <button class="nbtn" data-view="progress">学习进度</button>
+    <button class="nbtn" data-view="students">学生管理</button>
+    <button class="nbtn" data-view="course">课程知识点</button>
+    <button class="nbtn" data-view="backup">备份</button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="classpick">当前班级：<select id="classSel"></select></div>
+</div>
+
+<div class="wrap">
+
+  <!-- 首页 -->
+  <div class="view" id="view-home">
+    <div class="card">
+      <h2>欢迎使用</h2>
+      <p class="muted">选择上方功能模块开始。当前班级可在右上角切换。</p>
+      <div class="row" style="margin-top:18px">
+        <button data-go="score">进入课堂计分 →</button>
+        <button class="sec" data-go="progress">查看学习进度 →</button>
+        <button class="sec" data-go="students">管理学生 →</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>本班概况</h3>
+      <div id="homeStat" class="muted">—</div>
+    </div>
+  </div>
+
+  <!-- 计分页 -->
+  <div class="view" id="view-score">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">课堂计分</h2>
+        <span class="meta" id="scoreMeta">—</span>
+        <span class="meta">本节累计：<b id="scoreTotal" style="color:var(--primary)">0</b> 次</span>
+        <label class="meta">排列：<select id="scoreSort" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
+          <option value="sid">按学号</option>
+          <option value="score">按积分</option>
+        </select></label>
+        <div style="flex:1"></div>
+        <button class="sec sm" id="newSession">开始新课</button>
+        <button id="finishBtn">完成本节课</button>
+      </div>
+      <div id="scoreGrid" class="grid"></div>
+    </div>
+  </div>
+
+  <!-- 结算页（复用 home 区下方，用 modal） -->
+  <!-- 学习进度 -->
+  <div class="view" id="view-progress">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">班级学习进度</h2>
+        <span class="meta" id="progMeta">—</span>
+        <div style="flex:1"></div>
+        <label class="meta">魔方：<select id="progCourse" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)"></select></label>
+        <label class="meta">图表：<select id="progChartType" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
+          <option value="bar">柱状图（已掌握数）</option>
+          <option value="stacked">堆叠柱状图（分状态）</option>
+          <option value="heat">热力图（逐知识点）</option>
+          <option value="pie">饼图（状态分布）</option>
+          <option value="rate">掌握率横条</option>
+          <option value="radar">雷达图（六维均值）</option>
+        </select></label>
+      </div>
+      <div class="legend">
+        <span><i class="hc0"></i>未开始</span>
+        <span><i class="hc1"></i>学习中</span>
+        <span><i class="hc2"></i>已掌握</span>
+        <span><i class="hc3"></i>需复习</span>
+      </div>
+      <div id="progContent"></div>
+    </div>
+  </div>
+
+  <!-- 学生管理 -->
+  <div class="view" id="view-students">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">学生管理</h2>
+        <span class="meta" id="stuMeta">—</span>
+        <div style="flex:1"></div>
+        <button class="ghost sm" id="clearScores" style="color:var(--red)">批量清零积分（本班）</button>
+      </div>
+      <h3>添加学生</h3>
+      <div class="row">
+        学号<input id="inSid" style="width:90px">
+        大名<input id="inName" style="width:140px">
+        小名<input id="inNick" style="width:120px">
+        <button id="addStu">添加</button>
+      </div>
+      <h3>批量导入（每行：学号,大名,小名）</h3>
+      <textarea id="bulk" rows="4" style="width:100%;max-width:520px" placeholder="01,王一诺,诺诺&#10;02,李梓豪,豪豪"></textarea>
+      <div class="row" style="margin-top:8px"><button class="sec sm" id="bulkBtn">批量导入</button></div>
+    </div>
+    <div class="card">
+      <div class="scorebar">
+        <h3 style="margin:0">学生列表</h3>
+        <span class="meta">排列：</span>
+        <select id="stuSort" class="sel">
+          <option value="sid">按学号</option>
+          <option value="score">按积分</option>
+        </select>
+      </div>
+      <table class="tbl"><thead><tr><th>学号</th><th>大名</th><th>小名</th><th>颜色</th><th>累计积分</th><th>操作</th></tr></thead>
+        <tbody id="stuBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 课程知识点 -->
+  <div class="view" id="view-course">
+    <div class="card">
+      <h2>课程知识点设置</h2>
+      <p class="muted">点击知识点可重命名/删除；可新增知识点与魔方类型。变更会即时保存。</p>
+      <div id="courseBox"></div>
+    </div>
+  </div>
+
+  <!-- 备份 -->
+  <div class="view" id="view-backup">
+    <div class="card">
+      <h2>数据备份与迁移</h2>
+      <p class="muted">第一版本地存储。定期导出 JSON 文件备份，换电脑时导入即可继续使用。</p>
+      <div class="row" style="margin-top:14px">
+        <button id="exportBtn">导出备份（JSON）</button>
+        <label class="" style="display:inline-flex;align-items:center"><button class="sec">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none"></label>
+        <button class="ghost sm" id="wipeBtn" style="color:var(--red)">清空全部数据</button>
+      </div>
+      <h3>数据概况</h3>
+      <div id="backupStat" class="muted">—</div>
+    </div>
+  </div>
+
+  <!-- 学生个人主页（全屏页面，非弹窗） -->
+  <div class="view" id="view-stuPage">
+    <div id="stuPageContent"></div>
+  </div>
+
+</div>
+<div class="modalbg" id="settleModal">
+  <div class="modal" style="max-width:640px">
+    <h3>本节课结算 · 表扬榜</h3>
+    <div class="muted" id="settleDate" style="margin-bottom:10px"></div>
+    <div class="rank" id="settleRank"></div>
+    <div class="row" style="margin-top:18px;justify-content:flex-end">
+      <button class="sec" id="settleClose">返回计分</button>
+      <button id="settleConfirm">确认归档并清零</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ 数据层 ============ */
+const KEY='mf_data_v1';
+const PALETTE=['#6366f1','#f59e0b','#10b981','#ec4899','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#f97316','#3b82f6','#d946ef','#84cc16','#06b6d4','#e11d48','#a855f7','#22c55e'];
+const STATE={0:{n:'未开始',c:'s0'},1:{n:'学习中',c:'s1'},2:{n:'已掌握',c:'s2'},3:{n:'需复习',c:'s3'}};
+const STATE_ARR=[STATE[0],STATE[1],STATE[2],STATE[3]];
+const RADAR_DIMS=[{key:'tech',name:'手法准确'},{key:'cognition',name:'基础认知'},{key:'formula',name:'公式熟练'},{key:'speed',name:'复原速度'},{key:'interest',name:'学习兴趣'},{key:'efficiency',name:'练习效率'}];
+
+function freshDB(){
+  const classes=[{id:1,name:'大一班'},{id:2,name:'大二班'},{id:3,name:'大三班'},{id:4,name:'大四班'}];
+  const courses=[
+    {id:1,name:'三阶魔方',order:1},
+    {id:2,name:'二阶魔方',order:2},
+    {id:3,name:'金字塔魔方',order:3}
+  ];
+  const skills=[
+    {id:1,courseId:1,name:'黄心白花瓣',order:1},
+    {id:2,courseId:1,name:'底层十字',order:2},
+    {id:3,courseId:1,name:'底层角块（一层还原）',order:3},
+    {id:4,courseId:1,name:'中层棱块（二层还原）',order:4},
+    {id:5,courseId:1,name:'顶面十字',order:5},
+    {id:6,courseId:1,name:'顶面全黄（小鱼公式）',order:6},
+    {id:7,courseId:1,name:'顶层角块归位',order:7},
+    {id:8,courseId:1,name:'顶层棱块归位（全复原）',order:8},
+    {id:9,courseId:2,name:'底层还原',order:1},
+    {id:10,courseId:2,name:'顶层角块方向',order:2},
+    {id:11,courseId:2,name:'顶层角块位置（全复原）',order:3},
+    {id:12,courseId:3,name:'一层还原',order:1},
+    {id:13,courseId:3,name:'二层还原',order:2},
+    {id:14,courseId:3,name:'特殊公式',order:3},
+    {id:15,courseId:3,name:'全复原',order:4}
+  ];
+  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],nextId:100,rate:1};
+}
+let DB=null, curClass=null, curSessionId=null, stuChart=null, stuSort='sid', scoreSort='sid', curStuId=null, prevView='students', stuRadarCharts={}, progCourseId='all', progChartType='bar', progCharts=[];
+
+function load(){
+  DB=JSON.parse(localStorage.getItem(KEY)||'null')||freshDB();
+  if(!DB.radar)DB.radar=[];
+  // 一次性迁移：将所有学生和课次切换到大四班(id:4)
+  if(!localStorage.getItem('mf_migrated_d4')){
+    if(DB.students&&DB.students.length){
+      DB.students.forEach(s=>s.classId=4);
+      if(DB.sessions)DB.sessions.forEach(s=>s.classId=4);
+      save();
+    }
+    localStorage.setItem('mf_migrated_d4','1');
+  }
+}
+function save(){ localStorage.setItem(KEY,JSON.stringify(DB)); }
+function uid(){ return DB.nextId++; }
+function curClassId(){ return curClass?curClass.id:DB.classes[0].id; }
+function students(cId){ return DB.students.filter(s=>s.classId===cId).sort((a,b)=>(a.sid||'').localeCompare(b.sid||'')); }
+function activeSession(cId){ return DB.sessions.find(s=>s.classId===cId&&!s.settled); }
+function getTally(sessionId,studentId){ return DB.tallies.find(t=>t.sessionId===sessionId&&t.studentId===studentId); }
+function progOf(studentId,skillId){ return DB.progress.find(p=>p.studentId===studentId&&p.skillId===skillId); }
+function radarOf(stuId,cId){ let r=DB.radar.find(x=>x.studentId===stuId&&x.courseId===cId); if(!r){r={id:uid(),studentId:stuId,courseId:cId,tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0};DB.radar.push(r);save();} return r; }
+function radarVal(r,key){ return r&&r[key]!=null?r[key]:0; }
+function scoreOf(t){return t?(t.score!=null?t.score:t.count*DB.rate):0;}
+function totalScoreOf(stuId){return DB.sessions.filter(s=>s.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,stuId)),0);}
+function classAvgOthers(stuId,sessionId){const others=students(DB.students.find(x=>x.id===stuId).classId).filter(o=>o.id!==stuId);if(!others.length)return 0;let sum=0;others.forEach(o=>sum+=scoreOf(getTally(sessionId,o.id)));return Math.round(sum/others.length*10)/10;}
+
+/* ============ 导航 ============ */
+function setView(name){
+  // 离开学生主页/进度页时销毁图表，释放内存
+  if(name!=='stuPage'){
+    if(stuChart){stuChart.destroy();stuChart=null;}
+    Object.values(stuRadarCharts).forEach(c=>c.destroy());
+    stuRadarCharts={};
+  }
+  if(name!=='progress'){
+    destroyProgCharts();
+  }
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('#nav .nbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  document.body.classList.toggle('wide',name==='score'||name==='stuPage');
+  if(name==='home')renderHome();
+  if(name==='score')renderScore();
+  if(name==='progress')renderProgress();
+  if(name==='students')renderStudents();
+  if(name==='course')renderCourse();
+  if(name==='backup')renderBackup();
+  if(name==='stuPage')renderStuPage();
+}
+document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.nbtn');if(b)setView(b.dataset.view)});
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));
+
+/* 班级下拉 */
+function fillClassSel(){
+  const sel=document.getElementById('classSel');
+  sel.innerHTML=DB.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  if(!curClass)curClass=DB.classes[0];
+  else curClass=DB.classes.find(c=>c.id===curClass.id)||DB.classes[0];
+  sel.value=curClass.id;
+}
+document.getElementById('classSel').onchange=e=>{
+  curClass=DB.classes.find(c=>c.id===parseInt(e.target.value));
+  const v=document.querySelector('.view.active')?.id.replace('view-','');
+  setView(v||'home');
+};
+document.getElementById('scoreSort')?.addEventListener('change',()=>renderScore());
+document.getElementById('stuSort')?.addEventListener('change',e=>{stuSort=e.target.value;renderStudents();});
+let _rszT;
+window.addEventListener('resize',()=>{clearTimeout(_rszT);_rszT=setTimeout(()=>{if(document.getElementById('view-score')?.classList.contains('active'))renderScore();},180);});
+
+/* ============ 首页 ============ */
+function renderHome(){
+  const ss=students(curClassId());
+  document.getElementById('homeStat').textContent=
+    `${curClass.name} 共 ${ss.length} 名学生；已记录 ${DB.sessions.filter(s=>s.classId===curClassId()&&s.settled).length} 节课；`+
+    `三阶${countSkills(1)}步 / 二阶${countSkills(2)}步 / 金字塔${countSkills(3)}步。`;
+}
+function countSkills(cid){return DB.skills.filter(s=>s.courseId===cid).length;}
+
+/* ============ 计分页 ============ */
+function scoreCellSize(n){
+  // 根据班级人数和视口，计算方块边长，保证一屏全部显示
+  const cols=7, gap=10;
+  const rows=Math.max(1,Math.ceil(n/cols));
+  const availW=window.innerWidth-72;     // 计分页已撑满视口，减去 card/边距
+  const availH=window.innerHeight-180;   // 减去顶栏+scorebar+padding
+  let size=Math.floor(Math.min((availW-(cols-1)*gap)/cols,(availH-(rows-1)*gap)/rows));
+  return Math.max(size,86);              // 最小 86px 保证可读
+}
+function renderScore(){
+  const cId=curClassId();
+  const ss=students(cId);
+  const meta=document.getElementById('scoreMeta');
+  const grid=document.getElementById('scoreGrid');
+  if(!ss.length){grid.innerHTML='<div class="empty">当前班级还没有学生，请先到“学生管理”录入。</div>';grid.style.gridTemplateColumns='';grid.style.gridAutoRows='';meta.textContent='—';return;}
+  let sess=activeSession(cId);
+  if(!sess){sess={id:uid(),classId:cId,date:today(),settled:false};DB.sessions.push(sess);save();}
+  curSessionId=sess.id;
+  meta.textContent=`${curClass.name} · ${sess.date}（点方块+1，点 −1 或右键减分）`;
+  // 排列：按学号 / 按积分(本节计数降序，并列时学号升序)
+  const sortMode=document.getElementById('scoreSort')?.value||'sid';
+  const sorted=[...ss];
+  if(sortMode==='score'){
+    sorted.sort((a,b)=>((getTally(sess.id,b.id)?.count||0)-(getTally(sess.id,a.id)?.count||0))||((a.sid||0)-(b.sid||0)));
+  }else{
+    sorted.sort((a,b)=>(a.sid||0)-(b.sid||0));
+  }
+  const cols=7, gap=10;
+  const size=scoreCellSize(sorted.length);
+  grid.style.gridTemplateColumns=`repeat(${cols},${size}px)`;
+  grid.style.gridAutoRows=`${size}px`;
+  grid.style.justifyContent='center';
+  grid.innerHTML=sorted.map(s=>{
+    const t=getTally(sess.id,s.id);
+    const cnt=t?t.count:0;
+    return `<div class="kid" data-sid="${s.id}" style="background:${s.color}">
+      <div class="undo" data-undo="${s.id}">−1</div>
+      <div class="num">${cnt}</div>
+      <div class="name">${s.name}</div>
+      <div class="nick">${s.nick||''}</div>
+      <div class="sid">${s.sid||''}</div>
+    </div>`;
+  }).join('');
+  bindScoreCards();
+  updateScoreTotal();
+}
+function bindScoreCards(){
+  document.querySelectorAll('.kid').forEach(k=>{
+    k.onclick=e=>{
+      if(e.target.dataset.undo){dec(parseInt(e.target.dataset.undo));return;}
+      inc(parseInt(k.dataset.sid));k.classList.remove('bump');void k.offsetWidth;k.classList.add('bump');
+    };
+    k.oncontextmenu=e=>{e.preventDefault();dec(parseInt(k.dataset.sid));};
+  });
+}
+function inc(stuId){const t=getTally(curSessionId,stuId);if(t)t.count++;else DB.tallies.push({sessionId:curSessionId,studentId:stuId,count:1});save();renderScoreCounts();}
+function dec(stuId){const t=getTally(curSessionId,stuId);if(!t||t.count<=0)return;t.count--;save();renderScoreCounts();}
+function renderScoreCounts(){//只更新数字，不重建
+  const sess=activeSession(curClassId());if(!sess)return;
+  students(curClassId()).forEach(s=>{const t=getTally(sess.id,s.id);const el=document.querySelector(`.kid[data-sid="${s.id}"] .num`);if(el)el.textContent=t?t.count:0;});
+  updateScoreTotal();
+}
+function updateScoreTotal(){const sess=activeSession(curClassId());let tot=0;(sess?DB.tallies.filter(t=>t.sessionId===sess.id):[]).forEach(t=>tot+=t.count);document.getElementById('scoreTotal').textContent=tot;}
+document.getElementById('newSession').onclick=()=>{
+  if(!confirm('开始新课？当前未结算的计数将被清空（如需保留请先“完成本节课”）。'))return;
+  const old=activeSession(curClassId());if(old){DB.sessions=DB.sessions.filter(s=>s.id!==old.id);DB.tallies=DB.tallies.filter(t=>t.sessionId!==old.id);}
+  save();renderScore();
+};
+document.getElementById('finishBtn').onclick=openSettle;
+
+/* 结算 */
+let settleSessionId=null;
+function openSettle(){
+  const sess=activeSession(curClassId());if(!sess){alert('当前没有进行中的课堂。');return;}
+  settleSessionId=sess.id;
+  const ss=students(curClassId());
+  const rows=ss.map(s=>{const t=getTally(sess.id,s.id);const c=t?t.count:0;return{s,c,sc:c*DB.rate};}).sort((a,b)=>b.c-a.c);
+  document.getElementById('settleDate').textContent=`${curClass.name} · ${sess.date}（1次=${DB.rate}分）`;
+  const box=document.getElementById('settleRank');
+  if(!rows.some(r=>r.c>0)){box.innerHTML='<div class="empty">本节课还没有任何计数。</div>';}
+  else box.innerHTML=rows.map((r,i)=>{
+    const top=i<3&&r.c>0?['top1','top2','top3'][i]:'';
+    return `<div class="rrow ${top}"><div class="rk">${i+1}</div><div class="rname">${r.s.name}<span class="n">${r.s.nick||''} · ${r.s.sid||''}</span></div><div class="rcnt">${r.c} 次</div><div class="rsc">+${r.sc} 分</div></div>`;
+  }).join('');
+  document.getElementById('settleModal').classList.add('show');
+}
+document.getElementById('settleClose').onclick=()=>document.getElementById('settleModal').classList.remove('show');
+document.getElementById('settleConfirm').onclick=()=>{
+  const sess=DB.sessions.find(s=>s.id===settleSessionId);if(!sess)return;
+  const ss=students(curClassId());
+  ss.forEach(s=>{const t=getTally(sess.id,s.id);if(t){const sc=t.count*DB.rate;t.score=sc;s.totalScore=(s.totalScore||0)+sc;}});
+  sess.settled=true;sess.settledAt=nowStr();save();
+  document.getElementById('settleModal').classList.remove('show');
+  alert('已归档！积分已累加到每位小朋友。可开始下一节课。');
+  renderScore();
+};
+
+/* ============ 学习进度 ============ */
+function fillProgCourse(){
+  const sel=document.getElementById('progCourse');
+  sel.innerHTML='<option value="all">全部魔方</option>'+DB.courses.map(co=>`<option value="${co.id}">${co.name}</option>`).join('');
+  sel.value=progCourseId;
+}
+function destroyProgCharts(){
+  progCharts.forEach(c=>{try{c.destroy();}catch(e){}});
+  progCharts=[];
+}
+function getProgSkills(){
+  // 返回当前选中魔方的知识点列表；all=全部
+  if(progCourseId==='all')return DB.skills.slice().sort((a,b)=>(a.courseId-b.courseId)||(a.order-b.order));
+  return DB.skills.filter(sk=>sk.courseId===parseInt(progCourseId)).sort((a,b)=>a.order-b.order);
+}
+function getProgCourses(){
+  // 返回要统计的魔方列表
+  if(progCourseId==='all')return DB.courses;
+  return DB.courses.filter(co=>co.id===parseInt(progCourseId));
+}
+function stateCountsForStudent(stuId,skills){
+  const c=[0,0,0,0];
+  skills.forEach(sk=>{const st=progOf(stuId,sk.id)?.state||0;c[st]++;});
+  return c;
+}
+function renderProgress(){
+  destroyProgCharts();
+  const ss=students(curClassId());
+  const ctn=document.getElementById('progContent');
+  document.getElementById('progMeta').textContent=`${curClass.name} · ${ss.length}人`;
+  if(!ss.length){ctn.innerHTML='<div class="empty">当前班级还没有学生，请先到"学生管理"录入。</div>';return;}
+  const skills=getProgSkills();
+  const courses=getProgCourses();
+  if(!skills.length){ctn.innerHTML='<div class="empty">该魔方暂无知识点，请到"课程知识点"添加。</div>';return;}
+  // 汇总统计
+  const totalStates=[0,0,0,0];
+  ss.forEach(s=>{const c=stateCountsForStudent(s.id,skills);c.forEach((v,i)=>totalStates[i]+=v);});
+  const summaryHtml=`<div class="prog-summary">
+    <div class="ps"><div class="v" style="color:#9ca3af">${totalStates[0]}</div><div class="l">未开始</div></div>
+    <div class="ps"><div class="v" style="color:#b45309">${totalStates[1]}</div><div class="l">学习中</div></div>
+    <div class="ps"><div class="v" style="color:#16a34a">${totalStates[2]}</div><div class="l">已掌握</div></div>
+    <div class="ps"><div class="v" style="color:#dc2626">${totalStates[3]}</div><div class="l">需复习</div></div>
+    <div class="ps"><div class="v" style="color:var(--primary)">${Math.round(totalStates[2]/(totalStates.reduce((a,b)=>a+b,0)||1)*100)}%</div><div class="l">班级掌握率</div></div>
+  </div>`;
+  // 根据图表类型渲染
+  const type=progChartType;
+  let chartHtml='';
+  if(type==='bar')chartHtml=drawProgBar(ss,skills,courses);
+  else if(type==='stacked')chartHtml=drawProgStacked(ss,skills,courses);
+  else if(type==='heat')chartHtml=drawProgHeat(ss,skills,courses);
+  else if(type==='pie')chartHtml=drawProgPie(ss,skills,courses,totalStates);
+  else if(type==='rate')chartHtml=drawProgRate(ss,skills,courses);
+  else if(type==='radar')chartHtml=drawProgRadar(ss,skills,courses);
+  ctn.innerHTML=summaryHtml+chartHtml;
+  // 绘制 Chart.js 图表
+  renderProgCharts(ss,skills,courses);
+}
+function drawProgBar(ss,skills,courses){
+  // 每个魔方一组柱子，每柱=该生在该魔方已掌握数
+  let html='<div style="height:380px"><canvas id="pc-bar"></canvas></div>';
+  return html;
+}
+function drawProgStacked(ss,skills,courses){
+  // 每个学生一根柱，按4种状态堆叠（仅当前选中魔方）
+  const courseName=progCourseId==='all'?'全部魔方':courses[0]?.name||'';
+  return `<div style="height:400px"><canvas id="pc-stacked"></canvas></div>`;
+}
+function drawProgHeat(ss,skills,courses){
+  if(progCourseId==='all'){
+    // 全部魔方：按魔方分块显示
+    let html='';
+    courses.forEach(co=>{
+      const csk=skills.filter(sk=>sk.courseId===co.id);
+      const m=csk.filter(sk=>ss.some(s=>(progOf(s.id,sk.id)?.state||0)===2)).length;
+      html+=`<h3 style="margin-top:18px">${co.name}　<span class="muted">${csk.length} 个知识点</span></h3>`;
+      html+=buildHeatTable(ss,csk);
+    });
+    return html;
+  }else{
+    return buildHeatTable(ss,skills);
+  }
+}
+function buildHeatTable(ss,skills){
+  let html='<div style="overflow-x:auto"><table class="tbl heat"><thead><tr><th>学生</th>';
+  skills.forEach(sk=>html+=`<th style="font-size:10px;writing-mode:vertical-rl;text-orientation:upright;height:80px;padding:2px">${sk.name}</th>`);
+  html+='</tr></thead><tbody>';
+  ss.forEach(s=>{
+    const c=stateCountsForStudent(s.id,skills);
+    html+=`<tr><td><a href="javascript:void(0)" onclick="openStu(${s.id})" style="font-weight:600;color:var(--primary)">${s.name}<span class="muted"> ${s.nick||''}</span></a></td>`;
+    skills.forEach(sk=>{const st=progOf(s.id,sk.id)?.state||0;html+=`<td><div class="heatcell hc${st}" title="${s.name} - ${sk.name}: ${STATE[st].n}" onclick="openStu(${s.id})"></div></td>`;});
+    html+=`<td style="font-size:12px;color:var(--text-3)">${c[2]}/${skills.length}</td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  return html;
+}
+function drawProgPie(ss,skills,courses,totalStates){
+  const courseName=progCourseId==='all'?'全部魔方':courses[0]?.name||'';
+  return `<div class="pie-wrap"><div class="pie-chart"><canvas id="pc-pie"></canvas></div>
+    <div class="pie-stats">
+      <div class="ps-row"><i style="background:#cbd5e1"></i>未开始：${totalStates[0]} 项</div>
+      <div class="ps-row"><i style="background:#f59e0b"></i>学习中：${totalStates[1]} 项</div>
+      <div class="ps-row"><i style="background:#22c55e"></i>已掌握：${totalStates[2]} 项</div>
+      <div class="ps-row"><i style="background:#ef4444"></i>需复习：${totalStates[3]} 项</div>
+    </div></div>`;
+}
+function drawProgRate(ss,skills,courses){
+  // 横条图：每个学生一根条，按4种状态分段，右端显示掌握率
+  let html='<div style="max-width:900px">';
+  ss.forEach(s=>{
+    const c=stateCountsForStudent(s.id,skills);
+    const total=c.reduce((a,b)=>a+b,0)||1;
+    const rate=Math.round(c[2]/total*100);
+    html+=`<div class="rate-row"><span class="rate-name" onclick="openStu(${s.id})">${s.name}</span>`;
+    html+=`<div class="rate-bar">`;
+    if(c[0])html+=`<div class="seg s0" style="width:${c[0]/total*100}%"></div>`;
+    if(c[1])html+=`<div class="seg s1" style="width:${c[1]/total*100}%"></div>`;
+    if(c[2])html+=`<div class="seg s2" style="width:${c[2]/total*100}%"></div>`;
+    if(c[3])html+=`<div class="seg s3" style="width:${c[3]/total*100}%"></div>`;
+    html+=`<span class="rate-label">${c[2]}/${total} (${rate}%)</span></div></div>`;
+  });
+  html+='</div>';
+  return html;
+}
+function drawProgRadar(ss,skills,courses){
+  // 每个魔方一个雷达图，显示全班六维均值
+  if(progCourseId==='all'){
+    // 全部魔方：每个魔方一个雷达图网格
+    let html='<div class="radar-grid">';
+    courses.forEach(co=>{
+      html+=`<div><h3 style="text-align:center">${co.name}</h3><div style="width:260px;height:240px"><canvas id="pc-radar-${co.id}"></canvas></div></div>`;
+    });
+    html+='</div>';
+    return html;
+  }else{
+    const co=courses[0];
+    return `<div style="display:flex;justify-content:center"><div style="width:400px;height:360px"><canvas id="pc-radar-${co.id}"></canvas></div></div>`;
+  }
+}
+function renderProgCharts(ss,skills,courses){
+  const type=progChartType;
+  if(type==='bar'){
+    const cv=document.getElementById('pc-bar');if(!cv)return;
+    const datasets=courses.map(co=>{
+      const csk=skills.filter(sk=>sk.courseId===co.id);
+      const data=ss.map(s=>csk.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length);
+      const col=PALETTE[co.id%PALETTE.length];
+      return {label:co.name,data,backgroundColor:col};
+    });
+    progCharts.push(new Chart(cv,{type:'bar',
+      data:{labels:ss.map(s=>s.nick||s.name),datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top'},tooltip:{callbacks:{label:c=>c.dataset.label+': 已掌握 '+c.parsed.y+' 步'}}},
+        scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,beginAtZero:true,title:{display:true,text:'已掌握知识点数'}}},
+        onClick:(e,el)=>{if(el.length){const idx=el[0].index;openStu(ss[idx].id);}}
+      }
+    }));
+  }else if(type==='stacked'){
+    const cv=document.getElementById('pc-stacked');if(!cv)return;
+    const colors=['#cbd5e1','#f59e0b','#22c55e','#ef4444'];
+    const datasets=STATE_ARR.map((s,i)=>({
+      label:s.n,data:ss.map(stu=>stateCountsForStudent(stu.id,skills)[i]),
+      backgroundColor:colors[i]
+    }));
+    progCharts.push(new Chart(cv,{type:'bar',
+      data:{labels:ss.map(s=>s.nick||s.name),datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top'}},
+        scales:{x:{stacked:true,ticks:{font:{size:11}}},y:{stacked:true,beginAtZero:true,title:{display:true,text:'知识点数'}}},
+        onClick:(e,el)=>{if(el.length){const idx=el[0].index;openStu(ss[idx].id);}}
+      }
+    }));
+  }else if(type==='pie'){
+    const cv=document.getElementById('pc-pie');if(!cv)return;
+    const pieData=ss.reduce((acc,s)=>{const c=stateCountsForStudent(s.id,skills);c.forEach((v,i)=>acc[i]+=v);return acc;},[0,0,0,0]);
+    progCharts.push(new Chart(cv,{type:'doughnut',
+      data:{labels:['未开始','学习中','已掌握','需复习'],
+        datasets:[{data:pieData,backgroundColor:['#cbd5e1','#f59e0b','#22c55e','#ef4444'],borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}
+    }));
+  }else if(type==='radar'){
+    courses.forEach(co=>{
+      const cv=document.getElementById('pc-radar-'+co.id);if(!cv)return;
+      const csk=skills.filter(sk=>sk.courseId===co.id);
+      const avgData=RADAR_DIMS.map(d=>{
+        let sum=0,cnt=0;
+        ss.forEach(s=>{const r=radarOf(s.id,co.id);sum+=radarVal(r,d.key);cnt++;});
+        return cnt?Math.round(sum/cnt*10)/10:0;
+      });
+      progCharts.push(new Chart(cv,{type:'radar',
+        data:{labels:RADAR_DIMS.map(d=>d.name),datasets:[{
+          label:co.name+'（班级均值）',data:avgData,
+          backgroundColor:'rgba(79,110,247,.12)',borderColor:'#4f6ef7',
+          pointBackgroundColor:'#4f6ef7',pointRadius:4,borderWidth:2
+        }]},
+        options:{responsive:true,maintainAspectRatio:false,
+          scales:{r:{beginAtZero:true,max:10,ticks:{stepSize:2,font:{size:9}},pointLabels:{font:{size:10}}}},
+          plugins:{legend:{display:false}}
+        }
+      }));
+    });
+  }
+}
+document.getElementById('progCourse')?.addEventListener('change',e=>{progCourseId=e.target.value;renderProgress();});
+document.getElementById('progChartType')?.addEventListener('change',e=>{progChartType=e.target.value;renderProgress();});
+
+window.openStu=function(stuId){
+  prevView=document.querySelector('.view.active')?.id.replace('view-','')||'students';
+  curStuId=stuId;
+  setView('stuPage');
+};
+window.stuBack=function(){
+  if(stuChart){stuChart.destroy();stuChart=null;}
+  Object.values(stuRadarCharts).forEach(c=>c.destroy());
+  stuRadarCharts={};
+  setView(prevView);
+};
+function renderStuPage(){
+  if(stuChart){stuChart.destroy();stuChart=null;}
+  Object.values(stuRadarCharts).forEach(c=>c.destroy());
+  stuRadarCharts={};
+  const s=DB.students.find(x=>x.id===curStuId);
+  if(!s){setView('students');return;}
+  const cls=DB.classes.find(c=>c.id===s.classId)||{name:''};
+  const mastered=DB.skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
+  const masteryRate=DB.skills.length?Math.round(mastered/DB.skills.length*100):0;
+  const total=totalScoreOf(s.id);
+  const sessCount=DB.sessions.filter(x=>x.classId===s.classId&&x.settled).length;
+  const sess=DB.sessions.filter(x=>x.classId===s.classId&&x.settled).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const rows=sess.map(ss=>{const my=scoreOf(getTally(ss.id,s.id));const avg=classAvgOthers(s.id,ss.id);return{date:ss.date,my,avg};});
+  let html='';
+  /* 顶部导航栏 */
+  html+=`<div class="stu-topbar"><button class="sec" onclick="stuBack()">← 返回</button><h2 style="margin:0;flex:1">${s.name} 的学习主页</h2><span class="muted">${cls.name}</span></div>`;
+  /* 个人信息卡片 */
+  const firstChar=s.name?s.name[0]:'?';
+  html+=`<div class="card stu-info"><div class="avatar" style="background:${s.color}">${firstChar}</div><div><div style="font-size:18px;font-weight:700">${s.name} <span class="muted" style="font-size:14px">${s.nick?('('+s.nick+')'):''}</span></div><div class="muted">学号：${s.sid||'—'} · 班级：${cls.name}</div></div><div class="stats"><div class="stat"><div class="v">${total}</div><div class="l">累计积分</div></div><div class="stat"><div class="v">${masteryRate}%</div><div class="l">总体掌握率</div></div><div class="stat"><div class="v">${sessCount}</div><div class="l">已上课次</div></div></div></div>`;
+  /* 每个魔方一个雷达图+进度录入区 */
+  DB.courses.forEach(co=>{
+    const skills=DB.skills.filter(sk=>sk.courseId===co.id).sort((a,b)=>a.order-b.order);
+    const m=skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
+    const rate=skills.length?Math.round(m/skills.length*100):0;
+    const r=radarOf(s.id,co.id);
+    html+=`<div class="card"><div class="scorebar"><h3 style="margin:0">${co.name} · 六维能力评估</h3><span class="muted">已掌握 ${m}/${skills.length} · ${rate}%</span></div><div class="radar-section"><div class="radar-left"><div style="width:260px;height:260px"><canvas id="radar-${co.id}"></canvas></div></div><div class="radar-right"><div class="radar-sliders">`;
+    RADAR_DIMS.forEach(d=>{
+      const v=radarVal(r,d.key);
+      html+=`<div class="radar-slider"><label>${d.name}</label><input type="range" min="0" max="10" step="1" value="${v}" oninput="updateRadar(${s.id},${co.id},'${d.key}',this.value);document.getElementById('rv-${co.id}-${d.key}').textContent=this.value"><span class="val" id="rv-${co.id}-${d.key}">${v}</span></div>`;
+    });
+    html+=`</div><div style="margin-top:8px"><div class="prog-bar"><div class="fill" style="width:${rate}%"></div></div><div class="muted" style="margin-top:4px">未开始 ${skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===0).length} · 学习中 ${skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===1).length} · 已掌握 ${m} · 需复习 ${skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===3).length}</div></div></div></div>`;
+    /* 知识点进度 */
+    html+=`<h3 style="margin-top:14px">知识点进度（点击状态切换）</h3><div class="legend"><span><i class="hc0"></i>未开始</span><span><i class="hc1"></i>学习中</span><span><i class="hc2"></i>已掌握</span><span><i class="hc3"></i>需复习</span></div>`;
+    skills.forEach(sk=>{
+      const p=progOf(s.id,sk.id);const st=p?.state??0;const note=p?.note||'';
+      html+=`<div class="skrow"><div class="skname">${sk.name}</div><span class="st ${STATE[st].c}" onclick="cycleSt(${s.id},${sk.id})">${STATE[st].n}</span><span class="note">${note?('备注：'+note):'<span style="color:#bbb">无备注</span>'}</span><button class="ghost sm" onclick="editNote(${s.id},${sk.id})">备注</button></div>`;
+    });
+    html+=`</div>`;
+  });
+  /* 课堂积分历史 */
+  html+=`<div class="card"><h3 style="margin:0 0 10px">课堂积分历史（vs 其他同学平均）</h3>`;
+  if(!rows.length){html+=`<div class="empty">暂无已归档课次</div>`;}
+  else{
+    html+=`<div style="height:260px;margin-bottom:12px"><canvas id="stuScoreChart"></canvas></div>`;
+    html+=`<table class="tbl"><thead><tr><th>课次日期</th><th>该生得分</th><th>其他同学平均</th><th>对比</th></tr></thead><tbody>`;
+    rows.forEach(r=>{const d=r.my-r.avg;html+=`<tr><td>${r.date}</td><td><b>${r.my}</b></td><td>${r.avg}</td><td style="color:${d>=0?'#16a34a':'#dc2626'}">${d>=0?'+':''}${d}</td></tr>`;});
+    html+=`</tbody></table>`;
+  }
+  html+=`</div>`;
+  document.getElementById('stuPageContent').innerHTML=html;
+  /* 绘制雷达图 */
+  DB.courses.forEach(co=>{drawStuRadar(s.id,co.id);});
+  /* 绘制积分折线图 */
+  if(rows.length){
+    stuChart=new Chart(document.getElementById('stuScoreChart'),{type:'line',
+      data:{labels:rows.map(r=>r.date),datasets:[
+        {label:'该生得分',data:rows.map(r=>r.my),borderColor:'#4f6ef7',backgroundColor:'rgba(79,110,247,.1)',tension:.3,fill:true},
+        {label:'其他同学平均',data:rows.map(r=>r.avg),borderColor:'#9ca3af',borderDash:[5,5],tension:.3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+  }
+}
+function drawStuRadar(stuId,cId){
+  const cv=document.getElementById('radar-'+cId);if(!cv)return;
+  const r=radarOf(stuId,cId);
+  if(stuRadarCharts[cId])stuRadarCharts[cId].destroy();
+  stuRadarCharts[cId]=new Chart(cv,{type:'radar',
+    data:{labels:RADAR_DIMS.map(d=>d.name),datasets:[{
+      label:DB.courses.find(c=>c.id===cId)?.name||'',
+      data:RADAR_DIMS.map(d=>radarVal(r,d.key)),
+      backgroundColor:'rgba(79,110,247,.15)',
+      borderColor:'#4f6ef7',
+      pointBackgroundColor:'#4f6ef7',
+      pointRadius:4,
+      borderWidth:2
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{r:{beginAtZero:true,max:10,ticks:{stepSize:2,font:{size:10}},pointLabels:{font:{size:12}}}},
+      plugins:{legend:{display:false}}}
+  });
+}
+window.updateRadar=function(stuId,cId,metric,val){
+  const r=radarOf(stuId,cId);r[metric]=parseInt(val);save();drawStuRadar(stuId,cId);
+};
+window.cycleSt=function(stuId,skId){let p=progOf(stuId,skId);if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}p.state=(p.state+1)%4;p.updatedAt=nowStr();save();renderStuPage();if(document.getElementById('view-progress')?.classList.contains('active'))renderProgress();};
+window.editNote=function(stuId,skId){let p=progOf(stuId,skId);const v=prompt('编辑备注（如：本周已掌握，下节课复习）：',p?.note||'');if(v===null)return;if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}p.note=v;save();renderStuPage();};
+
+/* ============ 学生管理 ============ */
+function renderStudents(){
+  let ss=students(curClassId());
+  if(stuSort==='score'){
+    ss=ss.slice().sort((a,b)=>totalScoreOf(b.id)-totalScoreOf(a.id)||(a.sid||'').localeCompare(b.sid||''));
+  }else{
+    ss=ss.slice().sort((a,b)=>(a.sid||'').localeCompare(b.sid||''));
+  }
+  document.getElementById('stuMeta').textContent=`${curClass.name} · ${ss.length}人`;
+  document.getElementById('stuBody').innerHTML=ss.length?ss.map(s=>`<tr>
+    <td>${s.sid||''}</td>
+    <td><a href="javascript:void(0)" onclick="openStu(${s.id})" style="font-weight:600;color:var(--primary)">${s.name}</a></td>
+    <td>${s.nick||''}</td>
+    <td><span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:${s.color}"></span></td>
+    <td>${totalScoreOf(s.id)}</td>
+    <td><button class="ghost sm" onclick="openStu(${s.id})" style="color:var(--primary)">查看详情</button> <button class="ghost sm" onclick="delStu(${s.id})" style="color:var(--red)">删除</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">无学生</td></tr>';
+}
+function nextColor(){return PALETTE[students(curClassId()).length%PALETTE.length];}
+document.getElementById('addStu').onclick=()=>{
+  const sid=document.getElementById('inSid').value.trim();
+  const name=document.getElementById('inName').value.trim();
+  const nick=document.getElementById('inNick').value.trim();
+  if(!name){alert('请输入大名');return;}
+  DB.students.push({id:uid(),classId:curClassId(),sid,name,nick,color:nextColor(),totalScore:0});save();
+  ['inSid','inName','inNick'].forEach(i=>document.getElementById(i).value='');renderStudents();
+};
+document.getElementById('bulkBtn').onclick=()=>{
+  const txt=document.getElementById('bulk').value.trim();
+  if(!txt){alert('请粘贴数据');return;}
+  let n=0;txt.split('\n').forEach(line=>{
+    const p=line.split(/[,\t，]/).map(x=>x.trim());
+    if(p[0]||p[1]){DB.students.push({id:uid(),classId:curClassId(),sid:p[0]||'',name:p[1]||p[0]||'',nick:p[2]||'',color:nextColor(),totalScore:0});n++;}
+  });
+  save();document.getElementById('bulk').value='';alert('已导入 '+n+' 名学生。');renderStudents();
+};
+window.delStu=function(id){if(!confirm('删除该学生？其计分与进度记录也会清除。'))return;DB.students=DB.students.filter(s=>s.id!==id);DB.tallies=DB.tallies.filter(t=>t.studentId!==id);DB.progress=DB.progress.filter(p=>p.studentId!==id);DB.radar=DB.radar.filter(r=>r.studentId!==id);save();renderStudents();};
+document.getElementById('clearScores').onclick=()=>{
+  const cId=curClassId();
+  const cnt=DB.sessions.filter(s=>s.classId===cId&&s.settled).length;
+  if(!cnt){alert('本班暂无已归档课次，无需清零。');return;}
+  if(!confirm(`将清除本班 ${cnt} 节已归档课次及全部积分记录（学习进度掌握状态不受影响），不可恢复。确定？`))return;
+  const ids=DB.sessions.filter(s=>s.classId===cId&&s.settled).map(s=>s.id);
+  DB.sessions=DB.sessions.filter(s=>!(s.classId===cId&&s.settled));
+  DB.tallies=DB.tallies.filter(t=>!ids.includes(t.sessionId));
+  DB.students.forEach(s=>{if(s.classId===cId)s.totalScore=0;});
+  save();renderStudents();alert('已清零本班积分与课次记录。');
+};
+
+/* ============ 课程知识点 ============ */
+function renderCourse(){
+  const box=document.getElementById('courseBox');
+  box.innerHTML=DB.courses.map(co=>{
+    const skills=DB.skills.filter(sk=>sk.courseId===co.id).sort((a,b)=>a.order-b.order);
+    return `<div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:10px">
+      <div class="row"><b style="font-size:16px">${co.name}</b><span class="muted">${skills.length}步</span>
+        <div style="flex:1"></div>
+        <button class="sec sm" onclick="addSkill(${co.id})">+ 添加知识点</button>
+        <button class="ghost sm" onclick="delCourse(${co.id})" style="color:var(--red)">删除该魔方</button></div>
+      <div style="margin-top:8px">${skills.map(sk=>`<div class="skrow"><span class="skname">${sk.order}. ${sk.name}</span>
+        <button class="ghost sm" onclick="renSkill(${sk.id})">重命名</button>
+        <button class="ghost sm" onclick="delSkill(${sk.id})" style="color:var(--red)">删除</button></div>`).join('')}</div>
+    </div>`;
+  }).join('')+'<div class="row"><button class="sec" onclick="addCourse()">+ 新增魔方类型</button></div>';
+}
+window.addSkill=function(cid){const n=prompt('知识点名称：');if(!n)return;const os=DB.skills.filter(s=>s.courseId===cid);DB.skills.push({id:uid(),courseId:cid,name:n,order:os.length+1});save();renderCourse();};
+window.renSkill=function(id){const sk=DB.skills.find(s=>s.id===id);const n=prompt('重命名：',sk.name);if(!n)return;sk.name=n;save();renderCourse();};
+window.delSkill=function(id){if(!confirm('删除该知识点？相关进度记录也会清除。'))return;DB.skills=DB.skills.filter(s=>s.id!==id);DB.progress=DB.progress.filter(p=>p.skillId!==id);save();renderCourse();};
+window.addCourse=function(){const n=prompt('魔方类型名称：');if(!n)return;DB.courses.push({id:uid(),name:n,order:DB.courses.length+1});save();fillProgCourse();renderCourse();};
+window.delCourse=function(id){if(!confirm('删除该魔方类型及其所有知识点？相关进度记录也会清除。'))return;const gone=DB.skills.filter(s=>s.courseId===id).map(s=>s.id);DB.courses=DB.courses.filter(c=>c.id!==id);DB.skills=DB.skills.filter(s=>s.courseId!==id);DB.progress=DB.progress.filter(p=>!gone.includes(p.skillId));DB.radar=DB.radar.filter(r=>r.courseId!==id);save();if(progCourseId==String(id))progCourseId='all';fillProgCourse();renderCourse();};
+
+/* ============ 备份 ============ */
+function renderBackup(){
+  document.getElementById('backupStat').textContent=
+    `班级 ${DB.classes.length} 个；学生 ${DB.students.length} 人；课次 ${DB.sessions.length} 次；进度记录 ${DB.progress.length} 条；雷达评分 ${DB.radar.length} 条。`;
+}
+document.getElementById('exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`魔方课堂数据备份_${today()}.json`;a.click();
+};
+document.getElementById('importFile').onchange=function(){
+  const f=this.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.classes)throw 0;if(confirm('导入将覆盖当前数据，确定？')){DB=d;if(!DB.rate)DB.rate=1;if(!DB.radar)DB.radar=[];save();fillClassSel();setView('home');alert('导入成功。');}}catch(e){alert('文件格式不正确。');}};
+  r.readAsText(f);
+};
+document.getElementById('wipeBtn').onclick=()=>{if(!confirm('清空全部数据，不可恢复！建议先导出备份。确定继续？'))return;if(!confirm('再次确认：将删除所有班级、学生、课次与进度数据。'))return;localStorage.removeItem(KEY);load();fillClassSel();setView('home');};
+
+/* ============ 工具 ============ */
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function nowStr(){return new Date().toISOString();}
+
+/* ============ 启动 ============ */
+load();fillClassSel();fillProgCourse();setView('home');
+</script>
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>
