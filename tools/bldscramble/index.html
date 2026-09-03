@@ -235,8 +235,53 @@
     line-height: 1.6;
   }
 </style>
+  <link rel="stylesheet" href="/assets/css/site-nav.css" />
 </head>
-<body>
+<body data-nav="bldscramble" style="padding-top:60px">
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+          <a href="/tools/bldscramble" data-nav="bldscramble">盲拧打乱生成器</a>
+          <a href="/tools/class-teach" data-nav="class-teach">魔方课堂教学系统</a>
+          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <div class="top-nav">
   <a href="/">Home</a>
@@ -3237,5 +3282,6 @@ function render() {
 $('btnStart').addEventListener('click', render);
 $('count').addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>
