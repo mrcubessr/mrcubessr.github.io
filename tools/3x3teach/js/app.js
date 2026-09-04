@@ -627,11 +627,22 @@
       elLessonNote.textContent = '自由转动：' + mv + '（' + cnOfTok(mv) + '）';
     });
   });
+  // 随机打乱：每课都能用，带动画演示，课堂观察更直观
   document.getElementById('btnScramble').addEventListener('click', function () {
-    finishAnim(); engine.scramble(20); Player.reset();
+    finishAnim();                 // 先终止其它动作并清空引擎队列（避免残留序列）
+    engine.clearHighlight();      // 显示整颗魔方真色，便于观察
+    Player.reset();
     elHoldTag.hidden = true;
-    Player.load([], '已随机打乱', null);
-    elLessonNote.textContent = '已随机打乱，点「回到复原」可复位。';
+    const seq = CM.scramble(20);
+    elLessonNote.textContent = '正在随机打乱…';
+    engine.playSeq(seq, {
+      duration: 130,
+      gap: 35,
+      onDone: function () {
+        Player.load([], '已随机打乱（' + seq.length + ' 步）', null);
+        elLessonNote.textContent = '已随机打乱 ' + seq.length + ' 步，请开始复原练习。';
+      }
+    });
   });
 
   // 整体转体工具栏（第 8 课常用：把黄色面转到左手边等）
@@ -652,6 +663,16 @@
     elHoldTag.hidden = true;
     Player.load([], '魔方已复原', null);
     elLessonNote.textContent = '魔方已回到复原状态。';
+  });
+
+  // 「转回正」：一键回到标准上课视角（撤销所有整体转体，不影响层转动结果）
+  document.getElementById('btnResetOrient').addEventListener('click', function () {
+    finishAnim();
+    engine.resetOrientation();
+    Player.reset();
+    elHoldTag.hidden = true;
+    Player.load([], '已回到标准上课视角', null);
+    elLessonNote.textContent = '已转回正：魔方回到标准上课视角（黄色朝上、蓝色朝前），整体转体已全部撤销。';
   });
 
   // 自由拖拽转动某一层后，在提示区显示所完成的动作
@@ -703,5 +724,7 @@
 
   // ---------- 启动 ----------
   selectLesson(1);
+  // 布局改为「左魔方 / 右控制坞」后，画布高度由 flex 决定，延迟一帧重算尺寸以防初始高度为 0
+  setTimeout(function () { if (engine._resize) engine._resize(); }, 80);
   window.__player = Player; // 便于自动化测试 / 调试
 })();

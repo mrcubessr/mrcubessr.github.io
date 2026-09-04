@@ -93,7 +93,9 @@
       </div>
 
       <div id="teachView">
-      <div class="cube-card">
+      <div class="teach-split">
+        <div class="teach-cube">
+        <div class="cube-card">
         <div id="cube" class="cube-canvas"></div>
         <div class="cube-hint">拖动魔方表面可转动该层 · 拖空白处转视角 · 滚轮缩放</div>
       </div>
@@ -131,6 +133,7 @@
           <button class="turn-btn" data-move="Y" title="魔方向左转">魔方向左转</button>
           <button class="turn-btn" data-move="Y'" title="魔方向右转">魔方向右转</button>
         </div>
+        <button class="turn-reset" id="btnResetOrient" title="一键回到标准上课视角（黄色朝上、蓝色朝前），撤销所有整体转体">↺ 转回正</button>
       </div>
 
       <!-- 演示按钮 -->
@@ -169,7 +172,6 @@
             <button class="pad-btn" data-move="Z">Z 前倾</button>
           </div>
           <div class="pad-row" data-group="工具">
-            <button class="pad-btn warn" id="btnScramble">随机打乱</button>
             <button class="pad-btn warn" id="btnSolve">回到复原</button>
           </div>
         </div>
@@ -187,6 +189,8 @@
           </div>
         </div>
       </details>
+        </div><!-- /teach-dock -->
+      </div><!-- /teach-split -->
       </div><!-- /#teachView -->
 
       <div id="coursewareView" class="courseware-view">
@@ -262,12 +266,13 @@
     </div>
   </div>
 
-  <script src="js/three.min.js"></script>
-  <script src="js/cube-model.js"></script>
-  <script src="js/cube-engine.js"></script>
-  <script src="js/courses-data.js"></script>
-  <script src="js/courseware-data.js"></script>
-  <script src="js/app.js"></script>
+  <!-- defer：先渲染界面骨架，Three.js 等在后台加载，首屏更快；脚本按文档顺序执行 -->
+  <script defer src="js/three.min.js"></script>
+  <script defer src="js/cube-model.js"></script>
+  <script defer src="js/cube-engine.js"></script>
+  <script defer src="js/courses-data.js"></script>
+  <script defer src="js/courseware-data.js"></script>
+  <script defer src="js/app.js"></script>
   <script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

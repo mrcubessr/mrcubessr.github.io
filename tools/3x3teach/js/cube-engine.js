@@ -41,6 +41,8 @@
     this.pivot = null;
     this.anim = null;          // 当前动画
     this.queue = [];           // 待播放序列
+    this._raf = null;          // 待渲染帧标记（按需渲染用，避免空闲空转）
+    this.orientStack = [];     // 整体转体（X/Y/Z）累积栈，供「转回正」一键撤销
     this.onStep = null;
     this.onDone = null;
     this.raycaster = null;     // 自由拖拽拾取用
@@ -51,7 +53,7 @@
     this._initThree();
     this._buildCube();
     this._bindEvents();
-    this._loop();
+    this.requestRender();   // 首次绘制（之后仅在状态变化/动画时重绘）
   }
 
   CubeEngine.prototype._initThree = function () {
@@ -102,6 +104,7 @@
     for (let i = 0; i < this.state.length; i++) {
       this._syncMesh(i);
     }
+    this.requestRender();
   };
 
   CubeEngine.prototype._syncMesh = function (i) {
@@ -167,7 +170,23 @@
 
   CubeEngine.prototype.getState = function () { return this.state; };
   CubeEngine.prototype.isSolved = function () { return CM.isSolved(this.state); };
-  CubeEngine.prototype.reset = function () { this.state = CM.solvedState(); this.syncAll(); };
+  CubeEngine.prototype.reset = function () { this.state = CM.solvedState(); this.orientStack = []; this.syncAll(); };
+
+  // 一键回到标准上课视角：撤销所有整体转体（按逆序施逆操作），并复位相机视角。
+  // 仅撤销“整体转体”，期间做的任何层转动（打乱 / 练习结果）都会保留。
+  CubeEngine.prototype.resetOrientation = function () {
+    if (this.anim) this._finishAnim();
+    const stack = this.orientStack.slice().reverse();
+    this.orientStack = [];
+    for (let i = 0; i < stack.length; i++) {
+      let tok = stack[i];
+      let inv = tok.endsWith("'") ? tok.slice(0, -1) : tok + "'";
+      if (tok.endsWith('2')) inv = tok;   // 双转（如 X2）的逆是自身
+      this.applyMove(inv);
+    }
+    this.syncAll();
+    this.resetView();
+  };
   CubeEngine.prototype.scramble = function (n) {
     const seq = CM.scramble(n);
     this.applySeq(seq);
@@ -180,6 +199,7 @@
       this._finishAnim();
     }
     const info = this._moveAngle(tok);
+    if (info.whole) this.orientStack.push(tok);   // 记录整体转体，便于「转回正」撤销
     const ai = CM.AXIS_INDEX[info.axis];
     const affected = [];
     for (let i = 0; i < this.state.length; i++) {
@@ -203,6 +223,7 @@
       affected: affected,
       onComplete: onComplete,
     };
+    this.requestRender();   // 启动动画渲染循环（动画期间持续重绘，结束即停）
   };
 
   CubeEngine.prototype._finishAnim = function () {
@@ -220,6 +241,7 @@
     }
     this.pivot.rotation.set(0, 0, 0);
     this.pivot.updateMatrixWorld(true);
+    this.requestRender();   // 提交转动后重绘一次（如自由拖拽松手、外部强制收尾）
   };
 
   // 顺序播放一串移动
@@ -266,6 +288,7 @@
   CubeEngine.prototype.resetView = function () {
     this.cam = Object.assign({}, this.defaultCam);
     this._updateCamera();
+    this.requestRender();
   };
 
   CubeEngine.prototype.rotateView = function (dx, dy) {
@@ -274,12 +297,14 @@
     const eps = 0.12;
     this.cam.phi = Math.max(eps, Math.min(Math.PI - eps, this.cam.phi));
     this._updateCamera();
+    this.requestRender();
   };
 
   CubeEngine.prototype.zoom = function (delta) {
     this.cam.radius *= (1 + delta * 0.0012);
     this.cam.radius = Math.max(4.2, Math.min(14, this.cam.radius));
     this._updateCamera();
+    this.requestRender();
   };
 
   // ---- 交互事件：空白拖拽环视视角 + 抓面拖拽转动该层 ----
@@ -325,6 +350,7 @@
         twist.frac = frac;
         self.pivot.rotation.set(0, 0, 0);
         self.pivot.rotation[twist.axis] = frac * twist.fullAngle;
+        self.requestRender();   // 拖拽过程中实时重绘
       }
     }
     function onUp(e) {
@@ -426,7 +452,7 @@
       return;
     }
     const steps = Math.abs(snap);
-    const applied = snap > 0 ? twist.tok : inverseTok(twist.tok);
+      const applied = snap > 0 ? twist.tok : inverseTok(twist.tok);
     this.anim = {
       axis: twist.axis, from: fromA, to: toA, start: performance.now(), duration: 160,
       affected: twist.affected,
@@ -435,6 +461,7 @@
         if (self.onTwist) self.onTwist(applied, steps);
       },
     };
+    this.requestRender();
   };
 
   CubeEngine.prototype._resize = function () {
@@ -443,26 +470,35 @@
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.requestRender();
   };
 
-  // ---- 渲染循环 ----
-  CubeEngine.prototype._loop = function () {
+  // ---- 按需渲染：仅在状态变化或动画进行中才重绘，空闲时零 CPU 占用 ----
+  // 任意会改变画面（转动层 / 拖拽 / 转视角 / 缩放 / resize / 高亮）的方法，
+  // 在改完后调用 requestRender() 即可；动画进行时 _renderFrame 会自动排下一帧。
+  CubeEngine.prototype.requestRender = function () {
+    if (this._raf) return;           // 已有一个待渲染帧，去重
     const self = this;
-    function frame() {
-      requestAnimationFrame(frame);
-      if (self.anim) {
-        const a = self.anim;
-        const t = Math.min(1, (performance.now() - a.start) / a.duration);
-        const e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // easeInOut
-        self.pivot.rotation[a.axis] = a.from + (a.to - a.from) * e;
-        if (t >= 1) {
-          self.pivot.rotation[a.axis] = a.to;
-          self._finishAnim();
-        }
+    this._raf = requestAnimationFrame(function () {
+      self._raf = null;
+      self._renderFrame();
+    });
+  };
+
+  CubeEngine.prototype._renderFrame = function () {
+    if (this.anim) {
+      const a = this.anim;
+      const t = Math.min(1, (performance.now() - a.start) / a.duration);
+      const e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // easeInOut
+      this.pivot.rotation[a.axis] = a.from + (a.to - a.from) * e;
+      if (t >= 1) {
+        this.pivot.rotation[a.axis] = a.to;
+        this._finishAnim();
       }
-      self.renderer.render(self.scene, self.camera);
     }
-    frame();
+    this.renderer.render(this.scene, this.camera);
+    // 动画仍在进行则继续排下一帧；否则停止（空闲不渲染，省电省 CPU）
+    if (this.anim) this.requestRender();
   };
 
   global.CubeEngine = CubeEngine;
