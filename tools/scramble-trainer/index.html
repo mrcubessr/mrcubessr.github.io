@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔方打乱公式随机出题训练器</title>
+<style>
+  :root {
+    /* ===== 浅色 / 白底主题（白天教室、大屏投屏优化）===== */
+    --bg: #f2f4f7;
+    --panel: #ffffff;
+    --panel-2: #eef1f5;
+    --border: #d3d9e2;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #1d4ed8;        /* 深蓝 */
+    --accent-2: #c0392b;      /* 深红 */
+    --success: #15803d;
+    --formula-bg: #ffffff;
+    --net-bg: #f2f4f7;        /* 展开图底色 */
+    --net-frame: #374151;     /* 展开图每面外框 */
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ===== Header 精简版 ===== */
+  .header {
+    flex: 0 0 auto;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 56px;
+    background: var(--panel);
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header h1 .badge {
+    background: rgba(29,78,216,0.10);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid rgba(29,78,216,0.28);
+    font-weight: 600;
+  }
+  .header .count {
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header .count b {
+    color: var(--accent);
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .header .reset {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .header .reset:hover { color: var(--text); border-color: var(--text); }
+
+  /* ===== 主区：左展开图 / 右栏（各占一半） ===== */
+  .main {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* 左右各占屏幕一半 */
+    min-height: 0;
+  }
+
+  /* 左：大展开图 */
+  .left {
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+  }
+  .left canvas {
+    max-width: 100%;
+    max-height: 100%;
+  }
+  .left .meta {
+    position: absolute;
+    bottom: 12px;
+    left: 24px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* 右栏：上下两块（对照图占 42%，公式区压缩到剩余） */
+  .right {
+    display: grid;
+    grid-template-rows: minmax(220px, 42%) 1fr;
+    min-height: 0;
+    background: var(--panel);
+  }
+
+  /* 右上：对照图（已放大） */
+  .legend-zone {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .legend-zone .zone-label {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-zone .zone-label::before {
+    content: '';
+    width: 4px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .legend-img-wrap {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    flex: 1 1 auto;      /* 吃掉对照图区的剩余高度 */
+    min-height: 0;
+  }
+  .legend-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .legend-fallback {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 16px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+  }
+  .legend-fallback code {
+    color: var(--accent);
+    background: rgba(29,78,216,0.10);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  /* 右下：公式区（已压缩，把高度让给对照图） */
+  .formula-zone {
+    padding: 12px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .formula-zone .zone-label {
+    color: var(--muted);
+    font-size: 14px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .formula-zone .zone-label::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    background: var(--accent-2);
+    border-radius: 2px;
+  }
+  /* 六字母覆盖校验徽标 */
+  .cover-badge {
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #15803d;
+    background: rgba(21,128,61,0.10);
+    border: 1px solid rgba(21,128,61,0.30);
+    padding: 2px 9px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+  .cover-badge.warn {
+    color: #b45309;
+    background: rgba(180,83,9,0.10);
+    border-color: rgba(180,83,9,0.30);
+  }
+
+  /* 大字号公式显示（浅底黑字，课堂投影最清晰） */
+  .formula-display {
+    background: #ffffff;
+    border: 3px solid #1f2937;
+    border-radius: 12px;
+    padding: 14px 12px;
+    flex: 1 1 auto;          /* 吃掉剩余高度 */
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;     /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+  }
+  .formula-inner {
+    display: block;
+    width: 100%;
+    font-family: Consolas, "Courier New", "Microsoft YaHei", monospace;
+    font-size: 126px;        /* 基础大字号（实际由 fitFormula 自动计算） */
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: 2px;
+    color: #000000;          /* 纯黑字 */
+    text-align: center;
+    word-break: break-word;
+  }
+  /* 单行模式：不换行，收紧字距，让公式尽量一行显示 */
+  .formula-inner.single {
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+    white-space: nowrap;
+    word-break: normal;
+    letter-spacing: 1px;
+  }
+  .formula-inner.single .move { padding: 0 2px; }
+  .formula-inner.single .move.space { padding: 0 5px; }
+  .formula-inner .move {
+    color: #000000;          /* 字母主体：纯黑 */
+    padding: 0 4px;
+  }
+  /* 修饰符用深色区分（白底上依然清晰，仍属深色系） */
+  .formula-inner .move.prime { color: #c0392b; }   /* 带撇号 → 深红 */
+  .formula-inner .move.dbl   { color: #1d4ed8; }   /* 带 2   → 深蓝 */
+  .formula-inner .move.space {
+    color: var(--muted);
+    padding: 0 10px;
+    font-weight: 400;
+  }
+
+  /* 长度选择 */
+  .length-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .length-row .lbl {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .length-row .len-btn {
+    background: #ffffff;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    min-width: 50px;
+  }
+  .length-row .len-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .length-row .len-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+  }
+
+  /* 操作按钮 */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .action-row .full {
+    grid-column: 1 / -1;
+  }
+  .btn {
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(15,23,42,0.12);
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: var(--accent);
+    font-size: 20px;
+    padding: 20px 22px;
+    box-shadow: 0 4px 12px rgba(29,78,216,0.28);
+  }
+  .btn.pink {
+    background: var(--accent-2);
+  }
+  .btn.ghost {
+    background: #ffffff;
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    box-shadow: none;
+  }
+  .btn.ghost:hover {
+    background: var(--panel-2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ===== 分步抽屉 ===== */
+  .steps-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 45vh;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 30px rgba(15,23,42,0.16);
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    z-index: 50;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .steps-drawer.show { transform: translateY(0); }
+  .steps-drawer .head {
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel-2);
+  }
+  .steps-drawer .head h3 {
+    font-size: 16px;
+    color: var(--text);
+  }
+  .steps-drawer .head .close {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .steps-drawer .head .close:hover { color: var(--text); }
+  .steps-drawer .body {
+    padding: 14px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .steps-drawer .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .step-item {
+    background: var(--formula-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+  }
+  .step-item .no {
+    color: var(--muted);
+    font-size: 12px;
+    width: 28px;
+    text-align: center;
+  }
+  .step-item .symbol {
+    font-family: monospace;
+    font-weight: 800;
+    font-size: 22px;
+    width: 60px;
+    text-align: center;
+  }
+  .step-item .desc {
+    color: var(--muted);
+    flex: 1;
+  }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    background: var(--success);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(21,128,61,0.25);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ===== 响应式：小屏堆叠 ===== */
+  @media (max-width: 1100px) {
+    body { overflow-y: auto; }
+    .main {
+      grid-template-columns: 1fr;
+      grid-template-rows: 50vh auto;
+    }
+    .left {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .right { grid-template-rows: auto auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎲 魔方打乱公式随机出题训练器 <span class="badge">WCA 标准 · 白顶绿前</span></h1>
+  <div class="count">
+    已出题 <b id="countNum">0</b> 题
+    <button class="reset" id="resetBtn">重置</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 左侧：大展开图 -->
+  <section class="left">
+    <canvas id="netCanvas"></canvas>
+    <div class="meta" id="metaInfo">标准十字展开 · U 上 · L F R B 中 · D 下 · 白顶绿前</div>
+  </section>
+
+  <!-- 右侧栏：对照图 + 公式区 -->
+  <aside class="right">
+    <!-- 右上：对照图 -->
+    <div class="legend-zone">
+      <div class="zone-label">对照图 · 6 字母旋转示意</div>
+      <div class="legend-img-wrap">
+        <img id="legendImg" src="legend.jpg" alt="6字母旋转示意图"
+             onerror="this.style.display='none';document.getElementById('legendFallback').style.display='block';"
+             onload="document.getElementById('legendFallback').style.display='none';this.style.display='block';">
+        <div id="legendFallback" class="legend-fallback" style="display:none;">
+          📷 请把你的对照图命名为 <code>legend.jpg</code>，放到本 HTML 文件同目录
+        </div>
+      </div>
+    </div>
+
+    <!-- 右下：公式区 -->
+    <div class="formula-zone">
+      <div class="zone-label">打乱公式 <span class="cover-badge" id="coverBadge">✓ R U F L B D 齐全</span></div>
+      <div class="formula-display" id="formulaText"><div class="formula-inner" id="formulaInner">—</div></div>
+
+      <!-- 长度 -->
+      <div class="length-row">
+        <span class="lbl">长度：</span>
+        <button class="len-btn active" data-len="6">6</button>
+        <button class="len-btn" data-len="8">8</button>
+        <button class="len-btn" data-len="10">10</button>
+        <button class="len-btn" data-len="12">12</button>
+        <button class="len-btn" data-len="20">20</button>
+      </div>
+
+      <!-- 按钮 -->
+      <div class="action-row">
+        <button class="btn primary full" id="newBtn">🎲 换一题</button>
+        <button class="btn ghost" id="copyBtn">📋 复制公式</button>
+        <button class="btn ghost" id="stepBtn">🔍 显示分步</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- 分步抽屉 -->
+<div class="steps-drawer" id="stepsCard">
+  <div class="head">
+    <h3>📖 分步说明 · 每一步对应动作</h3>
+    <button class="close" id="stepClose">收起 ✕</button>
+  </div>
+  <div class="body">
+    <div class="grid" id="stepsList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">已复制到剪贴板</div>
+
+<script>
+/* ====================================================================
+ * 内嵌 cube-net.js（来自 fto-site/assets/js/cube-net.js v2）
+ * ==================================================================== */
+const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
+
+class Cube {
+  constructor(size, orientation) {
+    this.size = size;
+    this.faces = {};
+    for (const face of ['U', 'D', 'F', 'B', 'R', 'L']) {
+      this.faces[face] = [];
+      for (let r = 0; r < size; r++) {
+        this.faces[face][r] = [];
+        for (let c = 0; c < size; c++) {
+          this.faces[face][r][c] = face;
+        }
+      }
+    }
+  }
+  rotateM() {
+    const n = this.size - 1;
+    const u = this.faces.U, d = this.faces.D, ff = this.faces.F;
+    const b = this.faces.B, r = this.faces.R, l = this.faces.L;
+    this.faces = {
+      U: d.map((row, i) => row.map((_, j) => d[n - j][n - i])),
+      D: u.map((row, i) => row.map((_, j) => u[n - j][n - i])),
+      F: r.map((row, i) => row.map((_, j) => r[n - i][n - j])),
+      R: ff.map((row, i) => row.map((_, j) => ff[n - i][j])),
+      B: l.map((row, i) => row.map((_, j) => l[n - i][n - j])),
+      L: b.map((row, i) => row.map((_, j) => b[n - i][n - j])),
+    };
+  }
+  getFace(face) { return this.faces[face]; }
+  rotateFaceCW(face) {
+    const s = this.size;
+    const m = this.faces[face];
+    const n = [];
+    for (let r = 0; r < s; r++) {
+      n[r] = [];
+      for (let c = 0; c < s; c++) {
+        n[r][c] = m[s - 1 - c][r];
+      }
+    }
+    this.faces[face] = n;
+  }
+  rotateFaceCCW(face) {
+    const s = this.size;
+    const m = this.faces[face];
+    const n = [];
+    for (let r = 0; r < s; r++) {
+      n[r] = [];
+      for (let c = 0; c < s; c++) {
+        n[r][c] = m[c][s - 1 - r];
+      }
+    }
+    this.faces[face] = n;
+  }
+  applyMove(move) {
+    const face = move.face;
+    const dir = move.dir;
+    if (face === 'M' || face === 'E' || face === 'S') {
+      this._moveMiddle(face, dir);
+      return;
+    }
+    const doCW = () => { this.rotateFaceCW(face); this._moveEdges(face, 1); };
+    const doCCW = () => { this.rotateFaceCCW(face); this._moveEdges(face, -1); };
+    if (dir === 2) { doCW(); doCW(); }
+    else if (dir === 1) { doCW(); }
+    else { doCCW(); }
+  }
+  _moveMiddle(axis, dir){
+    if(dir===2 || dir===-2){
+      const d = dir>0 ? 1 : -1;
+      this._moveMiddle(axis, d);
+      this._moveMiddle(axis, d);
+      return;
+    }
+    const s=this.size, m=Math.floor(s/2);
+    if(axis==='M'){
+      for(let i=0;i<s;i++){
+        const a=this.faces.U[i][m], b=this.faces.F[i][m], c=this.faces.D[i][m], d=this.faces.B[s-1-i][m];
+        if(dir===1){ this.faces.U[i][m]=d; this.faces.F[i][m]=a; this.faces.D[i][m]=b; this.faces.B[s-1-i][m]=c; }
+        else { this.faces.B[s-1-i][m]=a; this.faces.D[i][m]=d; this.faces.F[i][m]=c; this.faces.U[i][m]=b; }
+      }
+    } else if(axis==='E'){
+      for(let i=0;i<s;i++){
+        const a=this.faces.F[m][i], b=this.faces.R[m][i], c=this.faces.B[m][i], d=this.faces.L[m][i];
+        if(dir===1){ this.faces.F[m][i]=d; this.faces.R[m][i]=a; this.faces.B[m][i]=b; this.faces.L[m][i]=c; }
+        else { this.faces.F[m][i]=b; this.faces.R[m][i]=c; this.faces.B[m][i]=d; this.faces.L[m][i]=a; }
+      }
+    } else if(axis==='S'){
+      const u=[], r=[], d=[], l=[];
+      for(let i=0;i<s;i++){ u.push(this.faces.U[m][i]); r.push(this.faces.R[i][m]); d.push(this.faces.D[m][i]); l.push(this.faces.L[i][m]); }
+      if(dir===1){ for(let i=0;i<s;i++){ this.faces.R[i][m]=u[i]; this.faces.D[m][s-1-i]=r[i]; this.faces.L[i][m]=d[i]; this.faces.U[m][s-1-i]=l[i]; } }
+      else { for(let i=0;i<s;i++){ this.faces.L[i][m]=u[s-1-i]; this.faces.D[m][i]=l[i]; this.faces.R[i][m]=d[s-1-i]; this.faces.U[m][i]=r[i]; } }
+    }
+  }
+  applyAlg(alg){
+    for(const mv of parseScrambleNet(alg)){
+      if(mv.mid) this._moveMiddle(mv.mid, mv.dir);
+      else this.applyMove(mv);
+    }
+  }
+  _moveEdges(face, dir) {
+    const s = this.size;
+    const n = s - 1;
+    if (face === 'R') {
+      for (let i = 0; i < s; i++) {
+        const a = this.faces.U[i][n];
+        const b = this.faces.F[i][n];
+        const c = this.faces.D[i][n];
+        const d = this.faces.B[s - 1 - i][0];
+        if (dir === 1) {
+          this.faces.U[i][n] = b;
+          this.faces.F[i][n] = c;
+          this.faces.D[i][n] = d;
+          this.faces.B[s - 1 - i][0] = a;
+        } else {
+          this.faces.U[i][n] = d;
+          this.faces.F[i][n] = a;
+          this.faces.D[i][n] = b;
+          this.faces.B[s - 1 - i][0] = c;
+        }
+      }
+    } else if (face === 'L') {
+      for (let i = 0; i < s; i++) {
+        const a = this.faces.U[i][0];
+        const b = this.faces.B[s - 1 - i][n];
+        const c = this.faces.D[i][0];
+        const d = this.faces.F[i][0];
+        if (dir === 1) {
+          this.faces.U[i][0] = b;
+          this.faces.F[i][0] = a;
+          this.faces.D[i][0] = d;
+          this.faces.B[s - 1 - i][n] = c;
+        } else {
+          this.faces.U[i][0] = d;
+          this.faces.B[s - 1 - i][n] = a;
+          this.faces.D[i][0] = b;
+          this.faces.F[i][0] = c;
+        }
+      }
+    } else if (face === 'U') {
+      for (let i = 0; i < s; i++) {
+        const a = this.faces.F[0][i];
+        const b = this.faces.R[0][i];
+        const c = this.faces.B[0][i];
+        const d = this.faces.L[0][i];
+        if (dir === 1) {
+          this.faces.F[0][i] = b;
+          this.faces.L[0][i] = a;
+          this.faces.B[0][i] = d;
+          this.faces.R[0][i] = c;
+        } else {
+          this.faces.F[0][i] = d;
+          this.faces.R[0][i] = a;
+          this.faces.B[0][i] = b;
+          this.faces.L[0][i] = c;
+        }
+      }
+    } else if (face === 'D') {
+      for (let i = 0; i < s; i++) {
+        const a = this.faces.F[n][i];
+        const b = this.faces.L[n][i];
+        const c = this.faces.B[n][i];
+        const d = this.faces.R[n][i];
+        if (dir === 1) {
+          this.faces.F[n][i] = b;
+          this.faces.R[n][i] = a;
+          this.faces.B[n][i] = d;
+          this.faces.L[n][i] = c;
+        } else {
+          /* 逆时针：F→L→B→R→F（即顺时针的逆循环）
+             修复记录：此处原为 L=c(旧B) / R=a(旧F)，导致 D' 时底部角块色序被镜像
+             （表现为展开图上「黄蓝棱」与「黄绿棱」左右错位）。 */
+          this.faces.F[n][i] = d;   // 新 F = 旧 R
+          this.faces.L[n][i] = a;   // 新 L = 旧 F
+          this.faces.B[n][i] = b;   // 新 B = 旧 L
+          this.faces.R[n][i] = c;   // 新 R = 旧 B
+        }
+      }
+    } else if (face === 'F') {
+      for (let i = 0; i < s; i++) {
+        const a = this.faces.U[n][i];
+        const b = this.faces.R[i][0];
+        const c = this.faces.D[0][s - 1 - i];
+        const d = this.faces.L[s - 1 - i][n];
+        if (dir === 1) {
+          this.faces.U[n][i] = d;
+          this.faces.R[i][0] = a;
+          this.faces.D[0][s - 1 - i] = b;
+          this.faces.L[s - 1 - i][n] = c;
+        } else {
+          this.faces.U[n][i] = b;
+          this.faces.R[i][0] = c;
+          this.faces.D[0][s - 1 - i] = d;
+          this.faces.L[s - 1 - i][n] = a;
+        }
+      }
+    } else if (face === 'B') {
+      for (let i = 0; i < s; i++) {
+        const a = this.faces.U[0][s - 1 - i];
+        const b = this.faces.L[i][0];
+        const c = this.faces.D[n][i];
+        const d = this.faces.R[s - 1 - i][n];
+        if (dir === 1) {
+          this.faces.U[0][s - 1 - i] = d;
+          this.faces.L[i][0] = a;
+          this.faces.D[n][i] = b;
+          this.faces.R[s - 1 - i][n] = c;
+        } else {
+          this.faces.U[0][s - 1 - i] = b;
+          this.faces.L[i][0] = c;
+          this.faces.D[n][i] = d;
+          this.faces.R[s - 1 - i][n] = a;
+        }
+      }
+    }
+  }
+}
+
+function parseScrambleNet(str){
+  const cleaned = String(str||'').replace(/\s+/g,' ').trim();
+  if(!cleaned) return [];
+  const tokens = cleaned.split(/\s+/);
+  const out = [];
+  for(const tok of tokens){
+    const m = tok.match(/^([RULDFBMESrludfbxyz])(2)?(')?$/);
+    if(!m) continue;
+    const base = m[1];
+    let dir = 1;
+    if(m[2]) dir = 2; else if(m[3]) dir = -1;
+    const seq = expandMoveNet(base, dir);
+    for(const sm of seq) out.push(sm);
+  }
+  return out;
+}
+function expandMoveNet(base, dir){
+  const seq = [];
+  const push = (face, d) => seq.push({face, dir: d});
+  const pushMid = (axis, d) => seq.push({mid: axis, dir: d});
+  switch(base){
+    case 'R': push('R',dir); break;
+    case 'L': push('L',dir); break;
+    case 'U': push('U',dir); break;
+    case 'D': push('D',dir); break;
+    case 'F': push('F',dir); break;
+    case 'B': push('B',dir); break;
+    case 'M': pushMid('M',dir); break;
+    case 'E': pushMid('E',dir); break;
+    case 'S': pushMid('S',dir); break;
+    case 'r': push('R',dir); pushMid('M',-dir); break;
+    case 'l': push('L',dir); pushMid('M',dir); break;
+    case 'u': push('U',dir); pushMid('E',-dir); break;
+    case 'd': push('D',dir); pushMid('E',dir); break;
+    case 'f': push('F',dir); pushMid('S',dir); break;
+    case 'b': push('B',dir); pushMid('S',-dir); break;
+    case 'x': push('R',dir); pushMid('M',-dir); push('L',-dir); break;
+    case 'y': push('U',dir); pushMid('E',-dir); push('D',-dir); break;
+    case 'z': push('F',dir); pushMid('S',dir); push('B',-dir); break;
+  }
+  return seq;
+}
+
+function drawScrambleNet(alg, canvasId){
+  const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
+  if(!canvas) return;
+  const cube = new Cube(3);
+  cube.applyAlg(alg);
+  const colors = NET_COLORS;
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const availW = Math.max(rect.width, 240);
+  const availH = Math.max(rect.height, 280);
+  const dpr = window.devicePixelRatio || 1;
+  const s = cube.size;
+  const gap = 6, padding = 16;
+  const baseSticker = 60;  // 大屏加大贴纸
+  const faceSize0 = baseSticker * s;
+  const totalW0 = 4*faceSize0 + 3*gap + 2*padding;
+  const totalH0 = 3*faceSize0 + 2*gap + 2*padding;
+  const scale = Math.min(availW/totalW0, availH/totalH0, 1.4);
+  const stickerSize = baseSticker * scale;
+  const faceSize = stickerSize * s;
+  const totalW = 4*faceSize + 3*gap + 2*padding;
+  const totalH = 3*faceSize + 2*gap + 2*padding;
+  canvas.width = totalW * dpr;
+  canvas.height = totalH * dpr;
+  canvas.style.width = totalW + 'px';
+  canvas.style.height = totalH + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle = '#f2f4f7';          /* 浅色底（与页面白底一致） */
+  ctx.fillRect(0,0,totalW,totalH);
+
+  const uX = faceSize + gap + padding, uY = padding;
+  const lX = padding, lY = faceSize + gap + padding;
+  const fX = faceSize + gap + padding, fY = faceSize + gap + padding;
+  const rX = 2*faceSize + 2*gap + padding, rY = faceSize + gap + padding;
+  const bX = 3*faceSize + 3*gap + padding, bY = faceSize + gap + padding;
+  const dX = faceSize + gap + padding, dY = 2*faceSize + 2*gap + padding;
+  const facePositions = {
+    U:{x:uX,y:uY}, L:{x:lX,y:lY}, F:{x:fX,y:fY},
+    R:{x:rX,y:rY}, B:{x:bX,y:bY}, D:{x:dX,y:dY}
+  };
+  for(const [face,pos] of Object.entries(facePositions)){
+    drawNetFace(ctx, cube, face, pos.x, pos.y, stickerSize, colors);
+  }
+}
+
+function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
+  const s = cube.size;
+  const faceData = cube.getFace(face);
+  const faceSize = stickerSize * s;
+  ctx.fillStyle = '#374151';          /* 深色外框：白底上更清晰 */
+  ctx.fillRect(ox-2, oy-2, faceSize+4, faceSize+4);
+  for(let r=0;r<s;r++){
+    for(let c=0;c<s;c++){
+      const colorKey = faceData[r][c];
+      const stickerColor = colors[colorKey];
+      const x = ox + c*stickerSize + 1;
+      const y = oy + r*stickerSize + 1;
+      const ss = stickerSize - 2;
+      ctx.fillStyle = stickerColor;
+      ctx.fillRect(x, y, ss, ss);
+      if(stickerColor === '#FFFFFF'){
+        ctx.strokeStyle = '#9ca3af';  /* 白色贴纸描边（U 面） */
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, ss, ss);
+      }
+    }
+  }
+}
+
+/* ====================================================================
+ * 业务逻辑
+ * ==================================================================== */
+
+const FACES = ['R', 'U', 'F', 'L', 'D', 'B'];
+const AXIS_OPPOSITE = { R:'L', L:'R', U:'D', D:'U', F:'B', B:'F' };
+const MODIFIERS = ['', '', '', "'", "'", '2'];
+
+/* ---------- 工具 ---------- */
+function shuffleArr(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* 判断某一步能否接在当前序列后面（WCA 打乱规则） */
+function isValidNext(seq, f) {
+  const last = seq[seq.length - 1];   // 上一步
+  const prev = seq[seq.length - 2];   // 上两步
+  if (f === last) return false;                       // 不能同面连续 R R
+  if (last && AXIS_OPPOSITE[f] === last) return false; // 不能同轴对面 R L / U D / F B
+  if (f === prev) return false;                        // 隔一步也不能同面 R L R
+  return true;
+}
+
+/**
+ * 生成面序列，硬性保证：R U F L B D 六个字母每次都至少出现一次
+ * 策略：随机贪心 + 覆盖优先 + 失败重试；
+ *      当「剩余空位 == 还没出现的字母数」时，强制只从缺失字母里挑，
+ *      因此 6 步题正好是六字母各一次，8~20 步则是 6 字母全覆盖后再随机补足。
+ */
+function buildFaceSequence(length) {
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const seq = [];
+    const missing = new Set(FACES);   // 还没出现过的字母
+    let failed = false;
+
+    for (let i = 0; i < length; i++) {
+      const slotsLeft = length - i;
+      let pool;
+
+      if (slotsLeft <= missing.size) {
+        // 位置刚够（或不够）→ 只能补缺失字母，保证全覆盖
+        pool = shuffleArr([...missing]);
+      } else if (missing.size > 0 && Math.random() < 0.55) {
+        // 还有余量时，55% 概率优先补没出现过的字母 → 分布更均匀
+        pool = shuffleArr([...missing]).concat(shuffleArr(FACES).filter(f => !missing.has(f)));
+      } else {
+        pool = shuffleArr(FACES);
+      }
+
+      let picked = null;
+      for (const f of pool) {
+        if (isValidNext(seq, f)) { picked = f; break; }
+      }
+      if (picked === null) { failed = true; break; }  // 死路 → 重试
+
+      seq.push(picked);
+      missing.delete(picked);
+    }
+
+    if (!failed && missing.size === 0) return seq;
+  }
+
+  /* 兜底（几乎不会走到）：六字母排列 + 按规则补齐 */
+  const seq = shuffleArr(FACES);
+  for (let i = 1; i < seq.length; i++) {          // 拆散相邻的同轴对面
+    if (AXIS_OPPOSITE[seq[i]] === seq[i - 1]) {
+      for (let j = i + 1; j < seq.length; j++) {
+        if (AXIS_OPPOSITE[seq[j]] !== seq[i - 1]) { [seq[i], seq[j]] = [seq[j], seq[i]]; break; }
+      }
+    }
+  }
+  while (seq.length < length) {
+    const cands = shuffleArr(FACES).filter(f => isValidNext(seq, f));
+    seq.push(cands.length ? cands[0] : FACES[Math.floor(Math.random() * 6)]);
+  }
+  return seq;
+}
+
+function generateScramble(length) {
+  const faces = buildFaceSequence(length);
+  return faces.map(face => {
+    const mod = MODIFIERS[Math.floor(Math.random() * MODIFIERS.length)];
+    const dir = mod === "'" ? -1 : (mod === '2' ? 2 : 1);
+    return { face, dir, mod };
+  });
+}
+
+/* 校验：当前公式是否已覆盖 R U F L B D 六个字母 */
+function coveredFaces(moves) {
+  return new Set((moves || []).map(m => m.face));
+}
+
+function movesToText(moves) {
+  return moves.map(m => m.face + m.mod).join(' ');
+}
+
+const FACE_CN = { R:'右面', L:'左面', U:'顶层', D:'底层', F:'前层', B:'后层' };
+const DIR_CN = { 1:'顺时针90°', '-1':'逆时针90°', 2:'180°' };
+
+function describeMove(m) {
+  const faceCN = FACE_CN[m.face] || m.face;
+  const dirCN = DIR_CN[m.dir] || (m.mod === "'" ? '逆时针90°' : (m.mod === '2' ? '180°' : '顺时针90°'));
+  return `${faceCN}${dirCN}`;
+}
+
+function renderFormula(moves) {
+  const el = document.getElementById('formulaInner');
+  if (!el) return;
+  if (!moves || moves.length === 0) { el.innerHTML = '—'; return; }
+  const html = moves.map(m => {
+    const cls = m.mod === "'" ? 'move prime' : (m.mod === '2' ? 'move dbl' : 'move');
+    return `<span class="${cls}">${m.face}${m.mod}</span>`;
+  }).join('<span class="move space"> </span>');
+  el.innerHTML = html;
+}
+
+/**
+ * 公式字号自适应（两段式）：
+ *   阶段一：强制单行 nowrap，二分查找「能塞进一行」的最大字号；
+ *           只要单行字号 >= MIN_SINGLE 就用单行（课堂可读性最好）。
+ *   阶段二：行数太多 / 窗口太窄，单行会被压得过小 → 才放开换行继续二分。
+ * 每次出题、切换长度、resize 都会重算。
+ */
+function fitFormula() {
+  const box = document.getElementById('formulaText');
+  const inner = document.getElementById('formulaInner');
+  if (!box || !inner) return;
+
+  const cs = getComputedStyle(box);
+  // 减 2px 余量，规避浏览器亚像素测量误差导致的边缘裁切
+  const availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+  const availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom)  - 2;
+  if (availW <= 0 || availH <= 0) return;
+
+  const MIN_SINGLE = 30;   // 单行最小可接受字号：低于它就改为换行显示
+
+  /* ---- 阶段一：优先一行塞下 ---- */
+  inner.classList.add('single');
+  let lo = 16, hi = 260, best = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    inner.style.fontSize = mid + 'px';
+    if (inner.scrollWidth <= availW && inner.scrollHeight <= availH) {
+      best = mid;          // 能放下 → 试试更大
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;        // 放不下 → 缩小
+    }
+  }
+  if (best >= MIN_SINGLE) {
+    inner.style.fontSize = best + 'px';
+    return;                // ✔ 单行显示
+  }
+
+  /* ---- 阶段二：一行实在放不下 → 允许换行 ---- */
+  inner.classList.remove('single');
+  lo = 16; hi = 170; best = 16;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    inner.style.fontSize = mid + 'px';
+    if (inner.scrollHeight <= availH && inner.scrollWidth <= availW) {
+      best = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  inner.style.fontSize = best + 'px';
+}
+
+function renderSteps(moves) {
+  const list = document.getElementById('stepsList');
+  if (!moves || moves.length === 0) { list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px;">请先出题</div>'; return; }
+  const rows = moves.map((m, i) => {
+    const sym = m.face + m.mod;
+    const desc = describeMove(m);
+    const color = m.mod === "'" ? 'var(--accent-2)' : (m.mod === '2' ? 'var(--accent)' : 'var(--text)');
+    return `<div class="step-item">
+      <span class="no">${i+1}</span>
+      <span class="symbol" style="color:${color}">${sym}</span>
+      <span class="desc">${desc}</span>
+    </div>`;
+  }).join('');
+  list.innerHTML = rows;
+}
+
+let count = 0;
+let currentLength = 6;
+
+function newQuestion() {
+  const moves = generateScramble(currentLength);
+  const text = movesToText(moves);
+  renderFormula(moves);
+  drawScrambleNet(text, 'netCanvas');
+  count++;
+  document.getElementById('countNum').textContent = count;
+
+  // 六字母覆盖校验（上课时可一眼确认这道题练到了全部符号）
+  const cov = coveredFaces(moves);
+  const miss = FACES.filter(f => !cov.has(f));
+  const badge = document.getElementById('coverBadge');
+  if (badge) {
+    if (miss.length === 0) {
+      badge.textContent = '✓ R U F L B D 齐全';
+      badge.classList.remove('warn');
+    } else {
+      badge.textContent = '⚠ 缺 ' + miss.join(' ');
+      badge.classList.add('warn');
+    }
+  }
+
+  document.getElementById('metaInfo').textContent =
+    `第 ${count} 题 · ${currentLength} 步 · 六字母全覆盖 · 标准十字展开（白顶绿前视角）`;
+  document.getElementById('stepsCard').classList.remove('show');
+  window._currentMoves = moves;
+  window._currentText = text;
+  // 等布局稳定后再自适应字号（保证拿到真实的可用空间）
+  requestAnimationFrame(fitFormula);
+}
+
+async function copyFormula() {
+  const text = window._currentText || '';
+  if (!text) { showToast('请先出题'); return; }
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast('✓ 已复制: ' + text);
+  } catch (e) {
+    showToast('复制失败，请手动选择');
+  }
+}
+
+function toggleSteps() {
+  const card = document.getElementById('stepsCard');
+  const willShow = !card.classList.contains('show');
+  card.classList.toggle('show', willShow);
+  if (willShow) renderSteps(window._currentMoves || []);
+}
+
+function setLength(len) {
+  currentLength = len;
+  document.querySelectorAll('.len-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.len === String(len));
+  });
+  newQuestion();
+}
+
+function resetCount() {
+  count = 0;
+  document.getElementById('countNum').textContent = '0';
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function init() {
+  document.getElementById('newBtn').addEventListener('click', newQuestion);
+  document.getElementById('copyBtn').addEventListener('click', copyFormula);
+  document.getElementById('stepBtn').addEventListener('click', toggleSteps);
+  document.getElementById('stepClose').addEventListener('click', () => {
+    document.getElementById('stepsCard').classList.remove('show');
+  });
+  document.getElementById('resetBtn').addEventListener('click', resetCount);
+
+  document.querySelectorAll('.len-btn').forEach(b => {
+    b.addEventListener('click', () => setLength(parseInt(b.dataset.len, 10)));
+  });
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (window._currentText) drawScrambleNet(window._currentText, 'netCanvas');
+      fitFormula();   // 窗口变化时重新计算最大字号
+    }, 120);
+  });
+
+  newQuestion();
+  // 首屏布局可能还在抖动，补一次字号自适应
+  window.addEventListener('load', fitFormula);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
