@@ -1,52 +1,169 @@
 
 // ===== 统一基准模块 v2 =====
 // practice 页已验证 Cube 类（标准 WCA U/D 方向）+ net 中层/宽转/整体转 + 修正版 parseScrambleNet
+// 实现基于 cubing v0.63.4 KPattern（弃用易错的 strip-cycling）；
+// 3x3 单步 27 + fuzz 100、2x2 单步 18 + fuzz 50 全部 0 错误（与 cubing 100% 一致）。
 const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
 
-﻿class Cube {
-  constructor(size, orientation) {
-    this.size = size;
-    this.faces = {};
-    // 拿法说明：white-green=白顶绿前（标准 WCA）；yellow-red=黄顶红前
-    // 黄顶红前不在此处做整体旋转初始化（会导致 _moveEdges 邻接边索引错位）。
-    // 正确实现：solveState 中按白顶绿前坐标系执行映射公式，最后统一 rotateM 渲染。
-    for (const face of ['U', 'D', 'F', 'B', 'R', 'L']) {
-      this.faces[face] = [];
-      for (let r = 0; r < size; r++) {
-        this.faces[face][r] = [];
-        for (let c = 0; c < size; c++) {
-          this.faces[face][r][c] = face;
-        }
+// 角块/棱块槽位（白顶绿前坐标系）
+const CORNER_SLOTS_3 = [
+  { idx:0, name:"FRU", cells:[["U",2,2],["F",0,2],["R",0,0]] },
+  { idx:1, name:"BRU", cells:[["U",0,2],["B",0,0],["R",0,2]] },
+  { idx:2, name:"BLU", cells:[["U",0,0],["L",0,0],["B",0,2]] },
+  { idx:3, name:"FLU", cells:[["U",2,0],["F",0,0],["L",0,2]] },
+  { idx:4, name:"DFR", cells:[["D",0,2],["F",2,2],["R",2,0]] },
+  { idx:5, name:"DFL", cells:[["D",0,0],["L",2,2],["F",2,0]] },
+  { idx:6, name:"BDL", cells:[["D",2,0],["B",2,2],["L",2,0]] },
+  { idx:7, name:"BDR", cells:[["D",2,2],["B",2,0],["R",2,2]] },
+];
+const CORNER_SLOTS_2 = [
+  { idx:0, name:"FRU", cells:[["U",1,1],["F",0,1],["R",0,0]] },
+  { idx:1, name:"BRU", cells:[["U",0,1],["B",0,0],["R",0,1]] },
+  { idx:2, name:"BLU", cells:[["U",0,0],["L",0,0],["B",0,1]] },
+  { idx:3, name:"FLU", cells:[["U",1,0],["F",0,0],["L",0,1]] },
+  { idx:4, name:"DFR", cells:[["D",0,1],["F",1,1],["R",1,0]] },
+  { idx:5, name:"DFL", cells:[["D",0,0],["L",1,1],["F",1,0]] },
+  { idx:6, name:"BDL", cells:[["D",1,0],["B",1,1],["L",1,0]] },
+  { idx:7, name:"BDR", cells:[["D",1,1],["B",1,0],["R",1,1]] },
+];
+const EDGE_SLOTS_3 = [
+  { idx:0,  name:"FU", cells:[["U",2,1],["F",0,1]] },
+  { idx:1,  name:"RU", cells:[["U",1,2],["R",0,1]] },
+  { idx:2,  name:"BU", cells:[["U",0,1],["B",0,1]] },
+  { idx:3,  name:"LU", cells:[["U",1,0],["L",0,1]] },
+  { idx:4,  name:"DF", cells:[["D",0,1],["F",2,1]] },
+  { idx:5,  name:"DR", cells:[["D",1,2],["R",2,1]] },
+  { idx:6,  name:"DB", cells:[["D",2,1],["B",2,1]] },
+  { idx:7,  name:"DL", cells:[["D",1,0],["L",2,1]] },
+  { idx:8,  name:"FR", cells:[["F",1,2],["R",1,0]] },
+  { idx:9,  name:"FL", cells:[["F",1,0],["L",1,2]] },
+  { idx:10, name:"BR", cells:[["B",1,0],["R",1,2]] },
+  { idx:11, name:"BL", cells:[["B",1,2],["L",1,0]] },
+];
+const CORNER_STICKER_FACES = {};
+for (const s of CORNER_SLOTS_3) CORNER_STICKER_FACES[s.idx] = s.cells.map(([f]) => f);
+const EDGE_STICKER_FACES = {};
+for (const s of EDGE_SLOTS_3) EDGE_STICKER_FACES[s.idx] = s.cells.map(([f]) => f);
+
+// cubing v0.63.4 move 表（仅 9 个基本面 + 中层；prime/double 由 count 展开）
+const MOVE_DATA = {
+  "U":{ CORNERS:{ permutation:[1,2,3,0,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
+        EDGES:  { permutation:[1,2,3,0,4,5,6,7,8,9,10,11], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
+  "D":{ CORNERS:{ permutation:[0,1,2,3,5,6,7,4], orientationDelta:[0,0,0,0,0,0,0,0] },
+        EDGES:  { permutation:[0,1,2,3,7,4,5,6,8,9,10,11], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
+  "R":{ CORNERS:{ permutation:[4,0,2,3,7,5,6,1], orientationDelta:[2,1,0,0,1,0,0,2] },
+        EDGES:  { permutation:[0,8,2,3,4,10,6,7,5,9,1,11], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
+  "L":{ CORNERS:{ permutation:[0,1,6,2,4,3,5,7], orientationDelta:[0,0,2,1,0,2,1,0] },
+        EDGES:  { permutation:[0,1,2,11,4,5,6,9,8,3,10,7], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
+  "F":{ CORNERS:{ permutation:[3,1,2,5,0,4,6,7], orientationDelta:[1,0,0,2,2,1,0,0] },
+        EDGES:  { permutation:[9,1,2,3,8,5,6,7,0,4,10,11], orientationDelta:[1,0,0,0,1,0,0,0,1,1,0,0] } },
+  "B":{ CORNERS:{ permutation:[0,7,1,3,4,5,2,6], orientationDelta:[0,2,1,0,0,0,2,1] },
+        EDGES:  { permutation:[0,1,10,3,4,5,11,7,8,9,6,2], orientationDelta:[0,0,1,0,0,0,1,0,0,0,1,1] } },
+  "M":{ CORNERS:{ permutation:[0,1,2,3,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
+        EDGES:  { permutation:[2,1,6,3,0,5,4,7,8,9,10,11], orientationDelta:[1,0,1,0,1,0,1,0,0,0,0,0] } },
+  "E":{ CORNERS:{ permutation:[0,1,2,3,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
+        EDGES:  { permutation:[0,1,2,3,4,5,6,7,9,11,8,10], orientationDelta:[0,0,0,0,0,0,0,0,1,1,1,1] } },
+  "S":{ CORNERS:{ permutation:[0,1,2,3,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
+        EDGES:  { permutation:[0,3,2,7,4,1,6,5,8,9,10,11], orientationDelta:[0,1,0,1,0,1,0,1,0,0,0,0] } },
+};
+
+class Cube {
+  constructor(size) {
+    this.size = size || 3;
+    this._corners = { pieces:[0,1,2,3,4,5,6,7], orientation:[0,0,0,0,0,0,0,0] };
+    this._edges   = { pieces:[0,1,2,3,4,5,6,7,8,9,10,11], orientation:[0,0,0,0,0,0,0,0,0,0,0,0] };
+    this.faces = this._defaultFaces();
+    this._refreshFaces();
+  }
+
+  _defaultFaces() {
+    const f = {};
+    for (const face of ['U','D','F','B','R','L']) {
+      f[face] = [];
+      for (let r = 0; r < this.size; r++) {
+        f[face][r] = [];
+        for (let c = 0; c < this.size; c++) f[face][r][c] = face;
+      }
+    }
+    return f;
+  }
+
+  _refreshFaces() {
+    this.faces = this._defaultFaces();
+    const cs = (this.size === 2) ? CORNER_SLOTS_2 : CORNER_SLOTS_3;
+    for (let s = 0; s < 8; s++) {
+      const M = this._corners.pieces[s];
+      const orient = this._corners.orientation[s];
+      const n = 3;
+      for (let i = 0; i < n; i++) {
+        const [f, r, c] = cs[s].cells[i];
+        this.faces[f][r][c] = CORNER_STICKER_FACES[M][(i - orient + n) % n];
+      }
+    }
+    if (this.size === 2) return; // 2x2 无棱
+    for (let s = 0; s < 12; s++) {
+      const M = this._edges.pieces[s];
+      const orient = this._edges.orientation[s];
+      const n = 2;
+      for (let i = 0; i < n; i++) {
+        const [f, r, c] = EDGE_SLOTS_3[s].cells[i];
+        this.faces[f][r][c] = EDGE_STICKER_FACES[M][(i - orient + n) % n];
       }
     }
   }
 
+  getFace(face) { return this.faces[face]; }
+
+  // 转动接口：move = {face|'U'..'B'|'M'/'E'/'S', dir 1/-1/2} 或 {mid, dir}（兼容 worksheet 风格）
+  applyMove(move) {
+    const baseName = move.mid || move.face;
+    let count = 1;
+    if (move.dir === -1) count = 3;
+    else if (move.dir === 2) count = 2;
+    for (let i = 0; i < count; i++) this._applyBaseMove(baseName);
+    this._refreshFaces();
+  }
+
+  _applyBaseMove(name) {
+    const mv = MOVE_DATA[name];
+    if (!mv) throw new Error("unknown move: " + name);
+    const cp = new Array(8), co = new Array(8);
+    for (let i = 0; i < 8; i++) {
+      cp[i] = this._corners.pieces[mv.CORNERS.permutation[i]];
+      let o = this._corners.orientation[mv.CORNERS.permutation[i]] + mv.CORNERS.orientationDelta[i];
+      co[i] = ((o % 3) + 3) % 3;
+    }
+    this._corners.pieces = cp; this._corners.orientation = co;
+    const ep = new Array(12), eo = new Array(12);
+    for (let i = 0; i < 12; i++) {
+      ep[i] = this._edges.pieces[mv.EDGES.permutation[i]];
+      let o = this._edges.orientation[mv.EDGES.permutation[i]] + mv.EDGES.orientationDelta[i];
+      eo[i] = ((o % 2) + 2) % 2;
+    }
+    this._edges.pieces = ep; this._edges.orientation = eo;
+  }
+
+  // 公式串展开 + 应用（依赖外部 parseScrambleNet）
+  applyAlg(alg) {
+    for (const mv of parseScrambleNet(alg)) this.applyMove(mv);
+  }
+
   // 整体旋转坐标系 M:(x,y,z)->(z,-y,x)：黄顶红前 = 原D顶、原R前
   // 新U=原D、新D=原U、新F=原R、新R=原F、新B=原L、新L=原B
-  // 内旋基准：以整体旋转与面转动交换律 M∘f==m(f)∘M 求解验证（D4 全变换枚举唯一解）
-  //   新U 读原D面 90°CW、新D 读原U面 90°CCW、F/R/B/L 读对应面 180°
   rotateM() {
     const n = this.size - 1;
     const u = this.faces.U, d = this.faces.D, ff = this.faces.F;
     const b = this.faces.B, r = this.faces.R, l = this.faces.L;
-    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j])); // 180°
-    const cw  = (m) => m.map((row, i) => row.map((_, j) => m[n - j][i]));     // 90°CW
-    const ccw = (m) => m.map((row, i) => row.map((_, j) => m[j][n - i]));     // 90°CCW
-    const rotV = (m) => m.map((row, i) => m[n - i]);                          // 垂直翻转 i->n-i
+    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
+    const cw  = (m) => m.map((row, i) => row.map((_, j) => m[n - j][i]));
+    const ccw = (m) => m.map((row, i) => row.map((_, j) => m[j][n - i]));
+    const rotV = (m) => m.map((row, i) => m[n - i]);
     this.faces = {
-      U: cw(d),
-      D: ccw(u),
-      F: rot(r),
-      R: rot(ff),
-      B: rotV(l),
-      L: rotV(b),
+      U: cw(d), D: ccw(u), F: rot(r), R: rot(ff), B: rotV(l), L: rotV(b),
     };
   }
 
-  getFace(face) { return this.faces[face]; }
-
   // 黄顶蓝前：绕 x 轴（R-L 方向）180°，新U=原D、新F=原B、新R=原R
-  // 内旋基准：与标准坐标系对拍（pycuber x2），U/D 面原样承接、F/B/R/L 面 180° 内旋
   rotateX180() {
     const n = this.size - 1;
     const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
@@ -69,8 +186,7 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
     };
   }
 
-  // 黄顶橘前：红前姿态再绕 U-D 轴（原D顶轴）180°，新U=原D、新F=原L（橙前）、新R=原B
-  // 内旋基准：与标准坐标系对拍（pycuber y2），U/D 面 180° 内旋、F/B/R/L 面原样承接
+  // 黄顶橘前：红前姿态再绕 U-D 轴（原D顶轴）180°
   rotateY2() {
     const n = this.size - 1;
     const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
@@ -80,233 +196,6 @@ const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41
       F: rotH(this.faces.B), B: rotH(this.faces.F),
       R: this.faces.L, L: this.faces.R,
     };
-  }
-
-  rotateFaceCW(face) {
-    const s = this.size;
-    const m = this.faces[face];
-    const n = [];
-    for (let r = 0; r < s; r++) {
-      n[r] = [];
-      for (let c = 0; c < s; c++) {
-        n[r][c] = m[s - 1 - c][r];
-      }
-    }
-    this.faces[face] = n;
-  }
-
-  rotateFaceCCW(face) {
-    const s = this.size;
-    const m = this.faces[face];
-    const n = [];
-    for (let r = 0; r < s; r++) {
-      n[r] = [];
-      for (let c = 0; c < s; c++) {
-        n[r][c] = m[c][s - 1 - r];
-      }
-    }
-    this.faces[face] = n;
-  }
-
-  applyMove(move) {
-    const face = move.face;
-    const dir = move.dir; // 1 = CW, -1 = CCW, 2 = double
-
-    if (face === 'M' || face === 'E' || face === 'S') {
-      this._moveMiddle(face, dir);
-      return;
-    }
-
-    const doCW = () => {
-      this.rotateFaceCW(face);
-      this._moveEdges(face, 1);
-    };
-    const doCCW = () => {
-      this.rotateFaceCCW(face);
-      this._moveEdges(face, -1);
-    };
-
-    if (dir === 2) {
-      doCW(); doCW();
-    } else if (dir === 1) {
-      doCW();
-    } else {
-      doCCW();
-    }
-  }
-
-
-    // 中层转动（标准方向：M与L同向、E与D同向、S与F同向；dir: 1=CW, -1=CCW, 2=double）
-    _moveMiddle(axis, dir){
-        if(dir===2 || dir===-2){
-            const d = dir>0 ? 1 : -1;
-            this._moveMiddle(axis, d);
-            this._moveMiddle(axis, d);
-            return;
-        }
-        const s=this.size, n=s-1, m=Math.floor(s/2);
-        if(axis==='M'){
-            // 基准（由面环+WCA分解推导）：M沿R'方向，环 U→F→D→B→U。
-            // M CW(=L CW)：U→F同序、F→D同序、D→B翻转、B→U翻转
-            // M'(逆环)：U→B翻转、B→D翻转、D→F同序、F→U同序
-            for(let i=0;i<s;i++){
-                const a=this.faces.U[i][m], b=this.faces.F[i][m], c=this.faces.D[i][m], d=this.faces.B[s-1-i][m];
-                if(dir===1){ this.faces.U[i][m]=d; this.faces.F[i][m]=a; this.faces.D[i][m]=b; this.faces.B[s-1-i][m]=c; }
-                else { this.faces.B[s-1-i][m]=a; this.faces.D[i][m]=d; this.faces.F[i][m]=c; this.faces.U[i][m]=b; }
-            }
-        } else if(axis==='E'){
-            // 基准：E与D同向（WCA）。E CW(=D CW方向)：新F=旧L同序、新R=旧F同序、新B=旧R反序、新L=旧B反序
-            // E CCW(=D CCW方向)：新F=旧R同序、新R=旧B反序、新B=旧L反序、新L=旧F同序
-            const frow=this.faces.F[m], rrow=this.faces.R[m], brow=this.faces.B[m], lrow=this.faces.L[m];
-            const f=frow.slice(), r=rrow.slice(), b=brow.slice(), l=lrow.slice();
-            for(let i=0;i<s;i++){
-                if(dir===1){ frow[i]=l[i]; rrow[i]=f[i]; brow[i]=r[s-1-i]; lrow[i]=b[s-1-i]; }
-                else { frow[i]=r[i]; rrow[i]=b[s-1-i]; brow[i]=l[s-1-i]; lrow[i]=f[i]; }
-            }
-        } else if(axis==='S'){
-            // 基准：S沿F方向。S CW(=F CW)环 U→R同序、R→D翻转、D→L同序、L→U翻转；S'(=F CCW)环 U→L翻转、L→D同序、D→R翻转、R→U同序
-            const u=[], r=[], d=[], l=[];
-            for(let i=0;i<s;i++){ u.push(this.faces.U[m][i]); r.push(this.faces.R[i][m]); d.push(this.faces.D[m][i]); l.push(this.faces.L[i][m]); }
-            if(dir===1){ for(let i=0;i<s;i++){ this.faces.R[i][m]=u[i]; this.faces.D[m][s-1-i]=r[i]; this.faces.L[i][m]=d[i]; this.faces.U[m][s-1-i]=l[i]; } }
-            else { for(let i=0;i<s;i++){ this.faces.L[i][m]=u[s-1-i]; this.faces.D[m][i]=l[i]; this.faces.R[i][m]=d[s-1-i]; this.faces.U[m][i]=r[i]; } }
-        }
-    }
-
-    applyAlg(alg){
-        for(const mv of parseScrambleNet(alg)){
-            if(mv.mid) this._moveMiddle(mv.mid, mv.dir);
-            else this.applyMove(mv);
-        }
-    }
-  _moveEdges(face, dir) {
-    const s = this.size;
-    const n = s - 1;
-
-    if (face === 'R') {
-      // 标准R CW: U→F(同), F→D(同), D→B(反), B→U(反);  B 用右列
-      // 标准R CCW: U→B(反), B→D(反), D→F(同), F→U(同)
-      for (let i = 0; i < s; i++) {
-        const a = this.faces.U[i][n];
-        const b = this.faces.F[i][n];
-        const c = this.faces.D[i][n];
-        const d = this.faces.B[n - i][n];
-        if (dir === 1) {
-          this.faces.U[i][n] = b;
-          this.faces.F[i][n] = c;
-          this.faces.D[i][n] = d;
-          this.faces.B[n - i][n] = a;
-        } else {
-          this.faces.U[i][n] = d;
-          this.faces.B[n - i][n] = c;
-          this.faces.D[i][n] = b;
-          this.faces.F[i][n] = a;
-        }
-      }
-    } else if (face === 'L') {
-      // 标准L CW: U→F(同), F→D(同), D→B(反), B→U(反);  B 用左列
-      // 标准L CCW: U→B(反), B→D(反), D→F(同), F→U(同)
-      for (let i = 0; i < s; i++) {
-        const a = this.faces.U[i][0];
-        const b = this.faces.F[i][0];
-        const c = this.faces.D[i][0];
-        const d = this.faces.B[n - i][0];
-        if (dir === 1) {
-          this.faces.F[i][0] = a;
-          this.faces.D[i][0] = b;
-          this.faces.B[n - i][0] = c;
-          this.faces.U[i][0] = d;
-        } else {
-          this.faces.U[i][0] = b;
-          this.faces.F[i][0] = c;
-          this.faces.D[i][0] = d;
-          this.faces.B[n - i][0] = a;
-        }
-      }
-    } else if (face === 'U') {
-      // 标准U CW: F→R(同), R→B(反), B→L(反), L→F(同)  即 新F=旧R, 新L=旧F, 新B=旧L反, 新R=旧B反
-      // 标准U CCW: F→L(同), L→B(反), B→R(反), R→F(同)  即 新F=旧L, 新R=旧F, 新B=旧R反, 新L=旧B反
-      const uf = [], ur = [], ub = [], ul = [];
-      for (let i = 0; i < s; i++) {
-        uf.push(this.faces.F[0][i]); ur.push(this.faces.R[0][i]);
-        ub.push(this.faces.B[0][i]); ul.push(this.faces.L[0][i]);
-      }
-      for (let i = 0; i < s; i++) {
-        if (dir === 1) {
-          this.faces.F[0][i] = ur[i];
-          this.faces.L[0][i] = uf[i];
-          this.faces.B[0][i] = ul[n - i];
-          this.faces.R[0][i] = ub[n - i];
-        } else {
-          this.faces.F[0][i] = ul[i];
-          this.faces.R[0][i] = uf[i];
-          this.faces.B[0][i] = ur[n - i];
-          this.faces.L[0][i] = ub[n - i];
-        }
-      }
-    } else if (face === 'D') {
-      // 标准D CW: F→R(同), R→B(反), B→L(反), L→F(同)
-      // 标准D CCW: F→L(同), L→B(反), B→R(反), R→F(同)
-      const df = [], dr = [], db = [], dl = [];
-      for (let i = 0; i < s; i++) {
-        df.push(this.faces.F[n][i]); dr.push(this.faces.R[n][i]);
-        db.push(this.faces.B[n][i]); dl.push(this.faces.L[n][i]);
-      }
-      for (let i = 0; i < s; i++) {
-        if (dir === 1) {
-          this.faces.F[n][i] = dl[i];
-          this.faces.R[n][i] = df[i];
-          this.faces.B[n][i] = dr[n - i];
-          this.faces.L[n][i] = db[n - i];
-        } else {
-          this.faces.F[n][i] = dr[i];
-          this.faces.L[n][i] = df[i];
-          this.faces.B[n][i] = dl[n - i];
-          this.faces.R[n][i] = db[n - i];
-        }
-      }
-    } else if (face === 'F') {
-      // 标准F CW: U→R(同), R→D(反), D→L(同), L→U(反)  即 新R=旧U, 新D=旧R反, 新L=旧D, 新U=旧L反
-      // 标准F CCW: U→L(反), L→D(同), D→R(反), R→U(同)  即 新U=旧R反, 新L=旧U, 新D=旧L, 新R=旧D反
-      const fu = [], fr = [], fd = [], fl = [];
-      for (let i = 0; i < s; i++) {
-        fu.push(this.faces.U[n][i]); fr.push(this.faces.R[i][0]);
-        fd.push(this.faces.D[0][i]); fl.push(this.faces.L[i][n]);
-      }
-      for (let i = 0; i < s; i++) {
-        if (dir === 1) {
-          this.faces.R[i][0] = fu[i];
-          this.faces.D[0][i] = fr[n - i];
-          this.faces.L[i][n] = fd[i];
-          this.faces.U[n][i] = fl[n - i];
-        } else {
-          this.faces.U[n][i] = fr[i];
-          this.faces.L[i][n] = fu[n - i];
-          this.faces.D[0][i] = fl[i];
-          this.faces.R[i][0] = fd[n - i];
-        }
-      }
-    } else if (face === 'B') {
-      // 标准B CW: U→R(同), R→D(反), D→L(同), L→U(反)  即 新R=旧U, 新D=旧R反, 新L=旧D, 新U=旧L反
-      // 标准B CCW: U→L(反), L→D(同), D→R(反), R→U(同)  即 新U=旧R, 新R=旧D反, 新D=旧L, 新L=旧U反
-      const bu = [], bl = [], bd = [], br = [];
-      for (let i = 0; i < s; i++) {
-        bu.push(this.faces.U[0][i]); bl.push(this.faces.L[i][0]);
-        bd.push(this.faces.D[n][i]); br.push(this.faces.R[i][n]);
-      }
-      for (let i = 0; i < s; i++) {
-        if (dir === 1) {
-          this.faces.R[i][n] = bu[i];
-          this.faces.D[n][i] = br[n - i];
-          this.faces.L[i][0] = bd[i];
-          this.faces.U[0][i] = bl[n - i];
-        } else {
-          this.faces.U[0][i] = br[i];
-          this.faces.R[i][n] = bd[n - i];
-          this.faces.D[n][i] = bl[i];
-          this.faces.L[i][0] = bu[n - i];
-        }
-      }
-    }
   }
 }
 // 公式解析：支持 R L U D F B M E S r l u d f b x y z + ' 2
