@@ -1364,18 +1364,18 @@ const LABEL = "#D9232E";       /* 红字标签 */
  *   锚点所在 cubie 属于该转动层，方向 = 该处贴纸随层转动的移动方向
  *   面: x=右面 / y=顶面 / z=前面 */
 const MOVES = [
-  {name:"R",  axis:"x", layer: 1, arr:["front",[1, 0, 1],[0,-1,0]]},
-  {name:"R'", axis:"x", layer: 1, arr:["front",[1, 0, 1],[0, 1,0]]},
+  {name:"R",  axis:"x", layer: 1, arr:["front",[1, 0, 1],[0, 1,0]]},
+  {name:"R'", axis:"x", layer: 1, arr:["front",[1, 0, 1],[0,-1,0]]},
   {name:"F",  axis:"z", layer: 1, arr:["top",  [0, 1, 0.9],[1,0,0]]},
   {name:"F'", axis:"z", layer: 1, arr:["top",  [0, 1, 0.9],[-1,0,0]]},
-  {name:"L",  axis:"x", layer:-1, arr:["front",[-1,0, 1],[0, 1,0]]},
-  {name:"L'", axis:"x", layer:-1, arr:["front",[-1,0, 1],[0,-1,0]]},
+  {name:"L",  axis:"x", layer:-1, arr:["front",[-1,0, 1],[0,-1,0]]},
+  {name:"L'", axis:"x", layer:-1, arr:["front",[-1,0, 1],[0, 1,0]]},
   {name:"B",  axis:"z", layer:-1, arr:["right",[1, 0,-1],[0, 1,0]]},
   {name:"B'", axis:"z", layer:-1, arr:["right",[1, 0,-1],[0,-1,0]]},
-  {name:"U",  axis:"y", layer: 1, arr:["top",  [0, 1, 0.2],[1,0,0]]},
-  {name:"U'", axis:"y", layer: 1, arr:["top",  [0, 1, 0.2],[-1,0,0]]},
-  {name:"D",  axis:"y", layer:-1, arr:["top",  [0, 1, 0.2],[-1,0,0]]},
-  {name:"D'", axis:"y", layer:-1, arr:["top",  [0, 1, 0.2],[1,0,0]]}
+  {name:"U",  axis:"y", layer: 1, arr:["top",  [0, 1, 0.2],[-1,0,0]]},
+  {name:"U'", axis:"y", layer: 1, arr:["top",  [0, 1, 0.2],[1,0,0]]},
+  {name:"D",  axis:"y", layer:-1, arr:["front",[0,-1, 1],[1,0,0]]},
+  {name:"D'", axis:"y", layer:-1, arr:["front",[0,-1, 1],[-1,0,0]]}
 ];
 const AXIS_IDX = {x:0, y:1, z:2};
 
@@ -1426,7 +1426,7 @@ function drawCube(ctx, cx, cy, axis, layer){
 }
 /* 贴合表面直线箭头：从锚点沿 dir 画直线段，末端带箭头头 */
 function lineArrow(ctx, cx, cy, anchor, dir, color, width){
-  const L = 0.6; /* 箭头线段长度(3D 单位) */
+  const L = 0.95; /* 箭头线段长度(3D 单位) */
   const p0 = proj(cx, cy, anchor[0], anchor[1], anchor[2]);
   const p1 = proj(cx, cy, anchor[0]+dir[0]*L, anchor[1]+dir[1]*L, anchor[2]+dir[2]*L);
   ctx.strokeStyle = color;
