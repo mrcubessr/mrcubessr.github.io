@@ -947,28 +947,9 @@ const FACE_COLORS = { U: '#F9F9F9', D: '#F2F215', F: '#58D568', B: '#1C5FFE', R:
 function solveState(formulaStr, size, orientation) {
   const moves = parseFormula(formulaStr);
   const cube = new Cube(size || 2); // 始终按白顶绿前坐标系构造与执行
-  // 黄顶红前的字符映射（白顶绿前坐标系下的等价字符 + 方向）
-  // 来自 fto-site/assets/js/cube-net.js ORIENT_MAP['yellow-red']，仅覆盖 face + MES
-  // 宽转 r/l/u/d/f/b 与整体转 x/y/z 在黄顶红前下的完整映射未实现（建议使用白顶绿前坐标系）
-  const YR_MAP = { U:'D', D:'U', F:'R', B:'L', R:'F', L:'B',
-                   M:'S', S:'M', E:'E' };
-  const YR_REV = new Set(['L', 'B', 'M', 'S', 'E']);
-  if (orientation === 'yellow-red') {
-    for (const mv of moves) {
-      const orig = mv.mid || mv.face;
-      if (YR_MAP[orig]) {
-        const mapped = YR_MAP[orig];
-        let dir = mv.dir;
-        if (YR_REV.has(orig) && dir !== 2) dir = -dir;
-        cube.applyMove(mv.mid ? { mid: mapped, dir } : { face: mapped, dir });
-      } else {
-        cube.applyMove(mv);
-      }
-    }
-    cube.rotateM();
-  } else {
-    for (const mv of moves) cube.applyMove(mv);
-  }
+  // 公式固定不变：始终按白顶绿前记号执行；切换拿法只做整体旋转渲染（与 cube-net.js drawScrambleNet 一致）
+  for (const mv of moves) cube.applyMove(mv);
+  if (orientation === 'yellow-red') cube.rotateM();
   return cube;
 }
 

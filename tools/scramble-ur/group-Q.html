@@ -121,7 +121,7 @@
   var baseAlg = cvs ? (cvs.getAttribute('data-formula') || '') : '';
   var valid = ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'];
   function applyOri(ori) {
-    if (typeof mapAlgOrientation === 'undefined') return;
+    if (typeof drawScrambleNet === 'undefined') return;
     if (cvs) {
       cvs.setAttribute('data-orientation', ori);
       if (typeof drawScrambleNet === 'function') {
@@ -129,7 +129,7 @@
       }
     }
     if (codeEl) {
-      codeEl.textContent = (ori === 'white-green') ? baseAlg : mapAlgOrientation(baseAlg, ori);
+      codeEl.textContent = baseAlg;
     }
   }
   try {

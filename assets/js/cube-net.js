@@ -268,70 +268,8 @@ function expandMoveNet(base, dir){
 }
 
 
-// 拿法坐标系公式映射：把白顶绿前坐标系的公式转换为目标拿法坐标系下的等价公式
-// orientation: 'white-green'（默认）| 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'
-// 映射表含义：黄顶X前坐标下的字母 -> 等价的标准白顶绿前坐标字母（物理等价）
-// yellow-red  = 整体旋转 M (x,y,z)->(z,-y,x)：新U=原D 新F=原R 新R=原F 新B=原L 新L=原B
-//   x轴->新z轴、y轴->新-x轴、z轴->新-y轴；M<->S、E 反向；x<->z、y/y'、z<->x
-// yellow-blue = 绕 x 轴 180°：新U=原D 新F=原B 新R=原R；M 保持、E/S 反向、y/z 反向
-// yellow-green = 绕 z 轴 180°：新U=原D 新F=原F 新R=原L；M/E 反向、x/y 反向
-// yellow-orange = (绕 x? ) 黄顶 + 前L(橙) = 红前姿态再绕 U-D(原D顶)轴 180°：
-//   新U=原D(黄顶)、新F=原F.. 实际读 rotateM 后 rotateY2：新U=原D 新F=原L 新R=原B
-//   face: R->B L->F U->D D->U F->L B->R；M<->S 反向、E 反向；x<->z 反向、z->x; y 反向；小写 r<->b、l->f、f->l、b->r 方向见 rev
-// 方向语义：map[base] 为目标正转符号；若 base 在 rev 中，则目标方向需取反（base 的 ' 与不带 ' 互换）
-var ORIENT_MAP = {
-  'yellow-red': {
-    map: { R:'F', L:'B', U:'D', D:'U', F:'R', B:'L',
-           M:'S', S:'M', E:'E',
-           x:'z', y:'y', z:'x',
-           r:'f', l:'b', u:'d', d:'u', f:'r', b:'l' },
-    rev: { L:1, B:1, M:1, S:1, E:1, x:1, y:1, z:1, l:1, b:1 }
-  },
-  'yellow-blue': {
-    map: { R:'R', L:'L', U:'D', D:'U', F:'B', B:'F',
-           M:'M', E:'E', S:'S',
-           x:'x', y:'y', z:'z',
-           r:'r', l:'l', u:'d', d:'u', f:'b', b:'f' },
-    rev: { F:1, B:1, E:1, S:1, y:1, z:1, f:1, b:1 }
-  },
-  'yellow-green': {
-    map: { R:'L', L:'R', U:'D', D:'U', F:'F', B:'B',
-           M:'M', E:'E', S:'S',
-           x:'x', y:'y', z:'z',
-           r:'l', l:'r', u:'d', d:'u', f:'f', b:'b' },
-    rev: { M:1, E:1, x:1, y:1, u:1, d:1 }
-  },
-  'yellow-orange': {
-    map: { R:'B', L:'F', U:'D', D:'U', F:'L', B:'R',
-           M:'S', S:'M', E:'E',
-           x:'z', y:'y', z:'x',
-           r:'b', l:'f', u:'d', d:'u', f:'l', b:'r' },
-    rev: { R:1, B:1, E:1, x:1, y:1, z:1, r:1, d:1, f:1, b:1 }
-  }
-};
-function mapAlgOrientation(alg, orientation) {
-  var cleaned = String(alg || '').replace(/\s+/g, ' ').trim();
-  if (!orientation || orientation === 'white-green' || !cleaned) return cleaned;
-  var cfg = ORIENT_MAP[orientation] || {};
-  var map = cfg.map || {};
-  var rev = cfg.rev || {};
-  var tokens = cleaned.split(/\s+/);
-  var out = [];
-  for (var i = 0; i < tokens.length; i++) {
-    var tok = tokens[i];
-    var m = tok.match(/^([RULDFBMESrludfbxyz])(2)?(')?$/);
-    if (!m) { out.push(tok); continue; }
-    var base = m[1];
-    var dir = m[2] ? 2 : (m[3] ? -1 : 1);
-    var mappedBase = map[base] || base;
-    if (rev[base] && dir !== 2) dir = -dir;
-    var suf = '';
-    if (dir === 2) suf = '2';
-    else if (dir === -1) suf = "'";
-    out.push(mappedBase + suf);
-  }
-  return out.join(' ');
-}
+// 拿法切换语义（全站统一）：公式永远按白顶绿前记号执行，切换拿法只做整体旋转渲染（见 drawScrambleNet），
+// 不改写公式字母。旧的 mapAlgOrientation / ORIENT_MAP（坐标等价改写公式）已移除。
 
 // 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas（也支持直接传入 canvas 元素）
 // orientation: 'white-green' | 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'，决定整体旋转渲染

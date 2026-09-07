@@ -20,11 +20,9 @@
     try { return localStorage.getItem(ORIENTATION_KEY) || 'yellow-red'; } catch (e) {}
     return 'yellow-red';
   }
-  // 按当前拿法显示公式（存储值始终为白顶绿前基准，显示时才映射）
+  // 公式固定显示：切换拿法只改展开图，不改公式文字
   function displayAlg(alg) {
-    var ori = getCurrentOrientation();
-    return (window.mapAlgOrientation && ori !== 'white-green' && alg)
-      ? mapAlgOrientation(String(alg), ori) : String(alg);
+    return String(alg);
   }
 
   function escapeHtml(s) {
@@ -197,10 +195,8 @@
     if (input === null) return;
     var alg = input.trim();
     if (!alg) return;
-    // 用户输入为当前拿法坐标，存储时逆映射回白顶绿前基准
-    var ori = getCurrentOrientation();
-    var stored = (window.mapAlgOrientation && ori !== 'white-green')
-      ? mapAlgOrientation(alg, ori) : alg;
+    // 公式固定：直接存储用户输入，不做坐标逆映射
+    var stored = alg;
     if (box) {
       box.textContent = displayAlg(stored);
       box.classList.add('ref-selected');
