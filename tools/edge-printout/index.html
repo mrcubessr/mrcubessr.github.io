@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>棱块编码认知训练 - 出题打印</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f2f4f7;
+  --panel: #ffffff;
+  --panel-2: #eef1f5;
+  --border: #d3d9e2;
+  --text: #111827;
+  --muted: #6b7280;
+  --accent: #1d4ed8;
+  --accent-2: #c0392b;
+  --success: #15803d;
+}
+
+body {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+}
+
+/* ========== 顶部控制栏 ========== */
+.toolbar {
+  width: 100%;
+  max-width: 900px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.toolbar h1 {
+  font-size: 22px; font-weight: 700; color: var(--text);
+  margin-bottom: 16px; text-align: center;
+}
+.ctrl-row {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;
+  justify-content: center;
+}
+.ctrl-group {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.ctrl-group label {
+  font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.ctrl-group input[type="text"],
+.ctrl-group input[type="number"],
+.ctrl-group input[type="date"] {
+  padding: 8px 12px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 15px; color: var(--text);
+  background: var(--panel-2); outline: none;
+  transition: border-color 0.15s;
+}
+.ctrl-group input:focus { border-color: var(--accent); }
+.ctrl-group input[type="number"] { width: 80px; }
+
+/* 切换按钮组 */
+.toggle-group {
+  display: flex; border: 1.5px solid var(--border); border-radius: 10px;
+  overflow: hidden; background: var(--panel-2);
+}
+.toggle-btn {
+  padding: 8px 18px; border: none; background: transparent;
+  font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
+  transition: all 0.15s;
+}
+.toggle-btn.active {
+  background: var(--accent); color: #fff;
+}
+/* checkbox 样式 */
+.ctrl-group input[type="checkbox"] {
+  width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent);
+}
+
+.btn-generate {
+  padding: 10px 28px; border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  background: var(--accent); color: #fff;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+  transition: transform 0.1s, box-shadow 0.1s, opacity 0.15s;
+}
+.btn-generate:hover { opacity: 0.9; }
+.btn-generate:active { transform: scale(0.97); }
+
+.btn-print {
+  padding: 10px 28px; border: 2px solid var(--accent-2);
+  border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
+  background: #fff; color: var(--accent-2);
+  transition: transform 0.1s, background 0.1s;
+}
+.btn-print:hover { background: #fdf0ee; }
+.btn-print:active { transform: scale(0.97); }
+
+/* ========== A4 纸张区域 ========== */
+.pages-container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.a4-page {
+  /* A4 竖版比例：210mm × 297mm */
+  width: 210mm;
+  min-height: 297mm;
+  background: #fff;
+  margin: 0 auto;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  padding: 14mm 16mm 12mm;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页头 */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+.page-header .student-name {
+  font-weight: 600; color: var(--text);
+}
+.page-header .date {
+  color: var(--muted);
+}
+
+/* 主标题 */
+.main-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.subtitle {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* 3×4 网格 */
+.edge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px 12px;
+  flex: 1;
+  align-content: stretch;
+}
+
+.edge-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.edge-cell canvas {
+  display: block;
+  margin: 0 auto;
+}
+.edge-cell .write-line {
+  width: 90%;
+  margin: 6px auto 0;
+  border-bottom: 2px solid #333;
+  height: 22px;
+}
+.edge-cell .seq-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+/* 页脚 */
+.page-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* ========== 打印样式 ========== */
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+  .toolbar {
+    display: none !important;
+  }
+  .pages-container {
+    gap: 0;
+    max-width: none;
+  }
+  .a4-page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+  .a4-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+}
+
+/* 响应式提示 */
+@media (max-width: 850px) {
+  .a4-page {
+    width: 100%;
+    min-height: auto;
+    padding: 20px 16px;
+  }
+  .main-title { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 顶部控制栏 ========== -->
+<div class="toolbar">
+  <h1>棱块编码认知训练 — 出题打印</h1>
+  <div class="ctrl-row">
+    <div class="ctrl-group">
+      <label>学生姓名</label>
+      <input type="text" id="studentName" placeholder="学生姓名" value="" style="width:120px;">
+    </div>
+    <div class="ctrl-group">
+      <label>日期</label>
+      <input type="date" id="dateInput">
+    </div>
+    <div class="ctrl-group">
+      <label>页数</label>
+      <input type="number" id="pageCount" value="1" min="1" max="10">
+    </div>
+    <div class="ctrl-group">
+      <label>模式</label>
+      <div class="toggle-group">
+        <button class="toggle-btn active" data-mode="write">写编码（有横线）</button>
+        <button class="toggle-btn" data-mode="read">读编码（无横线）</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <label>显示选项</label>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
+          <input type="checkbox" id="showDate" checked> 显示日期
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
+          <input type="checkbox" id="showPageNum" checked> 显示页码
+        </label>
+      </div>
+    </div>
+    <button class="btn-generate" onclick="generate()">生成题目</button>
+    <button class="btn-print" onclick="window.print()">打印 / 导出PDF</button>
+  </div>
+</div>
+
+<!-- ========== 题目页面容器 ========== -->
+<div class="pages-container" id="pagesContainer">
+  <!-- 页面由 JS 动态生成 -->
+</div>
+
+<script>
+// ============ 棱块数据（与 edge-trainer 完全一致）============
+// 标准配色：U=黄 R=绿 F=红 D=白 L=蓝 B=橙
+const YELLOW = "#FFD500", BLUE = "#0051BA", RED = "#C41E3A";
+const WHITE  = "#FFFFFF", GREEN = "#009E60", ORANGE = "#FF5800";
+
+const EDGES = [
+  { name: "黄绿 UR", colors: [YELLOW, GREEN],  letters: ["G", "H"] },
+  { name: "黄红 UF", colors: [YELLOW, RED],    letters: ["A", "B"] },
+  { name: "黄蓝 UL", colors: [YELLOW, BLUE],   letters: ["C", "D"] },
+  { name: "黄橙 UB", colors: [YELLOW, ORANGE], letters: ["E", "F"] },
+  { name: "白绿 DR", colors: [WHITE, GREEN],   letters: ["O", "P"] },
+  { name: "白红 DF", colors: [WHITE, RED],     letters: ["I", "J"] },
+  { name: "白蓝 DL", colors: [WHITE, BLUE],    letters: ["K", "L"] },
+  { name: "白橙 DB", colors: [WHITE, ORANGE],  letters: ["M", "N"] },
+  { name: "红绿 FR", colors: [RED, GREEN],     letters: ["Q", "R"] },
+  { name: "红蓝 FL", colors: [RED, BLUE],      letters: ["S", "T"] },
+  { name: "橙蓝 BL", colors: [ORANGE, BLUE],   letters: ["W", "X"] },
+  { name: "橙绿 BR", colors: [ORANGE, GREEN],  letters: ["Y", "Z"] }
+];
+
+// ============ 工具函数 ============
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function shadeColor(hex, percent) {
+  const v = hex.replace("#", "");
+  const r = Math.min(255, Math.max(0, parseInt(v.substr(0,2),16) + Math.round(255*percent)));
+  const g = Math.min(255, Math.max(0, parseInt(v.substr(2,2),16) + Math.round(255*percent)));
+  const b = Math.min(255, Math.max(0, parseInt(v.substr(4,2),16) + Math.round(255*percent)));
+  return "rgb(" + r + "," + g + "," + b + ")";
+}
+
+function isLight(hex) {
+  const v = hex.replace("#", "");
+  const r = parseInt(v.substr(0, 2), 16);
+  const g = parseInt(v.substr(2, 2), 16);
+  const b = parseInt(v.substr(4, 2), 16);
+  return (r * 0.299 + g * 0.587 + b * 0.114) > 180;
+}
+
+function formatDateStr(d) {
+  const p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate());
+}
+
+// ============ 模式切换 ============
+let currentMode = "write"; // "write" 或 "read"
+
+document.querySelectorAll(".toggle-btn").forEach(btn => {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    currentMode = this.dataset.mode;
+  });
+});
+
+// ============ 日期默认值 ============
+document.getElementById("dateInput").value = formatDateStr(new Date());
+
+// ============ 绘制棱块（与 edge-trainer 的 drawEdge 一致）============
+/**
+ * 绘制棱块：两个相邻面组成的等距块
+ * colors[0] = 上面（菱形），colors[1] = 右面（平行四边形）
+ * highlight: 0 或 1，表示高亮第几个面（出题时随机选一个面）
+ */
+function drawEdge(canvas, colors, highlight) {
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const cx = W / 2, cy = H / 2;
+  const s = Math.min(W, H) * 0.34;
+  const w = s * 0.866, h = s * 0.5;
+
+  const V0 = [cx, cy];
+  const V1 = [cx - w, cy - h];
+  const V2 = [cx + w, cy - h];
+  const V3 = [cx, cy - s];
+  const V5 = [cx + w, cy + h];
+  const V6 = [cx, cy + s];
+
+  const faces = [
+    { pts: [V1, V3, V2, V0], from: V3, to: V0 },
+    { pts: [V2, V5, V6, V0], from: V2, to: V6 }
+  ];
+
+  // 两面渐变填充 + 描边
+  const order = [0, 1].filter(i => i !== highlight).concat(highlight);
+  for (const i of order) {
+    if (i < 0) continue;
+    const p = faces[i].pts;
+    const g = ctx.createLinearGradient(faces[i].from[0], faces[i].from[1], faces[i].to[0], faces[i].to[1]);
+    g.addColorStop(0, shadeColor(colors[i], 0.16));
+    g.addColorStop(1, shadeColor(colors[i], -0.20));
+    ctx.beginPath();
+    ctx.moveTo(p[0][0], p[0][1]);
+    for (let j = 1; j < p.length; j++) ctx.lineTo(p[j][0], p[j][1]);
+    ctx.closePath();
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(20,25,35,0.55)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  // 外轮廓（五边形）
+  ctx.beginPath();
+  ctx.moveTo(V1[0], V1[1]); ctx.lineTo(V3[0], V3[1]); ctx.lineTo(V2[0], V2[1]);
+  ctx.lineTo(V5[0], V5[1]); ctx.lineTo(V6[0], V6[1]);
+  ctx.strokeStyle = "rgba(25,32,44,0.85)";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // 中心棱
+  ctx.beginPath();
+  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V2[0], V2[1]);
+  ctx.strokeStyle = "rgba(25,32,44,0.55)";
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // 高亮框
+  if (highlight >= 0 && faces[highlight]) {
+    const p = faces[highlight].pts;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(p[0][0], p[0][1]);
+    for (let j = 1; j < p.length; j++) ctx.lineTo(p[j][0], p[j][1]);
+    ctx.closePath();
+    ctx.strokeStyle = "#111827";
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ============ 生成题目页面 ============
+function generate() {
+  const studentName = document.getElementById("studentName").value.trim() || "________";
+  const dateStr = document.getElementById("dateInput").value || formatDateStr(new Date());
+  const pageCount = Math.max(1, Math.min(10, parseInt(document.getElementById("pageCount").value) || 1));
+  const showDate = document.getElementById("showDate").checked;
+  const showPageNum = document.getElementById("showPageNum").checked;
+
+  const container = document.getElementById("pagesContainer");
+  container.innerHTML = "";
+
+  for (let pageIdx = 0; pageIdx < pageCount; pageIdx++) {
+    const page = document.createElement("div");
+    page.className = "a4-page";
+
+    // 每页随机选 12 个棱块的一个朝向（12 条棱全部出现，每条棱随机选 0 或 1 朝向）
+    // 然后打乱顺序
+    const edgePicks = EDGES.map((e, i) => ({
+      edgeIndex: i,
+      faceIndex: Math.floor(Math.random() * 2) // 随机高亮上面或右面
+    }));
+    const shuffled = shuffle(edgePicks);
+
+    // 页头
+    const header = document.createElement("div");
+    header.className = "page-header";
+    header.innerHTML =
+      '<span class="student-name">姓名：' + escapeHtml(studentName) + '</span>' +
+      (showDate ? '<span class="date">' + escapeHtml(dateStr) + '</span>' : '');
+    page.appendChild(header);
+
+    // 主标题
+    const title = document.createElement("div");
+    title.className = "main-title";
+    title.textContent = "棱块编码认知训练";
+    page.appendChild(title);
+
+    const sub = document.createElement("div");
+    sub.className = "subtitle";
+    sub.textContent = currentMode === "write"
+      ? "写出每个棱块高亮面所对应的编码字母"
+      : "认读每个棱块高亮面所对应的编码";
+    page.appendChild(sub);
+
+    // 3×4 网格
+    const grid = document.createElement("div");
+    grid.className = "edge-grid";
+
+    shuffled.forEach((pick, idx) => {
+      const edge = EDGES[pick.edgeIndex];
+      const cell = document.createElement("div");
+      cell.className = "edge-cell";
+
+      // 序号
+      const seq = document.createElement("div");
+      seq.className = "seq-num";
+          seq.textContent = (idx + 1) + ".";
+      cell.appendChild(seq);
+
+      // canvas — 放大棱块图（高分辨率，打印清晰）
+      const canvas = document.createElement("canvas");
+      canvas.width = 280;
+      canvas.height = 220;
+      canvas.style.width = "170px";
+      canvas.style.height = "134px";
+      cell.appendChild(canvas);
+
+      // 横线（写编码模式才有）
+      if (currentMode === "write") {
+        const line = document.createElement("div");
+        line.className = "write-line";
+        cell.appendChild(line);
+      }
+
+      grid.appendChild(cell);
+
+      // 延迟绘制（等 canvas 入 DOM）
+      requestAnimationFrame(() => {
+        drawEdge(canvas, edge.colors, pick.faceIndex);
+      });
+    });
+
+    page.appendChild(grid);
+
+    // 页脚（可选）
+    if (showPageNum) {
+      const footer = document.createElement("div");
+      footer.className = "page-footer";
+      footer.textContent = "第 " + (pageIdx + 1) + " 页 / 共 " + pageCount + " 页";
+      page.appendChild(footer);
+    }
+
+    container.appendChild(page);
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ============ 初始生成一页 ============
+generate();
+</script>
+
+</body>
+</html>
