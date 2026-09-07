@@ -1346,17 +1346,18 @@ if (document.readyState === 'loading') {
 }
 /* ====================================================================
  * 对照图模块：三阶魔方转动示意图（12 种单层转动，等距投影自绘）
- * 来源：output/魔方转动示意图.html（白底灰块 · 弧线箭头贴合面对应转动方向）
- * 此处改为单 canvas 绘制全部 12 格，CSS contain 等比缩放嵌入 legend-zone
+ * 视觉风格参考用户提供参考图：浅蓝圆角卡片 · 白魔方深灰转动层
+ * · 亮黄箭头 · 红色粗体标签居中于卡片下方
  * ==================================================================== */
 (function(){
 "use strict";
 const S = 27;
-const MARK = "#9aa1a8";
-const WHITE = "#f2f4f7";
-const EDGE = "#b6c0cb";
-const CW_COLOR = "#E8590C";
-const CCW_COLOR = "#1971C2";
+const MARK = "#6B7280";        /* 深灰：转动层贴纸 */
+const WHITE = "#FFFFFF";       /* 白：未转动贴纸 */
+const EDGE = "#D8DEE7";        /* 贴纸描边 */
+const CARD_BG = "#E6F0FA";     /* 浅蓝圆角卡片 */
+const ARROW = "#FFD60A";       /* 亮黄箭头（顺/逆同色，以指向区分） */
+const LABEL = "#D9232E";       /* 红字标签 */
 const CW = true, CCW = false;
 
 const MOVES = [
@@ -1454,32 +1455,51 @@ function arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, color, width){
 }
 function drawArrow(ctx, cx, cy, arr){
   const [faceName, u0, v0, center, uvec, vvec, cw] = arr;
-  const color = cw ? CW_COLOR : CCW_COLOR;
   const width = Math.max(3, S*0.16);
-  arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, color, width);
+  arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, ARROW, width);
+}
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
 }
 
 function buildLegend(){
   const canvas = document.getElementById('legendCanvas');
   if(!canvas) return;
-  const COLS = 4, ROWS = 3, CELL = 150, GAP = 8;
-  const W = COLS*CELL + (COLS-1)*GAP;
-  const H = ROWS*CELL + (ROWS-1)*GAP;
+  const COLS = 4, ROWS = 3;
+  const CUBE = 150, LAB = 32, PAD = 6, GAP = 12;
+  const CARD_W = CUBE + PAD*2;
+  const CARD_H = CUBE + LAB + PAD*2;
+  const W = COLS*CARD_W + (COLS-1)*GAP;
+  const H = ROWS*CARD_H + (ROWS-1)*GAP;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0,0,W,H);
+
   MOVES.forEach((mv, i)=>{
     const col = i % COLS, row = (i/COLS)|0;
-    const cx = col*(CELL+GAP) + CELL/2;
-    const cy = row*(CELL+GAP) + CELL/2 + 2;
+    const ox = col*(CARD_W+GAP), oy = row*(CARD_H+GAP);
+    // 浅蓝圆角卡片
+    roundRect(ctx, ox, oy, CARD_W, CARD_H, 14);
+    ctx.fillStyle = CARD_BG;
+    ctx.fill();
+    // 魔方 + 黄色箭头
+    const cx = ox + CARD_W/2;
+    const cy = oy + PAD + CUBE/2 + 2;
     drawCube(ctx, cx, cy, mv.axis, mv.layer);
     drawArrow(ctx, cx, cy, mv.arr);
-    ctx.fillStyle = '#111111';
-    ctx.font = '800 30px "Segoe UI", "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(mv.name, col*(CELL+GAP)+CELL-8, row*(CELL+GAP)+CELL-6);
+    // 红色粗体标签（卡片下方居中）
+    ctx.fillStyle = LABEL;
+    ctx.font = '800 26px "Segoe UI", "Microsoft YaHei", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(mv.name, cx, oy + PAD + CUBE + LAB/2 + 2);
   });
 }
 if(document.readyState === 'loading'){
@@ -1488,6 +1508,8 @@ if(document.readyState === 'loading'){
   buildLegend();
 }
 })();
+
+
 
 </script>
 </body>
