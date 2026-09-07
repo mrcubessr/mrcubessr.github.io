@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>角块编码识别训练</title>
+<title>棱块编码识别训练</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -26,11 +26,11 @@ body {
 h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; letter-spacing: 1px; }
 .subtitle { text-align: center; color: #7a8aa0; font-size: 13px; margin: 6px 0 22px; }
 .section-title { font-size: 14px; font-weight: 600; color: #52667d; margin-bottom: 14px; }
-.corner-row {
+.edge-row {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 12px; border-radius: 12px; margin-bottom: 8px; background: #f7f9fc;
 }
-.corner-name { flex: 1; font-size: 14px; font-weight: 600; color: #1f2d3d; text-align: right; }
+.edge-name { flex: 1; font-size: 14px; font-weight: 600; color: #1f2d3d; text-align: right; }
 .letter-chip {
   display: inline-flex; align-items: center; justify-content: center;
   width: 42px; height: 42px; border-radius: 10px;
@@ -148,13 +148,60 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .empty-tip { text-align: center; color: #9aa8b8; font-size: 13px; padding: 20px 0; }
 .hidden { display: none; }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="/" class="nav-link" data-nav="home">首页</a>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▼</span></span>
+        <div class="nav-menu">
+          <a href="/fto" data-nav="fto">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3">三阶</a>
+          <a class="nav-soon" title="即将上线">二阶</a>
+          <a class="nav-soon" title="即将上线">金字塔</a>
+          <a class="nav-soon" title="暂时预留">三盲</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▼</span></span>
+        <div class="nav-menu">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+          <a href="/tools/invert" data-nav="invert">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+          <a href="/tools/bldscramble" data-nav="bldscramble">盲拧打乱生成器</a>
+          <a href="/tools/class-teach" data-nav="class-teach">魔方课堂教学系统</a>
+          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+          <a href="/tools/edge-trainer" data-nav="edge-trainer" class="active">棱块编码</a>
+        </div>
+      </div>
+      <div class="nav-drop">
+        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▼</span></span>
+        <div class="nav-menu">
+          <a href="/tools/nav" data-nav="nav">工具导航</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
 <div class="container">
 
   <div id="startPanel" class="card">
-    <h1>角块编码识别训练</h1>
-    <p class="subtitle">二阶魔方盲拧 · 角块色块编码认读</p>
+    <h1>棱块编码识别训练</h1>
+    <p class="subtitle">三阶魔方盲拧 · 棱块色块编码认读</p>
     <div class="section-title">我的训练数据</div>
     <div class="overview">
       <div class="ov-item"><div class="ov-num" id="ovCount">0</div><div class="ov-label">累计组数</div></div>
@@ -162,8 +209,8 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
       <div class="ov-item"><div class="ov-num" id="ovWrong">0</div><div class="ov-label">错题字母</div></div>
     </div>
     <div class="section-title">编码对照表</div>
-    <div id="cornerTable"></div>
-    <p class="tip">规则：每组 10 题。每道题随机展示一个角块，加粗线框圈出的色块就是要考的色块，从 4 个选项中选出它的编码。练习记录会自动保存在本设备浏览器中。</p>
+    <div id="edgeTable"></div>
+    <p class="tip">规则：每组 10 题。每道题随机展示一条棱块，加粗线框圈出的色块就是要考的色块，从 4 个选项中选出它的编码。练习记录会自动保存在本设备浏览器中。</p>
     <button class="btn btn-primary" id="startBtn">开始训练</button>
     <button class="btn btn-secondary" id="specialBtn">错题专项训练</button>
     <button class="btn btn-ghost" id="historyBtn">查看练习记录与错题统计</button>
@@ -179,7 +226,7 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
     </div>
     <div class="progress-bar"><div id="progressFill" style="width:10%"></div></div>
     <div class="canvas-wrap">
-      <canvas id="cubeCanvas" width="340" height="300"></canvas>
+      <canvas id="cubeCanvas" width="340" height="240"></canvas>
     </div>
     <div class="question">该色块的编码是？</div>
     <div class="options" id="optionsBox"></div>
@@ -209,25 +256,33 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 </div>
 
 <script>
-// ============ 角块数据（颜色顺序与编码顺序一一对应）============
-const CORNERS = [
-  { name: "黄红蓝", colors: ["#FFD500", "#C41E3A", "#0051BA"], letters: ["A", "B", "C"] },
-  { name: "黄蓝橘", colors: ["#FFD500", "#0051BA", "#FF5800"], letters: ["D", "E", "F"] },
-  { name: "黄橘绿", colors: ["#FFD500", "#FF5800", "#009E60"], letters: ["G", "H", "I"] },
-  { name: "白蓝红", colors: ["#FFFFFF", "#0051BA", "#C41E3A"], letters: ["W", "M", "N"] },
-  { name: "白橘蓝", colors: ["#FFFFFF", "#FF5800", "#0051BA"], letters: ["O", "P", "Q"] },
-  { name: "白绿橘", colors: ["#FFFFFF", "#009E60", "#FF5800"], letters: ["R", "S", "T"] }
-];
-const ALL_LETTERS = CORNERS.flatMap(c => c.letters);
+// ============ 棱块数据（12条棱 × 2朝向 = 24编码字母）============
+// 编码方案（魔方先生教学体系，非 bldtrainer 的 edgeCh 映射）
+// 标准配色：U=黄 R=绿 F=红 D=白 L=蓝 B=橙
+const YELLOW = "#FFD500", BLUE = "#0051BA", RED = "#C41E3A";
+const WHITE  = "#FFFFFF", GREEN = "#009E60", ORANGE = "#FF5800";
 
-// ============ 本地存储（localStorage）============
-const STORE_KEY = "corner_trainer_records_v1";
+const EDGES = [
+  { name: "黄绿 UR", colors: [YELLOW, GREEN],  letters: ["G", "H"] },
+  { name: "黄红 UF", colors: [YELLOW, RED],    letters: ["A", "B"] },
+  { name: "黄蓝 UL", colors: [YELLOW, BLUE],   letters: ["C", "D"] },
+  { name: "黄橙 UB", colors: [YELLOW, ORANGE], letters: ["E", "F"] },
+  { name: "白绿 DR", colors: [WHITE, GREEN],   letters: ["O", "P"] },
+  { name: "白红 DF", colors: [WHITE, RED],     letters: ["I", "J"] },
+  { name: "白蓝 DL", colors: [WHITE, BLUE],    letters: ["K", "L"] },
+  { name: "白橙 DB", colors: [WHITE, ORANGE],  letters: ["M", "N"] },
+  { name: "红绿 FR", colors: [RED, GREEN],     letters: ["Q", "R"] },
+  { name: "红蓝 FL", colors: [RED, BLUE],      letters: ["S", "T"] },
+  { name: "橙蓝 BL", colors: [ORANGE, BLUE],   letters: ["W", "X"] },
+  { name: "橙绿 BR", colors: [ORANGE, GREEN],  letters: ["Y", "Z"] }
+];
+const ALL_LETTERS = EDGES.flatMap(e => e.letters);
+
+// ============ 本地存储 ============
+const STORE_KEY = "edge_trainer_records_v1";
 const MAX_RECORDS = 500;
 function loadRecords() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  try { const raw = localStorage.getItem(STORE_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
   return [];
 }
 function saveRecords(records) {
@@ -252,54 +307,63 @@ function isLight(hex) {
   return (r * 0.299 + g * 0.587 + b * 0.114) > 180;
 }
 function findLetter(letter) {
-  for (let ci = 0; ci < CORNERS.length; ci++) {
-    const fi = CORNERS[ci].letters.indexOf(letter);
-    if (fi >= 0) return { ci, fi };
+  for (let ei = 0; ei < EDGES.length; ei++) {
+    const fi = EDGES[ei].letters.indexOf(letter);
+    if (fi >= 0) return { ei, fi };
   }
-  return { ci: 0, fi: 0 };
+  return { ei: 0, fi: 0 };
 }
 function formatDate(d) {
   const p = n => String(n).padStart(2, "0");
-  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
 }
 
-// ============ 绘制角块（标准等距立方体角）============
+// ============ 绘制棱块（双面等距块）============
 function shadeColor(hex, percent) {
   const v = hex.replace("#", "");
-  const r = Math.min(255, Math.max(0, parseInt(v.substr(0, 2), 16) + Math.round(255 * percent)));
-  const g = Math.min(255, Math.max(0, parseInt(v.substr(2, 2), 16) + Math.round(255 * percent)));
-  const b = Math.min(255, Math.max(0, parseInt(v.substr(4, 2), 16) + Math.round(255 * percent)));
+  const r = Math.min(255, Math.max(0, parseInt(v.substr(0,2),16) + Math.round(255*percent)));
+  const g = Math.min(255, Math.max(0, parseInt(v.substr(2,2),16) + Math.round(255*percent)));
+  const b = Math.min(255, Math.max(0, parseInt(v.substr(4,2),16) + Math.round(255*percent)));
   return "rgb(" + r + "," + g + "," + b + ")";
 }
-function drawCorner(canvas, colors, highlight) {
+
+/**
+ * 绘制棱块：两个相邻面组成的等距块
+ * colors[0] = 上面（菱形），colors[1] = 右面（平行四边形）
+ * highlight: 0 或 1，表示高亮第几个面
+ */
+function drawEdge(canvas, colors, highlight) {
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
-  // 标准等距立方体角：顶面为菱形，左右两侧为平行四边形（外棱竖直）
-  const s = Math.min(W, H) * 0.30;
+  const s = Math.min(W, H) * 0.34;
   const w = s * 0.866, h = s * 0.5;
-  const V0 = [cx, cy];           // 三面公共的中心顶点（最靠近观察者）
+
+  // 顶点定义（与角块共享同一套等距投影）
+  const V0 = [cx, cy];           // 两面公共的中心棱点
   const V1 = [cx - w, cy - h];   // 左上
   const V2 = [cx + w, cy - h];   // 右上
   const V3 = [cx, cy - s];       // 上
-  const V4 = [cx - w, cy + h];   // 左下
   const V5 = [cx + w, cy + h];   // 右下
   const V6 = [cx, cy + s];       // 底
+
+  // 两个面：上面（菱形 V1-V3-V2-V0）+ 右面（平行四边形 V2-V5-V6-V0）
   const faces = [
-    { pts: [V1, V3, V2, V0], from: V3, to: V0 },  // 顶面
-    { pts: [V2, V5, V6, V0], from: V2, to: V6 },  // 右面
-    { pts: [V1, V4, V6, V0], from: V1, to: V6 }   // 左面
+    { pts: [V1, V3, V2, V0], from: V3, to: V0 },  // 上面
+    { pts: [V2, V5, V6, V0], from: V2, to: V6 }   // 右面
   ];
+
   // 地面投影
   ctx.save();
   ctx.fillStyle = "rgba(25,35,55,0.10)";
   ctx.beginPath();
-  ctx.ellipse(cx, cy + s * 0.66, w * 1.05, s * 0.16, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy + s * 0.72, w * 1.05, s * 0.14, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  // 三个面：渐变填充（受光面亮、底部暗）+ 细描边
-  const order = [0, 1, 2].filter(i => i !== highlight).concat(highlight);
+
+  // 两个面：渐变填充 + 描边（先画非高亮面，再画高亮面，最后画高亮框）
+  const order = [0, 1].filter(i => i !== highlight).concat(highlight);
   for (const i of order) {
     if (i < 0) continue;
     const p = faces[i].pts;
@@ -316,24 +380,24 @@ function drawCorner(canvas, colors, highlight) {
     ctx.lineWidth = 1.2;
     ctx.stroke();
   }
-  // 外轮廓粗线（六边形外圈：V1-V3-V2-V5-V6-V4）
+
+  // 外轮廓（五边形：V1-V3-V2-V5-V6）
   ctx.beginPath();
   ctx.moveTo(V1[0], V1[1]); ctx.lineTo(V3[0], V3[1]); ctx.lineTo(V2[0], V2[1]);
-  ctx.lineTo(V5[0], V5[1]); ctx.lineTo(V6[0], V6[1]); ctx.lineTo(V4[0], V4[1]);
-  ctx.closePath();
+  ctx.lineTo(V5[0], V5[1]); ctx.lineTo(V6[0], V6[1]);
   ctx.strokeStyle = "rgba(25,32,44,0.85)";
   ctx.lineWidth = 3;
   ctx.stroke();
-  // 中心公共棱（细线：V0 与 V1/V2/V6 相连）
+
+  // 中心棱（V0→V2）
   ctx.beginPath();
-  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V1[0], V1[1]);
   ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V2[0], V2[1]);
-  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V6[0], V6[1]);
   ctx.strokeStyle = "rgba(25,32,44,0.55)";
   ctx.lineWidth = 1.2;
   ctx.stroke();
+
   // 被考色块高亮：加粗深色线框 + 白色内描边 + 发光
-  if (highlight >= 0) {
+  if (highlight >= 0 && faces[highlight]) {
     const p = faces[highlight].pts;
     ctx.save();
     ctx.shadowColor = "rgba(255,255,255,0.9)";
@@ -358,17 +422,17 @@ function drawCorner(canvas, colors, highlight) {
 
 // ============ 渲染编码对照表 ============
 function renderTable() {
-  const box = document.getElementById("cornerTable");
+  const box = document.getElementById("edgeTable");
   box.innerHTML = "";
-  for (const corner of CORNERS) {
+  for (const edge of EDGES) {
     const row = document.createElement("div");
-    row.className = "corner-row";
+    row.className = "edge-row";
     let chips = "";
-    for (let i = 0; i < corner.colors.length; i++) {
-      const dark = isLight(corner.colors[i]);
-      chips += `<span class="letter-chip ${dark ? "dark-text" : ""}" style="background:${corner.colors[i]}">${corner.letters[i]}</span>`;
+    for (let i = 0; i < edge.colors.length; i++) {
+      const dark = isLight(edge.colors[i]);
+      chips += '<span class="letter-chip' + (dark ? " dark-text" : "") + '" style="background:' + edge.colors[i] + '">' + edge.letters[i] + '</span>';
     }
-    row.innerHTML = chips + `<span class="corner-name">${corner.name}</span>`;
+    row.innerHTML = chips + '<span class="edge-name">' + edge.name + '</span>';
     box.appendChild(row);
   }
 }
@@ -391,9 +455,7 @@ function computeStats() {
 function wrongLetterPool() {
   const { stat } = computeStats();
   const pool = [];
-  for (const k in stat) {
-    for (let i = 0; i < stat[k].wrong; i++) pool.push(k);
-  }
+  for (const k in stat) { for (let i = 0; i < stat[k].wrong; i++) pool.push(k); }
   return pool;
 }
 function renderOverview() {
@@ -404,32 +466,21 @@ function renderOverview() {
   document.getElementById("ovWrong").textContent = pool.length;
   const btn = document.getElementById("specialBtn");
   if (pool.length === 0) {
-    btn.disabled = true;
-    btn.textContent = "错题专项训练（暂无错题）";
+    btn.disabled = true; btn.textContent = "错题专项训练（暂无错题）";
   } else {
-    btn.disabled = false;
-    btn.textContent = "错题专项训练（" + pool.length + " 道错题）";
+    btn.disabled = false; btn.textContent = "错题专项训练（" + pool.length + " 道错题）";
   }
 }
 
 // ============ 题目与训练状态 ============
 const QUIZ_LEN = 10;
-let questions = [];
-let qIndex = 0;
-let score = 0;
-let wrongList = [];
-let currentMode = "normal";
-let details = [];
-let groupStartTime = 0;
-let timerInterval = null;
+let questions = [], qIndex = 0, score = 0, wrongList = [], currentMode = "normal", details = [];
+let groupStartTime = 0, timerInterval = null;
 
 function formatTime(sec) {
   sec = Math.max(0, Math.floor(sec));
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  return String(Math.floor(sec/60)).padStart(2,"0") + ":" + String(sec%60).padStart(2,"0");
 }
-
 function startTimer() {
   stopTimer();
   groupStartTime = Date.now();
@@ -439,36 +490,31 @@ function startTimer() {
     el.textContent = "用时 " + formatTime((Date.now() - groupStartTime) / 1000);
   }, 500);
 }
-
-function stopTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-}
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
 
 function genQuiz(mode) {
   const qs = [];
   const pool = mode === "special" ? wrongLetterPool() : [];
   for (let i = 0; i < QUIZ_LEN; i++) {
-    let ci, fi;
+    let ei, fi;
     if (mode === "special" && pool.length > 0) {
       const letter = pool[Math.floor(Math.random() * pool.length)];
-      const pos = findLetter(letter);
-      ci = pos.ci; fi = pos.fi;
+      const pos = findLetter(letter); ei = pos.ei; fi = pos.fi;
     } else {
-      ci = Math.floor(Math.random() * CORNERS.length);
-      fi = Math.floor(Math.random() * 3);
+      ei = Math.floor(Math.random() * EDGES.length);
+      fi = Math.floor(Math.random() * 2);
     }
-    const corner = CORNERS[ci];
-    const answer = corner.letters[fi];
+    const edge = EDGES[ei];
+    const answer = edge.letters[fi];
     const poolLetters = shuffle(ALL_LETTERS.filter(l => l !== answer));
     const options = shuffle([answer, poolLetters[0], poolLetters[1], poolLetters[2]]);
-    qs.push({ ci, fi, answer, options });
+    qs.push({ ei, fi, answer, options });
   }
   return qs;
 }
 
 const canvas = document.getElementById("cubeCanvas");
 const progressText = document.getElementById("progressText");
-const scoreText = document.getElementById("scoreText");
 const scoreNum = document.getElementById("scoreNum");
 const progressFill = document.getElementById("progressFill");
 const optionsBox = document.getElementById("optionsBox");
@@ -477,10 +523,10 @@ const modeBadge = document.getElementById("modeBadge");
 
 function renderQuestion() {
   const q = questions[qIndex];
-  const corner = CORNERS[q.ci];
-  drawCorner(canvas, corner.colors, q.fi);
-  progressText.textContent = `第 ${qIndex + 1} / ${QUIZ_LEN} 题`;
-  scoreNum.textContent = `得分 ${score}`;
+  const edge = EDGES[q.ei];
+  drawEdge(canvas, edge.colors, q.fi);
+  progressText.textContent = "第 " + (qIndex + 1) + " / " + QUIZ_LEN + " 题";
+  scoreNum.textContent = "得分 " + score;
   progressFill.style.width = ((qIndex + 1) / QUIZ_LEN * 100) + "%";
   feedbackBox.textContent = "";
   feedbackBox.className = "feedback";
@@ -506,15 +552,15 @@ function handleAnswer(btn, chosen) {
   if (isCorrect) {
     btn.classList.add("correct");
     score++;
-    scoreNum.textContent = `得分 ${score}`;
+    scoreNum.textContent = "得分 " + score;
     feedbackBox.textContent = "✓";
     feedbackBox.className = "feedback ok";
   } else {
     btn.classList.add("wrong");
     correctBtn.classList.add("correct");
-    const corner = CORNERS[q.ci];
-    wrongList.push({ corner: corner.name, answer: q.answer, chosen: chosen });
-    feedbackBox.textContent = `${q.answer}`;
+    const edge = EDGES[q.ei];
+    wrongList.push({ edge: edge.name, answer: q.answer, chosen: chosen });
+    feedbackBox.textContent = q.answer;
     feedbackBox.className = "feedback no";
   }
   setTimeout(nextQuestion, 250);
@@ -522,11 +568,7 @@ function handleAnswer(btn, chosen) {
 
 function nextQuestion() {
   qIndex++;
-  if (qIndex >= QUIZ_LEN) {
-    showResult();
-  } else {
-    renderQuestion();
-  }
+  if (qIndex >= QUIZ_LEN) { showResult(); } else { renderQuestion(); }
 }
 
 // ============ 结果面板 ============
@@ -537,19 +579,19 @@ function showResult() {
   document.getElementById("quizPanel").classList.add("hidden");
   const rp = document.getElementById("resultPanel");
   rp.classList.remove("hidden");
-  document.getElementById("resultScore").textContent = `${score} / ${QUIZ_LEN}`;
+  document.getElementById("resultScore").textContent = score + " / " + QUIZ_LEN;
   const pct = Math.round(score / QUIZ_LEN * 100);
   document.getElementById("resultSub").textContent =
-    pct >= 80 ? `正确率 ${pct}%，非常棒！` : (pct >= 60 ? `正确率 ${pct}%，继续加油！` : `正确率 ${pct}%，建议先熟悉编码表`);
+    pct >= 80 ? "正确率 " + pct + "%，非常棒！" : (pct >= 60 ? "正确率 " + pct + "%，继续加油！" : "正确率 " + pct + "%，建议先熟悉编码表");
   const list = document.getElementById("reviewList");
   list.innerHTML = "";
   if (wrongList.length === 0) {
-    list.innerHTML = `<p class="tip" style="margin:0">全对，没有错题。</p>`;
+    list.innerHTML = '<p class="tip" style="margin:0">全对，没有错题。</p>';
   } else {
     wrongList.forEach(w => {
       const item = document.createElement("div");
       item.className = "review-item";
-      item.innerHTML = `<span>${w.corner} 角块 · 考点 ${w.answer}</span><span style="color:#e03131">你选 ${w.chosen}</span><span class="rev-correct">正确 ${w.answer}</span>`;
+      item.innerHTML = '<span>' + w.edge + ' 棱块 · 考点 ' + w.answer + '</span><span style="color:#e03131">你选 ' + w.chosen + '</span><span class="rev-correct">正确 ' + w.answer + '</span>';
       list.appendChild(item);
     });
   }
@@ -590,45 +632,38 @@ function renderWrongStats() {
   const entries = Object.keys(stat).map(k => ({ letter: k, ...stat[k] }));
   entries.sort((a, b) => b.wrong - a.wrong || b.asked - a.asked);
   if (entries.length === 0) {
-    box.innerHTML = `<p class="empty-tip">暂无记录，完成训练后这里会显示每个字母的错题统计。</p>`;
+    box.innerHTML = '<p class="empty-tip">暂无记录，完成训练后这里会显示每个字母的错题统计。</p>';
     return;
   }
   const maxWrong = Math.max(...entries.map(e => e.wrong), 1);
-  let html = `<table class="stat-table"><tr><th>字母</th><th>考过</th><th>错误</th><th style="width:38%">错误比例</th></tr>`;
+  let html = '<table class="stat-table"><tr><th>字母</th><th>考过</th><th>错误</th><th style="width:38%">错误比例</th></tr>';
   for (const e of entries) {
-    const rate = e.asked ? Math.round(e.wrong / e.asked * 100) : 0;
     const barW = Math.round(e.wrong / maxWrong * 100);
-    html += `<tr><td>${e.letter}</td><td>${e.asked}</td><td>${e.wrong}</td><td class="bar-cell"><div class="bar-wrap"><div class="bar-fill" style="width:${barW}%"></div></div></td></tr>`;
+    html += '<tr><td>' + e.letter + '</td><td>' + e.asked + '</td><td>' + e.wrong + '</td><td class="bar-cell"><div class="bar-wrap"><div class="bar-fill" style="width:' + barW + '%"></div></div></td></tr>';
   }
-  html += `</table>`;
-  html += `<p class="tip">总题数 ${totalQ} · 总正确率 ${totalQ ? Math.round(correctQ / totalQ * 100) : 0}%</p>`;
+  html += '</table>';
+  html += '<p class="tip">总题数 ' + totalQ + ' · 总正确率 ' + (totalQ ? Math.round(correctQ / totalQ * 100) : 0) + '%</p>';
   box.innerHTML = html;
 }
 
 function renderRecordList() {
   const box = document.getElementById("recordList");
   if (records.length === 0) {
-    box.innerHTML = `<p class="empty-tip">还没有练习记录，先去练一组吧。</p>`;
+    box.innerHTML = '<p class="empty-tip">还没有练习记录，先去练一组吧。</p>';
     return;
   }
   let html = "";
   for (const rec of records) {
     const cls = rec.score / rec.total < 0.6 ? "bad" : "";
-    html += `<div class="rec-item">
-      <div class="rec-head">
-        <span class="rec-time">${rec.date}${rec.mode === "专项训练" ? ' <span class="mode-badge">专项</span>' : ""}</span>
-        <span><span class="rec-score ${cls}">${rec.score} / ${rec.total}</span>${rec.duration != null ? `<span class="rec-dur">用时 ${formatTime(rec.duration)}</span>` : ""}</span>
-      </div>
-      <div class="rec-detail">`;
+    html += '<div class="rec-item"><div class="rec-head"><span class="rec-time">' + rec.date + (rec.mode === "专项训练" ? ' <span class="mode-badge">专项</span>' : "") + '</span><span><span class="rec-score ' + cls + '">' + rec.score + ' / ' + rec.total + '</span>' + (rec.duration != null ? '<span class="rec-dur">用时 ' + formatTime(rec.duration) + '</span>' : "") + '</span></div><div class="rec-detail">';
     rec.details.forEach((d, i) => {
       const mark = d.correct ? "ok" : "no";
-      const ans = d.correct ? `答对 ${d.answer}` : `答错（你选 ${d.chosen}，正确 ${d.answer}）`;
-      html += `<div class="rec-line"><span class="dot ${mark}"></span><span>第${i + 1}题 · 考点 ${d.answer}</span><span style="margin-left:auto">${ans}</span></div>`;
+      const ans = d.correct ? "答对 " + d.answer : "答错（你选 " + d.chosen + "，正确 " + d.answer + "）";
+      html += '<div class="rec-line"><span class="dot ' + mark + '"></span><span>第' + (i+1) + '题 · 考点 ' + d.answer + '</span><span style="margin-left:auto">' + ans + '</span></div>';
     });
-    html += `</div></div>`;
+    html += '</div></div>';
   }
   box.innerHTML = html;
-  // 点击展开/收起
   box.querySelectorAll(".rec-head").forEach(h => {
     h.addEventListener("click", () => {
       const d = h.nextElementSibling;
@@ -642,10 +677,7 @@ function renderRecordList() {
 function startQuiz(mode) {
   currentMode = mode;
   questions = genQuiz(mode);
-  qIndex = 0;
-  score = 0;
-  wrongList = [];
-  details = [];
+  qIndex = 0; score = 0; wrongList = []; details = [];
   document.getElementById("startPanel").classList.add("hidden");
   document.getElementById("resultPanel").classList.add("hidden");
   document.getElementById("historyPanel").classList.add("hidden");
