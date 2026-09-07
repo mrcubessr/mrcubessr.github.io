@@ -268,20 +268,27 @@ function expandMoveNet(base, dir){
 }
 
 
-// 拿法切换语义（全站统一）：公式永远按白顶绿前记号执行，切换拿法只做整体旋转渲染（见 drawScrambleNet），
-// 不改写公式字母。旧的 mapAlgOrientation / ORIENT_MAP（坐标等价改写公式）已移除。
+// 拿法切换语义（全站统一，2026-09-07 用户确认「同一公式、不同实体状态」）：
+// 切换拿法 = 打乱前先把魔方摆成目标拿法（对 solved 做一次整体旋转预摆），再按当前拿法坐标系的
+// 固定空间轴执行公式字母。因此同一公式在不同拿法下因打乱前摆放不同而得到不同的实体状态，
+// 展开图 net 也随之不同。move 字母（R/U/F…）转的始终是当前拿法下「右手/上/前」所指的物理层。
+// 默认 white-green = 标准 WCA 白顶绿前摆放，无需预摆。旧语义 A「先执行再整体旋转渲染」已废弃。
+// （旧的 mapAlgOrientation / ORIENT_MAP 坐标等价改写公式早已移除。）
 
 // 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas（也支持直接传入 canvas 元素）
-// orientation: 'white-green' | 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'，决定整体旋转渲染
+// orientation: 'white-green' | 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'，
+//   决定打乱前把魔方摆放成哪种拿法（语义 B：先预摆再执行，同公式不同拿法 → 不同实体状态）
 function drawScrambleNet(alg, canvasId, orientation) {
     const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
     if(!canvas) return;
     const cube = new Cube(3);
-    cube.applyAlg(alg);
+    // 打乱前预摆：把 solved 魔方整体摆成目标拿法（白顶绿前无需摆）
     if (orientation === 'yellow-red') cube.rotateM();
     else if (orientation === 'yellow-blue') cube.rotateX180();
     else if (orientation === 'yellow-green') cube.rotateZ180();
     else if (orientation === 'yellow-orange') { cube.rotateM(); cube.rotateY2(); }
+    // 再按当前拿法坐标系的固定空间轴执行公式字母
+    cube.applyAlg(alg);
     const colors = NET_COLORS;
     const ctx = canvas.getContext('2d');
     const rect = canvas.parentElement.getBoundingClientRect();

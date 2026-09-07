@@ -946,10 +946,12 @@ const FACE_COLORS = { U: '#F9F9F9', D: '#F2F215', F: '#58D568', B: '#1C5FFE', R:
 
 function solveState(formulaStr, size, orientation) {
   const moves = parseFormula(formulaStr);
-  const cube = new Cube(size || 2); // 始终按白顶绿前坐标系构造与执行
-  // 公式固定不变：始终按白顶绿前记号执行；切换拿法只做整体旋转渲染（与 cube-net.js drawScrambleNet 一致）
-  for (const mv of moves) cube.applyMove(mv);
+  const cube = new Cube(size || 2);
+  // 拿法语义 B（2026-09-07 用户确认「同一公式、不同实体状态」）：打乱前先把 solved 魔方
+  // 摆成目标拿法（yellow-red=黄顶红前，先 rotateM），再按当前拿法坐标系的固定空间轴执行公式，
+  // 使同一公式在不同拿法下因打乱前摆放不同而得到不同实体状态（与 cube-net.js drawScrambleNet 一致）。
   if (orientation === 'yellow-red') cube.rotateM();
+  for (const mv of moves) cube.applyMove(mv);
   return cube;
 }
 
