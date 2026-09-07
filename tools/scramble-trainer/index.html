@@ -1346,8 +1346,9 @@ if (document.readyState === 'loading') {
 }
 /* ====================================================================
  * 对照图模块：三阶魔方转动示意图（12 种单层转动，等距投影自绘）
- * 视觉风格参考用户提供参考图：浅蓝圆角卡片 · 白魔方深灰转动层
- * · 亮黄箭头 · 红色粗体标签居中于卡片下方
+ * 视觉风格：浅蓝圆角卡片 · 白魔方深灰转动层 · 亮黄贴面直线箭头
+ * · 红色粗体标签居中于卡片下方
+ * 箭头：贴合魔方表面的直线箭头（沿该层转动切向），顺/逆由指向区分
  * ==================================================================== */
 (function(){
 "use strict";
@@ -1356,23 +1357,25 @@ const MARK = "#6B7280";        /* 深灰：转动层贴纸 */
 const WHITE = "#FFFFFF";       /* 白：未转动贴纸 */
 const EDGE = "#D8DEE7";        /* 贴纸描边 */
 const CARD_BG = "#E6F0FA";     /* 浅蓝圆角卡片 */
-const ARROW = "#FFD60A";       /* 亮黄箭头（顺/逆同色，以指向区分） */
+const ARROW = "#FFD60A";       /* 亮黄直线箭头（顺/逆同色，以指向区分） */
 const LABEL = "#D9232E";       /* 红字标签 */
-const CW = true, CCW = false;
 
+/* 每项: [画在哪个可见面, 面上锚点(3D, 贴纸中心), 箭头方向(3D, 转动切向)]
+ *   锚点所在 cubie 属于该转动层，方向 = 该处贴纸随层转动的移动方向
+ *   面: x=右面 / y=顶面 / z=前面 */
 const MOVES = [
-  {name:"R",  axis:"x", layer: 1, arr:["right",0.60,0.60, [1,0,0], [0,1,0],[0,0,1], CW ]},
-  {name:"R'", axis:"x", layer: 1, arr:["right",0.60,0.60, [1,0,0], [0,1,0],[0,0,1], CCW]},
-  {name:"F",  axis:"z", layer: 1, arr:["front",0.60,0.60, [0,0,1], [1,0,0],[0,1,0], CW ]},
-  {name:"F'", axis:"z", layer: 1, arr:["front",0.60,0.60, [0,0,1], [1,0,0],[0,1,0], CCW]},
-  {name:"L",  axis:"x", layer:-1, arr:["front",0.50,0.50, [-0.55,0,1],[1,0,0],[0,1,0], CCW]},
-  {name:"L'", axis:"x", layer:-1, arr:["front",0.50,0.50, [-0.55,0,1],[1,0,0],[0,1,0], CW ]},
-  {name:"B",  axis:"z", layer:-1, arr:["right",0.50,0.50, [1,0,-0.55],[0,1,0],[0,0,1], CCW]},
-  {name:"B'", axis:"z", layer:-1, arr:["right",0.50,0.50, [1,0,-0.55],[0,1,0],[0,0,1], CW ]},
-  {name:"U",  axis:"y", layer: 1, arr:["top",  0.72,0.72, [0,1,0],  [1,0,0],[0,0,-1],CW ]},
-  {name:"U'", axis:"y", layer: 1, arr:["top",  0.72,0.72, [0,1,0],  [1,0,0],[0,0,-1],CCW]},
-  {name:"D",  axis:"y", layer:-1, arr:["top",  0.42,0.42, [0,1,0],  [1,0,0],[0,0,-1],CCW]},
-  {name:"D'", axis:"y", layer:-1, arr:["top",  0.42,0.42, [0,1,0],  [1,0,0],[0,0,-1],CW ]}
+  {name:"R",  axis:"x", layer: 1, arr:["front",[1, 0, 1],[0,-1,0]]},
+  {name:"R'", axis:"x", layer: 1, arr:["front",[1, 0, 1],[0, 1,0]]},
+  {name:"F",  axis:"z", layer: 1, arr:["top",  [0, 1, 0.9],[1,0,0]]},
+  {name:"F'", axis:"z", layer: 1, arr:["top",  [0, 1, 0.9],[-1,0,0]]},
+  {name:"L",  axis:"x", layer:-1, arr:["front",[-1,0, 1],[0, 1,0]]},
+  {name:"L'", axis:"x", layer:-1, arr:["front",[-1,0, 1],[0,-1,0]]},
+  {name:"B",  axis:"z", layer:-1, arr:["right",[1, 0,-1],[0, 1,0]]},
+  {name:"B'", axis:"z", layer:-1, arr:["right",[1, 0,-1],[0,-1,0]]},
+  {name:"U",  axis:"y", layer: 1, arr:["top",  [0, 1, 0.2],[1,0,0]]},
+  {name:"U'", axis:"y", layer: 1, arr:["top",  [0, 1, 0.2],[-1,0,0]]},
+  {name:"D",  axis:"y", layer:-1, arr:["top",  [0, 1, 0.2],[-1,0,0]]},
+  {name:"D'", axis:"y", layer:-1, arr:["top",  [0, 1, 0.2],[1,0,0]]}
 ];
 const AXIS_IDX = {x:0, y:1, z:2};
 
@@ -1421,42 +1424,35 @@ function drawCube(ctx, cx, cy, axis, layer){
     if(y===1) face(ctx,cx,cy,x,y,z,'y', m?MARK:WHITE);
   }
 }
-function arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, color, width){
-  const steps = 56;
-  const start = cw ? 135 : -135, end = cw ? -135 : 135;
-  const span = end - start;
-  const pts = [];
-  for(let i=0;i<=steps;i++){
-    const th = (start + span*i/steps) * Math.PI/180;
-    const x = center[0] + uvec[0]*u0*Math.cos(th) + vvec[0]*v0*Math.sin(th);
-    const y = center[1] + uvec[1]*u0*Math.cos(th) + vvec[1]*v0*Math.sin(th);
-    const z = center[2] + uvec[2]*u0*Math.cos(th) + vvec[2]*v0*Math.sin(th);
-    pts.push(proj(cx,cy,x,y,z));
-  }
+/* 贴合表面直线箭头：从锚点沿 dir 画直线段，末端带箭头头 */
+function lineArrow(ctx, cx, cy, anchor, dir, color, width){
+  const L = 0.6; /* 箭头线段长度(3D 单位) */
+  const p0 = proj(cx, cy, anchor[0], anchor[1], anchor[2]);
+  const p1 = proj(cx, cy, anchor[0]+dir[0]*L, anchor[1]+dir[1]*L, anchor[2]+dir[2]*L);
   ctx.strokeStyle = color;
   ctx.lineWidth = width;
   ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.moveTo(pts[0][0], pts[0][1]);
-  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.moveTo(p0[0], p0[1]);
+  ctx.lineTo(p1[0], p1[1]);
   ctx.stroke();
-  const tip = pts[pts.length-1], prev = pts[pts.length-2];
-  let dx = tip[0]-prev[0], dy = tip[1]-prev[1];
-  const len = Math.hypot(dx,dy)||1; dx/=len; dy/=len;
-  const ang = Math.atan2(dy,dx);
-  const L = width*2.6;
+  const dx = p1[0]-p0[0], dy = p1[1]-p0[1];
+  const len = Math.hypot(dx,dy)||1;
+  const ux = dx/len, uy = dy/len;
+  const ang = Math.atan2(uy, ux);
+  const hl = width*2.6;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.moveTo(tip[0]+Math.cos(ang)*L, tip[1]+Math.sin(ang)*L);
-  ctx.lineTo(tip[0]+Math.cos(ang+2.5)*L*0.82, tip[1]+Math.sin(ang+2.5)*L*0.82);
-  ctx.lineTo(tip[0]+Math.cos(ang-2.5)*L*0.82, tip[1]+Math.sin(ang-2.5)*L*0.82);
+  ctx.moveTo(p1[0]+Math.cos(ang)*hl, p1[1]+Math.sin(ang)*hl);
+  ctx.lineTo(p1[0]+Math.cos(ang+2.5)*hl*0.82, p1[1]+Math.sin(ang+2.5)*hl*0.82);
+  ctx.lineTo(p1[0]+Math.cos(ang-2.5)*hl*0.82, p1[1]+Math.sin(ang-2.5)*hl*0.82);
   ctx.closePath();
   ctx.fill();
 }
 function drawArrow(ctx, cx, cy, arr){
-  const [faceName, u0, v0, center, uvec, vvec, cw] = arr;
+  const [, anchor, dir] = arr;
   const width = Math.max(3, S*0.16);
-  arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, ARROW, width);
+  lineArrow(ctx, cx, cy, anchor, dir, ARROW, width);
 }
 function roundRect(ctx, x, y, w, h, r){
   ctx.beginPath();
