@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -37,7 +37,6 @@
           <a href="/tools/kmap" data-nav="kmap">知识地图</a>
           <a href="/tools/invert" data-nav="invert">逆序转换</a>
           <a href="/tools/practice" data-nav="practice">练习纸生成</a>
-          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
         </div>
       </div>
       <div class="nav-drop">
@@ -49,13 +48,14 @@
     </div>
   </div>
 </nav>
+
 <div class="header">
   <h1>UR缓冲公式连拧专项训练</h1>
-  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
+  <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UR缓冲复原公式，魔方恢复复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
 <div class="orientation-selector">
-  <span class="orientation-label">复原拿法坐标系</span>
+  <span class="orientation-label">打乱/复原拿法坐标系</span>
   <select id="orientationSelect">
     <option value="white-green">白顶绿前</option>
     <option value="yellow-red" selected>黄顶红前（默认）</option>
@@ -63,7 +63,7 @@
     <option value="yellow-green">黄顶绿前</option>
     <option value="yellow-orange">黄顶橘前</option>
   </select>
-  <span class="orientation-hint">打乱公式、展开图与参考复原公式均按所选拿法坐标系显示（物理效果等价于白顶绿前打乱）；按所选拿法下的复原公式做完，魔方恢复复原状态。</span>
+  <span class="orientation-hint">按所选拿法坐标系打乱，按练习顺序做完复原公式，魔方恢复复原状态。</span>
 </div>
 <div class="entries">
   <div class="entry single">
@@ -73,12 +73,12 @@
     </div>
     <div class="entry-body">
       <div class="diagram">
-        <canvas class="ur-cube" data-formula="D R' S' R S R2 S' R S R D' U' M2 U R' U' M2 U R S R' F' E' R2 E R2 F R S' R' F' R2 E' R' U' R E R' U R' F R R' E' R U' R' F R U R' E R U' R' F' R U D R' E R2 E' R' D' D R S' R' S R2 S' R' S R' D' D U R U' R' D' R' D R2 U R' U' R' D' R S R F' R' S' R F R' R' F' R2 E R' U' R E' R' U R' F R D' U' R' B' R S' R' B R S D U D R2 S' R2 S D' D' R' B R S' R2 S R B' R D S' R' F' R S R2 S' R F R S" data-orientation="white-green"></canvas>
+        <canvas class="ur-cube" data-formula="R2 B' D F B' L' F' D2 R2 D2 L F2 B2 R' F2 U2 D2 L2 U2" data-orientation="white-green"></canvas>
       </div>
       <div class="info-panel">
         <div class="formula-block">
           <span class="label">打乱公式</span>
-          <code id="scramble-formula">D R' S' R S R2 S' R S R D' U' M2 U R' U' M2 U R S R' F' E' R2 E R2 F R S' R' F' R2 E' R' U' R E R' U R' F R R' E' R U' R' F R U R' E R U' R' F' R U D R' E R2 E' R' D' D R S' R' S R2 S' R' S R' D' D U R U' R' D' R' D R2 U R' U' R' D' R S R F' R' S' R F R' R' F' R2 E R' U' R E' R' U R' F R D' U' R' B' R S' R' B R S D U D R2 S' R2 S D' D' R' B R S' R2 S R B' R D S' R' F' R S R2 S' R F R S</code>
+          <code id="scramble-formula">R2 B' D F B' L' F' D2 R2 D2 L F2 B2 R' F2 U2 D2 L2 U2</code>
         </div>
         <div>
           <span class="label">练习顺序</span>
@@ -123,6 +123,7 @@
     </div>
   </div>
 </div>
+
 <div class="footer">
   制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24<br>抖音ID : 魔方总动员
 </div>
@@ -140,13 +141,9 @@
     if (typeof drawScrambleNet === 'undefined') return;
     if (cvs) {
       cvs.setAttribute('data-orientation', ori);
-      if (typeof drawScrambleNet === 'function') {
-        try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
-      }
+      try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
     }
-    if (codeEl) {
-      codeEl.textContent = baseAlg;
-    }
+    if (codeEl) { codeEl.textContent = baseAlg; }
   }
   try {
     var saved = localStorage.getItem('ur-orientation');

@@ -5,24 +5,24 @@ $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $dir
 
 $groups = @(
-    @{ index='1'; name='C组棱练习'; formula='R'' S'' R U2 R'' S R U2 R S2 R'' U2 R S2 R'' U2 S R'' E'' R2 E R'' S'' R E'' R2 E R'' S R2 S'' S R E R2 E'' R S'' R'' E R2 E'' R S R2 S'' R S'' R'' U2 R S R'' U2 S'' R2 S'' R S R2 S R'' U2 R'' E'' R U2 R'' E R R2 S R2 S'' R'' B R'' S R2 S'' R'' B'' R U'' M U2 M'' U'' R S R'' U2 R S'' R'' U2 S'' U2 R2 S R2 U2 R F'' R S R2 S'' R F R'' U M'' U2 M U R'' B'' R'' S R2 S'' R'' B R R U'' R S2 R'' U R S2 R2'; codes=@('CE','CF','CI','CJ','CK','CL','CM','CN','CO','CP','CQ','CR','CS','CT','CW','CX','CY','CZ') }
-    @{ index='2'; name='D组棱练习'; formula='R'' U2 R S'' R'' U2 R S U M U'' R'' U M'' U'' R E'' R E R'' S R'' S'' R S R B2 R'' S'' R B2 R'' E R'' E'' R S R S'' R'' S R'' F2 R S'' R'' F2 R R U2 R'' S'' R U2 R'' S U M U'' R U M'' U'' R'' D'' S R'' F'' R S'' R'' F R D R'' E'' R S R2 S'' R'' E R'' S R B R'' S'' R B'' R'' U2 R B R'' S R B'' R'' S'' U2 R S'' R S R2 S R'' S'' R R'' F'' R2 S R'' U R S'' R'' U'' R'' F R S R'' F'' R S'' R'' F R U2 R'' F'' R S R'' F R S'' U2 S R B'' R'' S'' R B R'' S U R'' E'' R U'' R'' E R S'''; codes=@('DE','DF','DI','DJ','DK','DL','DM','DN','DO','DP','DQ','DR','DS','DT','DW','DX','DY','DZ') }
-    @{ index='3'; name='E组棱练习'; formula='U'' R'' S'' R U'' R'' S R U2 U'' R S2 R'' U'' R S2 R'' U2 U R E'' R'' U'' R E R'' U R'' E2 R U'' R'' E2 R U R'' E R U'' R'' E'' R U R E2 R'' U'' R E2 R'' U'' R S'' R'' U'' R S R'' U2 U R'' U'' R2 U'' R'' U R'' U R U2 R U R'' U R'' E'' R U'' R'' E R U R E'' R2 E R U'' R'' E'' R2 E R'' r'' U R U'' M'' U R'' U'' R S R B'' R2 E'' R2 E B R'' S'' U'' R S R'' U'' R S'' R'' U2 S'' R B'' R'' S R2 S'' R'' B R'' S U'' M'' U'' M U'' M'' U'' M R F R'' U R'' E R U'' R'' E'' R2 F'' R'''; codes=@('EI','EJ','EK','EL','EM','EN','EO','EP','EQ','ER','ES','ET','EW','EX','EY','EZ') }
-    @{ index='4'; name='F组棱练习'; formula='S'' U'' R S2 R'' U R S2 R'' S S'' U'' R'' S'' R U R'' S R S U R F R2 E'' R2 E F'' R'' U'' R'' E'' R U R'' E R2 E'' R'' U'' R'' E R S U R E R2 E'' R U'' S'' R'' B'' E R2 E'' R2 B R R'' u R'' E R2 E'' R'' u'' R S'' U'' R S'' R'' U R S R'' S R B'' R'' S'' R B R'' S U S'' R'' F R S R'' F'' R U'' R'' B'' R2 E'' R2 E B R R B R'' U R E'' R'' U'' R E B'' R'' R B'' R S'' R'' B R S R2 R'' B'' R'' S'' R2 S R'' B R D R B'' R'' S'' R B R'' S D'' U R F E R2 E'' R2 F'' R'' U'''; codes=@('FI','FJ','FK','FL','FM','FN','FO','FP','FQ','FR','FS','FT','FW','FX','FY','FZ') }
-    @{ index='5'; name='I组棱练习'; formula='D R'' S'' R S R2 S'' R S R D'' U'' M2 U R'' U'' M2 U R S R'' F'' E'' R2 E R2 F R S'' R'' F'' R2 E'' R'' U'' R E R'' U R'' F R R'' E'' R U'' R'' F R U R'' E R U'' R'' F'' R U D R'' E R2 E'' R'' D'' D R S'' R'' S R2 S'' R'' S R'' D'' D U R U'' R'' D'' R'' D R2 U R'' U'' R'' D'' R S R F'' R'' S'' R F R'' R'' F'' R2 E R'' U'' R E'' R'' U R'' F R D'' U'' R'' B'' R S'' R'' B R S D U D R2 S'' R2 S D'' D'' R'' B R S'' R2 S R B'' R D S'' R'' F'' R S R2 S'' R F R S'; codes=@('IK','IL','IM','IN','IO','IP','IQ','IR','IS','IT','IW','IX','IY','IZ') }
-    @{ index='6'; name='J组棱练习'; formula='u M'' U'' R U M U'' R'' E U M'' U'' R'' U M U'' R U'' R'' F'' R2 E'' R'' U R E R'' U'' R'' F R U R F'' E'' R2 E R2 F R'' R'' E R S'' R'' F'' R S R'' F E'' R R F'' R'' U M U'' R F R'' U M'' U'' R'' F R E'' R'' F R E R'' F2 R U M'' U'' R U M U'' R'' R'' F'' R S'' R'' F R S R F R'' U M U'' R F'' R'' U M'' U'' D'' U'' R B'' R'' S'' R2 S R'' B R'' D U D U'' S'' R'' B'' R S R'' B R D'' U R'' F'' R'' S'' R F R'' S R2 R F'' R S'' R2 S R F R'''; codes=@('JK','JL','JM','JN','JO','JP','JQ','JR','JS','JT','JW','JX','JY','JZ') }
-    @{ index='7'; name='K组棱练习'; formula='U'' B'' R S'' R'' B R S R'' U R2 S R2 S R'' S'' R2 S'' R'' R2 S'' R E'' R2 E R S R2 R E'' R2 E R S'' R2 S R2 R2 S'' R'' E R2 E'' R'' S R2 R'' E R2 E'' R'' S'' R2 S R2 U'' R2 B'' R S'' R'' B R S R U R2 S R2 S R S'' R2 S'' R U'' R'' B'' R S'' R'' B R S U S'' R2 S R2 R'' B R S'' R2 S R B'' R S'' R B R S R2 S'' R B'' R'' S'; codes=@('KM','KN','KO','KP','KQ','KR','KS','KT','KW','KX','KY','KZ') }
-    @{ index='8'; name='L组棱练习'; formula='R'' u'' R U R2 S'' R2 S U'' R'' u R R E R S'' R'' S R'' E'' E'' R E R S'' R'' S R'' R E'' R S'' R2 S R E R'' E R'' E'' R'' S'' R S R R'' E R'' S'' R2 S R'' E'' R R u R'' U'' R2 S'' R2 S U R u'' R'' R'' E'' R'' S'' R S R E U'' R B'' R'' S'' R2 S R'' B R'' U R'' E'' R'' S'' R2 S R E R'' R2 S'' R'' B R S R'' B'' R'' D R F'' R S'' R2 S R F R'' D'''; codes=@('LM','LN','LO','LP','LQ','LR','LS','LT','LW','LX','LY','LZ') }
-    @{ index='9'; name='M组棱练习'; formula='D'' R'' S'' R S R2 S'' R S R D U M2 U'' R'' U M2 U'' R R'' B'' R2 E'' R'' U R E R'' U'' R'' B R D'' R E'' R2 E R D S R B E R2 E'' R2 B'' R'' S'' D'' R'' E R2 E'' R'' D U'' B'' R2 E'' R2 E B U U R U'' R2 D'' R D R U R'' D'' U'' R'' D R S R'' B R S'' R'' B'' R R'' D R S'' R2 S R D'' R'; codes=@('MO','MP','MQ','MR','MS','MT','MW','MX','MY','MZ') }
-    @{ index='10'; name='N组棱练习'; formula='M U'' R'' S'' R U'' R'' S R U2 M'' U'' M U R'' U'' M'' U R D'' U R'' F R2 E'' R2 E F'' R D U'' R'' B R U'' M'' U R'' B'' R U'' M U M U R'' E R U'' R'' E'' r R'' B E R2 E'' R2 B'' R M U'' R S'' R'' U'' R S R'' U2 M'' U'' M U R U'' M'' U R'' R B R'' S'' R B'' R'' S R'' B'' R U'' M'' U R'' B R U'' M U'; codes=@('NO','NP','NQ','NR','NS','NT','NW','NX','NY','NZ') }
-    @{ index='11'; name='O组棱练习'; formula='R'' S'' R S R2 S'' R S R U'' R'' U R D R D'' R2 U'' R U R D R'' D'' R2 S'' R E'' R2 E R'' S R E'' R2 E R R2 S'' R'' E R2 E'' R S R'' E R2 E'' R'' R S'' R'' S R2 S'' R'' S R'' U R U'' R'' D'' R'' D R2 U R'' U'' R'' D'' R D'; codes=@('OQ','OR','OS','OT','OW','OX','OY','OZ') }
-    @{ index='12'; name='P组棱练习'; formula='U'' R U S U'' R'' U S'' R'' u R U'' R'' E R U R'' U'' R U R'' F R2 E'' R2 E F'' R U'' S'' R B2 R'' S R B2 R'' U'' R B'' R2 E R2 E'' B R'' U S'' R'' F2 R S R'' F2 R U'' R'' U S U'' R U S'' R u'' R'' U R E'' R'' U'' R U R'''; codes=@('PQ','PR','PS','PT','PW','PX','PY','PZ') }
-    @{ index='13'; name='Q组棱练习'; formula='u R U'' R'' E R U R'' U'' U2 R S R2 S'' R U2 R U R'' U'' R E'' R'' U R u'' R'' U'' R'' U R E'' R2 E R U'' R U U R'' F'' R E'' R'' F R u'' U'' R'' U R'' E R2 E'' R'' U'' R U'; codes=@('QS','QT','QW','QX','QY','QZ') }
-    @{ index='14'; name='R组棱练习'; formula='S'' R S R2 S'' R S U'' R'' U R E R'' U'' R u R S'' R'' S R'' E'' R2 E R'' S'' R S R'' u'' R2 E R U R'' E'' R U'' R u U'' B'' R2 E R2 E'' B U R u'' R'' U R E'' R2 E R U'' R u R'''; codes=@('RS','RT','RW','RX','RY','RZ') }
-    @{ index='15'; name='S组棱练习'; formula='S'' R'' S R E R2 E'' R S'' R S U'' R U R E R2 E'' R U'' R'' U U'' R B R'' E'' R B'' R'' E U R E'' R2 E R2 E R2 E'' R'; codes=@('SW','SX','SY','SZ') }
-    @{ index='16'; name='T组棱练习'; formula='u'' R'' U R E'' R2 E R U'' R u R'' u'' R U R'' E'' R U'' R'' U R R F R'' U'' R E'' R'' U R E F'' R'' E U R'' F'' R E'' R'' F R U'''; codes=@('TW','TX','TY','TZ') }
-    @{ index='17'; name='W组棱练习'; formula='R'' u R U'' R E R2 E'' R U R'' u'' R U'' R U R'' E'' R2 E R'' U'' R'' U'; codes=@('WY','WZ') }
-    @{ index='18'; name='X组棱练习'; formula='u'' R'' U R E2 R'' U'' R'' E R2 U U R'' U'' R E'' R'' U R u'''; codes=@('XY','XZ') }
+    @{ index='1'; name='C组棱练习'; formula='R2 U R2 D2 U B2 L2 B2 U'' R2 B2 U'' L'' B R B'' F D'' F'' L R2'; codes=@('CE','CF','CI','CJ','CK','CL','CM','CN','CO','CP','CQ','CR','CS','CT','CW','CX','CY','CZ') }
+    @{ index='2'; name='D组棱练习'; formula='D'' B L'' F B'' U F L B2 D2 F2 L B2 L F2 D2 F2 R U2 D'''; codes=@('DE','DF','DI','DJ','DK','DL','DM','DN','DO','DP','DQ','DR','DS','DT','DW','DX','DY','DZ') }
+    @{ index='3'; name='E组棱练习'; formula='D2 R2 B2 R2 U F2 R2 F2 U'' R2 L'' B R B'' F D'' F'' L R2'; codes=@('EI','EJ','EK','EL','EM','EN','EO','EP','EQ','ER','ES','ET','EW','EX','EY','EZ') }
+    @{ index='4'; name='F组棱练习'; formula='B2 U R2 F2 R2 D R2 F2 D'' U2 L2 U R'' B'' D'' R'' B2 R'' B D R'; codes=@('FI','FJ','FK','FL','FM','FN','FO','FP','FQ','FR','FS','FT','FW','FX','FY','FZ') }
+    @{ index='5'; name='I组棱练习'; formula='R2 B'' D F B'' L'' F'' D2 R2 D2 L F2 B2 R'' F2 U2 D2 L2 U2'; codes=@('IK','IL','IM','IN','IO','IP','IQ','IR','IS','IT','IW','IX','IY','IZ') }
+    @{ index='6'; name='J组棱练习'; formula='B D2 B2 L2 F L2 B U2 F D2 F D2 R'' B U F2 D'' L'' D B'; codes=@('JK','JL','JM','JN','JO','JP','JQ','JR','JS','JT','JW','JX','JY','JZ') }
+    @{ index='7'; name='K组棱练习'; formula='F'' D L2 F2 U L2 R2 D'' U'' L2 B2 L2 U'' B'' F'' L'' B2 F'' D2 U2'; codes=@('KM','KN','KO','KP','KQ','KR','KS','KT','KW','KX','KY','KZ') }
+    @{ index='8'; name='L组棱练习'; formula='B R'' F B'' D F U2 R2 U2 D2 L'' D2 F2 U2 R U2'; codes=@('LM','LN','LO','LP','LQ','LR','LS','LT','LW','LX','LY','LZ') }
+    @{ index='9'; name='M组棱练习'; formula='R'' D L2 D'' B2 R2 B2 D2 U'' F2 L2 D'' L B U B2 D'' B'''; codes=@('MO','MP','MQ','MR','MS','MT','MW','MX','MY','MZ') }
+    @{ index='10'; name='N组棱练习'; formula='L F2 U2 B2 R D2 B2 U B D2 U2 F'' D2 U'''; codes=@('NO','NP','NQ','NR','NS','NT','NW','NX','NY','NZ') }
+    @{ index='11'; name='O组棱练习'; formula='F2 D2 U2 L'' F2 L'' D2 U2 R2 B F'' U'' B2 U B'' F'''; codes=@('OQ','OR','OS','OT','OW','OX','OY','OZ') }
+    @{ index='12'; name='P组棱练习'; formula='R D2 U2 L'' D2 U2 R D U'' B'' D'' U'; codes=@('PQ','PR','PS','PT','PW','PX','PY','PZ') }
+    @{ index='13'; name='Q组棱练习'; formula='D R2 D'' U'' R2 D2 B'' D2 R2 U2 F U'''; codes=@('QS','QT','QW','QX','QY','QZ') }
+    @{ index='14'; name='R组棱练习'; formula='R D2 B2 U2 L'' U2 B2 D'' U'' B'' D'' U R'''; codes=@('RS','RT','RW','RX','RY','RZ') }
+    @{ index='15'; name='S组棱练习'; formula='U F2 D2 L2 U2 B'' D2 R2 U2 F U'''; codes=@('SW','SX','SY','SZ') }
+    @{ index='16'; name='T组棱练习'; formula='U2 L'' B2 U2 F2 R'' D2 R2 D U'' B'' D'' U R'' F2'; codes=@('TW','TX','TY','TZ') }
+    @{ index='17'; name='W组棱练习'; formula='D'' F2 D2 L2 R2 D U'' F2 B'' D2 R2 U2 F U'''; codes=@('WY','WZ') }
+    @{ index='18'; name='X组棱练习'; formula='U2 R'' B2 R U2 F2 R F2 D2 U2 L'' D2 B'' U B'' U2 F U'' F'''; codes=@('XY','XZ') }
 )
 $nav = @'
 <nav class="site-nav" id="siteNav">
@@ -130,11 +130,11 @@ __HEAD__
 
 <div class="header">
   <h1>UR缓冲公式连拧专项训练</h1>
-  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。</div>
+  <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UR缓冲复原公式，魔方恢复复原状态。</div>
 </div>
 <a class="back-link" href="index.html">← 返回训练组总览</a>
 <div class="orientation-selector">
-  <span class="orientation-label">复原拿法坐标系</span>
+  <span class="orientation-label">打乱/复原拿法坐标系</span>
   <select id="orientationSelect">
     <option value="white-green">白顶绿前</option>
     <option value="yellow-red" selected>黄顶红前（默认）</option>
@@ -142,7 +142,7 @@ __HEAD__
     <option value="yellow-green">黄顶绿前</option>
     <option value="yellow-orange">黄顶橘前</option>
   </select>
-  <span class="orientation-hint">打乱公式、展开图与参考复原公式均按所选拿法坐标系显示（物理效果等价于白顶绿前打乱）；按所选拿法下的复原公式做完，魔方恢复复原状态。</span>
+  <span class="orientation-hint">按所选拿法坐标系打乱，按练习顺序做完复原公式，魔方恢复复原状态。</span>
 </div>
 <div class="entries">
   <div class="entry single">
@@ -189,16 +189,12 @@ __FOOTER__
   var baseAlg = cvs ? (cvs.getAttribute('data-formula') || '') : '';
   var valid = ['white-green', 'yellow-red', 'yellow-blue', 'yellow-green', 'yellow-orange'];
   function applyOri(ori) {
-    if (typeof mapAlgOrientation === 'undefined') return;
+    if (typeof drawScrambleNet === 'undefined') return;
     if (cvs) {
       cvs.setAttribute('data-orientation', ori);
-      if (typeof drawScrambleNet === 'function') {
-        try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
-      }
+      try { drawScrambleNet(baseAlg, cvs, ori); } catch (e) {}
     }
-    if (codeEl) {
-      codeEl.textContent = (ori === 'white-green') ? baseAlg : mapAlgOrientation(baseAlg, ori);
-    }
+    if (codeEl) { codeEl.textContent = baseAlg; }
   }
   try {
     var saved = localStorage.getItem('ur-orientation');
@@ -261,7 +257,7 @@ __HEAD__
 
 <div class="header">
   <h1>UR缓冲公式连拧专项训练</h1>
-  <div class="sub">白顶绿前打乱，打乱之后按照顺序做UR缓冲的复原公式，按照顺序做完，魔方会是复原状态。点击组卡片进入对应子页训练。</div>
+  <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UR缓冲复原公式，魔方恢复复原状态。点击组卡片进入对应子页训练。</div>
 </div>
 <div class="entries">
   <div class="group-grid">
