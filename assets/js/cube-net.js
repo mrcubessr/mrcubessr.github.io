@@ -1,216 +1,225 @@
 
 // ===== 统一基准模块 v2 =====
-// practice 页已验证 Cube 类（标准 WCA U/D 方向）+ net 中层/宽转/整体转 + 修正版 parseScrambleNet
-// 实现基于 cubing v0.63.4 KPattern（弃用易错的 strip-cycling）；
-// 3x3 单步 27 + fuzz 100、2x2 单步 18 + fuzz 50 全部 0 错误（与 cubing 100% 一致）。
+// 物理几何引擎：每个贴纸建模为 (pos, nrm)，转动 = Rodrigues 旋转
+// 已用 oracle.mjs 对拍验证：5 视图 × 2 阶 × 21 算法 + 5 视图 × 2 阶 × 50 fuzz 全部 0 错。
 const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
 
-// 角块/棱块槽位（白顶绿前坐标系）
-const CORNER_SLOTS_3 = [
-  { idx:0, name:"FRU", cells:[["U",2,2],["F",0,2],["R",0,0]] },
-  { idx:1, name:"BRU", cells:[["U",0,2],["B",0,0],["R",0,2]] },
-  { idx:2, name:"BLU", cells:[["U",0,0],["L",0,0],["B",0,2]] },
-  { idx:3, name:"FLU", cells:[["U",2,0],["F",0,0],["L",0,2]] },
-  { idx:4, name:"DFR", cells:[["D",0,2],["F",2,2],["R",2,0]] },
-  { idx:5, name:"DFL", cells:[["D",0,0],["L",2,2],["F",2,0]] },
-  { idx:6, name:"BDL", cells:[["D",2,0],["B",2,2],["L",2,0]] },
-  { idx:7, name:"BDR", cells:[["D",2,2],["B",2,0],["R",2,2]] },
-];
-const CORNER_SLOTS_2 = [
-  { idx:0, name:"FRU", cells:[["U",1,1],["F",0,1],["R",0,0]] },
-  { idx:1, name:"BRU", cells:[["U",0,1],["B",0,0],["R",0,1]] },
-  { idx:2, name:"BLU", cells:[["U",0,0],["L",0,0],["B",0,1]] },
-  { idx:3, name:"FLU", cells:[["U",1,0],["F",0,0],["L",0,1]] },
-  { idx:4, name:"DFR", cells:[["D",0,1],["F",1,1],["R",1,0]] },
-  { idx:5, name:"DFL", cells:[["D",0,0],["L",1,1],["F",1,0]] },
-  { idx:6, name:"BDL", cells:[["D",1,0],["B",1,1],["L",1,0]] },
-  { idx:7, name:"BDR", cells:[["D",1,1],["B",1,0],["R",1,1]] },
-];
-const EDGE_SLOTS_3 = [
-  { idx:0,  name:"FU", cells:[["U",2,1],["F",0,1]] },
-  { idx:1,  name:"RU", cells:[["U",1,2],["R",0,1]] },
-  { idx:2,  name:"BU", cells:[["U",0,1],["B",0,1]] },
-  { idx:3,  name:"LU", cells:[["U",1,0],["L",0,1]] },
-  { idx:4,  name:"DF", cells:[["D",0,1],["F",2,1]] },
-  { idx:5,  name:"DR", cells:[["D",1,2],["R",2,1]] },
-  { idx:6,  name:"DB", cells:[["D",2,1],["B",2,1]] },
-  { idx:7,  name:"DL", cells:[["D",1,0],["L",2,1]] },
-  { idx:8,  name:"FR", cells:[["F",1,2],["R",1,0]] },
-  { idx:9,  name:"FL", cells:[["F",1,0],["L",1,2]] },
-  { idx:10, name:"BR", cells:[["B",1,0],["R",1,2]] },
-  { idx:11, name:"BL", cells:[["B",1,2],["L",1,0]] },
-];
-const CORNER_STICKER_FACES = {};
-for (const s of CORNER_SLOTS_3) CORNER_STICKER_FACES[s.idx] = s.cells.map(([f]) => f);
-const EDGE_STICKER_FACES = {};
-for (const s of EDGE_SLOTS_3) EDGE_STICKER_FACES[s.idx] = s.cells.map(([f]) => f);
-
-// cubing v0.63.4 move 表（仅 9 个基本面 + 中层；prime/double 由 count 展开）
-const MOVE_DATA = {
-  "U":{ CORNERS:{ permutation:[1,2,3,0,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
-        EDGES:  { permutation:[1,2,3,0,4,5,6,7,8,9,10,11], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
-  "D":{ CORNERS:{ permutation:[0,1,2,3,5,6,7,4], orientationDelta:[0,0,0,0,0,0,0,0] },
-        EDGES:  { permutation:[0,1,2,3,7,4,5,6,8,9,10,11], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
-  "R":{ CORNERS:{ permutation:[4,0,2,3,7,5,6,1], orientationDelta:[2,1,0,0,1,0,0,2] },
-        EDGES:  { permutation:[0,8,2,3,4,10,6,7,5,9,1,11], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
-  "L":{ CORNERS:{ permutation:[0,1,6,2,4,3,5,7], orientationDelta:[0,0,2,1,0,2,1,0] },
-        EDGES:  { permutation:[0,1,2,11,4,5,6,9,8,3,10,7], orientationDelta:[0,0,0,0,0,0,0,0,0,0,0,0] } },
-  "F":{ CORNERS:{ permutation:[3,1,2,5,0,4,6,7], orientationDelta:[1,0,0,2,2,1,0,0] },
-        EDGES:  { permutation:[9,1,2,3,8,5,6,7,0,4,10,11], orientationDelta:[1,0,0,0,1,0,0,0,1,1,0,0] } },
-  "B":{ CORNERS:{ permutation:[0,7,1,3,4,5,2,6], orientationDelta:[0,2,1,0,0,0,2,1] },
-        EDGES:  { permutation:[0,1,10,3,4,5,11,7,8,9,6,2], orientationDelta:[0,0,1,0,0,0,1,0,0,0,1,1] } },
-  "M":{ CORNERS:{ permutation:[0,1,2,3,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
-        EDGES:  { permutation:[2,1,6,3,0,5,4,7,8,9,10,11], orientationDelta:[1,0,1,0,1,0,1,0,0,0,0,0] } },
-  "E":{ CORNERS:{ permutation:[0,1,2,3,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
-        EDGES:  { permutation:[0,1,2,3,4,5,6,7,9,11,8,10], orientationDelta:[0,0,0,0,0,0,0,0,1,1,1,1] } },
-  "S":{ CORNERS:{ permutation:[0,1,2,3,4,5,6,7], orientationDelta:[0,0,0,0,0,0,0,0] },
-        EDGES:  { permutation:[0,3,2,7,4,1,6,5,8,9,10,11], orientationDelta:[0,1,0,1,0,1,0,1,0,0,0,0] } },
+// ===== 6 面定义 =====
+const _FD = {
+  U: { n: [0, 1, 0],  r: [ 1, 0, 0], d: [0,  0,  1] },
+  D: { n: [0,-1, 0],  r: [ 1, 0, 0], d: [0,  0, -1] },
+  F: { n: [0, 0, 1],  r: [ 1, 0, 0], d: [0, -1,  0] },
+  B: { n: [0, 0,-1],  r: [-1, 0, 0], d: [0, -1,  0] },
+  R: { n: [1, 0, 0],  r: [ 0, 0,-1], d: [0, -1,  0] },
+  L: { n: [-1,0, 0],  r: [ 0, 0, 1], d: [0, -1,  0] },
 };
+const _FS = ['U', 'D', 'F', 'B', 'R', 'L'];
+const _COLOR_OF = { U:'U', R:'R', F:'F', D:'D', L:'L', B:'B' };
+
+// ===== 转轴定义 =====
+const _TD = {
+  U: { axis: [0, 1, 0],  outer: true },
+  D: { axis: [0,-1, 0],  outer: true },
+  F: { axis: [0, 0, 1],  outer: true },
+  B: { axis: [0, 0,-1],  outer: true },
+  R: { axis: [1, 0, 0],  outer: true },
+  L: { axis: [-1,0, 0],  outer: true },
+  M: { axis: [-1,0, 0],  middle: true },
+  E: { axis: [0,-1, 0],  middle: true },
+  S: { axis: [0, 0, 1],  middle: true },
+  r: { axis: [1, 0, 0],  wide: true },
+  l: { axis: [-1,0, 0],  wide: true },
+  u: { axis: [0, 1, 0],  wide: true },
+  d: { axis: [0,-1, 0],  wide: true },
+  f: { axis: [0, 0, 1],  wide: true },
+  b: { axis: [0, 0,-1],  wide: true },
+  x: { axis: [1, 0, 0],  all: true },
+  y: { axis: [0, 1, 0],  all: true },
+  z: { axis: [0, 0, 1],  all: true },
+};
+
+// Rodrigues 90°: v' = axis*(axis·v) + sign*(axis × v)
+function _rot90(v, a, sign) {
+  const dot = a[0]*v[0] + a[1]*v[1] + a[2]*v[2];
+  const cx = a[1]*v[2] - a[2]*v[1];
+  const cy = a[2]*v[0] - a[0]*v[2];
+  const cz = a[0]*v[1] - a[1]*v[0];
+  return [a[0]*dot + sign*cx, a[1]*dot + sign*cy, a[2]*dot + sign*cz];
+}
+
+function _buildSolved(n) {
+  const st = [];
+  for (const f of _FS) {
+    const { n: nv, r: rv, d: dv } = _FD[f];
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const offR = (2 * j - (n - 1)) / 2;
+        const offD = (2 * i - (n - 1)) / 2;
+        st.push({
+          pos: [
+            nv[0] * (n / 2) + rv[0] * offR + dv[0] * offD,
+            nv[1] * (n / 2) + rv[1] * offR + dv[1] * offD,
+            nv[2] * (n / 2) + rv[2] * offR + dv[2] * offD,
+          ],
+          nrm: nv.slice(),
+          color: _COLOR_OF[f],
+        });
+      }
+    }
+  }
+  return st;
+}
+
+function _toFaces(st, n) {
+  const faces = {};
+  for (const f of _FS) faces[f] = Array.from({ length: n }, () => Array(n).fill('?'));
+  for (const s of st) {
+    let face = null;
+    for (const f of _FS) {
+      const nv = _FD[f].n;
+      if (Math.abs(s.nrm[0]-nv[0])<1e-6 && Math.abs(s.nrm[1]-nv[1])<1e-6 && Math.abs(s.nrm[2]-nv[2])<1e-6) { face = f; break; }
+    }
+    if (!face) continue;
+    const { r: rv, d: dv } = _FD[face];
+    const pr = s.pos[0]*rv[0] + s.pos[1]*rv[1] + s.pos[2]*rv[2];
+    const pd = s.pos[0]*dv[0] + s.pos[1]*dv[1] + s.pos[2]*dv[2];
+    const c = Math.round(pr + (n-1)/2);
+    const rr = Math.round(pd + (n-1)/2);
+    faces[face][rr][c] = s.color;
+  }
+  return faces;
+}
+
+// 公式解析（与 cube-net.js 老 parseScrambleNet 一致，但已修复 D'F 类紧邻写法）
+const _PRIMES = new Set(["'", "\u2019", "\u2032", "\u02BC", "\u00B4", "\u02C8"]);
+const _BASE_RE = /^[RULDFBMESrludfbxyz]$/;
+
+function _expandMove(base, dir) {
+  if (dir === 2 && ['r','l','u','d','f','b','x','y','z'].indexOf(base) >= 0) {
+    const once = _expandMove(base, 1);
+    return once.concat(once);
+  }
+  const seq = [];
+  const push = (face, d) => seq.push({face, dir: d});
+  const pushMid = (mid, d) => seq.push({mid, dir: d});
+  switch (base) {
+    case 'U': push('U', dir); break; case 'D': push('D', dir); break;
+    case 'F': push('F', dir); break; case 'B': push('B', dir); break;
+    case 'R': push('R', dir); break; case 'L': push('L', dir); break;
+    case 'M': pushMid('M', dir); break; case 'E': pushMid('E', dir); break; case 'S': pushMid('S', dir); break;
+    case 'r': push('R', dir); pushMid('M', -dir); break;
+    case 'l': push('L', dir); pushMid('M', dir); break;
+    case 'u': push('U', dir); pushMid('E', -dir); break;
+    case 'd': push('D', dir); pushMid('E', dir); break;
+    case 'f': push('F', dir); pushMid('S', dir); break;
+    case 'b': push('B', dir); pushMid('S', -dir); break;
+    case 'x': push('R', dir); pushMid('M', -dir); push('L', -dir); break;
+    case 'y': push('U', dir); pushMid('E', -dir); push('D', -dir); break;
+    case 'z': push('F', dir); pushMid('S', dir); push('B', -dir); break;
+  }
+  return seq;
+}
+
+function _tokenize(str) {
+  const s = String(str || '').replace(/\s+/g, '');
+  const out = [];
+  let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (!_BASE_RE.test(ch)) { i++; continue; }
+    const base = ch; i++;
+    let dir = 1;
+    if (s[i] === '2') { dir = 2; i++; }
+    else if (_PRIMES.has(s[i])) { dir = -1; i++; }
+    out.push({face: base, dir});
+  }
+  return out;
+}
 
 class Cube {
   constructor(size) {
     this.size = size || 3;
-    this._corners = { pieces:[0,1,2,3,4,5,6,7], orientation:[0,0,0,0,0,0,0,0] };
-    this._edges   = { pieces:[0,1,2,3,4,5,6,7,8,9,10,11], orientation:[0,0,0,0,0,0,0,0,0,0,0,0] };
-    this.faces = this._defaultFaces();
-    this._refreshFaces();
+    this._st = _buildSolved(this.size);
+    this._refresh();
   }
-
-  _defaultFaces() {
-    const f = {};
-    for (const face of ['U','D','F','B','R','L']) {
-      f[face] = [];
-      for (let r = 0; r < this.size; r++) {
-        f[face][r] = [];
-        for (let c = 0; c < this.size; c++) f[face][r][c] = face;
-      }
-    }
-    return f;
-  }
-
-  _refreshFaces() {
-    this.faces = this._defaultFaces();
-    const cs = (this.size === 2) ? CORNER_SLOTS_2 : CORNER_SLOTS_3;
-    for (let s = 0; s < 8; s++) {
-      const M = this._corners.pieces[s];
-      const orient = this._corners.orientation[s];
-      const n = 3;
-      for (let i = 0; i < n; i++) {
-        const [f, r, c] = cs[s].cells[i];
-        this.faces[f][r][c] = CORNER_STICKER_FACES[M][(i - orient + n) % n];
-      }
-    }
-    if (this.size === 2) return; // 2x2 无棱
-    for (let s = 0; s < 12; s++) {
-      const M = this._edges.pieces[s];
-      const orient = this._edges.orientation[s];
-      const n = 2;
-      for (let i = 0; i < n; i++) {
-        const [f, r, c] = EDGE_SLOTS_3[s].cells[i];
-        this.faces[f][r][c] = EDGE_STICKER_FACES[M][(i - orient + n) % n];
-      }
-    }
-  }
-
+  _refresh() { this.faces = _toFaces(this._st, this.size); }
   getFace(face) { return this.faces[face]; }
 
-  // 转动接口：move = {face|'U'..'B'|'M'/'E'/'S', dir 1/-1/2} 或 {mid, dir}（兼容 worksheet 风格）
-  applyMove(move) {
-    const baseName = move.mid || move.face;
-    let count = 1;
-    if (move.dir === -1) count = 3;
-    else if (move.dir === 2) count = 2;
-    for (let i = 0; i < count; i++) this._applyBaseMove(baseName);
-    this._refreshFaces();
+  // 单步：{face,dir} 或 {mid,dir}
+  applyMove(mv) {
+    let face, dir;
+    if (mv.mid) { face = mv.mid; dir = mv.dir; }
+    else { face = mv.face; dir = mv.dir; }
+    const s = face + (dir === 2 ? '2' : (dir === -1 ? "'" : ''));
+    this.applyAlg(s);
   }
 
-  _applyBaseMove(name) {
-    const mv = MOVE_DATA[name];
-    if (!mv) throw new Error("unknown move: " + name);
-    const cp = new Array(8), co = new Array(8);
-    for (let i = 0; i < 8; i++) {
-      cp[i] = this._corners.pieces[mv.CORNERS.permutation[i]];
-      let o = this._corners.orientation[mv.CORNERS.permutation[i]] + mv.CORNERS.orientationDelta[i];
-      co[i] = ((o % 3) + 3) % 3;
-    }
-    this._corners.pieces = cp; this._corners.orientation = co;
-    const ep = new Array(12), eo = new Array(12);
-    for (let i = 0; i < 12; i++) {
-      ep[i] = this._edges.pieces[mv.EDGES.permutation[i]];
-      let o = this._edges.orientation[mv.EDGES.permutation[i]] + mv.EDGES.orientationDelta[i];
-      eo[i] = ((o % 2) + 2) % 2;
-    }
-    this._edges.pieces = ep; this._edges.orientation = eo;
-  }
-
-  // 公式串展开 + 应用（依赖外部 parseScrambleNet）
   applyAlg(alg) {
-    for (const mv of parseScrambleNet(alg)) this.applyMove(mv);
+    const tokens = _tokenize(alg);
+    for (const tk of tokens) {
+      const def = _TD[tk.face];
+      if (!def) continue;
+      const a = def.axis;
+      const times = tk.dir === 2 ? 2 : 1;
+      const sign = tk.dir === 2 ? 1 : -tk.dir;
+      for (let t = 0; t < times; t++) {
+        for (const s of this._st) {
+          const tt = s.pos[0]*a[0] + s.pos[1]*a[1] + s.pos[2]*a[2];
+          let inLayer;
+          if (def.all) inLayer = true;
+          else if (def.middle) inLayer = Math.abs(tt) < (this.size/2 - 0.5);
+          else if (def.wide) inLayer = (this.size <= 2) ? (tt > this.size/2 - 1) : (tt > this.size/2 - 2);
+          else inLayer = tt > (this.size/2 - 1);
+          if (!inLayer) continue;
+          s.pos = _rot90(s.pos, a, sign);
+          s.nrm = _rot90(s.nrm, a, sign);
+        }
+      }
+    }
+    this._refresh();
   }
 
-  // 整体旋转坐标系 M:(x,y,z)->(z,-y,x)：黄顶红前 = 原D顶、原R前
-  // 新U=原D、新D=原U、新F=原R、新R=原F、新B=原L、新L=原B
+  // 黄顶红前：M 矩阵 (x,y,z) -> (z,-y,x)
   rotateM() {
-    const n = this.size - 1;
-    const u = this.faces.U, d = this.faces.D, ff = this.faces.F;
-    const b = this.faces.B, r = this.faces.R, l = this.faces.L;
-    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
-    const cw  = (m) => m.map((row, i) => row.map((_, j) => m[n - j][i]));
-    const ccw = (m) => m.map((row, i) => row.map((_, j) => m[j][n - i]));
-    const rotV = (m) => m.map((row, i) => m[n - i]);
-    this.faces = {
-      U: cw(d), D: ccw(u), F: rot(r), R: rot(ff), B: rotV(l), L: rotV(b),
-    };
+    const M = (v) => [v[2], -v[1], v[0]];
+    for (const s of this._st) { s.pos = M(s.pos); s.nrm = M(s.nrm); }
+    this._refresh();
   }
-
-  // 黄顶蓝前：绕 x 轴（R-L 方向）180°，新U=原D、新F=原B、新R=原R
+  // 黄顶蓝前：绕 x 轴 180°
   rotateX180() {
-    const n = this.size - 1;
-    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
-    const rotV = (m) => m.map((row, i) => m[n - i]);
-    this.faces = {
-      U: this.faces.D, D: this.faces.U,
-      F: rotV(this.faces.B), B: rotV(this.faces.F),
-      R: rot(this.faces.R), L: rot(this.faces.L),
-    };
+    const M = (v) => [v[0], -v[1], -v[2]];
+    for (const s of this._st) { s.pos = M(s.pos); s.nrm = M(s.nrm); }
+    this._refresh();
   }
-
-  // 黄顶绿前：绕 z 轴（F-B 方向）180°，新U=原D、新F=原F、新R=原L
+  // 黄顶绿前：绕 z 轴 180°
   rotateZ180() {
-    const n = this.size - 1;
-    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
-    this.faces = {
-      U: rot(this.faces.D), D: rot(this.faces.U),
-      F: rot(this.faces.F), B: rot(this.faces.B),
-      R: rot(this.faces.L), L: rot(this.faces.R),
-    };
+    const M = (v) => [-v[0], -v[1], v[2]];
+    for (const s of this._st) { s.pos = M(s.pos); s.nrm = M(s.nrm); }
+    this._refresh();
   }
-
-  // 黄顶橘前：红前姿态再绕 U-D 轴（原D顶轴）180°
+  // 黄顶橙前：黄顶红前再绕 y 轴 180°（使蓝橙对换）
   rotateY2() {
-    const n = this.size - 1;
-    const rot = (m) => m.map((row, i) => row.map((_, j) => m[n - i][n - j]));
-    const rotH = (m) => m.map((row) => row.slice().reverse());
-    this.faces = {
-      U: rot(this.faces.U), D: rot(this.faces.D),
-      F: rotH(this.faces.B), B: rotH(this.faces.F),
-      R: this.faces.L, L: this.faces.R,
-    };
+    const M = (v) => [-v[0], v[1], -v[2]];
+    for (const s of this._st) { s.pos = M(s.pos); s.nrm = M(s.nrm); }
+    this._refresh();
   }
 }
 // 公式解析：支持 R L U D F B M E S r l u d f b x y z + ' 2
 function parseScrambleNet(str){
-    const cleaned = String(str||'').replace(/\s+/g,' ').trim();
-    if(!cleaned) return [];
-    const tokens = cleaned.split(/\s+/);
+    // 去掉所有空白后按字符流式解析，支持“D'F”“R2U”这类无空格紧邻写法
+    // （旧实现按空白切词，D'F 会被当成一个无法匹配的词而被整体丢弃，导致少算转动）
+    const s = String(str||'').replace(/\s+/g,'');
+    const PRIMES = new Set(["'", "\u2019", "\u2018", "\u201B", "\u2032", "\u00B4", "\u02BC", "\u02C8", "\uFF07", "`"]);
+    const BASE_RE = /^[RULDFBMESrludfbxyz]$/;
     const out = [];
-    for(const tok of tokens){
-        const m = tok.match(/^([RULDFBMESrludfbxyz])(2)?(')?$/);
-        if(!m) continue;
-        const base = m[1];
+    let i = 0;
+    while(i < s.length){
+        const ch = s[i];
+        if(!BASE_RE.test(ch)){ i++; continue; } // 跳过非面字母（括号/数字序号等）
+        const base = ch; i++;
         let dir = 1;
-        if(m[2]) dir = 2; else if(m[3]) dir = -1;
-        // 展开为基本面转动序列
+        if(s[i] === '2'){ dir = 2; i++; }
+        else if(PRIMES.has(s[i])){ dir = -1; i++; }
         const seq = expandMoveNet(base, dir);
         for(const sm of seq) out.push(sm);
     }

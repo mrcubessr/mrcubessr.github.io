@@ -548,6 +548,134 @@
  * ==================================================================== */
 const NET_COLORS = { U:'#FFFFFF', D:'#FFD500', F:'#009E60', B:'#0051BA', R:'#C41E3A', L:'#FF5800' };
 
+
+
+;
+
+;
+// ===== 统一物理引擎补丁（自动注入，勿手改）=====
+// 每个贴纸建模为 (pos, nrm)，转动 = Rodrigues 旋转。已用 oracle 对拍 0 错。
+const _PFD = {
+  U: { n: [0, 1, 0],  r: [ 1, 0, 0], d: [0,  0,  1] },
+  D: { n: [0,-1, 0],  r: [ 1, 0, 0], d: [0,  0, -1] },
+  F: { n: [0, 0, 1],  r: [ 1, 0, 0], d: [0, -1,  0] },
+  B: { n: [0, 0,-1],  r: [-1, 0, 0], d: [0, -1,  0] },
+  R: { n: [1, 0, 0],  r: [ 0, 0,-1], d: [0, -1,  0] },
+  L: { n: [-1,0, 0],  r: [ 0, 0, 1], d: [0, -1,  0] },
+};
+const _PFS = ['U', 'D', 'F', 'B', 'R', 'L'];
+const _PCOL = { U:'U', R:'R', F:'F', D:'D', L:'L', B:'B' };
+const _PTD = {
+  U: { axis: [0, 1, 0],  outer: true },
+  D: { axis: [0,-1, 0],  outer: true },
+  F: { axis: [0, 0, 1],  outer: true },
+  B: { axis: [0, 0,-1],  outer: true },
+  R: { axis: [1, 0, 0],  outer: true },
+  L: { axis: [-1,0, 0],  outer: true },
+  M: { axis: [-1,0, 0],  middle: true },
+  E: { axis: [0,-1, 0],  middle: true },
+  S: { axis: [0, 0, 1],  middle: true },
+  r: { axis: [1, 0, 0],  wide: true },
+  l: { axis: [-1,0, 0],  wide: true },
+  u: { axis: [0, 1, 0],  wide: true },
+  d: { axis: [0,-1, 0],  wide: true },
+  f: { axis: [0, 0, 1],  wide: true },
+  b: { axis: [0, 0,-1],  wide: true },
+  x: { axis: [1, 0, 0],  all: true },
+  y: { axis: [0, 1, 0],  all: true },
+  z: { axis: [0, 0, 1],  all: true },
+};
+function _prot90(v, a, sign) {
+  const dot = a[0]*v[0] + a[1]*v[1] + a[2]*v[2];
+  const cx = a[1]*v[2] - a[2]*v[1];
+  const cy = a[2]*v[0] - a[0]*v[2];
+  const cz = a[0]*v[1] - a[1]*v[0];
+  return [a[0]*dot + sign*cx, a[1]*dot + sign*cy, a[2]*dot + sign*cz];
+}
+function _pbuildSolved(n) {
+  const st = [];
+  for (const f of _PFS) {
+    const nf = _PFD[f].n, rv = _PFD[f].r, dv = _PFD[f].d;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const offR = (2*j - (n-1)) / 2, offD = (2*i - (n-1)) / 2;
+      st.push({
+        pos: [ nf[0]*(n/2) + rv[0]*offR + dv[0]*offD,
+               nf[1]*(n/2) + rv[1]*offR + dv[1]*offD,
+               nf[2]*(n/2) + rv[2]*offR + dv[2]*offD ],
+        nrm: nf.slice(), color: _PCOL[f],
+      });
+    }
+  }
+  return st;
+}
+function _ptoFaces(st, n) {
+  const faces = {};
+  for (const f of _PFS) faces[f] = Array.from({length:n}, () => Array(n).fill('?'));
+  for (const s of st) {
+    let face = null;
+    for (const f of _PFS) {
+      const nv = _PFD[f].n;
+      if (Math.abs(s.nrm[0]-nv[0])<1e-6 && Math.abs(s.nrm[1]-nv[1])<1e-6 && Math.abs(s.nrm[2]-nv[2])<1e-6) { face = f; break; }
+    }
+    if (!face) continue;
+    const rv = _PFD[face].r, dv = _PFD[face].d;
+    const pr = s.pos[0]*rv[0] + s.pos[1]*rv[1] + s.pos[2]*rv[2];
+    const pd = s.pos[0]*dv[0] + s.pos[1]*dv[1] + s.pos[2]*dv[2];
+    faces[face][Math.round(pd + (n-1)/2)][Math.round(pr + (n-1)/2)] = s.color;
+  }
+  return faces;
+}
+const _PPRIMES = new Set(["'", "\u2019", "\u2032", "\u02BC", "\u00B4", "\u02C8"]);
+const _PBASERE = /^[RULDFBMESrludfbxyz]$/;
+function _ptokenize(str) {
+  const s = String(str || '').replace(/\s+/g, '');
+  const out = []; let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (!_PBASERE.test(ch)) { i++; continue; }
+    const base = ch; i++;
+    let dir = 1;
+    if (s[i] === '2') { dir = 2; i++; }
+    else if (_PPRIMES.has(s[i])) { dir = -1; i++; }
+    out.push({face: base, dir});
+  }
+  return out;
+}
+function _pInitStickers(cube) {
+  cube.size = cube.size || 3;
+  cube._st = _pbuildSolved(cube.size);
+  cube.faces = _ptoFaces(cube._st, cube.size);
+}
+function _pApplyAlg(cube, alg) {
+  if (!cube._st) _pInitStickers(cube);
+  for (const tk of _ptokenize(alg)) {
+    const def = _PTD[tk.face];
+    if (!def) continue;
+    const a = def.axis;
+    const times = tk.dir === 2 ? 2 : 1;
+    const sign = tk.dir === 2 ? 1 : -tk.dir;
+    for (let t = 0; t < times; t++) {
+      for (const s of cube._st) {
+        const tt = s.pos[0]*a[0] + s.pos[1]*a[1] + s.pos[2]*a[2];
+        let inLayer;
+        if (def.all) inLayer = true;
+        else if (def.middle) inLayer = Math.abs(tt) < (cube.size/2 - 0.5);
+        else if (def.wide) inLayer = (cube.size <= 2) ? (tt > cube.size/2 - 1) : (tt > cube.size/2 - 2);
+        else inLayer = tt > (cube.size/2 - 1);
+        if (!inLayer) continue;
+        s.pos = _prot90(s.pos, a, sign);
+        s.nrm = _prot90(s.nrm, a, sign);
+      }
+    }
+  }
+  cube.faces = _ptoFaces(cube._st, cube.size);
+}
+function _pRotate(cube, M) {
+  if (!cube._st) _pInitStickers(cube);
+  for (const s of cube._st) { s.pos = M(s.pos); s.nrm = M(s.nrm); }
+  cube.faces = _ptoFaces(cube._st, cube.size);
+}
+
 class Cube {
   constructor(size, orientation) {
     this.size = size;
@@ -763,6 +891,32 @@ class Cube {
     }
   }
 }
+;
+// 覆盖 Cube 实例方法为物理引擎（保留页面自带的静态方法）
+(function(){
+  if (typeof Cube === 'undefined') return;
+  var _origCtor = Cube.prototype.constructor;
+  Cube.prototype._pInit = function(){ _pInitStickers(this); };
+  Cube.prototype._refresh = function(){ this.faces = _ptoFaces(this._st, this.size); };
+  Cube.prototype.applyAlg = function(alg){ _pApplyAlg(this, alg); };
+  Cube.prototype.applyMove = function(mv){
+    var face = mv.mid || mv.face, dir = mv.dir;
+    _pApplyAlg(this, face + (dir === 2 ? '2' : (dir === -1 ? "'" : '')));
+  };
+  Cube.prototype.rotateM = function(){ _pRotate(this, function(v){ return [v[2], -v[1], v[0]]; }); };
+  Cube.prototype.rotateX180 = function(){ _pRotate(this, function(v){ return [v[0], -v[1], -v[2]]; }); };
+  Cube.prototype.rotateZ180 = function(){ _pRotate(this, function(v){ return [-v[0], -v[1], v[2]]; }); };
+  Cube.prototype.rotateY2 = function(){ _pRotate(this, function(v){ return [-v[0], v[1], -v[2]]; }); };
+})();
+
+
+;
+
+
+
+
+
+
 
 function parseScrambleNet(str){
   const cleaned = String(str||'').replace(/\s+/g,' ').trim();
