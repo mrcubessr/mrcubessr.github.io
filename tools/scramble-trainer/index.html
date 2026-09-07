@@ -169,6 +169,18 @@
     object-fit: contain;
     display: block;
   }
+  .legend-img-wrap canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .legend-zone .legend-caption {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 400;
+    margin-left: 4px;
+  }
   .legend-fallback {
     color: var(--muted);
     font-size: 13px;
@@ -491,16 +503,11 @@
 
   <!-- 右侧栏：对照图 + 公式区 -->
   <aside class="right">
-    <!-- 右上：对照图 -->
+    <!-- 右上：对照图（12 种单层转动示意图 · canvas 自绘） -->
     <div class="legend-zone">
-      <div class="zone-label">对照图 · 6 字母旋转示意</div>
+      <div class="zone-label">对照图 · 12 种单层转动示意<span class="legend-caption">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span></div>
       <div class="legend-img-wrap">
-        <img id="legendImg" src="legend.jpg" alt="6字母旋转示意图"
-             onerror="this.style.display='none';document.getElementById('legendFallback').style.display='block';"
-             onload="document.getElementById('legendFallback').style.display='none';this.style.display='block';">
-        <div id="legendFallback" class="legend-fallback" style="display:none;">
-          📷 请把你的对照图命名为 <code>legend.jpg</code>，放到本 HTML 文件同目录
-        </div>
+        <canvas id="legendCanvas"></canvas>
       </div>
     </div>
 
@@ -1337,6 +1344,151 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+/* ====================================================================
+ * 对照图模块：三阶魔方转动示意图（12 种单层转动，等距投影自绘）
+ * 来源：output/魔方转动示意图.html（白底灰块 · 弧线箭头贴合面对应转动方向）
+ * 此处改为单 canvas 绘制全部 12 格，CSS contain 等比缩放嵌入 legend-zone
+ * ==================================================================== */
+(function(){
+"use strict";
+const S = 27;
+const MARK = "#9aa1a8";
+const WHITE = "#f2f4f7";
+const EDGE = "#b6c0cb";
+const CW_COLOR = "#E8590C";
+const CCW_COLOR = "#1971C2";
+const CW = true, CCW = false;
+
+const MOVES = [
+  {name:"R",  axis:"x", layer: 1, arr:["right",0.60,0.60, [1,0,0], [0,1,0],[0,0,1], CW ]},
+  {name:"R'", axis:"x", layer: 1, arr:["right",0.60,0.60, [1,0,0], [0,1,0],[0,0,1], CCW]},
+  {name:"F",  axis:"z", layer: 1, arr:["front",0.60,0.60, [0,0,1], [1,0,0],[0,1,0], CW ]},
+  {name:"F'", axis:"z", layer: 1, arr:["front",0.60,0.60, [0,0,1], [1,0,0],[0,1,0], CCW]},
+  {name:"L",  axis:"x", layer:-1, arr:["front",0.50,0.50, [-0.55,0,1],[1,0,0],[0,1,0], CCW]},
+  {name:"L'", axis:"x", layer:-1, arr:["front",0.50,0.50, [-0.55,0,1],[1,0,0],[0,1,0], CW ]},
+  {name:"B",  axis:"z", layer:-1, arr:["right",0.50,0.50, [1,0,-0.55],[0,1,0],[0,0,1], CCW]},
+  {name:"B'", axis:"z", layer:-1, arr:["right",0.50,0.50, [1,0,-0.55],[0,1,0],[0,0,1], CW ]},
+  {name:"U",  axis:"y", layer: 1, arr:["top",  0.72,0.72, [0,1,0],  [1,0,0],[0,0,-1],CW ]},
+  {name:"U'", axis:"y", layer: 1, arr:["top",  0.72,0.72, [0,1,0],  [1,0,0],[0,0,-1],CCW]},
+  {name:"D",  axis:"y", layer:-1, arr:["top",  0.42,0.42, [0,1,0],  [1,0,0],[0,0,-1],CCW]},
+  {name:"D'", axis:"y", layer:-1, arr:["top",  0.42,0.42, [0,1,0],  [1,0,0],[0,0,-1],CW ]}
+];
+const AXIS_IDX = {x:0, y:1, z:2};
+
+function proj(cx, cy, x, y, z){
+  const a = Math.cos(Math.PI/6)*S, b = Math.sin(Math.PI/6)*S;
+  return [cx + (x - z)*a, cy + (x + z)*b - y*S];
+}
+function poly(ctx, pts){
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+}
+function face(ctx, cx, cy, x, y, z, which, color){
+  let corners;
+  if(which==='x') corners = [[x+0.5,y-0.5,z-0.5],[x+0.5,y+0.5,z-0.5],[x+0.5,y+0.5,z+0.5],[x+0.5,y-0.5,z+0.5]];
+  else if(which==='y') corners = [[x-0.5,y+0.5,z-0.5],[x-0.5,y+0.5,z+0.5],[x+0.5,y+0.5,z+0.5],[x+0.5,y+0.5,z-0.5]];
+  else corners = [[x-0.5,y-0.5,z+0.5],[x-0.5,y+0.5,z+0.5],[x+0.5,y+0.5,z+0.5],[x+0.5,y-0.5,z+0.5]];
+  const pts = corners.map(p=>proj(cx,cy,p[0],p[1],p[2]));
+  poly(ctx, pts);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 1.1;
+  ctx.strokeStyle = EDGE;
+  ctx.stroke();
+}
+function markedFor(axis, layer){
+  const idx = AXIS_IDX[axis];
+  const out = [];
+  for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){
+    const g=[x,y,z];
+    if(g[idx]===layer && !(g[(idx+1)%3]===0 && g[(idx+2)%3]===0)) out.push(g);
+  }
+  return out;
+}
+function drawCube(ctx, cx, cy, axis, layer){
+  const marks = markedFor(axis, layer);
+  const isM = (x,y,z)=>marks.some(g=>g[0]===x&&g[1]===y&&g[2]===z);
+  const cubes=[];
+  for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++) cubes.push([x,y,z]);
+  cubes.sort((A,B)=>(A[0]+A[1]+A[2])-(B[0]+B[1]+B[2]));
+  for(const [x,y,z] of cubes){
+    const m = isM(x,y,z);
+    if(x===1) face(ctx,cx,cy,x,y,z,'x', m?MARK:WHITE);
+    if(z===1) face(ctx,cx,cy,x,y,z,'z', m?MARK:WHITE);
+    if(y===1) face(ctx,cx,cy,x,y,z,'y', m?MARK:WHITE);
+  }
+}
+function arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, color, width){
+  const steps = 56;
+  const start = cw ? 135 : -135, end = cw ? -135 : 135;
+  const span = end - start;
+  const pts = [];
+  for(let i=0;i<=steps;i++){
+    const th = (start + span*i/steps) * Math.PI/180;
+    const x = center[0] + uvec[0]*u0*Math.cos(th) + vvec[0]*v0*Math.sin(th);
+    const y = center[1] + uvec[1]*u0*Math.cos(th) + vvec[1]*v0*Math.sin(th);
+    const z = center[2] + uvec[2]*u0*Math.cos(th) + vvec[2]*v0*Math.sin(th);
+    pts.push(proj(cx,cy,x,y,z));
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke();
+  const tip = pts[pts.length-1], prev = pts[pts.length-2];
+  let dx = tip[0]-prev[0], dy = tip[1]-prev[1];
+  const len = Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+  const ang = Math.atan2(dy,dx);
+  const L = width*2.6;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(tip[0]+Math.cos(ang)*L, tip[1]+Math.sin(ang)*L);
+  ctx.lineTo(tip[0]+Math.cos(ang+2.5)*L*0.82, tip[1]+Math.sin(ang+2.5)*L*0.82);
+  ctx.lineTo(tip[0]+Math.cos(ang-2.5)*L*0.82, tip[1]+Math.sin(ang-2.5)*L*0.82);
+  ctx.closePath();
+  ctx.fill();
+}
+function drawArrow(ctx, cx, cy, arr){
+  const [faceName, u0, v0, center, uvec, vvec, cw] = arr;
+  const color = cw ? CW_COLOR : CCW_COLOR;
+  const width = Math.max(3, S*0.16);
+  arcOnFace(ctx, cx, cy, center, uvec, vvec, u0, v0, cw, color, width);
+}
+
+function buildLegend(){
+  const canvas = document.getElementById('legendCanvas');
+  if(!canvas) return;
+  const COLS = 4, ROWS = 3, CELL = 150, GAP = 8;
+  const W = COLS*CELL + (COLS-1)*GAP;
+  const H = ROWS*CELL + (ROWS-1)*GAP;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+  MOVES.forEach((mv, i)=>{
+    const col = i % COLS, row = (i/COLS)|0;
+    const cx = col*(CELL+GAP) + CELL/2;
+    const cy = row*(CELL+GAP) + CELL/2 + 2;
+    drawCube(ctx, cx, cy, mv.axis, mv.layer);
+    drawArrow(ctx, cx, cy, mv.arr);
+    ctx.fillStyle = '#111111';
+    ctx.font = '800 30px "Segoe UI", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(mv.name, col*(CELL+GAP)+CELL-8, row*(CELL+GAP)+CELL-6);
+  });
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', buildLegend);
+}else{
+  buildLegend();
+}
+})();
+
 </script>
 </body>
 </html>
