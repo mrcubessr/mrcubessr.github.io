@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>棱块编码认知训练 - 出题打印</title>
+<html lang="zh-CN" data-page-node-id="0kBqPAk1Nm5E3MCfNsAaNB">
+<head data-page-node-id="BurKXdOOIjbG6lgDS7lMDj">
+<meta charset="UTF-8" data-page-node-id="73BI4oCaW2V72INh88uQrm">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="JE5T1IdBv0zVStb7YJIyWC">
+<title>棱块编码认知训练出题器</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -32,7 +32,7 @@ body {
 /* ========== 顶部控制栏 ========== */
 .toolbar {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -42,8 +42,35 @@ body {
 }
 .toolbar h1 {
   font-size: 22px; font-weight: 700; color: var(--text);
-  margin-bottom: 16px; text-align: center;
+  margin-bottom: 4px; text-align: center;
 }
+.toolbar .h1-sub {
+  font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 16px;
+}
+
+/* 难度预设按钮行 */
+.preset-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  justify-content: center; margin-bottom: 14px;
+  padding: 10px 14px; background: var(--panel-2);
+  border-radius: 10px; border: 1px solid var(--border);
+}
+.preset-label {
+  font-size: 13px; font-weight: 700; color: var(--text); margin-right: 4px;
+}
+.preset-btn {
+  padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer;
+  background: #fff; transition: all 0.15s;
+}
+.preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+.preset-btn.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.preset-info {
+  font-size: 12px; color: var(--muted); margin-left: 6px;
+}
+
 .ctrl-row {
   display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;
   justify-content: center;
@@ -64,6 +91,44 @@ body {
 }
 .ctrl-group input:focus { border-color: var(--accent); }
 .ctrl-group input[type="number"] { width: 80px; }
+
+/* 颜色勾选区 */
+.color-pick {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.color-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  border: 2px solid var(--border); background: #fff;
+  font-size: 13px; font-weight: 600; color: var(--text);
+  transition: all 0.15s; user-select: none;
+}
+.color-chip .swatch {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.2); display: inline-block;
+}
+.color-chip.checked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.color-chip .ck {
+  font-size: 11px; color: var(--accent); margin-left: 2px;
+}
+
+/* 形态勾选区 */
+.orient-pick {
+  display: flex; gap: 6px;
+}
+.orient-chip {
+  padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  border: 2px solid var(--border); background: #fff;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  transition: all 0.15s; user-select: none;
+}
+.orient-chip.checked {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
 
 /* 切换按钮组 */
 .toggle-group {
@@ -190,6 +255,11 @@ body {
   color: var(--muted);
   margin-bottom: 2px;
 }
+/* 读编码模式：字母显示 */
+.edge-cell .read-letter {
+  font-size: 22px; font-weight: 800; color: var(--accent);
+  margin-top: 4px; letter-spacing: 1px;
+}
 
 /* 页脚 */
 .page-footer {
@@ -243,72 +313,128 @@ body {
 }
 </style>
 </head>
-<body>
+<body data-page-node-id="mCrWuBWjoV8alC7tBtZoEm">
 
 <!-- ========== 顶部控制栏 ========== -->
-<div class="toolbar">
-  <h1>棱块编码认知训练 — 出题打印</h1>
-  <div class="ctrl-row">
-    <div class="ctrl-group">
-      <label>学生姓名</label>
-      <input type="text" id="studentName" placeholder="学生姓名" value="" style="width:120px;">
+<div class="toolbar" data-page-node-id="Zy9QCGAmp8mBwwGHWYciTW">
+  <h1 data-page-node-id="NYauHH0YbyWirzjqJIaekX">棱块编码认知训练出题器</h1>
+  <div class="h1-sub" data-page-node-id="hLYBsqc6U2yyOcwB9q5B0G">三形态 · 颜色筛选 · 循序渐进难度</div>
+
+  <!-- 难度预设 -->
+  <div class="preset-row" data-page-node-id="B9TgdkFNvtPhF7PCpjxj2F">
+    <span class="preset-label" data-page-node-id="1s7dBZos63IoQXe5EehpoD">难度预设</span>
+    <button class="preset-btn active" data-preset="L1" data-page-node-id="KwqwB5nDeayEPEyB4DIJ7K">L1 入门（黄红绿）</button>
+    <button class="preset-btn" data-preset="L2" data-page-node-id="GXnbnlyznV7ODD8R3AGK7s">L2 基础（黄红白绿）</button>
+    <button class="preset-btn" data-preset="L3" data-page-node-id="Hd57qKvdWMm9LRjLG1NIfC">L3 进阶（黄红白绿蓝）</button>
+    <button class="preset-btn" data-preset="L4" data-page-node-id="sGSAIaaPiRBkhpHZf8LJJZ">L4 挑战（全6色）</button>
+    <span class="preset-info" id="presetInfo" data-page-node-id="PGfJiatctvD7sjYvDDwz1t">当前可选棱块：4 个</span>
+  </div>
+
+  <div class="ctrl-row" data-page-node-id="M8V1Jz7oKeHUJdGzIGnHO2">
+    <div class="ctrl-group" data-page-node-id="XjzJPWmDeo2RGT2IGxfatn">
+      <label data-page-node-id="GrX8YBxMdnJgU9WwuUrrBV">学生姓名</label>
+      <input type="text" id="studentName" placeholder="姓名" value="" style="width:120px;" data-page-node-id="O3GUxZheY4m3pcIhjgzfye">
     </div>
-    <div class="ctrl-group">
-      <label>日期</label>
-      <input type="date" id="dateInput">
+    <div class="ctrl-group" data-page-node-id="SBhHdRO27KFv8dEINNPD6l">
+      <label data-page-node-id="FrVlMW2mV16PhiALL5C864">日期</label>
+      <input type="date" id="dateInput" data-page-node-id="sGYCepxaZBPa8VAknw5nLl">
     </div>
-    <div class="ctrl-group">
-      <label>页数</label>
-      <input type="number" id="pageCount" value="1" min="1" max="10">
+    <div class="ctrl-group" data-page-node-id="UNuV77liDRVDufayzqq7kh">
+      <label data-page-node-id="QhEFMa88YvP2hbGTfIOpsY">页数</label>
+      <input type="number" id="pageCount" value="1" min="1" max="10" data-page-node-id="DmubiLceXBhK1O3JYOebWB">
     </div>
-    <div class="ctrl-group">
-      <label>模式</label>
-      <div class="toggle-group">
-        <button class="toggle-btn active" data-mode="write">写编码（有横线）</button>
-        <button class="toggle-btn" data-mode="read">读编码（无横线）</button>
+    <div class="ctrl-group" data-page-node-id="Ttgb8IN62Md3ogqgiSzjsA">
+      <label data-page-node-id="euRgFe217gcOhiwUldn0cY">每页题数</label>
+      <div class="toggle-group" id="perPagePick" data-page-node-id="UMCthVrYD8kMvHZuoOHR5N">
+        <button class="toggle-btn active" data-perpage="12" data-cols="3" data-page-node-id="xkRoiqUKMKESs19udQNREl">12（3×4）</button>
+        <button class="toggle-btn" data-perpage="16" data-cols="4" data-page-node-id="izuX8HHtOncnQmdYA3DJWz">16（4×4）</button>
+        <button class="toggle-btn" data-perpage="20" data-cols="4" data-page-node-id="kUijxYuU4iBTnYnOzs9Zzp">20（4×5）</button>
+        <button class="toggle-btn" data-perpage="24" data-cols="4" data-page-node-id="gwpLzZwFlkqQk4v0aVHhIm">24（4×6）</button>
       </div>
     </div>
-    <div class="ctrl-group">
-      <label>显示选项</label>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
-          <input type="checkbox" id="showDate" checked> 显示日期
+    <div class="ctrl-group" data-page-node-id="IA7q9Ot0EFAth5LiCFIFDw">
+      <label data-page-node-id="9Ljku3fDPDEa6QIeaRqwri">模式</label>
+      <div class="toggle-group" data-page-node-id="jNDjWVccC9ZdutQfya0Ela">
+        <button class="toggle-btn active" data-mode="write" data-page-node-id="cfxlOK99ani1lCTcwBz9Fe">写编码（有横线）</button>
+        <button class="toggle-btn" data-mode="read" data-page-node-id="EDASLL44nwo4mT5uiNhg4y">读编码（无横线）</button>
+      </div>
+    </div>
+    <div class="ctrl-group" data-page-node-id="OaTHyixyap1nC4ZEsABbyw">
+      <label data-page-node-id="tKMnD9AmVHfpdosVmOF9iG">颜色筛选（指定出题棱块范围）</label>
+      <div class="color-pick" id="colorPick" data-page-node-id="Ywm7E3ZVyaHaHnXZYAzNxM"></div>
+    </div>
+    <div class="ctrl-group" data-page-node-id="GCGNstZnyMBARbwIqK93KN">
+      <label data-page-node-id="D1Sd9c8FATAOZfAwjwjPTq">棱块形态</label>
+      <div class="orient-pick" id="orientPick" data-page-node-id="WzVtUkPtn7GX4pUVWcdOGy">
+        <span class="orient-chip checked" data-orient="standard" data-page-node-id="TfqBTDd0aaZlQCjFwQQnYk">标准</span>
+        <span class="orient-chip checked" data-orient="flipped" data-page-node-id="L2IyWdPyhqGXb5ZjY2NwA5">镜像</span>
+        <span class="orient-chip checked" data-orient="rot" data-page-node-id="q8kHacz0kNZQLxhlQlT85t">旋转120°</span>
+      </div>
+    </div>
+    <div class="ctrl-group" data-page-node-id="AsceTckPYFrnAvCauvUIeK">
+      <label data-page-node-id="W3TlGj0UNCOsFC2UOZ00mD">显示选项</label>
+      <div style="display:flex;flex-direction:column;gap:4px;" data-page-node-id="sEPP0S66w7vxgfJtZJnVRl">
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;" data-page-node-id="3ELqzCJmSqsgc6vm3KRYRR">
+          <input type="checkbox" id="showName" checked data-page-node-id="bamaA8hq8BjpTvrnSzIbF8"> 显示姓名
         </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
-          <input type="checkbox" id="showPageNum" checked> 显示页码
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;" data-page-node-id="gNZuUE94Rj92ZqyK24zyY0">
+          <input type="checkbox" id="showDate" checked data-page-node-id="lUE4WoXRamUyME3vLZcCYV"> 显示日期
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;" data-page-node-id="3h8eaiR1lNqW7Cny5wIdbO">
+          <input type="checkbox" id="showPageNum" checked data-page-node-id="qNdQbGGJDB2vTlA5tBh63J"> 显示页码
         </label>
       </div>
     </div>
-    <button class="btn-generate" onclick="generate()">生成题目</button>
-    <button class="btn-print" onclick="window.print()">打印 / 导出PDF</button>
+    <button class="btn-generate" onclick="generate()" data-page-node-id="ZsdoYTHewaQSGljQ0bGwOo">生成题目</button>
+    <button class="btn-print" onclick="window.print()" data-page-node-id="VQqFKrbQQbjpDa6nl1yYr6">打印 / 导出PDF</button>
   </div>
 </div>
 
 <!-- ========== 题目页面容器 ========== -->
-<div class="pages-container" id="pagesContainer">
+<div class="pages-container" id="pagesContainer" data-page-node-id="ce7l4G181pRt8N6cBXt3f7">
   <!-- 页面由 JS 动态生成 -->
 </div>
 
 <script>
-// ============ 棱块数据（与 edge-trainer 完全一致）============
+// ============ 棱块数据 ============
 // 标准配色：U=黄 R=绿 F=红 D=白 L=蓝 B=橙
 const YELLOW = "#FFD500", BLUE = "#0051BA", RED = "#C41E3A";
 const WHITE  = "#FFFFFF", GREEN = "#009E60", ORANGE = "#FF5800";
 
+// 颜色元信息：用于难度筛选
+const COLOR_META = {
+  YELLOW: { name: "黄", hex: YELLOW },
+  RED:    { name: "红", hex: RED },
+  WHITE:  { name: "白", hex: WHITE },
+  GREEN:  { name: "绿", hex: GREEN },
+  BLUE:   { name: "蓝", hex: BLUE },
+  ORANGE: { name: "橙", hex: ORANGE }
+};
+
+// 12 条棱：colors[0]=A面, colors[1]=B面, colorKeys 标注颜色身份
 const EDGES = [
-  { name: "黄绿 UR", colors: [YELLOW, GREEN],  letters: ["G", "H"] },
-  { name: "黄红 UF", colors: [YELLOW, RED],    letters: ["A", "B"] },
-  { name: "黄蓝 UL", colors: [YELLOW, BLUE],   letters: ["C", "D"] },
-  { name: "黄橙 UB", colors: [YELLOW, ORANGE], letters: ["E", "F"] },
-  { name: "白绿 DR", colors: [WHITE, GREEN],   letters: ["O", "P"] },
-  { name: "白红 DF", colors: [WHITE, RED],     letters: ["I", "J"] },
-  { name: "白蓝 DL", colors: [WHITE, BLUE],    letters: ["K", "L"] },
-  { name: "白橙 DB", colors: [WHITE, ORANGE],  letters: ["M", "N"] },
-  { name: "红绿 FR", colors: [RED, GREEN],     letters: ["Q", "R"] },
-  { name: "红蓝 FL", colors: [RED, BLUE],      letters: ["S", "T"] },
-  { name: "橙蓝 BL", colors: [ORANGE, BLUE],   letters: ["W", "X"] },
-  { name: "橙绿 BR", colors: [ORANGE, GREEN],  letters: ["Y", "Z"] }
+  { name: "黄绿 UR", colors: [YELLOW, GREEN],  letters: ["G", "H"], keys: ["YELLOW","GREEN"] },
+  { name: "黄红 UF", colors: [YELLOW, RED],    letters: ["A", "B"], keys: ["YELLOW","RED"] },
+  { name: "黄蓝 UL", colors: [YELLOW, BLUE],   letters: ["C", "D"], keys: ["YELLOW","BLUE"] },
+  { name: "黄橙 UB", colors: [YELLOW, ORANGE], letters: ["E", "F"], keys: ["YELLOW","ORANGE"] },
+  { name: "白绿 DR", colors: [WHITE, GREEN],   letters: ["O", "P"], keys: ["WHITE","GREEN"] },
+  { name: "白红 DF", colors: [WHITE, RED],     letters: ["I", "J"], keys: ["WHITE","RED"] },
+  { name: "白蓝 DL", colors: [WHITE, BLUE],    letters: ["K", "L"], keys: ["WHITE","BLUE"] },
+  { name: "白橙 DB", colors: [WHITE, ORANGE],  letters: ["M", "N"], keys: ["WHITE","ORANGE"] },
+  { name: "红绿 FR", colors: [RED, GREEN],     letters: ["Q", "R"], keys: ["RED","GREEN"] },
+  { name: "红蓝 FL", colors: [RED, BLUE],      letters: ["S", "T"], keys: ["RED","BLUE"] },
+  { name: "橙蓝 BL", colors: [ORANGE, BLUE],   letters: ["W", "X"], keys: ["ORANGE","BLUE"] },
+  { name: "橙绿 BR", colors: [ORANGE, GREEN],  letters: ["Y", "Z"], keys: ["ORANGE","GREEN"] }
 ];
+
+// 难度预设：每个预设指定要勾选哪些颜色
+// 筛选逻辑：棱块的任一颜色在勾选集合中即入选（OR 逻辑），覆盖面更广
+const PRESETS = {
+  L1: { name: "入门", colors: ["YELLOW","RED","GREEN"] },         // 3色角棱 = 3棱
+  L2: { name: "基础", colors: ["YELLOW","RED","WHITE","GREEN"] },   // 4色 = 5棱
+  L3: { name: "进阶", colors: ["YELLOW","RED","WHITE","GREEN","BLUE"] },   // 5色 = 8棱
+  L4: { name: "挑战", colors: ["YELLOW","RED","WHITE","GREEN","BLUE","ORANGE"] }  // 全6色 = 12棱
+};
 
 // ============ 工具函数 ============
 function shuffle(arr) {
@@ -328,63 +454,186 @@ function shadeColor(hex, percent) {
   return "rgb(" + r + "," + g + "," + b + ")";
 }
 
-function isLight(hex) {
-  const v = hex.replace("#", "");
-  const r = parseInt(v.substr(0, 2), 16);
-  const g = parseInt(v.substr(2, 2), 16);
-  const b = parseInt(v.substr(4, 2), 16);
-  return (r * 0.299 + g * 0.587 + b * 0.114) > 180;
-}
-
 function formatDateStr(d) {
   const p = n => String(n).padStart(2, "0");
   return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate());
 }
 
-// ============ 模式切换 ============
-let currentMode = "write"; // "write" 或 "read"
+// ============ 颜色勾选状态 ============
+let selectedColors = new Set(PRESETS.L1.colors); // 默认 L1
 
-document.querySelectorAll(".toggle-btn").forEach(btn => {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
-    this.classList.add("active");
-    currentMode = this.dataset.mode;
+function renderColorChips() {
+  const wrap = document.getElementById("colorPick");
+  wrap.innerHTML = "";
+  Object.keys(COLOR_META).forEach(key => {
+    const meta = COLOR_META[key];
+    const chip = document.createElement("span");
+    chip.className = "color-chip" + (selectedColors.has(key) ? " checked" : "");
+    chip.dataset.color = key;
+    chip.innerHTML =
+      '<span class="swatch" style="background:' + meta.hex + '"></span>' +
+      meta.name +
+      (selectedColors.has(key) ? ' <span class="ck">✓</span>' : "");
+    chip.addEventListener("click", () => {
+      if (selectedColors.has(key)) {
+        if (selectedColors.size <= 3) return; // AND 逻辑下至少保留 3 色（角棱）
+        selectedColors.delete(key);
+      } else {
+        selectedColors.add(key);
+      }
+      // 取消预设高亮
+      document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+      renderColorChips();
+      updatePresetInfo();
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+function updatePresetInfo() {
+  const pool = getFilteredEdges();
+  document.getElementById("presetInfo").textContent =
+    "当前可选棱块：" + pool.length + " 个（" + pool.length + "×3形态×2面 = " + (pool.length*3*2) + " 组合）";
+}
+
+// 根据勾选颜色过滤棱块：棱的两色都必须在 selectedColors 中（AND 逻辑，梯度更清晰）
+function getFilteredEdges() {
+  return EDGES.filter(e =>
+    selectedColors.has(e.keys[0]) && selectedColors.has(e.keys[1])
+  );
+}
+
+// ============ 预设按钮 ============
+document.querySelectorAll(".preset-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const preset = PRESETS[btn.dataset.preset];
+    selectedColors = new Set(preset.colors);
+    renderColorChips();
+    updatePresetInfo();
+  });
+});
+
+// ============ 形态勾选 ============
+let selectedOrients = new Set(["standard","flipped","rot"]);
+
+document.querySelectorAll(".orient-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const orient = chip.dataset.orient;
+    if (selectedOrients.has(orient)) {
+      if (selectedOrients.size <= 1) return; // 至少保留 1 种
+      selectedOrients.delete(orient);
+      chip.classList.remove("checked");
+    } else {
+      selectedOrients.add(orient);
+      chip.classList.add("checked");
+    }
+  });
+});
+
+// ============ 模式切换 / 每页题数（同组单选，互不干扰） ============
+let currentMode = "write";   // "write" 或 "read"
+let currentPerPage = 12;     // 每页题目数量
+let currentCols = 3;         // 每页列数
+
+document.querySelectorAll(".toggle-group").forEach(group => {
+  group.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      group.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      if (this.dataset.mode) currentMode = this.dataset.mode;
+      if (this.dataset.perpage) {
+        currentPerPage = parseInt(this.dataset.perpage, 10);
+        currentCols = parseInt(this.dataset.cols, 10);
+      }
+    });
   });
 });
 
 // ============ 日期默认值 ============
 document.getElementById("dateInput").value = formatDateStr(new Date());
 
-// ============ 绘制棱块（与 edge-trainer 的 drawEdge 一致）============
+renderColorChips();
+updatePresetInfo();
+
+// ============ 绘制棱块（三形态引擎）============
 /**
- * 绘制棱块：两个相邻面组成的等距块
- * colors[0] = 上面（菱形），colors[1] = 右面（平行四边形）
- * highlight: 0 或 1，表示高亮第几个面（出题时随机选一个面）
+ * 绘制棱块：两色面 + 共享棱
+ * orientation: "standard" | "flipped" | "rot"
+ * highlight: 0 或 1（高亮第几个面）
+ * rotAngle: 仅 rot 形态用，绕画面中心旋转的角度（弧度），默认 120°
+ *
+ * 三种形态是同一块棱的不同摆放角度：
+ *  - standard: 上菱形 + 右平行四边形（等距，右倾）
+ *  - flipped:  上菱形 + 左平行四边形（standard 的左右镜像，左倾）
+ *  - rot:      把 standard 几何绕画面中心旋转 rotAngle（默认 120°，第三姿态）
  */
-function drawEdge(canvas, colors, highlight) {
+function drawEdge(canvas, colors, orientation, highlight, rotAngle) {
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
   const s = Math.min(W, H) * 0.34;
   const w = s * 0.866, h = s * 0.5;
+  // 旋转形态默认绕中心旋转 120°（用户指定：标准 / 镜像 / 旋转120° 三种姿态）
+  const ORIENT_ANGLE = (rotAngle != null) ? rotAngle : (2 * Math.PI) / 3;
 
-  const V0 = [cx, cy];
-  const V1 = [cx - w, cy - h];
-  const V2 = [cx + w, cy - h];
-  const V3 = [cx, cy - s];
-  const V5 = [cx + w, cy + h];
-  const V6 = [cx, cy + s];
+  let faces, outerPath, edgeLine, apexTop, apexBot;
 
-  const faces = [
-    { pts: [V1, V3, V2, V0], from: V3, to: V0 },
-    { pts: [V2, V5, V6, V0], from: V2, to: V6 }
-  ];
+  if (orientation === "flipped") {
+    // 左倾：上菱形 + 左平行四边形（standard 的左右镜像）
+    const V0 = [cx, cy];
+    const V1 = [cx + w, cy - h];
+    const V2 = [cx - w, cy - h];
+    const V3 = [cx, cy - s];
+    const V4 = [cx - w, cy + h];
+    const V6 = [cx, cy + s];
+    faces = [
+      { pts: [V1, V3, V2, V0], from: V3, to: V0 },
+      { pts: [V2, V4, V6, V0], from: V2, to: V6 }
+    ];
+    outerPath = [V1, V3, V2, V4, V6];
+    edgeLine = [V0, V2];
+    apexTop = V3;  // 最上外锐角
+    apexBot = V6;  // 最下外锐角
+
+  } else {
+    // standard（右倾）：上菱形 + 右平行四边形
+    const V0 = [cx, cy];
+    const V1 = [cx - w, cy - h];
+    const V2 = [cx + w, cy - h];
+    const V3 = [cx, cy - s];
+    const V5 = [cx + w, cy + h];
+    const V6 = [cx, cy + s];
+    faces = [
+      { pts: [V1, V3, V2, V0], from: V3, to: V0 },
+      { pts: [V2, V5, V6, V0], from: V2, to: V6 }
+    ];
+    outerPath = [V1, V3, V2, V5, V6];
+    edgeLine = [V0, V2];
+    apexTop = V3;  // 最上外锐角
+    apexBot = V6;  // 最下外锐角
+  }
+
+  // 旋转形态：把 standard 几何绕画面中心旋转 ORIENT_ANGLE（flipped 不旋转）
+  if (orientation === "rot") {
+    const cos = Math.cos(ORIENT_ANGLE), sin = Math.sin(ORIENT_ANGLE);
+    const rotPt = ([x, y]) => [
+      cx + (x - cx) * cos - (y - cy) * sin,
+      cy + (x - cx) * sin + (y - cy) * cos
+    ];
+    faces = faces.map(f => ({ pts: f.pts.map(rotPt), from: rotPt(f.from), to: rotPt(f.to) }));
+    outerPath = outerPath.map(rotPt);
+    edgeLine = edgeLine ? edgeLine.map(rotPt) : null;
+    apexTop = rotPt(apexTop);
+    apexBot = rotPt(apexBot);
+  }
 
   // 两面渐变填充 + 描边
   const order = [0, 1].filter(i => i !== highlight).concat(highlight);
   for (const i of order) {
-    if (i < 0) continue;
+    if (i < 0 || !faces[i]) continue;
     const p = faces[i].pts;
     const g = ctx.createLinearGradient(faces[i].from[0], faces[i].from[1], faces[i].to[0], faces[i].to[1]);
     g.addColorStop(0, shadeColor(colors[i], 0.16));
@@ -400,20 +649,23 @@ function drawEdge(canvas, colors, highlight) {
     ctx.stroke();
   }
 
-  // 外轮廓（五边形）
+  // 外轮廓
   ctx.beginPath();
-  ctx.moveTo(V1[0], V1[1]); ctx.lineTo(V3[0], V3[1]); ctx.lineTo(V2[0], V2[1]);
-  ctx.lineTo(V5[0], V5[1]); ctx.lineTo(V6[0], V6[1]);
+  ctx.moveTo(outerPath[0][0], outerPath[0][1]);
+  for (let j = 1; j < outerPath.length; j++) ctx.lineTo(outerPath[j][0], outerPath[j][1]);
   ctx.strokeStyle = "rgba(25,32,44,0.85)";
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  // 中心棱
-  ctx.beginPath();
-  ctx.moveTo(V0[0], V0[1]); ctx.lineTo(V2[0], V2[1]);
-  ctx.strokeStyle = "rgba(25,32,44,0.55)";
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
+  // 中心棱（rot 形态同样有可见棱）
+  if (edgeLine) {
+    ctx.beginPath();
+    ctx.moveTo(edgeLine[0][0], edgeLine[0][1]);
+    ctx.lineTo(edgeLine[1][0], edgeLine[1][1]);
+    ctx.strokeStyle = "rgba(25,32,44,0.55)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
 
   // 高亮框
   if (highlight >= 0 && faces[highlight]) {
@@ -435,8 +687,12 @@ function generate() {
   const studentName = document.getElementById("studentName").value.trim() || "________";
   const dateStr = document.getElementById("dateInput").value || formatDateStr(new Date());
   const pageCount = Math.max(1, Math.min(10, parseInt(document.getElementById("pageCount").value) || 1));
+  const showName = document.getElementById("showName").checked;
   const showDate = document.getElementById("showDate").checked;
   const showPageNum = document.getElementById("showPageNum").checked;
+
+  const pool = getFilteredEdges();
+  const orientList = Array.from(selectedOrients);
 
   const container = document.getElementById("pagesContainer");
   container.innerHTML = "";
@@ -445,51 +701,62 @@ function generate() {
     const page = document.createElement("div");
     page.className = "a4-page";
 
-    // 每页随机选 12 个棱块的一个朝向（12 条棱全部出现，每条棱随机选 0 或 1 朝向）
-    // 然后打乱顺序
-    const edgePicks = EDGES.map((e, i) => ({
-      edgeIndex: i,
-      faceIndex: Math.floor(Math.random() * 2) // 随机高亮上面或右面
-    }));
-    const shuffled = shuffle(edgePicks);
+    // 每页不重复出题：同一道"题" = 棱块 + 高亮面 + 形态 三者完全相同才算重复。
+    // 颜色相同但高亮面/形态不同 → 算不同题，不视为重复。
+    const N = currentPerPage;
+    // 展开所有不重复的候选组合（棱块 × 高亮面0/1 × 已选形态）
+    const combos = [];
+    pool.forEach((_, idx) => {
+      for (let f = 0; f < 2; f++) {
+        for (const o of orientList) {
+          combos.push({ edgeIndex: idx, faceIndex: f, orientation: o });
+        }
+      }
+    });
+    const effN = Math.min(N, combos.length);
+    const shuffled = shuffle(combos).slice(0, effN);
 
     // 页头
     const header = document.createElement("div");
     header.className = "page-header";
+    const nameHtml = showName ? '<span class="student-name">姓名：' + escapeHtml(studentName) + '</span>' : '';
     header.innerHTML =
-      '<span class="student-name">姓名：' + escapeHtml(studentName) + '</span>' +
+      nameHtml +
       (showDate ? '<span class="date">' + escapeHtml(dateStr) + '</span>' : '');
     page.appendChild(header);
 
     // 主标题
     const title = document.createElement("div");
     title.className = "main-title";
-    title.textContent = "棱块编码认知训练";
+    title.textContent = "棱块编码认知训练出题器";
     page.appendChild(title);
 
     const sub = document.createElement("div");
     sub.className = "subtitle";
-    sub.textContent = currentMode === "write"
+    let subText = (currentMode === "write")
       ? "写出每个棱块高亮面所对应的编码字母"
       : "认读每个棱块高亮面所对应的编码";
+    sub.textContent = subText;
     page.appendChild(sub);
 
-    // 3×4 网格
+    // 动态网格：列数 = currentCols，行数 = ceil(N / currentCols)
     const grid = document.createElement("div");
     grid.className = "edge-grid";
+    grid.style.gridTemplateColumns = "repeat(" + currentCols + ", 1fr)";
+    grid.style.gridTemplateRows = "repeat(" + Math.ceil(N / currentCols) + ", 1fr)";
 
     shuffled.forEach((pick, idx) => {
-      const edge = EDGES[pick.edgeIndex];
+      const edge = pool[pick.edgeIndex];
       const cell = document.createElement("div");
       cell.className = "edge-cell";
 
       // 序号
       const seq = document.createElement("div");
       seq.className = "seq-num";
-          seq.textContent = (idx + 1) + ".";
+      seq.textContent = (idx + 1) + ".";
       cell.appendChild(seq);
 
-      // canvas — 放大棱块图（高分辨率，打印清晰）
+      // canvas
       const canvas = document.createElement("canvas");
       canvas.width = 280;
       canvas.height = 220;
@@ -497,24 +764,23 @@ function generate() {
       canvas.style.height = "134px";
       cell.appendChild(canvas);
 
-      // 横线（写编码模式才有）
       if (currentMode === "write") {
         const line = document.createElement("div");
         line.className = "write-line";
         cell.appendChild(line);
       }
+      // 读编码模式：只显示图形，下方不显示答案字母、也不显示字幕文字
 
       grid.appendChild(cell);
 
-      // 延迟绘制（等 canvas 入 DOM）
       requestAnimationFrame(() => {
-        drawEdge(canvas, edge.colors, pick.faceIndex);
+        drawEdge(canvas, edge.colors, pick.orientation, pick.faceIndex);
       });
     });
 
     page.appendChild(grid);
 
-    // 页脚（可选）
+    // 页脚
     if (showPageNum) {
       const footer = document.createElement("div");
       footer.className = "page-footer";
