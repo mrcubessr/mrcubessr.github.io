@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub 云端保存 · 验证 Demo</title>
+<!-- 复用 class-teach 目录下的读写封装 -->
+<script src="class-teach/github-store.js"></script>
+<style>
+  :root{--primary:#4f6ef7;--primary-light:#eef1fe;--text:#1f2937;--text-2:#4b5563;--text-3:#9ca3af;--border:#e5e7eb;--bg:#f3f4f6;--card:#fff;--red:#ef4444;--green:#10b981}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:var(--text);background:var(--bg);line-height:1.6;padding:24px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:760px;margin:0 auto}
+  h2{font-size:22px;margin-bottom:6px}
+  h3{font-size:16px;margin:18px 0 8px}
+  p{color:var(--text-2);font-size:14px}
+  .muted{color:var(--text-3);font-size:13px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  label{display:flex;flex-direction:column;font-size:13px;color:var(--text-2);gap:4px}
+  input,textarea{font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
+  input:focus,textarea:focus{outline:none;border-color:var(--primary)}
+  textarea{width:100%;resize:vertical}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:10px 18px;font-size:14px;background:var(--primary);color:#fff;transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.sec{background:#fff;color:var(--text-2);border:1px solid var(--border)}
+  #status{margin-left:6px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>GitHub 云端保存 · 验证 Demo</h2>
+    <p>用你的 GitHub 私有仓库当「云端」。填好下方配置，保存后刷新页面再点「从云端加载」，验证数据确实已落在 GitHub 服务器（不依赖本机）。</p>
+
+    <div class="grid">
+      <label>GitHub 用户名<input id="owner" placeholder="如 mrcubessr"></label>
+      <label>仓库名<input id="repo" placeholder="如 teacher-data（私有）"></label>
+      <label>文件路径<input id="path" value="demo-data.json"></label>
+      <label>访问令牌（fine-grained，仅授权本仓库）<input id="token" type="password" placeholder="ghp_ / github_pat_..."></label>
+    </div>
+
+    <div class="row">
+      <button id="connect">保存配置并连接</button>
+      <button class="sec" id="save">保存到云端</button>
+      <button class="sec" id="load">从云端加载</button>
+      <span id="status" class="muted">未连接</span>
+    </div>
+
+    <h3>测试内容</h3>
+    <textarea id="content" rows="9" placeholder="随便写点什么，例如：今天的三阶课，小明学会了十字公式。保存后刷新页面→从云端加载，看是否原样回来。"></textarea>
+
+    <p class="muted" style="margin-top:14px">提示：token 仅存本浏览器（自用）。GitHub API 支持跨域，GitHub Pages 直接调用无需白名单。单文件建议 &lt; 1MB。</p>
+  </div>
+
+<script>
+  function setStatus(t, err){ var e=document.getElementById('status'); e.textContent=t; e.style.color=err?'var(--red)':'var(--text-3)'; }
+  function fillCfg(){
+    document.getElementById('owner').value=localStorage.getItem('gh_o')||'';
+    document.getElementById('repo').value=localStorage.getItem('gh_r')||'';
+    document.getElementById('path').value=localStorage.getItem('gh_p')||'demo-data.json';
+    document.getElementById('token').value=localStorage.getItem('gh_t')||'';
+  }
+  function applyCfg(){
+    GitHubStore.config({
+      owner:document.getElementById('owner').value.trim(),
+      repo:document.getElementById('repo').value.trim(),
+      path:document.getElementById('path').value.trim()||'demo-data.json',
+      token:document.getElementById('token').value.trim()
+    });
+  }
+  document.getElementById('connect').onclick=function(){
+    var owner=document.getElementById('owner').value.trim();
+    var repo=document.getElementById('repo').value.trim();
+    var path=document.getElementById('path').value.trim()||'demo-data.json';
+    var token=document.getElementById('token').value.trim();
+    if(!owner||!repo||!token){ setStatus('请填齐 用户名/仓库/令牌', true); return; }
+    localStorage.setItem('gh_o',owner); localStorage.setItem('gh_r',repo); localStorage.setItem('gh_p',path); localStorage.setItem('gh_t',token);
+    applyCfg(); setStatus('已连接，可保存/加载');
+  };
+  document.getElementById('save').onclick=function(){
+    if(!GitHubStore.isReady()){ setStatus('请先「保存配置并连接」', true); return; }
+    setStatus('保存中…');
+    GitHubStore.save({ text: document.getElementById('content').value, savedAt: new Date().toISOString() })
+      .then(function(){ setStatus('已保存到云端 '+new Date().toLocaleTimeString()); })
+      .catch(function(e){ setStatus('保存失败：'+e.message, true); });
+  };
+  document.getElementById('load').onclick=function(){
+    if(!GitHubStore.isReady()){ setStatus('请先「保存配置并连接」', true); return; }
+    setStatus('加载中…');
+    GitHubStore.load()
+      .then(function(r){
+        if(r&&r.data){ document.getElementById('content').value=r.data.text||''; setStatus('已从云端加载 '+new Date().toLocaleTimeString()); }
+        else { setStatus('云端暂无数据，先保存一次'); }
+      })
+      .catch(function(e){ setStatus('加载失败：'+e.message, true); });
+  };
+  // 启动：自动回填配置
+  fillCfg(); applyCfg();
+  if(GitHubStore.isReady()) setStatus('已连接，可保存/加载'); else setStatus('未连接：填配置后点连接');
+</script>
+</body>
+</html>

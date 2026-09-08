@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="zh-CN" data-page-node-id="10wuhvw8AHeoNekMpsGpcz">
+<head data-page-node-id="FlHxLBCXzhWtAsf3s9tYYc">
+<meta charset="UTF-8" data-page-node-id="L1hRF3ItH9g7b9mCiaePDa">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="SaaSm1I8Jdc7E0xro8XoKY">
 <title>魔方课堂教学系统</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -147,209 +147,224 @@
   .prog-summary .ps .l{font-size:12px;color:var(--text-3)}
   .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
 </style>
-  <link rel="stylesheet" href="/assets/css/site-nav.css" />
+  <link rel="stylesheet" href="/assets/css/site-nav.css" data-page-node-id="zs7TAbYKKItbcHe9Qk7e7H" />
 </head>
-<body data-nav="class-teach" style="padding-top:60px">
-<nav class="site-nav" id="siteNav">
-  <div class="nav-inner">
-    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
-    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
-      <span></span><span></span><span></span>
+<body data-nav="class-teach" style="padding-top:60px" data-page-node-id="eRcpbs65yATz2bxhkteVTM">
+<nav class="site-nav" id="siteNav" data-page-node-id="P1WocCzY7sJCuHE4jwKaCG">
+  <div class="nav-inner" data-page-node-id="XiPB5i2GwasF7MHYRXZh5E">
+    <a class="nav-logo" href="/" data-page-node-id="PwfiTHdDJH2cOWn5n5MGou">魔方先生SSR魔方训练中心</a>
+    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false" data-page-node-id="FLzEzlXBD2FoTRdFPmBTph">
+      <span data-page-node-id="KGuiEArQ1I0n0J01zQWlAV"></span><span data-page-node-id="3NtqMT3wQ925qzBdcnw7N6"></span><span data-page-node-id="uyBqL3YlX32trSxWueDpW8"></span>
     </button>
-    <div class="nav-links" id="navLinks">
-      <a href="/" class="nav-link" data-nav="home">首页</a>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/fto" data-nav="fto">FTO</a>
-          <a href="/tools/3x3" data-nav="3x3">三阶</a>
-          <a class="nav-soon" title="即将上线">二阶</a>
-          <a class="nav-soon" title="即将上线">金字塔</a>
-          <a class="nav-soon" title="暂时预留">三盲</a>
+    <div class="nav-links" id="navLinks" data-page-node-id="NRpLH6pUt3atVcOEnBJFML">
+      <a href="/" class="nav-link" data-nav="home" data-page-node-id="aYShGzBjltooxGUckGQDty">首页</a>
+      <div class="nav-drop" data-page-node-id="Kh346pY8pp6YOwdeeP59zC">
+        <span class="nav-link nav-drop-toggle" data-nav="tutorial" data-page-node-id="IUU9Brw5lvzIDn5DJYlXPt">教程 <span class="caret" data-page-node-id="3p9JYsYQy5ME2AAuZvHeuB">▾</span></span>
+        <div class="nav-menu" data-page-node-id="kljFGbaRTyczsBy1C1ATFv">
+          <a href="/fto" data-nav="fto" data-page-node-id="1MVtANHVVT3lCWVJibhzPX">FTO</a>
+          <a href="/tools/3x3" data-nav="3x3" data-page-node-id="oCUrvluCFB6aztRdfIbfsE">三阶</a>
+          <a class="nav-soon" title="即将上线" data-page-node-id="PJaxn1FWsAN3UAbr8gxdlF">二阶</a>
+          <a class="nav-soon" title="即将上线" data-page-node-id="2wpH9uigX5bXoeuqsnRpFf">金字塔</a>
+          <a class="nav-soon" title="暂时预留" data-page-node-id="UIH8rIhzlFw8rekGRyUrnw">三盲</a>
         </div>
       </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
-          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
-          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
-          <a href="/tools/3bld" data-nav="3bld">出题器</a>
-          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
-          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
-          <a href="/tools/invert" data-nav="invert">逆序转换</a>
-          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
-          <a href="/tools/bldscramble" data-nav="bldscramble">盲拧打乱生成器</a>
-          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
-          <a href="/tools/class-teach" data-nav="class-teach">魔方课堂教学系统</a>
-          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
-          <a href="/tools/edge-trainer" data-nav="edge-trainer">棱块编码</a>
-          <a href="/tools/edge-printout" data-nav="edge-printout">出题打印</a>
+      <div class="nav-drop" data-page-node-id="Y7DjbD0dIlCMZoICWJAP7z">
+        <span class="nav-link nav-drop-toggle" data-nav="tools" data-page-node-id="OEDy2R7XlwYMIY9XQoGK30">个人训练工具 <span class="caret" data-page-node-id="pJPvwRMZGpLGgwAIV5ng5A">▾</span></span>
+        <div class="nav-menu" data-page-node-id="1qaKqNXucOocfLgw0Mfo5h">
+          <a href="/tools/scramble-ur" data-nav="scramble-ur" data-page-node-id="FBrhd6qy1Ce7QrZdcSNNr2">UR公式训练</a>
+          <a href="/tools/scramble-uf" data-nav="scramble-uf" data-page-node-id="eSvx9BUeDuRKSCgXvUTtN6">UF公式训练</a>
+          <a href="/tools/bldtrainer" data-nav="bldtrainer" data-page-node-id="QO26crik63pMtE49hpHZTc">读码还原</a>
+          <a href="/tools/3bld" data-nav="3bld" data-page-node-id="vE20eX7Ozbxn3HVmCmZ0pA">出题器</a>
+          <a href="/tools/2x2" data-nav="2x2" data-page-node-id="LXAaYdG20A2cAwPho8Yh0O">二阶练习</a>
+          <a href="/tools/kmap" data-nav="kmap" data-page-node-id="HrfDD4B8R3k511GF3WxeWM">知识地图</a>
+          <a href="/tools/invert" data-nav="invert" data-page-node-id="uwpaFO7FmdiWXBJvksZc1f">逆序转换</a>
+          <a href="/tools/practice" data-nav="practice" data-page-node-id="UECjt81F5fEhciZgeuck20">练习纸生成</a>
+          <a href="/tools/bldscramble" data-nav="bldscramble" data-page-node-id="hreoX48i7UgwAQGzQXCYf6">盲拧打乱生成器</a>
+          <a href="/tools/3x3teach" data-nav="3x3teach" data-page-node-id="ferSLRAp5YyNtLOrt0EDRn">三阶魔方教学</a>
+          <a href="/tools/class-teach" data-nav="class-teach" data-page-node-id="K05GGvDaPNAy7TQq1d6Tj3">魔方课堂教学系统</a>
+          <a href="/tools/corner-trainer" data-nav="corner-trainer" data-page-node-id="DhaOrVZEZlJUCTFDyOCoFb">角块编码</a>
+          <a href="/tools/edge-trainer" data-nav="edge-trainer" data-page-node-id="Fy376pp6NR9zwfFMOP4rnm">棱块编码</a>
+          <a href="/tools/edge-printout" data-nav="edge-printout" data-page-node-id="TtsXFW1yhbzHOY2y30YLpt">出题打印</a>
         </div>
       </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/nav" data-nav="nav">工具导航</a>
+      <div class="nav-drop" data-page-node-id="4tGOL05TpLDt5piphIjPcm">
+        <span class="nav-link nav-drop-toggle" data-nav="links" data-page-node-id="9LUejEYk9dsF5WtK6wQib0">外链 <span class="caret" data-page-node-id="FeQORocGO1Z5UHZybMJpYp">▾</span></span>
+        <div class="nav-menu" data-page-node-id="wXvzVmHaslDWsmMnsyRVNa">
+          <a href="/tools/nav" data-nav="nav" data-page-node-id="WV1HwFqcmxCQNc3piojlrs">工具导航</a>
         </div>
       </div>
     </div>
   </div>
 </nav>
 
-<div class="topbar">
-  <div class="logo">🧩 魔方课堂教学系统</div>
-  <nav id="nav">
-    <button class="nbtn" data-view="home">首页</button>
-    <button class="nbtn" data-view="score">课堂计分</button>
-    <button class="nbtn" data-view="progress">学习进度</button>
-    <button class="nbtn" data-view="students">学生管理</button>
-    <button class="nbtn" data-view="course">课程知识点</button>
-    <button class="nbtn" data-view="backup">备份</button>
+<div class="topbar" data-page-node-id="iU2JGpArtXIgmLLFErpExu">
+  <div class="logo" data-page-node-id="PY1nQ5RrSM3o8nSl32K7to">🧩 魔方课堂教学系统</div>
+  <nav id="nav" data-page-node-id="C05Wd7vl6d8dyJlV0d7qFw">
+    <button class="nbtn" data-view="home" data-page-node-id="ST4gq2JWhQNgX4dEcEyCEf">首页</button>
+    <button class="nbtn" data-view="score" data-page-node-id="N0FrSdnkEQRPZDiZDRlc7I">课堂计分</button>
+    <button class="nbtn" data-view="progress" data-page-node-id="ZPa28i1hoODyaRX2VjTEQT">学习进度</button>
+    <button class="nbtn" data-view="students" data-page-node-id="nDqMtSGS8qxzMcvSDHZmMA">学生管理</button>
+    <button class="nbtn" data-view="course" data-page-node-id="sfzaorZKhOmDqYGKqiZV6u">课程知识点</button>
+    <button class="nbtn" data-view="backup" data-page-node-id="WmxQjqIdbCG4mAQCPOCeFR">备份</button>
   </nav>
-  <div class="spacer"></div>
-  <div class="classpick">当前班级：<select id="classSel"></select></div>
+  <div class="spacer" data-page-node-id="IubNNVY4GgZZBDQpn856Nx"></div>
+  <div class="classpick" data-page-node-id="FmuMsuTgDwVAn6PqRIFvyZ">当前班级：<select id="classSel" data-page-node-id="fIZfWhPaUsjfbkEaLFjgDA"></select></div>
 </div>
 
-<div class="wrap">
+<div class="wrap" data-page-node-id="TU3iOo7548vlGStzaA8gHF">
 
   <!-- 首页 -->
-  <div class="view" id="view-home">
-    <div class="card">
-      <h2>欢迎使用</h2>
-      <p class="muted">选择上方功能模块开始。当前班级可在右上角切换。</p>
-      <div class="row" style="margin-top:18px">
-        <button data-go="score">进入课堂计分 →</button>
-        <button class="sec" data-go="progress">查看学习进度 →</button>
-        <button class="sec" data-go="students">管理学生 →</button>
+  <div class="view" id="view-home" data-page-node-id="fDRjPRGyOtXUWIO2M10orW">
+    <div class="card" data-page-node-id="PeminINDCYYe4pTzsI1Wa6">
+      <h2 data-page-node-id="aBQlUpUxcvRUp9UE1dvJUT">欢迎使用</h2>
+      <p class="muted" data-page-node-id="5I7gqRfxfWtlwxBESh4v7H">选择上方功能模块开始。当前班级可在右上角切换。</p>
+      <div class="row" style="margin-top:18px" data-page-node-id="Hq5iq9BPPPemmN4dvnHjiC">
+        <button data-go="score" data-page-node-id="AFAtgNSFb4D2kihYkn9lZK">进入课堂计分 →</button>
+        <button class="sec" data-go="progress" data-page-node-id="a5Xsgld2FnhmLDIcNphqc3">查看学习进度 →</button>
+        <button class="sec" data-go="students" data-page-node-id="QLuj3SPdk1eCTfGGnqT0sL">管理学生 →</button>
       </div>
     </div>
-    <div class="card">
-      <h3>本班概况</h3>
-      <div id="homeStat" class="muted">—</div>
+    <div class="card" data-page-node-id="BHdcxQCEuXggEUtPFeNzcA">
+      <h3 data-page-node-id="1JVmygT9DbGq02tTFFq9mQ">本班概况</h3>
+      <div id="homeStat" class="muted" data-page-node-id="bvHBZT8NQE3wR1jxNnyiFI">—</div>
     </div>
   </div>
 
   <!-- 计分页 -->
-  <div class="view" id="view-score">
-    <div class="card">
-      <div class="scorebar">
-        <h2 style="margin:0">课堂计分</h2>
-        <span class="meta" id="scoreMeta">—</span>
-        <span class="meta">本节累计：<b id="scoreTotal" style="color:var(--primary)">0</b> 次</span>
-        <label class="meta">排列：<select id="scoreSort" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
-          <option value="sid">按学号</option>
-          <option value="score">按积分</option>
+  <div class="view" id="view-score" data-page-node-id="iwRdabNd0DRlMmY5eAC3NW">
+    <div class="card" data-page-node-id="paC3a0M50sGWOIqxfwF5sa">
+      <div class="scorebar" data-page-node-id="Golxw53e7RzsbcGkBdxAiR">
+        <h2 style="margin:0" data-page-node-id="k2s5IiLHedaZb7xdFM413i">课堂计分</h2>
+        <span class="meta" id="scoreMeta" data-page-node-id="6tFtiEuc5sPIVNQbEgczLW">—</span>
+        <span class="meta" data-page-node-id="XvefQofu1czCfdkC1TnVX9">本节累计：<b id="scoreTotal" style="color:var(--primary)" data-page-node-id="xvKlF1YzKaZGujaY1hTATW">0</b> 次</span>
+        <label class="meta" data-page-node-id="lRFgy1SBEWtAxCeO2CGztS">排列：<select id="scoreSort" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)" data-page-node-id="xqtbyIcf5EI9SXjPa0fRqn">
+          <option value="sid" data-page-node-id="KOKb7BFtSDijWY00sb2U1L">按学号</option>
+          <option value="score" data-page-node-id="3nzvO8zd6vuCMSYpMxvSLl">按积分</option>
         </select></label>
-        <div style="flex:1"></div>
-        <button class="sec sm" id="newSession">开始新课</button>
-        <button id="finishBtn">完成本节课</button>
+        <div style="flex:1" data-page-node-id="x3e4VbDfXP7rnYr8jUe3C9"></div>
+        <button class="sec sm" id="newSession" data-page-node-id="4VeZjjmHy64JE4Ej8MO8Kj">开始新课</button>
+        <button id="finishBtn" data-page-node-id="DMMLncGcolKdY8tckbp7t3">完成本节课</button>
       </div>
-      <div id="scoreGrid" class="grid"></div>
+      <div id="scoreGrid" class="grid" data-page-node-id="VN138x3xHPO47h2v7Kx8N3"></div>
     </div>
   </div>
 
   <!-- 结算页（复用 home 区下方，用 modal） -->
   <!-- 学习进度 -->
-  <div class="view" id="view-progress">
-    <div class="card">
-      <div class="scorebar">
-        <h2 style="margin:0">班级学习进度</h2>
-        <span class="meta" id="progMeta">—</span>
-        <div style="flex:1"></div>
-        <label class="meta">魔方：<select id="progCourse" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)"></select></label>
-        <label class="meta">图表：<select id="progChartType" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
-          <option value="bar">柱状图（已掌握数）</option>
-          <option value="stacked">堆叠柱状图（分状态）</option>
-          <option value="heat">热力图（逐知识点）</option>
-          <option value="pie">饼图（状态分布）</option>
-          <option value="rate">掌握率横条</option>
-          <option value="radar">雷达图（六维均值）</option>
+  <div class="view" id="view-progress" data-page-node-id="ALBt0rFzUpxwKIBqw3Bz4x">
+    <div class="card" data-page-node-id="fR27O6YW0Uc2sdATy8Z3QX">
+      <div class="scorebar" data-page-node-id="2ztOF8kGhuFkR5AS1eubdi">
+        <h2 style="margin:0" data-page-node-id="E2m9SQjZmlRRoHXluA3RWG">班级学习进度</h2>
+        <span class="meta" id="progMeta" data-page-node-id="x6DcXcj6aQ07mO34cJXCMB">—</span>
+        <div style="flex:1" data-page-node-id="5FurnuAuqFjjeytHPNuqI3"></div>
+        <label class="meta" data-page-node-id="onq3y3y2qLBBj3eWLr6UY2">魔方：<select id="progCourse" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)" data-page-node-id="ZTCteCprh720mKmBTzn1Fr"></select></label>
+        <label class="meta" data-page-node-id="9dg3B0AmFGxfELLbjdLXcZ">图表：<select id="progChartType" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)" data-page-node-id="ozvmEHGlDyFUiE4Hj16xJj">
+          <option value="bar" data-page-node-id="P3wmczWWGvVmGJ4nrwjfu2">柱状图（已掌握数）</option>
+          <option value="stacked" data-page-node-id="BLuceo3HKFyl6xCbv5vvnc">堆叠柱状图（分状态）</option>
+          <option value="heat" data-page-node-id="PDrrCNVRmK9205f7HFLChi">热力图（逐知识点）</option>
+          <option value="pie" data-page-node-id="BEGl4dZeyzQrGacTmm7Df5">饼图（状态分布）</option>
+          <option value="rate" data-page-node-id="7QklFrJAEivqME4QWHbXSz">掌握率横条</option>
+          <option value="radar" data-page-node-id="goxz92CMdmE6b7BHbaxP3H">雷达图（六维均值）</option>
         </select></label>
       </div>
-      <div class="legend">
-        <span><i class="hc0"></i>未开始</span>
-        <span><i class="hc1"></i>学习中</span>
-        <span><i class="hc2"></i>已掌握</span>
-        <span><i class="hc3"></i>需复习</span>
+      <div class="legend" data-page-node-id="EYUE7UAfw3jOb96Ba1ZtvV">
+        <span data-page-node-id="1DNycnzlnk83fa8AoxDJpy"><i class="hc0" data-page-node-id="ye1jvgcKIzZZfGz12n0zfc"></i>未开始</span>
+        <span data-page-node-id="8xBxLQNAtsOn5EPBOyDeZK"><i class="hc1" data-page-node-id="hqm0fOhu7jG3zdi4dFuiip"></i>学习中</span>
+        <span data-page-node-id="HMUo4ePa9lwxvph94ouKI7"><i class="hc2" data-page-node-id="I3hkypGOnLcVYPvXjh7bDR"></i>已掌握</span>
+        <span data-page-node-id="IYvAviX3CCBe7ugrWrZhZT"><i class="hc3" data-page-node-id="sloQj8v5zgmzZGFt5gSeNY"></i>需复习</span>
       </div>
-      <div id="progContent"></div>
+      <div id="progContent" data-page-node-id="A92WTxGJFtxUP05jH9TBxd"></div>
     </div>
   </div>
 
   <!-- 学生管理 -->
-  <div class="view" id="view-students">
-    <div class="card">
-      <div class="scorebar">
-        <h2 style="margin:0">学生管理</h2>
-        <span class="meta" id="stuMeta">—</span>
-        <div style="flex:1"></div>
-        <button class="ghost sm" id="clearScores" style="color:var(--red)">批量清零积分（本班）</button>
+  <div class="view" id="view-students" data-page-node-id="ccGlMu9F6iwurrZ5QGXYa4">
+    <div class="card" data-page-node-id="lo0ObfIqbqBkdhyEolOgzA">
+      <div class="scorebar" data-page-node-id="Yw9ll0MSnjDBfwSth5HZGY">
+        <h2 style="margin:0" data-page-node-id="IqLc8TEbqBmMIw9Xaha6CY">学生管理</h2>
+        <span class="meta" id="stuMeta" data-page-node-id="E5RxZxAsTTt7O89QGh5vAj">—</span>
+        <div style="flex:1" data-page-node-id="PHqdonl5YoER0lw7FwLx4m"></div>
+        <button class="ghost sm" id="clearScores" style="color:var(--red)" data-page-node-id="J5sAgulNz4uVDja4uorfxr">批量清零积分（本班）</button>
       </div>
-      <h3>添加学生</h3>
-      <div class="row">
-        学号<input id="inSid" style="width:90px">
-        大名<input id="inName" style="width:140px">
-        小名<input id="inNick" style="width:120px">
-        <button id="addStu">添加</button>
+      <h3 data-page-node-id="D5AsDjC7E2ODEu2hsL3Mei">添加学生</h3>
+      <div class="row" data-page-node-id="y5TEKj7zFVRJaltOkb0ajt">
+        学号<input id="inSid" style="width:90px" data-page-node-id="k8sk5wFFFjtKdHxvxILjGk">
+        大名<input id="inName" style="width:140px" data-page-node-id="NHxl4Y3plzB2CGZFLHfJK8">
+        小名<input id="inNick" style="width:120px" data-page-node-id="kCtKhaYQ79AqFC1LxvGRbl">
+        <button id="addStu" data-page-node-id="nHyf6TV1uwvDXwLPMyJk3p">添加</button>
       </div>
-      <h3>批量导入（每行：学号,大名,小名）</h3>
+      <h3 data-page-node-id="3wQhxA9JMlK5P7qxfrGHk1">批量导入（每行：学号,大名,小名）</h3>
       <textarea id="bulk" rows="4" style="width:100%;max-width:520px" placeholder="01,王一诺,诺诺&#10;02,李梓豪,豪豪"></textarea>
-      <div class="row" style="margin-top:8px"><button class="sec sm" id="bulkBtn">批量导入</button></div>
+      <div class="row" style="margin-top:8px" data-page-node-id="TcReTc9GcLNxSQcyRXW6If"><button class="sec sm" id="bulkBtn" data-page-node-id="gr1bFgr0Vvlpi9HUa1ZuVC">批量导入</button></div>
     </div>
-    <div class="card">
-      <div class="scorebar">
-        <h3 style="margin:0">学生列表</h3>
-        <span class="meta">排列：</span>
-        <select id="stuSort" class="sel">
-          <option value="sid">按学号</option>
-          <option value="score">按积分</option>
+    <div class="card" data-page-node-id="nAktVsFlRtBV2aL0bZWVHA">
+      <div class="scorebar" data-page-node-id="A7x6JxRF6C7GzpyixZWrbC">
+        <h3 style="margin:0" data-page-node-id="bbHA7SVNcpXpXSWecpGGlU">学生列表</h3>
+        <span class="meta" data-page-node-id="6QXLLr0rNqDHxVQDjN1GJ1">排列：</span>
+        <select id="stuSort" class="sel" data-page-node-id="Jc8RPSDuzHn3GzqEbk2WQE">
+          <option value="sid" data-page-node-id="uvOrYQQArPCDCqknuI1kjC">按学号</option>
+          <option value="score" data-page-node-id="R4iKlwzLskK286ngio1k14">按积分</option>
         </select>
       </div>
-      <table class="tbl"><thead><tr><th>学号</th><th>大名</th><th>小名</th><th>颜色</th><th>累计积分</th><th>操作</th></tr></thead>
-        <tbody id="stuBody"></tbody>
+      <table class="tbl" data-page-node-id="amFO1ATyeWtfhOCUF9lJnL"><thead data-page-node-id="OOhL2yOqAHuKbl9ofj5sMG"><tr data-page-node-id="stMLbWGrCxTfzCZZy7RQ3I"><th data-page-node-id="YlVs70ZKGo67jKCDvh8Tv6">学号</th><th data-page-node-id="ynbj2GUDiHCajbB1V6kBJK">大名</th><th data-page-node-id="isDO5dLiqu37cpXre6i9cL">小名</th><th data-page-node-id="SviWgUumnHze8euEuIZgmn">颜色</th><th data-page-node-id="lBDGm3tEBrnKfyr29EKmWe">累计积分</th><th data-page-node-id="0HTzsCkEj9aL4EgqoQp4YL">操作</th></tr></thead>
+        <tbody id="stuBody" data-page-node-id="CE4KQXHxuQg8kEUYNyCqo7"></tbody>
       </table>
     </div>
   </div>
 
   <!-- 课程知识点 -->
-  <div class="view" id="view-course">
-    <div class="card">
-      <h2>课程知识点设置</h2>
-      <p class="muted">点击知识点可重命名/删除；可新增知识点与魔方类型。变更会即时保存。</p>
-      <div id="courseBox"></div>
+  <div class="view" id="view-course" data-page-node-id="e6jXZrSlHLJEnd1hA2Jc0O">
+    <div class="card" data-page-node-id="vYRxopYX8l3NwNqvXhdI4I">
+      <h2 data-page-node-id="JBb2dMELbPutzuugUNvrSB">课程知识点设置</h2>
+      <p class="muted" data-page-node-id="y0Jx1ElF5rDuOFD2SM9zUo">点击知识点可重命名/删除；可新增知识点与魔方类型。变更会即时保存。</p>
+      <div id="courseBox" data-page-node-id="Pyziqa9fti0GzHqp79fmQ6"></div>
     </div>
   </div>
 
   <!-- 备份 -->
-  <div class="view" id="view-backup">
-    <div class="card">
-      <h2>数据备份与迁移</h2>
-      <p class="muted">第一版本地存储。定期导出 JSON 文件备份，换电脑时导入即可继续使用。</p>
-      <div class="row" style="margin-top:14px">
-        <button id="exportBtn">导出备份（JSON）</button>
-        <label class="" style="display:inline-flex;align-items:center"><button class="sec">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none"></label>
-        <button class="ghost sm" id="wipeBtn" style="color:var(--red)">清空全部数据</button>
+  <div class="view" id="view-backup" data-page-node-id="5BUznekjO4ye6OmOHdhlfy">
+    <div class="card" data-page-node-id="vqfvFMZcpoAuoqAsTvBAJi">
+      <h2 data-page-node-id="YAZW2ItNDzIibvCEHFLf04">数据备份与迁移</h2>
+      <p class="muted" data-page-node-id="TgnG3wyFQ35hT5fMcLPIMh">第一版本地存储。定期导出 JSON 文件备份，换电脑时导入即可继续使用。</p>
+      <div class="row" style="margin-top:14px" data-page-node-id="xlIHqIG8EkZ8unNxLemJYB">
+        <button id="exportBtn" data-page-node-id="CebOHcwB6fFzBkJc4nQLTk">导出备份（JSON）</button>
+        <button class="sec" id="importBtn" data-page-node-id="twNZP3VcDC5zeG1KBI3Dfy">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none" data-page-node-id="Bdwb2H58fIlzcn85poGI44">
+        <button class="ghost sm" id="wipeBtn" style="color:var(--red)" data-page-node-id="TNvM17bPtU0PZykxZDXHRF">清空全部数据</button>
       </div>
-      <h3>数据概况</h3>
-      <div id="backupStat" class="muted">—</div>
+      <h3 data-page-node-id="XHBk5wukTjVNylWi6NLo23">数据概况</h3>
+      <div id="backupStat" class="muted" data-page-node-id="YLzSxNBdSj5gWPofXttd4G">—</div>
+
+      <h3 data-page-node-id="0e5I9uwvkRL3feEZ1YKzi2">云端同步（GitHub 私有仓库）</h3>
+      <p class="muted" data-page-node-id="jT3XkXEFSKYJpzu5CPjptH">把数据存到你的 GitHub 私有仓库，换设备登录即同步。需一个细粒度访问令牌（仅授权本仓库）。</p>
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px" data-page-node-id="Tbq3dx44Urkngb6z2EO1xW">
+        <input class="sync-input" id="ghOwner" placeholder="GitHub 用户名" data-page-node-id="prw4yH3ECEitPFoim1ydlG">
+        <input class="sync-input" id="ghRepo" placeholder="仓库名（如 teacher-data）" data-page-node-id="C1jnRnndCh7A60Zy3OyQAO">
+        <input class="sync-input" id="ghPath" placeholder="文件路径" value="class-teach/data.json" data-page-node-id="uLVnP97tzPzKB6XZu7HP1Z">
+        <input class="sync-input" id="ghToken" type="password" placeholder="访问令牌 token" data-page-node-id="Dq8UBGbXI7rZhdG98EbLVh">
+      </div>
+      <div class="row" style="margin-top:10px" data-page-node-id="Hsx8HIFCdSTa7iN3Wd9mef">
+        <button id="ghConnect" data-page-node-id="7m1jy4QKJiVKdXfKyT1TyL">保存配置并连接</button>
+        <button class="sec" id="ghPull" data-page-node-id="dX0N6hgfAnlM5mS83ZRy7z">从云端拉取</button>
+        <button class="sec" id="ghPush" data-page-node-id="ZEU7qI2IP1ZGD47A510IIN">立即同步到云端</button>
+        <span id="ghStatus" class="muted" data-page-node-id="gCGNUGOCATfX6IAcme0wXB">未连接</span>
+      </div>
     </div>
   </div>
 
   <!-- 学生个人主页（全屏页面，非弹窗） -->
-  <div class="view" id="view-stuPage">
-    <div id="stuPageContent"></div>
+  <div class="view" id="view-stuPage" data-page-node-id="HAjamMPhFtAhKGooDQVgpV">
+    <div id="stuPageContent" data-page-node-id="kUFMCbA8s8RmGRVPmib4ux"></div>
   </div>
 
 </div>
-<div class="modalbg" id="settleModal">
-  <div class="modal" style="max-width:640px">
-    <h3>本节课结算 · 表扬榜</h3>
-    <div class="muted" id="settleDate" style="margin-bottom:10px"></div>
-    <div class="rank" id="settleRank"></div>
-    <div class="row" style="margin-top:18px;justify-content:flex-end">
-      <button class="sec" id="settleClose">返回计分</button>
-      <button id="settleConfirm">确认归档并清零</button>
+<div class="modalbg" id="settleModal" data-page-node-id="AREAzuf2eJ3ACq9ZRwo1fZ">
+  <div class="modal" style="max-width:640px" data-page-node-id="YdGgThTjBCWpT9kkj1oc8R">
+    <h3 data-page-node-id="8Igd5ike0W76xLC3yg1VIF">本节课结算 · 表扬榜</h3>
+    <div class="muted" id="settleDate" style="margin-bottom:10px" data-page-node-id="wQXy4lWPdRwUHB62waGtSV"></div>
+    <div class="rank" id="settleRank" data-page-node-id="MBwEXjwZfJuXDdjBYYfxxC"></div>
+    <div class="row" style="margin-top:18px;justify-content:flex-end" data-page-node-id="epTD2ZcMk2XkCqxdRJcSV7">
+      <button class="sec" id="settleClose" data-page-node-id="AX6dEYPsJzL9GG62xLzHcm">返回计分</button>
+      <button id="settleConfirm" data-page-node-id="HpdqsUzCki5K9qDDENqVy8">确认归档并清零</button>
     </div>
   </div>
 </div>
@@ -386,24 +401,28 @@ function freshDB(){
     {id:14,courseId:3,name:'特殊公式',order:3},
     {id:15,courseId:3,name:'全复原',order:4}
   ];
-  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],nextId:100,rate:1};
+  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],version:1,nextId:100,rate:1};
 }
 let DB=null, curClass=null, curSessionId=null, stuChart=null, stuSort='sid', scoreSort='sid', curStuId=null, prevView='students', stuRadarCharts={}, progCourseId='all', progChartType='bar', progCharts=[];
 
 function load(){
   DB=JSON.parse(localStorage.getItem(KEY)||'null')||freshDB();
   if(!DB.radar)DB.radar=[];
-  // 一次性迁移：将所有学生和课次切换到大四班(id:4)
-  if(!localStorage.getItem('mf_migrated_d4')){
-    if(DB.students&&DB.students.length){
-      DB.students.forEach(s=>s.classId=4);
-      if(DB.sessions)DB.sessions.forEach(s=>s.classId=4);
-      save();
-    }
-    localStorage.setItem('mf_migrated_d4','1');
-  }
+  if(!DB.version)DB.version=1; // 兼容旧库：无版本号旧数据补 1，不破坏既有数据
 }
-function save(){ localStorage.setItem(KEY,JSON.stringify(DB)); }
+// === D8 自动保存兜底：防抖 + 卸载 flush，防止漏调 save 丢数据 ===
+let _saveTimer=null;
+function save(){
+  if(_saveTimer)clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(flushSave,400); // 高频调用合并为一次落盘
+}
+function flushSave(){
+  if(_saveTimer){clearTimeout(_saveTimer);_saveTimer=null;}
+  localStorage.setItem(KEY,JSON.stringify(DB));
+}
+// 页面卸载或切到后台前强制落盘，兜底漏存（D8/D9）
+window.addEventListener('beforeunload',flushSave);
+document.addEventListener('visibilitychange',function(){ if(document.hidden)flushSave(); });
 function uid(){ return DB.nextId++; }
 function curClassId(){ return curClass?curClass.id:DB.classes[0].id; }
 function students(cId){ return DB.students.filter(s=>s.classId===cId).sort((a,b)=>(a.sid||'').localeCompare(b.sid||'')); }
@@ -446,12 +465,16 @@ document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setView(b.datase
 function fillClassSel(){
   const sel=document.getElementById('classSel');
   sel.innerHTML=DB.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  if(!curClass)curClass=DB.classes[0];
+  const saved=parseInt(localStorage.getItem('mf_cur_class'));
+  const savedClass=DB.classes.find(c=>c.id===saved);
+  if(savedClass)curClass=savedClass;
+  else if(!curClass)curClass=DB.classes[0];
   else curClass=DB.classes.find(c=>c.id===curClass.id)||DB.classes[0];
   sel.value=curClass.id;
 }
 document.getElementById('classSel').onchange=e=>{
   curClass=DB.classes.find(c=>c.id===parseInt(e.target.value));
+  localStorage.setItem('mf_cur_class', curClass.id);
   const v=document.querySelector('.view.active')?.id.replace('view-','');
   setView(v||'home');
 };
@@ -950,19 +973,77 @@ document.getElementById('exportBtn').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=`魔方课堂数据备份_${today()}.json`;a.click();
 };
+document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+function validateBackup(d){
+  if(!d||typeof d!=='object')return {ok:false,msg:'不是对象'};
+  const arr=['classes','courses','skills','students','sessions','tallies','progress','radar'];
+  for(const k of arr){ if(!Array.isArray(d[k])) return {ok:false,msg:'缺少数组字段 '+k}; }
+  if(typeof d.nextId!=='number') return {ok:false,msg:'缺少数字字段 nextId'};
+  if(typeof d.rate!=='number') return {ok:false,msg:'缺少数字字段 rate'};
+  return {ok:true};
+}
 document.getElementById('importFile').onchange=function(){
   const f=this.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.classes)throw 0;if(confirm('导入将覆盖当前数据，确定？')){DB=d;if(!DB.rate)DB.rate=1;if(!DB.radar)DB.radar=[];save();fillClassSel();setView('home');alert('导入成功。');}}catch(e){alert('文件格式不正确。');}};
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    const v=validateBackup(d);
+    if(!v.ok){ alert('备份文件结构不完整：'+v.msg); return; }
+    if(confirm('导入将覆盖当前数据，确定？')){
+      DB=d;
+      if(!DB.rate)DB.rate=1;
+      if(!DB.radar)DB.radar=[];
+      save();
+      localStorage.removeItem('mf_cur_class');
+      fillClassSel();setView('home');
+      alert('导入成功。');
+    }
+  }catch(e){ alert('文件不是合法的 JSON，无法导入。'); }};
   r.readAsText(f);
 };
-document.getElementById('wipeBtn').onclick=()=>{if(!confirm('清空全部数据，不可恢复！建议先导出备份。确定继续？'))return;if(!confirm('再次确认：将删除所有班级、学生、课次与进度数据。'))return;localStorage.removeItem(KEY);load();fillClassSel();setView('home');};
+document.getElementById('wipeBtn').onclick=()=>{if(!confirm('清空全部数据，不可恢复！建议先导出备份。确定继续？'))return;if(!confirm('再次确认：将删除所有班级、学生、课次与进度数据。'))return;localStorage.removeItem(KEY);localStorage.removeItem('mf_cur_class');load();fillClassSel();setView('home');};
 
 /* ============ 工具 ============ */
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function nowStr(){return new Date().toISOString();}
 
 /* ============ 启动 ============ */
-load();fillClassSel();fillProgCourse();setView('home');
+/* ============ 云端同步（GitHub 私有仓库，单人自用） ============ */
+function ghCfg(){return {owner:localStorage.getItem('gh_owner')||'',repo:localStorage.getItem('gh_repo')||'',path:localStorage.getItem('gh_path')||'class-teach/data.json',token:localStorage.getItem('gh_token')||''};}
+function applyGhCfg(){
+  var c=ghCfg(); GitHubStore.config(c);
+  var o=document.getElementById('ghOwner'),r=document.getElementById('ghRepo'),p=document.getElementById('ghPath'),t=document.getElementById('ghToken');
+  if(o)o.value=c.owner; if(r)r.value=c.repo; if(p)p.value=c.path; if(t)t.value=c.token;
+}
+function updateCloudStatus(msg,err){
+  var el=document.getElementById('ghStatus');
+  if(el){el.textContent=msg; el.style.color=err?'var(--red)':'var(--text-3)';}
+}
+function pullFromCloud(){
+  if(!GitHubStore.isReady()){updateCloudStatus('未连接：请先配置令牌');return;}
+  GitHubStore.load().then(function(r){
+    if(r&&r.data){
+      DB=r.data; if(!DB.radar)DB.radar=[];
+      try{localStorage.setItem(KEY,JSON.stringify(DB));localStorage.setItem('gh_last_sync',Date.now());}catch(e){}
+      fillClassSel();fillProgCourse();setView('home');
+      localStorage.removeItem('mf_cur_class');
+      updateCloudStatus('已从云端拉取 '+new Date().toLocaleTimeString());
+    }else{updateCloudStatus('云端暂无数据，本地即为最新');}
+  }).catch(function(e){updateCloudStatus('拉取失败：'+e.message,true);});
+}
+document.getElementById('ghConnect').onclick=function(){
+  var owner=document.getElementById('ghOwner').value.trim();
+  var repo=document.getElementById('ghRepo').value.trim();
+  var path=document.getElementById('ghPath').value.trim()||'class-teach/data.json';
+  var token=document.getElementById('ghToken').value.trim();
+  localStorage.setItem('gh_owner',owner);localStorage.setItem('gh_repo',repo);localStorage.setItem('gh_path',path);GitHubStore.saveToken(token);
+  GitHubStore.config({owner:owner,repo:repo,path:path,token:token});
+  updateCloudStatus('已连接，正在拉取…');pullFromCloud();
+};
+document.getElementById('ghPush').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先配置并连接',true);return;}syncToCloud();};
+document.getElementById('ghPull').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先配置并连接',true);return;}pullFromCloud();};
+
+load();applyGhCfg();fillClassSel();fillProgCourse();setView('home');
+if(GitHubStore.isReady()){updateCloudStatus('已连接，正在从云端拉取…');pullFromCloud();}else{updateCloudStatus('未连接：在上方「云端同步」填入令牌');}
 </script>
 <script src="/assets/js/site-nav.js"></script>
 </body>
