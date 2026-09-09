@@ -146,6 +146,15 @@
   .prog-summary .ps .v{font-size:24px;font-weight:700}
   .prog-summary .ps .l{font-size:12px;color:var(--text-3)}
   .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+/* 学生主页 Tab 与阶段按钮 + toast */
+.stu-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.stu-tab{background:#fff;color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.stu-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.stage-btn{background:#fff;color:var(--text-2);border:1px solid var(--border);border-radius:999px;padding:4px 14px;font-size:13px;cursor:pointer}
+.stage-btn.active{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+.dim-auto{color:var(--text-3);font-size:12px;margin-left:6px}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.toast.show{opacity:1}
 </style>
   <link rel="stylesheet" href="/assets/css/site-nav.css" data-page-node-id="zs7TAbYKKItbcHe9Qk7e7H" />
 </head>
@@ -403,7 +412,7 @@ function freshDB(){
   ];
   return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],version:1,nextId:100,rate:1};
 }
-let DB=null, curClass=null, curSessionId=null, stuChart=null, stuSort='sid', scoreSort='sid', curStuId=null, prevView='students', stuRadarCharts={}, progCourseId='all', progChartType='bar', progCharts=[];
+let DB=null, curClass=null, curSessionId=null, stuChart=null, stuSort='sid', scoreSort='sid', curStuId=null, prevView='students', stuRadarCharts={}, progCourseId='all', progChartType='bar', progCharts=[], curStuCourseId='overview';
 
 function load(){
   DB=JSON.parse(localStorage.getItem(KEY)||'null')||freshDB();
@@ -429,7 +438,7 @@ function students(cId){ return DB.students.filter(s=>s.classId===cId).sort((a,b)
 function activeSession(cId){ return DB.sessions.find(s=>s.classId===cId&&!s.settled); }
 function getTally(sessionId,studentId){ return DB.tallies.find(t=>t.sessionId===sessionId&&t.studentId===studentId); }
 function progOf(studentId,skillId){ return DB.progress.find(p=>p.studentId===studentId&&p.skillId===skillId); }
-function radarOf(stuId,cId){ let r=DB.radar.find(x=>x.studentId===stuId&&x.courseId===cId); if(!r){r={id:uid(),studentId:stuId,courseId:cId,tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0};DB.radar.push(r);save();} return r; }
+function radarOf(stuId,cId){ let r=DB.radar.find(x=>x.studentId===stuId&&x.courseId===cId); if(!r){r={id:uid(),studentId:stuId,courseId:cId,tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0,stage:0,stageNote:''};DB.radar.push(r);save();} return r; }
 function radarVal(r,key){ return r&&r[key]!=null?r[key]:0; }
 function scoreOf(t){return t?(t.score!=null?t.score:t.count*DB.rate):0;}
 function totalScoreOf(stuId){return DB.sessions.filter(s=>s.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,stuId)),0);}
@@ -806,6 +815,36 @@ window.stuBack=function(){
   stuRadarCharts={};
   setView(prevView);
 };
+/* ============ 学生主页 Tab / 总览 / 阶段 / 六维联动（DEEPSEEK 实现，验收方修正 renderStuPage） ============ */
+function stuRadar6(stuId,cId){
+  const skills=DB.skills.filter(sk=>sk.courseId===cId).sort((a,b)=>a.order-b.order);
+  const n=skills.length;let exposed=0,mastered=0;
+  skills.forEach(sk=>{const st=progOf(stuId,sk.id)?.state||0;if(st>0)exposed++;if(st===2)mastered++;});
+  const expose=n?exposed/n:0,master=n?mastered/n:0;
+  let wSum=0,wCount=0;skills.forEach((sk,idx)=>{if((progOf(stuId,sk.id)?.state||0)===2){wSum+=(idx+1)/n;wCount++;}});
+  const wMaster=wCount?wSum/wCount:0;
+  const r=radarOf(stuId,cId);
+  return {tech:Math.round(master*10),cognition:Math.round(expose*10),formula:Math.round(wMaster*10),speed:Math.round((master*0.5+wMaster*0.5)*10),interest:radarVal(r,'interest'),efficiency:radarVal(r,'efficiency')};
+}
+function stuRadarOverview(stuId){
+  const dims=RADAR_DIMS.map(d=>d.key);const acc={};dims.forEach(k=>acc[k]=0);
+  DB.courses.forEach(co=>{const v=stuRadar6(stuId,co.id);dims.forEach(k=>acc[k]+=v[k]);});
+  const m={};dims.forEach(k=>m[k]=DB.courses.length?Math.round(acc[k]/DB.courses.length):0);
+  return m;
+}
+function drawStuOverviewRadar(stuId){
+  const cv=document.getElementById('radar-overview');if(!cv)return;
+  const v=stuRadarOverview(stuId);
+  if(stuRadarCharts['overview'])stuRadarCharts['overview'].destroy();
+  stuRadarCharts['overview']=new Chart(cv,{type:'radar',
+    data:{labels:RADAR_DIMS.map(d=>d.name),datasets:[{label:'综合六维',data:RADAR_DIMS.map(d=>v[d.key]),backgroundColor:'rgba(79,110,247,.15)',borderColor:'#4f6ef7',pointBackgroundColor:'#4f6ef7',pointRadius:4,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:10,ticks:{stepSize:2,font:{size:10}},pointLabels:{font:{size:12}}}},plugins:{legend:{display:false}}}});
+}
+window.setStuCourse=function(id){curStuCourseId=(id==='overview'?'overview':parseInt(id));renderStuPage();};
+window.updateStage=function(stuId,cId,stage){const r=radarOf(stuId,cId);r.stage=parseInt(stage);save();renderStuPage();};
+window.updateStageNote=function(stuId,cId,note){const r=radarOf(stuId,cId);r.stageNote=note;save();renderStuPage();};
+let _toastTimer=null;
+function toast(msg){let el=document.getElementById('toast-container');if(!el){el=document.createElement('div');el.id='toast-container';el.className='toast';document.body.appendChild(el);}el.textContent=msg;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>el.classList.remove('show'),2000);}
 function renderStuPage(){
   if(stuChart){stuChart.destroy();stuChart=null;}
   Object.values(stuRadarCharts).forEach(c=>c.destroy());
@@ -813,69 +852,134 @@ function renderStuPage(){
   const s=DB.students.find(x=>x.id===curStuId);
   if(!s){setView('students');return;}
   const cls=DB.classes.find(c=>c.id===s.classId)||{name:''};
-  const mastered=DB.skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
-  const masteryRate=DB.skills.length?Math.round(mastered/DB.skills.length*100):0;
+  const masteredAll=DB.skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
+  const masteryRate=DB.skills.length?Math.round(masteredAll/DB.skills.length*100):0;
   const total=totalScoreOf(s.id);
   const sessCount=DB.sessions.filter(x=>x.classId===s.classId&&x.settled).length;
   const sess=DB.sessions.filter(x=>x.classId===s.classId&&x.settled).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const rows=sess.map(ss=>{const my=scoreOf(getTally(ss.id,s.id));const avg=classAvgOthers(s.id,ss.id);return{date:ss.date,my,avg};});
+  if(curStuCourseId===undefined)curStuCourseId='overview';
+
   let html='';
   /* 顶部导航栏 */
   html+=`<div class="stu-topbar"><button class="sec" onclick="stuBack()">← 返回</button><h2 style="margin:0;flex:1">${s.name} 的学习主页</h2><span class="muted">${cls.name}</span></div>`;
   /* 个人信息卡片 */
   const firstChar=s.name?s.name[0]:'?';
   html+=`<div class="card stu-info"><div class="avatar" style="background:${s.color}">${firstChar}</div><div><div style="font-size:18px;font-weight:700">${s.name} <span class="muted" style="font-size:14px">${s.nick?('('+s.nick+')'):''}</span></div><div class="muted">学号：${s.sid||'—'} · 班级：${cls.name}</div></div><div class="stats"><div class="stat"><div class="v">${total}</div><div class="l">累计积分</div></div><div class="stat"><div class="v">${masteryRate}%</div><div class="l">总体掌握率</div></div><div class="stat"><div class="v">${sessCount}</div><div class="l">已上课次</div></div></div></div>`;
-  /* 每个魔方一个雷达图+进度录入区 */
-  DB.courses.forEach(co=>{
-    const skills=DB.skills.filter(sk=>sk.courseId===co.id).sort((a,b)=>a.order-b.order);
-    const m=skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
-    const rate=skills.length?Math.round(m/skills.length*100):0;
-    const r=radarOf(s.id,co.id);
-    html+=`<div class="card"><div class="scorebar"><h3 style="margin:0">${co.name} · 六维能力评估</h3><span class="muted">已掌握 ${m}/${skills.length} · ${rate}%</span></div><div class="radar-section"><div class="radar-left"><div style="width:260px;height:260px"><canvas id="radar-${co.id}"></canvas></div></div><div class="radar-right"><div class="radar-sliders">`;
-    RADAR_DIMS.forEach(d=>{
-      const v=radarVal(r,d.key);
-      html+=`<div class="radar-slider"><label>${d.name}</label><input type="range" min="0" max="10" step="1" value="${v}" oninput="updateRadar(${s.id},${co.id},'${d.key}',this.value);document.getElementById('rv-${co.id}-${d.key}').textContent=this.value"><span class="val" id="rv-${co.id}-${d.key}">${v}</span></div>`;
-    });
-    html+=`</div><div style="margin-top:8px"><div class="prog-bar"><div class="fill" style="width:${rate}%"></div></div><div class="muted" style="margin-top:4px">未开始 ${skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===0).length} · 学习中 ${skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===1).length} · 已掌握 ${m} · 需复习 ${skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===3).length}</div></div></div></div>`;
-    /* 知识点进度 */
-    html+=`<h3 style="margin-top:14px">知识点进度（点击状态切换）</h3><div class="legend"><span><i class="hc0"></i>未开始</span><span><i class="hc1"></i>学习中</span><span><i class="hc2"></i>已掌握</span><span><i class="hc3"></i>需复习</span></div>`;
-    skills.forEach(sk=>{
-      const p=progOf(s.id,sk.id);const st=p?.state??0;const note=p?.note||'';
-      html+=`<div class="skrow"><div class="skname">${sk.name}</div><span class="st ${STATE[st].c}" onclick="cycleSt(${s.id},${sk.id})">${STATE[st].n}</span><span class="note">${note?('备注：'+note):'<span style="color:#bbb">无备注</span>'}</span><button class="ghost sm" onclick="editNote(${s.id},${sk.id})">备注</button></div>`;
+
+  /* Tab 栏：总览 + 各课程 */
+  html+=`<div class="stu-tabs">`;
+  html+=`<button class="stu-tab ${curStuCourseId==='overview'?'active':''}" onclick="setStuCourse('overview')">总览</button>`;
+  DB.courses.forEach(co=>{const active=curStuCourseId===co.id?'active':'';html+=`<button class="stu-tab ${active}" onclick="setStuCourse(${co.id})">${co.name}</button>`;});
+  html+=`</div>`;
+
+  if(curStuCourseId==='overview'){
+    /* ===== 总览 ===== */
+    html+=`<div id="overview-content">`;
+    /* 汇总雷达 */
+    html+=`<div style="max-width:400px;margin:16px 0;"><canvas id="radar-overview" style="width:100%;height:300px;"></canvas></div>`;
+    /* 各课程卡片 */
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin:16px 0;">`;
+    DB.courses.forEach(co=>{
+      const skills=DB.skills.filter(sk=>sk.courseId===co.id);
+      const total2=skills.length;
+      const m=skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
+      const rate=total2?Math.round(m/total2*100):0;
+      const r=radarOf(s.id,co.id);
+      const stageTxt=['未学','入门','进阶','精通'][r.stage||0]||'未学';
+      const v=stuRadar6(s.id,co.id);
+      html+=`<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:#fff;">
+        <div style="font-weight:bold;font-size:16px;">${co.name}</div>
+        <div style="font-size:14px;color:#666;">掌握率 ${rate}%</div>
+        <div style="font-size:14px;color:var(--primary);">阶段：${stageTxt}</div>
+        <div style="font-size:12px;color:#999;margin-top:4px;">${RADAR_DIMS.map(d=>`${d.name}: ${v[d.key]}`).join(' | ')}</div>
+      </div>`;
     });
     html+=`</div>`;
-  });
-  /* 课堂积分历史 */
-  html+=`<div class="card"><h3 style="margin:0 0 10px">课堂积分历史（vs 其他同学平均）</h3>`;
-  if(!rows.length){html+=`<div class="empty">暂无已归档课次</div>`;}
-  else{
-    html+=`<div style="height:260px;margin-bottom:12px"><canvas id="stuScoreChart"></canvas></div>`;
-    html+=`<table class="tbl"><thead><tr><th>课次日期</th><th>该生得分</th><th>其他同学平均</th><th>对比</th></tr></thead><tbody>`;
-    rows.forEach(r=>{const d=r.my-r.avg;html+=`<tr><td>${r.date}</td><td><b>${r.my}</b></td><td>${r.avg}</td><td style="color:${d>=0?'#16a34a':'#dc2626'}">${d>=0?'+':''}${d}</td></tr>`;});
-    html+=`</tbody></table>`;
+    /* 课堂积分历史（含折线图） */
+    html+=`<div class="card"><h3 style="margin:0 0 10px">课堂积分历史（vs 其他同学平均）</h3>`;
+    if(!rows.length){html+=`<div class="empty">暂无已归档课次</div>`;}
+    else{
+      html+=`<div style="height:260px;margin-bottom:12px"><canvas id="stuScoreChart"></canvas></div>`;
+      html+=`<table class="tbl"><thead><tr><th>课次日期</th><th>该生得分</th><th>其他同学平均</th><th>对比</th></tr></thead><tbody>`;
+      rows.forEach(r=>{const d=r.my-r.avg;html+=`<tr><td>${r.date}</td><td><b>${r.my}</b></td><td>${r.avg}</td><td style="color:${d>=0?'#16a34a':'#dc2626'}">${d>=0?'+':''}${d}</td></tr>`;});
+      html+=`</tbody></table>`;
+    }
+    html+=`</div>`;
+    html+=`</div>`;
+  } else {
+    /* ===== 课程详情 ===== */
+    const co=DB.courses.find(c=>c.id===curStuCourseId);
+    if(!co){html+=`<div>课程不存在</div>`;}
+    else{
+      const skills=DB.skills.filter(sk=>sk.courseId===co.id).sort((a,b)=>a.order-b.order);
+      const r=radarOf(s.id,co.id);
+      const stage=r.stage||0;
+      const stageNote=r.stageNote||'';
+      const v=stuRadar6(s.id,co.id);
+      const total2=skills.length;
+      const m=skills.filter(sk=>(progOf(s.id,sk.id)?.state||0)===2).length;
+      const rate=total2?Math.round(m/total2*100):0;
+
+      /* 阶段状态小卡 */
+      html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">`;
+      html+=`<span style="font-weight:bold;">阶段：</span>`;
+      ['未学','入门','进阶','精通'].forEach((txt,idx)=>{const active=idx===stage?'active':'';html+=`<button class="stage-btn ${active}" onclick="updateStage('${s.id}','${co.id}',${idx})">${txt}</button>`;});
+      html+=`<input type="text" placeholder="评语" value="${stageNote}" onchange="updateStageNote('${s.id}','${co.id}',this.value)" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:120px;">`;
+      html+=`</div>`;
+      /* 六维雷达 */
+      html+=`<div style="max-width:400px;margin:12px 0;"><canvas id="radar-${co.id}" style="width:100%;height:280px;"></canvas></div>`;
+      /* 六维数值 + 手动滑块（仅 interest/efficiency） */
+      html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:500px;margin:12px 0;">`;
+      RADAR_DIMS.forEach(d=>{
+        const key=d.key,val=v[key],label=d.name;
+        const isManual=(key==='interest'||key==='efficiency');
+        html+=`<div style="display:flex;flex-direction:column;gap:2px;">`;
+        html+=`<div style="display:flex;justify-content:space-between;font-size:14px;"><span><strong>${label}</strong> ${isManual?'':'<span class="dim-auto">(自动)</span>'}</span><span id="rv-${co.id}-${key}">${val}</span></div>`;
+        if(isManual){html+=`<input type="range" min="0" max="10" step="1" value="${val}" oninput="updateRadar('${s.id}','${co.id}','${key}',this.value)">`;}
+        else{html+=`<div style="height:6px;background:#e0e0e0;border-radius:3px;width:100%;"><div style="height:100%;width:${val*10}%;background:#4f6ef7;border-radius:3px;"></div></div>`;}
+        html+=`</div>`;
+      });
+      html+=`</div>`;
+      /* 掌握率进度条 */
+      html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;">掌握率</span><div style="flex:1;height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;"><div style="height:100%;width:${rate}%;background:#4caf50;border-radius:4px;"></div></div><span>${rate}% (${m}/${total2})</span></div>`;
+      /* 知识点进度 */
+      html+=`<h3 style="margin-top:14px">知识点进度（点击状态切换，标「已掌握」会前向补齐前面未掌握的点）</h3>`;
+      html+=`<div class="legend"><span><i class="hc0"></i>未开始</span><span><i class="hc1"></i>学习中</span><span><i class="hc2"></i>已掌握</span><span><i class="hc3"></i>需复习</span></div>`;
+      html+=`<div style="margin:12px 0;display:flex;flex-wrap:wrap;gap:8px;">`;
+      skills.forEach(sk=>{
+        const p=progOf(s.id,sk.id);const st=p?.state??0;
+        const label=['未开始','学习中','已掌握','需复习'][st];
+        const color=['#aaa','#f90','#4caf50','#f44336'][st];
+        html+=`<div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;padding:4px 10px;border-radius:20px;border-left:4px solid ${color};"><span>${sk.name}</span><span style="font-size:12px;color:${color};">${label}</span><button onclick="cycleSt('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:12px;cursor:pointer;">切换</button><button onclick="editNote('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:12px;cursor:pointer;">✎</button></div>`;
+      });
+      html+=`</div>`;
+    }
   }
-  html+=`</div>`;
+
   document.getElementById('stuPageContent').innerHTML=html;
-  /* 绘制雷达图 */
-  DB.courses.forEach(co=>{drawStuRadar(s.id,co.id);});
-  /* 绘制积分折线图 */
-  if(rows.length){
-    stuChart=new Chart(document.getElementById('stuScoreChart'),{type:'line',
+  /* 绘制雷达/折线图 */
+  if(curStuCourseId==='overview'){
+    drawStuOverviewRadar(s.id);
+    if(rows.length){stuChart=new Chart(document.getElementById('stuScoreChart'),{type:'line',
       data:{labels:rows.map(r=>r.date),datasets:[
         {label:'该生得分',data:rows.map(r=>r.my),borderColor:'#4f6ef7',backgroundColor:'rgba(79,110,247,.1)',tension:.3,fill:true},
         {label:'其他同学平均',data:rows.map(r=>r.avg),borderColor:'#9ca3af',borderDash:[5,5],tension:.3}
       ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});}
+  }else{
+    const co=DB.courses.find(c=>c.id===curStuCourseId);
+    if(co)drawStuRadar(s.id,co.id);
   }
 }
 function drawStuRadar(stuId,cId){
   const cv=document.getElementById('radar-'+cId);if(!cv)return;
-  const r=radarOf(stuId,cId);
+  const v=stuRadar6(stuId,cId);
   if(stuRadarCharts[cId])stuRadarCharts[cId].destroy();
   stuRadarCharts[cId]=new Chart(cv,{type:'radar',
     data:{labels:RADAR_DIMS.map(d=>d.name),datasets:[{
       label:DB.courses.find(c=>c.id===cId)?.name||'',
-      data:RADAR_DIMS.map(d=>radarVal(r,d.key)),
+      data:RADAR_DIMS.map(d=>v[d.key]),
       backgroundColor:'rgba(79,110,247,.15)',
       borderColor:'#4f6ef7',
       pointBackgroundColor:'#4f6ef7',
@@ -888,9 +992,13 @@ function drawStuRadar(stuId,cId){
   });
 }
 window.updateRadar=function(stuId,cId,metric,val){
+  if(metric!=='interest'&&metric!=='efficiency')return;
   const r=radarOf(stuId,cId);r[metric]=parseInt(val);save();drawStuRadar(stuId,cId);
 };
-window.cycleSt=function(stuId,skId){let p=progOf(stuId,skId);if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}p.state=(p.state+1)%4;p.updatedAt=nowStr();save();renderStuPage();if(document.getElementById('view-progress')?.classList.contains('active'))renderProgress();};
+window.cycleSt=function(stuId,skId){let p=progOf(stuId,skId);if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}const prev=p.state;p.state=(p.state+1)%4;p.updatedAt=nowStr();
+  if(p.state===2&&prev!==2){const sk=DB.skills.find(s=>s.id===skId);if(sk){const cid=sk.courseId;const before=DB.skills.filter(s=>s.courseId===cid&&s.order<sk.order).sort((a,b)=>a.order-b.order);let filled=0;before.forEach(bs=>{let q=progOf(stuId,bs.id);if((q?.state||0)!==2){if(!q){q={studentId:stuId,skillId:bs.id,state:0};DB.progress.push(q);}q.state=2;q.updatedAt=nowStr();filled++;}});if(filled>0)setTimeout(()=>toast(`已自动将前面 ${filled} 个未掌握知识点标记为「已掌握」`),50);}}
+  save();renderStuPage();if(document.getElementById('view-progress')?.classList.contains('active'))renderProgress();
+};
 window.editNote=function(stuId,skId){let p=progOf(stuId,skId);const v=prompt('编辑备注（如：本周已掌握，下节课复习）：',p?.note||'');if(v===null)return;if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}p.note=v;save();renderStuPage();};
 
 /* ============ 学生管理 ============ */

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="zh-CN" data-page-node-id="SnOv5BfUJ7B8Qwooxw4oho">
+<head data-page-node-id="CwOiaerYmNw4kBPFCGFlAw">
+<meta charset="UTF-8" data-page-node-id="sLAn3GArnMgraDcCHlefHb">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="AvZdpkRok5l9NnwlAcSilN">
 <title>魔方打乱公式随机出题训练器</title>
 <style>
   :root {
@@ -482,72 +482,148 @@
     }
     .right { grid-template-rows: auto auto; }
   }
+
+  /* ===== 手机竖屏：展开图(顶) / 公式(中·粗大) / 符号示意图(底) 单屏竖排 ===== */
+  @media (max-width: 768px) {
+    /* 单屏，禁整体滚动（长公式降级见下） */
+    html, body { overflow: hidden; }
+    .main {
+      display: flex;
+      flex-direction: column;
+      height: calc(100dvh - 56px);   /* 减去 header 高度 */
+      grid-template-columns: none;    /* 覆盖 1100px 的 grid */
+      grid-template-rows: none;
+      overflow: hidden;
+      min-height: 0;
+    }
+    /* ① 展开图：顶部，约 30% */
+    .left {
+      flex: 0 0 30%;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 10px;
+      min-height: 0;
+    }
+    .left canvas { max-height: 100%; }
+    .left .meta { font-size: 11px; bottom: 6px; left: 10px; }
+
+    /* 右栏：竖向 flex，公式在上、符号在下（用 order 重排） */
+    .right {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      grid-template-rows: none;       /* 覆盖桌面 grid */
+      min-height: 0;
+      background: var(--panel);
+    }
+    /* ② 打乱公式：中间，吃掉剩余高度，order 提前 */
+    .formula-zone {
+      order: 1;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 10px 12px 12px;
+      gap: 8px;
+    }
+    /* 公式框：更粗边框 + 高对比，强化"醒目" */
+    .formula-display {
+      flex: 1 1 auto;
+      min-height: 0;
+      border-width: 4px;
+      border-color: #111827;
+      border-radius: 14px;
+      background: #fffbe6;            /* 浅黄底，进一步突出 */
+      padding: 10px 8px;
+    }
+    .formula-inner {
+      font-weight: 900;               /* 比桌面 800 更粗 */
+      letter-spacing: 3px;
+      line-height: 1.2;
+    }
+    .formula-zone .zone-label { font-size: 13px; }
+    /* ③ 打乱符号示意图：底部，约固定高度，order 置后 */
+    .legend-zone {
+      order: 2;
+      flex: 0 0 22%;
+      border-bottom: none;
+      border-top: 1px solid var(--border);
+      padding: 6px 10px 8px;
+      min-height: 0;
+    }
+    .legend-img-wrap { padding: 4px; }
+    .legend-zone .legend-caption { display: none; }  /* 手机下省空间 */
+
+    /* 控件紧凑化，省出公式空间 */
+    .length-row { gap: 6px; }
+    .length-row .len-btn { padding: 7px 12px; font-size: 14px; min-width: 42px; }
+    .action-row .btn { padding: 13px 14px; font-size: 15px; }
+    .btn.primary { font-size: 18px; padding: 15px 16px; }
+  }
 </style>
 </head>
-<body>
+<body data-page-node-id="5sB48WEkqQmQBUYyOF2xjf">
 
-<div class="header">
-  <h1>🎲 魔方打乱公式随机出题训练器 <span class="badge">WCA 标准 · 白顶绿前</span></h1>
-  <div class="count">
-    已出题 <b id="countNum">0</b> 题
-    <button class="reset" id="resetBtn">重置</button>
+<div class="header" data-page-node-id="SdNApf9XUiTParOXwDW38K">
+  <h1 data-page-node-id="L3rI0kUPYeXWacw6zqD3FU">🎲 魔方打乱公式随机出题训练器 <span class="badge" data-page-node-id="IDQNsxpSdyFqxJ43f3lAtF">WCA 标准 · 白顶绿前</span></h1>
+  <div class="count" data-page-node-id="AUA4LAjG2rJ0aIGvaVORJz">
+    已出题 <b id="countNum" data-page-node-id="l8csWDjvkl942bJg8Mxi8N">0</b> 题
+    <button class="reset" id="resetBtn" data-page-node-id="ja8ZufnWSCa2HoWAduBVba">重置</button>
   </div>
 </div>
 
-<div class="main">
+<div class="main" data-page-node-id="dKCiZkmZfVMKowGDN3IaQq">
   <!-- 左侧：大展开图 -->
-  <section class="left">
-    <canvas id="netCanvas"></canvas>
-    <div class="meta" id="metaInfo">标准十字展开 · U 上 · L F R B 中 · D 下 · 白顶绿前</div>
+  <section class="left" data-page-node-id="rxYnYAFfoWxrWkVOb8U2tK">
+    <canvas id="netCanvas" data-page-node-id="SZF6ariclKKBtzz30W0SkL"></canvas>
+    <div class="meta" id="metaInfo" data-page-node-id="jyKBRHNsKXCHEaRaxEfjAL">标准十字展开 · U 上 · L F R B 中 · D 下 · 白顶绿前</div>
   </section>
 
   <!-- 右侧栏：对照图 + 公式区 -->
-  <aside class="right">
+  <aside class="right" data-page-node-id="WhnyQcVow1ZyEHL0sdKbqA">
     <!-- 右上：对照图（12 种单层转动示意图 · canvas 自绘） -->
-    <div class="legend-zone">
-      <div class="zone-label">对照图 · 12 种单层转动示意<span class="legend-caption">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span></div>
-      <div class="legend-img-wrap">
-        <canvas id="legendCanvas"></canvas>
+    <div class="legend-zone" data-page-node-id="mmfxR5iuODoVLFVVTSbzMT">
+      <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span></div>
+      <div class="legend-img-wrap" data-page-node-id="DUGeGQtk9YRJZFkurCBa39">
+        <canvas id="legendCanvas" data-page-node-id="OLsSmqUh2cspvXyWm6AbYw"></canvas>
       </div>
     </div>
 
     <!-- 右下：公式区 -->
-    <div class="formula-zone">
-      <div class="zone-label">打乱公式 <span class="cover-badge" id="coverBadge">✓ R U F L B D 齐全</span></div>
-      <div class="formula-display" id="formulaText"><div class="formula-inner" id="formulaInner">—</div></div>
+    <div class="formula-zone" data-page-node-id="rqRrjtjScJc1UsMs4y3kFA">
+      <div class="zone-label" data-page-node-id="7G6GHTjrj3wjJL32JdKHOF">打乱公式 <span class="cover-badge" id="coverBadge" data-page-node-id="cKUEADLEjA5KKmX3lDwPxi">✓ R U F L B D 齐全</span></div>
+      <div class="formula-display" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
 
       <!-- 长度 -->
-      <div class="length-row">
-        <span class="lbl">长度：</span>
-        <button class="len-btn active" data-len="6">6</button>
-        <button class="len-btn" data-len="8">8</button>
-        <button class="len-btn" data-len="10">10</button>
-        <button class="len-btn" data-len="12">12</button>
-        <button class="len-btn" data-len="20">20</button>
+      <div class="length-row" data-page-node-id="23tzhEFGiC27A5O6RE0UoK">
+        <span class="lbl" data-page-node-id="YGsGIm2QXlFbLxjdVoS5BF">长度：</span>
+        <button class="len-btn active" data-len="6" data-page-node-id="Ekd3bA7F9dLwFiBGJtjF6f">6</button>
+        <button class="len-btn" data-len="8" data-page-node-id="pmoc2BP4hTj5hInC9U8urV">8</button>
+        <button class="len-btn" data-len="10" data-page-node-id="zYYZPbPeJAVJ8lEN0k5YQm">10</button>
+        <button class="len-btn" data-len="12" data-page-node-id="FQD4SaZ9Ah41uNBoFxXQEb">12</button>
+        <button class="len-btn" data-len="20" data-page-node-id="mmlJtVMrA6ocEHtpnzcuHc">20</button>
       </div>
 
       <!-- 按钮 -->
-      <div class="action-row">
-        <button class="btn primary full" id="newBtn">🎲 换一题</button>
-        <button class="btn ghost" id="copyBtn">📋 复制公式</button>
-        <button class="btn ghost" id="stepBtn">🔍 显示分步</button>
+      <div class="action-row" data-page-node-id="TRjGsg2BPSYZ5pJv8NXjFa">
+        <button class="btn primary full" id="newBtn" data-page-node-id="jFt4Hsv9iKPAA9ccEJW3XH">🎲 换一题</button>
+        <button class="btn ghost" id="copyBtn" data-page-node-id="Fz70gkRS5daO1YaSU15IBt">📋 复制公式</button>
+        <button class="btn ghost" id="stepBtn" data-page-node-id="NC3QyMdMnFVjiTQJ0xUEVG">🔍 显示分步</button>
       </div>
     </div>
   </aside>
 </div>
 
 <!-- 分步抽屉 -->
-<div class="steps-drawer" id="stepsCard">
-  <div class="head">
-    <h3>📖 分步说明 · 每一步对应动作</h3>
-    <button class="close" id="stepClose">收起 ✕</button>
+<div class="steps-drawer" id="stepsCard" data-page-node-id="uF2pHJ6v8l2WoCM7Rnottu">
+  <div class="head" data-page-node-id="gVCLbFiQcfQBdw3QTgdj1k">
+    <h3 data-page-node-id="DQOpbOmPNaJpGoaYCks1Ms">📖 分步说明 · 每一步对应动作</h3>
+    <button class="close" id="stepClose" data-page-node-id="bZ5o1FEUaDmyXZLUScW8al">收起 ✕</button>
   </div>
-  <div class="body">
-    <div class="grid" id="stepsList"></div>
+  <div class="body" data-page-node-id="eqZkqTS9t3m4uaWEJNQZDr">
+    <div class="grid" id="stepsList" data-page-node-id="a3uGhAVod97pFM3nBUhRLf"></div>
   </div>
 </div>
 
-<div class="toast" id="toast">已复制到剪贴板</div>
+<div class="toast" id="toast" data-page-node-id="Aiyig8gdqus51Jtnsmz9Q7">已复制到剪贴板</div>
 
 <script>
 /* ====================================================================
