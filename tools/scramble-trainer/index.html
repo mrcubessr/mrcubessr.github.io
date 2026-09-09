@@ -516,13 +516,13 @@
       min-height: 0;
       background: var(--panel);
     }
-    /* ② 打乱公式：中间，吃掉剩余高度，order 提前 */
+    /* ② 打乱公式：中间，吃掉剩余高度，order 提前；上下留白收紧 */
     .formula-zone {
       order: 1;
       flex: 1 1 auto;
       min-height: 0;
-      padding: 10px 12px 12px;
-      gap: 8px;
+      padding: 4px 12px 6px;
+      gap: 4px;
     }
     /* 公式框：更粗边框 + 高对比，强化"醒目" */
     .formula-display {
@@ -532,7 +532,7 @@
       border-color: #111827;
       border-radius: 14px;
       background: #fffbe6;            /* 浅黄底，进一步突出 */
-      padding: 10px 8px;
+      padding: 4px 8px;
     }
     .formula-inner {
       font-weight: 900;               /* 比桌面 800 更粗 */
@@ -540,16 +540,16 @@
       line-height: 1.2;
     }
     .formula-zone .zone-label { font-size: 13px; }
-    /* ③ 打乱符号示意图：底部，约固定高度，order 置后 */
+    /* ③ 打乱符号示意图：底部，放大占比，order 置后 */
     .legend-zone {
       order: 2;
-      flex: 0 0 22%;
+      flex: 0 0 40%;
       border-bottom: none;
       border-top: 1px solid var(--border);
       padding: 6px 10px 8px;
       min-height: 0;
     }
-    .legend-img-wrap { padding: 4px; }
+    .legend-img-wrap { padding: 2px; }
     .legend-zone .legend-caption { display: none; }  /* 手机下省空间 */
 
     /* 控件紧凑化，省出公式空间 */
