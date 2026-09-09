@@ -535,33 +535,43 @@
     }
     .left .meta { font-size: 10px; bottom: 2px; left: 6px; }
 
-    /* 右栏：竖向 flex */
+    /* 右栏：竖向 flex；用 gap + padding 承载「公式→对照图→控件」三段 */
     .right {
       display: flex;
       flex-direction: column;
       flex: 1 1 auto;
+      gap: 6px;                        /* 各段间距（替代原 formula-zone 内部 gap） */
+      padding: 4px;
       grid-template-rows: none;       /* 覆盖桌面 grid */
       min-height: 0;
       background: var(--panel);
     }
 
-    /* ② 打乱公式：中间，flex:1 占剩余高度；黑体加粗 + 不换行 + 横向滚动 */
+    /* ② 打乱公式：打平 .formula-zone，使其子项（标签/公式框/长度/操作）升级为
+        .right 的直接 flex 子项，这样才能用 order 把「公式→对照图→控件」排成
+        竖列，并把控件置于最底部（仅移动端打平，桌面布局不受影响） */
     .formula-zone {
-      order: 1;
-      flex: 1 1 auto;
-      min-height: 0;
-      padding: 4px 10px;
-      gap: 4px;
+      display: contents;              /* 移动端打平容器 */
     }
-    .formula-zone .zone-label { font-size: 12px; }
+
+    /* 公式标签：紧跟展开图下方 */
+    .formula-zone .zone-label {
+      order: 1;
+      flex: 0 0 auto;
+      font-size: 12px;
+      margin: 0;
+    }
+
+    /* 公式框：压缩高度（约原来一半）+ 上下内边距压到一半；黑体加粗 + 不换行 + 横滚 */
     .formula-display {
-      flex: 1 1 auto;
+      order: 2;
+      flex: 0 0 100px;                /* 压缩公式区高度 */
       min-height: 0;
       border-width: 3px;
       border-color: #111827;
       border-radius: 12px;
       background: #fffbe6;            /* 浅黄底，醒目 */
-      padding: 4px 8px;
+      padding: 2px 8px;               /* 上下内边距 4px→2px（压到一半） */
       overflow-x: auto;               /* 长公式横向滚动 */
       overflow-y: hidden;
     }
@@ -578,10 +588,12 @@
     .formula-inner .move { padding: 0 1px; }
     .formula-inner .move.space { padding: 0 2px; }
 
-    /* ③ 打乱符号示意图：底部，约 32%；canvas object-fit:contain 完整显示 */
+    /* ③ 对照图示意图：公式正下方，吃掉剩余空间保证 12 个示意完整显示 */
     .legend-zone {
-      order: 2;
-      flex: 0 0 32%;
+      order: 3;
+      flex: 1 1 auto;                 /* 占满公式与控件之间的剩余高度 */
+      display: flex;
+      flex-direction: column;
       border-bottom: none;
       border-top: 1px solid var(--border);
       padding: 4px 8px 6px;
@@ -605,11 +617,11 @@
     }
     .legend-zone .legend-caption { display: none; }  /* 手机下省空间 */
 
-    /* 控件紧凑化，省出公式空间 */
-    .length-row { gap: 4px; flex-shrink: 0; }
+    /* 控件：长度/参数设置放在最底部 */
+    .length-row { order: 4; gap: 4px; flex-shrink: 0; }
     .length-row .lbl { font-size: 12px; }
     .length-row .len-btn { padding: 5px 8px; font-size: 12px; min-width: 32px; }
-    .action-row { gap: 6px; flex-shrink: 0; }
+    .action-row { order: 5; gap: 6px; flex-shrink: 0; }
     .action-row .btn { padding: 8px 10px; font-size: 13px; }
     .btn.primary { font-size: 14px; padding: 10px 12px; }
   }
