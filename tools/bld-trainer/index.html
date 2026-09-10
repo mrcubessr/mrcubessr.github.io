@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="we4T3fdpLd4QTBCZO5Qg7v">
+<head data-page-node-id="ZDqDQ4NUEbvIX35p1HeSmo">
+<meta charset="UTF-8" data-page-node-id="HD9t15cEg92cFgWyDTnwly">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="KGjTcGr34MUMplESnnv4gx">
+<title>魔方盲拧记忆编码训练器</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --panel:#ffffff; --ink:#1f2933; --muted:#66727f;
+    --line:#e3e8ef; --brand:#3b6ef0; --brand-soft:#e8f0ff;
+    --ok:#1aa179; --ok-soft:#e4f6ef; --bad:#e0533d; --bad-soft:#fdecea;
+    --radius:10px; --shadow:0 6px 24px rgba(31,41,51,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.5}
+  .wrap{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
+  header h1{font-size:22px;margin:0 0 4px}
+  header p{margin:0 0 16px;color:var(--muted);font-size:13px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+  .card h2 .tag{font-size:11px;color:var(--muted);font-weight:400}
+  label{font-size:12px;color:var(--muted)}
+  input[type=text],select{border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:14px;background:#fff;color:var(--ink);outline:none}
+  input:focus,select:focus{border-color:var(--brand)}
+  .btn{border:none;border-radius:6px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;transition:.15s}
+  .btn:hover{filter:brightness(1.05)}
+  .btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  .btn.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:700}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+  .modtabs{display:flex;gap:8px;flex-wrap:wrap}
+  .modtabs button{flex:1;min-width:210px;border:1px solid var(--line);background:#fff;color:var(--muted);padding:12px 14px;border-radius:8px;cursor:pointer;text-align:left;font-size:12px}
+  .modtabs button b{display:block;color:var(--ink);font-size:15px;margin-bottom:3px}
+  .modtabs button.active{border-color:var(--brand);background:var(--brand-soft)}
+  .modtabs button.active b{color:var(--brand)}
+  #stage{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:8px 0}
+  .hint{color:var(--muted);font-size:14px;text-align:center}
+  .banner{background:var(--brand-soft);color:var(--brand);border-radius:8px;padding:10px 14px;font-size:14px;max-width:640px;text-align:center;line-height:1.7}
+  .banner.big{font-size:22px;font-weight:700;padding:18px 26px;line-height:1.6}
+  /* ===== 训练区：3 组一行 / 4 组两行(2+2) / 5 组两行(3+2) ===== */
+  .scene{display:grid;gap:14px;justify-content:center;justify-items:center;margin:4px auto}
+  .scene.c3{grid-template-columns:repeat(3,auto)}
+  .scene.c4{grid-template-columns:repeat(2,auto)}
+  .scene.c5{grid-template-columns:repeat(6,auto)}
+  .scene.c5 .cell{grid-column:span 2}
+  .scene.c5 .cell:nth-child(4){grid-column:2 / span 2}
+  .scene.c5 .cell:nth-child(5){grid-column:4 / span 2}
+  .cell{position:relative;border:1px solid var(--line);border-radius:10px;background:#fafbff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 8px 8px}
+  .cell .idx{position:absolute;top:4px;left:8px;font-size:13px;font-weight:700;color:var(--muted)}
+  .cubeWrap{display:flex;gap:2px;align-items:center;justify-content:center;margin:8px 0 0}
+  .cube{display:inline-flex;gap:2px;vertical-align:middle}
+  .cube canvas{display:block}
+  .seg{display:flex;gap:6px;margin-top:6px}
+  .segbtn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 14px;font-size:14px;cursor:pointer;transition:.12s}
+  .segbtn:hover{border-color:var(--brand)}
+  .segbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .big-num{font-size:96px;font-weight:800;color:var(--brand);line-height:1}
+  .read-timer{font-size:15px;color:var(--muted)}
+  /* 三阶段指示 */
+  .steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .step{font-size:13px;color:var(--muted);border:1px solid var(--line);padding:4px 14px;border-radius:999px;background:#fff}
+  .step.on{color:#fff;background:var(--brand);border-color:var(--brand);font-weight:600}
+  .step.done{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+  /* ===== 答题区 ===== */
+  .qwrap{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+  .qpos{font-size:22px;font-weight:700}
+  .qpos small{font-size:14px;color:var(--muted);font-weight:400}
+  .slots{display:flex;gap:10px}
+  .slot{width:70px;height:78px;border:2px solid var(--line);border-radius:0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:var(--brand)}
+  .slot.cur{border-color:var(--brand);background:var(--brand-soft)}
+  .slot.empty{color:#c3ccd8}
+  /* 字母键盘：两行，三个一组，直角大按钮 */
+  .kbd{display:flex;flex-direction:column;gap:14px;align-items:center;margin-top:6px}
+  .kbdrow{display:flex;gap:22px;justify-content:center;flex-wrap:wrap}
+  .kbdgrp{display:flex}
+  .kbdgrp button{
+    width:78px;height:72px;border:1px solid #c8d2e0;border-right-width:0;border-radius:0;
+    background:#fff;font-weight:700;color:var(--ink);font-size:32px;cursor:pointer;transition:.08s;padding:0;
+    font-family:inherit;line-height:1;
+  }
+  .kbdgrp button:last-child{border-right-width:1px}
+  .kbdgrp button:hover{background:var(--brand-soft);border-color:var(--brand);position:relative;z-index:1}
+  .kbdgrp button.hit{background:var(--brand);color:#fff;border-color:var(--brand);position:relative;z-index:1}
+  .kbdgrp button.dim{color:#b3bcc9}
+  .qbtns{display:flex;gap:10px;margin-top:4px}
+  .qbtns button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--muted)}
+  .qbtns button:hover{border-color:var(--brand);color:var(--brand)}
+  .kbd-tip{font-size:12px;color:var(--muted)}
+  /* 选项 / 结果 */
+  .opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .opt{border:1px solid var(--line);border-radius:8px;background:#fff;width:150px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;cursor:pointer;transition:.12s}
+  .opt:hover{border-color:var(--brand);transform:translateY(-2px)}
+  .opt:disabled{opacity:.7;cursor:default;transform:none}
+  .opt .pw{font-size:26px;font-weight:700;color:var(--ink);text-align:center;line-height:1.25}
+  .opt .pl{font-size:15px;color:var(--brand);letter-spacing:2px;font-weight:700}
+  .opt.right{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .bigq{font-size:30px;font-weight:800;color:var(--ink);text-align:center;line-height:1.4}
+  .cyc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:26px;font-weight:700;color:var(--ink)}
+  .cyc i{font-style:normal;color:var(--muted);font-size:20px}
+  .cyc span{background:#f3f7ff;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:24px;letter-spacing:1px}
+  .cyc span em{display:block;font-style:normal;font-size:13px;color:var(--muted);font-weight:400;letter-spacing:0}
+  .cyc span.hit{background:var(--brand-soft);border-color:var(--brand)}
+  .err-tip{font-size:20px;font-weight:700;color:var(--bad)}
+  .res-item{display:flex;align-items:center;gap:10px;font-size:15px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .res-item .no{width:64px;color:var(--muted);font-size:13px}
+  .res-item .code{font-weight:800;letter-spacing:2px;width:78px}
+  .res-item .word{color:var(--muted)}
+  .res-item.okc .code{color:var(--ok)}
+  .res-item.badc .code{color:var(--bad)}
+  .resbox{width:100%;max-width:560px}
+  .hold-box{text-align:center}
+  .hold-box .n{font-size:64px;font-weight:800;color:var(--ok);line-height:1}
+  .hold-box .okline{font-size:24px;font-weight:700;color:var(--ok);margin-top:6px}
+  .hold-box .t{font-size:17px;color:var(--muted);margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:500;font-size:12px}
+  td input[type=text]{width:100%;max-width:220px}
+  .dict-tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+  .dict-filter{margin-left:auto}
+  .muted{color:var(--muted);font-size:12px}
+  .hidden{display:none!important}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:.95}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:190px}
+  /* ===== 移动端（竖屏）自适应 ===== */
+  @media (max-width:640px){
+    .wrap{padding:12px 10px 40px}
+    header h1{font-size:19px}
+    .card{padding:13px;margin-bottom:12px}
+    .card h2{font-size:14px;margin-bottom:10px}
+    .modtabs{flex-direction:column}
+    .modtabs button{flex:1 1 100%;min-width:0}
+    .modtabs button b{font-size:14px}
+    .field{min-width:0;width:100%}
+    .segbtn{padding:6px 9px;font-size:13px}
+    /* 训练区：移动端统一 2 列，角块图缩小 */
+    .scene.c3,.scene.c4,.scene.c5{grid-template-columns:repeat(2,1fr)}
+    .scene.c5 .cell{grid-column:auto}
+    .scene.c5 .cell:nth-child(4),.scene.c5 .cell:nth-child(5){grid-column:auto}
+    .cell{padding:8px 6px 10px}
+    .cube.sz-scene canvas{width:116px!important;height:116px!important}
+    .cube.sz-dict canvas{width:60px!important;height:60px!important}
+    .cube.sz-mini canvas{width:52px!important;height:52px!important}
+    /* 字母键盘：两行四组，缩到一行放得下 */
+    .kbd{gap:10px}
+    .kbdrow{gap:5px;width:100%}
+    .kbdgrp button{width:28px;height:44px;font-size:18px}
+    .slot{width:56px;height:64px;font-size:32px}
+    .qpos{font-size:19px}
+    .qbtns button{padding:8px 12px}
+    .bigq{font-size:24px}
+    .banner.big{font-size:18px;padding:14px 16px}
+    .big-num{font-size:60px}
+    .hold-box .n{font-size:46px}
+    .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .opt{width:auto;min-height:78px}
+    .opt .pw{font-size:21px}
+    .opt .pl{font-size:14px}
+    .cyc{font-size:20px;gap:6px}
+    .cyc span{font-size:17px;padding:5px 9px}
+    .cyc span em{font-size:11px}
+    .cyc i{font-size:16px}
+    .res-item .code{width:64px}
+    table{font-size:11.5px}
+    th,td{padding:6px 5px}
+    td input[type=text]{max-width:none}
+    .dict-tabs{width:100%}
+    .dict-filter{margin-left:0;width:100%;margin-top:6px}
+    .dict-tabs .btn,.dict-tabs button{font-size:13px;padding:7px 10px}
+    .steps .step{font-size:11.5px;padding:3px 9px}
+    .muted{font-size:11px}
+    .err-tip{font-size:17px}
+  }
+</style>
+</head>
+<body data-page-node-id="dZ2BMqZICNdyUY2WL9aHau">
+<div class="wrap" data-page-node-id="y0hSy9JhcUjCxUNtKWMX7i">
+  <header data-page-node-id="YONQucMy4UTPm2YXO7PJwI">
+    <h1 data-page-node-id="79cAnPiBJUMlBMrqGzvnAk">🧠 魔方盲拧记忆编码训练器</h1>
+  </header>
+
+  <section class="card" data-page-node-id="PRr99KvXUP4YnuRmqL5NmS">
+    <h2 data-page-node-id="TAncRb9tYdU4v0g0OQXfDn">选择模块</h2>
+    <div class="modtabs" id="modTabs" data-page-node-id="EiYSZgpPGCwYAw0yQ7Todb">
+      <button data-mod="m1" class="active" data-page-node-id="hzRUSSte8Uns82Cryf4NzJ"><b data-page-node-id="EFBzjHffLuUxfzIbqPQfVs">模块1 · 编码联想记忆</b>读一遍记忆 → 读一遍串联记忆 → 回忆编码</button>
+      <button data-mod="m2" data-page-node-id="M8EOHOAYGPqDHS7arCdent"><b data-page-node-id="JsNJi8H4TXj8SkfHHtIQF8">模块2 · 记忆间隔提取训练</b>读一遍 → 停留 N 秒 → 复述全部编码</button>
+      <button data-mod="m3" data-page-node-id="IHX7gUjQLRfjYOaUbOmZJ4"><b data-page-node-id="mil8qsbPmdePKwcaSJN8gN">模块3 · 主动刷新</b>读一遍记忆 → 做棱块 → 主动刷新 → 回忆编码</button>
+    </div>
+    <div style="display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;align-items:flex-end" data-page-node-id="QuWmGKM6doacAugAbQgrpQ">
+      <div class="field" data-page-node-id="U0AVFUoAuK4A6vHJgaBmE6">
+        <label data-page-node-id="Dl7LCQAxIH3ij8ryNqCBlb">每组图数：<b id="grpVal" data-page-node-id="mW0q56w6S4AATLixhHMbTM">4</b></label>
+        <div class="seg" id="grpSeg" data-page-node-id="QfzD9nmKlvrGaiFubtfKzx">
+          <button class="segbtn" data-g="3" data-page-node-id="EERkx0dKkNqGbeTm5XLuBR">3 组</button>
+          <button class="segbtn active" data-g="4" data-page-node-id="wJCv5KmXzHznN2YhZVwnjd">4 组</button>
+          <button class="segbtn" data-g="5" data-page-node-id="LNtjMzGpLHvtst9mLDWdVm">5 组</button>
+        </div>
+      </div>
+      <div class="field" id="gapField" data-page-node-id="80LjH3oZo845IGtEpdXQTI">
+        <label data-page-node-id="dwxJnQVi5HIFxzVOAt7H5m">模块2 中间间隔：<b id="gapVal" data-page-node-id="KVzp9OY3KaXxsqkDkTDKGI">15</b> 秒</label>
+        <div class="seg" id="gapSeg" data-page-node-id="4A1EtyoG80MbUMuWhw9ftH">
+          <button class="segbtn" data-t="10" data-page-node-id="KOTpsDx1oKFdIiR1pDAFpH">10s</button>
+          <button class="segbtn active" data-t="15" data-page-node-id="5VI092DUDWl9j1V0EOHE63">15s</button>
+          <button class="segbtn" data-t="20" data-page-node-id="STdlfj3ad8rJlgoFB20bAp">20s</button>
+          <button class="segbtn" data-t="30" data-page-node-id="UQfOS0rTQkEskms0DIAw12">30s</button>
+        </div>
+      </div>
+      <button class="btn" id="startBtn" data-page-node-id="XUKVjGPjRoTWltg5MOhmUa">开始本模块</button>
+    </div>
+  </section>
+
+  <section class="card" data-page-node-id="LaWFww7BKrltLud6nXVcZX">
+    <h2 data-page-node-id="qRUPfW7pPJgw1yHYfvJFb3">训练区 <span class="tag" id="stageTag" data-page-node-id="aRG9YNGdguUQHhMSSar28G">模块1 · 编码联想记忆</span></h2>
+    <div id="stage" data-page-node-id="SlThpJC9JuwkPF1CbAEsZK"><div class="hint" data-page-node-id="g6KBTa4WhE0AZaTBzMV2sb">选择上方模块，点「开始本模块」。</div></div>
+  </section>
+
+  <section class="card" data-page-node-id="LgriBoHFDQsaoEfZkxvTcB">
+    <h2 data-page-node-id="BOPvNvxzITvKwyq5lyzjvz">成绩 <span class="tag" data-page-node-id="aVeCij14XSivwtjUUfelmc">完成才算成绩 · 记录用时</span></h2>
+    <table data-page-node-id="b07u0CJEEXBqqWZnfBPbl4">
+      <thead data-page-node-id="qH62Y6M7JxknFlDWnQtStO"><tr data-page-node-id="8lCIIG76q5WlZX6L1XTaZS"><th data-page-node-id="teImqHAVEEG5XSBlMpbYw9">模块</th><th data-page-node-id="ObO620OIgxD3qAXjDlkSfv">最快</th><th data-page-node-id="PYA2Cy5fLf5ocDDkuNHVTk">最近 5 次平均</th><th data-page-node-id="sgEcXx0xB7Tjxw7Ox8tOmF">最近 12 次平均</th><th data-page-node-id="axfu4SJ3f2ag3Ru2IgQxYM">完成次数</th></tr></thead>
+      <tbody data-page-node-id="7cTBdjz5BtKk1ouH3IptJN">
+        <tr data-page-node-id="25BkPS8b382GPLbg8TiWco"><td data-page-node-id="2EqaV7vFTqAGSYcx12LmAS">模块1 · 编码联想记忆</td><td id="m1_best" data-page-node-id="YrDRP5JggH0uYQSR8ODc3J">—</td><td id="m1_a5" data-page-node-id="4VY6Gmszz1yWip4DZBWNHK">—</td><td id="m1_a12" data-page-node-id="AYwzBqWhOLtJhVGXKjBO4C">—</td><td id="m1_n" data-page-node-id="1bzgRDCwJ0hA6eGAz1KX4S">0</td></tr>
+        <tr data-page-node-id="TAPCJoIxoukXMWVT1bWWzT"><td data-page-node-id="HPV7BcH8AI52XUIui1a3IC">模块2 · 记忆间隔提取训练</td><td id="m2_best" data-page-node-id="bPBVrxDSDfMdGF4RGqi7cg">—</td><td id="m2_a5" data-page-node-id="JB8FYW6qG69fAh8dqklelP">—</td><td id="m2_a12" data-page-node-id="FLHnjZe2yDiCoLzHeOFUII">—</td><td id="m2_n" data-page-node-id="ZYX9G0ppB8roLIkHHpAoG0">0</td></tr>
+        <tr data-page-node-id="PFOX0jywNPGY4yRjnOeTLZ"><td data-page-node-id="yH6wPnPjQ69GSgtdzw89t8">模块3 · 主动刷新</td><td id="m3_best" data-page-node-id="yKBxcGO1blleNF2xrB6SJs">—</td><td id="m3_a5" data-page-node-id="o7P2EtpAkGhfx8FQ99NnX7">—</td><td id="m3_a12" data-page-node-id="6cVILjrZa2tyCqmrqYhNmR">—</td><td id="m3_n" data-page-node-id="w34KeH1KiViWaNUorChmn7">0</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin:10px 0 0" data-page-node-id="lT10G7tZIcrr2F4wbImjSZ">未完成的一轮不计成绩，也不写入记录。最快 = 历史最好用时；平均取最近 N 次成功。</p>
+  </section>
+
+  <section class="card" data-page-node-id="kroAFIw5A59bu0YzPEjgv3">
+    <h2 data-page-node-id="DBAnHPIjhIOfvWB7w5z6d1">对码词典（优尔） <span class="tag" data-page-node-id="SEO883y08TdU56wRESxNlL">可编辑·自动保存</span></h2>
+    <div class="dict-tabs" data-page-node-id="lOxYOMWC3QLNcb0u7k3NMf">
+      <button class="btn ghost" id="exportBtn" style="padding:7px 14px" data-page-node-id="F25keW9xQgUlBAjUIhpHEa">导出词典</button>
+      <button class="btn ghost" id="importBtn" style="padding:7px 14px" data-page-node-id="rW202z32lAQwCVYZDgV7wE">导入词典</button>
+      <button class="btn ghost" id="missBtn" style="padding:7px 14px" data-page-node-id="t6qQebGJn7uJxBXS7xzUWV">只看待补 · <span id="missNum" data-page-node-id="h0gH5mlF3UZDkYnAuWFZVs">0</span></button>
+      <input type="text" id="dictFilter" class="dict-filter" placeholder="筛选代码或联想词…" data-page-node-id="dmnM5FnOpBIBxaFG2Emx1g">
+    </div>
+    <div class="card hidden" id="importPanel" style="margin-top:10px;background:var(--bg)" data-page-node-id="MQZRMGKGiP4GOXnswEYyxH">
+      <div class="hint" style="text-align:left" data-page-node-id="TUAaQMKviA13aIEDBjosrj">支持格式：① md 表格（<code data-page-node-id="LT5n9XDkDMwHgbrUZX2jgY">| AB | 阿波罗 | bō |</code>）② JSON <code data-page-node-id="usS8i4sHd9WwblsTwHQkZd">{"AB":"阿波罗"}</code> ③ 每行 <code data-page-node-id="UlVdIEy4NtjGRAZpxUc7HZ">AB 阿波罗</code>。只更新匹配到的对码；联想词里的括号内容会自动去掉。</div>
+      <textarea id="importText" rows="5" placeholder="把词典粘贴到这里，或选择文件…" style="width:100%;margin-top:8px;border:1px solid var(--line);border-radius:6px;padding:10px;font-size:13px;resize:vertical"></textarea>
+      <div class="btn-row" style="justify-content:flex-start" data-page-node-id="HysPzdh3hlhoRB4CAcxz0Y">
+        <input type="file" id="importFile" accept=".json,.txt,.csv,.md" style="font-size:12px;flex:1;min-width:200px" data-page-node-id="VInhj4oTEJpiCK1XqLoazD">
+        <button class="btn" id="applyImport" data-page-node-id="Aqi4RLFrf9aDXwb9O2aQrf">应用导入</button>
+        <button class="btn ghost" id="cancelImport" data-page-node-id="EwdQi52QphyrfCBC7bEGZv">取消</button>
+      </div>
+      <div class="hint" id="importMsg" style="text-align:left" data-page-node-id="m5qBjpR4kgQqbjTpZD71OX"></div>
+    </div>
+    <div style="max-height:340px;overflow:auto;margin-top:10px" data-page-node-id="SHZqX7BOKZDvG751lkIJYO">
+      <table data-page-node-id="e7oO2NV5Lg7ieHmWIvKWiE"><thead data-page-node-id="LaXxfUAx2rBw5bLEhsVF1p"><tr data-page-node-id="g7UJfZtQuY1ABQbFC1Te4E"><th data-page-node-id="HIKlA4HKItQ1R707eH1Dif">代码</th><th data-page-node-id="W0yjAP9TdEAwqDwZeCdKoF">角块图</th><th data-page-node-id="zn6h0l5KwS9QLoZf7av6Dl">联想词</th></tr></thead><tbody id="dictBody" data-page-node-id="J96ZXxUBJQwLH2AEvExPu2"></tbody></table>
+    </div>
+    <p class="muted" style="margin-top:8px" data-page-node-id="myBIGbKVaQwcF5WIfq0Sw6">字母方案 = A–Z 去掉 U、V，共 24 个字母 → 有序对 552 条（原优尔表 462 条 + 含 I/O 的 90 条待补）。<b data-page-node-id="XlLA5JGdkGcvjnvmuwDtYB">待补的条目联想词为空，但照样会出题</b>，可在上表直接填入（改动即时保存）。</p>
+  </section>
+</div>
+<div class="toast" id="toast" data-page-node-id="IDCvd0aikmWrEYdrBUGs3B"></div>
+
+<script>
+"use strict";
+// 内置优尔词典（解析自用户提供的 md）
+const DEFAULT_PAIR_DICT = {"AB":"阿波罗","AC":"鹌鹑蛋","AD":"AD钙奶","AE":"阿尔卑斯糖","AF":"埃弗尔铁塔","AG":"阿哥","AH":"暗黑","AJ":"埃及","AK":"AK47","AL":"阿拉伯","AM":"阿妹","AN":"安妮","AP":"阿飘","AQ":"安全带","AR":"矮人","AS":"盎司","AT":"安徒生","AW":"艾薇儿","AX":"爱心","AY":"奥运","AZ":"袄子","BA":"爸","BC":"蹦床","BD":"绷带","BE":"杯","BF":"绑匪","BG":"八卦","BH":"壁虎","BJ":"簸箕","BK":"贝壳","BL":"宾利","BM":"斑马","BN":"白娘子","BP":"鞭炮","BQ":"标枪","BR":"半人马","BS":"别墅","BT":"鼻涕","BW":"布娃","BX":"冰箱","BY":"鲍鱼","BZ":"棒子","CA":"叉","CB":"搓板","CD":"锉刀","CE":"车","CF":"吹风机","CG":"唇膏","CH":"柴火","CJ":"餐巾","CK":"创可贴","CL":"成龙","CM":"筹码","CN":"彩泥","CP":"脆皮","CQ":"充气船","CR":"超人","CS":"穿山甲","CT":"锄头","CW":"刺猬","CX":"草鞋","CY":"苍蝇","CZ":"搋子","DA":"档案","DB":"碉堡","DC":"单车","DE":"蝶","DF":"东风","DG":"蛋糕","DH":"吊环","DJ":"独角兽","DK":"短裤","DL":"灯笼","DM":"盗墓","DN":"豆奶","DP":"盾牌","DQ":"肚脐","DR":"多肉","DS":"袋鼠","DT":"电梯","DW":"动物","DX":"大象","DY":"抖音","DZ":"队长","EA":"鹅","EB":"耳包","EC":"耳垂","ED":"耳钉","EF":"耳返","EG":"二锅头","EH":"二胡","EJ":"二阶魔方","EK":"尔康","EL":"二郎神","EM":"鹅毛","EN":"摁","EP":"耳片","EQ":"恶犬","ER":"耳","ES":"耳勺","ET":"ET","EW":"二维码","EX":"恩熙","EY":"鳄鱼","EZ":"儿子","FA":"发","FB":"粪便","FC":"帆船","FD":"芬达","FE":"飞蛾","FG":"发箍","FH":"凤凰","FJ":"佛经","FK":"饭卡","FL":"凤梨","FM":"坟墓","FN":"肥牛","FP":"废品","FQ":"番茄","FR":"缝纫机","FS":"富士","FT":"发条","FW":"福娃","FX":"方向盘","FY":"放映机","FZ":"风筝","GA":"干","GB":"鼓棒","GC":"棺材","GD":"高达","GE":"鸽","GF":"盖饭","GH":"篝火","GJ":"公交","GK":"钢盔","GL":"咖喱","GM":"根苗","GN":"耕牛","GP":"瓜皮","GQ":"国旗","GR":"光刃","GS":"怪兽","GT":"滚筒","GW":"格瓦斯","GX":"狗熊","GY":"桂圆","GZ":"挂钟","HA":"哈哈镜","HB":"怀表","HC":"红茶","HD":"憨豆","HE":"海尔","HF":"汉服","HG":"黄瓜","HJ":"火炬","HK":"滑块","HL":"灰狼","HM":"航母","HN":"浑南","HP":"画盘","HQ":"猴拳","HR":"黑人","HS":"花生","HT":"核桃","HW":"护腕","HX":"浣熊","HY":"后羿","HZ":"耗子","JA":"JAY","JB":"煎饼","JC":"卷尺","JD":"军刀","JE":"姐","JF":"鸡粪","JG":"金刚","JH":"菊花","JK":"夹克","JL":"降落伞","JM":"芥末","JN":"胶囊","JP":"键盘","JQ":"锦旗","JR":"巨人","JS":"救生圈","JT":"掘土机","JW":"酒窝","JX":"夹心","JY":"鲸鱼","JZ":"镜子","KA":"卡","KB":"挎包","KC":"快餐","KD":"蝌蚪","KE":"坑","KF":"KFC","KG":"苦瓜","KH":"葵花","KJ":"坎肩","KL":"骷髅","KM":"孔明","KN":"国王","KP":"鲲鹏","KQ":"矿泉水","KR":"扣肉","KS":"口水","KT":"空调","KW":"开卫","KX":"凯旋门","KY":"烤鸭","KZ":"靠枕","LA":"蜡","LB":"萝卜","LC":"凉茶","LD":"漏斗","LE":"灵儿","LF":"雷锋","LG":"乐高","LH":"老虎","LJ":"棱镜","LK":"林肯","LM":"龙猫","LN":"辽宁","LP":"脸谱","LQ":"篮球","LR":"猎人","LS":"卵石","LT":"烙铁","LW":"芦苇","LX":"流星","LY":"轮椅","LZ":"栗子","MA":"马","MB":"面包","MC":"迷彩","MD":"麦兜","ME":"门","MF":"蜜蜂","MG":"芒果","MH":"灭火器","MJ":"民警","MK":"棉裤","ML":"牡蛎","MN":"蒙牛","MP":"磨盘","MQ":"麻雀","MR":"鸣人","MS":"猫舍","MT":"馒头","MW":"魔王","MX":"梅西","MY":"木鱼","MZ":"帽子","NA":"NASA","NB":"囊饼","NC":"纳粹","ND":"脑袋","NE":"哪吒","NF":"聂风","NG":"南瓜","NH":"尿壶","NJ":"牛角","NK":"纽扣","NL":"能量球","NM":"柠檬","NP":"弩炮","NQ":"泥鳅","NR":"鸟人","NS":"暖水袋","NT":"奶糖","NW":"女娲","NX":"农械","NY":"内衣","NZ":"念珠","PA":"派","PB":"破冰船","PC":"碰碰车","PD":"剖刀","PE":"普洱","PF":"屏风","PG":"培根","PH":"喷壶","PJ":"盆景","PK":"扑克","PL":"爬犁","PM":"泡面","PN":"匹诺曹","PQ":"佩琪","PR":"飘柔","PS":"磐石","PT":"拼图","PW":"牌位","PX":"螃蟹","PY":"朋友","PZ":"胖子","QA":"恰恰瓜子","QB":"跷板","QC":"雀巢","QD":"气垫","QE":"切格瓦拉","QF":"樵夫","QG":"切割机","QH":"秦昊","QJ":"拳击","QK":"巧克力","QL":"情侣","QM":"骑马","QN":"牵牛花","QP":"枪炮","QR":"穷人","QS":"潜水艇","QT":"蜻蜓","QW":"蔷薇","QX":"球鞋","QY":"蚯蚓","QZ":"裙子","RA":"瓤","RB":"绒布","RC":"若虫","RD":"热带鱼","RE":"瑞恩","RF":"润发","RG":"染缸","RH":"润滑油","RJ":"肉夹馍","RK":"瑞克","RL":"日历","RM":"人民币","RN":"乳牛","RP":"软盘","RQ":"热气球","RS":"燃烧弹","RT":"软糖","RW":"肉丸","RX":"绕线器","RY":"如意","RZ":"忍者","SA":"厦","SB":"扇贝","SC":"水车","SD":"圣诞树","SE":"蛇","SF":"沙发","SG":"试管","SH":"珊瑚","SJ":"双截棍","SK":"烧烤","SL":"神龙","SM":"酸梅汤","SN":"唢呐","SP":"算盘","SQ":"书签","SR":"兽人","ST":"薯条","SW":"筛网","SX":"速效救心丸","SY":"收音机","SZ":"刷子","TA":"塔","TB":"铜板","TC":"陶瓷","TD":"台灯","TE":"天鹅","TF":"条幅","TG":"铁轨","TH":"糖葫芦","TJ":"头巾","TK":"坦克","TL":"秃驴","TM":"汤姆","TN":"鸵鸟","TP":"托盘","TQ":"提琴","TR":"坛肉","TS":"豚鼠","TW":"套娃","TX":"腾讯","TY":"太阳","TZ":"团子","WA":"娃","WB":"王八","WC":"厕所","WD":"豌豆","WE":"尾","WF":"汪峰","WG":"瓮缸","WH":"万花筒","WJ":"玩具","WK":"悟空","WL":"瓦力","WM":"乌梅","WN":"蜗牛","WP":"卧铺","WQ":"网球","WR":"温柔","WS":"卫生纸","WT":"外套","WX":"蚊香","WY":"望远镜","WZ":"袜子","XA":"虾","XB":"下巴","XC":"小丑","XD":"鞋垫","XE":"谢尔顿","XF":"旋风","XG":"西瓜","XH":"绣花针","XJ":"陷阱","XK":"星空","XL":"驯鹿","XM":"熊猫","XN":"仙女","XP":"芯片","XQ":"学前班","XR":"雪人","XS":"香水","XT":"喜糖","XW":"漩涡","XY":"象牙","XZ":"勋章","YA":"鸭","YB":"硬币","YC":"圆葱","YD":"腰带","YE":"椰","YF":"孕妇","YG":"衣柜","YH":"樱花","YJ":"眼镜","YK":"泳裤","YL":"哑铃","YM":"玉米","YN":"云南","YP":"优盘","YQ":"月球","YR":"蚁人","YS":"钥匙","YT":"油条","YW":"阎王","YX":"音箱","YZ":"印章","ZA":"藏獒","ZB":"毡板","ZC":"轴承","ZD":"炸弹","ZE":"沼泽","ZF":"张飞","ZG":"战鼓","ZH":"中华","ZJ":"坐骑","ZK":"竹筐","ZL":"长老","ZM":"芝麻","ZN":"枣泥","ZP":"扎啤","ZQ":"蒸汽","ZR":"猪人","ZS":"钻石","ZT":"枕头","ZW":"指纹","ZX":"准星","ZY":"庄园"};
+
+const LETTERS='ABCDEFGHIJKLMNOPQRSTWXYZ'.split('');
+// 24 字母方案（A–Z 去掉 U、V）→ 有序对共 24×23=552 条
+// 优尔原表 462 条不含 I/O，缺的 90 条（含 I 或 O）这里补成空词，照常参与出题，待用户填
+const ALPHABET24='ABCDEFGHIJKLMNOPQRSTWXYZ'.split('');
+(function(){
+  ALPHABET24.forEach(a=>ALPHABET24.forEach(b=>{
+    if(a===b)return;const k=a+b;
+    if(DEFAULT_PAIR_DICT[k]===undefined)DEFAULT_PAIR_DICT[k]='';
+  }));
+})();
+// ===== 角块色块编码：采用「魔方先生」corner-trainer 的角块编码 =====
+// 配色：U=黄 D=白 F=红 B=橘 R=绿 L=蓝
+// 每个角块 3 个贴纸面 → 3 个字母，面序 0=顶(菱形) 1=右(平行四边形) 2=左
+// 三色顺序统一按「U/D 面 → 顺时针」：UFL 黄红蓝 / ULB 黄蓝橘 / UBR 黄橘绿 / UFR 黄绿红
+//                                  DLF 白蓝红 / DBL 白橘蓝 / DRB 白绿橘 / DFR 白红绿
+const CORNERS=[
+  {name:'黄红蓝 UFL',colors:['#FFD500','#C41E3A','#0051BA'],letters:['A','B','C']},
+  {name:'黄蓝橘 ULB',colors:['#FFD500','#0051BA','#FF5800'],letters:['D','E','F']},
+  {name:'黄橘绿 UBR',colors:['#FFD500','#FF5800','#009E60'],letters:['G','H','I']},
+  {name:'黄绿红 UFR',colors:['#FFD500','#009E60','#C41E3A'],letters:['J','K','L'],guess:true},
+  {name:'白蓝红 DLF',colors:['#FFFFFF','#0051BA','#C41E3A'],letters:['W','M','N']},
+  {name:'白橘蓝 DBL',colors:['#FFFFFF','#FF5800','#0051BA'],letters:['O','P','Q']},
+  {name:'白绿橘 DRB',colors:['#FFFFFF','#009E60','#FF5800'],letters:['R','S','T']},
+  {name:'白红绿 DFR',colors:['#FFFFFF','#C41E3A','#009E60'],letters:['X','Y','Z'],guess:true}
+];
+// 字母 → 所属角块 + 贴纸面序号
+const LP={};CORNERS.forEach((c,ci)=>c.letters.forEach((L,fi)=>{LP[L]={ci:ci,fi:fi};}));
+function letterInfo(L){return LP[L]||{ci:0,fi:0};}
+function shadeColor(hex,percent){
+  const v=hex.replace('#','');
+  const r=Math.min(255,Math.max(0,parseInt(v.substr(0,2),16)+Math.round(255*percent)));
+  const g=Math.min(255,Math.max(0,parseInt(v.substr(2,2),16)+Math.round(255*percent)));
+  const b=Math.min(255,Math.max(0,parseInt(v.substr(4,2),16)+Math.round(255*percent)));
+  return 'rgb('+r+','+g+','+b+')';
+}
+// 等距「角块」：colors[0]=顶(菱形) 1=右 2=左
+// highlight：只有该面描边（白色衬底 + 深色粗线），其余两面不描边
+function drawCorner(canvas,colors,highlight){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+  const s=Math.min(W,H)*0.40,w=s*0.866,h=s*0.5;
+  const V0=[cx,cy],V1=[cx-w,cy-h],V2=[cx+w,cy-h],V3=[cx,cy-s],V4=[cx-w,cy+h],V5=[cx+w,cy+h],V6=[cx,cy+s];
+  const faces=[
+    {pts:[V1,V3,V2,V0],from:V3,to:V0},
+    {pts:[V2,V5,V6,V0],from:V2,to:V6},
+    {pts:[V1,V4,V6,V0],from:V1,to:V6}
+  ];
+  // 地面投影
+  ctx.save();ctx.fillStyle='rgba(25,35,55,0.10)';
+  ctx.beginPath();ctx.ellipse(cx,cy+s*0.66,w*1.05,s*0.16,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  // 三个面：满色填充，不描边
+  for(let i=0;i<3;i++){
+    const p=faces[i].pts;
+    const g=ctx.createLinearGradient(faces[i].from[0],faces[i].from[1],faces[i].to[0],faces[i].to[1]);
+    g.addColorStop(0,shadeColor(colors[i],0.16));
+    g.addColorStop(1,shadeColor(colors[i],-0.20));
+    ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);
+    for(let j=1;j<p.length;j++)ctx.lineTo(p[j][0],p[j][1]);
+    ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  }
+  // 内部三条棱：极淡，只做面与面的分隔
+  ctx.beginPath();
+  ctx.moveTo(V0[0],V0[1]);ctx.lineTo(V1[0],V1[1]);
+  ctx.moveTo(V0[0],V0[1]);ctx.lineTo(V2[0],V2[1]);
+  ctx.moveTo(V0[0],V0[1]);ctx.lineTo(V6[0],V6[1]);
+  ctx.strokeStyle='rgba(25,32,44,0.20)';ctx.lineWidth=s*0.015;ctx.stroke();
+  // 外轮廓：细淡，只勾形状
+  ctx.beginPath();
+  ctx.moveTo(V1[0],V1[1]);ctx.lineTo(V3[0],V3[1]);ctx.lineTo(V2[0],V2[1]);
+  ctx.lineTo(V5[0],V5[1]);ctx.lineTo(V6[0],V6[1]);ctx.lineTo(V4[0],V4[1]);
+  ctx.closePath();ctx.strokeStyle='rgba(25,32,44,0.30)';ctx.lineWidth=s*0.02;ctx.stroke();
+  // 重点面：白色粗衬 + 深色粗描边（唯一被描边的面）
+  if(highlight>=0&&faces[highlight]){
+    const p=faces[highlight].pts;
+    const path=()=>{ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);
+      for(let j=1;j<p.length;j++)ctx.lineTo(p[j][0],p[j][1]);ctx.closePath();};
+    ctx.save();
+    ctx.shadowColor='rgba(255,255,255,0.95)';ctx.shadowBlur=s*0.10;
+    path();ctx.strokeStyle='#ffffff';ctx.lineWidth=s*0.115;ctx.stroke();
+    ctx.restore();
+    path();ctx.strokeStyle='rgba(18,24,34,0.95)';ctx.lineWidth=s*0.055;ctx.stroke();
+  }
+}
+// 画一个角块：只凸显该字母对应的那一面
+function makeCanvas(letter,px){
+  const dpr=window.devicePixelRatio||1;
+  const c=document.createElement('canvas');
+  c.width=Math.round(px*dpr);c.height=Math.round(px*dpr);
+  c.style.width=px+'px';c.style.height=px+'px';
+  const info=letterInfo(letter);
+  drawCorner(c,CORNERS[info.ci].colors,info.fi);
+  return c;
+}
+// 一个对码 = 两个角块并排
+function makePairFig(code,opts){
+  opts=opts||{};
+  const sz=opts.mini?'mini':opts.dict?'dict':'scene';
+  const size=opts.mini?68:opts.dict?92:168;
+  const span=document.createElement('span');span.className='cube sz-'+sz;
+  [code[0],code[1]].forEach(L=>{
+    const c=makeCanvas(L,size);
+    c.style.margin='0 1px';span.appendChild(c);
+  });
+  return span;
+}
+
+// ===== 状态 =====
+let pairDict=loadPairDict();
+let curMod='m1',grpCount=4,gapSec=15;
+
+function cleanWord(w){return String(w).replace(/[（(][^）)]*[）)]/g,'').trim();}
+function loadPairDict(){
+  let d=null;
+  try{const s=localStorage.getItem('bld_pairdict');if(s)d=JSON.parse(s);}catch(e){}
+  if(!d){d={};for(const k in DEFAULT_PAIR_DICT)d[k]=DEFAULT_PAIR_DICT[k];}
+  const out={};for(const k in d)out[k]=cleanWord(d[k]);
+  return out;
+}
+function savePairDict(){try{localStorage.setItem('bld_pairdict',JSON.stringify(pairDict));}catch(e){}}
+function allCodes(){return Object.keys(pairDict).filter(c=>/^[A-Z]{2}$/.test(c));}
+function codesWithWord(){return allCodes().filter(c=>(pairDict[c]||'').trim());}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// 出题：同一组内两个角块不得重复（不同角块），同一轮内尽量不出现重复角块
+function validCodes(){
+  return allCodes().filter(c=>letterInfo(c[0]).ci!==letterInfo(c[1]).ci);
+}
+function buildCodes(n,needWord){
+  let pool=needWord?validCodes().filter(c=>(pairDict[c]||'').trim()):validCodes();
+  if(pool.length<n)pool=allCodes();
+  pool=pool.slice();
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  const out=[],used={};
+  for(let k=0;k<pool.length&&out.length<n;k++){
+    const c=pool[k],a=letterInfo(c[0]).ci,b=letterInfo(c[1]).ci;
+    if(used[a]||used[b])continue;
+    out.push(c);used[a]=1;used[b]=1;
+  }
+  for(let k=0;k<pool.length&&out.length<n;k++){if(out.indexOf(pool[k])<0)out.push(pool[k]);}
+  return out;
+}
+function renderScene(codes,container){
+  const cls=codes.length<=3?'c3':codes.length===4?'c4':'c5';
+  const grid=document.createElement('div');grid.className='scene '+cls;
+  codes.forEach((code,i)=>{
+    const cell=document.createElement('div');cell.className='cell';
+    const idx=document.createElement('span');idx.className='idx';idx.textContent=(i+1);
+    cell.appendChild(idx);
+    const wrap=document.createElement('div');wrap.className='cubeWrap';
+    wrap.appendChild(makePairFig(code));cell.appendChild(wrap);
+    grid.appendChild(cell);
+  });
+  container.appendChild(grid);
+  return grid;
+}
+
+// ===== 词典编辑器 =====
+function renderDict(filter){
+  filter=(filter||'').trim();
+  const body=document.getElementById('dictBody');body.innerHTML='';
+  const keys=Object.keys(pairDict).filter(c=>!filter||c.indexOf(filter)>=0||(pairDict[c]||'').indexOf(filter)>=0);
+  keys.slice(0,300).forEach(code=>{
+    const tr=document.createElement('tr');
+    const td1=document.createElement('td');td1.innerHTML='<b>'+code+'</b>';
+    const td2=document.createElement('td');td2.style.textAlign='center';td2.appendChild(makePairFig(code,{dict:true}));
+    const td3=document.createElement('td');const inp=document.createElement('input');
+    inp.type='text';inp.value=pairDict[code]||'';inp.dataset.c=code;td3.appendChild(inp);
+    tr.append(td1,td2,td3);
+    body.appendChild(tr);
+  });
+  if(keys.length>300){const tr=document.createElement('tr');
+    tr.innerHTML='<td colspan="3" class="muted">仅显示前 300 条，输入筛选可定位其余 '+(keys.length-300)+' 条。</td>';body.appendChild(tr);}
+  body.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{pairDict[inp.dataset.c]=inp.value;savePairDict();}));
+}
+document.getElementById('dictFilter').addEventListener('input',e=>renderDict(e.target.value));
+
+// ===== 导入/导出 =====
+function parsePairDict(text){
+  const out={};const t=text.trim();
+  if(t.startsWith('{')){const o=JSON.parse(t);for(const k in o){if(/^[A-Z]{2}$/.test(k))out[k]=cleanWord(o[k]);}return out;}
+  t.split(/\r?\n/).forEach(line=>{
+    const m=line.match(/^\|\s*([A-Z]{2})\s*\|\s*([^|]+?)\s*\|/);
+    if(m){out[m[1]]=cleanWord(m[2]);return;}
+    const m2=line.match(/^([A-Z]{2})[\s,，、:=]+(\S+)/);
+    if(m2)out[m2[1]]=cleanWord(m2[2]);
+  });
+  return out;
+}
+function applyImport(){
+  const txt=document.getElementById('importText').value.trim();
+  const msg=document.getElementById('importMsg');
+  if(!txt){msg.textContent='⚠️ 没有可导入的内容，先粘贴或选文件。';return;}
+  let parsed;try{parsed=parsePairDict(txt);}catch(e){msg.textContent='✗ 解析失败：'+e.message;return;}
+  let n=0;for(const k in parsed){if(/^[A-Z]{2}$/.test(k)&&pairDict.hasOwnProperty(k)){pairDict[k]=parsed[k];n++;}}
+  if(n===0){msg.textContent='⚠️ 未匹配到任何已知对码（应为两位大写字母，如 AB）。';return;}
+  savePairDict();renderDict('');msg.textContent='✓ 已导入 '+n+' 个对码，词典已更新并保存。';toast('导入 '+n+' 个对码');
+}
+function exportDict(){
+  const blob=new Blob([JSON.stringify(pairDict,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='youer-dict.json';a.click();
+  URL.revokeObjectURL(url);toast('已导出 youer-dict.json');
+}
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importPanel').classList.toggle('hidden'));
+document.getElementById('cancelImport').addEventListener('click',()=>document.getElementById('importPanel').classList.add('hidden'));
+document.getElementById('applyImport').addEventListener('click',applyImport);
+document.getElementById('exportBtn').addEventListener('click',exportDict);
+let missOnly=false;
+function updateMissNum(){
+  const n=allCodes().filter(c=>!(pairDict[c]||'').trim()).length;
+  const el=document.getElementById('missNum');if(el)el.textContent=n;
+}
+document.getElementById('missBtn').addEventListener('click',()=>{
+  missOnly=!missOnly;
+  document.getElementById('missBtn').classList.toggle('on',missOnly);
+  renderDict(missOnly?'__MISSING__':document.getElementById('dictFilter').value);
+});
+document.getElementById('importFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{document.getElementById('importText').value=r.result;document.getElementById('importMsg').textContent='已读取文件，点「应用导入」。';};
+  r.readAsText(f);
+});
+
+// ===== 通用 =====
+let stopFlag=false;
+function stage(){return document.getElementById('stage');}
+function clearStage(){stopFlag=true;keyHandler=null;stage().innerHTML='';}
+function stepsBar(names,cur){
+  const d=document.createElement('div');d.className='steps';
+  names.forEach((n,i)=>{
+    const s=document.createElement('span');s.className='step'+(i===cur?' on':i<cur?' done':'');
+    s.textContent=(i+1)+'. '+n;d.appendChild(s);
+  });
+  return d;
+}
+
+// ===== 字母键盘：两行，三个一组，直角大按钮 =====
+const KEY_ROWS=[
+  [['A','B','C'],['D','E','F'],['G','H','I'],['J','K','L']],
+  [['W','M','N'],['O','P','Q'],['R','S','T'],['X','Y','Z']]
+];
+let keyHandler=null;
+let keyBtns={};
+function buildKbd(onPick){
+  const wrap=document.createElement('div');wrap.className='kbd';
+  keyBtns={};
+  KEY_ROWS.forEach(row=>{
+    const r=document.createElement('div');r.className='kbdrow';
+    row.forEach(grp=>{
+      const g=document.createElement('div');g.className='kbdgrp';
+      grp.forEach(L=>{
+        const b=document.createElement('button');b.type='button';b.textContent=L;
+        if(LETTERS.indexOf(L)<0){b.className='dim';b.title='本词典不使用';}
+        b.addEventListener('click',()=>onPick(L));
+        g.appendChild(b);keyBtns[L]=b;
+      });
+      r.appendChild(g);
+    });
+    wrap.appendChild(r);
+  });
+  return wrap;
+}
+function flashKey(L){
+  const b=keyBtns[L];if(!b)return;
+  b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),130);
+}
+document.addEventListener('keydown',e=>{
+  if(!keyHandler)return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA')return;
+  const k=(e.key||'').toUpperCase();
+  if(/^[A-Z]$/.test(k)){e.preventDefault();flashKey(k);keyHandler(k);return;}
+  if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();keyHandler('<');return;}
+  if(e.key==='Enter'){e.preventDefault();keyHandler('>');return;}
+});
+
+// 统一答题组件：逐位置输入两位编码（支持鼠标与物理键盘）
+function buildQuiz(codes,container,onDone,opt){
+  opt=opt||{};
+  const picks=new Array(codes.length).fill('');
+  let i=0,done=false;
+  const qwrap=document.createElement('div');qwrap.className='qwrap';
+  const pos=document.createElement('div');pos.className='qpos';
+  const slots=document.createElement('div');slots.className='slots';
+  const s0=document.createElement('div');s0.className='slot';
+  const s1=document.createElement('div');s1.className='slot';
+  slots.append(s0,s1);
+  const tip=document.createElement('div');tip.className='kbd-tip';
+  tip.textContent='鼠标点击字母，或直接敲键盘；Backspace 删除，Enter 提交';
+  const kbd=buildKbd(handle);
+  const btns=document.createElement('div');btns.className='qbtns';
+  const bClr=document.createElement('button');bClr.type='button';bClr.textContent='清除';
+  const bPrev=document.createElement('button');bPrev.type='button';bPrev.textContent='← 上一题';
+  const bNext=document.createElement('button');bNext.type='button';bNext.textContent='下一题 →';
+  const bSub=document.createElement('button');bSub.type='button';bSub.textContent='提交';
+  btns.append(bClr,bPrev,bNext,bSub);
+  bClr.addEventListener('click',()=>{picks[i]='';draw();});
+  bPrev.addEventListener('click',()=>{if(i>0){i--;draw();}});
+  bNext.addEventListener('click',()=>{if(i<codes.length-1){i++;draw();}});
+  bSub.addEventListener('click',submit);
+  keyHandler=handle;
+  function draw(){
+    s0.textContent=picks[i][0]||'_';s1.textContent=picks[i][1]||'_';
+    s0.className='slot'+(picks[i].length===0?' cur empty':'');
+    s1.className='slot'+(picks[i].length===1?' cur empty':'');
+    if(opt.label)pos.innerHTML=opt.label(i,codes.length);
+    else pos.innerHTML='第 <b>'+(i+1)+'</b> 个位置的编码 <small>（'+(i+1)+'/'+codes.length+'）</small>';
+    bPrev.disabled=(i===0);bNext.disabled=(i>=codes.length-1);
+  }
+  function handle(L){
+    if(done)return;
+    if(L==='<'){picks[i]=picks[i].slice(0,-1);draw();return;}
+    if(L==='>'){submit();return;}
+    if(picks[i].length>=2)return;
+    picks[i]+=L;draw();
+    if(picks[i].length===2){
+      setTimeout(()=>{
+        if(done)return;
+        if(i<codes.length-1){i++;draw();}
+        else submit();
+      },200);
+    }
+  }
+  function submit(){
+    if(done)return;
+    if(picks.some(p=>p.length<2)){toast('还有位置没填完');return;}
+    done=true;keyHandler=null;
+    onDone(picks.slice());
+  }
+  draw();
+  qwrap.append(pos,slots,kbd,tip,btns);
+  container.appendChild(qwrap);
+  return qwrap;
+}
+// 结果清单
+function resultList(codes,picks){
+  const box=document.createElement('div');box.className='resbox';
+  codes.forEach((c,i)=>{
+    const ok=picks[i]===c;
+    const row=document.createElement('div');row.className='res-item '+(ok?'okc':'badc');
+    row.innerHTML='<span class="no">位置 '+(i+1)+'</span>'+
+      '<span class="code">'+(ok?'✓ ':'✗ ')+(picks[i]||'__')+'</span>'+
+      '<span class="word">'+(ok?'':'正确 <b style="color:var(--ok)">'+c+'</b> · ')+esc(pairDict[c]||'')+'</span>';
+    box.appendChild(row);
+  });
+  return box;
+}
+
+// ===== 成绩统计 =====
+let rec=JSON.parse(localStorage.getItem('bld_rec')||'{}');
+function fmtSec(ms){const s=ms/1000;return s<60?s.toFixed(1)+'s':Math.floor(s/60)+'m'+(s%60).toFixed(1)+'s';}
+function secs(ms){return Math.round(ms/10)/100;}
+function pushRec(mod,ms){
+  const arr=rec[mod]||[];const v=secs(ms);
+  const prevBest=arr.length?Math.min.apply(null,arr):null;
+  arr.unshift(v);if(arr.length>60)arr.length=60;
+  rec[mod]=arr;
+  try{localStorage.setItem('bld_rec',JSON.stringify(rec));}catch(e){}
+  renderStats();
+  return {isBest:prevBest==null||v<prevBest};
+}
+function avg(arr,n){if(!arr.length)return null;const t=arr.slice(0,Math.min(n,arr.length));let s=0;t.forEach(v=>s+=v);return s/t.length;}
+function renderStats(){
+  ['m1','m2','m3'].forEach(m=>{
+    const arr=rec[m]||[];
+    const best=arr.length?Math.min.apply(null,arr):null;
+    const a5=avg(arr,5),a12=avg(arr,12);
+    document.getElementById(m+'_best').textContent=best==null?'—':best.toFixed(1)+'s';
+    document.getElementById(m+'_a5').textContent=a5==null?'—':a5.toFixed(1)+'s';
+    document.getElementById(m+'_a12').textContent=a12==null?'—':a12.toFixed(1)+'s';
+    document.getElementById(m+'_n').textContent=String(arr.length);
+  });
+}
+// 成功面板
+function okPanel(text){const d=document.createElement('div');d.className='hold-box';
+  d.innerHTML='<div class="n">✓</div><div class="okline">成功</div><div class="t">'+text+'</div>';return d;}
+function failPanel(text){const d=document.createElement('div');d.className='hold-box';
+  d.innerHTML='<div class="n" style="color:var(--bad)">✗</div><div class="okline" style="color:var(--bad)">未完成 · 无成绩</div><div class="t">'+text+'</div>';return d;}
+function againBtn(fn){const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='再来一组';b.style.marginTop='14px';b.addEventListener('click',fn);return b;}
+
+// ===== 模块1 编码联想记忆 =====
+const M1_STEPS=['读一遍记忆','读一遍串联记忆','回忆编码'];
+function startM1(){
+  stopFlag=false;const codes=buildCodes(grpCount);const T0=Date.now();
+  function memorize(step){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(M1_STEPS,step));
+    const h=document.createElement('div');h.className='hint';
+    h.innerHTML=step===0
+      ? '① <b>读一遍记忆</b>：看这 <b>'+codes.length+'</b> 组角块（每组两个），注意每个角块上<b>加粗描边的那一面</b>，读一遍就定位。'
+      : '② <b>读一遍串联记忆</b>：把这 <b>'+codes.length+'</b> 组按顺序串成一条路线/一个故事，再读一遍，把顺序锁死。';
+    const grid=renderScene(codes,stage());
+    const t0=document.createElement('div');t0.className='read-timer';t0.textContent='阅读 0.0s';
+    const tStart=Date.now();
+    const iv=setInterval(()=>{if(stopFlag)clearInterval(iv);else t0.textContent='阅读 '+((Date.now()-tStart)/1000).toFixed(1)+'s';},100);
+    const btn=document.createElement('button');btn.type='button';btn.className='btn';btn.style.marginTop='14px';
+    btn.textContent=step===0?'读完了，进入串联':'串联完成，开始回忆编码';
+    btn.addEventListener('click',()=>{clearInterval(iv);step===0?memorize(1):recall();});
+    stage().append(h,grid,t0,btn);
+  }
+  function recall(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(M1_STEPS,2));
+    const tip=document.createElement('div');tip.className='hint';
+    tip.innerHTML='③ <b>回忆编码</b>：不再看图，按位置 1–'+codes.length+' 写出每组编码。';
+    stage().appendChild(tip);
+    buildQuiz(codes,stage(),picks=>{
+      const ms=Date.now()-T0;let ok=0;
+      for(let k=0;k<codes.length;k++)if(picks[k]===codes[k])ok++;
+      stage().innerHTML='';
+      if(ok===codes.length){
+        const r=pushRec('m1',ms);
+        stage().appendChild(okPanel('全对 '+ok+'/'+codes.length+' · 用时 <b>'+fmtSec(ms)+'</b>'+(r.isBest?' · 🎉 新纪录':'')));
+        toast('成功 · '+fmtSec(ms));
+      }else{
+        stage().appendChild(failPanel('回忆出 '+ok+'/'+codes.length+'，本轮不记成绩。'));
+        stage().appendChild(resultList(codes,picks));
+      }
+      stage().appendChild(againBtn(startM1));
+    });
+  }
+  memorize(0);
+}
+
+// ===== 模块2 记忆间隔提取训练 =====
+let m2Timer=null;
+function startM2(){
+  stopFlag=false;clearInterval(m2Timer);
+  const codes=buildCodes(grpCount);const N=gapSec;const T0=Date.now();
+  const STEPS=['读一遍','停留 '+N+' 秒','回忆编码'];
+  function memorize(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(STEPS,0));
+    const h=document.createElement('div');h.className='hint';
+    h.innerHTML='① <b>读一遍</b>：记牢这 <b>'+codes.length+'</b> 组角块（每组两个，看加粗描边的面）。';
+    renderScene(codes,stage());
+    const btn=document.createElement('button');btn.type='button';btn.className='btn';btn.style.marginTop='14px';
+    btn.textContent='记住了，停留 '+N+' 秒';
+    btn.addEventListener('click',wait);stage().appendChild(btn);
+  }
+  function wait(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(STEPS,1));
+    const h=document.createElement('div');h.className='hint';
+    h.innerHTML='② <b>停留 '+N+' 秒</b>：在脑中保持场景，不要默念字母。倒计时归零后，把 <b>'+codes.length+' 组编码全部复述出来</b>。';
+    const num=document.createElement('div');num.className='big-num';num.textContent=N;
+    const stop=document.createElement('button');stop.type='button';stop.className='btn ghost';stop.style.marginTop='12px';
+    stop.textContent='提前结束（本轮无成绩）';
+    stop.addEventListener('click',()=>endGame(false,'你提前结束了本轮。'));
+    stage().append(h,num,stop);
+    let left=N;
+    m2Timer=setInterval(()=>{
+      if(stopFlag){clearInterval(m2Timer);return;}
+      left--;num.textContent=left;
+      if(left<=0){clearInterval(m2Timer);quiz();}
+    },1000);
+  }
+  function quiz(){
+    if(stopFlag)return;
+    stage().innerHTML='';
+    stage().appendChild(stepsBar(STEPS,2));
+    const tip=document.createElement('div');tip.className='hint';
+    tip.innerHTML='③ <b>回忆编码</b>：间隔 '+N+' 秒后，按位置 1–'+codes.length+' 把 <b>全部 '+codes.length+' 组编码</b>依次复述出来（不抽取，全部写）。';
+    stage().appendChild(tip);
+    buildQuiz(codes,stage(),picks=>{
+      const ms=Date.now()-T0;let ok=0;
+      for(let k=0;k<codes.length;k++)if(picks[k]===codes[k])ok++;
+      stage().innerHTML='';
+      if(ok===codes.length){
+        const r=pushRec('m2',ms);
+        stage().appendChild(okPanel('间隔 '+N+' 秒 · 全对 '+ok+'/'+codes.length+' · 用时 <b>'+fmtSec(ms)+'</b>'+(r.isBest?' · 🎉 新纪录':'')));
+        toast('成功 · '+fmtSec(ms));
+      }else{
+        stage().appendChild(failPanel('间隔 '+N+' 秒后只回忆出 '+ok+'/'+codes.length+'，本轮无成绩。'));
+        stage().appendChild(resultList(codes,picks));
+      }
+      stage().appendChild(againBtn(()=>{stopFlag=false;startM2();}));
+    });
+  }
+  function endGame(success,detail){
+    clearInterval(m2Timer);stopFlag=true;keyHandler=null;
+    stage().innerHTML='';
+    stage().appendChild(failPanel(detail));
+    stage().appendChild(againBtn(()=>{stopFlag=false;startM2();}));
+  }
+  memorize();
+}
+
+// ===== 模块3 主动刷新 =====
+const M3_STEPS=['读一遍记忆','做棱块循环','主动刷新','回忆编码'];
+function startM3(){
+  stopFlag=false;const codes=buildCodes(grpCount);
+  const cyc=buildCodes(6);
+  const askIdx=Math.floor(Math.random()*cyc.length);
+  const prev=cyc[askIdx],ans=cyc[(askIdx+1)%cyc.length];
+  const T0=Date.now();
+  function memorize(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(M3_STEPS,0));
+    const h=document.createElement('div');h.className='hint';
+    h.innerHTML='① <b>读一遍记忆</b>：先记这 <b>'+codes.length+'</b> 组角块（每组两个，看加粗描边的面），读一遍定位。';
+    renderScene(codes,stage());
+    const btn=document.createElement('button');btn.type='button';btn.className='btn';btn.style.marginTop='14px';
+    btn.textContent='记住了，开始做棱块';
+    btn.addEventListener('click',edgeTask);stage().appendChild(btn);
+  }
+  function edgeTask(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(M3_STEPS,1));
+    const h=document.createElement('div');h.className='hint';
+    h.innerHTML='② <b>做棱块循环</b>：按下面的循环顺序走一遍，回答下面的问题。';
+    const cycBox=document.createElement('div');cycBox.className='cyc';
+    cyc.forEach((c,k)=>{
+      if(k>0){const i=document.createElement('i');i.textContent='→';cycBox.appendChild(i);}
+      const s=document.createElement('span');
+      s.innerHTML=c+'<em>'+esc(pairDict[c]||'')+'</em>';
+      if(c===prev)s.className='hit';
+      cycBox.appendChild(s);
+    });
+    const back=document.createElement('i');back.textContent='→ 回到 '+cyc[0];cycBox.appendChild(back);
+    const q=document.createElement('div');q.className='bigq';
+    q.textContent='「'+prev+'」的下一个是什么？';
+    const err=document.createElement('div');err.className='err-tip';
+    const opts=document.createElement('div');opts.className='opts';
+    const pool=allCodes().filter(c=>c!==ans&&cyc.indexOf(c)<0);
+    const arr=[ans];
+    while(arr.length<4&&pool.length){const i=Math.floor(Math.random()*pool.length);arr.push(pool.splice(i,1)[0]);}
+    arr.sort(()=>Math.random()-0.5);
+    let done=false;
+    arr.forEach(d=>{
+      const b=document.createElement('button');b.type='button';b.className='opt';
+      b.innerHTML='<span class="pw">'+esc(pairDict[d]||'')+'</span><span class="pl">'+d+'</span>';
+      b.addEventListener('click',()=>{
+        if(done)return;done=true;
+        [...opts.children].forEach(o=>o.disabled=true);
+        if(d===ans){
+          b.classList.add('right');err.textContent='';
+          toast('✓ 正确');
+          setTimeout(refreshPrompt,600);
+        }else{
+          b.classList.add('wrong');
+          [...opts.children].forEach(o=>{if(o.__c===ans)o.classList.add('right');});
+          err.textContent='✗ 不对，正确的是 '+ans+'（'+esc(pairDict[ans]||'')+'）';
+          toast('✗ 错了');
+          setTimeout(edgeTask,1600);
+        }
+      });
+      b.__c=d;opts.appendChild(b);
+    });
+    stage().append(h,cycBox,q,opts,err);
+  }
+  function refreshPrompt(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(M3_STEPS,2));
+    const ban=document.createElement('div');ban.className='banner big';
+    ban.innerHTML='⚡ 主动刷新：现在<b>闭眼想 2 秒</b>，在脑中快速扫一遍每组角块的场景位置，让图像保鲜。';
+    const btn=document.createElement('button');btn.type='button';btn.className='btn';btn.style.marginTop='14px';
+    btn.textContent='已刷新，开始答题';btn.style.fontSize='17px';btn.style.padding='13px 26px';
+    btn.addEventListener('click',recall);stage().append(ban,btn);
+  }
+  function recall(){
+    if(stopFlag)return;stage().innerHTML='';
+    stage().appendChild(stepsBar(M3_STEPS,3));
+    const tip=document.createElement('div');tip.className='hint';
+    tip.innerHTML='④ <b>回忆编码</b>：棱块做完了，立刻回忆刚才的 <b>'+codes.length+'</b> 组角块编码。';
+    stage().appendChild(tip);
+    buildQuiz(codes,stage(),picks=>{
+      const ms=Date.now()-T0;let ok=0;
+      for(let k=0;k<codes.length;k++)if(picks[k]===codes[k])ok++;
+      stage().innerHTML='';
+      if(ok===codes.length){
+        const r=pushRec('m3',ms);
+        stage().appendChild(okPanel('全对 '+ok+'/'+codes.length+' · 用时 <b>'+fmtSec(ms)+'</b>'+(r.isBest?' · 🎉 新纪录':'')));
+        toast('成功 · '+fmtSec(ms));
+      }else{
+        stage().appendChild(failPanel('回忆出 '+ok+'/'+codes.length+'，本轮不记成绩。'));
+        stage().appendChild(resultList(codes,picks));
+      }
+      stage().appendChild(againBtn(startM3));
+    });
+  }
+  memorize();
+}
+
+// ===== 控件 =====
+const MOD_NAME={m1:'模块1 · 编码联想记忆',m2:'模块2 · 记忆间隔提取训练',m3:'模块3 · 主动刷新'};
+document.getElementById('modTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-mod]');if(!b)return;
+  curMod=b.dataset.mod;
+  [].slice.call(e.currentTarget.children).forEach(x=>x.classList.toggle('active',x===b));
+  document.getElementById('stageTag').textContent=MOD_NAME[curMod];
+  document.getElementById('gapField').style.display=curMod==='m2'?'':'none';
+  clearStage();stage().innerHTML='<div class="hint">已选「'+MOD_NAME[curMod]+'」，点「开始本模块」。</div>';
+});
+document.getElementById('grpSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.segbtn');if(!b)return;
+  grpCount=+b.dataset.g;document.getElementById('grpVal').textContent=grpCount;
+  [...e.currentTarget.querySelectorAll('.segbtn')].forEach(x=>x.classList.toggle('active',x===b));
+  try{localStorage.setItem('bld_grp',grpCount);}catch(err){}
+});
+document.getElementById('gapSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.segbtn');if(!b)return;
+  gapSec=+b.dataset.t;document.getElementById('gapVal').textContent=gapSec;
+  [...e.currentTarget.querySelectorAll('.segbtn')].forEach(x=>x.classList.toggle('active',x===b));
+  try{localStorage.setItem('bld_gap',gapSec);}catch(err){}
+});
+(function(){
+  try{const t=+localStorage.getItem('bld_gap');
+    if([10,15,20,30].indexOf(t)>=0){gapSec=t;document.getElementById('gapVal').textContent=t;
+      document.querySelectorAll('#gapSeg .segbtn').forEach(x=>x.classList.toggle('active',+x.dataset.t===t));}}catch(e){}
+  try{const g=+localStorage.getItem('bld_grp');
+    if([3,4,5].indexOf(g)>=0){grpCount=g;document.getElementById('grpVal').textContent=g;
+      document.querySelectorAll('#grpSeg .segbtn').forEach(x=>x.classList.toggle('active',+x.dataset.g===g));}}catch(e){}
+  document.getElementById('gapField').style.display='none';
+})();
+document.getElementById('startBtn').addEventListener('click',()=>{
+  if(curMod==='m1')startM1();else if(curMod==='m2')startM2();else startM3();
+});
+
+// ===== 初始化 =====
+renderDict('');renderStats();updateMissNum();
+</script>
+</body>
+</html>
