@@ -1443,7 +1443,7 @@ function newQuestion() {
     const legendMoves = currentCubeType === '2'
       ? window.MOVES.filter(m => ['R','U','F'].includes(m.name.replace("'", "")))
       : window.MOVES;
-    window.buildLegend(legendMoves);
+    window.buildLegend(legendMoves, size);
   }
 
   window._currentMoves = moves;
@@ -1590,11 +1590,12 @@ function poly(ctx, pts){
   for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
   ctx.closePath();
 }
-function face(ctx, cx, cy, x, y, z, which, color){
+function face(ctx, cx, cy, x, y, z, which, color, h){
+  h = h || 0.5;
   let corners;
-  if(which==='x') corners = [[x+0.5,y-0.5,z-0.5],[x+0.5,y+0.5,z-0.5],[x+0.5,y+0.5,z+0.5],[x+0.5,y-0.5,z+0.5]];
-  else if(which==='y') corners = [[x-0.5,y+0.5,z-0.5],[x-0.5,y+0.5,z+0.5],[x+0.5,y+0.5,z+0.5],[x+0.5,y+0.5,z-0.5]];
-  else corners = [[x-0.5,y-0.5,z+0.5],[x-0.5,y+0.5,z+0.5],[x+0.5,y+0.5,z+0.5],[x+0.5,y-0.5,z+0.5]];
+  if(which==='x') corners = [[x+h,y-h,z-h],[x+h,y+h,z-h],[x+h,y+h,z+h],[x+h,y-h,z+h]];
+  else if(which==='y') corners = [[x-h,y+h,z-h],[x-h,y+h,z+h],[x+h,y+h,z+h],[x+h,y+h,z-h]];
+  else corners = [[x-h,y-h,z+h],[x-h,y+h,z+h],[x+h,y+h,z+h],[x+h,y-h,z+h]];
   const pts = corners.map(p=>proj(cx,cy,p[0],p[1],p[2]));
   poly(ctx, pts);
   ctx.fillStyle = color;
@@ -1612,17 +1613,20 @@ function markedFor(axis, layer){
   }
   return out;
 }
-function drawCube(ctx, cx, cy, axis, layer){
+function drawCube(ctx, cx, cy, axis, layer, size){
+  size = size || 3;
+  const coords = size === 2 ? [-1, 1] : [-1, 0, 1];
+  const h = size === 2 ? 1 : 0.5;   // 二阶 cubie 边长翻倍，拼成无缝 2×2
   const marks = markedFor(axis, layer);
   const isM = (x,y,z)=>marks.some(g=>g[0]===x&&g[1]===y&&g[2]===z);
   const cubes=[];
-  for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++) cubes.push([x,y,z]);
+  for(const x of coords)for(const y of coords)for(const z of coords) cubes.push([x,y,z]);
   cubes.sort((A,B)=>(A[0]+A[1]+A[2])-(B[0]+B[1]+B[2]));
   for(const [x,y,z] of cubes){
     const m = isM(x,y,z);
-    if(x===1) face(ctx,cx,cy,x,y,z,'x', m?MARK:WHITE);
-    if(z===1) face(ctx,cx,cy,x,y,z,'z', m?MARK:WHITE);
-    if(y===1) face(ctx,cx,cy,x,y,z,'y', m?MARK:WHITE);
+    if(x===1) face(ctx,cx,cy,x,y,z,'x', m?MARK:WHITE, h);
+    if(z===1) face(ctx,cx,cy,x,y,z,'z', m?MARK:WHITE, h);
+    if(y===1) face(ctx,cx,cy,x,y,z,'y', m?MARK:WHITE, h);
   }
 }
 /* 贴合表面直线箭头：从锚点沿 dir 画直线段，末端带箭头头 */
@@ -1665,11 +1669,12 @@ function roundRect(ctx, x, y, w, h, r){
   ctx.closePath();
 }
 
-function buildLegend(movesSubset){
+function buildLegend(movesSubset, size){
   const canvas = document.getElementById('legendCanvas');
   if(!canvas) return;
-  // 冻结契约：可选 movesSubset（MOVES 子数组），不传 = 全部 12 个
+  // 冻结契约：可选 movesSubset（MOVES 子数组），不传 = 全部 12 个；size: 2=二阶 / 3=三阶
   const items = movesSubset && movesSubset.length ? movesSubset : MOVES;
+  const cubeSize = (size === 2) ? 2 : 3;
   const COLS = items.length <= 6 ? 3 : 4;
   const ROWS = Math.ceil(items.length / COLS);
   const CUBE = 150, LAB = 32, PAD = 6, GAP = 12;
@@ -1692,7 +1697,7 @@ function buildLegend(movesSubset){
     // 魔方 + 黄色箭头
     const cx = ox + CARD_W/2;
     const cy = oy + PAD + CUBE/2 + 2;
-    drawCube(ctx, cx, cy, mv.axis, mv.layer);
+    drawCube(ctx, cx, cy, mv.axis, mv.layer, cubeSize);
     drawArrow(ctx, cx, cy, mv.arr);
     // 红色粗体标签（卡片下方居中）
     ctx.fillStyle = LABEL;
@@ -1701,6 +1706,11 @@ function buildLegend(movesSubset){
     ctx.textBaseline = 'middle';
     ctx.fillText(mv.name, cx, oy + PAD + CUBE + LAB/2 + 2);
   });
+  // 动态标题：二阶只显示 RUF 3 种，三阶显示 12 种
+  const lbl = document.querySelector('.legend-zone .zone-label');
+  if(lbl){
+    lbl.innerHTML = '对照图 · ' + items.length + ' 种转动示意<span class="legend-caption">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span>';
+  }
 }
 // 暴露给 newQuestion 调用（T5 联动重绘对照图：2×2 只画 R/U/F 示意）
 window.buildLegend = buildLegend;
