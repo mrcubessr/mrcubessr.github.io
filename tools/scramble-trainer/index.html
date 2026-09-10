@@ -321,6 +321,46 @@
     border-color: var(--accent);
   }
 
+  /* 难度/魔方类型设置行（分段按钮 seg-toggle） */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .settings-row .lbl {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .seg-toggle {
+    display: inline-flex;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .seg-btn {
+    background: var(--panel);
+    border: none;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .seg-btn:hover { color: var(--accent); }
+  .seg-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+  }
+  .seg-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   /* 操作按钮 */
   .action-row {
     display: grid;
@@ -568,11 +608,11 @@
       flex: 0 0 100px;                /* 压缩公式区高度 */
       min-height: 0;
       border-width: 3px;
-      border-color: #111827;
+      border-color: var(--text);
       border-radius: 12px;
-      background: #fffbe6;            /* 浅黄底，醒目 */
+      background: var(--panel);       /* 白底，与网页端一致 */
       padding: 2px 8px;               /* 上下内边距 4px→2px（压到一半） */
-      overflow-x: auto;               /* 长公式横向滚动 */
+      overflow-x: auto;               /* 横滚兜底（≤10 步单行能放下则无滚动条） */
       overflow-y: hidden;
     }
     .formula-inner {
@@ -581,10 +621,11 @@
       letter-spacing: 1px;
       font-size: 22px !important;     /* 固定字号，避免 fitFormula 触发换行降级 */
       line-height: 1.2;
-      white-space: nowrap !important; /* 强制不换行 */
       word-break: normal;
       text-align: left;
     }
+    /* 单行模式（≤10 步）不换行；非 single（>10 步）走默认 normal 自动多行换行 */
+    .formula-inner.single { white-space: nowrap; }
     .formula-inner .move { padding: 0 1px; }
     .formula-inner .move.space { padding: 0 2px; }
 
@@ -617,11 +658,14 @@
     }
     .legend-zone .legend-caption { display: none; }  /* 手机下省空间 */
 
-    /* 控件：长度/参数设置放在最底部 */
-    .length-row { order: 4; gap: 4px; flex-shrink: 0; }
+    /* 控件：难度/长度/操作 放在最底部 */
+    .settings-row { order: 4; gap: 4px; flex-shrink: 0; }
+    .settings-row .lbl { font-size: 12px; }
+    .seg-btn { padding: 5px 8px; font-size: 12px; }
+    .length-row { order: 5; gap: 4px; flex-shrink: 0; }
     .length-row .lbl { font-size: 12px; }
     .length-row .len-btn { padding: 5px 8px; font-size: 12px; min-width: 32px; }
-    .action-row { order: 5; gap: 6px; flex-shrink: 0; }
+    .action-row { order: 6; gap: 6px; flex-shrink: 0; }
     .action-row .btn { padding: 8px 10px; font-size: 13px; }
     .btn.primary { font-size: 14px; padding: 10px 12px; }
   }
@@ -659,6 +703,20 @@
       <div class="zone-label" data-page-node-id="7G6GHTjrj3wjJL32JdKHOF">打乱公式 <span class="cover-badge" id="coverBadge" data-page-node-id="cKUEADLEjA5KKmX3lDwPxi">✓ R U F L B D 齐全</span></div>
       <div class="formula-display" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
 
+      <!-- 难度设置 -->
+      <div class="settings-row">
+        <span class="lbl">魔方：</span>
+        <div class="seg-toggle" id="cubeTypeToggle">
+          <button class="seg-btn active" data-cube="3">三阶</button>
+          <button class="seg-btn" data-cube="2">二阶</button>
+        </div>
+        <span class="lbl">难度：</span>
+        <div class="seg-toggle" id="movesetToggle">
+          <button class="seg-btn active" data-set="all">六面标准</button>
+          <button class="seg-btn" data-set="ruf">RUF 入门</button>
+        </div>
+      </div>
+
       <!-- 长度 -->
       <div class="length-row" data-page-node-id="23tzhEFGiC27A5O6RE0UoK">
         <span class="lbl" data-page-node-id="YGsGIm2QXlFbLxjdVoS5BF">长度：</span>
@@ -666,29 +724,20 @@
         <button class="len-btn" data-len="8" data-page-node-id="pmoc2BP4hTj5hInC9U8urV">8</button>
         <button class="len-btn" data-len="10" data-page-node-id="zYYZPbPeJAVJ8lEN0k5YQm">10</button>
         <button class="len-btn" data-len="12" data-page-node-id="FQD4SaZ9Ah41uNBoFxXQEb">12</button>
+        <button class="len-btn" data-len="15" data-cube="2" style="display:none;">15</button>
         <button class="len-btn" data-len="20" data-page-node-id="mmlJtVMrA6ocEHtpnzcuHc">20</button>
+        <button class="len-btn" data-len="25" data-cube="2" style="display:none;">25</button>
       </div>
 
       <!-- 按钮 -->
       <div class="action-row" data-page-node-id="TRjGsg2BPSYZ5pJv8NXjFa">
         <button class="btn primary full" id="newBtn" data-page-node-id="jFt4Hsv9iKPAA9ccEJW3XH">🎲 换一题</button>
-        <button class="btn ghost" id="copyBtn" data-page-node-id="Fz70gkRS5daO1YaSU15IBt">📋 复制公式</button>
-        <button class="btn ghost" id="stepBtn" data-page-node-id="NC3QyMdMnFVjiTQJ0xUEVG">🔍 显示分步</button>
       </div>
     </div>
   </aside>
 </div>
 
-<!-- 分步抽屉 -->
-<div class="steps-drawer" id="stepsCard" data-page-node-id="uF2pHJ6v8l2WoCM7Rnottu">
-  <div class="head" data-page-node-id="gVCLbFiQcfQBdw3QTgdj1k">
-    <h3 data-page-node-id="DQOpbOmPNaJpGoaYCks1Ms">📖 分步说明 · 每一步对应动作</h3>
-    <button class="close" id="stepClose" data-page-node-id="bZ5o1FEUaDmyXZLUScW8al">收起 ✕</button>
-  </div>
-  <div class="body" data-page-node-id="eqZkqTS9t3m4uaWEJNQZDr">
-    <div class="grid" id="stepsList" data-page-node-id="a3uGhAVod97pFM3nBUhRLf"></div>
-  </div>
-</div>
+<!-- 分步抽屉已移除 -->
 
 <div class="toast" id="toast" data-page-node-id="Aiyig8gdqus51Jtnsmz9Q7">已复制到剪贴板</div>
 
@@ -1111,12 +1160,20 @@ function expandMoveNet(base, dir){
   return seq;
 }
 
-function drawScrambleNet(alg, canvasId){
+function drawScrambleNet(alg, canvasId, size){
+  size = size || 3;   // 冻结契约：默认三阶（不传 = 原行为）
   const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
   if(!canvas) return;
-  const cube = new Cube(3);
+  const cube = new Cube(size);
   cube.applyAlg(alg);
-  const colors = NET_COLORS;
+  let colors = NET_COLORS;
+  // 2×2：L/D/B 整面灰显（只着色 R/U/F 三面，按 D2 标准十字展开）
+  if (size === 2) {
+    colors = Object.assign({}, NET_COLORS, { L:'#d1d5db', D:'#d1d5db', B:'#d1d5db' });
+    for (const f of ['L','D','B']) {
+      for (let r=0; r<size; r++) for (let c=0; c<size; c++) cube.faces[f][r][c] = f;
+    }
+  }
   const ctx = canvas.getContext('2d');
   const rect = canvas.parentElement.getBoundingClientRect();
   const availW = Math.max(rect.width, 240);
@@ -1209,15 +1266,17 @@ function isValidNext(seq, f) {
 }
 
 /**
- * 生成面序列，硬性保证：R U F L B D 六个字母每次都至少出现一次
+ * 生成面序列，硬性保证：传入的字母集合每个都至少出现一次
  * 策略：随机贪心 + 覆盖优先 + 失败重试；
  *      当「剩余空位 == 还没出现的字母数」时，强制只从缺失字母里挑，
- *      因此 6 步题正好是六字母各一次，8~20 步则是 6 字母全覆盖后再随机补足。
+ *      因此 6 步题正好是六字母各一次，8~20 步则是六字母全覆盖后再随机补足。
+ * 冻结契约：第二参 allowedFaces 不传 = 全六字母（向后兼容）；'ruf' → ['R','U','F']。
  */
-function buildFaceSequence(length) {
+function buildFaceSequence(length, allowedFaces) {
+  allowedFaces = allowedFaces || FACES;   // 不传 = 全六字母（老调用方不崩）
   for (let attempt = 0; attempt < 400; attempt++) {
     const seq = [];
-    const missing = new Set(FACES);   // 还没出现过的字母
+    const missing = new Set(allowedFaces);   // 还没出现过的字母
     let failed = false;
 
     for (let i = 0; i < length; i++) {
@@ -1229,9 +1288,9 @@ function buildFaceSequence(length) {
         pool = shuffleArr([...missing]);
       } else if (missing.size > 0 && Math.random() < 0.55) {
         // 还有余量时，55% 概率优先补没出现过的字母 → 分布更均匀
-        pool = shuffleArr([...missing]).concat(shuffleArr(FACES).filter(f => !missing.has(f)));
+        pool = shuffleArr([...missing]).concat(shuffleArr(allowedFaces).filter(f => !missing.has(f)));
       } else {
-        pool = shuffleArr(FACES);
+        pool = shuffleArr(allowedFaces);
       }
 
       let picked = null;
@@ -1247,8 +1306,8 @@ function buildFaceSequence(length) {
     if (!failed && missing.size === 0) return seq;
   }
 
-  /* 兜底（几乎不会走到）：六字母排列 + 按规则补齐 */
-  const seq = shuffleArr(FACES);
+  /* 兜底（几乎不会走到）：排列 + 按规则补齐 */
+  const seq = shuffleArr(allowedFaces);
   for (let i = 1; i < seq.length; i++) {          // 拆散相邻的同轴对面
     if (AXIS_OPPOSITE[seq[i]] === seq[i - 1]) {
       for (let j = i + 1; j < seq.length; j++) {
@@ -1257,14 +1316,16 @@ function buildFaceSequence(length) {
     }
   }
   while (seq.length < length) {
-    const cands = shuffleArr(FACES).filter(f => isValidNext(seq, f));
-    seq.push(cands.length ? cands[0] : FACES[Math.floor(Math.random() * 6)]);
+    const cands = shuffleArr(allowedFaces).filter(f => isValidNext(seq, f));
+    seq.push(cands.length ? cands[0] : allowedFaces[Math.floor(Math.random() * allowedFaces.length)]);
   }
   return seq;
 }
 
 function generateScramble(length) {
-  const faces = buildFaceSequence(length);
+  // 冻结契约：内部把 currentMoveSet 解析成 allowedFaces 透传给 buildFaceSequence
+  const allowedFaces = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
+  const faces = buildFaceSequence(length, allowedFaces);
   return faces.map(face => {
     const mod = MODIFIERS[Math.floor(Math.random() * MODIFIERS.length)];
     const dir = mod === "'" ? -1 : (mod === '2' ? 2 : 1);
@@ -1313,6 +1374,7 @@ function fitFormula() {
   const inner = document.getElementById('formulaInner');
   if (!box || !inner) return;
 
+  const n = (window._currentMoves || []).length;   // 公式步数
   const cs = getComputedStyle(box);
   // 减 2px 余量，规避浏览器亚像素测量误差导致的边缘裁切
   const availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
@@ -1321,27 +1383,32 @@ function fitFormula() {
 
   const MIN_SINGLE = 30;   // 单行最小可接受字号：低于它就改为换行显示
 
-  /* ---- 阶段一：优先一行塞下 ---- */
-  inner.classList.add('single');
-  let lo = 16, hi = 260, best = 0;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    inner.style.fontSize = mid + 'px';
-    if (inner.scrollWidth <= availW && inner.scrollHeight <= availH) {
-      best = mid;          // 能放下 → 试试更大
-      lo = mid + 1;
-    } else {
-      hi = mid - 1;        // 放不下 → 缩小
+  // >10 步直接跳过单行阶段，强制走换行（多行显示）；≤10 步先尝试单行
+  const trySingle = n <= 10;
+
+  /* ---- 阶段一：优先一行塞下（仅 ≤10 步） ---- */
+  if (trySingle) {
+    inner.classList.add('single');
+    let lo = 16, hi = 260, best = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      inner.style.fontSize = mid + 'px';
+      if (inner.scrollWidth <= availW && inner.scrollHeight <= availH) {
+        best = mid;          // 能放下 → 试试更大
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;        // 放不下 → 缩小
+      }
+    }
+    if (best >= MIN_SINGLE) {
+      inner.style.fontSize = best + 'px';
+      return;                // ✔ 单行显示
     }
   }
-  if (best >= MIN_SINGLE) {
-    inner.style.fontSize = best + 'px';
-    return;                // ✔ 单行显示
-  }
 
-  /* ---- 阶段二：一行实在放不下 → 允许换行 ---- */
+  /* ---- 阶段二：一行实在放不下（或 >10 步）→ 允许换行 ---- */
   inner.classList.remove('single');
-  lo = 16; hi = 170; best = 16;
+  let lo = 16, hi = 170, best = 16;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
     inner.style.fontSize = mid + 'px';
@@ -1355,40 +1422,31 @@ function fitFormula() {
   inner.style.fontSize = best + 'px';
 }
 
-function renderSteps(moves) {
-  const list = document.getElementById('stepsList');
-  if (!moves || moves.length === 0) { list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px;">请先出题</div>'; return; }
-  const rows = moves.map((m, i) => {
-    const sym = m.face + m.mod;
-    const desc = describeMove(m);
-    const color = m.mod === "'" ? 'var(--accent-2)' : (m.mod === '2' ? 'var(--accent)' : 'var(--text)');
-    return `<div class="step-item">
-      <span class="no">${i+1}</span>
-      <span class="symbol" style="color:${color}">${sym}</span>
-      <span class="desc">${desc}</span>
-    </div>`;
-  }).join('');
-  list.innerHTML = rows;
-}
 
 let count = 0;
 let currentLength = 6;
+let currentMoveSet = 'all';   // 'ruf' | 'all'（冻结契约：T5 复用）
+let currentCubeType = '3';    // '2' | '3'（冻结契约：二阶/三阶切换）
 
 function newQuestion() {
+  const size = currentCubeType === '2' ? 2 : 3;
+  // 2×2 强制 RUF（兜底，即使 UI 锁死也保证）
+  if (currentCubeType === '2') currentMoveSet = 'ruf';
   const moves = generateScramble(currentLength);
   const text = movesToText(moves);
   renderFormula(moves);
-  drawScrambleNet(text, 'netCanvas');
+  drawScrambleNet(text, 'netCanvas', size);
   count++;
   document.getElementById('countNum').textContent = count;
 
-  // 六字母覆盖校验（上课时可一眼确认这道题练到了全部符号）
+  // 覆盖校验：针对当前字母集合（RUF 模式只校验 R/U/F）
+  const allowedFaces = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
   const cov = coveredFaces(moves);
-  const miss = FACES.filter(f => !cov.has(f));
+  const miss = allowedFaces.filter(f => !cov.has(f));
   const badge = document.getElementById('coverBadge');
   if (badge) {
     if (miss.length === 0) {
-      badge.textContent = '✓ R U F L B D 齐全';
+      badge.textContent = currentMoveSet === 'ruf' ? '✓ R U F 齐全' : '✓ R U F L B D 齐全';
       badge.classList.remove('warn');
     } else {
       badge.textContent = '⚠ 缺 ' + miss.join(' ');
@@ -1396,41 +1454,25 @@ function newQuestion() {
     }
   }
 
+  // metaInfo 随 cube-type + moveset 变化
+  const cubeLabel = currentCubeType === '2' ? '二阶' : '三阶';
+  const setLabel = currentMoveSet === 'ruf' ? 'RUF 入门' : '六字母全覆盖';
   document.getElementById('metaInfo').textContent =
-    `第 ${count} 题 · ${currentLength} 步 · 六字母全覆盖 · 标准十字展开（白顶绿前视角）`;
-  document.getElementById('stepsCard').classList.remove('show');
+    `第 ${count} 题 · ${cubeLabel} · ${currentLength} 步 · ${setLabel} · 标准十字展开（白顶绿前视角）`;
+
+  // 对照图随 cube-type 重绘（2×2 只显示 R/U/F 示意，3×3 全 12 个）
+  if (window.buildLegend) {
+    const legendMoves = currentCubeType === '2'
+      ? window.MOVES.filter(m => ['R','U','F'].includes(m.name.replace("'", "")))
+      : window.MOVES;
+    window.buildLegend(legendMoves);
+  }
+
   window._currentMoves = moves;
   window._currentText = text;
+  window._currentCubeSize = size;   // 供 resize 时重绘
   // 等布局稳定后再自适应字号（保证拿到真实的可用空间）
   requestAnimationFrame(fitFormula);
-}
-
-async function copyFormula() {
-  const text = window._currentText || '';
-  if (!text) { showToast('请先出题'); return; }
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    showToast('✓ 已复制: ' + text);
-  } catch (e) {
-    showToast('复制失败，请手动选择');
-  }
-}
-
-function toggleSteps() {
-  const card = document.getElementById('stepsCard');
-  const willShow = !card.classList.contains('show');
-  card.classList.toggle('show', willShow);
-  if (willShow) renderSteps(window._currentMoves || []);
 }
 
 function setLength(len) {
@@ -1457,22 +1499,60 @@ function showToast(msg) {
 
 function init() {
   document.getElementById('newBtn').addEventListener('click', newQuestion);
-  document.getElementById('copyBtn').addEventListener('click', copyFormula);
-  document.getElementById('stepBtn').addEventListener('click', toggleSteps);
-  document.getElementById('stepClose').addEventListener('click', () => {
-    document.getElementById('stepsCard').classList.remove('show');
-  });
   document.getElementById('resetBtn').addEventListener('click', resetCount);
 
   document.querySelectorAll('.len-btn').forEach(b => {
     b.addEventListener('click', () => setLength(parseInt(b.dataset.len, 10)));
   });
 
+  // 难度切换（RUF 入门 / 六面标准）
+  document.querySelectorAll('#movesetToggle .seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      if (b.disabled) return;   // 2×2 下「六面标准」被禁用
+      currentMoveSet = b.dataset.set;
+      document.querySelectorAll('#movesetToggle .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+      newQuestion();
+    });
+  });
+
+  // 魔方类型切换（二阶 / 三阶）
+  document.querySelectorAll('#cubeTypeToggle .seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      currentCubeType = b.dataset.cube;
+      document.querySelectorAll('#cubeTypeToggle .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+      // 2×2 强制 RUF + 禁用「六面标准」；3×3 恢复可选
+      const allBtn = document.querySelector('#movesetToggle .seg-btn[data-set="all"]');
+      const rufBtn = document.querySelector('#movesetToggle .seg-btn[data-set="ruf"]');
+      if (currentCubeType === '2') {
+        currentMoveSet = 'ruf';
+        rufBtn.classList.add('active');
+        allBtn.classList.remove('active');
+        allBtn.disabled = true;
+      } else {
+        allBtn.disabled = false;
+      }
+      // 长度按钮可见性：15/25 仅 2×2 显示
+      const showExtra = currentCubeType === '2';
+      document.querySelectorAll('.len-btn[data-cube="2"]').forEach(btn => {
+        btn.style.display = showExtra ? '' : 'none';
+      });
+      // 3×3 下若当前长度是 15/25，回落到 6
+      if (currentCubeType === '3' && (currentLength === 15 || currentLength === 25)) {
+        currentLength = 6;
+        document.querySelectorAll('.len-btn').forEach(btn => {
+          btn.classList.toggle('active', parseInt(btn.dataset.len, 10) === 6);
+        });
+      }
+      newQuestion();
+    });
+  });
+
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if (window._currentText) drawScrambleNet(window._currentText, 'netCanvas');
+      // resize 时按当前 cube size 重绘展开图
+      if (window._currentText) drawScrambleNet(window._currentText, 'netCanvas', window._currentCubeSize || 3);
       fitFormula();   // 窗口变化时重新计算最大字号
     }, 120);
   });
@@ -1607,10 +1687,13 @@ function roundRect(ctx, x, y, w, h, r){
   ctx.closePath();
 }
 
-function buildLegend(){
+function buildLegend(movesSubset){
   const canvas = document.getElementById('legendCanvas');
   if(!canvas) return;
-  const COLS = 4, ROWS = 3;
+  // 冻结契约：可选 movesSubset（MOVES 子数组），不传 = 全部 12 个
+  const items = movesSubset && movesSubset.length ? movesSubset : MOVES;
+  const COLS = items.length <= 6 ? 3 : 4;
+  const ROWS = Math.ceil(items.length / COLS);
   const CUBE = 150, LAB = 32, PAD = 6, GAP = 12;
   const CARD_W = CUBE + PAD*2;
   const CARD_H = CUBE + LAB + PAD*2;
@@ -1621,7 +1704,7 @@ function buildLegend(){
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0,0,W,H);
 
-  MOVES.forEach((mv, i)=>{
+  items.forEach((mv, i)=>{
     const col = i % COLS, row = (i/COLS)|0;
     const ox = col*(CARD_W+GAP), oy = row*(CARD_H+GAP);
     // 浅蓝圆角卡片
@@ -1641,8 +1724,11 @@ function buildLegend(){
     ctx.fillText(mv.name, cx, oy + PAD + CUBE + LAB/2 + 2);
   });
 }
+// 暴露给 newQuestion 调用（T5 联动重绘对照图：2×2 只画 R/U/F 示意）
+window.buildLegend = buildLegend;
+window.MOVES = MOVES;
 if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', buildLegend);
+  document.addEventListener('DOMContentLoaded', function(){ buildLegend(); });
 }else{
   buildLegend();
 }
