@@ -110,13 +110,6 @@
     max-width: 100%;
     max-height: 100%;
   }
-  .left .meta {
-    position: absolute;
-    bottom: 12px;
-    left: 24px;
-    color: var(--muted);
-    font-size: 12px;
-  }
 
   /* 右栏：上下两块（对照图占 42%，公式区压缩到剩余） */
   .right {
@@ -573,7 +566,6 @@
       height: 100% !important;
       object-fit: contain;
     }
-    .left .meta { font-size: 10px; bottom: 2px; left: 6px; }
 
     /* 右栏：竖向 flex；用 gap + padding 承载「公式→对照图→控件」三段 */
     .right {
@@ -685,7 +677,6 @@
   <!-- 左侧：大展开图 -->
   <section class="left" data-page-node-id="rxYnYAFfoWxrWkVOb8U2tK">
     <canvas id="netCanvas" data-page-node-id="SZF6ariclKKBtzz30W0SkL"></canvas>
-    <div class="meta" id="metaInfo" data-page-node-id="jyKBRHNsKXCHEaRaxEfjAL">标准十字展开 · U 上 · L F R B 中 · D 下 · 白顶绿前</div>
   </section>
 
   <!-- 右侧栏：对照图 + 公式区 -->
@@ -1453,12 +1444,6 @@ function newQuestion() {
       badge.classList.add('warn');
     }
   }
-
-  // metaInfo 随 cube-type + moveset 变化
-  const cubeLabel = currentCubeType === '2' ? '二阶' : '三阶';
-  const setLabel = currentMoveSet === 'ruf' ? 'RUF 入门' : '六字母全覆盖';
-  document.getElementById('metaInfo').textContent =
-    `第 ${count} 题 · ${cubeLabel} · ${currentLength} 步 · ${setLabel} · 标准十字展开（白顶绿前视角）`;
 
   // 对照图随 cube-type 重绘（2×2 只显示 R/U/F 示意，3×3 全 12 个）
   if (window.buildLegend) {
