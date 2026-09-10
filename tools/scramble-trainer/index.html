@@ -1157,14 +1157,7 @@ function drawScrambleNet(alg, canvasId, size){
   if(!canvas) return;
   const cube = new Cube(size);
   cube.applyAlg(alg);
-  let colors = NET_COLORS;
-  // 2×2：L/D/B 整面灰显（只着色 R/U/F 三面，按 D2 标准十字展开）
-  if (size === 2) {
-    colors = Object.assign({}, NET_COLORS, { L:'#d1d5db', D:'#d1d5db', B:'#d1d5db' });
-    for (const f of ['L','D','B']) {
-      for (let r=0; r<size; r++) for (let c=0; c<size; c++) cube.faces[f][r][c] = f;
-    }
-  }
+  const colors = NET_COLORS;   // 二阶/三阶统一使用标准六色：所有面（含 L/D/B）均有颜色
   const ctx = canvas.getContext('2d');
   const rect = canvas.parentElement.getBoundingClientRect();
   const availW = Math.max(rect.width, 240);
