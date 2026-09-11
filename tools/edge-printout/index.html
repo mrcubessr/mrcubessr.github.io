@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="0kBqPAk1Nm5E3MCfNsAaNB">
+<html lang="zh-CN" data-page-node-id="0kBqPAk1Nm5E3MCfNsAaNB" data-theme="light">
 <head data-page-node-id="BurKXdOOIjbG6lgDS7lMDj">
 <meta charset="UTF-8" data-page-node-id="73BI4oCaW2V72INh88uQrm">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="JE5T1IdBv0zVStb7YJIyWC">
@@ -312,8 +312,22 @@ body {
   .main-title { font-size: 22px; }
 }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<style>
+/* 阶段二：导航通栏适配 */
+body{ display:block; padding:0 16px 20px; }
+.toolbar{ margin:20px auto 0; }
+/* 阶段二：打印时隐藏导航 */
+@media print{
+  [data-site-nav], .site-nav, .no-print{ display:none !important; }
+  body{ padding:0 !important; }
+}
+</style>
 </head>
 <body data-page-node-id="mCrWuBWjoV8alC7tBtZoEm">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
 
 <!-- ========== 顶部控制栏 ========== -->
 <div class="toolbar" data-page-node-id="Zy9QCGAmp8mBwwGHWYciTW">
@@ -800,5 +814,6 @@ function escapeHtml(str) {
 generate();
 </script>
 
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

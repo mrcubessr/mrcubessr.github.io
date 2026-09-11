@@ -4,348 +4,195 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>魔方先生SSR魔方训练中心</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0d0d0d url('/assets/images/home-bg-1440x900.jpg') center/cover fixed;
-    color: #e0e0e0;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    z-index: 0;
-  }
-
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px 16px 60px;
-  }
-
-  header {
-    text-align: center;
-    padding: 80px 0 64px;
-  }
-
-  header h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #60a5fa, #a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.02em;
-  }
-
-  header .subtitle {
-    margin-top: 12px;
-    font-size: 1rem;
-    color: #777;
-  }
-
-  .project-group {
-    margin-bottom: 48px;
-  }
-
-  .group-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #93c5fd;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(147, 197, 253, 0.15);
-  }
-
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
-  }
-
-  .card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(24, 24, 32, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 28px 20px;
-    text-decoration: none;
-    backdrop-filter: blur(12px);
-    transition: border-color 0.2s, transform 0.2s, background 0.2s;
-  }
-
-  .card:hover {
-    border-color: rgba(147, 197, 253, 0.3);
-    transform: translateY(-2px);
-    background: rgba(32, 32, 44, 0.9);
-  }
-
-  .card-icon {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 14px;
-    background: linear-gradient(135deg, rgba(49, 130, 206, 0.28), rgba(79, 209, 197, 0.16));
-    border: 1px solid rgba(79, 209, 197, 0.35);
-    color: #4fd1c5;
-    box-shadow: 0 4px 14px rgba(49, 130, 206, 0.18);
-  }
-  .card-icon svg {
-    width: 26px;
-    height: 26px;
-  }
-  .card.card-soon .card-icon {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #888;
-    box-shadow: none;
-  }
-
-  .card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    text-align: center;
-  }
-
-  .card-desc {
-    font-size: 0.75rem;
-    color: #666;
-    margin-top: 6px;
-    text-align: center;
-  }
-
-  .card.card-soon {
-    border-style: dashed;
-    border-color: rgba(255, 255, 255, 0.12);
-    background: rgba(24, 24, 32, 0.4);
-    opacity: 0.7;
-    cursor: default;
-  }
-
-  .card.card-soon:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-    transform: none;
-    background: rgba(24, 24, 32, 0.4);
-  }
-
-  footer {
-    text-align: center;
-    padding: 48px 0 32px;
-    color: #444;
-    font-size: 0.8rem;
-  }
-
-  @media (max-width: 640px) {
-    header { padding: 48px 0 40px; }
-    header h1 { font-size: 2rem; }
-    .card-grid { grid-template-columns: 1fr 1fr; }
-    .card { padding: 20px 14px; }
-  }
-
-  @media (max-width: 380px) {
-    .card-grid { grid-template-columns: 1fr; }
-  }
-</style>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/assets/css/pages/home.css">
 </head>
 <body>
-<nav class="site-nav" id="siteNav">
-  <div class="nav-inner">
-    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
-    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="navLinks">
-      <a href="/" class="nav-link" data-nav="home">首页</a>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/3x3" data-nav="3x3">三阶</a>
-          <a class="nav-soon" title="即将上线">二阶</a>
-          <a class="nav-soon" title="即将上线">金字塔</a>
-          <a class="nav-soon" title="暂时预留">三盲</a>
-          <a href="/fto" data-nav="fto">FTO</a>
-        </div>
-      </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
-          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
-          <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
-          <a href="/tools/3bld" data-nav="3bld">出题器</a>
-          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
-          <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
-          <a href="/tools/edge-trainer" data-nav="edge-trainer">棱块编码</a>
-          <a href="/tools/edge-printout" data-nav="edge-printout">出题打印</a>
-          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
-          <a href="/tools/invert" data-nav="invert">逆序转换</a>
-          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
-          <a href="/tools/bldscramble" data-nav="bldscramble">盲拧打乱生成器</a>
-          <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
-          <a href="/tools/class-teach" data-nav="class-teach">魔方课堂教学系统</a>
-          <a href="/tools/scramble-trainer" data-nav="scramble-trainer">打乱公式训练</a>
-        </div>
-      </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/nav" data-nav="nav">工具导航</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
-<div class="container">
 
-  <header>
-    <h1>魔方先生SSR魔方训练中心</h1>
-    <p class="subtitle">魔方项目集合</p>
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="container home">
+
+  <!-- ① Hero -->
+  <header class="hero">
+    <p class="hero__eyebrow">魔方先生SSR</p>
+    <h1 class="hero__title">魔方训练中心</h1>
+    <p class="hero__sub">教程 · 训练 · 出题 · 教学，一个站点搞定</p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="/tools/3x3/">从三阶开始</a>
+      <a class="btn btn--ghost" href="/tools/bldtrainer/">盲拧读码还原</a>
+    </div>
   </header>
 
-    <div class="project-group">
-    <h2 class="group-title">教程与公式库</h2>
+  <!-- ② 常用工具 -->
+  <section class="quick" aria-labelledby="quick-title">
+    <h2 class="section-title" id="quick-title">常用工具</h2>
+    <div class="quick__grid">
+      <a class="card card--tutorial" href="/tools/3x3/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+        <div class="card-title">三阶公式库</div>
+        <div class="card-desc">F2L · 41 Case</div>
+      </a>
+      <a class="card card--train" href="/tools/bldtrainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="card-title">三盲读码还原</div>
+        <div class="card-desc">平面展开图读码助手</div>
+      </a>
+      <a class="card card--train" href="/tools/scramble-uf/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="12" cy="12" r="1"/></svg></div>
+        <div class="card-title">UF 公式训练</div>
+        <div class="card-desc">C~Z 组棱连拧练习</div>
+      </a>
+      <a class="card card--print" href="/tools/edge-printout/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></div>
+        <div class="card-title">出题打印</div>
+        <div class="card-desc">生成 A4 练习纸</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ③ 教程与公式库 -->
+  <section class="group" aria-labelledby="g1">
+    <h2 class="section-title" id="g1">教程与公式库</h2>
     <div class="card-grid">
-      <a class="card" href="/tools/3x3/">
+      <a class="card card--tutorial" href="/tools/3x3/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
         <div class="card-title">三阶</div>
         <div class="card-desc">F2L 公式库 · 41 Case</div>
       </a>
-      <div class="card card-soon">
+      <div class="card is-soon card--soon">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
         <div class="card-title">二阶</div>
         <div class="card-desc">即将上线</div>
       </div>
-      <div class="card card-soon">
+      <div class="card is-soon card--soon">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><line x1="12" y1="3" x2="12" y2="19"/><line x1="3" y1="19" x2="12" y2="11"/><line x1="12" y1="11" x2="21" y2="19"/></svg></div>
         <div class="card-title">金字塔</div>
         <div class="card-desc">即将上线</div>
       </div>
-      <div class="card card-soon">
+      <div class="card is-soon card--soon">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-5 10-5 10 5 10 5-3.5 5-10 5-10-5-10-5z"/><circle cx="12" cy="12" r="2.2"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
         <div class="card-title">三盲</div>
         <div class="card-desc">暂时预留</div>
       </div>
-      <a class="card" href="/fto/">
+      <a class="card card--tutorial" href="/fto/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5L21 12l-9 9.5L3 12z"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="2.5" x2="12" y2="21.5"/><line x1="3" y1="12" x2="12" y2="7.5"/><line x1="12" y1="7.5" x2="21" y2="12"/><line x1="3" y1="12" x2="12" y2="16.5"/><line x1="12" y1="16.5" x2="21" y2="12"/></svg></div>
         <div class="card-title">FTO</div>
         <div class="card-desc">转面八面体 · TCP / L3T / LBT</div>
       </a>
     </div>
-  </div>
+  </section>
 
-  <div class="project-group">
-    <h2 class="group-title">个人训练工具</h2>
+  <!-- ④ 个人训练工具 -->
+  <section class="group" aria-labelledby="g2">
+    <h2 class="section-title" id="g2">个人训练工具</h2>
     <div class="card-grid">
-      <a class="card" href="/tools/scramble-ur/">
+      <a class="card card--train" href="/tools/scramble-ur/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="15" r="1"/></svg></div>
-        <div class="card-title">UR缓冲公式连拧</div>
+        <div class="card-title">UR公式训练</div>
         <div class="card-desc">三盲 C~X 组棱练习</div>
       </a>
-      <a class="card" href="/tools/scramble-uf/">
+      <a class="card card--train" href="/tools/scramble-uf/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="12" cy="12" r="1"/></svg></div>
-        <div class="card-title">UF缓冲公式连拧</div>
+        <div class="card-title">UF公式训练</div>
         <div class="card-desc">UF缓冲 C~Z 组棱练习</div>
       </a>
-            <a class="card" href="/tools/bldtrainer/">
+      <a class="card card--train" href="/tools/bldtrainer/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
         <div class="card-title">三盲读码还原</div>
         <div class="card-desc">盲拧读码还原助手 · 平面展开图</div>
       </a>
-<a class="card" href="/tools/3bld/">
+      <a class="card card--train" href="/tools/bld-trainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></svg></div>
+        <div class="card-title">记忆编码训练</div>
+        <div class="card-desc">盲拧编码联想记忆与间隔提取</div>
+      </a>
+      <a class="card card--print" href="/tools/3bld/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/></svg></div>
         <div class="card-title">三盲出题器</div>
         <div class="card-desc">联想词出题工具</div>
       </a>
-      <a class="card" href="/tools/2x2/">
+      <a class="card card--train" href="/tools/2x2/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
         <div class="card-title">二阶魔方练习工具</div>
         <div class="card-desc">二阶盲拧公式练习</div>
       </a>
-      <a class="card" href="/tools/corner-trainer/">
+      <a class="card card--train" href="/tools/corner-trainer/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 4v16M4 12h16"/></svg></div>
         <div class="card-title">角块编码识别训练</div>
         <div class="card-desc">二阶盲拧角块色块认读练习</div>
       </a>
-      <a class="card" href="/tools/edge-trainer/">
+      <a class="card card--train" href="/tools/edge-trainer/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
         <div class="card-title">棱块编码识别训练</div>
         <div class="card-desc">三阶盲拧棱块色块认读练习</div>
       </a>
-      <a class="card" href="/tools/edge-printout/">
+      <a class="card card--print" href="/tools/edge-printout/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></div>
         <div class="card-title">棱块编码出题打印</div>
-        <div class="card-desc">生成A4练习纸，支持打印和PDF导出</div>
+        <div class="card-desc">生成 A4 练习纸，支持打印和 PDF 导出</div>
       </a>
-      <a class="card" href="/tools/kmap/">
+      <a class="card card--tutorial" href="/tools/kmap/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>
         <div class="card-title">教学知识地图</div>
         <div class="card-desc">二阶盲拧教学体系</div>
       </a>
-      <a class="card" href="/tools/invert/">
+      <a class="card card--train" href="/tools/invert/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
         <div class="card-title">公式逆序转换</div>
         <div class="card-desc">魔方公式逆序工具</div>
       </a>
-      <a class="card" href="/tools/practice/">
+      <a class="card card--print" href="/tools/practice/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
         <div class="card-title">魔方练习题生成器</div>
         <div class="card-desc">公式练习纸生成打印</div>
       </a>
-      <a class="card" href="/tools/scramble-trainer/">
+      <a class="card card--print" href="/tools/scramble-trainer/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></div>
         <div class="card-title">打乱公式随机训练</div>
         <div class="card-desc">R U F L B D 六字母配图出题</div>
       </a>
-      <a class="card" href="/tools/bldscramble/">
+      <a class="card card--print" href="/tools/bldscramble/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></div>
         <div class="card-title">盲拧打乱生成器</div>
         <div class="card-desc">彳亍编码打乱生成</div>
       </a>
-      <a class="card" href="/tools/3x3teach/">
+      <a class="card card--teach" href="/tools/3x3teach/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 3l-3.5 6.5M12 3l3.5 6.5M12 19l-3.5-6.5M12 19l3.5-6.5M5 9.5h14M5 15.5h14"/></svg></div>
         <div class="card-title">三阶魔方教学</div>
         <div class="card-desc">12课 · 动态3D趣味课堂</div>
       </a>
-      <a class="card" href="/tools/class-teach/">
+      <a class="card card--teach" href="/tools/class-teach/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
         <div class="card-title">魔方课堂教学系统</div>
         <div class="card-desc">班级学生管理 · 计分雷达 · 知识图谱</div>
       </a>
     </div>
-  </div>
+  </section>
 
-  <div class="project-group">
-    <h2 class="group-title">外链导航</h2>
+  <!-- ⑤ 外链导航 -->
+  <section class="group" aria-labelledby="g3">
+    <h2 class="section-title" id="g3">外链导航</h2>
     <div class="card-grid">
-      <a class="card" href="/tools/nav/">
+      <a class="card card--train" href="/tools/nav/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
         <div class="card-title">魔方工具导航</div>
         <div class="card-desc">常用魔方工具外链汇总</div>
       </a>
     </div>
-  </div>
+  </section>
 
-<footer>
-    &copy; 2026 mrcubessr
-  </footer>
+</main>
 
-</div>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">© 2026 mrcubessr</p>
+</footer>
+
 <script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

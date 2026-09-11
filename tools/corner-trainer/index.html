@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -148,8 +148,17 @@ h1 { font-size: 26px; font-weight: 700; color: #1f2d3d; text-align: center; lett
 .empty-tip { text-align: center; color: #9aa8b8; font-size: 13px; padding: 20px 0; }
 .hidden { display: none; }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<style>
+/* 阶段二：导航通栏适配 */
+body{ display:block; padding:0 16px 28px; }
+.container{ margin:28px auto 0; }
+</style>
 </head>
 <body>
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
 <div class="container">
 
   <div id="startPanel" class="card">
@@ -669,5 +678,6 @@ document.getElementById("backBtn").addEventListener("click", () => {
 renderTable();
 renderOverview();
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>导航预览 · Phase 2</title>
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/site-nav.css">
+  <script>
+    /* 本页兼作 iframe 演示宿主：?frame=1 时只渲染导航场景，?theme= 指定主题，?nav= 指定高亮项 */
+    (function () {
+      var q = location.search || '';
+      if (/(?:^|[?&])frame=1(?:&|$)/.test(q)) {
+        document.documentElement.className += ' nav-frame';
+      }
+      var t = /(?:^|[?&])theme=([a-z]+)/.exec(q);
+      if (t) document.documentElement.setAttribute('data-theme', t[1]);
+      window.__navPreviewQuery = q;
+    })();
+  </script>
+  <style>
+    /* 本页样式全部取自 token，不硬编码颜色 */
+    .preview-page{
+      background:var(--bg); color:var(--fg);
+      font-family:var(--font-sans); padding:var(--s6) var(--s5) var(--s7);
+    }
+    .preview-page .container{ max-width:var(--container,1080px); }
+
+    .preview-page header{ display:flex; justify-content:space-between; align-items:center; gap:var(--s4); flex-wrap:wrap; margin-bottom:var(--s6); }
+    .preview-page h1{ font-size:var(--fs-2xl); color:var(--fg); margin:0; }
+    .preview-page h2{ font-size:var(--fs-xl); color:var(--fg); margin:var(--s6) 0 var(--s3); padding-bottom:var(--s2); border-bottom:1px solid var(--line-2); }
+    .preview-page section{ margin-bottom:var(--s7); }
+    .preview-page .note{ color:var(--fg-3); font-size:var(--fs-sm); margin:var(--s3) 0; }
+    .preview-page code{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--gold-ink); background:var(--surface-2); padding:2px 6px; border-radius:var(--r-sm); }
+
+    .theme-toggle{
+      background:var(--surface); color:var(--fg); border:1px solid var(--line-3);
+      padding:var(--s2) var(--s4); border-radius:var(--r-md);
+      font-family:var(--font-sans); font-size:var(--fs-sm); cursor:pointer;
+      transition:border-color var(--t-fast), background var(--t-fast);
+    }
+    .theme-toggle:hover{ border-color:var(--brand); }
+
+    /* 检查清单 */
+    .checklist{ list-style:none; padding:0; margin:0; display:grid; gap:var(--s2); }
+    .checklist li{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s3) var(--s4); font-size:var(--fs-sm); color:var(--fg-2); }
+    .checklist li b{ color:var(--fg); }
+
+    /* iframe 场景网格 */
+    .frame-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:var(--s4); }
+    .frame-card{ margin:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s3); }
+    .frame-card figcaption{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); margin-bottom:var(--s2); }
+    .frame-card iframe{ width:100%; height:230px; border:1px solid var(--line-2); border-radius:var(--r-sm); background:var(--bg); display:block; }
+    .frame-card iframe.frame-mobile{ width:390px; max-width:100%; margin:0 auto; }
+
+    /* ===== 框架模式（?frame=1）：只留导航 + 一段示例内容 ===== */
+    .frame-only{ display:none; }
+    html.nav-frame .preview-only{ display:none !important; }
+    html.nav-frame .frame-only{ display:block; }
+    html.nav-frame .preview-page{ padding:0; }
+    .frame-body{ padding:var(--s5) var(--s4); }
+    .frame-body h3{ margin:0 0 var(--s2); font-size:var(--fs-lg); color:var(--fg); }
+    .frame-body p{ margin:0; color:var(--fg-3); font-size:var(--fs-sm); }
+    html.nav-frame body{ min-height:230px; }
+  </style>
+</head>
+<body class="preview-page">
+
+<!-- 真实占位符：本页自身的注入测试（脚本见页尾） -->
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<!-- 仅框架模式显示 -->
+<div class="frame-only frame-body">
+  <h3>示例页面内容</h3>
+  <p>导航由 <code>site-nav.js</code> 注入，本区块用于观察导航条是否遮挡 / 遮挡了内容。</p>
+</div>
+
+<div class="container preview-only">
+  <header>
+    <h1>导航注入预览 · Phase 2</h1>
+    <button class="theme-toggle" id="themeToggle" type="button">切换浅色 / 深色</button>
+  </header>
+
+  <section>
+    <h2>① 本页实时注入（真实占位符）</h2>
+    <p class="note">
+      页面顶部那条导航来自 <code>&lt;div data-site-nav&gt;&lt;/div&gt;</code> —— 页面里<b>没有</b>任何导航 HTML，
+      全部由 <code>site-nav.js</code> 的 <code>NAV_DATA</code> 渲染注入。切换主题可验证 token 联动。
+    </p>
+    <ul class="checklist">
+      <li><b>注入</b>：占位符内出现 <code>&lt;nav class="site-nav" id="siteNav"&gt;</code></li>
+      <li><b>交互</b>：悬停「个人训练工具」应出现 16 项下拉（含新增的「记忆编码训练」）</li>
+      <li><b>键盘</b>：Tab 到下拉 toggle → <code>Enter</code>/<code>Space</code> 展开 → <code>Esc</code> 收起</li>
+      <li><b>主题</b>：浅色下导航为白底，深色下为深色毛玻璃</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>② 三种场景（iframe 实机验证）</h2>
+    <p class="note">每个 iframe 都是本页的真实加载（<code>?frame=1</code>），拥有独立文档与主题，可同时验证「注入 + 主题 + 响应式 + 高亮」。</p>
+    <div class="frame-grid">
+      <figure class="frame-card">
+        <figcaption>深色 · 桌面 · 高亮「首页」</figcaption>
+        <iframe src="nav-preview.html?frame=1&amp;theme=dark&amp;nav=home" title="深色桌面导航预览"></iframe>
+      </figure>
+      <figure class="frame-card">
+        <figcaption>浅色 · 桌面 · 高亮「教程 &gt; 三阶 + 祖先」</figcaption>
+        <iframe src="nav-preview.html?frame=1&amp;theme=light&amp;nav=3x3" title="浅色桌面高亮预览"></iframe>
+      </figure>
+      <figure class="frame-card">
+        <figcaption>浅色 · 移动 390px · 汉堡菜单</figcaption>
+        <iframe class="frame-mobile" src="nav-preview.html?frame=1&amp;theme=light" title="移动端导航预览"></iframe>
+      </figure>
+    </div>
+  </section>
+
+  <footer style="color:var(--fg-3);font-size:var(--fs-sm)">
+    Phase 2 验收辅助页 · 非站点正式页面
+  </footer>
+</div>
+
+<script src="/assets/js/site-nav.js"></script>
+<script>
+  /* 框架模式：按 ?nav= 指定高亮项（利用 body[data-nav] 优先级最高的规则） */
+  (function () {
+    var q = window.__navPreviewQuery || '';
+    var m = /(?:^|[?&])nav=([A-Za-z0-9-]+)/.exec(q);
+    if (m && document.documentElement.className.indexOf('nav-frame') > -1) {
+      document.body.setAttribute('data-nav', m[1]);
+    }
+    var btn = document.getElementById('themeToggle');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        var cur = document.documentElement.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
+      });
+    }
+  })();
+</script>
+</body>
+</html>

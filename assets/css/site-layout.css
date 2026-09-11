@@ -1,0 +1,23 @@
+/* =========================================================
+   魔方先生SSR魔方训练中心 · 站点布局骨架 v1.0（阶段二）
+   页脚 + 页面标题区。供首页与阶段三各工具页复用。
+   颜色一律取 token，禁止硬编码。
+   ========================================================= */
+@import url("/assets/css/tokens.css");
+
+/* ---------- 页脚 ---------- */
+.site-footer{
+  margin-top:var(--s8);
+  padding:var(--s6) var(--s4);
+  border-top:1px solid var(--line);
+  text-align:center;
+  color:var(--fg-3);                     /* 对比度 5.3:1，达标 */
+  font-size:var(--fs-sm);
+}
+.site-footer__title{ margin:0 0 var(--s2); color:var(--fg-2); font-weight:var(--fw-semi); }
+.site-footer__meta{ margin:0; }
+
+/* ---------- 页面标题区（供阶段三各工具页复用） ---------- */
+.page-head{ text-align:center; padding:var(--s6) 0 var(--s5); }
+.page-head__title{ font-size:var(--fs-2xl); color:var(--fg); margin:0; }
+.page-head__sub{ margin-top:var(--s2); color:var(--fg-3); font-size:var(--fs-sm); }

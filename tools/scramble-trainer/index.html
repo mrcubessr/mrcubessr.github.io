@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="SnOv5BfUJ7B8Qwooxw4oho">
+<html lang="zh-CN" data-page-node-id="SnOv5BfUJ7B8Qwooxw4oho" data-theme="light">
 <head data-page-node-id="CwOiaerYmNw4kBPFCGFlAw">
 <meta charset="UTF-8" data-page-node-id="sLAn3GArnMgraDcCHlefHb">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="AvZdpkRok5l9NnwlAcSilN">
@@ -662,8 +662,22 @@
     .btn.primary { font-size: 14px; padding: 10px 12px; }
   }
 </style>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<style>
+/* 阶段二：导航接入适配 */
+[data-site-nav], body > .site-nav{ flex:0 0 auto; }
+/* 原 .main 高度按「100dvh - 44px」计算，接入 60px 导航后必须再扣除导航高度，
+   否则 body 的 overflow:hidden 会把底部内容裁掉。
+   该规则必须写在断点内：>768px 时 .main 靠 flex:1 1 auto 自适应，不能被固定高度覆盖。 */
+@media (max-width:768px){
+  .main{ height:calc(100dvh - 44px - var(--nav-h,60px)) !important; }
+}
+</style>
 </head>
 <body data-page-node-id="5sB48WEkqQmQBUYyOF2xjf">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
 
 <div class="header" data-page-node-id="SdNApf9XUiTParOXwDW38K">
   <h1 data-page-node-id="L3rI0kUPYeXWacw6zqD3FU">🎲 魔方打乱公式随机出题训练器 <span class="badge" data-page-node-id="IDQNsxpSdyFqxJ43f3lAtF">WCA 标准 · 白顶绿前</span></h1>
@@ -1725,5 +1739,6 @@ if(document.readyState === 'loading'){
 
 
 </script>
+<script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

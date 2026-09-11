@@ -131,3 +131,16 @@
   --menu-bg:rgba(255,255,255,.98);
   --menu-shadow:0 12px 32px rgba(16,24,40,.14);
 }
+
+/* ---- 阶段二新增：内容分类色（仅用于卡片/图标分类，非状态色）---- */
+:root{
+  --cat-tutorial: var(--violet);
+  --cat-train:    var(--brand);
+  --cat-print:    var(--gold);
+  --cat-teach:    #3FD0C9;
+  --on-brand:     #FFFFFF;   /* 品牌色实底上的文字色 */
+}
+[data-theme="light"]{
+  --cat-teach:#0E8F87;
+  --on-brand: #FFFFFF;
+}

@@ -293,3 +293,14 @@
 
 /* 打印隐藏：服务于 tools/edge-printout、tools/practice 等打印场景 */
 @media print{ .site-nav{ display:none !important; } }
+
+/* =========================================================
+   阶段二新增：注入占位符
+   预留导航高度并预涂背景，避免 JS 注入时页面跳动
+   ========================================================= */
+[data-site-nav]{
+  display:block;
+  min-height:var(--nav-h, 60px);
+  background:var(--nav-bg, rgba(13,13,26,.82));
+}
+[data-site-nav]:empty{ /* 注入完成前也不塌陷 */ }
