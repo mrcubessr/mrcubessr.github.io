@@ -155,6 +155,13 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
 /* 阶段二：导航通栏适配 */
 body{ display:block; padding:0 16px 28px; }
 .container{ margin:28px auto 0; }
+
+  /* 阶段四 · 可访问性：字母片文字色按面色自适应
+     （阶段三归一为 badge--mono 后丢失了显式文字色，此处用令牌恢复：
+        --on-brand = 饱和/深面色上的白字；--fg = 浅色主题下的近黑字） */
+  .badge--mono { color: var(--on-brand); }
+  .badge--mono.dark-text { color: var(--fg); }
+
 </style>
 </head>
 <body>
@@ -261,6 +268,17 @@ function isLight(hex) {
   const g = parseInt(v.substr(2, 2), 16);
   const b = parseInt(v.substr(4, 2), 16);
   return (r * 0.299 + g * 0.587 + b * 0.114) > 180;
+}
+/* 阶段四 · 可访问性：字母片文字色按面色亮度选择。
+   原 isLight 阈值 180 让绿/橙/红面仍用白字（最低仅 2.4:1）；
+   下调到 100 后这些面改用深色字，六种面色对比度均 ≥4.5:1。
+   注意：isLight 仍供 canvas 高亮描边使用，保持不变。*/
+function needsDarkText(hex) {
+  const v = hex.replace("#", "");
+  const r = parseInt(v.substr(0, 2), 16);
+  const g = parseInt(v.substr(2, 2), 16);
+  const b = parseInt(v.substr(4, 2), 16);
+  return (r * 0.299 + g * 0.587 + b * 0.114) > 100;
 }
 function findLetter(letter) {
   for (let ci = 0; ci < CORNERS.length; ci++) {
@@ -376,7 +394,7 @@ function renderTable() {
     row.className = "corner-row";
     let chips = "";
     for (let i = 0; i < corner.colors.length; i++) {
-      const dark = isLight(corner.colors[i]);
+      const dark = needsDarkText(corner.colors[i]);
       chips += `<span class="badge badge--mono ${dark ?"dark-text" : ""}" style="background:${corner.colors[i]}">${corner.letters[i]}</span>`;
     }
     row.innerHTML = chips + `<span class="corner-name">${corner.name}</span>`;

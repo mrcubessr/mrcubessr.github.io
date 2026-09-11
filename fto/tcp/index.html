@@ -4,13 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>一图流速通 FTO-TCP</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0d0d0d;
-    color: #e0e0e0;
+    background: var(--bg);
+    color: var(--fg);
     min-height: 100vh;
     line-height: 1.6;
   }
@@ -58,7 +61,7 @@
   .page-title h1 {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--fg);
     letter-spacing: 0.04em;
   }
 
@@ -70,7 +73,7 @@
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 12px;
     font-size: 0.95rem;
-    color: #999;
+    color: var(--fg-3);
     line-height: 1.8;
     backdrop-filter: blur(8px);
     display: flex;
@@ -99,10 +102,10 @@
     min-width: 260px;
   }
   .observation-guide h3 {
-    color: #FFD700;
+    color: var(--gold);
     font-size: 1.3em;
     margin-bottom: 14px;
-    border-left: 3px solid #FFD700;
+    border-left: 3px solid var(--gold);
     padding-left: 12px;
   }
 
@@ -137,13 +140,13 @@
   }
 
   .col-header.ou {
-    color: #60a5fa;
+    color: var(--side-o);
     background: rgba(96, 165, 250, 0.08);
     border-bottom: 1px solid rgba(96,165,250,0.15);
   }
 
   .col-header.ji {
-    color: #f472b6;
+    color: var(--side-j);
     background: rgba(244, 114, 182, 0.08);
     border-bottom: 1px solid rgba(244,114,182,0.15);
   }
@@ -179,8 +182,8 @@
     letter-spacing: 0.06em;
   }
 
-  .ou .case-tag { color: #60a5fa; background: rgba(96, 165, 250, 0.12); }
-  .ji .case-tag { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
+  .ou .case-tag { color: var(--side-o); background: rgba(96, 165, 250, 0.12); }
+  .ji .case-tag { color: var(--side-j); background: rgba(244, 114, 182, 0.12); }
 
   .case-abbr {
     font-size: 1.2rem;
@@ -190,8 +193,8 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 
-  .ou .case-abbr { color: #60a5fa; }
-  .ji .case-abbr { color: #f472b6; }
+  .ou .case-abbr { color: var(--side-o); }
+  .ji .case-abbr { color: var(--side-j); }
 
   .case-cell {
     flex: 1;
@@ -217,7 +220,7 @@
     font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
     font-size: 0.92rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--fg-2);
     letter-spacing: 0.02em;
     line-height: 1.5;
     white-space: nowrap;
@@ -228,11 +231,11 @@
   }
 
   .case-formula .auf {
-    color: #fbbf24;
+    color: var(--amber);
   }
 
   .case-formula .grp {
-    color: #cbd5e1;
+    color: var(--fg-3);
   }
 
   @media (max-width: 700px) {
@@ -249,7 +252,6 @@
     .case-formula { font-size: 0.74rem; }
   }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -488,5 +490,9 @@
 
 </div>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
 </body>
 </html>

@@ -108,7 +108,7 @@ body {
 .stage { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .stage-head { display: flex; align-items: center; gap: 14px; }
 .stage-titles { flex: 1; text-align: center; }
-.stage-lesson { font-size: 13px; color: var(--brand); font-weight: 700; letter-spacing: 1px; }
+.stage-lesson { font-size: 13px; color: var(--brand-strong);   /* 阶段四：--brand 仅 4.34:1 */ font-weight: 700; letter-spacing: 1px; }
 .stage-name { font-size: 24px; font-weight: 800; }
 .stage-sub { font-size: 13px; color: var(--fg-2); }
 .round-btn {
@@ -170,11 +170,11 @@ body {
 .accent-btn:active { transform: scale(.97); }
 .speed { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-2); font-weight: 700; margin-left: auto; }
 .speed input { width: 130px; accent-color: var(--brand); }
-#speedVal { min-width: 38px; color: var(--brand); }
+#speedVal { min-width: 38px; color: var(--brand-strong);   /* 阶段四：--brand 仅 4.34:1 */ }
 
 /* 整体转体工具条（第 8 课常用） */
 .turn-toolbar { background: var(--teach-ui-fffaf0); border: 1px solid var(--teach-ui-ffe2b0); border-radius: var(--r-lg); padding: 10px 16px; box-shadow: var(--sh-md); }
-.turn-tip { display: block; font-size: 12px; color: var(--teach-ui-b9791a); font-weight: 800; margin-bottom: 8px; }
+.turn-tip { display: block; font-size: 12px; color: var(--gold-ink);   /* 阶段四：原 #b9791a 仅 3.47:1 */ font-weight: 800; margin-bottom: 8px; }
 .turn-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .turn-btn {
   border: 1px solid var(--teach-ui-ffd591); background: var(--teach-ui-fff); border-radius: 10px; padding: 8px 12px; cursor: pointer;

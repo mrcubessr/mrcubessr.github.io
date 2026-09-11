@@ -4,13 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>1L3T — 1-Look Last 3T</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0d0d0d;
-    color: #e0e0e0;
+    background: var(--bg);
+    color: var(--fg);
     min-height: 100vh;
     line-height: 1.6;
   }
@@ -55,14 +58,14 @@
   .page-title h1 {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--fg);
     letter-spacing: 0.04em;
   }
 
   .page-title .subtitle {
     margin-top: 6px;
     font-size: 0.92rem;
-    color: #888;
+    color: var(--fg-2);
   }
 
   .dual-grid {
@@ -89,19 +92,19 @@
   }
 
   .col-header.pf {
-    color: #60a5fa;
+    color: var(--side-o);
     background: rgba(96, 165, 250, 0.08);
     border-bottom: 1px solid rgba(96,165,250,0.15);
   }
 
   .col-header.tl {
-    color: #f472b6;
+    color: var(--side-j);
     background: rgba(244, 114, 182, 0.08);
     border-bottom: 1px solid rgba(244,114,182,0.15);
   }
 
   .col-header.lt {
-    color: #f472b6;
+    color: var(--side-j);
     background: rgba(244, 114, 182, 0.08);
     border-bottom: 1px solid rgba(244,114,182,0.15);
   }
@@ -130,7 +133,7 @@
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.05em;
-    color: #f472b6;
+    color: var(--side-j);
     background: rgba(244, 114, 182, 0.05);
     border-bottom: 1px solid rgba(244,114,182,0.1);
     border-top: 1px solid rgba(244,114,182,0.1);
@@ -209,12 +212,12 @@
     letter-spacing: 0.06em;
   }
 
-  .pf .case-tag { color: #60a5fa; background: rgba(96, 165, 250, 0.12); }
-  .tl .case-tag { color: #f472b6; background: rgba(244, 114, 182, 0.12); }
+  .pf .case-tag { color: var(--side-o); background: rgba(96, 165, 250, 0.12); }
+  .tl .case-tag { color: var(--side-j); background: rgba(244, 114, 182, 0.12); }
 
   .case-dir {
     font-size: 0.72rem;
-    color: #888;
+    color: var(--fg-2);
     font-weight: 600;
     text-transform: uppercase;
     margin-top: 2px;
@@ -228,22 +231,22 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 
-  .pf .case-abbr { color: #60a5fa; }
+  .pf .case-abbr { color: var(--side-o); }
     .symbol-note {
     text-align: center;
-    color: #aaa;
+    color: var(--fg-2);
     font-size: 0.85rem;
     padding: 8px 0 4px;
     line-height: 1.8;
   }
   .symbol-note p { margin: 0; }
 
-  .tl .case-abbr { color: #f472b6; }
+  .tl .case-abbr { color: var(--side-j); }
 
   .case-name {
     font-size: 0.85rem;
     font-weight: 700;
-    color: #60a5fa;
+    color: var(--side-o);
     text-align: center;
     margin-top: 2px;
   }
@@ -292,7 +295,7 @@
     font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
     font-size: 0.82rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--fg-2);
     letter-spacing: 0.02em;
     line-height: 1.5;
     white-space: nowrap;
@@ -306,7 +309,7 @@
     font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
     font-size: 0.78rem;
     font-weight: 400;
-    color: #777;
+    color: var(--fg-3);
     letter-spacing: 0.02em;
     white-space: nowrap;
     overflow: hidden;
@@ -321,7 +324,7 @@
     padding: 24px;
     text-align: center;
     font-size: 0.9rem;
-    color: #999;
+    color: var(--fg-3);
     background: rgba(18, 18, 30, 0.6);
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 12px;
@@ -345,7 +348,6 @@
     .case-card .case-formula { font-size: 0.7rem; }
   }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -554,5 +556,9 @@
 
 </div>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
 </body>
 </html>

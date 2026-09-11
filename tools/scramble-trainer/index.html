@@ -57,7 +57,7 @@
   }
   .header h1 .badge {
     background: rgba(29,78,216,0.10);
-    color: var(--brand);
+    color: var(--brand-strong);   /* 阶段四：--brand 在此底上仅 4.02:1 */
     padding: 3px 10px;
     border-radius: 4px;
     font-size: 12px;
@@ -271,7 +271,7 @@
   .formula-inner.single .move { padding: 0 2px; }
   .formula-inner.single .move.space { padding: 0 5px; }
   .formula-inner .move {
-    color: var(--bg);          /* 字母主体：纯黑 */
+    color: var(--fg);          /* 字母主体：深色（浅色页 --bg 为近白，须用 --fg） */
     padding: 0 4px;
   }
   /* 修饰符用深色区分（白底上依然清晰，仍属深色系） */
@@ -386,6 +386,7 @@
   .btn:active { transform: translateY(1px); }
   .btn.primary {
     background: var(--brand);
+    color: var(--on-brand);   /* 阶段四：深色文字压在品牌蓝上仅 3.78:1，改白字 → 4.69:1 */
     font-size: 20px;
     padding: 20px 22px;
     box-shadow: 0 4px 12px rgba(29,78,216,0.28);

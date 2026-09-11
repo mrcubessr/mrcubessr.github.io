@@ -4,13 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FTO LBT 公式速查手册</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0d0d0d;
-    color: #e0e0e0;
+    background: var(--bg);
+    color: var(--fg);
     min-height: 100vh;
     line-height: 1.6;
   }
@@ -36,17 +39,17 @@
 
 
   .page-title { text-align: center; padding: 16px 0 4px; }
-  .page-title h1 { font-size: 2.2rem; font-weight: 800; color: #fff; letter-spacing: 0.04em; }
-  .page-subtitle { text-align: center; color: #888; font-size: 0.95rem; letter-spacing: 0.08em; margin-bottom: 28px; }
+  .page-title h1 { font-size: 2.2rem; font-weight: 800; color: var(--fg); letter-spacing: 0.04em; }
+  .page-subtitle { text-align: center; color: var(--fg-2); font-size: 0.95rem; letter-spacing: 0.08em; margin-bottom: 28px; }
 
-  .intro { max-width: 1000px; margin: 0 auto 36px; padding: 24px; background: rgba(24, 24, 36, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.95rem; color: #999; line-height: 1.8; backdrop-filter: blur(8px); }
-  .intro h3 { color: #FFD700; font-size: 1.15rem; margin-bottom: 14px; border-left: 3px solid #FFD700; padding-left: 12px; }
+  .intro { max-width: 1000px; margin: 0 auto 36px; padding: 24px; background: rgba(24, 24, 36, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.95rem; color: var(--fg-3); line-height: 1.8; backdrop-filter: blur(8px); }
+  .intro h3 { color: var(--gold); font-size: 1.15rem; margin-bottom: 14px; border-left: 3px solid var(--gold); padding-left: 12px; }
   .symbol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 16px; }
   .symbol-item { display: flex; align-items: center; gap: 10px; font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace; font-size: 0.9rem; }
-  .symbol-item .sym { color: #60a5fa; font-weight: 700; min-width: 28px; }
-  .symbol-item .eq { color: #f472b6; font-weight: 600; }
-  .intro .note { font-size: 0.85rem; color: #888; margin-top: 8px; }
-  .intro .sign { font-size: 0.82rem; color: #888; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .symbol-item .sym { color: var(--side-o); font-weight: 700; min-width: 28px; }
+  .symbol-item .eq { color: var(--side-j); font-weight: 600; }
+  .intro .note { font-size: 0.85rem; color: var(--fg-2); margin-top: 8px; }
+  .intro .sign { font-size: 0.82rem; color: var(--fg-2); margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
 
   .dual-grid { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 
@@ -54,9 +57,9 @@
 
   .col-header { text-align: center; padding: 10px 16px; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.06em; }
 
-  .col-header.bibei, .col-header.jinjie { color: #60a5fa; background: rgba(96, 165, 250, 0.08); border-bottom: 1px solid rgba(96,165,250,0.15); }
-  .col-header.haoren { color: #f472b6; background: rgba(244, 114, 182, 0.08); border-bottom: 1px solid rgba(244,114,182,0.15); }
-  .col-header.kongdiao { color: #f472b6; background: rgba(244, 114, 182, 0.05); border-bottom: 1px solid rgba(244,114,182,0.08); }
+  .col-header.bibei, .col-header.jinjie { color: var(--side-o); background: rgba(96, 165, 250, 0.08); border-bottom: 1px solid rgba(96,165,250,0.15); }
+  .col-header.haoren { color: var(--side-j); background: rgba(244, 114, 182, 0.08); border-bottom: 1px solid rgba(244,114,182,0.15); }
+  .col-header.kongdiao { color: var(--side-j); background: rgba(244, 114, 182, 0.05); border-bottom: 1px solid rgba(244,114,182,0.08); }
 
   .case-grid { display: grid; gap: 10px; padding: 12px; }
   .case-grid.bibei { grid-template-columns: repeat(6, 1fr); }
@@ -69,28 +72,27 @@
 
   .case-label { display: flex; align-items: center; gap: 6px; padding: 0; }
   .case-tag { font-size: 0.85rem; font-weight: 800; padding: 2px 10px; border-radius: 10px; text-align: center; letter-spacing: 0.04em; }
-  .bibei .case-tag, .jinjie .case-tag { color: #60a5fa; background: rgba(96,165,250,0.12); }
-  .haoren .case-tag { color: #f472b6; background: rgba(244,114,182,0.12); }
-  .kongdiao .case-tag { color: #cbd5e1; background: rgba(255,255,255,0.06); }
+  .bibei .case-tag, .jinjie .case-tag { color: var(--side-o); background: rgba(96,165,250,0.12); }
+  .haoren .case-tag { color: var(--side-j); background: rgba(244,114,182,0.12); }
+  .kongdiao .case-tag { color: var(--fg-2); background: rgba(255,255,255,0.06); }
 
   .case-abbr { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.03em; }
-  .bibei .case-abbr, .jinjie .case-abbr { color: #60a5fa; }
-  .haoren .case-abbr { color: #f472b6; }
-  .kongdiao .case-abbr { color: #cbd5e1; }
+  .bibei .case-abbr, .jinjie .case-abbr { color: var(--side-o); }
+  .haoren .case-abbr { color: var(--side-j); }
+  .kongdiao .case-abbr { color: var(--fg-3); }
 
   .case-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .case-img { width: 110px; height: 110px; border-radius: 8px; object-fit: contain; }
-  .case-formula { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace; font-size: 0.78rem; font-weight: 600; color: #e2e8f0; letter-spacing: 0.01em; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
-  .kongdiao .case-formula { color: #cbd5e1; }
-  .case-formula .brk { color: #fbbf24; font-weight: 700; }
+  .case-formula { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace; font-size: 0.78rem; font-weight: 600; color: var(--fg-2); letter-spacing: 0.01em; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: center; }
+  .kongdiao .case-formula { color: var(--fg-3); }
+  .case-formula .brk { color: var(--amber); font-weight: 700; }
 
-  .attribution { max-width: 1000px; margin: 0 auto; padding: 24px; text-align: center; font-size: 0.9rem; color: #999; background: rgba(18, 18, 30, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; backdrop-filter: blur(8px); line-height: 1.8; }
+  .attribution { max-width: 1000px; margin: 0 auto; padding: 24px; text-align: center; font-size: 0.9rem; color: var(--fg-3); background: rgba(18, 18, 30, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; backdrop-filter: blur(8px); line-height: 1.8; }
 
   @media (max-width: 1200px) { .case-grid { grid-template-columns: repeat(3, 1fr) !important; } }
   @media (max-width: 700px) { .case-grid { grid-template-columns: 1fr !important; } .page-title h1 { font-size: 1.6rem; } .symbol-grid { grid-template-columns: 1fr; } .case-img { width: 100px; height: 100px; } .case-formula { font-size: 0.74rem; white-space: normal; } }
   @media (max-width: 400px) { .case-card { gap: 4px; padding: 8px 10px; } .case-tag { font-size: 0.7rem; padding: 2px 8px; } .case-formula { font-size: 0.7rem; } }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -1180,5 +1182,9 @@
 
 </div>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
 </body>
 </html>

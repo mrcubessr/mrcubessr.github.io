@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FTO 教程</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #0d0d0d;
-    color: #e0e0e0;
+    background: var(--bg);
+    color: var(--fg);
     min-height: 100vh;
     line-height: 1.6;
   }
@@ -53,7 +55,7 @@
   header h1 {
     font-size: 2.2rem;
     letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #e0e0e0, #93c5fd);
+    background: linear-gradient(135deg, var(--fg), var(--brand));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -61,7 +63,7 @@
 
   .subtitle {
     margin-top: 8px;
-    color: #94a3b8;
+    color: var(--fg-2);
     font-size: 1rem;
   }
 
@@ -99,20 +101,20 @@
   .card-title {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #f1f5f9;
+    color: var(--fg);
   }
 
   .card-desc {
     margin-top: 6px;
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--fg-2);
     text-align: center;
   }
 
   footer {
     margin-top: 48px;
     text-align: center;
-    color: #64748b;
+    color: var(--fg-3);
     font-size: 0.85rem;
   }
 
@@ -140,26 +142,28 @@
   </header>
 
   <div class="card-grid">
-    <a class="card" href="/fto/tcp">
+    <a class="card card--link" href="/fto/tcp">
       <div class="card-icon">&#x1F9E9;</div>
       <div class="card-title">TCP</div>
       <div class="card-desc">Triplet Center Pairing<br>三组中心配对</div>
     </a>
-    <a class="card" href="/fto/l3t">
+    <a class="card card--link" href="/fto/l3t">
       <div class="card-icon">&#x1F9E9;</div>
       <div class="card-title">L3T</div>
       <div class="card-desc">3-Look Last Three Triplets<br>最后三组三看解法</div>
     </a>
-    <a class="card" href="/fto/lbt">
+    <a class="card card--link" href="/fto/lbt">
       <div class="card-icon">&#x1F9E9;</div>
       <div class="card-title">LBT</div>
       <div class="card-desc">Last Bottom Triplets<br>底层最后三组</div>
     </a>
   </div>
 
-  <footer>
-    &copy; 2026 mrcubessr
-  </footer>
+  <footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+  <p class="site-footer__meta">&copy; 2026 mrcubessr</p>
+</footer>
 </div>
 <script src="/assets/js/site-nav.js"></script>
 </body>

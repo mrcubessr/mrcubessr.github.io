@@ -36,3 +36,45 @@
 @media (min-width:1024px){
   .container{ padding-inline:var(--s6,32px); }
 }
+
+/* =========================================================
+   可访问性兜底（阶段四）
+   主题切换仍只由 tokens.css 承担，本文件不写主题分支。
+   ========================================================= */
+
+/* A3 焦点可见兜底：组件库已覆盖 .btn/.tab/.input/.seg__btn/.card--link，
+   这里为其余可聚焦元素补一个统一的可见焦点环。
+   :where() 特异性为 0，不会覆盖组件库里更具体的焦点样式。 */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible{
+  outline:2px solid var(--brand);
+  outline-offset:2px;
+}
+
+/* A5 触摸目标：移动端把交互元素抬到 44×44（WCAG 2.5.5 建议值） */
+@media (max-width:640px){
+  .btn,.seg__btn,.tab{ min-height:44px; }
+  .btn--sm{ min-height:40px; padding:8px 14px; }
+}
+
+/* A6 减弱动效：尊重系统「减少动态效果」偏好 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* A1/A2 浅色主题对比度补偿：
+   浅色下 --brand(#3F6FD8) 作为**文字色**叠在 --brand-soft 或半透明导航底上时仅 4.12:1，
+   低于 WCAG AA 的 4.5:1。这里对「品牌色文字」统一改用更深的 --brand-strong(#2F57AE)，
+   实测可提升到 5.9:1。
+   site-nav.css / components.css 为上游冻结产物，故以本文件（后置加载）覆盖，不改动原文件。
+   仅作用于浅色主题，深色主题视觉零变化。 */
+[data-theme="light"] .site-nav .nav-link.active,
+[data-theme="light"] .site-nav .nav-drop-toggle .caret,
+[data-theme="light"] .btn--secondary,
+[data-theme="light"] .badge--brand{
+  color:var(--brand-strong);
+}
