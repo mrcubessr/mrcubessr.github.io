@@ -24,7 +24,8 @@ for fp in files:
     # letter from filename
     letter = re.search(r"group-([A-Z])\.html", fp).group(1)
     # codes: read the ordered practice sequence from the page
-    codes = re.findall(r'class="order-tag[^"]*">([A-Z]{2})<', html)
+    # (tolerant of extra attributes an editor may inject between class and >)
+    codes = re.findall(r'class="order-tag[^"]*"[^>]*>([A-Z]{2})<', html)
     cube = pycuber.Cube()
     for mv in parse_moves(formula):
         cube(mv)
