@@ -92,7 +92,7 @@
   }
 
   function buildAlgItems(style, code, data) {
-    var key = 'G' + code;
+    var key = 'A' + code;
     var items = [];
     if (style === 'manmade') {
       var man = data[key];
