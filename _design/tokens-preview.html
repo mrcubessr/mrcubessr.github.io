@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设计令牌预览 · Phase 1</title>
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <!-- ⑨ 导航预览需要真实导航样式：引入后即可在本页自证 D3（site-nav.css 是否正确消费 token） -->
+  <link rel="stylesheet" href="/assets/css/site-nav.css">
+  <style>
+    /* 本页面样式全部取自 token，不硬编码颜色 */
+    .preview-page{ background:var(--bg); color:var(--fg); font-family:var(--font-sans); padding:var(--s6) var(--s5) var(--s7); }
+    .preview-page .container{ max-width:var(--container,1080px); }
+
+    .preview-page header{ display:flex; justify-content:space-between; align-items:center; gap:var(--s4); flex-wrap:wrap; margin-bottom:var(--s6); }
+    .preview-page h1{ font-size:var(--fs-2xl); color:var(--fg); margin:0; }
+    .preview-page h2{ font-size:var(--fs-xl); color:var(--fg); margin:var(--s6) 0 var(--s3); padding-bottom:var(--s2); border-bottom:1px solid var(--line-2); }
+    .preview-page h3{ font-size:var(--fs-lg); color:var(--fg); margin:var(--s5) 0 var(--s2); }
+    .preview-page section{ margin-bottom:var(--s7); }
+
+    /* 主题切换按钮 */
+    .theme-toggle{ background:var(--surface); color:var(--fg); border:1px solid var(--line-3); padding:var(--s2) var(--s4); border-radius:var(--r-md); font-family:var(--font-sans); font-size:var(--fs-sm); cursor:pointer; transition:border-color var(--t-fast), background var(--t-fast); }
+    .theme-toggle:hover{ border-color:var(--brand); }
+
+    /* 色彩速查网格 */
+    .swatches{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:var(--s3); }
+    .swatch{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s3); text-align:center; }
+    .swatch .block{ width:100%; height:64px; border-radius:var(--r-sm); margin-bottom:var(--s2); border:1px solid var(--line-2); }
+    .swatch .ink{ font-family:var(--font-mono); font-size:var(--fs-sm); display:flex; align-items:center; justify-content:center; height:100%; }
+    .swatch .name{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-2); display:block; }
+    .swatch .hex{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); display:block; margin-top:2px; min-height:1em; word-break:break-all; }
+
+    /* 文字层级 */
+    .type-sample{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s4) var(--s5); margin-bottom:var(--s3); }
+    .type-sample .label{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); margin-bottom:var(--s1); }
+    .type-sample p{ margin:0; }
+
+    /* 字阶样张 */
+    .fs-row{ display:flex; align-items:baseline; gap:var(--s4); padding:var(--s2) 0; border-bottom:1px solid var(--line); }
+    .fs-row .fs-name{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); min-width:90px; }
+    .fs-row .fs-px{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); margin-left:auto; }
+
+    /* 间距标尺 */
+    .scale-item{ display:flex; align-items:center; gap:var(--s3); padding:6px 0; }
+    .scale-bar{ height:var(--s2); background:var(--brand); border-radius:var(--r-sm); flex-shrink:0; }
+    .scale-label{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-2); min-width:70px; }
+
+    /* 圆角样例 */
+    .r-row{ display:flex; gap:var(--s4); flex-wrap:wrap; }
+    .r-box{ background:var(--brand-soft); border:1px solid var(--brand-line); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-2); flex-direction:column; gap:var(--s1); padding:var(--s3); }
+    .r-box .demo{ width:56px; height:56px; background:var(--brand); }
+
+    /* 阴影样例 */
+    .shadow-row{ display:flex; gap:var(--s4); flex-wrap:wrap; }
+    .shadow-card{ background:var(--surface-2); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s5) var(--s4); font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-2); text-align:center; min-width:140px; }
+    .shadow-card.glow{ background:var(--surface); }
+
+    /* 焦点态测试 */
+    .focus-test{ display:flex; gap:var(--s3); align-items:center; flex-wrap:wrap; }
+    .focus-test a, .focus-test button, .focus-test input[type=text]{ padding:var(--s2) var(--s4); border:1px solid var(--line-3); border-radius:var(--r-sm); background:var(--surface); color:var(--fg); font-family:var(--font-sans); font-size:var(--fs-sm); text-decoration:none; cursor:pointer; }
+    .focus-test button{ cursor:pointer; }
+    .focus-test input[type=text]{ width:180px; }
+
+    /* ⑨ 导航预览：直接放真实 site-nav 结构，样式完全由 site-nav.css 提供，本页不加任何覆盖 */
+    .sec-note{ font-size:var(--fs-sm); color:var(--fg-3); margin:0 0 var(--s3); }
+
+    /* 公式文本 */
+    .formula-demo{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s4); font-family:var(--font-mono); color:var(--gold-ink); font-size:var(--fs-base); }
+
+    .swatch-group-label{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--fg-3); margin:var(--s5) 0 var(--s2); text-transform:uppercase; letter-spacing:.1em; }
+  </style>
+</head>
+<body class="preview-page" data-nav="home">
+<!-- 注：data-nav="home" 仅为让 ⑨ 导航预览能展示 .nav-link.active 高亮态（本页不在任何菜单中） -->
+
+  <div class="container">
+
+    <!-- ① 主题切换 -->
+    <header>
+      <h1>🎨 设计令牌预览</h1>
+      <button id="themeBtn" class="theme-toggle">切换浅色主题</button>
+    </header>
+
+    <!-- ② 色彩速查 -->
+    <section id="colors">
+      <h2>② 色彩速查</h2>
+      <p class="sec-note">每个色块下方显示该 token 在当前主题下的<b>实际计算值</b>，点右上角按钮切换主题时会同步刷新。</p>
+
+      <div class="swatch-group-label">底色 / 表面</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--bg"><div class="block" style="background:var(--bg)"></div><span class="name">--bg</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--bg-soft"><div class="block" style="background:var(--bg-soft)"></div><span class="name">--bg-soft</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--surface"><div class="block" style="background:var(--surface)"></div><span class="name">--surface</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--surface-2"><div class="block" style="background:var(--surface-2)"></div><span class="name">--surface-2</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--surface-3"><div class="block" style="background:var(--surface-3)"></div><span class="name">--surface-3</span><span class="hex"></span></div>
+      </div>
+
+      <div class="swatch-group-label">描边</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--line"><div class="block" style="background:var(--bg-soft); border-color:var(--line)"></div><span class="name">--line</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--line-2"><div class="block" style="background:var(--bg-soft); border-color:var(--line-2)"></div><span class="name">--line-2</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--line-3"><div class="block" style="background:var(--bg-soft); border-color:var(--line-3)"></div><span class="name">--line-3</span><span class="hex"></span></div>
+      </div>
+
+      <div class="swatch-group-label">文字</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--fg"><div class="block" style="background:var(--bg)"><span class="ink" style="color:var(--fg)">正文</span></div><span class="name">--fg</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--fg-2"><div class="block" style="background:var(--bg)"><span class="ink" style="color:var(--fg-2)">次要</span></div><span class="name">--fg-2</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--fg-3"><div class="block" style="background:var(--bg)"><span class="ink" style="color:var(--fg-3)">弱化</span></div><span class="name">--fg-3</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--fg-inverse"><div class="block" style="background:var(--fg-inverse)"></div><span class="name">--fg-inverse</span><span class="hex"></span></div>
+      </div>
+
+      <div class="swatch-group-label">品牌</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--brand"><div class="block" style="background:var(--brand)"></div><span class="name">--brand</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--brand-strong"><div class="block" style="background:var(--brand-strong)"></div><span class="name">--brand-strong</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--brand-soft"><div class="block" style="background:var(--brand-soft)"></div><span class="name">--brand-soft</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--brand-line"><div class="block" style="background:var(--bg-soft); border-color:var(--brand-line)"></div><span class="name">--brand-line</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--violet"><div class="block" style="background:var(--violet)"></div><span class="name">--violet</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--violet-soft"><div class="block" style="background:var(--violet-soft)"></div><span class="name">--violet-soft</span><span class="hex"></span></div>
+      </div>
+
+      <div class="swatch-group-label">语义</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--gold"><div class="block" style="background:var(--gold)"></div><span class="name">--gold</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--gold-soft"><div class="block" style="background:var(--gold-soft)"></div><span class="name">--gold-soft</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--gold-ink"><div class="block" style="background:var(--surface)"><span class="ink" style="color:var(--gold-ink)">金色文字</span></div><span class="name">--gold-ink</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--green"><div class="block" style="background:var(--green)"></div><span class="name">--green</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--green-soft"><div class="block" style="background:var(--green-soft)"></div><span class="name">--green-soft</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--amber"><div class="block" style="background:var(--amber)"></div><span class="name">--amber</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--amber-soft"><div class="block" style="background:var(--amber-soft)"></div><span class="name">--amber-soft</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--red"><div class="block" style="background:var(--red)"></div><span class="name">--red</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--red-soft"><div class="block" style="background:var(--red-soft)"></div><span class="name">--red-soft</span><span class="hex"></span></div>
+      </div>
+
+      <div class="swatch-group-label">魔方领域色</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--side-o"><div class="block" style="background:var(--side-o)"></div><span class="name">--side-o 偶/蓝</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--side-j"><div class="block" style="background:var(--side-j)"></div><span class="name">--side-j 奇/粉</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--face-u"><div class="block" style="background:var(--face-u)"></div><span class="name">--face-u 上</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--face-r"><div class="block" style="background:var(--face-r)"></div><span class="name">--face-r 右</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--face-f"><div class="block" style="background:var(--face-f)"></div><span class="name">--face-f 前</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--face-d"><div class="block" style="background:var(--face-d)"></div><span class="name">--face-d 下</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--face-l"><div class="block" style="background:var(--face-l)"></div><span class="name">--face-l 左</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--face-b"><div class="block" style="background:var(--face-b)"></div><span class="name">--face-b 后</span><span class="hex"></span></div>
+      </div>
+
+      <div class="swatch-group-label">导航</div>
+      <div class="swatches">
+        <div class="swatch" data-var="--nav-bg"><div class="block" style="background:var(--nav-bg)"></div><span class="name">--nav-bg</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--nav-bg-solid"><div class="block" style="background:var(--nav-bg-solid)"></div><span class="name">--nav-bg-solid</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--nav-line"><div class="block" style="background:var(--bg-soft); border-color:var(--nav-line)"></div><span class="name">--nav-line</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--nav-accent"><div class="block" style="background:var(--nav-accent)"></div><span class="name">--nav-accent</span><span class="hex"></span></div>
+        <div class="swatch" data-var="--menu-bg"><div class="block" style="background:var(--menu-bg)"></div><span class="name">--menu-bg</span><span class="hex"></span></div>
+      </div>
+    </section>
+
+    <!-- ③ 文字层级 -->
+    <section id="typography">
+      <h2>③ 文字层级（对比度）</h2>
+      <div class="type-sample">
+        <div class="label">--fg / ≈15.6:1</div>
+        <p style="color:var(--fg); font-size:var(--fs-lg)">这是最高对比度的正文 / 标题文字，必须用于所有主要标题和页面核心内容。</p>
+      </div>
+      <div class="type-sample">
+        <div class="label">--fg-2 / ≈9.7:1</div>
+        <p style="color:var(--fg-2); font-size:var(--fs-base)">这是次要文字，适用于说明性段落、卡片正文等。</p>
+      </div>
+      <div class="type-sample">
+        <div class="label">--fg-3 / ≈5.3:1</div>
+        <p style="color:var(--fg-3); font-size:var(--fs-sm)">这是弱化/说明文字，仅用于辅助信息，不得用于按钮或关键标签。</p>
+      </div>
+    </section>
+
+    <!-- ④ 字阶样张 -->
+    <section id="font-size">
+      <h2>④ 字阶样张</h2>
+      <div class="fs-row"><span class="fs-name">--fs-3xl</span><span style="font-size:var(--fs-3xl); color:var(--fg)">最大标题</span><span class="fs-px">≈35px</span></div>
+      <div class="fs-row"><span class="fs-name">--fs-2xl</span><span style="font-size:var(--fs-2xl); color:var(--fg)">主标题</span><span class="fs-px">≈30px</span></div>
+      <div class="fs-row"><span class="fs-name">--fs-xl</span><span style="font-size:var(--fs-xl); color:var(--fg)">区块标题</span><span class="fs-px">≈24px</span></div>
+      <div class="fs-row"><span class="fs-name">--fs-lg</span><span style="font-size:var(--fs-lg); color:var(--fg)">小节标题</span><span class="fs-px">≈18px</span></div>
+      <div class="fs-row"><span class="fs-name">--fs-base</span><span style="font-size:var(--fs-base); color:var(--fg)">正文 1rem</span><span class="fs-px">≈16px</span></div>
+      <div class="fs-row"><span class="fs-name">--fs-sm</span><span style="font-size:var(--fs-sm); color:var(--fg-2)">辅助</span><span class="fs-px">≈14px</span></div>
+      <div class="fs-row"><span class="fs-name">--fs-xs</span><span style="font-size:var(--fs-xs); color:var(--fg-3)">最小</span><span class="fs-px">≈12px</span></div>
+    </section>
+
+    <!-- ⑤ 间距标尺 -->
+    <section id="spacing">
+      <h2>⑤ 间距标尺</h2>
+      <div class="scale-item"><span class="scale-label">--s1 4px</span><div class="scale-bar" style="width:var(--s1)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s2 8px</span><div class="scale-bar" style="width:var(--s2)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s3 12px</span><div class="scale-bar" style="width:var(--s3)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s4 16px</span><div class="scale-bar" style="width:var(--s4)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s5 24px</span><div class="scale-bar" style="width:var(--s5)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s6 32px</span><div class="scale-bar" style="width:var(--s6)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s7 48px</span><div class="scale-bar" style="width:var(--s7)"></div></div>
+      <div class="scale-item"><span class="scale-label">--s8 64px</span><div class="scale-bar" style="width:var(--s8)"></div></div>
+    </section>
+
+    <!-- ⑥ 圆角样例 -->
+    <section id="radius">
+      <h2>⑥ 圆角样例</h2>
+      <div class="r-row">
+        <div class="r-box"><div class="demo" style="border-radius:var(--r-sm)"></div><span>--r-sm</span><span>8px</span></div>
+        <div class="r-box"><div class="demo" style="border-radius:var(--r-md)"></div><span>--r-md</span><span>12px</span></div>
+        <div class="r-box"><div class="demo" style="border-radius:var(--r-lg)"></div><span>--r-lg</span><span>16px</span></div>
+        <div class="r-box"><div class="demo" style="border-radius:var(--r-xl)"></div><span>--r-xl</span><span>22px</span></div>
+        <div class="r-box"><div class="demo" style="border-radius:var(--r-full)"></div><span>--r-full</span><span>999px</span></div>
+      </div>
+    </section>
+
+    <!-- ⑦ 阴影样例 -->
+    <section id="shadow">
+      <h2>⑦ 阴影样例</h2>
+      <div class="shadow-row">
+        <div class="shadow-card" style="box-shadow:var(--sh-sm)">--sh-sm</div>
+        <div class="shadow-card" style="box-shadow:var(--sh-md)">--sh-md</div>
+        <div class="shadow-card" style="box-shadow:var(--sh-lg)">--sh-lg</div>
+        <div class="shadow-card glow" style="box-shadow:var(--glow)">--glow (品牌光)</div>
+      </div>
+    </section>
+
+    <!-- ⑧ 焦点态测试 -->
+    <section id="focus">
+      <h2>⑧ 焦点态测试（按 Tab 遍历）</h2>
+      <p style="color:var(--fg-3); font-size:var(--fs-sm)">依次点击或按 Tab，应看到统一的蓝色 2px 焦点环。</p>
+      <div class="focus-test">
+        <a href="#">链接元素</a>
+        <button type="button">按钮元素</button>
+        <input type="text" placeholder="输入框">
+      </div>
+    </section>
+
+    <!-- ⑨ 导航预览：直接复制线上真实 site-nav 结构（与 index.html 一致），
+         样式全部来自 site-nav.css，用于验证 D3 是否正确消费 token。
+         可验证：Logo 渐变(--nav-accent→--violet) / 常规项色(--fg-2) / 高亮态(--nav-accent)
+                 / 下拉面板(--menu-bg/--brand-line/--menu-shadow) / “即将上线”色(--fg-3，本次唯一可见修正)
+                 / Tab 焦点环 / 打印时隐藏 -->
+    <section id="nav-demo">
+      <h2>⑨ 导航预览（真实结构）</h2>
+      <p class="sec-note">本区块直接使用线上导航 DOM 与 <code>site-nav.css</code>，未做任何样式覆盖。可点击“教程”展开下拉，查看“即将上线”项的颜色；按 Tab 可验证导航焦点环。</p>
+      <nav class="site-nav" id="siteNav">
+        <div class="nav-inner">
+          <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
+          <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="nav-links" id="navLinks">
+            <a href="/" class="nav-link" data-nav="home">首页</a>
+            <div class="nav-drop">
+              <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
+              <div class="nav-menu">
+                <a href="/tools/3x3" data-nav="3x3">三阶</a>
+                <a class="nav-soon" title="即将上线">二阶</a>
+                <a class="nav-soon" title="即将上线">金字塔</a>
+                <a class="nav-soon" title="暂时预留">三盲</a>
+                <a href="/fto" data-nav="fto">FTO</a>
+              </div>
+            </div>
+            <div class="nav-drop">
+              <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
+              <div class="nav-menu">
+                <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
+                <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
+                <a href="/tools/bldtrainer" data-nav="bldtrainer">读码还原</a>
+                <a href="/tools/3bld" data-nav="3bld">出题器</a>
+                <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
+                <a href="/tools/corner-trainer" data-nav="corner-trainer">角块编码</a>
+                <a href="/tools/edge-trainer" data-nav="edge-trainer">棱块编码</a>
+                <a href="/tools/edge-printout" data-nav="edge-printout">出题打印</a>
+                <a href="/tools/kmap" data-nav="kmap">知识地图</a>
+                <a href="/tools/invert" data-nav="invert">逆序转换</a>
+                <a href="/tools/practice" data-nav="practice">练习纸生成</a>
+                <a href="/tools/bldscramble" data-nav="bldscramble">盲拧打乱生成器</a>
+                <a href="/tools/3x3teach" data-nav="3x3teach">三阶魔方教学</a>
+                <a href="/tools/class-teach" data-nav="class-teach">魔方课堂教学系统</a>
+                <a href="/tools/scramble-trainer" data-nav="scramble-trainer">打乱公式训练</a>
+              </div>
+            </div>
+            <div class="nav-drop">
+              <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
+              <div class="nav-menu">
+                <a href="/tools/nav" data-nav="nav">工具导航</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </section>
+
+    <!-- ⑩ 公式文本 -->
+    <section id="formula">
+      <h2>⑩ 公式文本（等宽 + 金色）</h2>
+      <div class="formula-demo">U R U' R' &nbsp;|&nbsp; F R U R' U' F' &nbsp;|&nbsp; M2 U M' U2 M2</div>
+    </section>
+
+  </div>
+
+  <!-- 主题切换 + 色值实测回填 -->
+  <script>
+    var btn = document.getElementById('themeBtn');
+
+    /* 把每个 token 在当前主题下的实际计算值写回色块下方（切换主题后会自动刷新） */
+    function hydrateHex() {
+      var cs = getComputedStyle(document.documentElement);
+      var nodes = document.querySelectorAll('.swatch[data-var]');
+      for (var i = 0; i < nodes.length; i++) {
+        var out = nodes[i].querySelector('.hex');
+        if (out) out.textContent = cs.getPropertyValue(nodes[i].getAttribute('data-var')).trim();
+      }
+    }
+
+    btn.addEventListener('click', function () {
+      var html = document.documentElement;
+      if (html.getAttribute('data-theme') === 'light') {
+        html.removeAttribute('data-theme');
+        btn.textContent = '切换浅色主题';
+      } else {
+        html.setAttribute('data-theme', 'light');
+        btn.textContent = '切换深色主题';
+      }
+      hydrateHex();
+    });
+
+    hydrateHex();
+  </script>
+
+  <!-- ⑨ 导航预览需要真实导航交互（下拉展开 / 移动端汉堡菜单） -->
+  <script src="/assets/js/site-nav.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,111 @@
+@import url("/assets/css/tokens.css");
+/* =========================================================
+   魔方先生SSR魔方训练中心 · 基础样式 v1.0
+   重置 + 排版 + 可访问性底座。
+   禁止定义任何组件类（.card / .btn / .badge 等属于阶段三）。
+   本文件仅被 _design/tokens-preview.html 引入，不挂到任何现有页面。
+   ========================================================= */
+
+/* --- 1. 统一盒模型 --- */
+*,*::before,*::after{ box-sizing:border-box; }
+
+/* --- 2. 移动端字号保护 + 锚点平滑 --- */
+html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+
+/* --- 3. 正文基线 --- */
+body{
+  margin:0;
+  font-family:var(--font-sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif);
+  font-size:var(--fs-base,1rem);
+  line-height:var(--lh-base,1.6);
+  color:var(--fg-2,#AEB8CA);
+  background:var(--bg,#0B0D14);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* --- 4. 标题基线 --- */
+h1,h2,h3,h4,h5,h6{
+  margin:0;
+  line-height:var(--lh-tight,1.25);
+  color:var(--fg,#EEF2F8);
+  font-weight:var(--fw-bold,700);
+}
+h1{ font-size:var(--fs-2xl,1.9rem); }       /* 5. 页面唯一主标题 */
+h2{ font-size:var(--fs-xl,1.5rem); }        /* 6. 区块标题 */
+h3{ font-size:var(--fs-lg,1.15rem); }       /* 7. 小节标题 */
+h4{ font-size:var(--fs-base,1rem); }        /* 8. 卡片标题 */
+
+/* --- 9. 段落间距 --- */
+p{ margin:0 0 var(--s4,16px); }
+
+/* --- 10. 列表间距 --- */
+ul,ol{ margin:0 0 var(--s4,16px); padding-left:1.25rem; }
+
+/* --- 11-12. 链接 --- */
+a{ color:var(--brand,#5B8DEF); text-decoration:none; transition:color var(--t-fast,.15s); }
+a:hover{ color:var(--brand-strong,#3F6FD8); }
+
+/* --- 13. 等宽文本 --- */
+code,kbd,pre,samp{ font-family:var(--font-mono,"SF Mono","Fira Code","Consolas",monospace); font-size:.9em; }
+
+/* --- 14. 媒体自适应 --- */
+img,svg,video{ max-width:100%; height:auto; display:block; }
+
+/* --- 15. 键盘焦点可见（可访问性必做） --- */
+:focus-visible{ outline:2px solid var(--brand,#5B8DEF); outline-offset:2px; border-radius:var(--r-sm,8px); }
+
+/* --- 16. 选中态 --- */
+::selection{ background:var(--brand-soft,rgba(91,141,239,.14)); color:var(--fg,#EEF2F8); }
+
+/* =========================================================
+   容器类（仅允许的布局类名）
+   ========================================================= */
+.container{ width:100%; max-width:var(--container,1080px); margin-inline:auto; padding-inline:var(--s4,16px); }
+.container--narrow{ max-width:var(--container-narrow,760px); }
+.container--wide{ max-width:var(--container-wide,1200px); }
+.container--full{ max-width:var(--container-full,1320px); }
+
+/* --- 21. 屏幕阅读器专用 --- */
+.sr-only{
+  position:absolute;
+  width:1px; height:1px;
+  padding:0; margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
+/* --- 22. 跳转到主内容 --- */
+.skip-link{ position:absolute; left:-9999px; }
+.skip-link:focus{
+  left:var(--s4,16px); top:var(--s4,16px);
+  z-index:var(--z-toast,1200);
+  background:var(--surface,#141826);
+  color:var(--fg,#EEF2F8);
+  padding:var(--s2,8px) var(--s3,12px);
+  border:1px solid var(--brand-line,rgba(91,141,239,.30));
+  border-radius:var(--r-sm,8px);
+}
+
+/* --- 23. 平板留白 --- */
+@media (min-width:768px){
+  .container,.container--narrow,.container--wide,.container--full{ padding-inline:var(--s5,24px); }
+}
+
+/* --- 24. 桌面留白 --- */
+@media (min-width:1024px){
+  .container,.container--narrow,.container--wide,.container--full{ padding-inline:var(--s6,32px); }
+}
+
+/* --- 25. 尊重减少动效偏好（可访问性必做） --- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}

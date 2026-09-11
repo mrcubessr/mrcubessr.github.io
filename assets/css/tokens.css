@@ -1,0 +1,133 @@
+/* =========================================================
+   魔方先生SSR魔方训练中心 · 设计令牌 v1.0
+   全站颜色与尺度的唯一来源。
+   约定：其它 CSS 文件不得再硬编码颜色值，一律 var(--token)。
+   ========================================================= */
+:root{
+  /* ---------- 底色 / 表面 ---------- */
+  --bg:        #0B0D14;   /* 页面底色 */
+  --bg-soft:   #0F131C;   /* 次级底色（表单内底、代码块） */
+  --surface:   #141826;   /* 卡片 / 面板 */
+  --surface-2: #1A2130;   /* 卡片内次级块、表头 */
+  --surface-3: #232C3E;   /* 悬停 / 高亮块 */
+
+  /* ---------- 描边 ---------- */
+  --line:   rgba(255,255,255,.08);
+  --line-2: rgba(255,255,255,.14);
+  --line-3: rgba(255,255,255,.22);
+
+  /* ---------- 文字 ---------- */
+  --fg:        #EEF2F8;   /* 正文 / 标题     对比度 15.6:1 */
+  --fg-2:      #AEB8CA;   /* 次要文字         对比度  9.7:1 */
+  --fg-3:      #7C8798;   /* 弱化 / 说明      对比度  5.3:1 */
+  --fg-inverse:#0B0D14;   /* 浅色底上的反相文字 */
+
+  /* ---------- 品牌 ---------- */
+  --brand:        #5B8DEF;
+  --brand-strong: #3F6FD8;
+  --brand-soft:   rgba(91,141,239,.14);
+  --brand-line:   rgba(91,141,239,.30);
+  --violet:       #A78BFA;
+  --violet-soft:  rgba(167,139,250,.14);
+
+  /* ---------- 语义 ---------- */
+  --gold:       #FFC857;   /* 公式 / 重点高亮 */
+  --gold-soft:  rgba(255,200,87,.14);
+  --gold-ink:   #FFD372;   /* 深底上的金色文字 */
+  --green:      #34D399;   /* 正确 / 掌握 */
+  --green-soft: rgba(52,211,153,.15);
+  --amber:      #FBBF24;   /* 提示 / 待复习 */
+  --amber-soft: rgba(251,191,36,.15);
+  --red:        #F87171;   /* 错误 */
+  --red-soft:   rgba(248,113,113,.15);
+
+  /* ---------- 魔方领域色（教程语义，禁止挪作他用）---------- */
+  --side-o: #60A5FA;   /* FTO 偶 / 蓝面 */
+  --side-j: #F472B6;   /* FTO 奇 / 粉面 */
+  --face-u: #FFFFFF;
+  --face-r: #E4572E;
+  --face-f: #2E9E4F;
+  --face-d: #FFD500;
+  --face-l: #FF8A00;
+  --face-b: #1F6FD0;
+
+  /* ---------- 导航（组件级语义 token）---------- */
+  --nav-h:        60px;
+  --nav-bg:       rgba(11,13,20,.82);
+  --nav-bg-solid: rgba(11,13,20,.97);
+  --nav-line:     rgba(91,141,239,.16);
+  --nav-shadow:   0 4px 24px rgba(0,0,0,.35);
+  --nav-accent:   #64B4FF;   /* ← 阶段一保持现有观感；阶段二改为 var(--brand) */
+  --menu-bg:      rgba(20,24,38,.96);
+  --menu-shadow:  0 12px 40px rgba(0,0,0,.5);
+
+  /* ---------- 圆角 ---------- */
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px; --r-full:999px;
+
+  /* ---------- 间距（4px 基准）---------- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px;
+
+  /* ---------- 阴影 ---------- */
+  --sh-sm:0 1px 2px rgba(0,0,0,.35);
+  --sh-md:0 6px 18px rgba(0,0,0,.38);
+  --sh-lg:0 16px 44px rgba(0,0,0,.50);
+  --glow: 0 6px 22px rgba(91,141,239,.28);
+
+  /* ---------- 动效 ---------- */
+  --t-fast:.15s ease;
+  --t-mid:.25s ease;
+  --t-slow:.4s ease;
+
+  /* ---------- 排版 ---------- */
+  --font-sans:"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"SF Mono","Cascadia Code","Fira Code","Consolas",monospace;
+  --fs-xs:.75rem;  --fs-sm:.85rem; --fs-base:1rem;  --fs-lg:1.15rem;
+  --fs-xl:1.5rem;  --fs-2xl:1.9rem; --fs-3xl:2.2rem;
+  --lh-tight:1.25; --lh-base:1.6; --lh-loose:1.8;
+  --fw-normal:400; --fw-medium:500; --fw-semi:600; --fw-bold:700; --fw-black:800;
+
+  /* ---------- 布局 ---------- */
+  --container-narrow:760px;
+  --container:1080px;
+  --container-wide:1200px;
+  --container-full:1320px;
+
+  /* ---------- 层级 ---------- */
+  --z-nav:1000; --z-menu:1001; --z-overlay:1090; --z-modal:1100; --z-toast:1200;
+}
+
+/* ============ 浅色主题（课堂 / 投屏 / 打印场景）============ */
+[data-theme="light"]{
+  --bg:#F4F6FA;        --bg-soft:#EDF1F7;
+  --surface:#FFFFFF;   --surface-2:#E9EDF4;  --surface-3:#DDE3EC;
+
+  --line:rgba(16,24,40,.10);
+  --line-2:rgba(16,24,40,.18);
+  --line-3:rgba(16,24,40,.28);
+
+  --fg:#101828;        --fg-2:#475467;       --fg-3:#667085;
+  --fg-inverse:#FFFFFF;
+
+  --brand:#3F6FD8;     --brand-strong:#2F57AE;
+  --brand-soft:rgba(63,111,216,.10);
+  --brand-line:rgba(63,111,216,.30);
+  --violet:#6D4AE0;    --violet-soft:rgba(109,74,224,.10);
+
+  --gold:#FFB020;      --gold-soft:rgba(255,176,32,.14); --gold-ink:#B45309;
+  --green:#15803D;     --green-soft:rgba(21,128,61,.12);
+  --amber:#B45309;     --amber-soft:rgba(180,83,9,.12);
+  --red:#C0392B;       --red-soft:rgba(192,57,43,.12);
+
+  --sh-sm:0 1px 2px rgba(16,24,40,.06);
+  --sh-md:0 6px 18px rgba(16,24,40,.08);
+  --sh-lg:0 16px 44px rgba(16,24,40,.12);
+  --glow: 0 6px 22px rgba(63,111,216,.20);
+
+  --nav-bg:rgba(255,255,255,.86);
+  --nav-bg-solid:rgba(255,255,255,.98);
+  --nav-line:rgba(63,111,216,.18);
+  --nav-shadow:0 4px 20px rgba(16,24,40,.08);
+  --nav-accent:#3F6FD8;
+  --menu-bg:rgba(255,255,255,.98);
+  --menu-shadow:0 12px 32px rgba(16,24,40,.14);
+}
