@@ -5,38 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="KGjTcGr34MUMplESnnv4gx">
 <title>魔方盲拧记忆编码训练器</title>
 <style>
-  :root{
-    --bg:#f5f7fa; --panel:#ffffff; --ink:#1f2933; --muted:#66727f;
-    --line:#e3e8ef; --brand:#3b6ef0; --brand-soft:#e8f0ff;
-    --ok:#1aa179; --ok-soft:#e4f6ef; --bad:#e0533d; --bad-soft:#fdecea;
+  :root{ --ok-soft:var(--green-soft); --bad-soft:var(--red-soft);
     --radius:10px; --shadow:0 6px 24px rgba(31,41,51,.08);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
+  body{margin:0;background:var(--bg);color:var(--fg);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.5}
   .wrap{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
   header h1{font-size:22px;margin:0 0 4px}
-  header p{margin:0 0 16px;color:var(--muted);font-size:13px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  header p{margin:0 0 16px;color:var(--fg-3);font-size:13px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
   .card h2{font-size:15px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
-  .card h2 .tag{font-size:11px;color:var(--muted);font-weight:400}
-  label{font-size:12px;color:var(--muted)}
-  input[type=text],select{border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:14px;background:#fff;color:var(--ink);outline:none}
+  .card h2 .tag{font-size:11px;color:var(--fg-3);font-weight:400}
+  label{font-size:12px;color:var(--fg-3)}
+  input[type=text],select{border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:14px;background:var(--on-brand);color:var(--fg);outline:none}
   input:focus,select:focus{border-color:var(--brand)}
-  .btn{border:none;border-radius:6px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;transition:.15s}
+  .btn{border:none;border-radius:6px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--brand);color:var(--on-brand);transition:.15s}
   .btn:hover{filter:brightness(1.05)}
-  .btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  .btn.ghost{background:var(--on-brand);color:var(--brand);border:1px solid var(--brand)}
   .btn.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:700}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
   .modtabs{display:flex;gap:8px;flex-wrap:wrap}
-  .modtabs button{flex:1;min-width:210px;border:1px solid var(--line);background:#fff;color:var(--muted);padding:12px 14px;border-radius:8px;cursor:pointer;text-align:left;font-size:12px}
-  .modtabs button b{display:block;color:var(--ink);font-size:15px;margin-bottom:3px}
+  .modtabs button{flex:1;min-width:210px;border:1px solid var(--line);background:var(--on-brand);color:var(--fg-3);padding:12px 14px;border-radius:8px;cursor:pointer;text-align:left;font-size:12px}
+  .modtabs button b{display:block;color:var(--fg);font-size:15px;margin-bottom:3px}
   .modtabs button.active{border-color:var(--brand);background:var(--brand-soft)}
   .modtabs button.active b{color:var(--brand)}
   #stage{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:8px 0}
-  .hint{color:var(--muted);font-size:14px;text-align:center}
+  .hint{color:var(--fg-3);font-size:14px;text-align:center}
   .banner{background:var(--brand-soft);color:var(--brand);border-radius:8px;padding:10px 14px;font-size:14px;max-width:640px;text-align:center;line-height:1.7}
   .banner.big{font-size:22px;font-weight:700;padding:18px 26px;line-height:1.6}
   /* ===== 训练区：3 组一行 / 4 组两行(2+2) / 5 组两行(3+2) ===== */
@@ -47,83 +44,83 @@
   .scene.c5 .cell{grid-column:span 2}
   .scene.c5 .cell:nth-child(4){grid-column:2 / span 2}
   .scene.c5 .cell:nth-child(5){grid-column:4 / span 2}
-  .cell{position:relative;border:1px solid var(--line);border-radius:10px;background:#fafbff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 8px 8px}
-  .cell .idx{position:absolute;top:4px;left:8px;font-size:13px;font-weight:700;color:var(--muted)}
+  .cell{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 8px 8px}
+  .cell .idx{position:absolute;top:4px;left:8px;font-size:13px;font-weight:700;color:var(--fg-3)}
   .cubeWrap{display:flex;gap:2px;align-items:center;justify-content:center;margin:8px 0 0}
   .cube{display:inline-flex;gap:2px;vertical-align:middle}
   .cube canvas{display:block}
   .seg{display:flex;gap:6px;margin-top:6px}
-  .segbtn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 14px;font-size:14px;cursor:pointer;transition:.12s}
+  .segbtn{border:1px solid var(--line);background:var(--on-brand);border-radius:6px;padding:6px 14px;font-size:14px;cursor:pointer;transition:.12s}
   .segbtn:hover{border-color:var(--brand)}
-  .segbtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .segbtn.active{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
   .big-num{font-size:96px;font-weight:800;color:var(--brand);line-height:1}
-  .read-timer{font-size:15px;color:var(--muted)}
+  .read-timer{font-size:15px;color:var(--fg-3)}
   /* 三阶段指示 */
   .steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .step{font-size:13px;color:var(--muted);border:1px solid var(--line);padding:4px 14px;border-radius:999px;background:#fff}
-  .step.on{color:#fff;background:var(--brand);border-color:var(--brand);font-weight:600}
-  .step.done{color:var(--ok);border-color:var(--ok);background:var(--ok-soft)}
+  .step{font-size:13px;color:var(--fg-3);border:1px solid var(--line);padding:4px 14px;border-radius:999px;background:var(--on-brand)}
+  .step.on{color:var(--on-brand);background:var(--brand);border-color:var(--brand);font-weight:600}
+  .step.done{color:var(--green);border-color:var(--green);background:var(--ok-soft)}
   /* ===== 答题区 ===== */
   .qwrap{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
   .qpos{font-size:22px;font-weight:700}
-  .qpos small{font-size:14px;color:var(--muted);font-weight:400}
+  .qpos small{font-size:14px;color:var(--fg-3);font-weight:400}
   .slots{display:flex;gap:10px}
-  .slot{width:70px;height:78px;border:2px solid var(--line);border-radius:0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:var(--brand)}
+  .slot{width:70px;height:78px;border:2px solid var(--line);border-radius:0;background:var(--on-brand);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:var(--brand)}
   .slot.cur{border-color:var(--brand);background:var(--brand-soft)}
-  .slot.empty{color:#c3ccd8}
+  .slot.empty{color:var(--fg-2)}
   /* 字母键盘：两行，三个一组，直角大按钮 */
   .kbd{display:flex;flex-direction:column;gap:14px;align-items:center;margin-top:6px}
   .kbdrow{display:flex;gap:22px;justify-content:center;flex-wrap:wrap}
   .kbdgrp{display:flex}
   .kbdgrp button{
-    width:78px;height:72px;border:1px solid #c8d2e0;border-right-width:0;border-radius:0;
-    background:#fff;font-weight:700;color:var(--ink);font-size:32px;cursor:pointer;transition:.08s;padding:0;
+    width:78px;height:72px;border:1px solid var(--fg-2);border-right-width:0;border-radius:0;
+    background:var(--on-brand);font-weight:700;color:var(--fg);font-size:32px;cursor:pointer;transition:.08s;padding:0;
     font-family:inherit;line-height:1;
   }
   .kbdgrp button:last-child{border-right-width:1px}
   .kbdgrp button:hover{background:var(--brand-soft);border-color:var(--brand);position:relative;z-index:1}
-  .kbdgrp button.hit{background:var(--brand);color:#fff;border-color:var(--brand);position:relative;z-index:1}
-  .kbdgrp button.dim{color:#b3bcc9}
+  .kbdgrp button.hit{background:var(--brand);color:var(--on-brand);border-color:var(--brand);position:relative;z-index:1}
+  .kbdgrp button.dim{color:var(--fg-2)}
   .qbtns{display:flex;gap:10px;margin-top:4px}
-  .qbtns button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--muted)}
+  .qbtns button{border:1px solid var(--line);background:var(--on-brand);border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--fg-3)}
   .qbtns button:hover{border-color:var(--brand);color:var(--brand)}
-  .kbd-tip{font-size:12px;color:var(--muted)}
+  .kbd-tip{font-size:12px;color:var(--fg-3)}
   /* 选项 / 结果 */
   .opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-  .opt{border:1px solid var(--line);border-radius:8px;background:#fff;width:150px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;cursor:pointer;transition:.12s}
+  .opt{border:1px solid var(--line);border-radius:8px;background:var(--on-brand);width:150px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;cursor:pointer;transition:.12s}
   .opt:hover{border-color:var(--brand);transform:translateY(-2px)}
   .opt:disabled{opacity:.7;cursor:default;transform:none}
-  .opt .pw{font-size:26px;font-weight:700;color:var(--ink);text-align:center;line-height:1.25}
+  .opt .pw{font-size:26px;font-weight:700;color:var(--fg);text-align:center;line-height:1.25}
   .opt .pl{font-size:15px;color:var(--brand);letter-spacing:2px;font-weight:700}
-  .opt.right{background:var(--ok-soft);border-color:var(--ok)}
-  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
-  .bigq{font-size:30px;font-weight:800;color:var(--ink);text-align:center;line-height:1.4}
-  .cyc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:26px;font-weight:700;color:var(--ink)}
-  .cyc i{font-style:normal;color:var(--muted);font-size:20px}
-  .cyc span{background:#f3f7ff;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:24px;letter-spacing:1px}
-  .cyc span em{display:block;font-style:normal;font-size:13px;color:var(--muted);font-weight:400;letter-spacing:0}
+  .opt.right{background:var(--ok-soft);border-color:var(--green)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--red)}
+  .bigq{font-size:30px;font-weight:800;color:var(--fg);text-align:center;line-height:1.4}
+  .cyc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:26px;font-weight:700;color:var(--fg)}
+  .cyc i{font-style:normal;color:var(--fg-3);font-size:20px}
+  .cyc span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:24px;letter-spacing:1px}
+  .cyc span em{display:block;font-style:normal;font-size:13px;color:var(--fg-3);font-weight:400;letter-spacing:0}
   .cyc span.hit{background:var(--brand-soft);border-color:var(--brand)}
-  .err-tip{font-size:20px;font-weight:700;color:var(--bad)}
+  .err-tip{font-size:20px;font-weight:700;color:var(--red)}
   .res-item{display:flex;align-items:center;gap:10px;font-size:15px;padding:4px 0;border-bottom:1px dashed var(--line)}
-  .res-item .no{width:64px;color:var(--muted);font-size:13px}
+  .res-item .no{width:64px;color:var(--fg-3);font-size:13px}
   .res-item .code{font-weight:800;letter-spacing:2px;width:78px}
-  .res-item .word{color:var(--muted)}
-  .res-item.okc .code{color:var(--ok)}
-  .res-item.badc .code{color:var(--bad)}
+  .res-item .word{color:var(--fg-3)}
+  .res-item.okc .code{color:var(--green)}
+  .res-item.badc .code{color:var(--red)}
   .resbox{width:100%;max-width:560px}
   .hold-box{text-align:center}
-  .hold-box .n{font-size:64px;font-weight:800;color:var(--ok);line-height:1}
-  .hold-box .okline{font-size:24px;font-weight:700;color:var(--ok);margin-top:6px}
-  .hold-box .t{font-size:17px;color:var(--muted);margin-top:8px}
+  .hold-box .n{font-size:64px;font-weight:800;color:var(--green);line-height:1}
+  .hold-box .okline{font-size:24px;font-weight:700;color:var(--green);margin-top:6px}
+  .hold-box .t{font-size:17px;color:var(--fg-3);margin-top:8px}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{text-align:left;padding:7px;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:500;font-size:12px}
+  th{color:var(--fg-3);font-weight:500;font-size:12px}
   td input[type=text]{width:100%;max-width:220px}
   .dict-tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
   .dict-filter{margin-left:auto}
-  .muted{color:var(--muted);font-size:12px}
+  .muted{color:var(--fg-3);font-size:12px}
   .hidden{display:none!important}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:.95}
   .field{display:flex;flex-direction:column;gap:6px;min-width:190px}
   /* ===== 移动端（竖屏）自适应 ===== */
@@ -177,6 +174,8 @@
   }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body data-page-node-id="dZ2BMqZICNdyUY2WL9aHau">
 <div data-site-nav></div>
@@ -189,7 +188,7 @@
 
   <section class="card" data-page-node-id="PRr99KvXUP4YnuRmqL5NmS">
     <h2 data-page-node-id="TAncRb9tYdU4v0g0OQXfDn">选择模块</h2>
-    <div class="modtabs" id="modTabs" data-page-node-id="EiYSZgpPGCwYAw0yQ7Todb">
+    <div class="tabs" id="modTabs" data-page-node-id="EiYSZgpPGCwYAw0yQ7Todb">
       <button data-mod="m1" class="active" data-page-node-id="hzRUSSte8Uns82Cryf4NzJ"><b data-page-node-id="EFBzjHffLuUxfzIbqPQfVs">模块1 · 编码联想记忆</b>读一遍记忆 → 读一遍串联记忆 → 回忆编码</button>
       <button data-mod="m2" data-page-node-id="M8EOHOAYGPqDHS7arCdent"><b data-page-node-id="JsNJi8H4TXj8SkfHHtIQF8">模块2 · 记忆间隔提取训练</b>读一遍 → 停留 N 秒 → 复述全部编码</button>
       <button data-mod="m3" data-page-node-id="IHX7gUjQLRfjYOaUbOmZJ4"><b data-page-node-id="mil8qsbPmdePKwcaSJN8gN">模块3 · 主动刷新</b>读一遍记忆 → 做棱块 → 主动刷新 → 回忆编码</button>
@@ -198,18 +197,18 @@
       <div class="field" data-page-node-id="U0AVFUoAuK4A6vHJgaBmE6">
         <label data-page-node-id="Dl7LCQAxIH3ij8ryNqCBlb">每组图数：<b id="grpVal" data-page-node-id="mW0q56w6S4AATLixhHMbTM">4</b></label>
         <div class="seg" id="grpSeg" data-page-node-id="QfzD9nmKlvrGaiFubtfKzx">
-          <button class="segbtn" data-g="3" data-page-node-id="EERkx0dKkNqGbeTm5XLuBR">3 组</button>
-          <button class="segbtn active" data-g="4" data-page-node-id="wJCv5KmXzHznN2YhZVwnjd">4 组</button>
-          <button class="segbtn" data-g="5" data-page-node-id="LNtjMzGpLHvtst9mLDWdVm">5 组</button>
+          <button class="seg__btn" data-g="3" data-page-node-id="EERkx0dKkNqGbeTm5XLuBR">3 组</button>
+          <button class="seg__btn active" data-g="4" data-page-node-id="wJCv5KmXzHznN2YhZVwnjd">4 组</button>
+          <button class="seg__btn" data-g="5" data-page-node-id="LNtjMzGpLHvtst9mLDWdVm">5 组</button>
         </div>
       </div>
       <div class="field" id="gapField" data-page-node-id="80LjH3oZo845IGtEpdXQTI">
         <label data-page-node-id="dwxJnQVi5HIFxzVOAt7H5m">模块2 中间间隔：<b id="gapVal" data-page-node-id="KVzp9OY3KaXxsqkDkTDKGI">15</b> 秒</label>
         <div class="seg" id="gapSeg" data-page-node-id="4A1EtyoG80MbUMuWhw9ftH">
-          <button class="segbtn" data-t="10" data-page-node-id="KOTpsDx1oKFdIiR1pDAFpH">10s</button>
-          <button class="segbtn active" data-t="15" data-page-node-id="5VI092DUDWl9j1V0EOHE63">15s</button>
-          <button class="segbtn" data-t="20" data-page-node-id="STdlfj3ad8rJlgoFB20bAp">20s</button>
-          <button class="segbtn" data-t="30" data-page-node-id="UQfOS0rTQkEskms0DIAw12">30s</button>
+          <button class="seg__btn" data-t="10" data-page-node-id="KOTpsDx1oKFdIiR1pDAFpH">10s</button>
+          <button class="seg__btn active" data-t="15" data-page-node-id="5VI092DUDWl9j1V0EOHE63">15s</button>
+          <button class="seg__btn" data-t="20" data-page-node-id="STdlfj3ad8rJlgoFB20bAp">20s</button>
+          <button class="seg__btn" data-t="30" data-page-node-id="UQfOS0rTQkEskms0DIAw12">30s</button>
         </div>
       </div>
       <button class="btn" id="startBtn" data-page-node-id="XUKVjGPjRoTWltg5MOhmUa">开始本模块</button>
@@ -217,12 +216,12 @@
   </section>
 
   <section class="card" data-page-node-id="LaWFww7BKrltLud6nXVcZX">
-    <h2 data-page-node-id="qRUPfW7pPJgw1yHYfvJFb3">训练区 <span class="tag" id="stageTag" data-page-node-id="aRG9YNGdguUQHhMSSar28G">模块1 · 编码联想记忆</span></h2>
+    <h2 data-page-node-id="qRUPfW7pPJgw1yHYfvJFb3">训练区 <span class="badge" id="stageTag" data-page-node-id="aRG9YNGdguUQHhMSSar28G">模块1 · 编码联想记忆</span></h2>
     <div id="stage" data-page-node-id="SlThpJC9JuwkPF1CbAEsZK"><div class="hint" data-page-node-id="g6KBTa4WhE0AZaTBzMV2sb">选择上方模块，点「开始本模块」。</div></div>
   </section>
 
   <section class="card" data-page-node-id="LgriBoHFDQsaoEfZkxvTcB">
-    <h2 data-page-node-id="BOPvNvxzITvKwyq5lyzjvz">成绩 <span class="tag" data-page-node-id="aVeCij14XSivwtjUUfelmc">完成才算成绩 · 记录用时</span></h2>
+    <h2 data-page-node-id="BOPvNvxzITvKwyq5lyzjvz">成绩 <span class="badge" data-page-node-id="aVeCij14XSivwtjUUfelmc">完成才算成绩 · 记录用时</span></h2>
     <table data-page-node-id="b07u0CJEEXBqqWZnfBPbl4">
       <thead data-page-node-id="qH62Y6M7JxknFlDWnQtStO"><tr data-page-node-id="8lCIIG76q5WlZX6L1XTaZS"><th data-page-node-id="teImqHAVEEG5XSBlMpbYw9">模块</th><th data-page-node-id="ObO620OIgxD3qAXjDlkSfv">最快</th><th data-page-node-id="PYA2Cy5fLf5ocDDkuNHVTk">最近 5 次平均</th><th data-page-node-id="sgEcXx0xB7Tjxw7Ox8tOmF">最近 12 次平均</th><th data-page-node-id="axfu4SJ3f2ag3Ru2IgQxYM">完成次数</th></tr></thead>
       <tbody data-page-node-id="7cTBdjz5BtKk1ouH3IptJN">
@@ -235,8 +234,8 @@
   </section>
 
   <section class="card" data-page-node-id="kroAFIw5A59bu0YzPEjgv3">
-    <h2 data-page-node-id="DBAnHPIjhIOfvWB7w5z6d1">对码词典（优尔） <span class="tag" data-page-node-id="SEO883y08TdU56wRESxNlL">可编辑·自动保存</span></h2>
-    <div class="dict-tabs" data-page-node-id="lOxYOMWC3QLNcb0u7k3NMf">
+    <h2 data-page-node-id="DBAnHPIjhIOfvWB7w5z6d1">对码词典（优尔） <span class="badge" data-page-node-id="SEO883y08TdU56wRESxNlL">可编辑·自动保存</span></h2>
+    <div class="tabs" data-page-node-id="lOxYOMWC3QLNcb0u7k3NMf">
       <button class="btn ghost" id="exportBtn" style="padding:7px 14px" data-page-node-id="F25keW9xQgUlBAjUIhpHEa">导出词典</button>
       <button class="btn ghost" id="importBtn" style="padding:7px 14px" data-page-node-id="rW202z32lAQwCVYZDgV7wE">导入词典</button>
       <button class="btn ghost" id="missBtn" style="padding:7px 14px" data-page-node-id="t6qQebGJn7uJxBXS7xzUWV">只看待补 · <span id="missNum" data-page-node-id="h0gH5mlF3UZDkYnAuWFZVs">0</span></button>
@@ -245,7 +244,7 @@
     <div class="card hidden" id="importPanel" style="margin-top:10px;background:var(--bg)" data-page-node-id="MQZRMGKGiP4GOXnswEYyxH">
       <div class="hint" style="text-align:left" data-page-node-id="TUAaQMKviA13aIEDBjosrj">支持格式：① md 表格（<code data-page-node-id="LT5n9XDkDMwHgbrUZX2jgY">| AB | 阿波罗 | bō |</code>）② JSON <code data-page-node-id="usS8i4sHd9WwblsTwHQkZd">{"AB":"阿波罗"}</code> ③ 每行 <code data-page-node-id="UlVdIEy4NtjGRAZpxUc7HZ">AB 阿波罗</code>。只更新匹配到的对码；联想词里的括号内容会自动去掉。</div>
       <textarea id="importText" rows="5" placeholder="把词典粘贴到这里，或选择文件…" style="width:100%;margin-top:8px;border:1px solid var(--line);border-radius:6px;padding:10px;font-size:13px;resize:vertical"></textarea>
-      <div class="btn-row" style="justify-content:flex-start" data-page-node-id="HysPzdh3hlhoRB4CAcxz0Y">
+      <div class="toolbar" style="justify-content:flex-start" data-page-node-id="HysPzdh3hlhoRB4CAcxz0Y">
         <input type="file" id="importFile" accept=".json,.txt,.csv,.md" style="font-size:12px;flex:1;min-width:200px" data-page-node-id="VInhj4oTEJpiCK1XqLoazD">
         <button class="btn" id="applyImport" data-page-node-id="Aqi4RLFrf9aDXwb9O2aQrf">应用导入</button>
         <button class="btn ghost" id="cancelImport" data-page-node-id="EwdQi52QphyrfCBC7bEGZv">取消</button>
@@ -611,7 +610,7 @@ function resultList(codes,picks){
     const ok=picks[i]===c;
     const row=document.createElement('div');row.className='res-item '+(ok?'okc':'badc');
     row.innerHTML='<span class="no">位置 '+(i+1)+'</span>'+
-      '<span class="code">'+(ok?'✓ ':'✗ ')+(picks[i]||'__')+'</span>'+
+      '<span class="formula">'+(ok?'✓ ':'✗ ')+(picks[i]||'__')+'</span>'+
       '<span class="word">'+(ok?'':'正确 <b style="color:var(--ok)">'+c+'</b> · ')+esc(pairDict[c]||'')+'</span>';
     box.appendChild(row);
   });
@@ -893,5 +892,9 @@ document.getElementById('startBtn').addEventListener('click',()=>{
 renderDict('');renderStats();updateMissNum();
 </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

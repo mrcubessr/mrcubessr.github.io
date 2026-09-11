@@ -30,25 +30,9 @@
   gap:var(--s3); margin-top:var(--s5);
 }
 
-/* ---------- 按钮 ----------
-   说明：base.css 声明 .btn 属于阶段三；本阶段只有首页用到按钮，
-   故先落在 home.css。阶段三建立全局组件后应提升到共享层。 */
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  min-height:44px;                       /* 触控目标 ≥44px（WCAG 2.5.5） */
-  padding:var(--s3) var(--s5);
-  border:1px solid transparent; border-radius:var(--r-full);
-  font-family:inherit; font-size:var(--fs-base); font-weight:var(--fw-semi);
-  text-decoration:none; cursor:pointer;
-  transition:background var(--t-fast), border-color var(--t-fast),
-             color var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
-}
-.btn--primary{ background:var(--brand); color:var(--on-brand); box-shadow:var(--glow); }
-.btn--primary:hover{ background:var(--brand-strong); transform:translateY(-1px); color:var(--on-brand); }
-.btn--ghost{ background:transparent; color:var(--fg); border-color:var(--line-2); }
-.btn--ghost:hover{ background:var(--brand-soft); border-color:var(--brand-line); color:var(--fg); }
-
-/* ---------- 区块标题 ---------- */
+/* ---------- 区块标题 ----------
+   说明：.btn / .btn--primary / .btn--ghost 已统一收归 assets/css/components.css（阶段三）。
+   首页仅保留布局与卡片专用样式，不再重复定义按钮。 */
 .section-title{
   position:relative;
   margin:0 0 var(--s4);

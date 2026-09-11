@@ -7,8 +7,8 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #0d0d1a;
-    color: #d4cfc4;
+    background: var(--bg);
+    color: var(--fg-2);
     font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
     min-height: 100vh;
     display: flex;
@@ -24,7 +24,7 @@
     padding: 18px 12px 0;
   }
   .top-nav a {
-    color: #aaa;
+    color: var(--fg-3);
     text-decoration: none;
     font-size: 0.85rem;
     padding: 6px 16px;
@@ -32,15 +32,15 @@
     border-radius: 6px;
     transition: all 0.2s;
   }
-  .top-nav a:hover { color: #ccc; border-color: rgba(255,255,255,0.2); }
-  .top-nav a.active { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+  .top-nav a:hover { color: var(--fg-3); border-color: rgba(255,255,255,0.2); }
+  .top-nav a.active { color: var(--on-brand); background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
 
   .header {
     text-align: center;
     padding: 26px 16px 10px;
   }
   .header h1 {
-    color: #64b4ff;
+    color: var(--brand);
     font-size: 1.9rem;
     letter-spacing: 3px;
     text-shadow: 0 0 18px rgba(100,180,255,0.35);
@@ -49,7 +49,7 @@
     padding-bottom: 10px;
   }
   .header .sub {
-    color: #8ec8ff;
+    color: var(--brand);
     font-size: 0.85rem;
     margin-top: 10px;
     letter-spacing: 1px;
@@ -70,7 +70,7 @@
   }
 
   .card {
-    background: linear-gradient(160deg, #15152a, #1a1a32);
+    background: linear-gradient(160deg, var(--surface), var(--surface));
     border: 1px solid rgba(100,180,255,0.12);
     border-radius: 12px;
     padding: 18px;
@@ -85,14 +85,14 @@
     padding: 7px 22px;
     border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.08);
-    color: #aaa;
+    color: var(--fg-3);
     cursor: pointer;
     font-size: 0.9rem;
     transition: all 0.2s;
     background: transparent;
   }
   .tab.active {
-    color: #fff;
+    color: var(--on-brand);
     background: rgba(100,180,255,0.18);
     border-color: rgba(100,180,255,0.5);
   }
@@ -109,14 +109,14 @@
   .field label {
     flex: 0 0 78px;
     font-size: 0.85rem;
-    color: #b8b2a4;
+    color: var(--fg-2);
   }
   .field input, .field select {
     flex: 1;
-    background: #10101f;
+    background: var(--bg-soft);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 6px;
-    color: #e8e3d8;
+    color: var(--fg-2);
     padding: 7px 10px;
     font-size: 0.9rem;
     outline: none;
@@ -126,7 +126,7 @@
 
   .group-title {
     font-size: 0.85rem;
-    color: #64b4ff;
+    color: var(--brand);
     margin: 16px 0 10px;
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(100,180,255,0.15);
@@ -144,8 +144,8 @@
   .btn-start {
     flex: 0 0 auto;
     padding: 9px 26px;
-    background: linear-gradient(135deg, #64b4ff, #3d8fd9);
-    color: #0d0d1a;
+    background: linear-gradient(135deg, var(--brand), var(--brand));
+    color: var(--bg);
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -158,7 +158,7 @@
   .btn-start:active { transform: translateY(0); }
 
   .output-area {
-    background: #0a0a14;
+    background: var(--bg);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 10px;
     padding: 16px;
@@ -170,21 +170,21 @@
     line-height: 1.7;
     white-space: pre-wrap;
     word-break: break-all;
-    color: #e8e3d8;
+    color: var(--fg-2);
   }
-  .output-area .scramble { color: #64b4ff; }
-  .output-area .code-line { color: #8a8578; font-size: 0.8rem; }
-  .output-area .code-line .hi { color: #ff6b6b; font-weight: 700; }
-  .placeholder { color: #4a4f60; text-align: center; padding-top: 180px; }
+  .output-area .scramble { color: var(--brand); }
+  .output-area .code-line { color: var(--fg-3); font-size: 0.8rem; }
+  .output-area .code-line .hi { color: var(--red); font-weight: 700; }
+  .placeholder { color: var(--fg-3); text-align: center; padding-top: 180px; }
 
   .status {
     margin-top: 12px;
     font-size: 0.85rem;
     min-height: 20px;
   }
-  .status.err { color: #ff7a7a; }
-  .status.ok { color: #7ad99a; }
-  .status.warn { color: #ffd07a; }
+  .status.err { color: var(--red); }
+  .status.ok { color: var(--green); }
+  .status.warn { color: var(--amber); }
 
   /* 弹窗 */
   .toast {
@@ -195,7 +195,7 @@
     border: 1px solid rgba(100,180,255,0.3);
     border-radius: 14px;
     padding: 28px 42px;
-    color: #fff;
+    color: var(--on-brand);
     font-size: 1.05rem;
     text-align: center;
     opacity: 0;
@@ -211,31 +211,21 @@
     line-height: 30px;
     border-radius: 50%;
     background: rgba(122,217,154,0.2);
-    color: #7ad99a;
+    color: var(--green);
     font-size: 20px;
     margin-bottom: 10px;
   }
 
-  .footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 16px 0 24px;
-    font-size: 12px;
-    letter-spacing: 1px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-  }
-  .footer .grp { color: #fbbf24; }
-  .footer .author { color: #60a5fa; }
-  .footer .zh { color: #f472b6; }
-
   .hint {
     font-size: 0.78rem;
-    color: #6a6f80;
+    color: var(--fg-3);
     margin-top: 12px;
     line-height: 1.6;
   }
 </style>
   <link rel="stylesheet" href="/assets/css/site-nav.css" />
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body data-nav="bldscramble" style="padding-top:60px">
 <div data-site-nav></div>
@@ -269,10 +259,10 @@
     </div>
 
     <!-- 菜单面板 -->
-    <div class="panel active" id="panel-menu">
+    <div class="card active" id="panel-menu">
       <div class="count-row">
         <input type="number" id="count" value="1" min="1" max="50">
-        <button class="btn-start" id="btnStart">开始</button>
+        <button class="btn btn--primary" id="btnStart">开始</button>
       </div>
 
       <div class="group-title">棱</div>
@@ -321,7 +311,7 @@
     </div>
 
     <!-- 设置面板 -->
-    <div class="panel" id="panel-settings">
+    <div class="card" id="panel-settings">
       <div class="field"><label>公式序号</label>
         <select id="setNo">
           <option value="1">显示序号</option>
@@ -390,11 +380,10 @@
   </div>
 </div>
 
-<div class="footer">
-  <span class="grp">本网站内容来自中国转面八面体（FTO）魔方交流群272010376</span>
-  <span class="author"> 制作人：魔方先生SSR </span>
-  <span class="zh">2009ZHAN24</span>
-</div>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 
 <div class="toast" id="toast"><div class="tick">✓</div><div>已添加到剪贴板</div></div>
 
@@ -3208,7 +3197,7 @@ function render() {
         const cFlipN = r.cornerInfo.colors.filter(c => c === 'L').length;
         lines.push('  棱(翻' + eFlipN + '): ' + fmtCode(r.edgeInfo.code, r.edgeInfo.colors, colorMode) + '  角(翻' + cFlipN + '): ' + fmtCode(r.cornerInfo.code, r.cornerInfo.colors, colorMode));
       }
-      results.push('<span class="scramble">' + lines[0] + '</span>' + (lines[1] ? '\n<span class="code-line">' + lines[1] + '</span>' : ''));
+      results.push('<span class="scramble">' + lines[0] + '</span>' + (lines[1] ? '\n<span class="formula-block">' + lines[1] + '</span>' : ''));
     }
     const ms = Date.now() - startTime;
     const tailNote = (coord === 'yellow-red' ? ' · 黄顶红前' : ' · 白顶绿前') + (cp.len === 0 ? ' · 角0六面模式' : '');

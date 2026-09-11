@@ -4,41 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三阶魔方公式库 · F2L</title>
-<style>
+<style>:root {
+  --c3-ui-22a8cb: #22a8cb;
+  --c3-ui-156d8c: #156d8c;
+  --c3-ui-0c3a4d: #0c3a4d;
+}
+
 :root {
-  --bg: #0d0d1a;
-  --card: #15152a;
-  --card2: #1a1a33;
-  --accent: #64b4ff;
-  --text: #d4cfc4;
-  --muted: #8b93a7;
-  --border: rgba(100,180,255,0.25);
-  --chip-bg: rgba(100,180,255,0.10);
-  --badge-bg: #22223f;
-  --overlay: rgba(0,0,0,0.6);
-  --radius: 12px;
+  --c3-chip-bg: rgba(100,180,255,0.10);
+  --c3-badge-bg: var(--surface-2);
+  --c3-overlay: rgba(0,0,0,0.6);
 }
 html[data-theme="light"] {
-  --bg: #f7fafb;
-  --card: #ffffff;
-  --card2: #f0f8fa;
-  --accent: #22a8cb;
-  --text: #0c3a4d;
-  --muted: #156d8c;
+  --bg: var(--surface);
+  --card: var(--on-brand);
+  --card2: var(--surface);
+  --accent: var(--c3-ui-22a8cb);
+  --text: var(--c3-ui-0c3a4d);
+  --muted: var(--c3-ui-156d8c);
   --border: rgba(34,168,203,0.55);
   --chip-bg: rgba(34,168,203,0.10);
-  --badge-bg: #ffffff;
+  --badge-bg: var(--on-brand);
   --overlay: rgba(12,58,77,0.45);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
   background: var(--bg);
-  color: var(--text);
+  color: var(--fg);
   line-height: 1.5;
   transition: background 0.2s, color 0.2s;
 }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--brand); text-decoration: none; }
 
 
 .page-head {
@@ -47,155 +44,150 @@ a { color: var(--accent); text-decoration: none; }
 }
 .page-head h1 { font-size: 1.5rem; }
 .badge-333 {
-  background: var(--badge-bg); border: 1px solid var(--border);
-  color: var(--accent); font-size: 0.7rem; font-weight: 700;
+  background: var(--c3-badge-bg); border: 1px solid var(--line);
+  color: var(--brand); font-size: 0.7rem; font-weight: 700;
   padding: 2px 8px; border-radius: 6px;
 }
 .head-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.head-stat { font-size: 0.8rem; color: var(--muted); }
+.head-stat { font-size: 0.8rem; color: var(--fg-3); }
 .theme-btn {
-  background: transparent; border: 1px solid var(--border); color: var(--text);
+  background: transparent; border: 1px solid var(--line); color: var(--fg);
   font-size: 0.85rem; padding: 4px 10px; border-radius: 8px; cursor: pointer;
 }
-.theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+.theme-btn:hover { border-color: var(--brand); color: var(--brand); }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 12px 24px 40px; }
 
 .filter-bar { margin: 12px 0; }
 .filter-toggle {
-  background: transparent; border: none; color: var(--accent);
+  background: transparent; border: none; color: var(--brand);
   font-size: 0.85rem; cursor: pointer; padding: 4px 0;
 }
 .filter-panel {
-  margin-top: 8px; padding: 14px; border: 1px solid var(--border);
-  border-radius: var(--radius); background: var(--card);
+  margin-top: 8px; padding: 14px; border: 1px solid var(--line);
+  border-radius: var(--r-lg); background: var(--surface);
   display: flex; flex-direction: column; gap: 10px;
 }
 .filter-panel.hidden { display: none; }
 .search-box {
   width: 100%; padding: 8px 12px; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--badge-bg);
-  color: var(--text); font-size: 0.85rem; outline: none;
+  border: 1px solid var(--line); background: var(--c3-badge-bg);
+  color: var(--fg); font-size: 0.85rem; outline: none;
 }
-.search-box:focus { border-color: var(--accent); }
+.search-box:focus { border-color: var(--brand); }
 .filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.filter-row .label { font-size: 0.78rem; color: var(--muted); min-width: 52px; }
+.filter-row .label { font-size: 0.78rem; color: var(--fg-3); min-width: 52px; }
 .chip {
-  border: 1px solid var(--border); border-radius: 999px;
+  border: 1px solid var(--line); border-radius: 999px;
   padding: 3px 12px; font-size: 0.78rem; cursor: pointer;
-  color: var(--text); background: transparent; transition: all 0.15s;
+  color: var(--fg); background: transparent; transition: all 0.15s;
 }
-.chip:hover { border-color: var(--accent); color: var(--accent); }
-.chip.active { background: var(--chip-bg); border-color: var(--accent); color: var(--accent); }
+.chip:hover { border-color: var(--brand); color: var(--brand); }
+.chip.active { background: var(--c3-chip-bg); border-color: var(--brand); color: var(--brand); }
 
 .section { margin-top: 26px; }
 .section-title {
   display: flex; align-items: baseline; gap: 10px;
   font-size: 1.02rem; font-weight: 700; margin-bottom: 12px;
 }
-.section-title .count { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+.section-title .count { font-size: 0.75rem; color: var(--fg-3); font-weight: 400; }
 .grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
 }
 .case-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 12px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 12px;
   cursor: pointer; transition: transform 0.18s, border-color 0.18s;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
-.case-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+.case-card:hover { transform: translateY(-3px); border-color: var(--brand); }
 .case-card .card-name {
-  background: var(--badge-bg); border: 1px solid var(--border);
-  border-radius: 6px; color: var(--text);
+  background: var(--c3-badge-bg); border: 1px solid var(--line);
+  border-radius: 6px; color: var(--fg);
   font-size: 0.72rem; font-weight: 700; padding: 2px 10px;
 }
 .case-card svg { width: 140px; height: 140px; }
 .case-card .main-alg {
   font-family: "Consolas", "Courier New", monospace;
-  font-size: 0.82rem; color: var(--text);
+  font-size: 0.82rem; color: var(--fg);
   text-align: center; word-break: break-all; line-height: 1.35;
 }
-.case-card .more-tip { font-size: 0.68rem; color: var(--muted); }
+.case-card .more-tip { font-size: 0.68rem; color: var(--fg-3); }
 
-.empty { text-align: center; color: var(--muted); padding: 50px 0; }
+.empty { text-align: center; color: var(--fg-3); padding: 50px 0; }
 
 .modal-overlay {
-  position: fixed; inset: 0; background: var(--overlay);
+  position: fixed; inset: 0; background: var(--c3-overlay);
   display: none; align-items: center; justify-content: center; z-index: 100;
 }
 .modal-overlay.open { display: flex; }
 .modal {
   width: min(520px, 92vw); max-height: 86vh; overflow-y: auto;
-  background: var(--card); border: 1px solid var(--border);
+  background: var(--surface); border: 1px solid var(--line);
   border-radius: 14px; padding: 20px; position: relative;
 }
 .modal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .modal-head h2 { font-size: 1.1rem; }
 .modal-close {
   margin-left: auto; background: transparent; border: none;
-  color: var(--muted); font-size: 1.3rem; cursor: pointer; line-height: 1;
+  color: var(--fg-3); font-size: 1.3rem; cursor: pointer; line-height: 1;
 }
-.modal-close:hover { color: var(--accent); }
+.modal-close:hover { color: var(--brand); }
 .modal-scramble {
-  background: var(--chip-bg); border: 1px solid var(--border);
+  background: var(--c3-chip-bg); border: 1px solid var(--line);
   border-radius: 8px; padding: 8px 12px; font-size: 0.78rem;
-  color: var(--muted); margin-bottom: 14px; word-break: break-all;
+  color: var(--fg-3); margin-bottom: 14px; word-break: break-all;
 }
-.modal-section-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+.modal-section-label { font-size: 0.75rem; color: var(--fg-3); margin-bottom: 8px; }
 .alg-list { display: flex; flex-direction: column; gap: 6px; }
 .alg-more { display: flex; flex-direction: column; gap: 6px; }
 .alg-row {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  background: var(--chip-bg); border-radius: 8px; padding: 6px 10px;
+  background: var(--c3-chip-bg); border-radius: 8px; padding: 6px 10px;
   font-family: "Consolas", "Courier New", monospace;
-  font-size: 0.85rem; color: var(--text);
+  font-size: 0.85rem; color: var(--fg);
 }
-.alg-row .idx { color: var(--muted); font-size: 0.72rem; min-width: 20px; }
+.alg-row .idx { color: var(--fg-3); font-size: 0.72rem; min-width: 20px; }
 .copy-btn {
   flex-shrink: 0; background: transparent;
-  border: 1px solid var(--border); color: var(--muted);
+  border: 1px solid var(--line); color: var(--fg-3);
   font-size: 0.72rem; padding: 3px 10px; border-radius: 6px;
   cursor: pointer; transition: all 0.15s;
 }
-.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-.copy-btn.ok { border-color: #34d399; color: #34d399; }
+.copy-btn:hover { border-color: var(--brand); color: var(--brand); }
+.copy-btn.ok { border-color: var(--green); color: var(--green); }
 .toggle-btn {
   margin-top: 8px; width: 100%;
-  background: transparent; border: 1px dashed var(--border);
-  color: var(--accent); font-size: 0.78rem; padding: 6px;
+  background: transparent; border: 1px dashed var(--line);
+  color: var(--brand); font-size: 0.78rem; padding: 6px;
   border-radius: 8px; cursor: pointer; transition: all 0.15s;
 }
-.toggle-btn:hover { border-color: var(--accent); background: var(--chip-bg); }
+.toggle-btn:hover { border-color: var(--brand); background: var(--c3-chip-bg); }
 .proficiency { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
 .prof-tag {
-  border: 1px solid var(--border); border-radius: 999px;
-  padding: 2px 10px; font-size: 0.72rem; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 2px 10px; font-size: 0.72rem; color: var(--fg-3);
 }
 .modal-nav {
   display: flex; align-items: center; justify-content: space-between;
-  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
 }
 .modal-nav button {
-  background: transparent; border: 1px solid var(--border);
-  color: var(--text); padding: 4px 14px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--line);
+  color: var(--fg); padding: 4px 14px; border-radius: 8px;
   cursor: pointer; font-size: 0.8rem;
 }
-.modal-nav button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.modal-nav button:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
 .modal-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
-.modal-nav .page-info { font-size: 0.78rem; color: var(--muted); }
-
-.site-footer { text-align: center; padding: 24px 16px 40px; }
-.site-footer p { font-size: 0.82rem; color: #888; margin-top: 10px; }
-.site-footer .g { color: #fbbf24; font-weight: 600; }
-.site-footer .a { color: #60a5fa; font-weight: 600; }
-.site-footer .z { color: #f472b6; font-weight: 600; }
-.site-footer .src { color: #666; font-size: 0.75rem; margin-top: 6px; }
+.modal-nav .page-info { font-size: 0.78rem; color: var(--fg-3); }
 
 @media (max-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 760px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px)  { .grid { grid-template-columns: 1fr; } }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -207,24 +199,24 @@ a { color: var(--accent); text-decoration: none; }
   <span class="badge-333">333</span>
   <div class="head-right">
     <span class="head-stat" id="stat"></span>
-    <button class="theme-btn" id="themeBtn" title="切换外观">外观</button>
+    <button class="btn btn--sm" id="themeBtn" title="切换外观">外观</button>
   </div>
 </div>
 
 <div class="container">
   <div class="filter-bar">
-    <button class="filter-toggle" id="filterToggle">&#9654; 过滤</button>
+    <button class="btn btn--ghost" id="filterToggle">&#9654; 过滤</button>
     <div class="filter-panel hidden" id="filterPanel">
       <input class="search-box" id="search" type="text" placeholder="搜索 case 编号或公式，如 F2L 12 / U R U' R'">
       <div class="filter-row">
         <span class="label">分组</span>
-        <span class="chip active" data-group="全部">全部</span>
-        <span class="chip" data-group="Free Pairs">Free Pairs</span>
-        <span class="chip" data-group="Disconnected Pairs">Disconnected Pairs</span>
-        <span class="chip" data-group="Connected Pairs">Connected Pairs</span>
-        <span class="chip" data-group="Corner In Slot">Corner In Slot</span>
-        <span class="chip" data-group="Edge In Slot">Edge In Slot</span>
-        <span class="chip" data-group="Pieces In Slot">Pieces In Slot</span>
+        <span class="badge active" data-group="全部">全部</span>
+        <span class="badge" data-group="Free Pairs">Free Pairs</span>
+        <span class="badge" data-group="Disconnected Pairs">Disconnected Pairs</span>
+        <span class="badge" data-group="Connected Pairs">Connected Pairs</span>
+        <span class="badge" data-group="Corner In Slot">Corner In Slot</span>
+        <span class="badge" data-group="Edge In Slot">Edge In Slot</span>
+        <span class="badge" data-group="Pieces In Slot">Pieces In Slot</span>
       </div>
     </div>
   </div>
@@ -232,9 +224,9 @@ a { color: var(--accent); text-decoration: none; }
 </div>
 
 <footer class="site-footer">
-  <p>制作人：B站博主：<span class="a">魔方先生SSR</span>　WCAID : <span class="z">2009ZHAN24</span></p>
-  <p>抖音ID : 魔方总动员</p>
-</footer>
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" id="modal">
@@ -247,16 +239,16 @@ a { color: var(--accent); text-decoration: none; }
     <div class="modal-section-label">公式变体</div>
     <div class="alg-list" id="modalAlgs"></div>
     <div class="proficiency">
-      <span class="prof-tag">? 未测</span>
-      <span class="prof-tag">生</span>
-      <span class="prof-tag">中</span>
-      <span class="prof-tag">熟</span>
-      <span class="prof-tag">精</span>
+      <span class="badge badge--brand">? 未测</span>
+      <span class="badge badge--brand">生</span>
+      <span class="badge badge--brand">中</span>
+      <span class="badge badge--brand">熟</span>
+      <span class="badge badge--brand">精</span>
     </div>
     <div class="modal-nav">
-      <button id="prevBtn">&larr; Prev</button>
+      <button id="prevBtn" class="btn btn--ghost">&larr; Prev</button>
       <span class="page-info" id="pageInfo"></span>
-      <button id="nextBtn">Next &rarr;</button>
+      <button id="nextBtn" class="btn btn--ghost">Next &rarr;</button>
     </div>
   </div>
 </div>
@@ -306,10 +298,10 @@ function render() {
     const cards = list.filter(c => c.group === g);
     if (!cards.length) return "";
     const cardHtml = cards.map(c => `
-      <div class="case-card" data-name="${escAttr(c.name)}">
+      <div class="card card--link" data-name="${escAttr(c.name)}">
         <span class="card-name">${esc(c.name)}</span>
         ${c.image}
-        <div class="main-alg">${esc(c.algs[0])}</div>
+        <div class="formula">${esc(c.algs[0])}</div>
         ${c.algs.length > 1 ? `<span class="more-tip">${c.algs.length} 条变体，点击查看</span>` : ""}
       </div>`).join("");
     return `<div class="section">
@@ -346,12 +338,12 @@ function showModal() {
   document.getElementById("modalScramble").textContent = "Scramble: " + c.algs[0];
   const rows = c.algs.map((a, i) =>
     `<div class="alg-row"><span class="idx">${i + 1}</span><span>${esc(a)}</span>` +
-    `<button class="copy-btn" onclick="copyAlg(this, '${esc(a).replace(/'/g, "\'")}')">复制</button></div>`
+    `<button class="btn btn--sm" onclick="copyAlg(this, '${esc(a).replace(/'/g, "\'")}')">复制</button></div>`
   );
   let algHtml = rows.slice(0, 2).join("");
   if (rows.length > 2) {
     algHtml += `<div class="alg-more" style="display:none">${rows.slice(2).join("")}</div>`;
-    algHtml += `<button class="toggle-btn" onclick="toggleMore(this)">展开全部 (${rows.length - 2})</button>`;
+    algHtml += `<button class="btn btn--ghost" onclick="toggleMore(this)">展开全部 (${rows.length - 2})</button>`;
   }
   document.getElementById("modalAlgs").innerHTML = algHtml;
   document.getElementById("pageInfo").textContent = `${modalIndex + 1} / ${modalList.length}`;

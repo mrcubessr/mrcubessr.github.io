@@ -9,7 +9,7 @@
 
   body {
     font-family: '微软雅黑', 'Microsoft YaHei', Arial, sans-serif;
-    background: #0d0d1a;
+    background: var(--bg);
     min-height: 100vh;
     padding: 24px 16px;
   }
@@ -17,8 +17,8 @@
   .container { max-width: 1100px; margin: 0 auto; }
 
   .header { text-align: center; margin-bottom: 24px; }
-  .header h1 { font-size: 26px; color: #64b4ff; margin-bottom: 6px; }
-  .header p { font-size: 14px; color: #b9c0cf; }
+  .header h1 { font-size: 26px; color: var(--brand); margin-bottom: 6px; }
+  .header p { font-size: 14px; color: var(--fg-2); }
 
   .tabs {
     display: flex;
@@ -32,13 +32,13 @@
     background: none;
     font-size: 15px;
     font-family: inherit;
-    color: #b9c0cf;
+    color: var(--fg-2);
     cursor: pointer;
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: all 0.2s;
   }
-  .tab-btn.active { color: #64b4ff; border-bottom-color: #64b4ff; font-weight: bold; }
+  .tab-btn.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: bold; }
 
   .toolbar {
     display: flex;
@@ -56,24 +56,24 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  .btn-primary { background: #64b4ff; color: #0d0d1a; }
-  .btn-primary:hover { background: #4a9ae0; }
-  .btn-secondary { background: rgba(100, 180, 255, 0.1); color: #64b4ff; border: 1.5px solid #64b4ff; }
+  .btn-primary { background: var(--brand); color: var(--bg); }
+  .btn-primary:hover { background: var(--brand); }
+  .btn-secondary { background: rgba(100, 180, 255, 0.1); color: var(--brand); border: 1.5px solid var(--brand); }
   .btn-secondary:hover { background: rgba(100, 180, 255, 0.2); }
 
-  .stats { text-align: center; font-size: 13px; color: #b9c0cf; margin-bottom: 16px; }
+  .stats { text-align: center; font-size: 13px; color: var(--fg-2); margin-bottom: 16px; }
 
   .paper {
-    background: #15152a;
+    background: var(--surface);
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     padding: 32px 36px;
   }
 
   .paper-title { text-align: center; margin-bottom: 20px; }
-  .paper-title h2 { font-size: 20px; color: #64b4ff; margin-bottom: 4px; }
-  .paper-title .subtitle { font-size: 13px; color: #b9c0cf; margin-bottom: 8px; }
-  .paper-title .info { font-size: 13px; color: #8a90a0; }
+  .paper-title h2 { font-size: 20px; color: var(--brand); margin-bottom: 4px; }
+  .paper-title .subtitle { font-size: 13px; color: var(--fg-2); margin-bottom: 8px; }
+  .paper-title .info { font-size: 13px; color: var(--fg-3); }
 
   /* ===== 练习题模式 ===== */
   .quiz-grid {
@@ -89,9 +89,9 @@
     padding: 5px 0;
     border-bottom: 1px dashed rgba(100, 180, 255, 0.1);
   }
-  .quiz-num { font-size: 12px; color: #8a90a0; min-width: 26px; }
-  .quiz-code { font-size: 17px; font-weight: bold; color: #64b4ff; min-width: 42px; }
-  .quiz-line { flex: 1; border-bottom: 1px solid #64b4ff; height: 1px; margin-top: 2px; }
+  .quiz-num { font-size: 12px; color: var(--fg-3); min-width: 26px; }
+  .quiz-code { font-size: 17px; font-weight: bold; color: var(--brand); min-width: 42px; }
+  .quiz-line { flex: 1; border-bottom: 1px solid var(--brand); height: 1px; margin-top: 2px; }
 
   /* ===== 字母组模式：4行×5列网格，每格一个组 ===== */
   .groups-grid {
@@ -102,14 +102,14 @@
   }
   
   .group-box {
-    border: 1.5px solid #64b4ff;
+    border: 1.5px solid var(--brand);
     border-radius: 4px;
     overflow: hidden;
   }
   
   .group-box-header {
-    background: #64b4ff;
-    color: #0d0d1a;
+    background: var(--brand);
+    color: var(--bg);
     text-align: center;
     padding: 6px 4px;
     font-size: 13px;
@@ -120,13 +120,13 @@
     display: flex;
     justify-content: space-around;
     padding: 10px 4px;
-    background: #1a1a30;
+    background: var(--surface);
   }
   
   .group-box-letters span {
     font-size: 15px;
     font-weight: bold;
-    color: #e0d5c1;
+    color: var(--fg);
   }
 
   .btn-group-row {
@@ -145,17 +145,17 @@
     .container { max-width: 100%; }
     .toolbar, .stats, .tabs, .btn-group-row { display: none !important; }
     .paper { box-shadow: none; border-radius: 0; padding: 0; background: white !important; }
-    .paper-title h2, .quiz-code, .group-box { color: #2E5E8E; border-color: #2E5E8E !important; }
-    .paper-title .subtitle, .paper-title .info, .quiz-num, .stats { color: #888 !important; }
+    .paper-title h2, .quiz-code, .group-box { color: var(--brand-strong); border-color: var(--brand-strong) !important; }
+    .paper-title .subtitle, .paper-title .info, .quiz-num, .stats { color: var(--fg-3) !important; }
     .group-box-letters { background: white !important; }
-    .group-box-letters span { color: #222 !important; }
-    .quiz-line { border-bottom-color: #555 !important; }
-    .quiz-item { border-bottom-color: #e0e0e0 !important; }
+    .group-box-letters span { color: var(--surface-2) !important; }
+    .quiz-line { border-bottom-color: var(--fg-3) !important; }
+    .quiz-item { border-bottom-color: var(--fg-2) !important; }
     .group-box-header { color: white !important; }
     .paper-title { margin-bottom: 16px; }
     .paper-title h2 { font-size: 18px; }
     .groups-grid { gap: 10px; }
-    .group-box-header { background: #2E5E8E !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .group-box-header { background: var(--brand-strong) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .group-box-letters span { font-size: 14px; }
   }
 
@@ -177,6 +177,8 @@
 
   </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -189,13 +191,13 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('quiz')">📝 练习题模式</button>
-    <button class="tab-btn" onclick="switchTab('groups')">🎯 字母组模式</button>
+    <button class="tab active" onclick="switchTab('quiz')">📝 练习题模式</button>
+    <button class="tab" onclick="switchTab('groups')">🎯 字母组模式</button>
   </div>
 
   <div class="toolbar">
-    <button class="btn btn-primary" onclick="generate()">🎲 随机出题</button>
-    <button class="btn btn-secondary" onclick="printPaper()">🖨️ 打印本页</button>
+    <button class="btn btn--primary" onclick="generate()">🎲 随机出题</button>
+    <button class="btn btn--secondary" onclick="printPaper()">🖨️ 打印本页</button>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -210,7 +212,7 @@
       </div>
       <div class="quiz-grid" id="quizGrid"></div>
       <div class="btn-group-row">
-        <button class="btn btn-secondary" onclick="generate()">🔄 换一组</button>
+        <button class="btn btn--secondary" onclick="generate()">🔄 换一组</button>
       </div>
     </div>
 
@@ -223,7 +225,7 @@
       </div>
       <div class="groups-grid" id="groupsContainer"></div>
       <div class="btn-group-row">
-        <button class="btn btn-secondary" onclick="generateGroups()">🔄 换一组</button>
+        <button class="btn btn--secondary" onclick="generateGroups()">🔄 换一组</button>
       </div>
     </div>
 
@@ -379,7 +381,7 @@ function generateGroups() {
 
   let html = '';
   for (let g = 0; g < 20; g++) {
-    html += '<div class="group-box">';
+    html += '<div class="card">';
     html += `<div class="group-box-header">第${String(g + 1).padStart(2, '0')}组</div>`;
     html += '<div class="group-box-letters">';
     for (let k = 0; k < 6; k++) {
@@ -407,5 +409,9 @@ generate();
 generateGroups();
 </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

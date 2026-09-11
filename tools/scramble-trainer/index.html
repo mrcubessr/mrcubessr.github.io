@@ -4,27 +4,29 @@
 <meta charset="UTF-8" data-page-node-id="sLAn3GArnMgraDcCHlefHb">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="AvZdpkRok5l9NnwlAcSilN">
 <title>魔方打乱公式随机出题训练器</title>
-<style>
+<style>:root {
+  --st-ui-c0392b: #c0392b;
+  --st-ui-f2f4f7: #f2f4f7;
+  --st-ui-6b7280: #6b7280;
+  --st-ui-eef1f5: #eef1f5;
+}
+
   :root {
     /* ===== 浅色 / 白底主题（白天教室、大屏投屏优化）===== */
-    --bg: #f2f4f7;
-    --panel: #ffffff;
-    --panel-2: #eef1f5;
-    --border: #d3d9e2;
-    --text: #111827;
-    --muted: #6b7280;
-    --accent: #1d4ed8;        /* 深蓝 */
-    --accent-2: #c0392b;      /* 深红 */
-    --success: #15803d;
-    --formula-bg: #ffffff;
-    --net-bg: #f2f4f7;        /* 展开图底色 */
-    --net-frame: #374151;     /* 展开图每面外框 */
+    --panel: var(--on-brand);
+    --panel-2: var(--st-ui-eef1f5);
+    --muted: var(--st-ui-6b7280);        /* 深蓝 */
+    --st-danger: var(--st-ui-c0392b);      /* 深红 */
+    --success: var(--green);
+    --formula-bg: var(--on-brand);
+    --net-bg: var(--st-ui-f2f4f7);        /* 展开图底色 */
+    --st-net-frame: var(--fg-2);     /* 展开图每面外框 */
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; }
   body {
     background: var(--bg);
-    color: var(--text);
+    color: var(--fg);
     font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
     min-height: 100vh;
     display: flex;
@@ -36,7 +38,7 @@
   .header {
     flex: 0 0 auto;
     padding: 10px 24px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -47,7 +49,7 @@
   .header h1 {
     font-size: 20px;
     font-weight: 700;
-    color: var(--text);
+    color: var(--fg);
     letter-spacing: 1px;
     display: flex;
     align-items: center;
@@ -55,7 +57,7 @@
   }
   .header h1 .badge {
     background: rgba(29,78,216,0.10);
-    color: var(--accent);
+    color: var(--brand);
     padding: 3px 10px;
     border-radius: 4px;
     font-size: 12px;
@@ -70,13 +72,13 @@
     gap: 12px;
   }
   .header .count b {
-    color: var(--accent);
+    color: var(--brand);
     font-size: 22px;
     font-weight: 700;
   }
   .header .reset {
     background: transparent;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     color: var(--muted);
     padding: 4px 12px;
     font-size: 12px;
@@ -84,7 +86,7 @@
     cursor: pointer;
     font-family: inherit;
   }
-  .header .reset:hover { color: var(--text); border-color: var(--text); }
+  .header .reset:hover { color: var(--fg); border-color: var(--fg); }
 
   /* ===== 主区：左展开图 / 右栏（各占一半） ===== */
   .main {
@@ -97,7 +99,7 @@
   /* 左：大展开图 */
   .left {
     background: var(--bg);
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -121,7 +123,7 @@
 
   /* 右上：对照图（已放大） */
   .legend-zone {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--line);
     padding: 10px 14px 12px;
     display: flex;
     flex-direction: column;
@@ -141,12 +143,12 @@
     content: '';
     width: 4px;
     height: 14px;
-    background: var(--accent);
+    background: var(--brand);
     border-radius: 2px;
   }
   .legend-img-wrap {
-    background: #fff;
-    border: 1px solid var(--border);
+    background: var(--on-brand);
+    border: 1px solid var(--line);
     border-radius: 8px;
     overflow: hidden;
     display: flex;
@@ -179,11 +181,11 @@
     font-size: 13px;
     text-align: center;
     padding: 16px;
-    border: 2px dashed var(--border);
+    border: 2px dashed var(--line);
     border-radius: 8px;
   }
   .legend-fallback code {
-    color: var(--accent);
+    color: var(--brand);
     background: rgba(29,78,216,0.10);
     padding: 1px 6px;
     border-radius: 3px;
@@ -211,7 +213,7 @@
     content: '';
     width: 4px;
     height: 16px;
-    background: var(--accent-2);
+    background: var(--st-danger);
     border-radius: 2px;
   }
   /* 六字母覆盖校验徽标 */
@@ -219,7 +221,7 @@
     margin-left: 4px;
     font-size: 12px;
     font-weight: 700;
-    color: #15803d;
+    color: var(--green);
     background: rgba(21,128,61,0.10);
     border: 1px solid rgba(21,128,61,0.30);
     padding: 2px 9px;
@@ -227,15 +229,15 @@
     letter-spacing: 0.5px;
   }
   .cover-badge.warn {
-    color: #b45309;
+    color: var(--amber);
     background: rgba(180,83,9,0.10);
     border-color: rgba(180,83,9,0.30);
   }
 
   /* 大字号公式显示（浅底黑字，课堂投影最清晰） */
   .formula-display {
-    background: #ffffff;
-    border: 3px solid #1f2937;
+    background: var(--on-brand);
+    border: 3px solid var(--fg);
     border-radius: 12px;
     padding: 14px 12px;
     flex: 1 1 auto;          /* 吃掉剩余高度 */
@@ -253,7 +255,7 @@
     font-weight: 800;
     line-height: 1.25;
     letter-spacing: 2px;
-    color: #000000;          /* 纯黑字 */
+    color: var(--bg);          /* 纯黑字 */
     text-align: center;
     word-break: break-word;
   }
@@ -269,12 +271,12 @@
   .formula-inner.single .move { padding: 0 2px; }
   .formula-inner.single .move.space { padding: 0 5px; }
   .formula-inner .move {
-    color: #000000;          /* 字母主体：纯黑 */
+    color: var(--bg);          /* 字母主体：纯黑 */
     padding: 0 4px;
   }
   /* 修饰符用深色区分（白底上依然清晰，仍属深色系） */
-  .formula-inner .move.prime { color: #c0392b; }   /* 带撇号 → 深红 */
-  .formula-inner .move.dbl   { color: #1d4ed8; }   /* 带 2   → 深蓝 */
+  .formula-inner .move.prime { color: var(--st-ui-c0392b); }   /* 带撇号 → 深红 */
+  .formula-inner .move.dbl   { color: var(--brand-strong); }   /* 带 2   → 深蓝 */
   .formula-inner .move.space {
     color: var(--muted);
     padding: 0 10px;
@@ -295,23 +297,23 @@
     font-weight: 600;
   }
   .length-row .len-btn {
-    background: #ffffff;
-    border: 2px solid var(--border);
+    background: var(--on-brand);
+    border: 2px solid var(--line);
     border-radius: 8px;
     padding: 9px 16px;
     font-size: 16px;
     font-weight: 700;
-    color: var(--text);
+    color: var(--fg);
     cursor: pointer;
     transition: all 0.15s;
     font-family: inherit;
     min-width: 50px;
   }
-  .length-row .len-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .length-row .len-btn:hover { border-color: var(--brand); color: var(--brand); }
   .length-row .len-btn.active {
-    background: var(--accent);
-    color: #ffffff;
-    border-color: var(--accent);
+    background: var(--brand);
+    color: var(--on-brand);
+    border-color: var(--brand);
   }
 
   /* 难度/魔方类型设置行（分段按钮 seg-toggle） */
@@ -329,7 +331,7 @@
   }
   .seg-toggle {
     display: inline-flex;
-    border: 2px solid var(--border);
+    border: 2px solid var(--line);
     border-radius: 8px;
     overflow: hidden;
   }
@@ -339,15 +341,15 @@
     padding: 8px 14px;
     font-size: 14px;
     font-weight: 700;
-    color: var(--text);
+    color: var(--fg);
     cursor: pointer;
     font-family: inherit;
     transition: all 0.15s;
   }
-  .seg-btn:hover { color: var(--accent); }
+  .seg-btn:hover { color: var(--brand); }
   .seg-btn.active {
-    background: var(--accent);
-    color: #ffffff;
+    background: var(--brand);
+    color: var(--on-brand);
   }
   .seg-btn:disabled {
     opacity: 0.4;
@@ -365,7 +367,7 @@
     grid-column: 1 / -1;
   }
   .btn {
-    color: #ffffff;
+    color: var(--on-brand);
     border: none;
     border-radius: 10px;
     padding: 16px 18px;
@@ -383,24 +385,24 @@
   .btn:hover { filter: brightness(1.08); }
   .btn:active { transform: translateY(1px); }
   .btn.primary {
-    background: var(--accent);
+    background: var(--brand);
     font-size: 20px;
     padding: 20px 22px;
     box-shadow: 0 4px 12px rgba(29,78,216,0.28);
   }
   .btn.pink {
-    background: var(--accent-2);
+    background: var(--st-danger);
   }
   .btn.ghost {
-    background: #ffffff;
-    color: var(--text);
-    border: 1.5px solid var(--border);
+    background: var(--on-brand);
+    color: var(--fg);
+    border: 1.5px solid var(--line);
     box-shadow: none;
   }
   .btn.ghost:hover {
     background: var(--panel-2);
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--brand);
+    color: var(--brand);
   }
 
   /* ===== 分步抽屉 ===== */
@@ -411,7 +413,7 @@
     right: 0;
     max-height: 45vh;
     background: var(--panel);
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--line);
     box-shadow: 0 -8px 30px rgba(15,23,42,0.16);
     transform: translateY(100%);
     transition: transform 0.3s;
@@ -423,7 +425,7 @@
   .steps-drawer.show { transform: translateY(0); }
   .steps-drawer .head {
     padding: 12px 24px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -431,11 +433,11 @@
   }
   .steps-drawer .head h3 {
     font-size: 16px;
-    color: var(--text);
+    color: var(--fg);
   }
   .steps-drawer .head .close {
     background: transparent;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     color: var(--muted);
     padding: 6px 14px;
     border-radius: 6px;
@@ -443,7 +445,7 @@
     font-family: inherit;
     font-size: 13px;
   }
-  .steps-drawer .head .close:hover { color: var(--text); }
+  .steps-drawer .head .close:hover { color: var(--fg); }
   .steps-drawer .body {
     padding: 14px 24px;
     overflow-y: auto;
@@ -456,7 +458,7 @@
   }
   .step-item {
     background: var(--formula-bg);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 8px;
     padding: 10px 14px;
     display: flex;
@@ -488,7 +490,7 @@
     top: 80px;
     right: 24px;
     background: var(--success);
-    color: #ffffff;
+    color: var(--on-brand);
     padding: 12px 20px;
     border-radius: 8px;
     font-size: 14px;
@@ -511,7 +513,7 @@
     }
     .left {
       border-right: none;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--line);
     }
     .right { grid-template-rows: auto auto; }
   }
@@ -552,7 +554,7 @@
     .left {
       flex: 0 0 28%;
       border-right: none;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--line);
       padding: 6px;
       min-height: 0;
       display: flex;
@@ -600,7 +602,7 @@
       flex: 0 0 100px;                /* 压缩公式区高度 */
       min-height: 0;
       border-width: 3px;
-      border-color: var(--text);
+      border-color: var(--fg);
       border-radius: 12px;
       background: var(--panel);       /* 白底，与网页端一致 */
       padding: 2px 8px;               /* 上下内边距 4px→2px（压到一半） */
@@ -628,7 +630,7 @@
       display: flex;
       flex-direction: column;
       border-bottom: none;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--line);
       padding: 4px 8px 6px;
       min-height: 0;
     }
@@ -663,6 +665,8 @@
   }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
 /* 阶段二：导航接入适配 */
 [data-site-nav], body > .site-nav{ flex:0 0 auto; }
@@ -705,33 +709,33 @@
 
     <!-- 右下：公式区 -->
     <div class="formula-zone" data-page-node-id="rqRrjtjScJc1UsMs4y3kFA">
-      <div class="zone-label" data-page-node-id="7G6GHTjrj3wjJL32JdKHOF">打乱公式 <span class="cover-badge" id="coverBadge" data-page-node-id="cKUEADLEjA5KKmX3lDwPxi">✓ R U F L B D 齐全</span></div>
-      <div class="formula-display" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
+      <div class="zone-label" data-page-node-id="7G6GHTjrj3wjJL32JdKHOF">打乱公式 <span class="badge" id="coverBadge" data-page-node-id="cKUEADLEjA5KKmX3lDwPxi">✓ R U F L B D 齐全</span></div>
+      <div class="formula-block" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
 
       <!-- 难度设置 -->
       <div class="settings-row">
         <span class="lbl">魔方：</span>
         <div class="seg-toggle" id="cubeTypeToggle">
-          <button class="seg-btn active" data-cube="3">三阶</button>
-          <button class="seg-btn" data-cube="2">二阶</button>
+          <button class="seg__btn active" data-cube="3">三阶</button>
+          <button class="seg__btn" data-cube="2">二阶</button>
         </div>
         <span class="lbl">难度：</span>
         <div class="seg-toggle" id="movesetToggle">
-          <button class="seg-btn active" data-set="all">六面标准</button>
-          <button class="seg-btn" data-set="ruf">RUF 入门</button>
+          <button class="seg__btn active" data-set="all">六面标准</button>
+          <button class="seg__btn" data-set="ruf">RUF 入门</button>
         </div>
       </div>
 
       <!-- 长度 -->
       <div class="length-row" data-page-node-id="23tzhEFGiC27A5O6RE0UoK">
         <span class="lbl" data-page-node-id="YGsGIm2QXlFbLxjdVoS5BF">长度：</span>
-        <button class="len-btn active" data-len="6" data-page-node-id="Ekd3bA7F9dLwFiBGJtjF6f">6</button>
-        <button class="len-btn" data-len="8" data-page-node-id="pmoc2BP4hTj5hInC9U8urV">8</button>
-        <button class="len-btn" data-len="10" data-page-node-id="zYYZPbPeJAVJ8lEN0k5YQm">10</button>
-        <button class="len-btn" data-len="12" data-page-node-id="FQD4SaZ9Ah41uNBoFxXQEb">12</button>
-        <button class="len-btn" data-len="15" data-cube="2" style="display:none;">15</button>
-        <button class="len-btn" data-len="20" data-page-node-id="mmlJtVMrA6ocEHtpnzcuHc">20</button>
-        <button class="len-btn" data-len="25" data-cube="2" style="display:none;">25</button>
+        <button class="seg__btn active" data-len="6" data-page-node-id="Ekd3bA7F9dLwFiBGJtjF6f">6</button>
+        <button class="seg__btn" data-len="8" data-page-node-id="pmoc2BP4hTj5hInC9U8urV">8</button>
+        <button class="seg__btn" data-len="10" data-page-node-id="zYYZPbPeJAVJ8lEN0k5YQm">10</button>
+        <button class="seg__btn" data-len="12" data-page-node-id="FQD4SaZ9Ah41uNBoFxXQEb">12</button>
+        <button class="seg__btn" data-len="15" data-cube="2" style="display:none;">15</button>
+        <button class="seg__btn" data-len="20" data-page-node-id="mmlJtVMrA6ocEHtpnzcuHc">20</button>
+        <button class="seg__btn" data-len="25" data-cube="2" style="display:none;">25</button>
       </div>
 
       <!-- 按钮 -->
@@ -1740,5 +1744,9 @@ if(document.readyState === 'loading'){
 
 </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

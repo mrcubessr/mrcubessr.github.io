@@ -6,42 +6,40 @@
 <title>三盲读码还原助手 bldtrainer（复刻版）</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0d0d1a;color:#e0e0e0;font-family:"Tahoma","Microsoft YaHei",Helvetica,sans-serif;font-size:15px;line-height:1.7;}
+body{background:var(--bg);color:var(--fg-2);font-family:"Tahoma","Microsoft YaHei",Helvetica,sans-serif;font-size:15px;line-height:1.7;}
 #wrapper{max-width:1500px;margin:0 auto;padding:1.2em 1.5em;}
-#header{display:flex;justify-content:space-between;align-items:center;padding:0.4em 0 0.9em;border-bottom:1px solid #2a2a45;}
-.logo{display:flex;align-items:center;gap:0.6em;text-decoration:none;color:#e0e0e0;}
+#header{display:flex;justify-content:space-between;align-items:center;padding:0.4em 0 0.9em;border-bottom:1px solid var(--surface-2);}
+.logo{display:flex;align-items:center;gap:0.6em;text-decoration:none;color:var(--fg-2);}
 .logo .symbol img{width:2.2em;height:2.2em;display:block;}
-.logo .title{font-size:1.4em;font-weight:700;color:#64b4ff;}
-#main>header h2{text-align:center;margin:0.9em 0;color:#64b4ff;font-size:1.3em;}
+.logo .title{font-size:1.4em;font-weight:700;color:var(--brand);}
+#main>header h2{text-align:center;margin:0.9em 0;color:var(--brand);font-size:1.3em;}
 .flexcontainer{display:flex;flex-wrap:wrap;gap:1.2em;justify-content:space-around;align-items:flex-start;}
-.flexitem{flex:1;min-width:20em;background:#14142b;border:1px solid #2a2a45;border-radius:10px;padding:1.1em 1.2em;}
-.flexitem strong{color:#64b4ff;}
-select,input[type=text],textarea{background:#1a1a35;color:#e0e0e0;border:1px solid #3a3a5a;border-radius:5px;padding:0.3em 0.5em;font-size:1em;font-family:inherit;}
-select:focus,input:focus,textarea:focus{outline:none;border-color:#64b4ff;}
-button{background:#64b4ff;color:#0d0d1a;border:none;border-radius:5px;padding:0.4em 1em;font-size:0.95em;font-weight:700;cursor:pointer;font-family:inherit;}
-button:hover{background:#8cc6ff;}
+.flexitem{flex:1;min-width:20em;background:var(--surface);border:1px solid var(--surface-2);border-radius:10px;padding:1.1em 1.2em;}
+.flexitem strong{color:var(--brand);}
+select,input[type=text],textarea{background:var(--surface);color:var(--fg-2);border:1px solid var(--surface-3);border-radius:5px;padding:0.3em 0.5em;font-size:1em;font-family:inherit;}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--brand);}
+button{background:var(--brand);color:var(--bg);border:none;border-radius:5px;padding:0.4em 1em;font-size:0.95em;font-weight:700;cursor:pointer;font-family:inherit;}
+button:hover{background:var(--brand);}
 #solvelist{list-style:none;margin-top:0.5em;}
-#solvelist li{background:#1a1a35;border:1px solid #3a3a5a;border-radius:6px;padding:0.45em 0.7em;margin-bottom:0.5em;cursor:grab;}
-#solvelist li:hover{border-color:#64b4ff;}
+#solvelist li{background:var(--surface);border:1px solid var(--surface-3);border-radius:6px;padding:0.45em 0.7em;margin-bottom:0.5em;cursor:grab;}
+#solvelist li:hover{border-color:var(--brand);}
 #solvelist li input{width:10em;}
-#player{width:100%;height:340px;background:#0d0d1a;border-radius:8px;display:block;cursor:grab;touch-action:none;}
+#player{width:100%;height:340px;background:var(--bg);border-radius:8px;display:block;cursor:grab;touch-action:none;}
 .help{position:relative;cursor:help;}
-.help-content{display:none;position:absolute;background:#1a1a35;border:1px solid #64b4ff;border-radius:6px;padding:0.5em 0.8em;z-index:10;font-size:0.85em;color:#e0e0e0;width:15em;font-weight:400;}
+.help-content{display:none;position:absolute;background:var(--surface);border:1px solid var(--brand);border-radius:6px;padding:0.5em 0.8em;z-index:10;font-size:0.85em;color:var(--fg-2);width:15em;font-weight:400;}
 .help:hover .help-content{display:block;}
-#alartoutput1,#alartoutput2{color:#ff6b6b;font-size:0.95em;}
-#outputScrs{width:100%;min-height:4em;border-style:dashed;border-color:#3a3a5a;background:#1a1a35;color:#e0e0e0;padding:0.5em;resize:none;}
+#alartoutput1,#alartoutput2{color:var(--red);font-size:0.95em;}
+#outputScrs{width:100%;min-height:4em;border-style:dashed;border-color:var(--surface-3);background:var(--surface);color:var(--fg-2);padding:0.5em;resize:none;}
 #scrinput{width:100%;min-height:1.2em;resize:none;overflow:auto;}
 .btnrow{display:grid;grid-template-columns:1fr 1fr;gap:0.5em;margin:0.4em 0;}
-footer#footer{text-align:center;margin-top:2em;padding-top:1em;border-top:1px solid #2a2a45;color:#888;font-size:0.9em;}
-footer a{color:#64b4ff;text-decoration:none;}
-footer ul{list-style:none;}
-footer li{display:inline;margin:0 0.6em;}
 @media screen and (max-width:800px){
   .flexitem{min-width:100%;}
   #player{height:280px;}
 }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -113,7 +111,7 @@ footer li{display:inline;margin:0 0.6em;}
         <label style="line-height:1em" for="cornerskipcyclenum" class="help">角块跳编法<sup>[?]</sup><span class="help-content">即“固定借位法”，新手不用选</span></label>
         <br>
         <strong>打乱公式：</strong>
-        <button onclick="randomScramble()">随机打乱</button>
+        <button onclick="randomScramble()" class="btn btn--primary">随机打乱</button>
         <br>
         <textarea id="scrinput" onkeyup="helperEnter()" rows="1" style="min-height:1.2em;resize:none;overflow:auto;"></textarea>
         <br>
@@ -158,8 +156,8 @@ footer li{display:inline;margin:0 0.6em;}
       <div class="flexitem">
         <canvas id="player"></canvas>
         <div class="btnrow">
-          <button onclick="getNowScramble()">生成当前状态打乱</button>
-          <button id="copyBtn" style="display:none;" onclick="copyScrs()">复制打乱</button>
+          <button onclick="getNowScramble()" class="btn btn--primary">生成当前状态打乱</button>
+          <button id="copyBtn" style="display:none;" onclick="copyScrs()" class="btn btn--primary">复制打乱</button>
         </div>
         <textarea readonly id="outputScrs" style="border-style:dashed;padding-left:0.5em;"></textarea>
       </div>
@@ -3930,5 +3928,9 @@ window.onload = function () {
 };
 </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

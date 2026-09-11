@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>组件库预览 · 魔方先生SSR</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<style>
+  /* 预览页骨架（颜色全部取 token，不硬编码） */
+  body{ margin:0; font-family:var(--font-sans); color:var(--fg); background:var(--bg);
+        padding:var(--s5) var(--s4) var(--s8); line-height:var(--lh-base); }
+  .wrap{ max-width:1080px; margin-inline:auto; }
+  .topbar{ position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:var(--s3);
+           justify-content:space-between; padding:var(--s3) var(--s4); margin:calc(-1 * var(--s5)) calc(-1 * var(--s4)) var(--s6);
+           background:var(--nav-bg); backdrop-filter:blur(14px);
+           border-bottom:1px solid var(--nav-line); }
+  .topbar h1{ font-size:var(--fs-lg); margin:0; color:var(--fg); }
+  .topbar__sub{ font-size:var(--fs-xs); color:var(--fg-3); }
+  .theme-toggle{ display:inline-flex; gap:4px; padding:4px; background:var(--surface-2);
+                 border:1px solid var(--line); border-radius:var(--r-full); }
+  .theme-toggle button{ border:0; background:transparent; color:var(--fg-2); font:inherit;
+                        font-size:var(--fs-sm); font-weight:var(--fw-semi); padding:6px 14px;
+                        border-radius:var(--r-full); cursor:pointer; }
+  .theme-toggle button.is-active{ background:var(--brand); color:var(--fg-inverse); }
+  section{ margin-bottom:var(--s8); }
+  .sec-title{ font-size:var(--fs-2xl); color:var(--fg); margin:0 0 var(--s2);
+              padding-left:var(--s3); position:relative; }
+  .sec-title::before{ content:''; position:absolute; left:0; top:.18em; bottom:.18em; width:4px;
+                      border-radius:var(--r-full); background:linear-gradient(180deg,var(--brand),var(--violet)); }
+  .sec-desc{ margin:0 0 var(--s4); color:var(--fg-3); font-size:var(--fs-sm); }
+  .demo{ display:flex; flex-wrap:wrap; gap:var(--s3); align-items:center;
+         padding:var(--s5); background:var(--surface); border:1px solid var(--line);
+         border-radius:var(--r-lg); }
+  .demo--col{ flex-direction:column; align-items:stretch; }
+  .demo--grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+  .note{ font-size:var(--fs-xs); color:var(--fg-3); margin-top:var(--s2); }
+  .row{ display:flex; flex-wrap:wrap; gap:var(--s2); align-items:center; }
+  hr{border:0; border-top:1px solid var(--line); margin:var(--s6) 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>基础组件库 v1.0</h1>
+      <div class="topbar__sub">14 个区块 · 深浅两态对照 · 颜色全部取自 token</div>
+    </div>
+    <div class="theme-toggle" role="group" aria-label="主题切换">
+      <button id="t-light" class="is-active" type="button">浅色</button>
+      <button id="t-dark" type="button">深色</button>
+    </div>
+  </div>
+
+  <!-- ① 按钮·变体 -->
+  <section>
+    <h2 class="sec-title">① 按钮 · 变体</h2>
+    <p class="sec-desc">默认 / 主 / 次 / 幽灵 / 危险 五种并排，文字色均用 token 保证对比度。</p>
+    <div class="demo">
+      <button class="btn" type="button">默认</button>
+      <button class="btn btn--primary" type="button">主按钮</button>
+      <button class="btn btn--secondary" type="button">次按钮</button>
+      <button class="btn btn--ghost" type="button">幽灵</button>
+      <button class="btn btn--danger" type="button">危险</button>
+    </div>
+  </section>
+
+  <!-- ② 按钮·尺寸 -->
+  <section>
+    <h2 class="sec-title">② 按钮 · 尺寸</h2>
+    <p class="sec-desc">小 / 默认 / 大 / 块级。</p>
+    <div class="demo">
+      <button class="btn btn--primary btn--sm" type="button">小</button>
+      <button class="btn btn--primary" type="button">默认</button>
+      <button class="btn btn--primary btn--lg" type="button">大</button>
+      <button class="btn btn--primary btn--block" type="button">块级</button>
+    </div>
+  </section>
+
+  <!-- ③ 按钮·状态 -->
+  <section>
+    <h2 class="sec-title">③ 按钮 · 状态</h2>
+    <p class="sec-desc">:hover（悬停查看）/ :focus-visible（Tab 实测）/ [disabled] / .is-disabled。</p>
+    <div class="demo">
+      <button class="btn btn--primary" type="button">悬停我</button>
+      <button class="btn btn--primary" type="button">Tab 聚焦</button>
+      <button class="btn btn--primary" type="button" disabled>disabled</button>
+      <button class="btn btn--primary is-disabled" type="button">is-disabled</button>
+    </div>
+  </section>
+
+  <!-- ④ 卡片 -->
+  <section>
+    <h2 class="sec-title">④ 卡片</h2>
+    <p class="sec-desc">纯 .card--pad / 带 .card__head+.card__body / .card--link（悬停位移）。</p>
+    <div class="demo demo--grid">
+      <div class="card card--pad">
+        <div class="card__title">纯卡片</div>
+        <p class="card__desc">仅内边距，承载一段说明文字。</p>
+      </div>
+      <div class="card">
+        <div class="card__head"><span class="card__index">A</span><span class="card__title">带标题卡片</span></div>
+        <div class="card__body"><p class="card__desc">标题区 + 主体区结构。</p></div>
+      </div>
+      <a class="card card--link" href="#">
+        <div class="card__body"><div class="card__title">可点击卡片</div><p class="card__desc">悬停上浮并显示焦点环。</p></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ⑤ 分段控件 -->
+  <section>
+    <h2 class="sec-title">⑤ 分段控件</h2>
+    <p class="sec-desc">三组 .seg，其中一组含 .is-active。</p>
+    <div class="demo">
+      <div class="seg">
+        <button class="seg__btn is-active" type="button">全部</button>
+        <button class="seg__btn" type="button">已掌握</button>
+        <button class="seg__btn" type="button">待复习</button>
+      </div>
+      <div class="seg">
+        <button class="seg__btn" type="button">慢</button>
+        <button class="seg__btn is-active" type="button">中</button>
+        <button class="seg__btn" type="button">快</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 徽章 -->
+  <section>
+    <h2 class="sec-title">⑥ 徽章</h2>
+    <p class="sec-desc">6 种色 × 2（.badge--mono），并渲染一行 .chip-row。</p>
+    <div class="demo demo--col">
+      <div class="row">
+        <span class="badge badge--brand">品牌</span>
+        <span class="badge badge--gold">金色</span>
+        <span class="badge badge--green">掌握</span>
+        <span class="badge badge--amber">待复习</span>
+        <span class="badge badge--red">错误</span>
+      </div>
+      <div class="row">
+        <span class="badge badge--mono">U</span>
+        <span class="badge badge--mono">R</span>
+        <span class="badge badge--mono">F</span>
+        <span class="badge badge--mono">L</span>
+        <span class="badge badge--mono">D</span>
+        <span class="badge badge--mono">B</span>
+      </div>
+      <div class="chip-row">
+        <span class="badge">R U R'</span>
+        <span class="badge">U' F'</span>
+        <span class="badge badge--green">已标注</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑦ 表单 -->
+  <section>
+    <h2 class="sec-title">⑦ 表单</h2>
+    <p class="sec-desc">.field + .input + .select + .textarea，含 :focus 态与 ::placeholder。</p>
+    <div class="demo demo--col">
+      <div class="field">
+        <label class="field__label" for="d-name">练习名称</label>
+        <input class="input" id="d-name" type="text" placeholder="例如：PLL 全 21 式">
+        <span class="field__hint">每天 10 分钟效果最佳。</span>
+      </div>
+      <div class="field">
+        <label class="field__label" for="d-mode">模式</label>
+        <select class="select" id="d-mode">
+          <option>计时</option><option>练习</option><option>考核</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="d-note">备注</label>
+        <textarea class="textarea" id="d-note" placeholder="记录你的心得…"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑧ 公式 -->
+  <section>
+    <h2 class="sec-title">⑧ 公式</h2>
+    <p class="sec-desc">行内 .formula 与块级 .formula-block（带 __label）。金色文字用 --gold-ink 保证对比度。</p>
+    <div class="demo demo--col">
+      <p>还原顶层十字：<code class="formula">F R U R' U' F'</code>，然后接 <code class="formula">R U R' U R U2 R'</code>。</p>
+      <div class="formula-block">
+        <span class="formula-block__label">T-Perm</span>
+        <code>R U R' U' R' F R2 U' R' U' R U R' F'</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑨ 工具栏 -->
+  <section>
+    <h2 class="sec-title">⑨ 工具栏</h2>
+    <p class="sec-desc">.toolbar 含 3 按钮 + .toolbar__spacer。</p>
+    <div class="demo">
+      <button class="btn btn--primary btn--sm" type="button">开始</button>
+      <button class="btn btn--ghost btn--sm" type="button">重置</button>
+      <button class="btn btn--ghost btn--sm" type="button">撤销</button>
+      <span class="toolbar__spacer"></span>
+      <button class="btn btn--secondary btn--sm" type="button">导出</button>
+    </div>
+  </section>
+
+  <!-- ⑩ 选项卡 -->
+  <section>
+    <h2 class="sec-title">⑩ 选项卡</h2>
+    <p class="sec-desc">.tabs 含 .is-active。</p>
+    <div class="demo demo--col">
+      <div class="tabs">
+        <button class="tab is-active" type="button">基础</button>
+        <button class="tab" type="button">进阶</button>
+        <button class="tab" type="button">高阶</button>
+      </div>
+      <p class="note">点击下方选项卡切换（此处为静态预览）。</p>
+    </div>
+  </section>
+
+  <!-- ⑪ 提示条 -->
+  <section>
+    <h2 class="sec-title">⑪ 提示条</h2>
+    <p class="sec-desc">.alert 四态（默认/ok/warn/err）+ .hint。</p>
+    <div class="demo demo--col">
+      <div class="alert">这是一条普通提示信息。</div>
+      <div class="alert alert--ok">已完成！正确率达到 100%。</div>
+      <div class="alert alert--warn">还有 3 个公式待复习。</div>
+      <div class="alert alert--err">公式识别失败，请重试。</div>
+      <p class="hint">提示：金色文字仅用于描边与底，不当作正文色。</p>
+    </div>
+  </section>
+
+  <!-- ⑫ 进度 -->
+  <section>
+    <h2 class="sec-title">⑫ 进度</h2>
+    <p class="sec-desc">三种宽度 + .progress__text。</p>
+    <div class="demo demo--col">
+      <div>
+        <div class="progress"><div class="progress__bar" style="width:35%"></div></div>
+        <span class="progress__text">35%</span>
+      </div>
+      <div>
+        <div class="progress"><div class="progress__bar" style="width:68%"></div></div>
+        <span class="progress__text">68%</span>
+      </div>
+      <div>
+        <div class="progress"><div class="progress__bar" style="width:100%"></div></div>
+        <span class="progress__text">100%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑬ 表格 -->
+  <section>
+    <h2 class="sec-title">⑬ 表格</h2>
+    <p class="sec-desc">.table 与 .table--num。</p>
+    <div class="demo demo--col">
+      <table class="table">
+        <thead><tr><th>公式</th><th>分组</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>T-Perm</td><td>PLL</td><td><span class="badge badge--green">已掌握</span></td></tr>
+          <tr><td>Y-Perm</td><td>PLL</td><td><span class="badge badge--amber">待复习</span></td></tr>
+        </tbody>
+      </table>
+      <table class="table table--num">
+        <thead><tr><th>项目</th><th>次数</th><th>平均(s)</th></tr></thead>
+        <tbody>
+          <tr><td>单次</td><td>12</td><td>4.82</td></tr>
+          <tr><td>最佳</td><td>1</td><td>3.21</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ⑭ 空态 + Toast -->
+  <section>
+    <h2 class="sec-title">⑭ 空态 + Toast</h2>
+    <p class="sec-desc">.empty 与 .toast.is-show（页面底部常显一份用于对照）。</p>
+    <div class="demo">
+      <div class="empty">暂无练习记录<span class="empty__tip">完成第一次练习后这里会显示统计。</span></div>
+    </div>
+  </section>
+
+  <hr>
+  <div class="toast is-show">这是常显的 Toast 浮层（对照用）</div>
+</div>
+
+<script>
+  (function(){
+    var root = document.documentElement;
+    var bL = document.getElementById('t-light');
+    var bD = document.getElementById('t-dark');
+    function set(theme){
+      if(theme === 'dark'){ root.removeAttribute('data-theme'); bD.classList.add('is-active'); bL.classList.remove('is-active'); }
+      else { root.setAttribute('data-theme','light'); bL.classList.add('is-active'); bD.classList.remove('is-active'); }
+    }
+    bL.addEventListener('click', function(){ set('light'); });
+    bD.addEventListener('click', function(){ set('dark'); });
+  })();
+</script>
+</body>
+</html>

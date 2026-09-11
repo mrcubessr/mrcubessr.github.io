@@ -6,18 +6,14 @@
 <title>魔方工具导航</title>
 <style>
   :root {
-    --bg: #12141a;
-    --panel: #1c1f27;
-    --border: #2b2f3a;
-    --text: #e6e8ee;
-    --muted: #9aa0ae;
-    --accent: #60a5fa;
-    --accent2: #f472b6;
+    --panel: var(--surface-2);
+    --muted: var(--fg-3);
+    --accent2: var(--side-j);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: var(--bg);
-    color: var(--text);
+    color: var(--fg);
     font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
     min-height: 100vh;
   }
@@ -27,7 +23,7 @@
   }
   .page-head h1 {
     font-size: 26px;
-    color: var(--text);
+    color: var(--fg);
   }
   .page-head p {
     color: var(--muted);
@@ -41,10 +37,10 @@
   }
   .section-title {
     font-size: 15px;
-    color: var(--accent);
+    color: var(--brand);
     margin: 28px 0 14px;
     padding-left: 10px;
-    border-left: 3px solid var(--accent);
+    border-left: 3px solid var(--brand);
   }
   .grid {
     display: grid;
@@ -53,7 +49,7 @@
   }
   .card {
     background: var(--panel);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 16px;
     text-decoration: none;
@@ -61,13 +57,13 @@
     transition: all 0.2s;
   }
   .card:hover {
-    border-color: var(--accent);
+    border-color: var(--brand);
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(96,165,250,0.12);
   }
   .card .name {
     font-size: 15px;
-    color: var(--accent);
+    color: var(--brand);
     margin-bottom: 6px;
     font-weight: 600;
   }
@@ -77,23 +73,13 @@
     word-break: break-all;
     line-height: 1.5;
   }
-  .site-footer {
-    text-align: center;
-    padding: 24px 16px 36px;
-  }
-  .site-footer p {
-    font-size: 0.82rem;
-    color: #888;
-    margin-top: 12px;
-  }
-  .site-footer .g { color: #fbbf24; font-weight: 600; }
-  .site-footer .a { color: #60a5fa; font-weight: 600; }
-  .site-footer .z { color: #f472b6; font-weight: 600; }
   @media (max-width: 640px) {
     .grid { grid-template-columns: 1fr; }
   }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -108,27 +94,27 @@
 
   <div class="section-title">常用工具</div>
   <div class="grid">
-    <a class="card" href="https://rubiks-cube-solver.com/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://rubiks-cube-solver.com/" target="_blank" rel="noopener">
       <div class="name">魔方画图求解</div>
       <div class="url">rubiks-cube-solver.com</div>
     </a>
-    <a class="card" href="https://cube.rider.biz/visualcube.php" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://cube.rider.biz/visualcube.php" target="_blank" rel="noopener">
       <div class="name">三阶魔方画图网站</div>
       <div class="url">cube.rider.biz/visualcube.php</div>
     </a>
-    <a class="card" href="https://cubing.pro/welcome" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://cubing.pro/welcome" target="_blank" rel="noopener">
       <div class="name">魔方解法工具网站</div>
       <div class="url">cubing.pro/welcome</div>
     </a>
-    <a class="card" href="https://cubing.net/mark2/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://cubing.net/mark2/" target="_blank" rel="noopener">
       <div class="name">魔方打乱生成工具</div>
       <div class="url">cubing.net/mark2</div>
     </a>
-    <a class="card" href="https://alg.cubing.net/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://alg.cubing.net/" target="_blank" rel="noopener">
       <div class="name">逆向公式工具</div>
       <div class="url">alg.cubing.net</div>
     </a>
-    <a class="card" href="https://cstimer.net/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://cstimer.net/" target="_blank" rel="noopener">
       <div class="name">魔方计时器</div>
       <div class="url">cstimer.net</div>
     </a>
@@ -136,11 +122,11 @@
 
   <div class="section-title">公式库</div>
   <div class="grid">
-    <a class="card" href="https://www.speedcubedb.com/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://www.speedcubedb.com/" target="_blank" rel="noopener">
       <div class="name">魔方公式库</div>
       <div class="url">speedcubedb.com</div>
     </a>
-    <a class="card" href="http://blddb.net/corner.html" target="_blank" rel="noopener">
+    <a class="card card--link" href="http://blddb.net/corner.html" target="_blank" rel="noopener">
       <div class="name">魔方盲拧公式库</div>
       <div class="url">blddb.net/corner.html</div>
     </a>
@@ -148,11 +134,11 @@
 
   <div class="section-title">盲拧训练</div>
   <div class="grid">
-    <a class="card" href="https://pineapple-not-on-pizza.github.io/COLPI/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://pineapple-not-on-pizza.github.io/COLPI/" target="_blank" rel="noopener">
       <div class="name">魔方盲拧联想词查询</div>
       <div class="url">pineapple-not-on-pizza.github.io/COLPI</div>
     </a>
-    <a class="card" href="https://spooncuber.github.io" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://spooncuber.github.io" target="_blank" rel="noopener">
       <div class="name">盲拧训练助手</div>
       <div class="url">spooncuber.github.io</div>
     </a>
@@ -160,11 +146,11 @@
 
   <div class="section-title">赛事与系统</div>
   <div class="grid">
-    <a class="card" href="https://cubing.pro/welcome/" target="_blank" rel="noopener">
+    <a class="card card--link" href="https://cubing.pro/welcome/" target="_blank" rel="noopener">
       <div class="name">魔方线上赛</div>
       <div class="url">cubing.pro/welcome</div>
     </a>
-    <a class="card" href="http://train.cube.chesscoacher.com/login" target="_blank" rel="noopener">
+    <a class="card card--link" href="http://train.cube.chesscoacher.com/login" target="_blank" rel="noopener">
       <div class="name">魔方训练管理系统</div>
       <div class="url">train.cube.chesscoacher.com/login</div>
     </a>
@@ -173,9 +159,9 @@
 </div>
 
 <footer class="site-footer">
-  <p>制作人：B站博主：<span class="a">魔方先生SSR</span>　WCAID : <span class="z">2009ZHAN24</span></p>
-  <p>抖音ID : 魔方总动员</p>
-</footer>
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 
 <script src="/assets/js/site-nav.js"></script>
 </body>

@@ -4,21 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>二阶魔方盲拧 · 教学知识地图</title>
-<style>
+<style>:root {
+  --km-ui-4ecdc4: #4ECDC4;
+  --km-ui-5b8c3e: #5B8C3E;
+  --km-ui-2ea89a: #2EA89A;
+  --km-ui-7baf4a: #7BAF4A;
+}
+
 :root {
-  --bg:#121215; --bg-card:#1a1a1f; --bg-card2:#1e1e24;
-  --text:#e0e0e6; --text2:#9999a6; --text3:#6b6b78; --border:#2a2a32;
-  --orange:#E8782A; --orange-l:#F5A623;
-  --yellow:#D4A843; --yellow-l:#F0CF6A;
-  --teal:#2EA89A; --teal-l:#4ECDC4;
-  --blue:#4A90D9; --blue-l:#6DB3F2;
-  --purple:#9B59B6; --purple-l:#BB7FD6;
-  --red:#E85D3A; --green:#5B8C3E; --green-l:#7BAF4A;
+  --km-orange:var(--amber); --km-orange-l:var(--amber);
+  --km-yellow:var(--amber); --km-yellow-l:var(--amber);
+  --km-teal:var(--km-ui-2ea89a); --km-teal-l:var(--km-ui-4ecdc4);
+  --km-blue:var(--brand); --km-blue-l:var(--brand);
+  --km-purple:var(--violet); --km-purple-l:var(--violet);
+  --km-red:var(--amber); --km-green:var(--km-ui-5b8c3e); --km-green-l:var(--km-ui-7baf4a);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;
-  background:var(--bg);color:var(--text);line-height:1.7;
+  background:var(--bg);color:var(--fg);line-height:1.7;
   min-height:100vh;padding:24px;font-size:15px;
 }
 
@@ -27,37 +31,37 @@ body{
 /* 顶部标题 */
 .map-header{
   grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
-  padding:24px 32px;background:var(--bg-card);border-radius:14px;border:1px solid var(--border);
+  padding:24px 32px;background:var(--surface);border-radius:14px;border:1px solid var(--line);
 }
 .map-header .title-group h1{
   font-size:28px;font-weight:900;letter-spacing:3px;
-  background:linear-gradient(135deg,var(--orange-l),var(--orange));
+  background:linear-gradient(135deg,var(--km-orange-l),var(--km-orange));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .map-header .title-group .sub{
-  font-size:12px;color:var(--text3);letter-spacing:3px;margin-top:4px;
+  font-size:12px;color:var(--fg-3);letter-spacing:3px;margin-top:4px;
 }
 .map-header .meta{
-  text-align:right;font-size:13px;color:var(--text3);line-height:2;
+  text-align:right;font-size:13px;color:var(--fg-3);line-height:2;
 }
 
 /* 通用 */
 .block{
-  background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:22px;
+  background:var(--surface);border-radius:12px;border:1px solid var(--line);padding:22px;
 }
 .block-title{
   font-size:13px;font-weight:700;letter-spacing:2px;
-  margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);
+  margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:8px;
 }
 .block-title::before{content:'';width:4px;height:16px;border-radius:2px;flex-shrink:0}
-.block-title.orange::before{background:var(--orange)}
-.block-title.teal::before{background:var(--teal)}
-.block-title.blue::before{background:var(--blue)}
-.block-title.purple::before{background:var(--purple-l)}
-.block-title.yellow::before{background:var(--yellow-l)}
-.block-title.red::before{background:var(--red)}
-.block-title.green::before{background:var(--green-l)}
+.block-title.orange::before{background:var(--km-orange)}
+.block-title.teal::before{background:var(--km-teal)}
+.block-title.blue::before{background:var(--km-blue)}
+.block-title.purple::before{background:var(--km-purple-l)}
+.block-title.yellow::before{background:var(--km-yellow-l)}
+.block-title.red::before{background:var(--km-red)}
+.block-title.green::before{background:var(--km-green-l)}
 
 .panel-l,.panel-c,.panel-r{display:flex;flex-direction:column;gap:16px}
 .panel-bottom{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -72,45 +76,45 @@ body{
 
 /* 阶段卡片 */
 .stage-card{
-  background:var(--bg-card2);border-radius:10px;padding:16px 18px;margin-bottom:12px;
+  background:var(--surface-2);border-radius:10px;padding:16px 18px;margin-bottom:12px;
   border-left:4px solid transparent;
 }
-.stage-card.s1{border-left-color:var(--orange)}
-.stage-card.s2{border-left-color:var(--teal)}
-.stage-card.s3{border-left-color:var(--yellow)}
-.stage-card.s4{border-left-color:var(--blue)}
+.stage-card.s1{border-left-color:var(--km-orange)}
+.stage-card.s2{border-left-color:var(--km-teal)}
+.stage-card.s3{border-left-color:var(--km-yellow)}
+.stage-card.s4{border-left-color:var(--km-blue)}
 .stage-card .sn{font-size:11px;font-weight:700;letter-spacing:2px;margin-bottom:4px}
-.stage-card.s1 .sn{color:var(--orange)} .stage-card.s2 .sn{color:var(--teal)}
-.stage-card.s3 .sn{color:var(--yellow)} .stage-card.s4 .sn{color:var(--blue)}
+.stage-card.s1 .sn{color:var(--km-orange)} .stage-card.s2 .sn{color:var(--km-teal)}
+.stage-card.s3 .sn{color:var(--km-yellow)} .stage-card.s4 .sn{color:var(--km-blue)}
 .stage-card .sname{font-size:17px;font-weight:700;margin-bottom:6px}
-.stage-card .sdesc{font-size:13px;color:var(--text3)}
+.stage-card .sdesc{font-size:13px;color:var(--fg-3)}
 .stage-card:last-child{margin-bottom:0}
 
 /* 步骤列表 */
 .step-list{display:flex;flex-direction:column;gap:8px}
 .step-item{
   display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
-  background:var(--bg-card2);border-radius:8px;font-size:13px;line-height:1.6;
+  background:var(--surface-2);border-radius:8px;font-size:13px;line-height:1.6;
 }
-.step-item .sn{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0}
+.step-item .sn{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--on-brand);flex-shrink:0}
 .step-item .si strong{display:block;font-size:14px;margin-bottom:2px}
-.step-item .si span{color:var(--text3);font-size:12px}
-.sn-o{background:var(--orange)}.sn-t{background:var(--teal)}.sn-b{background:var(--blue)}.sn-y{background:var(--yellow)}.sn-p{background:var(--purple)}.sn-r{background:var(--red)}
+.step-item .si span{color:var(--fg-3);font-size:12px}
+.sn-o{background:var(--km-orange)}.sn-t{background:var(--km-teal)}.sn-b{background:var(--km-blue)}.sn-y{background:var(--km-yellow)}.sn-p{background:var(--km-purple)}.sn-r{background:var(--km-red)}
 
 /* 思维导图 */
-.mindmap{background:var(--bg-card);border-radius:12px;border:1px solid var(--border);padding:22px}
+.mindmap{background:var(--surface);border-radius:12px;border:1px solid var(--line);padding:22px}
 .mindmap .mm-group{margin-bottom:24px}
 .mindmap .mm-group:last-child{margin-bottom:0}
-.mindmap .mm-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--text2);margin-bottom:16px}
+.mindmap .mm-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--fg-2);margin-bottom:16px}
   /* 思维导图缩略图 + lightbox */
-  .mindmap-thumb{max-width:460px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:zoom-in;transition:border-color .2s,transform .2s}
-  .mindmap-thumb:hover{border-color:var(--blue-l,#4da3ff);transform:translateY(-2px)}
+  .mindmap-thumb{max-width:460px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid var(--line);cursor:zoom-in;transition:border-color .2s,transform .2s}
+  .mindmap-thumb:hover{border-color:var(--blue-l,var(--brand));transform:translateY(-2px)}
   .mindmap-thumb img{width:100%;height:auto;display:block}
-  .mindmap-hint{text-align:center;font-size:12px;color:var(--text3);margin-top:12px;letter-spacing:1px}
+  .mindmap-hint{text-align:center;font-size:12px;color:var(--fg-3);margin-top:12px;letter-spacing:1px}
   .lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:24px}
   .lightbox.open{display:flex}
   .lightbox img{max-width:95vw;max-height:92vh;border-radius:8px;box-shadow:0 12px 60px rgba(0,0,0,.6)}
-  .lightbox-close{position:absolute;top:18px;right:22px;width:44px;height:44px;border:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:28px;line-height:1;cursor:pointer;transition:background .2s}
+  .lightbox-close{position:absolute;top:18px;right:22px;width:44px;height:44px;border:none;border-radius:50%;background:rgba(255,255,255,.14);color:var(--on-brand);font-size:28px;line-height:1;cursor:pointer;transition:background .2s}
   .lightbox-close:hover{background:rgba(255,255,255,.3)}
 .mm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .mm-node{
@@ -118,48 +122,48 @@ body{
   font-size:19px;font-weight:900;flex-shrink:0;
 }
 .mm-node.final{width:62px;height:62px;border-radius:14px;font-size:24px}
-.mm-arrow{color:var(--text3);font-size:18px;font-weight:700;flex-shrink:0}
-.mm-bracket{color:var(--text3);font-size:22px;flex-shrink:0;font-weight:300}
-.mm-vert{width:2px;height:22px;background:var(--text3)}
+.mm-arrow{color:var(--fg-3);font-size:18px;font-weight:700;flex-shrink:0}
+.mm-bracket{color:var(--fg-3);font-size:22px;flex-shrink:0;font-weight:300}
+.mm-vert{width:2px;height:22px;background:var(--fg-3)}
 .mm-vgroup{display:flex;flex-direction:column;align-items:center;gap:4px}
 
 /* 节点色 */
-.mm-or{background:rgba(232,120,42,.18);color:var(--orange-l);border:1px solid rgba(232,120,42,.35)}
-.mm-te{background:rgba(46,168,154,.15);color:var(--teal-l);border:1px solid rgba(46,168,154,.3)}
-.mm-ye{background:rgba(212,168,67,.15);color:var(--yellow-l);border:1px solid rgba(212,168,67,.3)}
-.mm-bl{background:rgba(74,144,217,.15);color:var(--blue-l);border:1px solid rgba(74,144,217,.3)}
-.mm-pu{background:rgba(155,89,182,.15);color:var(--purple-l);border:1px solid rgba(155,89,182,.3)}
-.mm-rd{background:rgba(232,93,58,.15);color:var(--red);border:1px solid rgba(232,93,58,.35)}
+.mm-or{background:rgba(232,120,42,.18);color:var(--km-orange-l);border:1px solid rgba(232,120,42,.35)}
+.mm-te{background:rgba(46,168,154,.15);color:var(--km-teal-l);border:1px solid rgba(46,168,154,.3)}
+.mm-ye{background:rgba(212,168,67,.15);color:var(--km-yellow-l);border:1px solid rgba(212,168,67,.3)}
+.mm-bl{background:rgba(74,144,217,.15);color:var(--km-blue-l);border:1px solid rgba(74,144,217,.3)}
+.mm-pu{background:rgba(155,89,182,.15);color:var(--km-purple-l);border:1px solid rgba(155,89,182,.3)}
+.mm-rd{background:rgba(232,93,58,.15);color:var(--km-red);border:1px solid rgba(232,93,58,.35)}
 
-.mm-sub{font-size:11px;color:var(--text3);text-align:center;margin-top:10px}
+.mm-sub{font-size:11px;color:var(--fg-3);text-align:center;margin-top:10px}
 
 /* 表格统一样式 */
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;padding:6px 10px;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border)}
-.tbl td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2)}
+.tbl th{text-align:left;padding:6px 10px;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--fg-3);border-bottom:1px solid var(--line)}
+.tbl td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--fg-2)}
 .tbl td:first-child{font-weight:700}
-.tbl tr:hover td{color:var(--text)}
-.tbl td.g-c{color:var(--orange-l);font-size:15px}
-.tbl td.b-c{color:var(--blue-l);font-size:15px}
+.tbl tr:hover td{color:var(--fg)}
+.tbl td.g-c{color:var(--km-orange-l);font-size:15px}
+.tbl td.b-c{color:var(--km-blue-l);font-size:15px}
 
 /* 标签 */
 .tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1px}
-.tag.or{background:rgba(232,120,42,.15);color:var(--orange-l)}
-.tag.te{background:rgba(46,168,154,.12);color:var(--teal-l)}
-.tag.bl{background:rgba(74,144,217,.12);color:var(--blue-l)}
-.tag.ye{background:rgba(212,168,67,.12);color:var(--yellow-l)}
-.tag.pu{background:rgba(155,89,182,.12);color:var(--purple-l)}
-.tag.rd{background:rgba(232,93,58,.12);color:var(--red)}
+.tag.or{background:rgba(232,120,42,.15);color:var(--km-orange-l)}
+.tag.te{background:rgba(46,168,154,.12);color:var(--km-teal-l)}
+.tag.bl{background:rgba(74,144,217,.12);color:var(--km-blue-l)}
+.tag.ye{background:rgba(212,168,67,.12);color:var(--km-yellow-l)}
+.tag.pu{background:rgba(155,89,182,.12);color:var(--km-purple-l)}
+.tag.rd{background:rgba(232,93,58,.12);color:var(--km-red)}
 
 /* 课程表 */
-.tbl-course td:first-child{color:var(--orange-l);font-weight:600}
+.tbl-course td:first-child{color:var(--km-orange-l);font-weight:600}
 
 /* 公式汇总网格 */
 .formula-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;font-size:14px}
 .formula-grid .fg-item{padding:8px 0}
-.formula-grid .fg-item code{color:var(--orange-l);font-weight:700;font-size:20px;margin-right:8px}
-.formula-grid .fg-item .fg-form{color:var(--text2);font-size:15px}
-.fg-hard code{color:var(--red)!important}
+.formula-grid .fg-item code{color:var(--km-orange-l);font-weight:700;font-size:20px;margin-right:8px}
+.formula-grid .fg-item .fg-form{color:var(--fg-2);font-size:15px}
+.fg-hard code{color:var(--km-red)!important}
 
 /* 响应式 */
 @media(max-width:1700px){
@@ -192,6 +196,8 @@ body{
 }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -217,22 +223,22 @@ body{
   <!-- 教学阶段 -->
   <div class="block">
     <div class="block-title orange">教学四阶段</div>
-    <div class="stage-card s1">
+    <div class="card s1">
       <div class="sn">第一阶段</div>
       <div class="sname">编码识别</div>
       <div class="sdesc">建立角块编码认知，点读法训练，小程序闯关</div>
     </div>
-    <div class="stage-card s2">
+    <div class="card s2">
       <div class="sn">第二阶段</div>
       <div class="sname">学习公式</div>
       <div class="sdesc">G 族 / D 族 17条公式，肌肉记忆训练</div>
     </div>
-    <div class="stage-card s3">
+    <div class="card s3">
       <div class="sn">第三阶段</div>
       <div class="sname">学习读码规则</div>
       <div class="sdesc">3码→4码 · 小循环 · 借位 · 翻射角块</div>
     </div>
-    <div class="stage-card s4">
+    <div class="card s4">
       <div class="sn">第四阶段</div>
       <div class="sname">实战练习</div>
       <div class="sdesc">记忆优化 · 蒙眼还原 · 提速强化</div>
@@ -242,7 +248,7 @@ body{
   <!-- 魔方转动符号 -->
   <div class="block">
     <div class="block-title teal">魔方转动符号</div>
-    <table class="tbl">
+    <table class="table">
       <thead><tr><th>符号</th><th>操作说明</th><th>简易口诀</th></tr></thead>
       <tbody>
         <tr><td style="font-weight:700;font-size:15px">R</td><td>右侧面顺时针转 90°</td><td>右顺 90</td></tr>
@@ -373,7 +379,7 @@ body{
   <div class="block">
     <div class="block-title purple">公式分组自检</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:10px">复原魔方做完下列编码，魔方恢复原状则正确</div>
-    <table class="tbl">
+    <table class="table">
       <thead><tr><th width="24">#</th><th>基础组合</th><th width="24">#</th><th>拓展组合</th></tr></thead>
       <tbody>
         <tr><td class="g-c">1</td><td>B C A C</td><td class="g-c">1</td><td>D E A C B C F E</td></tr>
@@ -389,7 +395,7 @@ body{
   <!-- 13节课程安排 -->
   <div class="block">
     <div class="block-title blue">13 节课程安排（45min/节）</div>
-    <table class="tbl tbl-course">
+    <table class="table table--num">
       <thead><tr><th width="40">课次</th><th>内容</th><th width="80">作业</th></tr></thead>
       <tbody>
         <tr><td>1</td><td>编码 + 点读法</td><td>闯关 10题</td></tr>
@@ -487,5 +493,9 @@ body{
 })();
 </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

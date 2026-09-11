@@ -4,19 +4,20 @@
 <meta charset="UTF-8" data-page-node-id="73BI4oCaW2V72INh88uQrm">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="JE5T1IdBv0zVStb7YJIyWC">
 <title>棱块编码认知训练出题器</title>
-<style>
+<style>:root {
+  --po-ui-c0392b: #c0392b;
+  --po-ui-6b7280: #6b7280;
+  --po-ui-eef1f5: #eef1f5;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #f2f4f7;
-  --panel: #ffffff;
-  --panel-2: #eef1f5;
-  --border: #d3d9e2;
-  --text: #111827;
-  --muted: #6b7280;
-  --accent: #1d4ed8;
-  --accent-2: #c0392b;
-  --success: #15803d;
+  --panel: var(--on-brand);
+  --panel-2: var(--po-ui-eef1f5);
+  --muted: var(--po-ui-6b7280);
+  --po-danger: var(--po-ui-c0392b);
+  --success: var(--green);
 }
 
 body {
@@ -34,14 +35,14 @@ body {
   width: 100%;
   max-width: 960px;
   background: var(--panel);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 20px 24px;
   margin-bottom: 24px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 .toolbar h1 {
-  font-size: 22px; font-weight: 700; color: var(--text);
+  font-size: 22px; font-weight: 700; color: var(--fg);
   margin-bottom: 4px; text-align: center;
 }
 .toolbar .h1-sub {
@@ -53,19 +54,19 @@ body {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   justify-content: center; margin-bottom: 14px;
   padding: 10px 14px; background: var(--panel-2);
-  border-radius: 10px; border: 1px solid var(--border);
+  border-radius: 10px; border: 1px solid var(--line);
 }
 .preset-label {
-  font-size: 13px; font-weight: 700; color: var(--text); margin-right: 4px;
+  font-size: 13px; font-weight: 700; color: var(--fg); margin-right: 4px;
 }
 .preset-btn {
-  padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 6px 14px; border: 1.5px solid var(--line); border-radius: 8px;
   font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer;
-  background: #fff; transition: all 0.15s;
+  background: var(--on-brand); transition: all 0.15s;
 }
-.preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+.preset-btn:hover { border-color: var(--brand); color: var(--brand); }
 .preset-btn.active {
-  background: var(--accent); color: #fff; border-color: var(--accent);
+  background: var(--brand); color: var(--on-brand); border-color: var(--brand);
 }
 .preset-info {
   font-size: 12px; color: var(--muted); margin-left: 6px;
@@ -84,12 +85,12 @@ body {
 .ctrl-group input[type="text"],
 .ctrl-group input[type="number"],
 .ctrl-group input[type="date"] {
-  padding: 8px 12px; border: 1.5px solid var(--border);
-  border-radius: 10px; font-size: 15px; color: var(--text);
+  padding: 8px 12px; border: 1.5px solid var(--line);
+  border-radius: 10px; font-size: 15px; color: var(--fg);
   background: var(--panel-2); outline: none;
   transition: border-color 0.15s;
 }
-.ctrl-group input:focus { border-color: var(--accent); }
+.ctrl-group input:focus { border-color: var(--brand); }
 .ctrl-group input[type="number"] { width: 80px; }
 
 /* 颜色勾选区 */
@@ -99,8 +100,8 @@ body {
 .color-chip {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 5px 10px; border-radius: 8px; cursor: pointer;
-  border: 2px solid var(--border); background: #fff;
-  font-size: 13px; font-weight: 600; color: var(--text);
+  border: 2px solid var(--line); background: var(--on-brand);
+  font-size: 13px; font-weight: 600; color: var(--fg);
   transition: all 0.15s; user-select: none;
 }
 .color-chip .swatch {
@@ -108,11 +109,11 @@ body {
   border: 1px solid rgba(0,0,0,0.2); display: inline-block;
 }
 .color-chip.checked {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent) inset;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand) inset;
 }
 .color-chip .ck {
-  font-size: 11px; color: var(--accent); margin-left: 2px;
+  font-size: 11px; color: var(--brand); margin-left: 2px;
 }
 
 /* 形态勾选区 */
@@ -121,18 +122,18 @@ body {
 }
 .orient-chip {
   padding: 5px 10px; border-radius: 8px; cursor: pointer;
-  border: 2px solid var(--border); background: #fff;
+  border: 2px solid var(--line); background: var(--on-brand);
   font-size: 13px; font-weight: 600; color: var(--muted);
   transition: all 0.15s; user-select: none;
 }
 .orient-chip.checked {
-  border-color: var(--accent); color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent) inset;
+  border-color: var(--brand); color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand) inset;
 }
 
 /* 切换按钮组 */
 .toggle-group {
-  display: flex; border: 1.5px solid var(--border); border-radius: 10px;
+  display: flex; border: 1.5px solid var(--line); border-radius: 10px;
   overflow: hidden; background: var(--panel-2);
 }
 .toggle-btn {
@@ -141,17 +142,17 @@ body {
   transition: all 0.15s;
 }
 .toggle-btn.active {
-  background: var(--accent); color: #fff;
+  background: var(--brand); color: var(--on-brand);
 }
 /* checkbox 样式 */
 .ctrl-group input[type="checkbox"] {
-  width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent);
+  width: 16px; height: 16px; cursor: pointer; accent-color: var(--brand);
 }
 
 .btn-generate {
   padding: 10px 28px; border: none; border-radius: 10px;
   font-size: 16px; font-weight: 700; cursor: pointer;
-  background: var(--accent); color: #fff;
+  background: var(--brand); color: var(--on-brand);
   box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
   transition: transform 0.1s, box-shadow 0.1s, opacity 0.15s;
 }
@@ -159,12 +160,12 @@ body {
 .btn-generate:active { transform: scale(0.97); }
 
 .btn-print {
-  padding: 10px 28px; border: 2px solid var(--accent-2);
+  padding: 10px 28px; border: 2px solid var(--po-danger);
   border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
-  background: #fff; color: var(--accent-2);
+  background: var(--on-brand); color: var(--po-danger);
   transition: transform 0.1s, background 0.1s;
 }
-.btn-print:hover { background: #fdf0ee; }
+.btn-print:hover { background: var(--red-soft); }
 .btn-print:active { transform: scale(0.97); }
 
 /* ========== A4 纸张区域 ========== */
@@ -180,7 +181,7 @@ body {
   /* A4 竖版比例：210mm × 297mm */
   width: 210mm;
   min-height: 297mm;
-  background: #fff;
+  background: var(--on-brand);
   margin: 0 auto;
   box-shadow: 0 6px 24px rgba(0,0,0,0.12);
   padding: 14mm 16mm 12mm;
@@ -196,12 +197,12 @@ body {
   align-items: center;
   font-size: 13px;
   color: var(--muted);
-  border-bottom: 1.5px solid var(--border);
+  border-bottom: 1.5px solid var(--line);
   padding-bottom: 8px;
   margin-bottom: 10px;
 }
 .page-header .student-name {
-  font-weight: 600; color: var(--text);
+  font-weight: 600; color: var(--fg);
 }
 .page-header .date {
   color: var(--muted);
@@ -212,7 +213,7 @@ body {
   text-align: center;
   font-size: 26px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--fg);
   letter-spacing: 2px;
   margin-bottom: 6px;
 }
@@ -242,11 +243,38 @@ body {
 .edge-cell canvas {
   display: block;
   margin: 0 auto;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .edge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  body {
+    align-items: stretch;
+    padding: 14px 10px;
+  }
+  .toolbar {
+    max-width: 100%;
+    min-width: 0;
+    padding: 16px 14px;
+  }
+  .ctrl-row {
+    min-width: 0;
+    width: 100%;
+  }
+  .ctrl-group {
+    min-width: 0;
+    width: 100%;
+  }
+  .toggle-group {
+    flex-wrap: wrap;
+  }
 }
 .edge-cell .write-line {
   width: 90%;
   margin: 6px auto 0;
-  border-bottom: 2px solid #333;
+  border-bottom: 2px solid var(--fg);
   height: 22px;
 }
 .edge-cell .seq-num {
@@ -257,24 +285,14 @@ body {
 }
 /* 读编码模式：字母显示 */
 .edge-cell .read-letter {
-  font-size: 22px; font-weight: 800; color: var(--accent);
+  font-size: 22px; font-weight: 800; color: var(--brand);
   margin-top: 4px; letter-spacing: 1px;
-}
-
-/* 页脚 */
-.page-footer {
-  text-align: center;
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 8px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
 }
 
 /* ========== 打印样式 ========== */
 @media print {
   body {
-    background: #fff;
+    background: var(--on-brand);
     padding: 0;
   }
   .toolbar {
@@ -313,6 +331,8 @@ body {
 }
 </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
 /* 阶段二：导航通栏适配 */
 body{ display:block; padding:0 16px 20px; }
@@ -337,10 +357,10 @@ body{ display:block; padding:0 16px 20px; }
   <!-- 难度预设 -->
   <div class="preset-row" data-page-node-id="B9TgdkFNvtPhF7PCpjxj2F">
     <span class="preset-label" data-page-node-id="1s7dBZos63IoQXe5EehpoD">难度预设</span>
-    <button class="preset-btn active" data-preset="L1" data-page-node-id="KwqwB5nDeayEPEyB4DIJ7K">L1 入门（黄红绿）</button>
-    <button class="preset-btn" data-preset="L2" data-page-node-id="GXnbnlyznV7ODD8R3AGK7s">L2 基础（黄红白绿）</button>
-    <button class="preset-btn" data-preset="L3" data-page-node-id="Hd57qKvdWMm9LRjLG1NIfC">L3 进阶（黄红白绿蓝）</button>
-    <button class="preset-btn" data-preset="L4" data-page-node-id="sGSAIaaPiRBkhpHZf8LJJZ">L4 挑战（全6色）</button>
+    <button class="seg__btn active" data-preset="L1" data-page-node-id="KwqwB5nDeayEPEyB4DIJ7K">L1 入门（黄红绿）</button>
+    <button class="seg__btn" data-preset="L2" data-page-node-id="GXnbnlyznV7ODD8R3AGK7s">L2 基础（黄红白绿）</button>
+    <button class="seg__btn" data-preset="L3" data-page-node-id="Hd57qKvdWMm9LRjLG1NIfC">L3 进阶（黄红白绿蓝）</button>
+    <button class="seg__btn" data-preset="L4" data-page-node-id="sGSAIaaPiRBkhpHZf8LJJZ">L4 挑战（全6色）</button>
     <span class="preset-info" id="presetInfo" data-page-node-id="PGfJiatctvD7sjYvDDwz1t">当前可选棱块：4 个</span>
   </div>
 
@@ -360,17 +380,17 @@ body{ display:block; padding:0 16px 20px; }
     <div class="ctrl-group" data-page-node-id="Ttgb8IN62Md3ogqgiSzjsA">
       <label data-page-node-id="euRgFe217gcOhiwUldn0cY">每页题数</label>
       <div class="toggle-group" id="perPagePick" data-page-node-id="UMCthVrYD8kMvHZuoOHR5N">
-        <button class="toggle-btn active" data-perpage="12" data-cols="3" data-page-node-id="xkRoiqUKMKESs19udQNREl">12（3×4）</button>
-        <button class="toggle-btn" data-perpage="16" data-cols="4" data-page-node-id="izuX8HHtOncnQmdYA3DJWz">16（4×4）</button>
-        <button class="toggle-btn" data-perpage="20" data-cols="4" data-page-node-id="kUijxYuU4iBTnYnOzs9Zzp">20（4×5）</button>
-        <button class="toggle-btn" data-perpage="24" data-cols="4" data-page-node-id="gwpLzZwFlkqQk4v0aVHhIm">24（4×6）</button>
+        <button class="seg__btn active" data-perpage="12" data-cols="3" data-page-node-id="xkRoiqUKMKESs19udQNREl">12（3×4）</button>
+        <button class="seg__btn" data-perpage="16" data-cols="4" data-page-node-id="izuX8HHtOncnQmdYA3DJWz">16（4×4）</button>
+        <button class="seg__btn" data-perpage="20" data-cols="4" data-page-node-id="kUijxYuU4iBTnYnOzs9Zzp">20（4×5）</button>
+        <button class="seg__btn" data-perpage="24" data-cols="4" data-page-node-id="gwpLzZwFlkqQk4v0aVHhIm">24（4×6）</button>
       </div>
     </div>
     <div class="ctrl-group" data-page-node-id="IA7q9Ot0EFAth5LiCFIFDw">
       <label data-page-node-id="9Ljku3fDPDEa6QIeaRqwri">模式</label>
       <div class="toggle-group" data-page-node-id="jNDjWVccC9ZdutQfya0Ela">
-        <button class="toggle-btn active" data-mode="write" data-page-node-id="cfxlOK99ani1lCTcwBz9Fe">写编码（有横线）</button>
-        <button class="toggle-btn" data-mode="read" data-page-node-id="EDASLL44nwo4mT5uiNhg4y">读编码（无横线）</button>
+        <button class="seg__btn active" data-mode="write" data-page-node-id="cfxlOK99ani1lCTcwBz9Fe">写编码（有横线）</button>
+        <button class="seg__btn" data-mode="read" data-page-node-id="EDASLL44nwo4mT5uiNhg4y">读编码（无横线）</button>
       </div>
     </div>
     <div class="ctrl-group" data-page-node-id="OaTHyixyap1nC4ZEsABbyw">
@@ -380,9 +400,9 @@ body{ display:block; padding:0 16px 20px; }
     <div class="ctrl-group" data-page-node-id="GCGNstZnyMBARbwIqK93KN">
       <label data-page-node-id="D1Sd9c8FATAOZfAwjwjPTq">棱块形态</label>
       <div class="orient-pick" id="orientPick" data-page-node-id="WzVtUkPtn7GX4pUVWcdOGy">
-        <span class="orient-chip checked" data-orient="standard" data-page-node-id="TfqBTDd0aaZlQCjFwQQnYk">标准</span>
-        <span class="orient-chip checked" data-orient="flipped" data-page-node-id="L2IyWdPyhqGXb5ZjY2NwA5">镜像</span>
-        <span class="orient-chip checked" data-orient="rot" data-page-node-id="q8kHacz0kNZQLxhlQlT85t">旋转120°</span>
+        <span class="badge checked" data-orient="standard" data-page-node-id="TfqBTDd0aaZlQCjFwQQnYk">标准</span>
+        <span class="badge checked" data-orient="flipped" data-page-node-id="L2IyWdPyhqGXb5ZjY2NwA5">镜像</span>
+        <span class="badge checked" data-orient="rot" data-page-node-id="q8kHacz0kNZQLxhlQlT85t">旋转120°</span>
       </div>
     </div>
     <div class="ctrl-group" data-page-node-id="AsceTckPYFrnAvCauvUIeK">
@@ -399,8 +419,8 @@ body{ display:block; padding:0 16px 20px; }
         </label>
       </div>
     </div>
-    <button class="btn-generate" onclick="generate()" data-page-node-id="ZsdoYTHewaQSGljQ0bGwOo">生成题目</button>
-    <button class="btn-print" onclick="window.print()" data-page-node-id="VQqFKrbQQbjpDa6nl1yYr6">打印 / 导出PDF</button>
+    <button class="btn btn--primary" onclick="generate()" data-page-node-id="ZsdoYTHewaQSGljQ0bGwOo">生成题目</button>
+    <button class="btn btn--secondary" onclick="window.print()" data-page-node-id="VQqFKrbQQbjpDa6nl1yYr6">打印 / 导出PDF</button>
   </div>
 </div>
 
@@ -774,8 +794,9 @@ function generate() {
       const canvas = document.createElement("canvas");
       canvas.width = 280;
       canvas.height = 220;
-      canvas.style.width = "170px";
-      canvas.style.height = "134px";
+      canvas.style.width = "100%";
+      canvas.style.maxWidth = "170px";
+      canvas.style.height = "auto";
       cell.appendChild(canvas);
 
       if (currentMode === "write") {
@@ -815,5 +836,9 @@ generate();
 </script>
 
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

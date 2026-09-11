@@ -7,36 +7,39 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
-    --primary:#4f6ef7;--primary-light:#eef1fe;--accent:#f59e0b;
-    --green:#10b981;--red:#ef4444;--amber:#f59e0b;--gray:#9ca3af;
-    --text:#1f2937;--text-2:#4b5563;--text-3:#9ca3af;
-    --border:#e5e7eb;--bg:#f3f4f6;--card:#ffffff;--bg-soft:#f9fafb;
+    --primary:var(--brand);--brand-soft:var(--surface);--fg-3:var(--fg-3);--text-2:var(--fg-3);--text-3:var(--fg-3);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:var(--text);background:var(--bg);line-height:1.6}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 16px;font-size:14px;background:var(--primary);color:#fff;transition:.15s}
+  body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:var(--fg);background:var(--bg);line-height:1.6}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 16px;font-size:14px;background:var(--primary);color:var(--on-brand);transition:.15s}
   button:hover{filter:brightness(1.08)}
-  button.sec{background:#fff;color:var(--text-2);border:1px solid var(--border)}
+  button.sec{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line)}
   button.ghost{background:transparent;color:var(--text-2)}
   button.sm{padding:4px 10px;font-size:13px}
-  input,textarea,select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;outline:none;background:#fff;color:var(--text)}
+  input,textarea,select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;outline:none;background:var(--on-brand);color:var(--fg)}
   input:focus,textarea:focus,select:focus{border-color:var(--primary)}
   a{color:var(--primary);cursor:pointer}
 
   /* 顶栏 */
-  .topbar{display:flex;align-items:center;gap:16px;padding:0 20px;height:56px;background:var(--card);border-bottom:1px solid var(--border);position:static;z-index:50}
+  .topbar{display:flex;align-items:center;gap:16px;padding:0 20px;height:56px;background:var(--surface);border-bottom:1px solid var(--line);position:static;z-index:50}
   .topbar .logo{font-weight:700;font-size:17px;white-space:nowrap}
   .topbar nav{display:flex;gap:4px}
   .topbar nav .nbtn{background:transparent;color:var(--text-2);padding:8px 14px;font-weight:500}
-  .topbar nav .nbtn.active{background:var(--primary-light);color:var(--primary)}
+  .topbar nav .nbtn.active{background:var(--brand-soft);color:var(--primary)}
   .topbar .spacer{flex:1}
   .topbar .classpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text-2)}
+  @media (max-width:640px){
+    .topbar{height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
+    .topbar nav{flex-wrap:wrap}
+    .topbar .classpick{width:100%}
+    .wrap{padding:14px}
+  }
 
   .wrap{max-width:1320px;margin:0 auto;padding:20px}
   .view{display:none}.view.active{display:block}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px}
   h2{font-size:24px;margin-bottom:4px}
-  h3{font-size:15px;margin:16px 0 8px;color:var(--text)}
+  h3{font-size:15px;margin:16px 0 8px;color:var(--fg)}
   .muted{color:var(--text-3);font-size:13px}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
@@ -47,7 +50,7 @@
   body.wide .wrap{max-width:none}                       /* 计分页撑满视口 */
   #view-score .card{padding:12px 16px 14px}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;width:100%;margin:0 auto;justify-content:center}
-  .kid{border-radius:12px;padding:6px 4px 5px;text-align:center;color:#fff;position:relative;cursor:pointer;user-select:none;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.08);transition:transform .08s;container-type:size;overflow:hidden}
+  .kid{border-radius:12px;padding:6px 4px 5px;text-align:center;color:var(--on-brand);position:relative;cursor:pointer;user-select:none;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.08);transition:transform .08s;container-type:size;overflow:hidden}
   .kid:active{transform:scale(.96)}
   .kid .num{font-size:34cqw;font-weight:800;line-height:1}
   .kid .name{font-size:13cqw;font-weight:600;margin-top:1px;line-height:1.15}
@@ -60,14 +63,14 @@
 
   /* 结算/表扬榜 */
   .rank{display:flex;flex-direction:column;gap:8px}
-  .rrow{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:10px 14px}
+  .rrow{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
   .rrow .rk{width:30px;text-align:center;font-weight:700;color:var(--text-3)}
-  .rrow.top1{background:#fff7ed;border-color:#fdba74}
-  .rrow.top1 .rk{color:#ea580c;font-size:18px}
-  .rrow.top2{background:#f0f9ff;border-color:#93c5fd}
-  .rrow.top2 .rk{color:#2563eb}
-  .rrow.top3{background:#f0fdf4;border-color:#86efac}
-  .rrow.top3 .rk{color:#16a34a}
+  .rrow.top1{background:var(--amber-soft);border-color:var(--amber-soft)}
+  .rrow.top1 .rk{color:var(--amber);font-size:18px}
+  .rrow.top2{background:var(--surface);border-color:var(--brand)}
+  .rrow.top2 .rk{color:var(--brand)}
+  .rrow.top3{background:var(--green-soft);border-color:var(--green)}
+  .rrow.top3 .rk{color:var(--green)}
   .rrow .rname{flex:1;font-weight:600}
   .rrow .rname .n{color:var(--text-3);font-weight:400;font-size:13px;margin-left:6px}
   .rrow .rcnt{font-size:15px;font-weight:700;color:var(--primary)}
@@ -75,17 +78,17 @@
 
   /* 表格 */
   table.tbl{width:100%;border-collapse:collapse;font-size:14px}
-  table.tbl th{background:var(--primary-light);text-align:left;padding:9px 12px;border:1px solid var(--border)}
-  table.tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:middle}
+  table.tbl th{background:var(--brand-soft);text-align:left;padding:9px 12px;border:1px solid var(--line)}
+  table.tbl td{padding:9px 12px;border:1px solid var(--line);vertical-align:middle}
   table.tbl tr:nth-child(even) td{background:var(--bg-soft)}
 
   /* 进度状态 */
-  .st{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:3px 12px;font-size:13px;font-weight:600;border:1px solid var(--border);cursor:pointer;white-space:nowrap}
-  .st.s0{background:#f3f4f6;color:#9ca3af}
-  .st.s1{background:#fef3c7;color:#b45309;border-color:#fcd34d}
-  .st.s2{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
-  .st.s3{background:#fde8e8;color:#b91c1c;border-color:#fca5a5}
-  .skrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px dashed var(--border)}
+  .st{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:3px 12px;font-size:13px;font-weight:600;border:1px solid var(--line);cursor:pointer;white-space:nowrap}
+  .st.s0{background:var(--surface);color:var(--fg-3)}
+  .st.s1{background:var(--gold-soft);color:var(--amber);border-color:var(--gold)}
+  .st.s2{background:var(--green-soft);color:var(--green);border-color:var(--green)}
+  .st.s3{background:var(--red-soft);color:var(--red);border-color:var(--red-soft)}
+  .skrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px dashed var(--line)}
   .skrow:last-child{border:none}
   .skrow .skname{min-width:130px;font-size:14px}
   .skrow .note{font-size:12px;color:var(--text-3);font-style:italic}
@@ -95,11 +98,11 @@
   .heat th:first-child,.heat td:first-child{text-align:left}
   .heatcell{width:30px;height:30px;border-radius:5px;cursor:pointer;border:1.5px solid rgba(0,0,0,.12);transition:transform .1s}
   .heatcell:hover{transform:scale(1.15);z-index:2}
-  .hc0{background:#cbd5e1;border-color:#94a3b8}.hc1{background:#f59e0b;border-color:#d97706}.hc2{background:#22c55e;border-color:#16a34a}.hc3{background:#ef4444;border-color:#dc2626}
+  .hc0{background:var(--fg-2);border-color:var(--fg-3)}.hc1{background:var(--amber);border-color:var(--amber)}.hc2{background:var(--green);border-color:var(--green)}.hc3{background:var(--red);border-color:var(--red)}
 
   .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
   .modalbg.show{display:flex}
-  .modal{background:#fff;border-radius:14px;padding:24px;max-width:720px;width:100%;max-height:88vh;overflow:auto}
+  .modal{background:var(--on-brand);border-radius:14px;padding:24px;max-width:720px;width:100%;max-height:88vh;overflow:auto}
   .modal h3{margin-top:0}
   .empty{text-align:center;color:var(--text-3);padding:40px 0}
 
@@ -109,9 +112,9 @@
   /* 学生主页 */
   .stu-topbar{display:flex;align-items:center;gap:14px;margin-bottom:16px}
   .stu-info{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-  .stu-info .avatar{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+  .stu-info .avatar{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--on-brand);flex-shrink:0}
   .stu-info .stats{display:flex;gap:14px;margin-left:auto}
-  .stu-info .stat{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:8px 18px;text-align:center;min-width:80px}
+  .stu-info .stat{background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:8px 18px;text-align:center;min-width:80px}
   .stu-info .stat .v{font-size:22px;font-weight:700;color:var(--primary)}
   .stu-info .stat .l{font-size:12px;color:var(--text-3)}
   .radar-section{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
@@ -121,7 +124,7 @@
   .radar-slider label{min-width:70px;font-size:14px;color:var(--text-2)}
   .radar-slider input[type=range]{flex:1;accent-color:var(--primary)}
   .radar-slider .val{min-width:30px;text-align:right;font-weight:700;color:var(--primary)}
-  .prog-bar{height:8px;border-radius:4px;background:#e5e7eb;overflow:hidden}
+  .prog-bar{height:8px;border-radius:4px;background:var(--surface);overflow:hidden}
   .prog-bar .fill{height:100%;background:var(--green);border-radius:4px;transition:width .3s}
 
   /* 进度页 - 横条/饼图容器 */
@@ -129,12 +132,12 @@
   .rate-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .rate-row .rate-name{min-width:80px;font-size:14px;font-weight:600;cursor:pointer}
   .rate-row .rate-name:hover{color:var(--primary)}
-  .rate-bar{flex:1;height:26px;border-radius:6px;background:#e2e8f0;overflow:hidden;position:relative}
+  .rate-bar{flex:1;height:26px;border-radius:6px;background:var(--surface);overflow:hidden;position:relative}
   .rate-bar .seg{height:100%;float:left;transition:width .3s}
-  .rate-bar .seg.s0{background:#cbd5e1}
-  .rate-bar .seg.s1{background:#f59e0b}
-  .rate-bar .seg.s2{background:#22c55e}
-  .rate-bar .seg.s3{background:#ef4444}
+  .rate-bar .seg.s0{background:var(--fg-2)}
+  .rate-bar .seg.s1{background:var(--amber)}
+  .rate-bar .seg.s2{background:var(--green)}
+  .rate-bar .seg.s3{background:var(--red)}
   .rate-bar .rate-label{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--text-2)}
   .pie-wrap{display:flex;gap:30px;flex-wrap:wrap;align-items:center;justify-content:center}
   .pie-chart{width:320px;height:320px}
@@ -142,21 +145,23 @@
   .pie-stats .ps-row{display:flex;align-items:center;gap:8px;font-size:14px}
   .pie-stats .ps-row i{display:inline-block;width:16px;height:16px;border-radius:4px}
   .prog-summary{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
-  .prog-summary .ps{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:10px 20px;text-align:center;min-width:100px}
+  .prog-summary .ps{background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:10px 20px;text-align:center;min-width:100px}
   .prog-summary .ps .v{font-size:24px;font-weight:700}
   .prog-summary .ps .l{font-size:12px;color:var(--text-3)}
   .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
 /* 学生主页 Tab 与阶段按钮 + toast */
-.stu-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.stu-tab{background:#fff;color:var(--text-2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:14px;font-weight:500;cursor:pointer}
-.stu-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-.stage-btn{background:#fff;color:var(--text-2);border:1px solid var(--border);border-radius:999px;padding:4px 14px;font-size:13px;cursor:pointer}
-.stage-btn.active{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+.stu-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.stu-tab{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:8px;padding:6px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.stu-tab.active{background:var(--primary);color:var(--on-brand);border-color:var(--primary)}
+.stage-btn{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:13px;cursor:pointer}
+.stage-btn.active{background:var(--brand-soft);color:var(--primary);border-color:var(--primary)}
 .dim-auto{color:var(--text-3);font-size:12px;margin-left:6px}
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:8px;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
 </style>
   <link rel="stylesheet" href="/assets/css/site-nav.css" data-page-node-id="zs7TAbYKKItbcHe9Qk7e7H" />
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body data-nav="class-teach" style="padding-top:60px" data-page-node-id="eRcpbs65yATz2bxhkteVTM">
 <div data-site-nav></div>
@@ -185,8 +190,8 @@
       <p class="muted" data-page-node-id="5I7gqRfxfWtlwxBESh4v7H">选择上方功能模块开始。当前班级可在右上角切换。</p>
       <div class="row" style="margin-top:18px" data-page-node-id="Hq5iq9BPPPemmN4dvnHjiC">
         <button data-go="score" data-page-node-id="AFAtgNSFb4D2kihYkn9lZK">进入课堂计分 →</button>
-        <button class="sec" data-go="progress" data-page-node-id="a5Xsgld2FnhmLDIcNphqc3">查看学习进度 →</button>
-        <button class="sec" data-go="students" data-page-node-id="QLuj3SPdk1eCTfGGnqT0sL">管理学生 →</button>
+        <button class="btn btn--ghost" data-go="progress" data-page-node-id="a5Xsgld2FnhmLDIcNphqc3">查看学习进度 →</button>
+        <button class="btn btn--ghost" data-go="students" data-page-node-id="QLuj3SPdk1eCTfGGnqT0sL">管理学生 →</button>
       </div>
     </div>
     <div class="card" data-page-node-id="BHdcxQCEuXggEUtPFeNzcA">
@@ -207,7 +212,7 @@
           <option value="score" data-page-node-id="3nzvO8zd6vuCMSYpMxvSLl">按积分</option>
         </select></label>
         <div style="flex:1" data-page-node-id="x3e4VbDfXP7rnYr8jUe3C9"></div>
-        <button class="sec sm" id="newSession" data-page-node-id="4VeZjjmHy64JE4Ej8MO8Kj">开始新课</button>
+        <button class="btn btn--ghost btn--sm" id="newSession" data-page-node-id="4VeZjjmHy64JE4Ej8MO8Kj">开始新课</button>
         <button id="finishBtn" data-page-node-id="DMMLncGcolKdY8tckbp7t3">完成本节课</button>
       </div>
       <div id="scoreGrid" class="grid" data-page-node-id="VN138x3xHPO47h2v7Kx8N3"></div>
@@ -249,7 +254,7 @@
         <h2 style="margin:0" data-page-node-id="IqLc8TEbqBmMIw9Xaha6CY">学生管理</h2>
         <span class="meta" id="stuMeta" data-page-node-id="E5RxZxAsTTt7O89QGh5vAj">—</span>
         <div style="flex:1" data-page-node-id="PHqdonl5YoER0lw7FwLx4m"></div>
-        <button class="ghost sm" id="clearScores" style="color:var(--red)" data-page-node-id="J5sAgulNz4uVDja4uorfxr">批量清零积分（本班）</button>
+        <button class="btn btn--ghost btn--sm" id="clearScores" style="color:var(--red)" data-page-node-id="J5sAgulNz4uVDja4uorfxr">批量清零积分（本班）</button>
       </div>
       <h3 data-page-node-id="D5AsDjC7E2ODEu2hsL3Mei">添加学生</h3>
       <div class="row" data-page-node-id="y5TEKj7zFVRJaltOkb0ajt">
@@ -260,7 +265,7 @@
       </div>
       <h3 data-page-node-id="3wQhxA9JMlK5P7qxfrGHk1">批量导入（每行：学号,大名,小名）</h3>
       <textarea id="bulk" rows="4" style="width:100%;max-width:520px" placeholder="01,王一诺,诺诺&#10;02,李梓豪,豪豪"></textarea>
-      <div class="row" style="margin-top:8px" data-page-node-id="TcReTc9GcLNxSQcyRXW6If"><button class="sec sm" id="bulkBtn" data-page-node-id="gr1bFgr0Vvlpi9HUa1ZuVC">批量导入</button></div>
+      <div class="row" style="margin-top:8px" data-page-node-id="TcReTc9GcLNxSQcyRXW6If"><button class="btn btn--ghost btn--sm" id="bulkBtn" data-page-node-id="gr1bFgr0Vvlpi9HUa1ZuVC">批量导入</button></div>
     </div>
     <div class="card" data-page-node-id="nAktVsFlRtBV2aL0bZWVHA">
       <div class="scorebar" data-page-node-id="A7x6JxRF6C7GzpyixZWrbC">
@@ -271,7 +276,7 @@
           <option value="score" data-page-node-id="R4iKlwzLskK286ngio1k14">按积分</option>
         </select>
       </div>
-      <table class="tbl" data-page-node-id="amFO1ATyeWtfhOCUF9lJnL"><thead data-page-node-id="OOhL2yOqAHuKbl9ofj5sMG"><tr data-page-node-id="stMLbWGrCxTfzCZZy7RQ3I"><th data-page-node-id="YlVs70ZKGo67jKCDvh8Tv6">学号</th><th data-page-node-id="ynbj2GUDiHCajbB1V6kBJK">大名</th><th data-page-node-id="isDO5dLiqu37cpXre6i9cL">小名</th><th data-page-node-id="SviWgUumnHze8euEuIZgmn">颜色</th><th data-page-node-id="lBDGm3tEBrnKfyr29EKmWe">累计积分</th><th data-page-node-id="0HTzsCkEj9aL4EgqoQp4YL">操作</th></tr></thead>
+      <table class="table" data-page-node-id="amFO1ATyeWtfhOCUF9lJnL"><thead data-page-node-id="OOhL2yOqAHuKbl9ofj5sMG"><tr data-page-node-id="stMLbWGrCxTfzCZZy7RQ3I"><th data-page-node-id="YlVs70ZKGo67jKCDvh8Tv6">学号</th><th data-page-node-id="ynbj2GUDiHCajbB1V6kBJK">大名</th><th data-page-node-id="isDO5dLiqu37cpXre6i9cL">小名</th><th data-page-node-id="SviWgUumnHze8euEuIZgmn">颜色</th><th data-page-node-id="lBDGm3tEBrnKfyr29EKmWe">累计积分</th><th data-page-node-id="0HTzsCkEj9aL4EgqoQp4YL">操作</th></tr></thead>
         <tbody id="stuBody" data-page-node-id="CE4KQXHxuQg8kEUYNyCqo7"></tbody>
       </table>
     </div>
@@ -293,8 +298,8 @@
       <p class="muted" data-page-node-id="TgnG3wyFQ35hT5fMcLPIMh">第一版本地存储。定期导出 JSON 文件备份，换电脑时导入即可继续使用。</p>
       <div class="row" style="margin-top:14px" data-page-node-id="xlIHqIG8EkZ8unNxLemJYB">
         <button id="exportBtn" data-page-node-id="CebOHcwB6fFzBkJc4nQLTk">导出备份（JSON）</button>
-        <button class="sec" id="importBtn" data-page-node-id="twNZP3VcDC5zeG1KBI3Dfy">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none" data-page-node-id="Bdwb2H58fIlzcn85poGI44">
-        <button class="ghost sm" id="wipeBtn" style="color:var(--red)" data-page-node-id="TNvM17bPtU0PZykxZDXHRF">清空全部数据</button>
+        <button class="btn btn--ghost" id="importBtn" data-page-node-id="twNZP3VcDC5zeG1KBI3Dfy">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none" data-page-node-id="Bdwb2H58fIlzcn85poGI44">
+        <button class="btn btn--ghost btn--sm" id="wipeBtn" style="color:var(--red)" data-page-node-id="TNvM17bPtU0PZykxZDXHRF">清空全部数据</button>
       </div>
       <h3 data-page-node-id="XHBk5wukTjVNylWi6NLo23">数据概况</h3>
       <div id="backupStat" class="muted" data-page-node-id="YLzSxNBdSj5gWPofXttd4G">—</div>
@@ -309,8 +314,8 @@
       </div>
       <div class="row" style="margin-top:10px" data-page-node-id="Hsx8HIFCdSTa7iN3Wd9mef">
         <button id="ghConnect" data-page-node-id="7m1jy4QKJiVKdXfKyT1TyL">保存配置并连接</button>
-        <button class="sec" id="ghPull" data-page-node-id="dX0N6hgfAnlM5mS83ZRy7z">从云端拉取</button>
-        <button class="sec" id="ghPush" data-page-node-id="ZEU7qI2IP1ZGD47A510IIN">立即同步到云端</button>
+        <button class="btn btn--ghost" id="ghPull" data-page-node-id="dX0N6hgfAnlM5mS83ZRy7z">从云端拉取</button>
+        <button class="btn btn--ghost" id="ghPush" data-page-node-id="ZEU7qI2IP1ZGD47A510IIN">立即同步到云端</button>
         <span id="ghStatus" class="muted" data-page-node-id="gCGNUGOCATfX6IAcme0wXB">未连接</span>
       </div>
     </div>
@@ -328,7 +333,7 @@
     <div class="muted" id="settleDate" style="margin-bottom:10px" data-page-node-id="wQXy4lWPdRwUHB62waGtSV"></div>
     <div class="rank" id="settleRank" data-page-node-id="MBwEXjwZfJuXDdjBYYfxxC"></div>
     <div class="row" style="margin-top:18px;justify-content:flex-end" data-page-node-id="epTD2ZcMk2XkCqxdRJcSV7">
-      <button class="sec" id="settleClose" data-page-node-id="AX6dEYPsJzL9GG62xLzHcm">返回计分</button>
+      <button class="btn btn--ghost" id="settleClose" data-page-node-id="AX6dEYPsJzL9GG62xLzHcm">返回计分</button>
       <button id="settleConfirm" data-page-node-id="HpdqsUzCki5K9qDDENqVy8">确认归档并清零</button>
     </div>
   </div>
@@ -638,7 +643,7 @@ function drawProgHeat(ss,skills,courses){
   }
 }
 function buildHeatTable(ss,skills){
-  let html='<div style="overflow-x:auto"><table class="tbl heat"><thead><tr><th>学生</th>';
+  let html='<div style="overflow-x:auto"><table class="table heat"><thead><tr><th>学生</th>';
   skills.forEach(sk=>html+=`<th style="font-size:10px;writing-mode:vertical-rl;text-orientation:upright;height:80px;padding:2px">${sk.name}</th>`);
   html+='</tr></thead><tbody>';
   ss.forEach(s=>{
@@ -818,7 +823,7 @@ function renderStuPage(){
 
   let html='';
   /* 顶部导航栏 */
-  html+=`<div class="stu-topbar"><button class="sec" onclick="stuBack()">← 返回</button><h2 style="margin:0;flex:1">${s.name} 的学习主页</h2><span class="muted">${cls.name}</span></div>`;
+  html+=`<div class="stu-topbar"><button class="btn btn--ghost" onclick="stuBack()">← 返回</button><h2 style="margin:0;flex:1">${s.name} 的学习主页</h2><span class="muted">${cls.name}</span></div>`;
   /* 个人信息卡片 */
   const firstChar=s.name?s.name[0]:'?';
   html+=`<div class="card stu-info"><div class="avatar" style="background:${s.color}">${firstChar}</div><div><div style="font-size:18px;font-weight:700">${s.name} <span class="muted" style="font-size:14px">${s.nick?('('+s.nick+')'):''}</span></div><div class="muted">学号：${s.sid||'—'} · 班级：${cls.name}</div></div><div class="stats"><div class="stat"><div class="v">${total}</div><div class="l">累计积分</div></div><div class="stat"><div class="v">${masteryRate}%</div><div class="l">总体掌握率</div></div><div class="stat"><div class="v">${sessCount}</div><div class="l">已上课次</div></div></div></div>`;
@@ -857,7 +862,7 @@ function renderStuPage(){
     if(!rows.length){html+=`<div class="empty">暂无已归档课次</div>`;}
     else{
       html+=`<div style="height:260px;margin-bottom:12px"><canvas id="stuScoreChart"></canvas></div>`;
-      html+=`<table class="tbl"><thead><tr><th>课次日期</th><th>该生得分</th><th>其他同学平均</th><th>对比</th></tr></thead><tbody>`;
+      html+=`<table class="table"><thead><tr><th>课次日期</th><th>该生得分</th><th>其他同学平均</th><th>对比</th></tr></thead><tbody>`;
       rows.forEach(r=>{const d=r.my-r.avg;html+=`<tr><td>${r.date}</td><td><b>${r.my}</b></td><td>${r.avg}</td><td style="color:${d>=0?'#16a34a':'#dc2626'}">${d>=0?'+':''}${d}</td></tr>`;});
       html+=`</tbody></table>`;
     }
@@ -972,7 +977,7 @@ function renderStudents(){
     <td>${s.nick||''}</td>
     <td><span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:${s.color}"></span></td>
     <td>${totalScoreOf(s.id)}</td>
-    <td><button class="ghost sm" onclick="openStu(${s.id})" style="color:var(--primary)">查看详情</button> <button class="ghost sm" onclick="delStu(${s.id})" style="color:var(--red)">删除</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">无学生</td></tr>';
+    <td><button class="btn btn--ghost btn--sm" onclick="openStu(${s.id})" style="color:var(--primary)">查看详情</button> <button class="btn btn--ghost btn--sm" onclick="delStu(${s.id})" style="color:var(--red)">删除</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">无学生</td></tr>';
 }
 function nextColor(){return PALETTE[students(curClassId()).length%PALETTE.length];}
 document.getElementById('addStu').onclick=()=>{
@@ -1013,13 +1018,13 @@ function renderCourse(){
     return `<div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:10px">
       <div class="row"><b style="font-size:16px">${co.name}</b><span class="muted">${skills.length}步</span>
         <div style="flex:1"></div>
-        <button class="sec sm" onclick="addSkill(${co.id})">+ 添加知识点</button>
-        <button class="ghost sm" onclick="delCourse(${co.id})" style="color:var(--red)">删除该魔方</button></div>
+        <button class="btn btn--ghost btn--sm" onclick="addSkill(${co.id})">+ 添加知识点</button>
+        <button class="btn btn--ghost btn--sm" onclick="delCourse(${co.id})" style="color:var(--red)">删除该魔方</button></div>
       <div style="margin-top:8px">${skills.map(sk=>`<div class="skrow"><span class="skname">${sk.order}. ${sk.name}</span>
-        <button class="ghost sm" onclick="renSkill(${sk.id})">重命名</button>
-        <button class="ghost sm" onclick="delSkill(${sk.id})" style="color:var(--red)">删除</button></div>`).join('')}</div>
+        <button class="btn btn--ghost btn--sm" onclick="renSkill(${sk.id})">重命名</button>
+        <button class="btn btn--ghost btn--sm" onclick="delSkill(${sk.id})" style="color:var(--red)">删除</button></div>`).join('')}</div>
     </div>`;
-  }).join('')+'<div class="row"><button class="sec" onclick="addCourse()">+ 新增魔方类型</button></div>';
+  }).join('')+'<div class="row"><button class="btn btn--ghost" onclick="addCourse()">+ 新增魔方类型</button></div>';
 }
 window.addSkill=function(cid){const n=prompt('知识点名称：');if(!n)return;const os=DB.skills.filter(s=>s.courseId===cid);DB.skills.push({id:uid(),courseId:cid,name:n,order:os.length+1});save();renderCourse();};
 window.renSkill=function(id){const sk=DB.skills.find(s=>s.id===id);const n=prompt('重命名：',sk.name);if(!n)return;sk.name=n;save();renderCourse();};
@@ -1110,5 +1115,9 @@ load();applyGhCfg();fillClassSel();fillProgCourse();setView('home');
 if(GitHubStore.isReady()){updateCloudStatus('已连接，正在从云端拉取…');pullFromCloud();}else{updateCloudStatus('未连接：在上方「云端同步」填入令牌');}
 </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>

@@ -1,9 +1,10 @@
-/* ur-common.css - UR 训练页公共样式（原 index.html <style> 全量 + 新增） */
+@import url("/assets/css/tokens.css");
+/* uf-common.css - UR 训练页公共样式（原 index.html <style> 全量 + 新增） */
 * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-    background: #0d0d1a;
-    color: #d4cfc4;
+    background: var(--bg);
+    color: var(--fg-2);
     min-height: 100vh;
     padding: 30px 24px;
   }
@@ -16,13 +17,13 @@
   .header h1 {
     font-size: 30px;
     letter-spacing: 5px;
-    color: #64b4ff;
+    color: var(--brand);
     text-shadow: 0 0 24px rgba(100,180,255,0.2);
     margin-bottom: 6px;
   }
   .header .sub {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--fg-3);
     letter-spacing: 2px;
   }
   .entries {
@@ -33,7 +34,7 @@
     margin: 0 auto;
   }
   .entry {
-    background: linear-gradient(160deg, #15152a 0%, #1a1a32 100%);
+    background: linear-gradient(160deg, var(--surface) 0%, var(--surface) 100%);
     border: 1px solid rgba(100,180,255,0.12);
     border-radius: 12px;
     overflow: visible;
@@ -56,8 +57,8 @@
     width: 32px; height: 32px;
     line-height: 32px;
     text-align: center;
-    background: #64b4ff;
-    color: #0d0d1a;
+    background: var(--brand);
+    color: var(--bg);
     border-radius: 6px;
     font-weight: 900;
     font-size: 15px;
@@ -65,7 +66,7 @@
   }
   .entry-header h2 {
     font-size: 17px;
-    color: #8ec8ff;
+    color: var(--brand);
     letter-spacing: 1px;
     font-weight: 600;
   }
@@ -101,7 +102,7 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 3px;
-    color: #5b6e8a;
+    color: var(--fg-3);
     font-weight: 600;
   }
   .order-list {
@@ -115,7 +116,7 @@
     font-family: "Consolas", "SF Mono", "Fira Code", monospace;
     font-size: 15px;
     font-weight: 700;
-    color: #64b4ff;
+    color: var(--brand);
     background: rgba(100,180,255,0.08);
     padding: 6px 12px;
     border-radius: 5px;
@@ -124,13 +125,13 @@
     transition: all 0.2s;
   }
   .order-tag.current {
-    color: #f0a050;
+    color: var(--gold);
     background: rgba(240,160,80,0.12);
     border-color: rgba(240,160,80,0.3);
     box-shadow: 0 0 12px rgba(240,160,80,0.15);
   }
   .arrow {
-    color: #3a4a60;
+    color: var(--fg-3);
     font-size: 12px;
   }
   .formula-block {
@@ -142,27 +143,18 @@
     display: block;
     font-family: "Consolas", "SF Mono", "Fira Code", monospace;
     font-size: 14px;
-    color: #e0d5c1;
+    color: var(--fg);
     background: rgba(0,0,0,0.3);
     padding: 10px 14px;
     border-radius: 6px;
     border: 1px solid rgba(255,255,255,0.06);
     letter-spacing: 1.5px;
     word-break: break-all;
-    border-left: 3px solid #f0a050;
-  }
-  .footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 16px 0;
-    font-size: 11px;
-    color: #3a3f50;
-    letter-spacing: 2px;
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-left: 3px solid var(--gold);
   }
 
   @media print {
-    body { background: #0d0d1a; padding: 10px; }
+    body { background: var(--bg); padding: 10px; }
     .entry { box-shadow: none; break-inside: avoid; }
     .header h1 { font-size: 24px; }
   }
@@ -175,8 +167,8 @@
   }
   .ref-toggle {
     display: inline-block;
-    background: #1c1f27;
-    color: #d7dce6;
+    background: var(--surface);
+    color: var(--fg-2);
     border: 1px solid rgba(255,255,255,0.18);
     border-radius: 6px;
     padding: 6px 14px;
@@ -185,10 +177,10 @@
     transition: all 0.2s;
     font-family: inherit;
   }
-  .ref-toggle:hover { color: #64b4ff; border-color: rgba(100,180,255,0.5); }
+  .ref-toggle:hover { color: var(--brand); border-color: rgba(100,180,255,0.5); }
   .ref-panel { margin-top: 12px; }
-  .ref-loading, .ref-error { color: #8a91a0; font-size: 13px; padding: 4px 0; }
-  .ref-error { color: #f0a050; }
+  .ref-loading, .ref-error { color: var(--fg-3); font-size: 13px; padding: 4px 0; }
+  .ref-error { color: var(--gold); }
   .ref-table {
     display: grid;
     grid-template-columns: 76px 1fr;
@@ -203,7 +195,7 @@
     padding: 7px 12px;
     font-family: "Consolas", "SF Mono", "Fira Code", monospace;
     font-weight: 700;
-    color: #64b4ff;
+    color: var(--brand);
     background: rgba(100,180,255,0.06);
     border-bottom: 1px solid rgba(255,255,255,0.05);
     display: flex;
@@ -220,8 +212,8 @@
   .ref-sel-box {
     width: 100%;
     text-align: left;
-    background: #14141f;
-    color: #8a91a0;
+    background: var(--surface);
+    color: var(--fg-3);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 5px;
     padding: 6px 10px;
@@ -232,9 +224,9 @@
     line-height: 1.5;
     word-break: break-all;
   }
-  .ref-sel-box:hover { border-color: rgba(100,180,255,0.5); color: #d7dce6; }
+  .ref-sel-box:hover { border-color: rgba(100,180,255,0.5); color: var(--fg-2); }
   .ref-sel-box.ref-selected {
-    color: #e0d5c1;
+    color: var(--fg);
     background: rgba(100,180,255,0.08);
     border-color: rgba(100,180,255,0.35);
   }
@@ -244,7 +236,7 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background: #1c1f27;
+    background: var(--surface);
     border: 1px solid rgba(100,180,255,0.3);
     border-radius: 6px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.6);
@@ -260,7 +252,7 @@
     background: transparent;
     border: none;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    color: #d7dce6;
+    color: var(--fg-2);
     font-family: "Consolas", "SF Mono", "Fira Code", monospace;
     font-size: 12px;
     padding: 7px 10px;
@@ -269,7 +261,7 @@
     word-break: break-all;
   }
   .ref-opt:last-child { border-bottom: none; }
-  .ref-opt:hover { background: rgba(100,180,255,0.12); color: #fff; }
+  .ref-opt:hover { background: rgba(100,180,255,0.12); color: var(--on-brand); }
   .ref-opt.ref-hidden { display: none; }
   .ref-more-btn {
     display: block;
@@ -278,13 +270,13 @@
     background: transparent;
     border: none;
     border-top: 1px dashed rgba(255,255,255,0.15);
-    color: #8ec8ff;
+    color: var(--brand);
     font-size: 12px;
     padding: 6px;
     cursor: pointer;
   }
-  .ref-more-btn:hover { color: #64b4ff; }
-  .ref-empty { color: #8a91a0; padding: 6px 10px; font-size: 13px; }
+  .ref-more-btn:hover { color: var(--brand); }
+  .ref-empty { color: var(--fg-3); padding: 6px 10px; font-size: 13px; }
   .ref-style-bar {
     display: flex;
     align-items: center;
@@ -292,10 +284,10 @@
     flex-wrap: wrap;
     margin-bottom: 12px;
   }
-  .ref-style-label { font-size: 13px; color: #8a91a0; }
+  .ref-style-label { font-size: 13px; color: var(--fg-3); }
   .ref-style-select {
-    background: #1c1f27;
-    color: #d7dce6;
+    background: var(--surface);
+    color: var(--fg-2);
     border: 1px solid rgba(255,255,255,0.18);
     border-radius: 6px;
     padding: 5px 10px;
@@ -304,10 +296,10 @@
     font-family: inherit;
   }
   .ref-style-select:hover { border-color: rgba(100,180,255,0.5); }
-  .ref-style-hint { font-size: 12px; color: #5a6270; }
-  .ref-opt-marked { color: #ffd166; background: rgba(255,209,102,0.07); }
-  .ref-opt-marked::after { content: '【噩梦】'; margin-left: 6px; color: #ff9f43; font-size: 11px; }
-  .ref-opt-src { color: #5a6270; font-size: 11px; margin-left: 4px; }
+  .ref-style-hint { font-size: 12px; color: var(--fg-3); }
+  .ref-opt-marked { color: var(--gold-ink); background: var(--gold-soft); }
+  .ref-opt-marked::after { content: '【噩梦】'; margin-left: 6px; color: var(--amber); font-size: 11px; }
+  .ref-opt-src { color: var(--fg-3); font-size: 11px; margin-left: 4px; }
   .ref-manual-btn {
     display: block;
     width: 100%;
@@ -315,12 +307,12 @@
     background: transparent;
     border: none;
     border-top: 1px dashed rgba(255,255,255,0.15);
-    color: #9fb6d8;
+    color: var(--fg-2);
     font-size: 12px;
     padding: 6px;
     cursor: pointer;
   }
-  .ref-manual-btn:hover { color: #64b4ff; }
+  .ref-manual-btn:hover { color: var(--brand); }
 
   /* 移动端适配 */
   @media (max-width: 640px) {
@@ -348,7 +340,7 @@
 .group-card {
   display: block;
   text-decoration: none;
-  background: linear-gradient(160deg, #15152a 0%, #1a1a32 100%);
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface) 100%);
   border: 1px solid rgba(100,180,255,0.12);
   border-radius: 12px;
   padding: 18px 20px;
@@ -363,8 +355,8 @@
   display: inline-block;
   min-width: 30px;
   text-align: center;
-  background: #64b4ff;
-  color: #0d0d1a;
+  background: var(--brand);
+  color: var(--bg);
   border-radius: 6px;
   font-weight: 900;
   font-size: 15px;
@@ -372,14 +364,14 @@
   margin-bottom: 10px;
 }
 .group-card .card-name {
-  color: #8ec8ff;
+  color: var(--brand);
   font-size: 17px;
   font-weight: 600;
   letter-spacing: 1px;
   margin-bottom: 10px;
 }
 .group-card .card-tags {
-  color: #6b7280;
+  color: var(--fg-3);
   font-size: 12px;
   letter-spacing: 0.5px;
   overflow: hidden;
@@ -391,7 +383,7 @@
 .back-link {
   display: inline-block;
   margin: 4px 0 18px;
-  color: #64b4ff;
+  color: var(--brand);
   text-decoration: none;
   font-size: 14px;
   letter-spacing: 1px;
@@ -418,7 +410,7 @@
   font-family: Consolas, "Courier New", monospace;
   font-size: 34px;
   font-weight: 700;
-  color: #e8e6df;
+  color: var(--fg);
   background: rgba(0,0,0,0.35);
   border: 1px solid rgba(100,180,255,0.2);
   border-radius: 10px;
@@ -429,18 +421,18 @@
   letter-spacing: 1px;
   transition: border-color 0.2s;
 }
-.timer-display[data-state="running"] { border-color: rgba(120,220,130,0.7); color: #7ce08a; }
-.timer-display[data-state="prep"] { border-color: rgba(255,90,90,0.8); color: #ff6b6b; }
-.timer-display[data-state="green"] { border-color: rgba(120,220,130,0.9); color: #7ce08a; box-shadow: 0 0 12px rgba(120,220,130,0.35); }
+.timer-display[data-state="running"] { border-color: var(--green); color: var(--green); }
+.timer-display[data-state="prep"] { border-color: var(--red); color: var(--red); }
+.timer-display[data-state="green"] { border-color: var(--green); color: var(--green); box-shadow: 0 0 12px var(--green); }
 .timer-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
   margin-top: 10px;
   font-size: 13px;
-  color: #8a93a6;
+  color: var(--fg-2);
 }
-.timer-stats b { color: #d4cfc4; font-weight: 600; }
+.timer-stats b { color: var(--fg-2); font-weight: 600; }
 .timer-recent {
   margin-top: 10px;
   display: flex;
@@ -449,15 +441,15 @@
   gap: 6px;
   font-size: 12px;
 }
-.timer-recent-label { color: #6b7280; }
+.timer-recent-label { color: var(--fg-3); }
 .timer-recent-item {
   font-family: Consolas, "Courier New", monospace;
   background: rgba(100,180,255,0.1);
   border-radius: 5px;
   padding: 2px 7px;
-  color: #b9cfe8;
+  color: var(--fg-2);
 }
-.timer-empty { color: #555f73; }
+.timer-empty { color: var(--fg-3); }
 .timer-actions {
   margin-top: 10px;
   display: flex;
@@ -465,7 +457,7 @@
 }
 .timer-btn {
   background: rgba(100,180,255,0.12);
-  color: #b9cfe8;
+  color: var(--fg-2);
   border: 1px solid rgba(100,180,255,0.2);
   border-radius: 6px;
   padding: 4px 10px;
@@ -478,15 +470,15 @@
 .entry.single { max-width: 720px; margin: 0 auto; }
 
 
-/* ===== UF group pages: orientation selector (recovery grip) ===== */
+/* ===== UR group pages: orientation selector (recovery grip) ===== */
 .orientation-selector {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 16px; margin: 12px auto; max-width: 720px;
-  background: #1a1a2e; border-radius: 8px; flex-wrap: wrap;
+  background: var(--surface); border-radius: 8px; flex-wrap: wrap;
 }
 .orientation-selector select {
-  padding: 6px 12px; border-radius: 6px; border: 1px solid #444;
-  background: #0d1117; color: #e6edf3; font-size: 14px;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line-3);
+  background: var(--bg-soft); color: var(--fg); font-size: 14px;
 }
-.orientation-selector .orientation-label { color: #e6edf3; font-weight: 600; }
-.orientation-selector .orientation-hint { color: #8b949e; font-size: 12px; }
+.orientation-selector .orientation-label { color: var(--fg); font-weight: 600; }
+.orientation-selector .orientation-hint { color: var(--fg-3); font-size: 12px; }

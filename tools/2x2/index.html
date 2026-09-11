@@ -13,7 +13,7 @@
         }
         
         body {
-            background-color: #0d0d1a;
+            background-color: var(--bg);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -25,7 +25,7 @@
         .container {
             width: 100%;
             max-width: 800px;
-            background-color: #15152a;
+            background-color: var(--surface);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             padding: 20px;
@@ -37,7 +37,7 @@
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            color: #e0d5c1;
+            color: var(--fg);
             position: relative;
             padding: 10px 0;
         }
@@ -75,7 +75,7 @@
         .underline {
             display: inline-block;
             min-width: 120px;
-            border-bottom: 1px solid #64b4ff;
+            border-bottom: 1px solid var(--brand);
             margin: 0 5px;
             text-align: center;
         }
@@ -87,7 +87,7 @@
         .options h2 {
             margin-bottom: 15px;
             font-size: 18px;
-            color: #b9c0cf;
+            color: var(--fg-2);
         }
         
         .checkbox-group {
@@ -122,7 +122,7 @@
         
         button {
             padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: var(--green);
             color: white;
             border: none;
             border-radius: 4px;
@@ -133,24 +133,24 @@
         }
         
         button:hover {
-            background-color: #45a049;
+            background-color: var(--green);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         
         #resetBtn {
-            background-color: #f44336;
+            background-color: var(--red);
         }
         
         #resetBtn:hover {
-            background-color: #d32f2f;
+            background-color: var(--red);
         }
         
         .print-area {
             border: 1px solid rgba(100, 180, 255, 0.15);
             padding: 30px 40px;
             min-height: 400px;
-            background-color: #15152a;
+            background-color: var(--surface);
             page-break-inside: avoid;
             position: relative;
             border-radius: 8px;
@@ -182,7 +182,7 @@
             width: 35px;
             font-weight: bold;
             font-size: 22px;
-            color: #2196F3;
+            color: var(--brand);
         }
         
         .formula {
@@ -190,7 +190,7 @@
             font-family: monospace;
             font-size: 28px;
             font-weight: bold;
-            color: #e0d5c1;
+            color: var(--fg);
         }
         
         /* 角块编码认读练习样式 */
@@ -248,7 +248,7 @@
         
         .hexagon-label {
             font-size: 16px;
-            color: #e0d5c1;
+            color: var(--fg);
             font-weight: bold;
             min-width: 25px;
         }
@@ -256,7 +256,7 @@
         .hexagon-input {
             width: 120px;
             border: none;
-            border-bottom: 1px solid #64b4ff;
+            border-bottom: 1px solid var(--brand);
             text-align: center;
             font-size: 16px;
             padding: 5px;
@@ -266,54 +266,54 @@
         .hexagon-1 {
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #FFEB3B 0deg 120deg,
-                #F44336 120deg 240deg,
-                #2196F3 240deg 360deg
+                var(--amber) 0deg 120deg,
+                var(--red) 120deg 240deg,
+                var(--brand) 240deg 360deg
             );
         }
         
         .hexagon-2 {
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #FFEB3B 0deg 120deg,
-                #2196F3 120deg 240deg,
-                #FF9800 240deg 360deg
+                var(--amber) 0deg 120deg,
+                var(--brand) 120deg 240deg,
+                var(--amber) 240deg 360deg
             );
         }
         
         .hexagon-3 {
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #FFEB3B 0deg 120deg,
-                #FF9800 120deg 240deg,
-                #4CAF50 240deg 360deg
+                var(--amber) 0deg 120deg,
+                var(--amber) 120deg 240deg,
+                var(--green) 240deg 360deg
             );
         }
         
         .hexagon-4 {
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #FFFFFF 0deg 120deg,
-                #2196F3 120deg 240deg,
-                #F44336 240deg 360deg
+                var(--on-brand) 0deg 120deg,
+                var(--brand) 120deg 240deg,
+                var(--red) 240deg 360deg
             );
         }
         
         .hexagon-5 {
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #FFFFFF 0deg 120deg,
-                #FF9800 120deg 240deg,
-                #2196F3 240deg 360deg
+                var(--on-brand) 0deg 120deg,
+                var(--amber) 120deg 240deg,
+                var(--brand) 240deg 360deg
             );
         }
         
         .hexagon-6 {
             background: conic-gradient(
                 from 0deg at 50% 50%,
-                #FFFFFF 0deg 120deg,
-                #4CAF50 120deg 240deg,
-                #FF9800 240deg 360deg
+                var(--on-brand) 0deg 120deg,
+                var(--green) 120deg 240deg,
+                var(--amber) 240deg 360deg
             );
         }
         
@@ -329,7 +329,7 @@
         .cube-1 {
             top: 50px;
             left: 5%;
-            background: linear-gradient(135deg, #FF5722, #2196F3);
+            background: linear-gradient(135deg, var(--amber), var(--brand));
             transform: rotate(15deg);
             border-radius: 8px;
         }
@@ -337,7 +337,7 @@
         .cube-2 {
             bottom: 80px;
             right: 5%;
-            background: linear-gradient(135deg, #4CAF50, #FFC107);
+            background: linear-gradient(135deg, var(--green), var(--amber));
             transform: rotate(-10deg);
             border-radius: 8px;
         }
@@ -347,7 +347,7 @@
             right: 8%;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #9C27B0, #E91E63);
+            background: linear-gradient(135deg, var(--violet), var(--red));
             transform: rotate(25deg);
             border-radius: 6px;
         }
@@ -377,21 +377,21 @@
             .print-area h1,
             .print-area .formula,
             .print-area .hexagon-label {
-                color: #333 !important;
+                color: var(--fg-3) !important;
             }
             
             .print-area .underline,
             .print-area .hexagon-input {
-                border-bottom-color: #000 !important;
+                border-bottom-color: var(--bg) !important;
             }
             
             .print-area .print-area,
             .print-area .formula-line {
-                border-bottom-color: #f0f0f0 !important;
+                border-bottom-color: var(--surface) !important;
             }
             
             .print-area .student-info {
-                border-bottom-color: #ccc !important;
+                border-bottom-color: var(--fg-3) !important;
             }
             
             .no-print {
@@ -407,7 +407,7 @@
             }
             
             .hexagon-input {
-                border-bottom: 1px solid #000;
+                border-bottom: 1px solid var(--bg);
             }
         }
 
@@ -435,6 +435,8 @@
 
     </style>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -487,9 +489,9 @@
         </div>
         
         <div class="actions">
-            <button id="generateBtn">生成练习</button>
-            <button id="resetBtn">重置</button>
-            <button id="printBtn">打印</button>
+            <button id="generateBtn" class="btn btn--primary">生成练习</button>
+            <button id="resetBtn" class="btn btn--primary">重置</button>
+            <button id="printBtn" class="btn btn--primary">打印</button>
         </div>
     </div>
     
@@ -690,5 +692,9 @@
         });
     </script>
 <script src="/assets/js/site-nav.js"></script>
+<footer class="site-footer">
+      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+    </footer>
 </body>
 </html>
