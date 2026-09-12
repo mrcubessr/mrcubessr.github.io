@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="760" viewBox="0 0 520 760" preserveAspectRatio="xMidYMid meet" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif">
+<rect x="0" y="0" width="520" height="760" rx="12" fill="#11151f"/>
+<text x="28" y="44" fill="#eef2f8" font-size="21" font-weight="800">二阶魔方角块编码图</text>
+<text x="28" y="68" fill="#4ecdc4" font-size="13" font-weight="700">24 字母体系</text>
+<text x="28" y="92" fill="#ffb74d" font-size="11">重建示意 · 原图缺失，正式字母表以作者原图为准</text>
+<polygon points="260.0,132.0 342.0,180.0 260.0,228.0 178.0,180.0" fill="#e9eef6" stroke="#9fb0c8" stroke-width="1.5"/>
+<line x1="301.0" y1="156.0" x2="219.0" y2="204.0" stroke="#9fb0c8" stroke-width="1" opacity="0.5"/>
+<line x1="219.0" y1="156.0" x2="301.0" y2="204.0" stroke="#9fb0c8" stroke-width="1" opacity="0.5"/>
+<text x="260.0" y="186.0" fill="#26303f" font-size="18" font-weight="800" text-anchor="middle">U</text>
+<polygon points="260.0,230.0 342.0,278.0 342.0,180.0 260.0,132.0" fill="#3fae5a" stroke="#1f7a39" stroke-width="1.5"/>
+<line x1="301.0" y1="254.0" x2="301.0" y2="156.0" stroke="#1f7a39" stroke-width="1" opacity="0.5"/>
+<line x1="260.0" y1="181.0" x2="342.0" y2="229.0" stroke="#1f7a39" stroke-width="1" opacity="0.5"/>
+<text x="301.0" y="211.0" fill="#0c1a10" font-size="18" font-weight="800" text-anchor="middle">F</text>
+<polygon points="342.0,278.0 260.0,326.0 260.0,228.0 342.0,180.0" fill="#e3554b" stroke="#a52f28" stroke-width="1.5"/>
+<line x1="301.0" y1="302.0" x2="301.0" y2="204.0" stroke="#a52f28" stroke-width="1" opacity="0.5"/>
+<line x1="342.0" y1="229.0" x2="260.0" y2="277.0" stroke="#a52f28" stroke-width="1" opacity="0.5"/>
+<text x="301.0" y="259.0" fill="#0c1a10" font-size="18" font-weight="800" text-anchor="middle">R</text>
+<circle cx="260.0" cy="132.0" r="4" fill="#ffd54a"/>
+<line x1="260.0" y1="132.0" x2="260.0" y2="120.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="260.0" y="125.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">ULF</text>
+<text x="260.0" y="125.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">ULF</text>
+<circle cx="342.0" cy="180.0" r="4" fill="#ffd54a"/>
+<line x1="342.0" y1="180.0" x2="392.0" y2="176.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="392.0" y="181.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">URF</text>
+<text x="392.0" y="181.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">URF</text>
+<circle cx="178.0" cy="180.0" r="4" fill="#ffd54a"/>
+<line x1="178.0" y1="180.0" x2="128.0" y2="176.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="128.0" y="181.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">ULB</text>
+<text x="128.0" y="181.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">ULB</text>
+<circle cx="260.0" cy="228.0" r="4" fill="#ffd54a"/>
+<line x1="260.0" y1="228.0" x2="390.0" y2="236.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="390.0" y="241.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">URB</text>
+<text x="390.0" y="241.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">URB</text>
+<circle cx="260.0" cy="230.0" r="4" fill="#ffd54a"/>
+<line x1="260.0" y1="230.0" x2="130.0" y2="236.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="130.0" y="241.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">DLF</text>
+<text x="130.0" y="241.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">DLF</text>
+<circle cx="342.0" cy="278.0" r="4" fill="#ffd54a"/>
+<line x1="342.0" y1="278.0" x2="392.0" y2="302.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="392.0" y="307.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">DRF</text>
+<text x="392.0" y="307.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">DRF</text>
+<circle cx="178.0" cy="278.0" r="4" fill="#ffd54a"/>
+<line x1="178.0" y1="278.0" x2="128.0" y2="302.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="128.0" y="307.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">DLB</text>
+<text x="128.0" y="307.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">DLB</text>
+<circle cx="260.0" cy="326.0" r="4" fill="#ffd54a"/>
+<line x1="260.0" y1="326.0" x2="340.0" y2="372.0" stroke="#ffd54a" stroke-width="1.2" opacity="0.6"/>
+<text x="340.0" y="377.0" fill="#0d1018" font-size="16" font-weight="800" text-anchor="middle" stroke="#0d1018" stroke-width="3" paint-order="stroke">DRB</text>
+<text x="340.0" y="377.0" fill="#ffd54a" font-size="16" font-weight="800" text-anchor="middle">DRB</text>
+<text x="30" y="418" fill="#eef2f8" font-size="14" font-weight="700">8 角块 × 3 贴纸 = 24 字母</text>
+<text x="30" y="438" fill="#9fb0c8" font-size="11">下表为角块位置；具体字母以作者原 二阶魔方编码图.svg 为准</text>
+<rect x="30" y="464" width="460" height="32" rx="6" fill="#1a1f2b"/>
+<text x="46" y="485" fill="#ffd54a" font-size="15" font-weight="800">ULF</text>
+<text x="110" y="485" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="470" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="484" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="470" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="484" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="470" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="484" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="485" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="500" width="460" height="32" rx="6" fill="#151922"/>
+<text x="46" y="521" fill="#ffd54a" font-size="15" font-weight="800">URF</text>
+<text x="110" y="521" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="506" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="520" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="506" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="520" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="506" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="520" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="521" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="536" width="460" height="32" rx="6" fill="#1a1f2b"/>
+<text x="46" y="557" fill="#ffd54a" font-size="15" font-weight="800">ULB</text>
+<text x="110" y="557" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="542" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="556" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="542" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="556" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="542" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="556" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="557" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="572" width="460" height="32" rx="6" fill="#151922"/>
+<text x="46" y="593" fill="#ffd54a" font-size="15" font-weight="800">URB</text>
+<text x="110" y="593" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="578" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="592" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="578" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="592" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="578" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="592" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="593" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="608" width="460" height="32" rx="6" fill="#1a1f2b"/>
+<text x="46" y="629" fill="#ffd54a" font-size="15" font-weight="800">DLF</text>
+<text x="110" y="629" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="614" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="628" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="614" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="628" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="614" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="628" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="629" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="644" width="460" height="32" rx="6" fill="#151922"/>
+<text x="46" y="665" fill="#ffd54a" font-size="15" font-weight="800">DRF</text>
+<text x="110" y="665" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="650" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="664" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="650" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="664" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="650" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="664" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="665" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="680" width="460" height="32" rx="6" fill="#1a1f2b"/>
+<text x="46" y="701" fill="#ffd54a" font-size="15" font-weight="800">DLB</text>
+<text x="110" y="701" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="686" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="700" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="686" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="700" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="686" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="700" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="701" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<rect x="30" y="716" width="460" height="32" rx="6" fill="#151922"/>
+<text x="46" y="737" fill="#ffd54a" font-size="15" font-weight="800">DRB</text>
+<text x="110" y="737" fill="#9fb0c8" font-size="12">三贴纸</text>
+<rect x="160" y="722" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="184" y="736" fill="#7c8798" font-size="10" text-anchor="middle">U面</text>
+<rect x="224" y="722" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="248" y="736" fill="#7c8798" font-size="10" text-anchor="middle">R面</text>
+<rect x="288" y="722" width="48" height="20" rx="4" fill="#222a3a" stroke="#2c3648"/>
+<text x="312" y="736" fill="#7c8798" font-size="10" text-anchor="middle">F面</text>
+<text x="370" y="737" fill="#4ecdc4" font-size="12" font-weight="700">字母 ___</text>
+<text x="30" y="740" fill="#7c8798" font-size="10">提示：把本 SVG 替换为作者正式 二阶魔方编码图.svg 即可还原权威字母表</text>
+</svg>
