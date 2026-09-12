@@ -154,11 +154,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 420px;            /* 给展开图自绘足够高度，使其放大到约 2× */
+    box-sizing: border-box;
+    /* 固定高度（基于视口比例，与 canvas 内容无关）：破除「读取父高→设 canvas 高→父再被撑高」的正反馈环 */
+    height: clamp(300px, 40vh, 400px);
+    overflow: hidden;
   }
   .net-img-wrap canvas {
-    max-width: min(600px, 100%);  /* 桌面端展开图放大至约 200%（原上限 300px） */
-    max-height: 70vh;
+    max-width: 100%;
+    max-height: 100%;
     width: auto;
     height: auto;
     display: block;
@@ -283,32 +286,34 @@
     border-radius: 12px;
     padding: 14px 12px;
     flex: 1 1 auto;          /* 吃掉剩余高度 */
-    min-height: 0;
-    overflow: hidden;
+    min-height: 120px;       /* 保证公式框有可用高度，不被控件挤压到一行 */
+    overflow: auto;          /* 多步公式换行后若超高可滚动，不裁切 */
     display: flex;
     align-items: center;     /* 垂直居中 */
     justify-content: center; /* 水平居中 */
+  }
+  /* 公式文本：固定字号 + 居中 + 溢出滚动不裁切顶部 */
+  .formula-inner {
+    margin: auto;
+    width: 100%;
   }
   .formula-inner {
     display: block;
     width: 100%;
     font-family: Consolas, "Courier New", "Microsoft YaHei", monospace;
-    font-size: 126px;        /* 基础大字号（实际由 fitFormula 自动计算） */
+    font-size: 40px;          /* 统一固定字号：步数多时自动换行，不再缩小 */
     font-weight: 800;
-    line-height: 1.25;
+    line-height: 1.3;
     letter-spacing: 2px;
     color: var(--bg);          /* 纯黑字 */
     text-align: center;
+    white-space: normal;       /* 允许换行 */
+    overflow-wrap: anywhere;
     word-break: break-word;
   }
-  /* 单行模式：不换行，收紧字距，让公式尽量一行显示 */
+  /* 单行模式（已弃用 nowrap：统一固定字号后一律允许换行） */
   .formula-inner.single {
-    display: inline-block;
-    width: auto;
-    max-width: 100%;
-    white-space: nowrap;
-    word-break: normal;
-    letter-spacing: 1px;
+    white-space: normal;
   }
   .formula-inner.single .move { padding: 0 2px; }
   .formula-inner.single .move.space { padding: 0 5px; }
@@ -628,14 +633,18 @@
       padding: 4px;
       grid-template-rows: none;
       min-height: 0;
+      overflow-y: auto;        /* 公式框/控件超出本区时自身滚动，不溢出到对照图区 */
+      position: relative;
+      z-index: 1;              /* 始终绘制在对照图(.left)之上，保证按钮可点 */
       background: var(--panel);
     }
+    .left { z-index: 0; }
     .net-zone {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      min-height: 0;
+      min-height: 110px;      /* 防止公式区/控件把展开图挤到 0 */
       border-bottom: 1px solid var(--line);
       padding: 4px 8px 6px;
     }
@@ -670,30 +679,31 @@
       margin: 0;
     }
 
-    /* 公式框：压缩高度（约原来一半）+ 上下内边距压到一半；黑体加粗 + 不换行 + 横滚 */
+    /* 公式框：固定字号 + 自动换行，多步时纵向滚动，不裁切 */
     .formula-display {
       order: 2;
-      flex: 0 0 100px;                /* 压缩公式区高度 */
-      min-height: 0;
+      flex: 0 0 auto;
+      min-height: 90px;
+      max-height: 32vh;
       border-width: 3px;
       border-color: var(--fg);
       border-radius: 12px;
       background: var(--panel);       /* 白底，与网页端一致 */
-      padding: 2px 8px;               /* 上下内边距 4px→2px（压到一半） */
-      overflow-x: auto;               /* 横滚兜底（≤10 步单行能放下则无滚动条） */
-      overflow-y: hidden;
+      padding: 6px 10px;
+      overflow: auto;                 /* 多步换行后纵向滚动 */
     }
     .formula-inner {
       font-family: "PingFang SC", "Microsoft YaHei", "黑体", "Heiti SC", "SimHei", sans-serif !important;
       font-weight: 900 !important;    /* 黑体加粗 */
       letter-spacing: 1px;
-      font-size: 22px !important;     /* 固定字号，避免 fitFormula 触发换行降级 */
+      font-size: 22px !important;     /* 手机端固定字号 */
       line-height: 1.2;
-      word-break: normal;
+      white-space: normal;             /* 步数多时换行 */
+      overflow-wrap: anywhere;
+      word-break: break-word;
       text-align: left;
     }
-    /* 单行模式（≤10 步）不换行；非 single（>10 步）走默认 normal 自动多行换行 */
-    .formula-inner.single { white-space: nowrap; }
+    .formula-inner.single { white-space: normal; }
     .formula-inner .move { padding: 0 1px; }
     .formula-inner .move.space { padding: 0 2px; }
 
@@ -789,7 +799,7 @@
     <!-- 右下：公式区 -->
     <div class="formula-zone" data-page-node-id="rqRrjtjScJc1UsMs4y3kFA">
       <div class="zone-label" data-page-node-id="7G6GHTjrj3wjJL32JdKHOF">打乱公式 <span class="badge" id="coverBadge" data-page-node-id="cKUEADLEjA5KKmX3lDwPxi">✓ R U F L B D 齐全</span></div>
-      <div class="formula-block" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
+      <div class="formula-display" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
 
       <!-- 难度设置 -->
       <div class="settings-row">
@@ -1444,63 +1454,15 @@ function renderFormula(moves) {
 }
 
 /**
- * 公式字号自适应（两段式）：
- *   阶段一：强制单行 nowrap，二分查找「能塞进一行」的最大字号；
- *           只要单行字号 >= MIN_SINGLE 就用单行（课堂可读性最好）。
- *   阶段二：行数太多 / 窗口太窄，单行会被压得过小 → 才放开换行继续二分。
- * 每次出题、切换长度、resize 都会重算。
+ * 公式字号固定（不再按步数二分缩小）：
+ * 桌面 40px / 手机 22px（见 CSS .formula-inner）。步数多时由 white-space:normal
+ * 自动换行，保证「统一字号、不缩小」。保留函数以兼容出题 / resize / load 的调用点。
  */
 function fitFormula() {
-  const box = document.getElementById('formulaText');
   const inner = document.getElementById('formulaInner');
-  if (!box || !inner) return;
-
-  const n = (window._currentMoves || []).length;   // 公式步数
-  const cs = getComputedStyle(box);
-  // 减 2px 余量，规避浏览器亚像素测量误差导致的边缘裁切
-  const availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
-  const availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom)  - 2;
-  if (availW <= 0 || availH <= 0) return;
-
-  const MIN_SINGLE = 30;   // 单行最小可接受字号：低于它就改为换行显示
-
-  // >10 步直接跳过单行阶段，强制走换行（多行显示）；≤10 步先尝试单行
-  const trySingle = n <= 10;
-
-  /* ---- 阶段一：优先一行塞下（仅 ≤10 步） ---- */
-  if (trySingle) {
-    inner.classList.add('single');
-    let lo = 16, hi = 260, best = 0;
-    while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      inner.style.fontSize = mid + 'px';
-      if (inner.scrollWidth <= availW && inner.scrollHeight <= availH) {
-        best = mid;          // 能放下 → 试试更大
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;        // 放不下 → 缩小
-      }
-    }
-    if (best >= MIN_SINGLE) {
-      inner.style.fontSize = best + 'px';
-      return;                // ✔ 单行显示
-    }
-  }
-
-  /* ---- 阶段二：一行实在放不下（或 >10 步）→ 允许换行 ---- */
+  if (!inner) return;
   inner.classList.remove('single');
-  let lo = 16, hi = 170, best = 16;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    inner.style.fontSize = mid + 'px';
-    if (inner.scrollHeight <= availH && inner.scrollWidth <= availW) {
-      best = mid;
-      lo = mid + 1;
-    } else {
-      hi = mid - 1;
-    }
-  }
-  inner.style.fontSize = best + 'px';
+  inner.style.fontSize = '';   // 复用 CSS 固定字号
 }
 
 
