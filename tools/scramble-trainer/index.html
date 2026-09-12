@@ -96,44 +96,86 @@
     min-height: 0;
   }
 
-  /* 左：大展开图 */
+  /* 左：12 种转动示意图（大区，放大显示） */
   .left {
     background: var(--bg);
     border-right: 1px solid var(--line);
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    flex-direction: column;
+    padding: 18px 20px;
     position: relative;
     min-width: 0;
     min-height: 0;
+    overflow: hidden;
   }
-  .left canvas {
-    max-width: 100%;
-    max-height: 100%;
+  .left .legend-zone {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+  .left .legend-img-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
-  /* 右栏：上下两块（对照图占 42%，公式区压缩到剩余） */
+  /* 右栏：上=缩小展开图，下=公式区 */
   .right {
     display: grid;
-    grid-template-rows: minmax(220px, 42%) 1fr;
+    grid-template-rows: auto 1fr;
     min-height: 0;
     background: var(--panel);
   }
-
-  /* 右上：对照图（已放大） */
-  .legend-zone {
+  .net-zone {
+    padding: 12px 16px 14px;
     border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+  }
+  .net-zone .zone-label {
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .net-zone .zone-label::before {
+    content: '';
+    width: 4px;
+    height: 14px;
+    background: var(--brand);
+    border-radius: 2px;
+  }
+  .net-img-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+  .net-img-wrap canvas {
+    max-width: 300px;
+    max-height: 240px;
+    width: auto;
+    height: auto;
+    display: block;
+  }
+
+  /* 对照图（大区卡片） */
+  .legend-zone {
     padding: 10px 14px 12px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
     min-height: 0;
     overflow: hidden;
   }
   .legend-zone .zone-label {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.5px;
     display: flex;
     align-items: center;
@@ -147,15 +189,15 @@
     border-radius: 2px;
   }
   .legend-img-wrap {
-    background: var(--on-brand);
+    background: #0E1726;
     border: 1px solid var(--line);
     border-radius: 8px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px;
-    flex: 1 1 auto;      /* 吃掉对照图区的剩余高度 */
+    padding: 10px;
+    flex: 1 1 auto;
     min-height: 0;
   }
   .legend-img-wrap img {
@@ -551,18 +593,24 @@
       min-height: 0;
     }
 
-    /* ① 展开图：顶部，约 28%；canvas 用 object-fit:contain 防拉伸变形 */
+    /* ① 对照图（左大区内容）：置底，吃掉剩余高度 */
     .left {
-      flex: 0 0 28%;
+      order: 2;                 /* 对照图置底 */
+      flex: 1 1 auto;
       border-right: none;
-      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
       padding: 6px;
       min-height: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .left canvas {
+    .left .legend-img-wrap {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0;
+    }
+    .left .legend-img-wrap canvas {
       display: block;
       margin: 0 auto;
       width: 100% !important;
@@ -570,16 +618,41 @@
       object-fit: contain;
     }
 
-    /* 右栏：竖向 flex；用 gap + padding 承载「公式→对照图→控件」三段 */
+    /* 右栏（展开图 + 公式）：置顶，约 42% 高度 */
     .right {
+      order: 1;                /* 展开图+公式置顶 */
       display: flex;
       flex-direction: column;
-      flex: 1 1 auto;
-      gap: 6px;                        /* 各段间距（替代原 formula-zone 内部 gap） */
+      flex: 0 0 42%;
+      gap: 6px;
       padding: 4px;
-      grid-template-rows: none;       /* 覆盖桌面 grid */
+      grid-template-rows: none;
       min-height: 0;
       background: var(--panel);
+    }
+    .net-zone {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 4px 8px 6px;
+    }
+    .net-zone .zone-label { font-size: 12px; }
+    .net-img-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .net-img-wrap canvas {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
     }
 
     /* ② 打乱公式：打平 .formula-zone，使其子项（标签/公式框/长度/操作）升级为
@@ -693,18 +766,23 @@
 </div>
 
 <div class="main" data-page-node-id="dKCiZkmZfVMKowGDN3IaQq">
-  <!-- 左侧：大展开图 -->
+  <!-- 左侧大区：12 种单层转动示意图（放大、深色底、高对比） -->
   <section class="left" data-page-node-id="rxYnYAFfoWxrWkVOb8U2tK">
-    <canvas id="netCanvas" data-page-node-id="SZF6ariclKKBtzz30W0SkL"></canvas>
-  </section>
-
-  <!-- 右侧栏：对照图 + 公式区 -->
-  <aside class="right" data-page-node-id="WhnyQcVow1ZyEHL0sdKbqA">
-    <!-- 右上：对照图（12 种单层转动示意图 · canvas 自绘） -->
     <div class="legend-zone" data-page-node-id="mmfxR5iuODoVLFVVTSbzMT">
       <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span></div>
       <div class="legend-img-wrap" data-page-node-id="DUGeGQtk9YRJZFkurCBa39">
         <canvas id="legendCanvas" data-page-node-id="OLsSmqUh2cspvXyWm6AbYw"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右侧栏：缩小展开图（上） + 公式区（下） -->
+  <aside class="right" data-page-node-id="WhnyQcVow1ZyEHL0sdKbqA">
+    <!-- 右上：缩小展开图（置于打乱公式上方） -->
+    <div class="net-zone" data-page-node-id="szNetZone">
+      <div class="zone-label" data-page-node-id="szNetLabel">展开图</div>
+      <div class="net-img-wrap" data-page-node-id="szNetWrap">
+        <canvas id="netCanvas" data-page-node-id="SZF6ariclKKBtzz30W0SkL"></canvas>
       </div>
     </div>
 
@@ -1573,12 +1651,13 @@ if (document.readyState === 'loading') {
 (function(){
 "use strict";
 const S = 27;
-const MARK = "#6B7280";        /* 深灰：转动层贴纸 */
-const WHITE = "#FFFFFF";       /* 白：未转动贴纸 */
-const EDGE = "#D8DEE7";        /* 贴纸描边 */
-const CARD_BG = "#E6F0FA";     /* 浅蓝圆角卡片 */
+const MARK = "#7E8DA3";        /* 转动层贴纸（深色卡片上的亮灰蓝，清晰可见） */
+const WHITE = "#F2F5FA";       /* 白：未转动贴纸（近白，柔和） */
+const EDGE = "#9FB2CC";        /* 贴纸描边（明显浅灰，分隔小方块） */
+const CARD_BG = "#16233A";     /* 深色圆角卡片（与页面深色主题协调） */
+const CARD_LINE = "#2A3A55";   /* 卡片外框 */
 const ARROW = "#FFD60A";       /* 亮黄直线箭头（顺/逆同色，以指向区分） */
-const LABEL = "#D9232E";       /* 红字标签 */
+const LABEL = "#F4F7FB";       /* 亮白标签（深色卡片上清晰） */
 
 /* 每项: [画在哪个可见面, 面上锚点(3D, 贴纸中心), 箭头方向(3D, 转动切向)]
  *   锚点所在 cubie 属于该转动层，方向 = 该处贴纸随层转动的移动方向
@@ -1619,7 +1698,7 @@ function face(ctx, cx, cy, x, y, z, which, color, h){
   poly(ctx, pts);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.lineWidth = 1.1;
+  ctx.lineWidth = 2;
   ctx.strokeStyle = EDGE;
   ctx.stroke();
 }
@@ -1650,7 +1729,7 @@ function drawCube(ctx, cx, cy, axis, layer, size){
 }
 /* 贴合表面直线箭头：从锚点沿 dir 画直线段，末端带箭头头 */
 function lineArrow(ctx, cx, cy, anchor, dir, color, width){
-  const L = 0.95; /* 箭头线段长度(3D 单位) */
+  const L = 1.15; /* 箭头线段长度(3D 单位) · 放大使转动方向更醒目 */
   const p0 = proj(cx, cy, anchor[0], anchor[1], anchor[2]);
   const p1 = proj(cx, cy, anchor[0]+dir[0]*L, anchor[1]+dir[1]*L, anchor[2]+dir[2]*L);
   ctx.strokeStyle = color;
@@ -1675,7 +1754,7 @@ function lineArrow(ctx, cx, cy, anchor, dir, color, width){
 }
 function drawArrow(ctx, cx, cy, arr){
   const [, anchor, dir] = arr;
-  const width = Math.max(3, S*0.16);
+  const width = Math.max(4, S*0.24);
   lineArrow(ctx, cx, cy, anchor, dir, ARROW, width);
 }
 function roundRect(ctx, x, y, w, h, r){
@@ -1696,31 +1775,33 @@ function buildLegend(movesSubset, size){
   const cubeSize = (size === 2) ? 2 : 3;
   const COLS = items.length <= 6 ? 3 : 4;
   const ROWS = Math.ceil(items.length / COLS);
-  const CUBE = 150, LAB = 32, PAD = 6, GAP = 12;
+  const CUBE = 150, LAB = 42, PAD = 6, GAP = 20;
   const CARD_W = CUBE + PAD*2;
   const CARD_H = CUBE + LAB + PAD*2;
   const W = COLS*CARD_W + (COLS-1)*GAP;
   const H = ROWS*CARD_H + (ROWS-1)*GAP;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0,0,W,H);
+  // 整体底色透明：由外层 .legend-img-wrap 的深色背景（#0E1726）透出，避免白底白图看不清
 
   items.forEach((mv, i)=>{
     const col = i % COLS, row = (i/COLS)|0;
     const ox = col*(CARD_W+GAP), oy = row*(CARD_H+GAP);
-    // 浅蓝圆角卡片
+    // 深色圆角卡片 + 外框
     roundRect(ctx, ox, oy, CARD_W, CARD_H, 14);
     ctx.fillStyle = CARD_BG;
     ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = CARD_LINE;
+    ctx.stroke();
     // 魔方 + 黄色箭头
     const cx = ox + CARD_W/2;
     const cy = oy + PAD + CUBE/2 + 2;
     drawCube(ctx, cx, cy, mv.axis, mv.layer, cubeSize);
     drawArrow(ctx, cx, cy, mv.arr);
-    // 红色粗体标签（卡片下方居中）
+    // 亮白粗体标签（卡片下方居中，字号放大）
     ctx.fillStyle = LABEL;
-    ctx.font = '800 26px "Segoe UI", "Microsoft YaHei", Arial, sans-serif';
+    ctx.font = '800 38px "Segoe UI", "Microsoft YaHei", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(mv.name, cx, oy + PAD + CUBE + LAB/2 + 2);
