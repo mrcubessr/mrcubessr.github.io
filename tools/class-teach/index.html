@@ -76,11 +76,10 @@
   .rrow .rcnt{font-size:15px;font-weight:700;color:var(--primary)}
   .rrow .rsc{font-size:14px;color:var(--text-2)}
 
-  /* 表格 */
-  table.tbl{width:100%;border-collapse:collapse;font-size:14px}
-  table.tbl th{background:var(--brand-soft);text-align:left;padding:9px 12px;border:1px solid var(--line)}
-  table.tbl td{padding:9px 12px;border:1px solid var(--line);vertical-align:middle}
-  table.tbl tr:nth-child(even) td{background:var(--bg-soft)}
+  /* 表格：基础外观由 components.css 的 .table 提供（本页表格已统一为 class="table"），
+     原 table.tbl 系列已无元素使用，移除。 */
+  .table th{background:var(--brand-soft)}
+  .table td{border:1px solid var(--line)}
 
   /* 进度状态 */
   .st{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:3px 12px;font-size:13px;font-weight:600;border:1px solid var(--line);cursor:pointer;white-space:nowrap}
@@ -339,6 +338,8 @@
   </div>
 </div>
 
+<!-- GitHub 云端读写封装（页面内 GitHubStore 依赖它；此前缺失导致 "GitHubStore is not defined"） -->
+<script src="github-store.js"></script>
 <script>
 /* ============ 数据层 ============ */
 const KEY='mf_data_v1';

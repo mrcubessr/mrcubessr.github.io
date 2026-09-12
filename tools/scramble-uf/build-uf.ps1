@@ -72,9 +72,10 @@ $nav = @'
 '@
 
 $footer = @'
-<div class="footer">
-  制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24<br>抖音ID : 魔方总动员
-</div>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
 '@
 
 $head = @'
@@ -84,8 +85,10 @@ $head = @'
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
-<link rel="stylesheet" href="uf-common.css">
 <link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="uf-common.css">
 </head>
 <body data-nav="scramble-uf">
 '@

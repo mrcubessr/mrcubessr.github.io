@@ -15,18 +15,9 @@
   --c3-badge-bg: var(--surface-2);
   --c3-overlay: rgba(0,0,0,0.6);
 }
-html[data-theme="light"] {
-  --bg: var(--surface);
-  --card: var(--on-brand);
-  --card2: var(--surface);
-  --accent: var(--c3-ui-22a8cb);
-  --text: var(--c3-ui-0c3a4d);
-  --muted: var(--c3-ui-156d8c);
-  --border: rgba(34,168,203,0.55);
-  --chip-bg: rgba(34,168,203,0.10);
-  --badge-bg: var(--on-brand);
-  --overlay: rgba(12,58,77,0.45);
-}
+/* 原 html[data-theme="light"] 重定义 --bg/--card/--accent/--text/--border 等无前缀变量：
+   这些名字全站仅此页声明、且除 --bg 外均未被使用，属死代码；且浅色下把 --bg 覆盖成
+   #FFFFFF，与全站 #F4F6FA 不一致。已移除，统一走 tokens.css。 */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;

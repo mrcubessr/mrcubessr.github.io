@@ -137,14 +137,10 @@ body{
 
 .mm-sub{font-size:11px;color:var(--fg-3);text-align:center;margin-top:10px}
 
-/* 表格统一样式 */
-.tbl{width:100%;border-collapse:collapse;font-size:13px}
-.tbl th{text-align:left;padding:6px 10px;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--fg-3);border-bottom:1px solid var(--line)}
-.tbl td{padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--fg-2)}
-.tbl td:first-child{font-weight:700}
-.tbl tr:hover td{color:var(--fg)}
-.tbl td.g-c{color:var(--km-orange-l);font-size:15px}
-.tbl td.b-c{color:var(--km-blue-l);font-size:15px}
+/* 表格统一样式：基础外观交由 components.css 的 .table 提供，
+   这里只保留本页特有的单元格配色（原 .tbl 系列已随类名归一为 .table 而失效）。
+   注：.g-c 在 HTML 中使用 12 处，此前只挂在已废弃的 .tbl td.g-c 上导致配色丢失，此处修复。 */
+.table td.g-c{color:var(--km-orange-l);font-size:15px}
 
 /* 标签 */
 .tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1px}
@@ -156,7 +152,6 @@ body{
 .tag.rd{background:rgba(232,93,58,.12);color:var(--km-red)}
 
 /* 课程表 */
-.tbl-course td:first-child{color:var(--km-orange-l);font-weight:600}
 
 /* 公式汇总网格 */
 .formula-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 16px;font-size:14px}
@@ -186,8 +181,8 @@ body{
   .panel-c-row2 .block,.panel-c-row3 .block{padding:16px 14px}
   .panel-c [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr !important}
   .formula-grid{grid-template-columns:1fr}
-  .tbl{font-size:12px}
-  .tbl th,.tbl td{padding:4px 6px}
+  .table{font-size:12px}
+  .table th,.table td{padding:4px 6px}
   .mindmap-thumb{max-width:100%}
   .mm-node{width:44px;height:44px;font-size:16px}
   .mm-node.final{width:50px;height:50px;font-size:20px}

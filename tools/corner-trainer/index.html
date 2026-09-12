@@ -31,13 +31,6 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
   padding: 9px 12px; border-radius: 12px; margin-bottom: 8px; background: var(--surface);
 }
 .corner-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--fg); text-align: right; }
-.letter-chip {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 42px; height: 42px; border-radius: 10px;
-  font-size: 20px; font-weight: 800; color: var(--on-brand);
-  border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-}
-.letter-chip.dark-text { color: var(--fg); }
 .tip { font-size: 13px; color: var(--fg-3); line-height: 1.7; margin: 10px 0 18px; }
 .btn {
   display: block; width: 100%; padding: 15px 0;
@@ -46,10 +39,6 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, opacity 0.15s ease;
 }
 .btn + .btn { margin-top: 12px; }
-.btn-primary {
-  background: linear-gradient(135deg, var(--brand), var(--brand)); color: var(--on-brand);
-  box-shadow: 0 6px 16px rgba(61, 124, 240, 0.30);
-}
 .btn-secondary {
   background: linear-gradient(135deg, var(--amber), var(--amber)); color: var(--on-brand);
   box-shadow: 0 6px 16px rgba(255, 140, 26, 0.30);
@@ -67,7 +56,6 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
 .ov-label { font-size: 12px; color: var(--fg-3); margin-top: 3px; }
 .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .quiz-left { display: flex; align-items: center; gap: 12px; }
-.progress-text { font-size: 14px; font-weight: 600; color: var(--fg-3); }
 .timer-text { font-size: 14px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
 .score-text {
   font-size: 14px; font-weight: 600; color: var(--brand);
@@ -75,13 +63,6 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
   padding: 4px 12px;
   border-radius: 999px;
 }
-.mode-badge {
-  display: inline-block; font-size: 11px; font-weight: 700;
-  padding: 2px 8px; border-radius: 8px; margin-left: 6px;
-  background: var(--amber-soft); color: var(--amber);
-}
-.progress-bar { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
-.progress-bar > div { height: 100%; background: linear-gradient(90deg, var(--brand), var(--green)); border-radius: 3px; transition: width 0.3s ease; }
 .canvas-wrap {
   text-align: center;
   background: linear-gradient(180deg, var(--surface), var(--surface));
@@ -195,7 +176,7 @@ body{ display:block; padding:0 16px 28px; }
       </div>
       <span class="score-text" id="scoreText">得分 <span id="scoreNum">0</span><span class="badge hidden" id="modeBadge">专项</span></span>
     </div>
-    <div class="progress__bar"><div id="progressFill" style="width:10%"></div></div>
+    <div class="progress"><div class="progress__bar" id="progressFill" style="width:10%"></div></div>
     <div class="canvas-wrap">
       <canvas id="cubeCanvas" width="340" height="300"></canvas>
     </div>
