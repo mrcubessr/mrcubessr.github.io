@@ -226,7 +226,61 @@
      新机制：[data-site-nav] 占位符 → 注入
      旧机制：页面自带静态 <nav id="siteNav"> → 原样绑定，不改 DOM
      --------------------------------------------------------- */
+  /* ---------------------------------------------------------
+     全站 favicon：集中在公共脚本注入，避免逐页改 <head>。
+     生成文件见仓库根 favicon.svg（魔方主题等距立方体）。
+     --------------------------------------------------------- */
+  function ensureFavicon() {
+    if (document.querySelector('link[rel="icon"]')) return;
+    var link = document.createElement('link');
+    link.rel = 'icon';
+    link.type = 'image/svg+xml';
+    link.href = '/favicon.svg';
+    document.head.appendChild(link);
+  }
+
+  /* ---------------------------------------------------------
+     交互控件 ARIA 状态同步（阶段四 · 可访问性收尾）
+     分段按钮 / 选项卡原本只用 .active 类表达选中态，屏幕阅读器读不到。
+     这里统一补 aria-pressed，并用 MutationObserver 跟随 .active 类变化自动同步，
+     不改动任何页面自有 JS、视觉或键盘交互。
+     覆盖：.seg__btn（分段单选）、.stu-tab（学生选项卡）、.tab（选项卡）、.nbtn（视图切换）
+     --------------------------------------------------------- */
+  var ARIA_TOGGLE_SEL = '.seg__btn, .stu-tab, .tab, .nbtn';
+
+  function syncToggleAria(el) {
+    el.setAttribute('aria-pressed', el.classList.contains('active') ? 'true' : 'false');
+  }
+
+  function initAriaState(root) {
+    root = root || document;
+    function apply(el) {
+      if (el.nodeType === 1 && el.matches && el.matches(ARIA_TOGGLE_SEL)) {
+        var g = el.parentElement;
+        if (g && !g.hasAttribute('data-aria-group')) g.setAttribute('data-aria-group', '1');
+        if (el.tagName !== 'BUTTON' && !el.hasAttribute('role')) el.setAttribute('role', 'button');
+        syncToggleAria(el);
+      }
+    }
+    function scan(scope) { (scope || root).querySelectorAll(ARIA_TOGGLE_SEL).forEach(apply); }
+    scan();
+    if ('MutationObserver' in window) {
+      var mo = new MutationObserver(function (muts) {
+        muts.forEach(function (m) {
+          if (m.type === 'attributes' && m.attributeName === 'class') {
+            apply(m.target);
+          } else if (m.type === 'childList') {
+            m.addedNodes.forEach(function (n) { if (n.nodeType === 1) { apply(n); scan(n); } });
+          }
+        });
+      });
+      mo.observe(root.documentElement, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+    }
+  }
+
   function initNav() {
+    ensureFavicon();
+    initAriaState(document);
     var placeholder = document.querySelector('[data-site-nav]');
     if (placeholder && !document.getElementById('siteNav')) {
       placeholder.innerHTML = buildNav();
