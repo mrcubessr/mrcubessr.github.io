@@ -154,11 +154,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 0;
+    min-height: 420px;            /* 给展开图自绘足够高度，使其放大到约 2× */
   }
   .net-img-wrap canvas {
-    max-width: 300px;
-    max-height: 240px;
+    max-width: min(600px, 100%);  /* 桌面端展开图放大至约 200%（原上限 300px） */
+    max-height: 70vh;
     width: auto;
     height: auto;
     display: block;
@@ -241,7 +241,7 @@
     flex-direction: column;
     gap: 10px;
     min-height: 0;
-    overflow: hidden;
+    overflow: auto;              /* 展开图放大后，公式区空间被压缩时允许滚动，避免控件被裁切 */
   }
   .formula-zone .zone-label {
     color: var(--muted);
@@ -338,7 +338,7 @@
     font-size: 14px;
     font-weight: 600;
   }
-  .length-row .len-btn {
+  .length-row .seg__btn {
     background: var(--on-brand);
     border: 2px solid var(--line);
     border-radius: 8px;
@@ -351,8 +351,8 @@
     font-family: inherit;
     min-width: 50px;
   }
-  .length-row .len-btn:hover { border-color: var(--brand); color: var(--brand); }
-  .length-row .len-btn.active {
+  .length-row .seg__btn:hover { border-color: var(--brand); color: var(--brand); }
+  .length-row .seg__btn.active {
     background: var(--brand);
     color: var(--on-brand);
     border-color: var(--brand);
@@ -377,7 +377,7 @@
     border-radius: 8px;
     overflow: hidden;
   }
-  .seg-btn {
+  .seg__btn {
     background: var(--panel);
     border: none;
     padding: 8px 14px;
@@ -388,12 +388,12 @@
     font-family: inherit;
     transition: all 0.15s;
   }
-  .seg-btn:hover { color: var(--brand); }
-  .seg-btn.active {
+  .seg__btn:hover { color: var(--brand); }
+  .seg__btn.active {
     background: var(--brand);
     color: var(--on-brand);
   }
-  .seg-btn:disabled {
+  .seg__btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
@@ -729,10 +729,10 @@
     /* 控件：难度/长度/操作 放在最底部 */
     .settings-row { order: 4; gap: 4px; flex-shrink: 0; }
     .settings-row .lbl { font-size: 12px; }
-    .seg-btn { padding: 5px 8px; font-size: 12px; }
+    .seg__btn { padding: 5px 8px; font-size: 12px; }
     .length-row { order: 5; gap: 4px; flex-shrink: 0; }
     .length-row .lbl { font-size: 12px; }
-    .length-row .len-btn { padding: 5px 8px; font-size: 12px; min-width: 32px; }
+    .length-row .seg__btn { padding: 5px 8px; font-size: 12px; min-width: 32px; }
     .action-row { order: 6; gap: 6px; flex-shrink: 0; }
     .action-row .btn { padding: 8px 10px; font-size: 13px; }
     .btn.primary { font-size: 14px; padding: 10px 12px; }
@@ -1552,7 +1552,7 @@ function newQuestion() {
 
 function setLength(len) {
   currentLength = len;
-  document.querySelectorAll('.len-btn').forEach(b => {
+  document.querySelectorAll('.seg__btn[data-len]').forEach(b => {
     b.classList.toggle('active', b.dataset.len === String(len));
   });
   newQuestion();
@@ -1576,28 +1576,28 @@ function init() {
   document.getElementById('newBtn').addEventListener('click', newQuestion);
   document.getElementById('resetBtn').addEventListener('click', resetCount);
 
-  document.querySelectorAll('.len-btn').forEach(b => {
+  document.querySelectorAll('.seg__btn[data-len]').forEach(b => {
     b.addEventListener('click', () => setLength(parseInt(b.dataset.len, 10)));
   });
 
   // 难度切换（RUF 入门 / 六面标准）
-  document.querySelectorAll('#movesetToggle .seg-btn').forEach(b => {
+  document.querySelectorAll('#movesetToggle .seg__btn').forEach(b => {
     b.addEventListener('click', () => {
       if (b.disabled) return;   // 2×2 下「六面标准」被禁用
       currentMoveSet = b.dataset.set;
-      document.querySelectorAll('#movesetToggle .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+      document.querySelectorAll('#movesetToggle .seg__btn').forEach(x => x.classList.toggle('active', x === b));
       newQuestion();
     });
   });
 
   // 魔方类型切换（二阶 / 三阶）
-  document.querySelectorAll('#cubeTypeToggle .seg-btn').forEach(b => {
+  document.querySelectorAll('#cubeTypeToggle .seg__btn').forEach(b => {
     b.addEventListener('click', () => {
       currentCubeType = b.dataset.cube;
-      document.querySelectorAll('#cubeTypeToggle .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+      document.querySelectorAll('#cubeTypeToggle .seg__btn').forEach(x => x.classList.toggle('active', x === b));
       // 2×2 强制 RUF + 禁用「六面标准」；3×3 恢复可选
-      const allBtn = document.querySelector('#movesetToggle .seg-btn[data-set="all"]');
-      const rufBtn = document.querySelector('#movesetToggle .seg-btn[data-set="ruf"]');
+      const allBtn = document.querySelector('#movesetToggle .seg__btn[data-set="all"]');
+      const rufBtn = document.querySelector('#movesetToggle .seg__btn[data-set="ruf"]');
       if (currentCubeType === '2') {
         currentMoveSet = 'ruf';
         rufBtn.classList.add('active');
@@ -1608,13 +1608,13 @@ function init() {
       }
       // 长度按钮可见性：15/25 仅 2×2 显示
       const showExtra = currentCubeType === '2';
-      document.querySelectorAll('.len-btn[data-cube="2"]').forEach(btn => {
+      document.querySelectorAll('.seg__btn[data-len][data-cube="2"]').forEach(btn => {
         btn.style.display = showExtra ? '' : 'none';
       });
       // 3×3 下若当前长度是 15/25，回落到 6
       if (currentCubeType === '3' && (currentLength === 15 || currentLength === 25)) {
         currentLength = 6;
-        document.querySelectorAll('.len-btn').forEach(btn => {
+        document.querySelectorAll('.seg__btn[data-len]').forEach(btn => {
           btn.classList.toggle('active', parseInt(btn.dataset.len, 10) === 6);
         });
       }
