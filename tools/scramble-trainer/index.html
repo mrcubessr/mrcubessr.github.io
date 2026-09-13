@@ -1497,9 +1497,13 @@ function newQuestion() {
     }
   }
 
-  // 对照图随 cube-type 重绘：二阶/三阶统一按三阶风格绘制（3×3 立方体 + 全部 12 种转动示意）
+  // 对照图随 cube-type 重绘：二阶保持 2×2 立方体（仅 R/U/F 示意），三阶 3×3（全 12 个）；
+  // 两者统一采用浅色底 + 红色箭头 + 魔方描边（按三阶视觉风格绘制，但各自保持真实阶数）
   if (window.buildLegend) {
-    window.buildLegend(window.MOVES, 3);
+    const legendMoves = currentCubeType === '2'
+      ? window.MOVES.filter(m => ['R','U','F'].includes(m.name.replace("'", "")))
+      : window.MOVES;
+    window.buildLegend(legendMoves, size);
   }
 
   window._currentMoves = moves;
@@ -1606,7 +1610,7 @@ if (document.readyState === 'loading') {
  * 视觉风格：白色圆角卡片 · 浅色底 · 魔方描边 · 红色直线箭头（醒目）
  * · 深蓝灰粗体标签居中于卡片下方
  * 箭头：贴合魔方表面的红色直线箭头（沿该层转动切向），顺/逆同色、以指向区分
- * 二阶/三阶统一用 3×3 立方体绘制（二阶只练 RUF，但示意按三阶风格呈现）
+ * 二阶/三阶各自保持真实阶数（2×2 仅 R/U/F，3×3 全 12 个），统一采用浅色底 + 红色箭头 + 魔方描边风格
  * ==================================================================== */
 (function(){
 "use strict";
