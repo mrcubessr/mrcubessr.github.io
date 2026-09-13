@@ -192,7 +192,7 @@
     border-radius: 2px;
   }
   .legend-img-wrap {
-    background: #0E1726;
+    background: #f1f5f9;
     border: 1px solid var(--line);
     border-radius: 8px;
     overflow: hidden;
@@ -779,7 +779,7 @@
   <!-- 左侧大区：12 种单层转动示意图（放大、深色底、高对比） -->
   <section class="left" data-page-node-id="rxYnYAFfoWxrWkVOb8U2tK">
     <div class="legend-zone" data-page-node-id="mmfxR5iuODoVLFVVTSbzMT">
-      <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span></div>
+      <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">红=转动方向 · 蓝=转动层</span></div>
       <div class="legend-img-wrap" data-page-node-id="DUGeGQtk9YRJZFkurCBa39">
         <canvas id="legendCanvas" data-page-node-id="OLsSmqUh2cspvXyWm6AbYw"></canvas>
       </div>
@@ -1497,12 +1497,9 @@ function newQuestion() {
     }
   }
 
-  // 对照图随 cube-type 重绘（2×2 只显示 R/U/F 示意，3×3 全 12 个）
+  // 对照图随 cube-type 重绘：二阶/三阶统一按三阶风格绘制（3×3 立方体 + 全部 12 种转动示意）
   if (window.buildLegend) {
-    const legendMoves = currentCubeType === '2'
-      ? window.MOVES.filter(m => ['R','U','F'].includes(m.name.replace("'", "")))
-      : window.MOVES;
-    window.buildLegend(legendMoves, size);
+    window.buildLegend(window.MOVES, 3);
   }
 
   window._currentMoves = moves;
@@ -1605,21 +1602,22 @@ if (document.readyState === 'loading') {
   init();
 }
 /* ====================================================================
- * 对照图模块：三阶魔方转动示意图（12 种单层转动，等距投影自绘）
- * 视觉风格：浅蓝圆角卡片 · 白魔方深灰转动层 · 亮黄贴面直线箭头
- * · 红色粗体标签居中于卡片下方
- * 箭头：贴合魔方表面的直线箭头（沿该层转动切向），顺/逆由指向区分
+ * 对照图模块：魔方转动示意图（12 种单层转动，等距投影自绘）
+ * 视觉风格：白色圆角卡片 · 浅色底 · 魔方描边 · 红色直线箭头（醒目）
+ * · 深蓝灰粗体标签居中于卡片下方
+ * 箭头：贴合魔方表面的红色直线箭头（沿该层转动切向），顺/逆同色、以指向区分
+ * 二阶/三阶统一用 3×3 立方体绘制（二阶只练 RUF，但示意按三阶风格呈现）
  * ==================================================================== */
 (function(){
 "use strict";
 const S = 27;
-const MARK = "#7E8DA3";        /* 转动层贴纸（深色卡片上的亮灰蓝，清晰可见） */
-const WHITE = "#F2F5FA";       /* 白：未转动贴纸（近白，柔和） */
-const EDGE = "#9FB2CC";        /* 贴纸描边（明显浅灰，分隔小方块） */
-const CARD_BG = "#16233A";     /* 深色圆角卡片（与页面深色主题协调） */
-const CARD_LINE = "#2A3A55";   /* 卡片外框 */
-const ARROW = "#FFD60A";       /* 亮黄直线箭头（顺/逆同色，以指向区分） */
-const LABEL = "#F4F7FB";       /* 亮白标签（深色卡片上清晰） */
+const MARK = "#BFD7FF";        /* 转动层贴纸（浅蓝填充，浅底上清晰可辨） */
+const WHITE = "#FFFFFF";       /* 白：未转动贴纸 */
+const EDGE = "#475569";        /* 贴纸描边（深灰蓝，浅底上勾勒魔方轮廓） */
+const CARD_BG = "#FFFFFF";     /* 白色圆角卡片（浅色主题） */
+const CARD_LINE = "#E2E8F0";   /* 卡片外框（浅灰） */
+const ARROW = "#E53935";       /* 红色直线箭头（醒目，顺/逆同色以指向区分） */
+const LABEL = "#1E293B";       /* 深蓝灰标签（浅底上清晰） */
 
 /* 每项: [画在哪个可见面, 面上锚点(3D, 贴纸中心), 箭头方向(3D, 转动切向)]
  *   锚点所在 cubie 属于该转动层，方向 = 该处贴纸随层转动的移动方向
@@ -1660,7 +1658,7 @@ function face(ctx, cx, cy, x, y, z, which, color, h){
   poly(ctx, pts);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2.5;
   ctx.strokeStyle = EDGE;
   ctx.stroke();
 }
@@ -1744,7 +1742,7 @@ function buildLegend(movesSubset, size){
   const H = ROWS*CARD_H + (ROWS-1)*GAP;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  // 整体底色透明：由外层 .legend-img-wrap 的深色背景（#0E1726）透出，避免白底白图看不清
+  // 背景透明：白色圆角卡片由本函数逐张绘制，外层 .legend-img-wrap 浅灰底（#f1f5f9）衬托卡片
 
   items.forEach((mv, i)=>{
     const col = i % COLS, row = (i/COLS)|0;
@@ -1771,7 +1769,7 @@ function buildLegend(movesSubset, size){
   // 动态标题：二阶只显示 RUF 3 种，三阶显示 12 种
   const lbl = document.querySelector('.legend-zone .zone-label');
   if(lbl){
-    lbl.innerHTML = '对照图 · ' + items.length + ' 种转动示意<span class="legend-caption">橙=顺时针 · 蓝=逆时针 · 灰=转动层</span>';
+    lbl.innerHTML = '对照图 · ' + items.length + ' 种转动示意<span class="legend-caption">红=转动方向 · 蓝=转动层</span>';
   }
 }
 // 暴露给 newQuestion 调用（T5 联动重绘对照图：2×2 只画 R/U/F 示意）
