@@ -1614,7 +1614,8 @@ if (document.readyState === 'loading') {
  * ==================================================================== */
 (function(){
 "use strict";
-const S = 27;
+const BASE_S = 27;             /* 基准贴纸尺寸（三阶） */
+let S = BASE_S;                /* 当前绘制尺寸：二阶按 3/4 缩放，使外轮廓与三阶等大 */
 const MARK = "#BFD7FF";        /* 转动层贴纸（浅蓝填充，浅底上清晰可辨） */
 const WHITE = "#FFFFFF";       /* 白：未转动贴纸 */
 const EDGE = "#475569";        /* 贴纸描边（深灰蓝，浅底上勾勒魔方轮廓） */
@@ -1679,6 +1680,9 @@ function drawCube(ctx, cx, cy, axis, layer, size){
   size = size || 3;
   const coords = size === 2 ? [-1, 1] : [-1, 0, 1];
   const h = size === 2 ? 1 : 0.5;   // 二阶 cubie 边长翻倍，拼成无缝 2×2
+  /* 二阶坐标跨 4 个单位、三阶跨 3 个单位：按 3/4 缩放 S，
+     使两种魔方外轮廓等大，避免二阶示意图撑破卡片、相邻示意互相重叠 */
+  S = (size === 2) ? BASE_S * 3 / 4 : BASE_S;
   const marks = markedFor(axis, layer);
   const isM = (x,y,z)=>marks.some(g=>g[0]===x&&g[1]===y&&g[2]===z);
   const cubes=[];
@@ -1693,7 +1697,9 @@ function drawCube(ctx, cx, cy, axis, layer, size){
 }
 /* 贴合表面直线箭头：从锚点沿 dir 画直线段，末端带箭头头 */
 function lineArrow(ctx, cx, cy, anchor, dir, color, width){
-  const L = 1.15; /* 箭头线段长度(3D 单位) · 放大使转动方向更醒目 */
+  /* 箭头线段长度(3D 单位)：二阶的 S 被缩小了 3/4，这里反向补偿，
+     使箭头实际像素长度与三阶一致，保持醒目 */
+  const L = 1.15 * (BASE_S / S);
   const p0 = proj(cx, cy, anchor[0], anchor[1], anchor[2]);
   const p1 = proj(cx, cy, anchor[0]+dir[0]*L, anchor[1]+dir[1]*L, anchor[2]+dir[2]*L);
   ctx.strokeStyle = color;
@@ -1718,7 +1724,7 @@ function lineArrow(ctx, cx, cy, anchor, dir, color, width){
 }
 function drawArrow(ctx, cx, cy, arr){
   const [, anchor, dir] = arr;
-  const width = Math.max(4, S*0.24);
+  const width = Math.max(4, BASE_S*0.24);   /* 与阶数无关，保证两种魔方箭头粗细一致 */
   lineArrow(ctx, cx, cy, anchor, dir, ARROW, width);
 }
 function roundRect(ctx, x, y, w, h, r){
@@ -1737,11 +1743,31 @@ function buildLegend(movesSubset, size){
   // 冻结契约：可选 movesSubset（MOVES 子数组），不传 = 全部 12 个；size: 2=二阶 / 3=三阶
   const items = movesSubset && movesSubset.length ? movesSubset : MOVES;
   const cubeSize = (size === 2) ? 2 : 3;
-  const COLS = items.length <= 6 ? 3 : 4;
-  const ROWS = Math.ceil(items.length / COLS);
   const CUBE = 150, LAB = 42, PAD = 6, GAP = 20;
   const CARD_W = CUBE + PAD*2;
   const CARD_H = CUBE + LAB + PAD*2;
+  /* 依据可用区域挑选列数：在候选布局中取整体放大倍率最大的一个。
+     桌面竖长面板自动摊成 2 列（示意图更舒展），手机矮宽面板自动回到 3 列。
+     三阶（12 项）保持原有 4 列不变。 */
+  let COLS = items.length <= 6 ? 3 : 4;
+  const parentEl = canvas.parentElement;
+  if (parentEl) {
+    const cs = getComputedStyle(parentEl);
+    const availW = parentEl.clientWidth - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
+    const availH = parentEl.clientHeight - (parseFloat(cs.paddingTop)||0) - (parseFloat(cs.paddingBottom)||0);
+    if (availW > 0 && availH > 0) {
+      const cands = items.length <= 6 ? [2, 3] : [4];
+      let bestFit = -1;
+      for (const c of cands) {
+        const r = Math.ceil(items.length / c);
+        const w = c*CARD_W + (c-1)*GAP;
+        const h = r*CARD_H + (r-1)*GAP;
+        const fit = Math.min(availW / w, availH / h);
+        if (fit > bestFit) { bestFit = fit; COLS = c; }
+      }
+    }
+  }
+  const ROWS = Math.ceil(items.length / COLS);
   const W = COLS*CARD_W + (COLS-1)*GAP;
   const H = ROWS*CARD_H + (ROWS-1)*GAP;
   canvas.width = W; canvas.height = H;
