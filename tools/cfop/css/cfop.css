@@ -2,7 +2,7 @@
    CFOP 公式库（F2L / Advanced F2L / OLL / PLL / Cross Trainer）
    页面专属样式 · 全部走 tokens.css 变量，禁止硬编码颜色。
    组件外观统一由 assets/css/components.css 提供（.card/.badge/.btn/.tabs/.seg/.progress…），
-   本文件只保留「页面布局 + 立方体展开图 + 算法行 + 朝向切换」等页面级样式。
+   本文件只保留「页面布局 + 案例配图 + 算法行 + 朝向切换」等页面级样式。
    加载顺序：site-nav.css → components.css → site-layout.css → cfop.css
    ========================================================= */
 @import url("/assets/css/tokens.css");
