@@ -222,6 +222,7 @@ __FOOTER__
 
 $indexTemplate = @'
 __HEAD__
+<link rel="stylesheet" href="uf-stats.css">
 <nav class="site-nav" id="siteNav">
   <div class="nav-inner">
     <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
@@ -266,6 +267,41 @@ __HEAD__
   <h1>UF缓冲公式连拧专项训练</h1>
   <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UF缓冲复原公式，魔方恢复复原状态。点击组卡片进入对应子页训练。</div>
 </div>
+
+<div class="uf-dash">
+  <div class="uf-dash__head">
+    <span class="uf-dash__title">连拧成绩看板</span>
+    <span class="uf-dash__std">浮动标准（全部已练组平均） <b id="uf-std-value">--</b></span>
+  </div>
+  <div class="uf-kpis" id="uf-kpis"></div>
+  <div class="uf-legend">
+    <span class="uf-legend__item t-great"><span class="uf-legend__swatch"></span>优秀 ≤85%</span>
+    <span class="uf-legend__item t-good"><span class="uf-legend__swatch"></span>良好 ≤100%</span>
+    <span class="uf-legend__item t-warn"><span class="uf-legend__swatch"></span>需关注 ≤115%</span>
+    <span class="uf-legend__item t-bad"><span class="uf-legend__swatch"></span>不合格 &gt;115%</span>
+    <span class="uf-legend__item"><span class="uf-legend__swatch uf-swatch--none"></span>未练习</span>
+    <span class="uf-legend__item" style="margin-left:auto">偏离条：中线=标准 · 向左更快 · 向右更慢</span>
+  </div>
+</div>
+
+<div class="uf-focus" id="uf-focus" hidden></div>
+<div class="uf-empty" id="uf-empty" hidden>还没有任何连拧记录。进入任意一组练一次，总页面就会自动统计并用颜色标出需要加强的组。</div>
+
+<div class="uf-controls">
+  <span class="uf-controls__group">
+    <label for="uf-scope">成绩口径</label>
+    <select id="uf-scope">
+      <option value="recent">最近 5 次平均</option>
+      <option value="all">全部平均</option>
+    </select>
+  </span>
+  <span class="uf-controls__group">
+    <span>排序</span>
+    <button type="button" data-sort="order">按组顺序</button>
+    <button type="button" data-sort="weak">最需加强优先</button>
+  </span>
+</div>
+
 <div class="entries">
   <div class="group-grid">
 __CARDS__
@@ -274,12 +310,13 @@ __CARDS__
 
 __FOOTER__
 <script src="/assets/js/site-nav.js"></script>
+<script src="uf-stats.js"></script>
 </body>
 </html>
 '@
 
 $cardTemplate = @'
-<a class="group-card" href="__FILE__">
+<a class="group-card" href="__FILE__" data-group="__LETTER__">
   <span class="card-index">__IDX__</span>
   <div class="card-name">__NAME__</div>
   <div class="card-tags">__TAGS__</div>
@@ -354,6 +391,7 @@ foreach ($g in $groups) {
 
   $card = $cardTemplate.Replace('__FILE__', $file)
   $card = $card.Replace('__IDX__', $g.index)
+  $card = $card.Replace('__LETTER__', $letter)
   $card = $card.Replace('__NAME__', $g.name)
   $card = $card.Replace('__TAGS__', ($g.codes -join ' '))
   $cards += $card

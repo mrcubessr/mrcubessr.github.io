@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
 <link rel="stylesheet" href="uf-common.css">
+  <link rel="stylesheet" href="uf-stats.css">
 </head>
 <body data-nav="scramble-uf">
 
@@ -20,157 +21,192 @@
   <h1>UF缓冲公式连拧专项训练</h1>
   <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UF缓冲复原公式，魔方恢复复原状态。点击组卡片进入对应子页训练。</div>
 </div>
+
+<div class="uf-dash">
+  <div class="uf-dash__head">
+    <span class="uf-dash__title">连拧成绩看板</span>
+    <span class="uf-dash__std">浮动标准（全部已练组平均） <b id="uf-std-value">--</b></span>
+  </div>
+  <div class="uf-kpis" id="uf-kpis"></div>
+  <div class="uf-legend">
+    <span class="uf-legend__item t-great"><span class="uf-legend__swatch"></span>优秀 ≤85%</span>
+    <span class="uf-legend__item t-good"><span class="uf-legend__swatch"></span>良好 ≤100%</span>
+    <span class="uf-legend__item t-warn"><span class="uf-legend__swatch"></span>需关注 ≤115%</span>
+    <span class="uf-legend__item t-bad"><span class="uf-legend__swatch"></span>不合格 &gt;115%</span>
+    <span class="uf-legend__item"><span class="uf-legend__swatch uf-swatch--none"></span>未练习</span>
+    <span class="uf-legend__item" style="margin-left:auto">偏离条：中线=标准 · 向左更快 · 向右更慢</span>
+  </div>
+</div>
+
+<div class="uf-focus" id="uf-focus" hidden></div>
+<div class="uf-empty" id="uf-empty" hidden>还没有任何连拧记录。进入任意一组练一次，总页面就会自动统计并用颜色标出需要加强的组。</div>
+
+<div class="uf-controls">
+  <span class="uf-controls__group">
+    <label for="uf-scope">成绩口径</label>
+    <select id="uf-scope">
+      <option value="recent">最近 5 次平均</option>
+      <option value="all">全部平均</option>
+    </select>
+  </span>
+  <span class="uf-controls__group">
+    <span>排序</span>
+    <button type="button" data-sort="order">按组顺序</button>
+    <button type="button" data-sort="weak">最需加强优先</button>
+  </span>
+</div>
+
 <div class="entries">
   <div class="group-grid">
 
-<a class="group-card" href="group-C.html">
+<a class="group-card" href="group-C.html" data-group="C">
   <span class="card-index">1</span>
   <div class="card-name">C组棱练习</div>
   <div class="card-tags">CE CF CG CH CI CJ CK CL CM CN CO CP CQ CR CS CT CW CX CY CZ</div>
 </a>
 
 
-<a class="group-card" href="group-D.html">
+<a class="group-card" href="group-D.html" data-group="D">
   <span class="card-index">2</span>
   <div class="card-name">D组棱练习</div>
   <div class="card-tags">DE DF DG DH DI DJ DK DL DM DN DO DP DQ DR DS DT DW DX DY DZ</div>
 </a>
 
 
-<a class="group-card" href="group-E.html">
+<a class="group-card" href="group-E.html" data-group="E">
   <span class="card-index">3</span>
   <div class="card-name">E组棱练习</div>
   <div class="card-tags">EC ED EG EH EI EJ EK EL EM EN EO EP EQ ER ES ET EW EX EY EZ</div>
 </a>
 
 
-<a class="group-card" href="group-F.html">
+<a class="group-card" href="group-F.html" data-group="F">
   <span class="card-index">4</span>
   <div class="card-name">F组棱练习</div>
   <div class="card-tags">FC FD FG FH FI FJ FK FL FM FN FO FP FQ FR FS FT FW FX FY FZ</div>
 </a>
 
 
-<a class="group-card" href="group-G.html">
+<a class="group-card" href="group-G.html" data-group="G">
   <span class="card-index">5</span>
   <div class="card-name">G组棱练习</div>
   <div class="card-tags">GC GD GE GF GI GJ GK GL GM GN GO GP GQ GR GS GT GW GX GY GZ</div>
 </a>
 
 
-<a class="group-card" href="group-H.html">
+<a class="group-card" href="group-H.html" data-group="H">
   <span class="card-index">6</span>
   <div class="card-name">H组棱练习</div>
   <div class="card-tags">HC HD HE HF HI HJ HK HL HM HN HO HP HQ HR HS HT HW HX HY HZ</div>
 </a>
 
 
-<a class="group-card" href="group-I.html">
+<a class="group-card" href="group-I.html" data-group="I">
   <span class="card-index">7</span>
   <div class="card-name">I组棱练习</div>
   <div class="card-tags">IC ID IE IF IG IH IK IL IM IN IO IP IQ IR IS IT IW IX IY IZ</div>
 </a>
 
 
-<a class="group-card" href="group-J.html">
+<a class="group-card" href="group-J.html" data-group="J">
   <span class="card-index">8</span>
   <div class="card-name">J组棱练习</div>
   <div class="card-tags">JC JD JE JF JG JH JK JL JM JN JO JP JQ JR JS JT JW JX JY JZ</div>
 </a>
 
 
-<a class="group-card" href="group-K.html">
+<a class="group-card" href="group-K.html" data-group="K">
   <span class="card-index">9</span>
   <div class="card-name">K组棱练习</div>
   <div class="card-tags">KC KD KE KF KG KH KI KJ KM KN KO KP KQ KR KS KT KW KX KY KZ</div>
 </a>
 
 
-<a class="group-card" href="group-L.html">
+<a class="group-card" href="group-L.html" data-group="L">
   <span class="card-index">10</span>
   <div class="card-name">L组棱练习</div>
   <div class="card-tags">LC LD LE LF LG LH LI LJ LM LN LO LP LQ LR LS LT LW LX LY LZ</div>
 </a>
 
 
-<a class="group-card" href="group-M.html">
+<a class="group-card" href="group-M.html" data-group="M">
   <span class="card-index">11</span>
   <div class="card-name">M组棱练习</div>
   <div class="card-tags">MC MD ME MF MG MH MI MJ MK ML MO MP MQ MR MS MT MW MX MY MZ</div>
 </a>
 
 
-<a class="group-card" href="group-N.html">
+<a class="group-card" href="group-N.html" data-group="N">
   <span class="card-index">12</span>
   <div class="card-name">N组棱练习</div>
   <div class="card-tags">NC ND NE NF NG NH NI NJ NK NL NO NP NQ NR NS NT NW NX NY NZ</div>
 </a>
 
 
-<a class="group-card" href="group-O.html">
+<a class="group-card" href="group-O.html" data-group="O">
   <span class="card-index">13</span>
   <div class="card-name">O组棱练习</div>
   <div class="card-tags">OC OD OE OF OG OH OI OJ OK OL OM ON OQ OR OS OT OW OX OY OZ</div>
 </a>
 
 
-<a class="group-card" href="group-P.html">
+<a class="group-card" href="group-P.html" data-group="P">
   <span class="card-index">14</span>
   <div class="card-name">P组棱练习</div>
   <div class="card-tags">PC PD PE PF PG PH PI PJ PK PL PM PN PQ PR PS PT PW PX PY PZ</div>
 </a>
 
 
-<a class="group-card" href="group-Q.html">
+<a class="group-card" href="group-Q.html" data-group="Q">
   <span class="card-index">15</span>
   <div class="card-name">Q组棱练习</div>
   <div class="card-tags">QC QD QE QF QG QH QI QJ QK QL QM QN QO QP QS QT QW QX QY QZ</div>
 </a>
 
 
-<a class="group-card" href="group-R.html">
+<a class="group-card" href="group-R.html" data-group="R">
   <span class="card-index">16</span>
   <div class="card-name">R组棱练习</div>
   <div class="card-tags">RC RD RE RF RG RH RI RJ RK RL RM RN RO RP RS RT RW RX RY RZ</div>
 </a>
 
 
-<a class="group-card" href="group-S.html">
+<a class="group-card" href="group-S.html" data-group="S">
   <span class="card-index">17</span>
   <div class="card-name">S组棱练习</div>
   <div class="card-tags">SC SD SE SF SG SH SI SJ SK SL SM SN SO SP SQ SR SW SX SY SZ</div>
 </a>
 
 
-<a class="group-card" href="group-T.html">
+<a class="group-card" href="group-T.html" data-group="T">
   <span class="card-index">18</span>
   <div class="card-name">T组棱练习</div>
   <div class="card-tags">TC TD TE TF TG TH TI TJ TK TL TM TN TO TP TQ TR TW TX TY TZ</div>
 </a>
 
 
-<a class="group-card" href="group-W.html">
+<a class="group-card" href="group-W.html" data-group="W">
   <span class="card-index">19</span>
   <div class="card-name">W组棱练习</div>
   <div class="card-tags">WC WD WE WF WG WH WI WJ WK WL WM WN WO WP WQ WR WS WT WY WZ</div>
 </a>
 
 
-<a class="group-card" href="group-X.html">
+<a class="group-card" href="group-X.html" data-group="X">
   <span class="card-index">20</span>
   <div class="card-name">X组棱练习</div>
   <div class="card-tags">XC XD XE XF XG XH XI XJ XK XL XM XN XO XP XQ XR XS XT XY XZ</div>
 </a>
 
 
-<a class="group-card" href="group-Y.html">
+<a class="group-card" href="group-Y.html" data-group="Y">
   <span class="card-index">21</span>
   <div class="card-name">Y组棱练习</div>
   <div class="card-tags">YC YD YE YF YG YH YI YJ YK YL YM YN YO YP YQ YR YS YT YW YX</div>
 </a>
 
 
-<a class="group-card" href="group-Z.html">
+<a class="group-card" href="group-Z.html" data-group="Z">
   <span class="card-index">22</span>
   <div class="card-name">Z组棱练习</div>
   <div class="card-tags">ZC ZD ZE ZF ZG ZH ZI ZJ ZK ZL ZM ZN ZO ZP ZQ ZR ZS ZT ZW ZX</div>
@@ -186,5 +222,6 @@
     </footer>
 
 <script src="/assets/js/site-nav.js"></script>
+<script src="uf-stats.js"></script>
 </body>
 </html>
