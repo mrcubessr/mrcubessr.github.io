@@ -14,6 +14,7 @@
 用法：
   python -m http.server 8099          # 于站点根目录
   python tools/cfop/scripts/smoke_cross_trainer.py
+  python tools/cfop/scripts/smoke_cross_trainer.py https://mrcubessr.github.io   # 线上回归
 """
 import sys
 from pathlib import Path
@@ -21,7 +22,10 @@ from urllib.parse import parse_qs, urlparse
 
 from playwright.sync_api import sync_playwright
 
-BASE = "http://localhost:8099"
+# 可传第一个参数指定站点根（默认本地），线上回归与本地跑的是同一套断言。
+BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8099").rstrip("/")
+LIVE = "localhost" not in BASE and "127.0.0.1" not in BASE
+TAG = "_live" if LIVE else ""
 PAGE = BASE + "/tools/cfop/cross-trainer.html"
 OUT = Path(__file__).resolve().parents[3] / ".workbuddy" / "outputs"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -175,6 +179,8 @@ def check(name, cond, extra=""):
         fails.append(name)
 
 
+print("被测站点：" + PAGE + ("  [线上回归]" if LIVE else "  [本地]") + "\n")
+
 with sync_playwright() as p:
     browser = p.chromium.launch()
     page = browser.new_page(viewport={"width": 1280, "height": 960}, device_scale_factor=2)
@@ -299,7 +305,7 @@ with sync_playwright() as p:
           (d["faceStickers"], d["modelFace"]))
     check("对准十字色：贴纸之间留有缝隙（未糊成整块色板）",
           d["stickerGap"] is not None and d["stickerGap"] > 0, d["stickerGap"])
-    page.screenshot(path=str(OUT / "cross-trainer-face.png"))
+    page.screenshot(path=str(OUT / ("cross-trainer-face%s.png" % TAG)))
 
     page.click('#ct-align')
     page.wait_for_timeout(200)
@@ -316,11 +322,11 @@ with sync_playwright() as p:
     check("浅色下选中态仍在", d["litColor"] != [])
     check("浅色下计时器对比度 ≥ 4.5:1", d["timerContrast"] >= 4.5,
           (d["timerColor"], d["timerBg"], d["timerContrast"]))
-    page.screenshot(path=str(OUT / "cross-trainer-light.png"))
+    page.screenshot(path=str(OUT / ("cross-trainer-light%s.png" % TAG)))
     page.click('#themeBtn')
     page.wait_for_timeout(150)
 
-    page.screenshot(path=str(OUT / "cross-trainer.png"))
+    page.screenshot(path=str(OUT / ("cross-trainer%s.png" % TAG)))
     check("截图前解法面板确已收起（避免留下看起来像答案外泄的截图）",
           page.evaluate(READ)["solDisplay"] == "none")
     check("全过程无控制台错误", not errs, errs)
