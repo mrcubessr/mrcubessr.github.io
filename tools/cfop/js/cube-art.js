@@ -63,16 +63,22 @@
         rect(svg, F.origin + col * F.pitch, F.origin + row * F.pitch, F.cell, F.cell, F.rx, us[i]);
       }
     }
-    /* 四周侧面顶层贴纸（上=ub 下=uf 左=ul 右=ur，各取前 3） */
+    /* 四周侧面顶层贴纸（上=ub 下=uf 左=ul 右=ur，各取前 3）
+       注意 jcube 的 ub / ur 存的是「站在该面外侧正对看」的自然序：
+         ub = UBR,UB,UBL   ur = UFR,UR,UBR
+       而展开到平面上之后（四面绕各自与 U 的公共棱向外翻 90°）：
+         上臂左→右 = UBL,UB,UBR   右臂上→下 = UBR,UR,UFR
+       所以 ub / ur 必须反序取，否则顶角会贴出「橙+红」这类对面色组合
+       （T-perm 等案例会立刻看出镜像错误）。uf / ul 的自然序恰好等于展开序。 */
     var strips = [
-      { s: str(facelets, "ub"), horiz: true, y: F.edge },
-      { s: str(facelets, "uf"), horiz: true, y: 75 - F.edge - F.strip },
-      { s: str(facelets, "ul"), horiz: false, x: F.edge },
-      { s: str(facelets, "ur"), horiz: false, x: 75 - F.edge - F.strip }
+      { s: str(facelets, "ub"), horiz: true, y: F.edge, rev: true },
+      { s: str(facelets, "uf"), horiz: true, y: 75 - F.edge - F.strip, rev: false },
+      { s: str(facelets, "ul"), horiz: false, x: F.edge, rev: false },
+      { s: str(facelets, "ur"), horiz: false, x: 75 - F.edge - F.strip, rev: true }
     ];
     strips.forEach(function (st) {
       for (var k = 0; k < 3; k++) {
-        var cur = st.s[k] || "l";
+        var cur = st.s[st.rev ? 2 - k : k] || "l";
         if (st.horiz) rect(svg, F.origin + k * F.pitch, st.y, F.cell, F.strip, 1.8, cur);
         else rect(svg, st.x, F.origin + k * F.pitch, F.strip, F.cell, 1.8, cur);
       }
