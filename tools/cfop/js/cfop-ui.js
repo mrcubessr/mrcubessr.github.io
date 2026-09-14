@@ -186,6 +186,16 @@
         seg.appendChild(b);
       });
       toolbar.appendChild(seg);
+
+      /* PLL 专属：打印页生成器入口 */
+      if (set === "pll" && window.PLLPrint) {
+        var pbtn = el("button", "btn btn--sm btn--secondary cfop-print-open", "🖨 生成打印页");
+        pbtn.type = "button";
+        pbtn.title = "自选情况与公式，自动排版成 A4 打印页";
+        pbtn.addEventListener("click", function () { window.PLLPrint.open(data); });
+        toolbar.appendChild(pbtn);
+      }
+
       root.appendChild(toolbar);
 
       /* 网格 */

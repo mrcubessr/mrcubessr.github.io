@@ -1,0 +1,260 @@
+/* =========================================================
+   pll-print.css — PLL 打印页生成器
+   · 弹窗（配置 + A4 预览）走 tokens 变量，随深浅主题切换
+   · A4 纸张恒为白底黑字，故用页面私有变量 --pp-ink* / --pp-paper / --pp-rule
+     （前缀私有，非 §4.2.2 禁用名，保证深浅主题下打印结果一致）
+   加载顺序：… → cfop.css → pll-print.css
+   ========================================================= */
+
+/* ---------- 纸张专属语义色（与主题无关，恒定白纸黑字） ---------- */
+.pp-root{
+  --pp-ink:#101828;          /* 纸面正文 */
+  --pp-ink-2:#475467;        /* 纸面次要 */
+  --pp-ink-3:#667085;        /* 纸面弱化 */
+  --pp-rule:rgba(16,24,40,.14);
+  --pp-rule-strong:rgba(16,24,40,.34);
+  --pp-paper:#FFFFFF;
+}
+
+/* =========================================================
+   1. 弹窗骨架
+   ========================================================= */
+.pp-modal{
+  position:fixed; inset:0; z-index:var(--z-modal,1100);
+  display:flex; align-items:center; justify-content:center;
+  padding:var(--s4,16px);
+  background:rgba(4,6,12,.66);
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+}
+.pp-modal[hidden]{ display:none; }
+
+.pp-panel{
+  display:flex; flex-direction:column;
+  width:min(1440px,100%); height:min(94vh,1060px);
+  background:var(--surface,#141826);
+  border:1px solid var(--line-2,rgba(255,255,255,.14));
+  border-radius:var(--r-lg,16px);
+  box-shadow:var(--sh-lg,0 18px 50px rgba(0,0,0,.5));
+  overflow:hidden;
+}
+
+.pp-head,.pp-foot{
+  flex:0 0 auto; display:flex; align-items:center; flex-wrap:wrap;
+  gap:var(--s3,12px);
+  padding:var(--s3,12px) var(--s4,16px);
+  background:var(--surface-2,#1A2130);
+}
+.pp-head{ border-bottom:1px solid var(--line,rgba(255,255,255,.08)); }
+.pp-foot{ border-top:1px solid var(--line,rgba(255,255,255,.08)); }
+.pp-head__title{ font-size:var(--fs-lg,1.15rem); font-weight:var(--fw-bold,700); color:var(--fg,#EEF2F8); }
+.pp-head__hint{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
+.pp-head__actions,.pp-foot__actions{ margin-left:auto; display:flex; gap:var(--s2,8px); align-items:center; flex-wrap:wrap; }
+.pp-foot__count{ font-size:var(--fs-sm,.85rem); color:var(--fg-3,#7C8798); }
+
+.pp-body{
+  flex:1; min-height:0;
+  display:grid; grid-template-columns:352px 1fr;
+}
+
+/* =========================================================
+   2. 左：情况 / 公式 选择
+   ========================================================= */
+.pp-side{
+  display:flex; flex-direction:column; min-height:0;
+  border-right:1px solid var(--line,rgba(255,255,255,.08));
+  background:var(--surface,#141826);
+}
+.pp-side__bar{
+  flex:0 0 auto; display:flex; flex-wrap:wrap; gap:var(--s1,4px);
+  padding:var(--s2,8px) var(--s3,12px);
+  border-bottom:1px solid var(--line,rgba(255,255,255,.08));
+}
+.pp-side__bar .btn{ margin-left:auto; }
+.pp-list{
+  flex:1; min-height:0; overflow:auto;
+  padding:var(--s2,8px); display:flex; flex-direction:column; gap:var(--s2,8px);
+}
+
+.pp-item{
+  display:grid; grid-template-columns:auto 44px 1fr;
+  gap:var(--s2,8px); align-items:center;
+  padding:var(--s2,8px);
+  background:var(--surface-2,#1A2130);
+  border:1px solid var(--line,rgba(255,255,255,.08));
+  border-radius:var(--r-sm,8px);
+  transition:border-color var(--t-fast,.15s);
+}
+.pp-item:hover{ border-color:var(--line-2,rgba(255,255,255,.14)); }
+.pp-item.is-off{ opacity:.42; }
+.pp-item__check{ display:flex; align-items:center; }
+.pp-item__check input{
+  width:17px; height:17px; margin:0; cursor:pointer;
+  accent-color:var(--brand,#5B8DEF);
+}
+.pp-item__art{
+  width:44px; height:44px; flex:0 0 auto;
+  background:var(--bg-soft,#0F131C);
+  border:1px solid var(--line,rgba(255,255,255,.08));
+  border-radius:var(--r-sm,8px);
+  padding:3px;
+}
+.pp-item__art svg{ width:100%; height:100%; display:block; }
+.pp-item__main{ min-width:0; display:flex; flex-direction:column; gap:4px; }
+.pp-item__row{ display:flex; align-items:center; gap:var(--s2,8px); flex-wrap:wrap; }
+.pp-item__name{ font-size:var(--fs-sm,.85rem); font-weight:var(--fw-bold,700); color:var(--fg,#EEF2F8); }
+.pp-item__sel{
+  width:100%; padding:5px 8px; min-height:30px;
+  font-family:var(--font-mono,"SF Mono",Consolas,monospace);
+  font-size:var(--fs-xs,.75rem);
+}
+
+/* =========================================================
+   3. 右：排版选项 + A4 预览
+   ========================================================= */
+.pp-main{ display:flex; flex-direction:column; min-height:0; }
+
+.pp-opts{
+  flex:0 0 auto;
+  display:flex; flex-wrap:wrap; align-items:center; gap:var(--s3,12px);
+  padding:var(--s2,8px) var(--s4,16px);
+  border-bottom:1px solid var(--line,rgba(255,255,255,.08));
+  background:var(--surface,#141826);
+}
+.pp-opt{ display:flex; align-items:center; gap:var(--s2,8px); }
+.pp-opt__label{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); white-space:nowrap; }
+.pp-opt .select{ min-height:32px; padding:4px 30px 4px 10px; font-size:var(--fs-xs,.75rem); }
+/* 数字下拉：给足宽度，避免值被右侧箭头挤掉 */
+.pp-opt--num .select{ min-width:56px; }
+.pp-opt .input{ min-height:32px; padding:4px 8px; font-size:var(--fs-xs,.75rem); width:170px; }
+.pp-opt--title{ flex:1 1 200px; min-width:170px; }
+.pp-opt--title .input{ width:100%; }
+.pp-checks{ display:flex; flex-wrap:wrap; gap:var(--s3,12px); }
+.pp-check{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:var(--fs-xs,.75rem); color:var(--fg-2,#AEB8CA); cursor:pointer;
+  user-select:none;
+}
+.pp-check input{ width:15px; height:15px; margin:0; cursor:pointer; accent-color:var(--brand,#5B8DEF); }
+
+.pp-stage{
+  flex:1; min-height:0; overflow:auto;
+  padding:var(--s4,16px);
+  background:var(--bg-soft,#0F131C);
+}
+.pp-pages{ display:flex; flex-direction:column; align-items:center; gap:var(--s4,16px); }
+
+/* =========================================================
+   4. A4 纸张
+   ========================================================= */
+.pp-page{
+  width:210mm; height:297mm; flex:0 0 auto;
+  box-sizing:border-box; overflow:hidden;
+  background:var(--pp-paper,#FFFFFF); color:var(--pp-ink,#101828);
+  padding:12mm 11mm 9mm;
+  display:flex; flex-direction:column;
+  box-shadow:0 6px 24px rgba(0,0,0,.30);
+  font-family:var(--font-sans,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif);
+}
+.pp-land .pp-page{ width:297mm; height:210mm; padding:9mm 11mm 8mm; }
+
+.pp-page__head{
+  flex:0 0 auto;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:8mm;
+  padding-bottom:3mm; margin-bottom:3.5mm;
+  border-bottom:1.4px solid var(--pp-rule-strong,#3A4356);
+}
+.pp-page__title{ font-size:17pt; font-weight:800; letter-spacing:.08em; color:var(--pp-ink,#101828); line-height:1.15; }
+.pp-page__meta{ font-size:8.5pt; color:var(--pp-ink-3,#667085); text-align:right; line-height:1.5; white-space:nowrap; }
+.pp-page__meta b{ color:var(--pp-ink-2,#475467); font-weight:600; }
+
+.pp-grid{
+  flex:1; min-height:0;
+  display:grid; gap:2.5mm;
+}
+
+.pp-cell{
+  min-height:0; min-width:0; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:1mm; padding:1.6mm 1.2mm;
+  border:1px solid var(--pp-rule,rgba(16,24,40,.14));
+  border-radius:2mm;
+}
+/* 配图容器：flex-basis 归零 + 绝对定位的 svg。
+   若让 svg 参与普通流，其固有尺寸会造成“布局溢出”，Chrome 分页据此多分空白页。 */
+.pp-cell__art{
+  flex:1 1 0; min-height:0; width:100%; position:relative;
+}
+.pp-cell__art svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.pp-cell--noart .pp-cell__art{ display:none; }
+.pp-cell--noart{ justify-content:center; }
+
+.pp-cell__name{
+  flex:0 0 auto; font-size:10.5pt; font-weight:800; letter-spacing:.02em;
+  color:var(--pp-ink,#101828); line-height:1.2; text-align:center;
+}
+.pp-cell__sub{
+  flex:0 0 auto; font-size:7pt; letter-spacing:.04em;
+  color:var(--pp-ink-3,#667085); text-transform:uppercase;
+}
+.pp-cell__alg{
+  flex:0 0 auto; width:100%;
+  font-family:var(--font-mono,"SF Mono","Cascadia Code","Consolas",monospace);
+  font-size:8pt; line-height:1.4; letter-spacing:.02em;
+  color:var(--pp-ink,#101828); text-align:center;
+  word-break:break-word; overflow-wrap:anywhere;
+}
+.pp-cell--noalg .pp-cell__alg{ display:none; }
+.pp-cell--noname .pp-cell__name{ display:none; }
+.pp-cell--nosub .pp-cell__sub{ display:none; }
+
+/* ---------- 响应式（屏幕） ---------- */
+@media (max-width:1000px){
+  .pp-body{ grid-template-columns:1fr; grid-template-rows:minmax(0,40vh) minmax(0,1fr); }
+  .pp-side{ border-right:0; border-bottom:1px solid var(--line,rgba(255,255,255,.08)); }
+  .pp-panel{ height:96vh; }
+}
+@media (max-width:640px){
+  .pp-modal{ padding:0; }
+  .pp-panel{ border-radius:0; height:100vh; width:100%; }
+  .pp-opt--title{ flex:1 1 100%; }
+}
+
+/* =========================================================
+   5. 打印
+   ========================================================= */
+@media print{
+  html,body{ background:#fff !important; }
+  body.pp-open{ overflow:visible !important; }
+
+  /* 隐藏站点外壳与本工具的所有交互界面 */
+  [data-site-nav], .site-nav, .cfop-wrap, .site-footer, .no-print{ display:none !important; }
+  .pp-head, .pp-foot, .pp-side, .pp-opts{ display:none !important; }
+
+  .pp-modal{
+    position:static !important; inset:auto !important; display:block !important;
+    padding:0 !important; background:none !important;
+    -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  }
+  .pp-panel{
+    display:block !important; width:auto !important; height:auto !important;
+    max-height:none !important; border:0 !important; border-radius:0 !important;
+    box-shadow:none !important; background:none !important; overflow:visible !important;
+  }
+  .pp-body, .pp-main{ display:block !important; }
+  .pp-stage{
+    display:block !important; overflow:visible !important;
+    padding:0 !important; background:none !important;
+  }
+  .pp-pages{ display:block !important; margin:0 !important; }
+  .pp-pages{ zoom:1 !important; }
+
+  /* 高度各留 1mm 余量：与纸张“恰好等高的整页元素”会被分页判定为溢出，多出空白页 */
+  .pp-page{
+    width:210mm !important; height:296mm !important;
+    margin:0 !important; box-shadow:none !important;
+    break-inside:auto; page-break-inside:auto;
+  }
+  .pp-land .pp-page{ width:296mm !important; height:209mm !important; }
+  /* 第 2 页起强制换页；不用 break-inside:avoid，否则整页高的元素会被判定放不下而多出空白页 */
+  .pp-page + .pp-page{ break-before:page; page-break-before:always; }
+}

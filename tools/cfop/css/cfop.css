@@ -32,6 +32,7 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .cfop-toolbar{ position:sticky; top:var(--nav-h,60px); z-index:20; margin-bottom:var(--s5,24px); }
 .cfop-search{ flex:1 1 220px; min-width:180px; width:auto; }
 .cfop-chips{ flex:0 1 auto; }
+.cfop-print-open{ margin-left:auto; }
 
 /* ---------- 案例网格 ---------- */
 .cfop-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:var(--s4,16px); align-items:start; }
