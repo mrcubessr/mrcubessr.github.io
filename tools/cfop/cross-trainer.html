@@ -34,16 +34,10 @@
         <div class="ct__field">
           <span class="ct__label">目标步数</span>
           <div class="seg ct__seg" id="ct-moves" role="group" aria-label="选择十字最优步数"></div>
-          <span class="ct__sub">即做十字所需的最优步数 · 打乱长度上限 10 步</span>
         </div>
       </div>
 
       <div class="ct__scramble" id="ct-scramble">…</div>
-
-      <div class="ct__meta">
-        <span class="badge badge--gold" id="ct-info">—</span>
-        <span class="badge badge--mono" id="ct-len">—</span>
-      </div>
 
       <div class="ct__solution" id="ct-solution" hidden>
         <span class="ct__sol-label">十字解法</span>
@@ -54,28 +48,39 @@
         <button class="btn btn--primary" id="ct-new">换一个打乱</button>
         <button class="btn btn--secondary" id="ct-sol" aria-pressed="false">显示十字解法</button>
         <button class="btn btn--ghost" id="ct-copy">复制</button>
-        <a class="btn btn--ghost" id="ct-viz" href="#" target="_blank" rel="noopener">3D 可视化 ↗</a>
+        <button class="btn btn--ghost" id="ct-batch" aria-pressed="false">批量 10 个</button>
       </div>
 
-      <p class="ct__hint">按 <b>空格</b> 开始 / 暂停计时 · 拖动魔方可旋转视角查看全部 6 面</p>
+      <div class="ct__batch" id="ct-batch-panel" hidden>
+        <div class="ct__batch-head">
+          <span class="ct__batch-title" id="ct-batch-title">已生成的打乱</span>
+          <button class="btn btn--xs btn--ghost" id="ct-batch-refresh" type="button">重新生成</button>
+        </div>
+        <ol class="ct__batch-list" id="ct-batch-list"></ol>
+      </div>
+
+      <p class="ct__hint">按 <b>空格</b> 开始 / 暂停计时</p>
     </div>
 
     <div class="ct__side">
+      <div class="ct__orient" id="ct-orient" role="note" aria-label="打乱朝向">
+        <span class="ct__orient-title">打乱朝向</span>
+        <span class="ct__orient-pill">白顶 · 绿前</span>
+      </div>
       <div class="ct__timer" id="ct-timer">0.00</div>
       <div class="ct__net" id="ct-net"></div>
-      <button class="btn btn--sm btn--ghost ct__align" id="ct-align" aria-pressed="false">对准十字色</button>
     </div>
   </div>
 </div>
 <footer class="site-footer">
   <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
-  <p class="site-footer__meta">打乱与求解在本地完成（十字最优步数表实时计算）· 3D 可视化由 cubedb.net 提供</p>
+  <p class="site-footer__meta">打乱与求解在本地完成（十字最优步数表实时计算）· 按「白顶绿前」标准朝向打乱</p>
 </footer>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
 <script src="/tools/cfop/js/rubik-core.js"></script>
 <script src="/tools/cfop/js/cross-solver.js"></script>
-<script src="/tools/cfop/js/cube3d.js"></script>
+<script src="/tools/cfop/js/cube-art.js"></script>
 <script src="/tools/cfop/js/cross-trainer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>
 </body>

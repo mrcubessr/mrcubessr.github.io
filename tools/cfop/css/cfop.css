@@ -101,7 +101,6 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
   border-radius:var(--r-md,12px); padding:var(--s4,16px); text-align:center; word-break:break-word; letter-spacing:.06em; }
 .ct__scramble.is-pop{ animation:ct-pop .28s ease-out; }
 @keyframes ct-pop{ from{ opacity:.3; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
-.ct__meta{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--s2,8px); }
 
 /* 解法行 */
 .ct__solution{ display:flex; align-items:center; gap:var(--s2,8px); }
@@ -113,17 +112,44 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .ct__sol-text{ flex:1; min-width:0; margin:0; cursor:pointer; transition:border-color var(--t-fast,.15s); }
 .ct__sol-text:hover{ border-color:var(--gold,#FFC857); }
 
-/* 右侧：计时器 + 立体视图 */
+/* 批量 10 个打乱 */
+.ct__batch{ display:flex; flex-direction:column; gap:var(--s3,12px);
+  padding:var(--s4,16px); background:var(--surface-2,#1A2130);
+  border:1px solid var(--line,rgba(255,255,255,.08)); border-radius:var(--r-md,12px); }
+.ct__batch[hidden]{ display:none; }
+.ct__batch-head{ display:flex; align-items:center; gap:var(--s2,8px); }
+.ct__batch-title{ font-size:var(--fs-sm,.85rem); font-weight:var(--fw-semi,600); color:var(--fg-2,#AEB8CA); }
+.ct__batch-head .btn{ margin-left:auto; }
+.ct__batch-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--s2,8px); counter-reset:ctb; }
+.ct__batch-item{ display:flex; align-items:center; gap:var(--s2,8px);
+  padding:var(--s2,8px) var(--s3,12px); background:var(--bg-soft,#0F131C);
+  border:1px solid var(--line,rgba(255,255,255,.08)); border-radius:var(--r-sm,8px); }
+.ct__batch-no{ flex:0 0 auto; width:1.6em; text-align:center; font-family:var(--font-mono,monospace);
+  font-size:var(--fs-sm,.85rem); color:var(--fg-3,#7C8798); }
+.ct__batch-formula{ flex:1; min-width:0; font-family:var(--font-mono,monospace); font-size:var(--fs-sm,.85rem);
+  color:var(--gold-ink,#FFD372); cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ct__batch-formula:hover{ text-decoration:underline; }
+
+/* 右侧：朝向提示 + 计时器 + 平面展开图 */
 .ct__row{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--s2,8px); }
 .ct__timer{ font-family:var(--font-mono,monospace); font-size:2.4rem; font-weight:var(--fw-bold,700);
   font-variant-numeric:tabular-nums; text-align:center; color:var(--fg,#EEF2F8); }
-.ct__net{ width:100%; max-width:280px; aspect-ratio:1/1; margin-inline:auto; cursor:grab; touch-action:none;
-  border-radius:var(--r-md,12px); background:var(--bg-soft,#0F131C); padding:var(--s2,8px); }
-.ct__net.is-drag{ cursor:grabbing; }
-.ct__net .c3-view{ width:100%; height:100%; display:block; }
-.c3-body{ fill:#101218; stroke:var(--line,rgba(255,255,255,.12)); stroke-width:.8; stroke-linejoin:round; }
-.ct__align{ display:block; width:100%; max-width:280px; margin:var(--s2,8px) auto 0; }
-/* .btn 组件本身没有选中态样式，「对准十字色」「显示十字解法」按下时
+
+/* 醒目的「白顶绿前」朝向提示 */
+.ct__orient{ display:flex; align-items:center; gap:var(--s2,8px); justify-content:center;
+  padding:var(--s2,8px) var(--s3,12px); border-radius:var(--r-md,12px);
+  background:linear-gradient(135deg, var(--brand,#5B8DEF), var(--brand-strong,#3F6FD8));
+  color:var(--fg-inverse,#FFFFFF); box-shadow:0 2px 10px rgba(91,141,239,.28); }
+.ct__orient-title{ font-size:var(--fs-xs,.75rem); opacity:.9; letter-spacing:.02em; }
+.ct__orient-pill{ font-size:var(--fs-base,1rem); font-weight:var(--fw-bold,700); letter-spacing:.08em; }
+
+.ct__net{ width:100%; max-width:280px; aspect-ratio:1/1; margin-inline:auto;
+  border-radius:var(--r-md,12px); background:var(--bg-soft,#0F131C); padding:var(--s2,8px);
+  border:1px solid var(--line,rgba(255,255,255,.08)); }
+/* 平面展开图：充满容器，按自身 viewBox 等比居中 */
+.ct__net .cfop-net--cross{ width:100%; height:100%; display:block; }
+.cfop-net--cross rect{ stroke:var(--line,rgba(255,255,255,.14)); stroke-width:.6; }
+/* .btn 组件本身没有选中态样式，「批量 10 个」「显示十字解法」按下时
    借用分段按钮的选中观感（品牌底色 + 反相文字），与 .seg__btn.is-active 一致。 */
 .ct .btn.is-active{
   background:var(--brand,#5B8DEF); border-color:var(--brand,#5B8DEF);

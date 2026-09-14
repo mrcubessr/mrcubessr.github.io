@@ -25,7 +25,8 @@
     cols: 3, rows: 7, landscape: false,
     showArt: true, showName: true, showSub: true, showAlg: true, showHead: true,
     zoom: "fit",
-    sel: {}
+    sel: {},
+    order: []
   };
 
   var cfg = null, cases = [], modal = null, printStyle = null;
@@ -74,6 +75,7 @@
       out[k] = (c && c[k] !== undefined) ? c[k] : DEFAULTS[k];
     });
     if (!out.sel || typeof out.sel !== "object") out.sel = {};
+    if (!Array.isArray(out.order)) out.order = [];
     // 用当前数据补齐默认选中（新 case 默认选中第一条公式）
     cases.forEach(function (cs) {
       var s = out.sel[cs.id];
@@ -167,19 +169,70 @@
     });
   }
 
-  /* ---------- 左栏：情况列表（勾选 + 公式 4 选 1） ---------- */
+  /* ---------- 左栏：情况列表（勾选 + 公式 4 选 1 + 拖拽排序） ---------- */
+  function applyOrder() {
+    cfg.order = cases.map(function (c) { return c.id; });
+    save();
+  }
+
+  function moveCase(fromId, toId, after) {
+    if (fromId === toId) return;
+    var f = -1, t = -1;
+    cases.forEach(function (c, i) { if (c.id === fromId) f = i; if (c.id === toId) t = i; });
+    if (f < 0 || t < 0) return;
+    var item = cases.splice(f, 1)[0];
+    var to = t;
+    if (f < to) to--;
+    if (after) to++;
+    cases.splice(Math.min(to, cases.length), 0, item);
+    applyOrder();
+    buildList();
+    refresh();
+  }
+
   function buildList() {
     listEl.innerHTML = "";
+    var draggingId = null;
     cases.forEach(function (c) {
       var s = pick(c.id);
       var item = el("div", "pp-item");
+      item.draggable = true;
       item.dataset.id = c.id;
+      item.title = "按住拖拽可调整打印顺序";
+
+      item.addEventListener("dragstart", function (e) {
+        draggingId = c.id;
+        item.classList.add("is-dragging");
+        e.dataTransfer.setData("text/plain", c.id);
+        e.dataTransfer.effectAllowed = "move";
+      });
+      item.addEventListener("dragend", function () {
+        item.classList.remove("is-dragging");
+        Array.prototype.forEach.call(listEl.children, function (child) {
+          child.classList.remove("is-over");
+        });
+        draggingId = null;
+      });
+      item.addEventListener("dragover", function (e) {
+        if (!draggingId || draggingId === c.id) return;
+        e.preventDefault();
+        item.classList.add("is-over");
+      });
+      item.addEventListener("dragleave", function () {
+        item.classList.remove("is-over");
+      });
+      item.addEventListener("drop", function (e) {
+        if (!draggingId || draggingId === c.id) return;
+        e.preventDefault();
+        moveCase(draggingId, c.id, true);
+      });
 
       var chk = el("label", "pp-item__check");
       var box = document.createElement("input");
       box.type = "checkbox";
       box.checked = s.on;
       box.setAttribute("aria-label", "打印 " + c.id);
+      box.setAttribute("draggable", "false");
       box.addEventListener("change", function () { s.on = box.checked; refresh(); });
       chk.appendChild(box);
       item.appendChild(chk);
@@ -198,6 +251,7 @@
       var list = algsOf(c);
       var sel = el("select", "select pp-item__sel");
       sel.setAttribute("aria-label", c.id + " 选用公式");
+      sel.setAttribute("draggable", "false");
       list.forEach(function (a, i) {
         var o = document.createElement("option");
         o.value = String(i);
@@ -460,9 +514,21 @@
     cases.forEach(function (c) { cfg.sel[c.id] = { on: true, alg: 0 }; });
     buildList(); buildQuick(); syncOpts(); refresh();
   }
+  function sortCasesByOrder() {
+    if (!cfg.order || !cfg.order.length) return;
+    var idx = {};
+    cfg.order.forEach(function (id, i) { idx[id] = i; });
+    cases.sort(function (a, b) {
+      var ai = idx[a.id], bi = idx[b.id];
+      if (ai === undefined) ai = 9999;
+      if (bi === undefined) bi = 9999;
+      return ai - bi;
+    });
+  }
   function open(data) {
     cases = (data && data.cases) || [];
     cfg = load();
+    sortCasesByOrder();
     if (!modal) buildModal();
     if (!ui) buildOpts();
     buildList();

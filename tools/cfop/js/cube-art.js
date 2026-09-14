@@ -105,6 +105,31 @@
       }
     }
   }
+  /* ---------------- ③ 平面六面展开图（Cross Trainer 用） ----------------
+     十字形展开网：U 顶 / L F R B 中行（白顶绿前朝向）/ D 底。
+     输入为 rubik-core 的 cube 对象 { U,D,L,R,F,B }，每个面 9 格行主序。
+     直接绘制各面 3×3 贴纸，面与面之间留 1 格缝隙以区分。 */
+  var NET = { U: [1, 0], L: [0, 1], F: [1, 1], R: [2, 1], B: [3, 1], D: [1, 2] };
+  var CELL = 18, GAP = 6, STEP = CELL * 3 + GAP;     /* 每面格宽 + 面间缝 */
+  var NET_W = 4 * STEP - GAP, NET_H = 3 * STEP - GAP;
+  function flatNet(cube) {
+    if (!cube) return null;
+    var svg = svgEl("svg", { class: "cfop-net cfop-net--cross", viewBox: "0 0 " + NET_W + " " + NET_H, "aria-hidden": "true" });
+    ["U", "L", "F", "R", "B", "D"].forEach(function (face) {
+      var p = NET[face];
+      var ox = p[0] * STEP, oy = p[1] * STEP;
+      var arr = cube[face];
+      if (!arr || arr.length < 9) return;
+      for (var row = 0; row < 3; row++) {
+        for (var col = 0; col < 3; col++) {
+          var ch = arr[row * 3 + col] || "l";
+          rect(svg, ox + col * CELL, oy + row * CELL, CELL, CELL, 2.4, ch);
+        }
+      }
+    });
+    return svg;
+  }
+
   function isoCube(fl) {
     if (!fl || fl.length < 27) return null;
     var svg = svgEl("svg", { class: "cfop-net cfop-net--iso", viewBox: "0 0 75 75", "aria-hidden": "true" });
@@ -121,5 +146,5 @@
     return svg;
   }
 
-  window.CubeArt = { flatCase: flatCase, isoCube: isoCube };
+  window.CubeArt = { flatCase: flatCase, isoCube: isoCube, flatNet: flatNet };
 })();

@@ -7,11 +7,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "obobbbbbb",
-    "data-uf": "ggbgggggg",
-    "data-ul": "brrrrrrrr",
-    "data-ur": "rogoooooo"
+    "data-us": "wwywwwwww",
+    "data-ub": "bbb",
+    "data-uf": "ggg",
+    "data-ul": "ooo",
+    "data-ur": "rro"
    },
    "orientations": [
     {
@@ -30,11 +30,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "rbgbbbbbb",
-    "data-uf": "ggogggggg",
-    "data-ul": "orrrrrrrr",
-    "data-ur": "boboooooo"
+    "data-us": "wwrwwwwww",
+    "data-ub": "bbb",
+    "data-uf": "ggg",
+    "data-ul": "ooo",
+    "data-ur": "rry"
    },
    "orientations": [
     {
@@ -53,11 +53,11 @@
    "subgroup": "Opp Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bogoooooo",
-    "data-uf": "grbrrrrrr",
-    "data-ul": "obrbbbbbb",
-    "data-ur": "rgogggggg"
+    "data-us": "wwwwwwowr",
+    "data-ub": "bbb",
+    "data-uf": "ggg",
+    "data-ul": "ooy",
+    "data-ur": "yrr"
    },
    "orientations": [
     {
@@ -76,11 +76,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bogoooooo",
-    "data-uf": "rrrrrrrrr",
-    "data-ul": "ogbbbbbbb",
-    "data-ur": "gbogggggg"
+    "data-us": "wwwwwwwww",
+    "data-ub": "rgb",
+    "data-uf": "gbr",
+    "data-ul": "ooo",
+    "data-ur": "brg"
    },
    "orientations": [
     {
@@ -99,11 +99,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "ogbbbbbbb",
-    "data-uf": "googggggg",
-    "data-ul": "rbrrrrrrr",
-    "data-ur": "brgoooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "rgb",
+    "data-uf": "grr",
+    "data-ul": "obo",
+    "data-ur": "bog"
    },
    "orientations": [
     {
@@ -122,11 +122,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "orbbbbbbb",
-    "data-uf": "gbogggggg",
-    "data-ul": "rorrrrrrr",
-    "data-ur": "bggoooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "rob",
+    "data-uf": "gbr",
+    "data-ul": "oro",
+    "data-ur": "bgg"
    },
    "orientations": [
     {
@@ -145,11 +145,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "oobbbbbbb",
-    "data-uf": "gbogggggg",
-    "data-ul": "rgrrrrrrr",
-    "data-ur": "brgoooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "rrb",
+    "data-uf": "gbr",
+    "data-ul": "ogo",
+    "data-ur": "bog"
    },
    "orientations": [
     {
@@ -168,11 +168,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "ogbbbbbbb",
-    "data-uf": "grogggggg",
-    "data-ul": "rorrrrrrr",
-    "data-ur": "bbgoooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "rgb",
+    "data-uf": "gor",
+    "data-ul": "oro",
+    "data-ur": "bbg"
    },
    "orientations": [
     {
@@ -191,11 +191,11 @@
    "subgroup": "EPLL",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bgbbbbbbb",
-    "data-uf": "gbggggggg",
-    "data-ul": "rorrrrrrr",
-    "data-ur": "orooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "bgb",
+    "data-uf": "gbg",
+    "data-ul": "oro",
+    "data-ur": "ror"
    },
    "orientations": [
     {
@@ -214,11 +214,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "ggooooooo",
-    "data-uf": "oobrrrrrr",
-    "data-ul": "bbgbbbbbb",
-    "data-ur": "rrrgggggg"
+    "data-us": "wwrwwwwww",
+    "data-ub": "bbb",
+    "data-uf": "ggg",
+    "data-ul": "ooo",
+    "data-ur": "rry"
    },
    "orientations": [
     {
@@ -237,11 +237,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "goobbbbbb",
-    "data-uf": "rgggggggg",
-    "data-ul": "bbbrrrrrr",
-    "data-ur": "orroooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "grr",
+    "data-uf": "ogg",
+    "data-ul": "bbb",
+    "data-ur": "roo"
    },
    "orientations": [
     {
@@ -260,11 +260,11 @@
    "subgroup": "Opp Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "gbbbbbbbb",
-    "data-uf": "bgggggggg",
-    "data-ul": "roorrrrrr",
-    "data-ur": "orroooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "gbb",
+    "data-uf": "bgg",
+    "data-ul": "orr",
+    "data-ur": "roo"
    },
    "orientations": [
     {
@@ -283,11 +283,11 @@
    "subgroup": "Opp Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bbgbbbbbb",
-    "data-uf": "ggbgggggg",
-    "data-ul": "oorrrrrrr",
-    "data-ur": "rrooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "bbg",
+    "data-uf": "ggb",
+    "data-ul": "rro",
+    "data-ur": "oor"
    },
    "orientations": [
     {
@@ -306,11 +306,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "ogroooooo",
-    "data-uf": "bobrrrrrr",
-    "data-ul": "gbobbbbbb",
-    "data-ur": "rrggggggg"
+    "data-us": "wwwwwwwww",
+    "data-ub": "gbr",
+    "data-uf": "oog",
+    "data-ul": "brb",
+    "data-ur": "rgo"
    },
    "orientations": [
     {
@@ -329,11 +329,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bogbbbbbb",
-    "data-uf": "rgrgggggg",
-    "data-ul": "obbrrrrrr",
-    "data-ur": "grooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "brg",
+    "data-uf": "ogo",
+    "data-ul": "rbb",
+    "data-ur": "gor"
    },
    "orientations": [
     {
@@ -352,11 +352,11 @@
    "subgroup": "Adj Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "obbbbbbbb",
-    "data-uf": "ggogggggg",
-    "data-ul": "rorrrrrrr",
-    "data-ur": "brgoooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "rbb",
+    "data-uf": "ggr",
+    "data-ul": "oro",
+    "data-ur": "bog"
    },
    "orientations": [
     {
@@ -375,11 +375,11 @@
    "subgroup": "EPLL",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "brbbbbbbb",
-    "data-uf": "ggggggggg",
-    "data-ul": "rorrrrrrr",
-    "data-ur": "obooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "bbb",
+    "data-uf": "grg",
+    "data-ul": "ogo",
+    "data-ur": "ror"
    },
    "orientations": [
     {
@@ -398,11 +398,11 @@
    "subgroup": "EPLL",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bobbbbbbb",
-    "data-uf": "ggggggggg",
-    "data-ul": "rbrrrrrrr",
-    "data-ur": "orooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "bbb",
+    "data-uf": "gog",
+    "data-ul": "oro",
+    "data-ur": "rgr"
    },
    "orientations": [
     {
@@ -421,11 +421,11 @@
    "subgroup": "Opp Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "bogbbbbbb",
-    "data-uf": "ggbgggggg",
-    "data-ul": "orrrrrrrr",
-    "data-ur": "rbooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "brg",
+    "data-uf": "ggb",
+    "data-ul": "roo",
+    "data-ur": "obr"
    },
    "orientations": [
     {
@@ -444,11 +444,11 @@
    "subgroup": "Opp Swap",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "brgbbbbbb",
-    "data-uf": "ggbgggggg",
-    "data-ul": "obrrrrrrr",
-    "data-ur": "roooooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "bog",
+    "data-uf": "ggb",
+    "data-ul": "rbo",
+    "data-ur": "orr"
    },
    "orientations": [
     {
@@ -467,11 +467,11 @@
    "subgroup": "EPLL",
    "setup": "",
    "facelets": {
-    "data-us": "yyyyyyyyy",
-    "data-ub": "gogbbbbbb",
-    "data-uf": "brbgggggg",
-    "data-ul": "ogorrrrrr",
-    "data-ur": "rbroooooo"
+    "data-us": "wwwwwwwww",
+    "data-ub": "ogo",
+    "data-uf": "rbr",
+    "data-ul": "gog",
+    "data-ur": "brb"
    },
    "orientations": [
     {

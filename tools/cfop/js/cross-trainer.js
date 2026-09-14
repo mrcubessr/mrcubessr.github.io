@@ -2,27 +2,18 @@
    cross-trainer.js — 十字训练器页面控制器
    ---------------------------------------------------------
    功能：选择「十字颜色」+「目标步数」→ 生成十字最优解恰为该步数的打乱
-        （打乱 ≤ 10 步）；配 3D 立体视图、计时器、解法对照。
+        （打乱 ≤ 10 步）；配平面六面展开图、计时器、解法对照、批量 10 个。
    依赖：rubik-core.js（贴纸模型）、cross-solver.js（求解 / 打乱生成）、
-        cube3d.js（立体视图）。
+        cube-art.js（flatNet 平面展开图）。
    ========================================================= */
 (function () {
   "use strict";
 
   var LS_KEY = "cfop-cross-trainer-v1";
   var MAX_LEN = 10;
+  var BATCH = 10;
 
-  /* 默认视角：从下方偏前右看，底面朝向观察者 */
-  var ISO_VIEW = { yaw: -45, pitch: -40 };
-  /* 正对某个面的视角（用于「对准十字色」，只改相机不改魔方朝向） */
-  var FACE_VIEW = {
-    U: { yaw: 0, pitch: 90 }, D: { yaw: 0, pitch: -90 },
-    F: { yaw: 0, pitch: 0 }, B: { yaw: 180, pitch: 0 },
-    R: { yaw: -90, pitch: 0 }, L: { yaw: 90, pitch: 0 }
-  };
-  var VIEW = { yaw: ISO_VIEW.yaw, pitch: ISO_VIEW.pitch };
-
-  var state = { color: "w", steps: 4, faceView: false };
+  var state = { color: "w", steps: 4 };
   var current = null;         /* 当前打乱结果 */
   var els = {};
 
@@ -75,32 +66,12 @@
     };
   })();
 
-  /* ---------- 3D 立体视图 ---------- */
-  function draw() {
-    if (!els.net || !window.Cube3D) return;
+  /* ---------- 平面六面展开图（白顶绿前朝向） ---------- */
+  function renderNet() {
+    if (!els.net || !window.CubeArt) return;
     var cube = RubikCore.applyAlg(RubikCore.newCube(), (current ? current.moves : []).join(" "));
     els.net.innerHTML = "";
-    els.net.appendChild(Cube3D.render(cube, { yaw: VIEW.yaw, pitch: VIEW.pitch, size: 240 }));
-  }
-
-  function paintAlign() {
-    if (!els.align) return;
-    markSeg(els.align, state.faceView);
-    els.align.textContent = state.faceView ? "立体视角" : "对准十字色";
-  }
-
-  function setFaceView(on) {
-    state.faceView = on;
-    if (on) {
-      var face = CrossSolver.COLORS_BY_KEY[state.color].face;
-      VIEW.yaw = FACE_VIEW[face].yaw;
-      VIEW.pitch = FACE_VIEW[face].pitch;
-    } else {
-      VIEW.yaw = ISO_VIEW.yaw;
-      VIEW.pitch = ISO_VIEW.pitch;
-    }
-    paintAlign();
-    draw();
+    els.net.appendChild(CubeArt.flatNet(cube));
   }
 
   /* ---------- 生成 ---------- */
@@ -115,12 +86,6 @@
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
 
-    var c = CrossSolver.COLORS_BY_KEY[r.color];
-    if (els.info) els.info.textContent = c.label + "色十字 · 最优 " + r.steps + " 步";
-    if (els.len) els.len.textContent = "打乱 " + r.length + " / " + MAX_LEN + " 步";
-    if (els.viz) {
-      els.viz.href = "https://www.cubedb.net/?puzzle=3&scramble=" + r.moves.join("_");
-    }
     if (els.solText) {
       els.solText.textContent = r.solution.join(" ");
       els.solText.dataset.alg = r.solution.join(" ");
@@ -133,8 +98,45 @@
       els.solBtn.textContent = show ? "隐藏十字解法" : "显示十字解法";
     }
 
-    if (state.faceView) setFaceView(true); else draw();
+    renderNet();
     timer.reset();
+  }
+
+  /* ---------- 批量 10 个打乱 ---------- */
+  function generateBatch() {
+    if (!window.CrossSolver) return;
+    var c = CrossSolver.COLORS_BY_KEY[state.color];
+    var items = [];
+    for (var i = 0; i < BATCH; i++) {
+      var r = CrossSolver.generate(state.color, state.steps, MAX_LEN);
+      if (r) items.push(r.moves.join(" "));
+    }
+    if (!items.length) { if (els.batchPanel) els.batchPanel.hidden = true; return; }
+
+    els.batchList.innerHTML = "";
+    items.forEach(function (moves, idx) {
+      var li = el("li", "ct__batch-item");
+      var no = el("span", "ct__batch-no", String(idx + 1));
+      var f = el("span", "ct__batch-formula", moves);
+      f.title = "点击复制";
+      var btn = el("button", "btn btn--xs btn--ghost ct__batch-copy", "复制");
+      btn.type = "button";
+      li.appendChild(no);
+      li.appendChild(f);
+      li.appendChild(btn);
+      f.addEventListener("click", function () { copy(moves); flash(f, "已复制 ✓"); });
+      btn.addEventListener("click", function () { copy(moves); flash(btn, "已复制 ✓", "复制"); });
+      els.batchList.appendChild(li);
+    });
+
+    els.batchTitle.textContent = "已生成 " + items.length + " 个「" + c.label + "色 · 最优 " + state.steps + " 步」打乱";
+    els.batchPanel.hidden = false;
+    if (els.batchBtn) markSeg(els.batchBtn, true);
+  }
+  function toggleBatch() {
+    if (!els.batchPanel) return;
+    if (els.batchPanel.hidden) { generateBatch(); }
+    else { els.batchPanel.hidden = true; if (els.batchBtn) markSeg(els.batchBtn, false); }
   }
 
   /* ---------- 分段控件 ----------
@@ -188,38 +190,6 @@
   function selectColor(k) { state.color = k; save(); paintSegs(); gen(); }
   function selectSteps(n) { state.steps = n; save(); paintSegs(); gen(); }
 
-  /* ---------- 拖拽旋转视角 ---------- */
-  function drag() {
-    var down = false, x0 = 0, y0 = 0, yaw0 = 0, pitch0 = 0;
-    function pt(e) {
-      var t = e.touches && e.touches[0];
-      return { x: t ? t.clientX : e.clientX, y: t ? t.clientY : e.clientY };
-    }
-    function start(e) {
-      down = true;
-      var p = pt(e); x0 = p.x; y0 = p.y;
-      /* 手动拖拽即退出「对准十字色」，但保留当前相机角度作为起点 */
-      if (state.faceView) { state.faceView = false; paintAlign(); }
-      yaw0 = VIEW.yaw; pitch0 = VIEW.pitch;
-      els.net.classList.add("is-drag");
-    }
-    function move(e) {
-      if (!down) return;
-      var p = pt(e);
-      VIEW.yaw = yaw0 + (p.x - x0) * 0.6;
-      VIEW.pitch = Math.max(-89, Math.min(89, pitch0 + (p.y - y0) * 0.5));
-      draw();
-      if (e.cancelable) e.preventDefault();
-    }
-    function end() { down = false; els.net.classList.remove("is-drag"); }
-    els.net.addEventListener("mousedown", start);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", end);
-    els.net.addEventListener("touchstart", start, { passive: true });
-    els.net.addEventListener("touchmove", move, { passive: false });
-    window.addEventListener("touchend", end);
-  }
-
   /* ---------- 初始化 ---------- */
   function init() {
     els.scramble = $("ct-scramble");
@@ -227,15 +197,15 @@
     els.timer = $("ct-timer");
     els.colors = $("ct-colors");
     els.moves = $("ct-moves");
-    els.info = $("ct-info");
-    els.len = $("ct-len");
-    els.viz = $("ct-viz");
     els.solution = $("ct-solution");
     els.solText = $("ct-sol-text");
     els.solBtn = $("ct-sol");
-    els.align = $("ct-align");
+    els.batchBtn = $("ct-batch");
+    els.batchPanel = $("ct-batch-panel");
+    els.batchList = $("ct-batch-list");
+    els.batchTitle = $("ct-batch-title");
     if (!els.scramble) return;
-    if (!window.CrossSolver || !window.RubikCore) {
+    if (!window.CrossSolver || !window.RubikCore || !window.CubeArt) {
       els.scramble.textContent = "求解器加载失败";
       return;
     }
@@ -244,7 +214,6 @@
     buildColors();
     buildSteps();
     paintSegs();
-    drag();
 
     $("ct-new").addEventListener("click", gen);
 
@@ -266,7 +235,9 @@
       flash(this, "已复制 ✓", "复制");
     });
 
-    els.align.addEventListener("click", function () { setFaceView(!state.faceView); });
+    if (els.batchBtn) els.batchBtn.addEventListener("click", toggleBatch);
+    var batchRefresh = $("ct-batch-refresh");
+    if (batchRefresh) batchRefresh.addEventListener("click", generateBatch);
 
     document.addEventListener("keydown", function (e) {
       if (e.code !== "Space" && e.key !== " ") return;
@@ -292,6 +263,7 @@
     get state() { return state; },
     selectColor: function (k) { selectColor(k); },
     selectSteps: function (n) { selectSteps(n); },
-    gen: function () { gen(); }
+    gen: function () { gen(); },
+    generateBatch: function () { generateBatch(); }
   };
 })();

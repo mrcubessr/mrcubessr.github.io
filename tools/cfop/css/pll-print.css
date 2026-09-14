@@ -83,8 +83,10 @@
   border:1px solid var(--line,rgba(255,255,255,.08));
   border-radius:var(--r-sm,8px);
   transition:border-color var(--t-fast,.15s);
+  cursor:grab;
 }
 .pp-item:hover{ border-color:var(--line-2,rgba(255,255,255,.14)); }
+.pp-item.is-dragging{ cursor:grabbing; }
 .pp-item.is-off{ opacity:.42; }
 .pp-item__check{ display:flex; align-items:center; }
 .pp-item__check input{
@@ -99,6 +101,10 @@
   padding:3px;
 }
 .pp-item__art svg{ width:100%; height:100%; display:block; }
+
+/* 拖拽排序状态 */
+.pp-item.is-dragging{ opacity:.45; border-style:dashed; }
+.pp-item.is-over{ border-color:var(--brand,#5B8DEF); box-shadow:0 0 0 1px var(--brand,#5B8DEF) inset; }
 .pp-item__main{ min-width:0; display:flex; flex-direction:column; gap:4px; }
 .pp-item__row{ display:flex; align-items:center; gap:var(--s2,8px); flex-wrap:wrap; }
 .pp-item__name{ font-size:var(--fs-sm,.85rem); font-weight:var(--fw-bold,700); color:var(--fg,#EEF2F8); }
@@ -179,14 +185,20 @@
   border:1px solid var(--pp-rule,rgba(16,24,40,.14));
   border-radius:2mm;
 }
-/* 配图容器：flex-basis 归零 + 绝对定位的 svg。
-   若让 svg 参与普通流，其固有尺寸会造成“布局溢出”，Chrome 分页据此多分空白页。 */
+/* 配图容器：固定为正方形，避免不同单元因公式长度不同导致展开图大小不一。
+   svg 绝对定位填充，不参与普通流，避免 Chrome 分页多出空白页。 */
 .pp-cell__art{
-  flex:1 1 0; min-height:0; width:100%; position:relative;
+  flex:0 0 auto; width:100%; max-width:42mm; aspect-ratio:1/1;
+  position:relative; margin:0 auto;
 }
 .pp-cell__art svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
 .pp-cell--noart .pp-cell__art{ display:none; }
 .pp-cell--noart{ justify-content:center; }
+
+/* 保证文字行对齐整齐：分类行始终占位，名/公式居中统一 */
+.pp-cell__name{ min-height:1.2em; }
+.pp-cell__sub{ min-height:1em; }
+.pp-cell__alg{ min-height:1.4em; }
 
 .pp-cell__name{
   flex:0 0 auto; font-size:10.5pt; font-weight:800; letter-spacing:.02em;
