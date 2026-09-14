@@ -65,8 +65,8 @@ def main():
         pg.wait_for_selector("#ct-net .cfop-net--cross", timeout=20000)
         pg.wait_for_timeout(500)
         rects = pg.eval_on_selector_all("#ct-net .cfop-net--cross rect", "e => e.length")
-        orient = pg.eval_on_selector("#ct-orient", "e => e ? e.textContent.trim().replace(/\s+/g,' ') : '')
-        scr = pg.eval_on_selector("#ct-scramble", "e => e ? e.textContent.trim() : ''")
+        orient = pg.eval_on_selector("#ct-orient", "e => e ? e.textContent.trim() : '')")
+        scr = pg.eval_on_selector("#ct-scramble", "e => e ? e.textContent.trim() : '')")
         print(f"cross-trainer: net_rects={rects}/54 orient='{orient}' | scramble='{scr[:30]}...' | err={len(msgs3)}")
 
         b.close()
