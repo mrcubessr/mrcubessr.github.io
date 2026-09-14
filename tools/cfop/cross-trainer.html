@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross Trainer · 十字训练 · 魔方先生SSR训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/cfop/css/cfop.css">
+</head>
+<body data-nav="3x3">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+<div class="cfop-wrap">
+  <div class="cfop-hero">
+    <div>
+      <h1 class="cfop-hero__title">Cross Trainer · 十字训练</h1>
+      <p class="cfop-hero__sub">随机打乱 + 计时 + 立体魔方视图 · 专练底层十字（复刻自 speedcubedb.com/cross）</p>
+    </div>
+    <div class="cfop-hero__spacer">
+      <a class="btn btn--sm btn--ghost" href="/tools/3x3/">← 三阶</a>
+      <button id="themeBtn" class="btn btn--sm">☀ 浅色</button>
+    </div>
+  </div>
+
+  <div class="ct">
+    <div class="ct__main">
+      <div class="ct__scramble" id="ct-scramble">…</div>
+      <div class="ct__row">
+        <button class="btn btn--primary" id="ct-new">换一个打乱</button>
+        <a class="btn btn--secondary" id="ct-viz" href="#" target="_blank" rel="noopener">3D 可视化 ↗</a>
+      </div>
+      <p class="ct__hint">按 <b>空格</b> 开始 / 暂停计时 · 拖动魔方可旋转视角查看全部 6 面</p>
+    </div>
+    <div class="ct__side">
+      <div class="ct__timer" id="ct-timer">0.00</div>
+      <div class="ct__net" id="ct-net"></div>
+    </div>
+  </div>
+</div>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">打乱与训练逻辑本地实现 · 3D 可视化由 cubedb.net 提供</p>
+</footer>
+<script src="/assets/js/site-nav.js"></script>
+<script src="/tools/cfop/js/cfop-ui.js"></script>
+<script src="/tools/cfop/js/cube3d.js"></script>
+<script src="/tools/cfop/js/cross-trainer.js"></script>
+<script>CFOP.bindTheme("themeBtn");</script>
+</body>
+</html>

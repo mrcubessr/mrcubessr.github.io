@@ -1,0 +1,489 @@
+{
+ "set": "pll",
+ "count": 21,
+ "cases": [
+  {
+   "id": "Aa",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "obobbbbbb",
+    "data-uf": "ggbgggggg",
+    "data-ul": "brrrrrrrr",
+    "data-ur": "rogoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "x R' U R' D2 R U' R' D2 R2 x'",
+      "y' x L2 D2 L' U' L D2 L' U L'",
+      "l' U R' D2 R U' R' D2 R2 x'",
+      "y x' R2 D2 R' U' R D2 R' U R' x"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Ab",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "rbgbbbbbb",
+    "data-uf": "ggogggggg",
+    "data-ul": "orrrrrrrr",
+    "data-ur": "boboooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "x R2 D2 R U R' D2 R U' R x'",
+      "y' x L U' L D2 L' U L D2 L2",
+      "y x' R U' R D2 R' U R D2 R2 x",
+      "R' B' R U' R D R' U R D' R2 B R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "E",
+   "subgroup": "Opp Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bogoooooo",
+    "data-uf": "grbrrrrrr",
+    "data-ul": "obrbbbbbb",
+    "data-ur": "rgogggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y x' R U' R' D R U R' D' R U R' D R U' R' D' x",
+      "y R' U' R' D' R U' R' D R U R' D' R U R' D R2",
+      "R2 U F' R' U R U' R' U R U' R' U R U' F U' R2",
+      "y x' L' U L D' L' U' L D L' U' L D' L' U L D"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bogoooooo",
+    "data-uf": "rrrrrrrrr",
+    "data-ul": "ogbbbbbbb",
+    "data-ur": "gbogggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R",
+      "y R' F R f' R' F R2 U R' U' R' F' R2 U R' S",
+      "R' U R U' R2 F' U' F U R F R' F' R2",
+      "y R2 F R F' R' U' F' U F R2 U R' U' R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Ga",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "ogbbbbbbb",
+    "data-uf": "googggggg",
+    "data-ul": "rbrrrrrrr",
+    "data-ur": "brgoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R2 U R' U R' U' R U' R2 D U' R' U R D'",
+      "R2 u R' U R' U' R u' R2 F' U F",
+      "y R U R' F' R U R' U' R' F R U' R' F R2 U' R' U' R U R' F'",
+      "D' R2 U R' U R' U' R U' R2 U' D R' U R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Gb",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "orbbbbbbb",
+    "data-uf": "gbogggggg",
+    "data-ul": "rorrrrrrr",
+    "data-ur": "bggoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "D R' U' R U D' R2 U R' U R U' R U' R2",
+      "R' U' R U D' R2 U R' U R U' R U' R2 D",
+      "y F' U' F R2 u R' U R U' R u' R2",
+      "R' d' F R2 u R' U R U' R u' R2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Gc",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "oobbbbbbb",
+    "data-uf": "gbogggggg",
+    "data-ul": "rgrrrrrrr",
+    "data-ur": "brgoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R2 U' R U' R U R' U R2 D' U R U' R' D",
+      "y2 R2 F2 R U2 R U2 R' F R U R' U' R' F R2",
+      "D R2 U' R U' R U R' U R2 D' U R U' R'",
+      "R2 u' R U' R U R' u R2 f R' f'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Gd",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "ogbbbbbbb",
+    "data-uf": "grogggggg",
+    "data-ul": "rorrrrrrr",
+    "data-ur": "bbgoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U' D R2 U' R U' R' U R' U R2 D'",
+      "D' R U R' U' D R2 U' R U' R' U R' U R2",
+      "R U R' y' R2 u' R U' R' U R' u R2",
+      "y R2 F' R U R U' R' F' R U2 R' U2 R' F2 R2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H",
+   "subgroup": "EPLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bgbbbbbbb",
+    "data-uf": "gbggggggg",
+    "data-ul": "rorrrrrrr",
+    "data-ur": "orooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "M2 U M2 U2 M2 U M2",
+      "M2 U' M2 U2 M2 U' M2",
+      "R2 S2 R2 U' R2 S2 R2",
+      "M2 U2 M2 U M2 U2 M2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Ja",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "ggooooooo",
+    "data-uf": "oobrrrrrr",
+    "data-ul": "bbgbbbbbb",
+    "data-ur": "rrrgggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 x R2 F R F' R U2 r' U r U2 x'",
+      "y R' U L' U2 R U' R' U2 R L",
+      "L' U' L F L' U' L U L F' L2 U L",
+      "R U' L' U R' U2 L U' L' U2 L"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Jb",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "goobbbbbb",
+    "data-uf": "rgggggggg",
+    "data-ul": "bbbrrrrrr",
+    "data-ur": "orroooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' F' R U R' U' R' F R2 U' R'",
+      "R U2 R' U' R U2 L' U R' U' L",
+      "r' F R F' r U2 R' U R U2 R'",
+      "L' U R U' L U2 R' U R U2 R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Na",
+   "subgroup": "Opp Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "gbbbbbbbb",
+    "data-uf": "bgggggggg",
+    "data-ul": "roorrrrrr",
+    "data-ur": "orroooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'",
+      "F' R U R' U' R' F R2 F U' R' U' R U F' R'",
+      "R F U' R' U R U F' R2 F' R U R U' R' F",
+      "r' D r U2 r' D r U2 r' D r U2 r' D r U2 r' D r"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Nb",
+   "subgroup": "Opp Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bbgbbbbbb",
+    "data-uf": "ggbgggggg",
+    "data-ul": "oorrrrrrr",
+    "data-ur": "rrooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' U R U' R' F' U' F R U R' F R' F' R U' R",
+      "r' D' F r U' r' F' D r2 U r' U' r' F r F'",
+      "R' U L' U2 R U' L R' U L' U2 R U' L",
+      "R' U R U' R' F' U' F R U R' U' R U' f R f'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Ra",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "ogroooooo",
+    "data-uf": "bobrrrrrr",
+    "data-ul": "gbobbbbbb",
+    "data-ur": "rrggggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R U' R' U' R U R D R' U' R D' R' U2 R'",
+      "y R U R' F' R U2 R' U2 R' F R U R U2 R'",
+      "L U2 L' U2 L F' L' U' L U L F L2",
+      "y R U' R' U' R U R' U R' D' R U' R' D R2 U R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Rb",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bogbbbbbb",
+    "data-uf": "rgrgggggg",
+    "data-ul": "obbrrrrrr",
+    "data-ur": "grooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' U2 R U2 R' F R U R' U' R' F' R2",
+      "y R2 F R U R U' R' F' R U2 R' U2 R",
+      "R' U2 R' D' R U' R' D R U R U' R' U' R",
+      "y R' U R U R' U' R' D' R U R' D R U2 R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "T",
+   "subgroup": "Adj Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "obbbbbbbb",
+    "data-uf": "ggogggggg",
+    "data-ul": "rorrrrrrr",
+    "data-ur": "brgoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U' R' F R2 U' R' U' R U R' F'",
+      "l b d' L' U' F U2 L' U' L' U L U' f' S M r u E U' R'",
+      "R U R' U' R' F R2 U' R' U F' L' U L",
+      "R2 u R2 u' R2 F2 u' F2 u F2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Ua",
+   "subgroup": "EPLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "brbbbbbbb",
+    "data-uf": "ggggggggg",
+    "data-ul": "rorrrrrrr",
+    "data-ur": "obooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 M2 U M U2 M' U M2",
+      "R U R' U R' U' R2 U' R' U R' U R",
+      "y R2 U' S' U2 S U' R2",
+      "y2 R U' R U R U R U' R' U' R2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Ub",
+   "subgroup": "EPLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bobbbbbbb",
+    "data-uf": "ggggggggg",
+    "data-ul": "rbrrrrrrr",
+    "data-ur": "orooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 M2 U' M U2 M' U' M2",
+      "R' U R' U' R' U' R' U R U R2",
+      "R2' U R U R' U' R3 U' R' U R'",
+      "y2 R2 U R U R' U' R' U' R' U R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "V",
+   "subgroup": "Opp Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "bogbbbbbb",
+    "data-uf": "ggbgggggg",
+    "data-ul": "orrrrrrrr",
+    "data-ur": "rbooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' U R' U' R D' R' D R' U D' R2 U' R2 D R2",
+      "R' U R U' R' f' U' R U2 R' U' R U' R' f R",
+      "R' U R' U' y R' F' R2 U' R' U R' F R F",
+      "y R U' R U R' D R D' R U' D R2 U R2 D' R2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Y",
+   "subgroup": "Opp Swap",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "brgbbbbbb",
+    "data-uf": "ggbgggggg",
+    "data-ul": "obrrrrrrr",
+    "data-ur": "roooooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+      "F R' F R2 U' R' U' R U R' F' R U R' U' F'",
+      "R2 U' R2 U' R2 U F U F' R2 F U' F'",
+      "F R' F' R U R U' R2 U' R U R f' U' f"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "Z",
+   "subgroup": "EPLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyyyyy",
+    "data-ub": "gogbbbbbb",
+    "data-uf": "brbgggggg",
+    "data-ul": "ogorrrrrr",
+    "data-ur": "rbroooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "M' U' M2 U' M2 U' M' U2 M2",
+      "M2 U M2 U M' U2 M2 U2 M'",
+      "y M2 U' M2 U' M' U2 M2 U2 M'",
+      "y M' U M2 U M2 U M' U2 M2"
+     ]
+    }
+   ]
+  }
+ ]
+}

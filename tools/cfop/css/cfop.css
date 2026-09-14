@@ -1,0 +1,88 @@
+/* =========================================================
+   CFOP 公式库（F2L / Advanced F2L / OLL / PLL / Cross Trainer）
+   页面专属样式 · 全部走 tokens.css 变量，禁止硬编码颜色。
+   组件外观统一由 assets/css/components.css 提供（.card/.badge/.btn/.tabs/.seg/.progress…），
+   本文件只保留「页面布局 + 立方体展开图 + 算法行 + 朝向切换」等页面级样式。
+   加载顺序：site-nav.css → components.css → site-layout.css → cfop.css
+   ========================================================= */
+@import url("/assets/css/tokens.css");
+
+/* ---------- 页面基线（本分区不引 base.css，沿用站点各工具页惯例） ---------- */
+*{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+body{ margin:0; font-family:var(--font-sans,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif);
+  font-size:var(--fs-base,1rem); line-height:var(--lh-base,1.6); color:var(--fg-2,#AEB8CA);
+  background:var(--bg,#0B0D14); min-height:100vh; -webkit-font-smoothing:antialiased; }
+h1,h2,h3,h4,h5,h6{ margin:0; line-height:var(--lh-tight,1.25); color:var(--fg,#EEF2F8); font-weight:var(--fw-bold,700); }
+a{ color:var(--brand,#5B8DEF); text-decoration:none; }
+a:hover{ color:var(--brand-strong,#3F6FD8); }
+p{ margin:0 0 var(--s4,16px); }
+code,kbd,pre,samp{ font-family:var(--font-mono,"SF Mono",Consolas,monospace); font-size:.9em; }
+img,svg,video{ max-width:100%; height:auto; display:block; }
+
+.cfop-wrap{ max-width:var(--container-wide,1200px); margin-inline:auto; padding:var(--s5,24px) var(--s4,16px) var(--s8,64px); }
+
+/* ---------- 页头 ---------- */
+.cfop-hero{ display:flex; align-items:flex-end; flex-wrap:wrap; gap:var(--s3,12px); margin:var(--s5,24px) 0 var(--s4,16px); }
+.cfop-hero__title{ font-size:var(--fs-2xl,1.9rem); font-weight:var(--fw-black,800); }
+.cfop-hero__sub{ color:var(--fg-3,#7C8798); font-size:var(--fs-sm,.85rem); }
+.cfop-hero__spacer{ margin-left:auto; display:flex; gap:var(--s2,8px); align-items:center; flex-wrap:wrap; }
+
+/* ---------- 工具条（.toolbar 已提供外观，这里只做吸附与排版） ---------- */
+.cfop-toolbar{ position:sticky; top:var(--nav-h,60px); z-index:20; margin-bottom:var(--s5,24px); }
+.cfop-search{ flex:1 1 220px; min-width:180px; width:auto; }
+.cfop-chips{ flex:0 1 auto; }
+
+/* ---------- 案例网格 ---------- */
+.cfop-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:var(--s4,16px); align-items:start; }
+.cfop-card.is-hidden{ display:none; }
+.cfop-card__head{ flex-wrap:wrap; }
+.cfop-card__name{ font-size:var(--fs-base,1rem); }
+.cfop-learned{ margin-left:auto; }
+.cfop-learned.is-on{ color:var(--green,#34D399); border-color:var(--green,#34D399); }
+.cfop-card__body{ display:flex; flex-direction:column; gap:var(--s3,12px); }
+
+/* ---------- 案例配图（复刻原站：OLL/PLL 顶面示意图 · F2L/进阶F2L 立体魔方） ---------- */
+.cfop-net{ align-self:center; width:128px; height:128px; }
+.cfop-net--iso{ width:118px; height:118px; }
+.cfop-cube-body polygon,.cfop-cube-body rect{ fill:#101218; }
+/* 深色主题下给本体加浅描边，避免黑底淹没轮廓 */
+.cfop-cube-body polygon{ stroke:var(--line,rgba(255,255,255,.12)); stroke-width:.8; stroke-linejoin:round; }
+
+/* ---------- setup 行 ---------- */
+.cfop-setup{ display:flex; align-items:center; gap:var(--s2,8px); font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
+.cfop-setup__copy{ margin-left:auto; }
+
+/* ---------- 朝向 tabs（.tabs/.tab 已提供外观） ---------- */
+.cfop-ori{ display:none; flex-direction:column; gap:var(--s2,8px); margin-top:var(--s2,8px); }
+.cfop-ori.is-active{ display:flex; }
+
+/* ---------- 算法条目：标准 .formula-block + .btn ---------- */
+.cfop-alg{ display:flex; align-items:center; gap:var(--s2,8px); }
+.cfop-alg .formula-block{ flex:1; margin:0; cursor:pointer; transition:border-color var(--t-fast,.15s); }
+.cfop-alg .formula-block:hover{ border-color:var(--gold,#FFC857); }
+.cfop-alg__copy{ flex:0 0 auto; }
+
+/* ---------- 进度（.progress 已提供外观，这里补间距） ---------- */
+.cfop-progress{ display:flex; flex-direction:column; gap:var(--s2,8px); margin-bottom:var(--s4,16px); }
+
+/* ---------- 总览 hub 卡片（旧版兼容，仍使用标准 .card） ---------- */
+.cfop-hub{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:var(--s4,16px); }
+.cfop-hub a{ text-decoration:none; }
+.cfop-stat{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
+
+/* ---------- Cross Trainer ---------- */
+.ct{ display:grid; grid-template-columns:1fr; gap:var(--s4,16px); max-width:720px; margin-inline:auto; }
+.ct__scramble{ font-family:var(--font-mono,monospace); font-size:var(--fs-lg,1.15rem); color:var(--gold-ink,#FFD372);
+  background:var(--bg-soft,#0F131C); border:1px solid var(--line,rgba(255,255,255,.08)); border-left:3px solid var(--gold,#FFC857);
+  border-radius:var(--r-md,12px); padding:var(--s4,16px); text-align:center; word-break:break-word; letter-spacing:.06em; }
+.ct__row{ display:flex; gap:var(--s3,12px); align-items:center; justify-content:center; flex-wrap:wrap; }
+.ct__timer{ font-family:var(--font-mono,monospace); font-size:2.4rem; font-weight:var(--fw-bold,700); font-variant-numeric:tabular-nums; }
+.ct__net{ width:260px; height:260px; margin-inline:auto; cursor:grab; touch-action:none;
+  border-radius:var(--r-md,12px); background:var(--bg-soft,#0F131C); padding:var(--s2,8px); }
+.ct__net.is-drag{ cursor:grabbing; }
+.ct__net .c3-view{ width:100%; height:100%; display:block; }
+.c3-body{ fill:#101218; stroke:var(--line,rgba(255,255,255,.12)); stroke-width:.8; stroke-linejoin:round; }
+.ct__hint{ text-align:center; color:var(--fg-3,#7C8798); font-size:var(--fs-xs,.75rem); }
+
+@media(min-width:768px){ .ct{ grid-template-columns:1fr 288px; align-items:start; } .ct__side{ grid-column:2; } .ct__main{ grid-column:1; } }

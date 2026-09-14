@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F2L 公式库 · 魔方先生SSR训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/cfop/css/cfop.css">
+</head>
+<body data-nav="3x3">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+<div class="cfop-wrap">
+  <div class="cfop-hero">
+    <div>
+      <h1 class="cfop-hero__title">F2L · 前两层</h1>
+      <p class="cfop-hero__sub">41 个 case · 含 FR / FL / BL / BR 四朝向 · 本地化自 speedcubedb.com</p>
+    </div>
+    <div class="cfop-hero__spacer">
+      <a class="btn btn--sm btn--ghost" href="/tools/3x3/">← 三阶</a>
+      <button id="themeBtn" class="btn btn--sm">☀ 浅色</button>
+    </div>
+  </div>
+  <div id="cfop-root"></div>
+</div>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">公式数据本地化自 speedcubedb.com · 仅供学习训练使用</p>
+</footer>
+<script src="/assets/js/site-nav.js"></script>
+<script src="/tools/cfop/js/cube-art.js"></script>
+<script src="/tools/cfop/js/cfop-ui.js"></script>
+<script>CFOP.render("f2l","cfop-root"); CFOP.bindTheme("themeBtn");</script>
+</body>
+</html>

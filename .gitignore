@@ -1,1 +1,4 @@
 .workbuddy/
+
+# CFOP 抓取脚本的原始 HTML 缓存（仅本地离线重跑用，不随站点发布）
+tools/cfop/data/_raw/

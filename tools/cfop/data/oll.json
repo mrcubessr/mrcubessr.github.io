@@ -1,0 +1,1317 @@
+{
+ "set": "oll",
+ "count": 57,
+ "cases": [
+  {
+   "id": "OLL 1",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyllll",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "yyyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U2 R2 F R F' U2 R' F R F'",
+      "y R U' R2 D' r U' r' D R2 U R'",
+      "f R U R' U' R f' U' r' U' R U M'",
+      "L' U2 L2 F' L' F U2 L F' L' F"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 2",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyllll",
+    "data-ub": "yylbbbbbb",
+    "data-uf": "lyygggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' R U' R2 D' r U r' D R2 U R'",
+      "F R U R' U' S R U R' U' f'",
+      "F R U R' U' F' f R U R' U' f'",
+      "y r U r' U2 R U2 R' U2 r U' r'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 3",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllylyll",
+    "data-ub": "lyyrrrrrr",
+    "data-uf": "lyyoooooo",
+    "data-ul": "lylgggggg",
+    "data-ur": "lyybbbbbb"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' f R U R' U' f' U' F R U R' U' F'",
+      "y R' F2 R2 U2 R' F R U2 R2 F2 R",
+      "r' R2 U R' U r U2 r' U M'",
+      "M R U R' U r U2 r' U M'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 4",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyllly",
+    "data-ub": "yylrrrrrr",
+    "data-uf": "yyloooooo",
+    "data-ul": "yylgggggg",
+    "data-ur": "lylbbbbbb"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' R' F2 R2 U2 R' F' R U2 R2 F2 R",
+      "y' f R U R' U' f' U F R U R' U' F'",
+      "R' F R F' U' S R' U' R U R S'",
+      "y F U R U' R' F' U' F R U R' U' F'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 5",
+   "subgroup": "Square Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyylyy",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "lyyrrrrrr",
+    "data-ur": "llyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r' U2 R U R' U r",
+      "y2 l' U2 L U L' U l",
+      "y2 R' F2 r U r' F R",
+      "y2 R' F2 L F L' F R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 6",
+   "subgroup": "Square Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyylyylll",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "yylrrrrrr",
+    "data-ur": "ylloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U2 R' U' R U' r'",
+      "F U' R2 D R' U' R D' R2 U F'",
+      "y2 l U2 L' U' L U' l'",
+      "L F2 l' U' l F' L'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 7",
+   "subgroup": "Lightning Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lylyylyll",
+    "data-ub": "llybbbbbb",
+    "data-uf": "lyygggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "lyyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U R' U R U2 r'",
+      "S' R U R' U R U2 R' U S",
+      "L' U2 L U2 L F' L' F",
+      "y2 f R U R' U' f' y2 F R' F' r U R U' r'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 8",
+   "subgroup": "Lightning Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyllyylly",
+    "data-ub": "yllgggggg",
+    "data-uf": "yylbbbbbb",
+    "data-ul": "yyloooooo",
+    "data-ur": "lllrrrrrr"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 r' U' R U' R' U2 r",
+      "l' U' L U' L' U2 l",
+      "R U2 R' U2 R' F R F'",
+      "R' F' r U' r' F2 R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 9",
+   "subgroup": "Fish Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llyyyllyl",
+    "data-ub": "lyloooooo",
+    "data-uf": "yllrrrrrr",
+    "data-ul": "yllbbbbbb",
+    "data-ur": "yylgggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R U R' U' R' F R2 U R' U' F'",
+      "R U2 R' U' S' R U' R' S",
+      "y2 F' U' F r U' r' U r U r'",
+      "y' L' U' L U' L F' L' F L' U2 L"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 10",
+   "subgroup": "Fish Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llyyyllyl",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "llygggggg",
+    "data-ul": "llyrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U R' F R F' R U2 R'",
+      "y F U F' R' F R U' R' F' R",
+      "y M' R' U2 R U R' U R U M",
+      "y2 L' U' L U L F' L2 U' L U F"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 11",
+   "subgroup": "Lightning Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyyyyl",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "llygggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "llyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r' R2 U R' U R U2 R' U M'",
+      "y2 r U R' U R' F R F' R U2 r'",
+      "S R U R' U R U2 R' U2 S'",
+      "M R U R' U R U2 R' U M'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 12",
+   "subgroup": "Lightning Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llylyylyl",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "yllgggggg",
+    "data-ul": "yylrrrrrr",
+    "data-ur": "ylloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' M' R' U' R U' R' U2 R U' M",
+      "F R U R' U' F' U F R U R' U' F'",
+      "y' S R' U' R U' R' U2 R U2 S'",
+      "y M L' U' L U' L' U2 L U' M'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 13",
+   "subgroup": "Knight Move Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lllyyyyll",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "lyygggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "llyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "F U R U2 R' U' R U R' F'",
+      "F U R U' R2 F' R U R U' R'",
+      "r U' r' U' r U r' F' U F",
+      "y2 f R U R2 U' R' U R U' f'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 14",
+   "subgroup": "Knight Move Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lllyyylly",
+    "data-ub": "yylbbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "yllrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' F R U R' F' R F U' F'",
+      "r U R' U' r' F R2 U R' U' F'",
+      "l' U l U l' U' l F U' F'",
+      "S R U R' U' R' F R2 U R' U' f'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 15",
+   "subgroup": "Knight Move Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lllyyylly",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "llyrrrrrr",
+    "data-ur": "llyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r' U' r R' U' R U r' U r",
+      "y2 l' U' l L' U' L U l' U l",
+      "r' U' M' U' R U r' U r",
+      "y2 R' F' R L' U' L U R' F R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 16",
+   "subgroup": "Knight Move Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llyyyylll",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "yllrrrrrr",
+    "data-ur": "ylloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U r' R U R' U' r U' r'",
+      "r U M U R' U' r U' r'",
+      "y2 R' F R U R' U' F' R U' R' U2 R",
+      "y2 l U l' L U L' U' l U' l'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 17",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylllyllly",
+    "data-ub": "yylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "lyyrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U R' F R F' U2 R' F R F'",
+      "y2 F R' F' R U S' R U' R' S",
+      "y2 F R' F' R2 r' U R U' R' U' M'",
+      "y' F' r U r' U' S r' F r S'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 18",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylylyllll",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "yyygggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R U2 R2 F R F' U2 M' U R U' r'",
+      "r U R' U R U2 r2 U' R U' R' U2 r",
+      "y F S' R U' R' S R U2 R' U' F'",
+      "R D r' U' r D' R' U' R2 F R F' R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 19",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylylyllll",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "lyyrrrrrr",
+    "data-ur": "yyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y S' R U R' S U' R' F R F'",
+      "M U R U R' U' M' R' F R F'",
+      "R' U2 F R U R' U' F2 U2 F R",
+      "r' R U R U R' U' r R2 F R F'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 20",
+   "subgroup": "Dot Case",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylylylyly",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U R' U' M2 U R U' R' U' M'",
+      "M' U2 M U2 M' U M U2 M' U2 M",
+      "S' R U R' S U' M' U R U' r'",
+      "S R' U' R U R U R U' R' S'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 21",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "lylyyylyl",
+    "data-ub": "llloooooo",
+    "data-uf": "lllrrrrrr",
+    "data-ul": "ylybbbbbb",
+    "data-ur": "ylygggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U R U' R' U R U2 R'",
+      "y R U2 R' U' R U R' U' R U' R'",
+      "y F R U R' U' R U R' U' R U R' U' F'",
+      "R' U' R U' R' U R U' R' U2 R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 22",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "lylyyylyl",
+    "data-ub": "yllbbbbbb",
+    "data-uf": "llygggggg",
+    "data-ul": "ylyrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U2 R2 U' R2 U' R2 U2 R",
+      "R' U2 R2 U R2 U R2 U2 R'",
+      "f R U R' U' S' R U R' U' F'",
+      "f R U R' U' f' F R U R' U' F'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 23",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyyylyl",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "ylygggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R2 D R' U2 R D' R' U2 R'",
+      "y2 R2 D' R U2 R' D R U2 R",
+      "R U R' U R U2 R2 U' R U' R' U2 R",
+      "y R U R' U' R U' R' U2 R U' R' U2 R U R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 24",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyyyyylyy",
+    "data-ub": "llybbbbbb",
+    "data-uf": "yllgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U R' U' r' F R F'",
+      "y2 R' F' r U R U' r' F",
+      "y' x' R U R' D R U' R' D' x",
+      "y R U R D R' U' R D' R2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 25",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yylyyylyy",
+    "data-ub": "llloooooo",
+    "data-uf": "yllrrrrrr",
+    "data-ul": "lllbbbbbb",
+    "data-ur": "llygggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U2 R D R' U2 R D' R2",
+      "y F' r U R' U' r' F R",
+      "F R' F' r U R U' r'",
+      "x R' U R D' R' U' R D x'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 26",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "yylyyylyl",
+    "data-ub": "ylloooooo",
+    "data-uf": "yllrrrrrr",
+    "data-ul": "lllbbbbbb",
+    "data-ur": "yllgggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R U2 R' U' R U' R'",
+      "R' U' R U' R' U2 R",
+      "y2 L' U' L U' L' U2 L",
+      "y2 L' U R U' L U R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 27",
+   "subgroup": "OCLL",
+   "setup": "",
+   "facelets": {
+    "data-us": "lylyyyyyl",
+    "data-ub": "llybbbbbb",
+    "data-uf": "llygggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "llyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U R U2 R'",
+      "y' R' U2 R U R' U R",
+      "y L' U2 L U L' U L",
+      "y2 L U L' U L U2 L'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 28",
+   "subgroup": "All Corners Oriented",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyyyylyly",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U R' U' M U R U' R'",
+      "r U R' U' r' R U R U' R'",
+      "R' F R S R' F' R S'",
+      "y2 M' U M U2 M' U M"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 29",
+   "subgroup": "Awkward Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylyyyllyl",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "llyrrrrrr",
+    "data-ur": "yyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r2 D' r U r' D r2 U' r' U' r",
+      "y R U R' U' R U' R' F' U' F R U R'",
+      "y S' R U R' U' R' F R F' U S",
+      "M U R U R' U' R' F R F' M'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 30",
+   "subgroup": "Awkward Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylylyylyl",
+    "data-ub": "lylgggggg",
+    "data-uf": "lllbbbbbb",
+    "data-ul": "lyyoooooo",
+    "data-ur": "yllrrrrrr"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' r' D' r U' r' D r2 U' r' U r U r'",
+      "y2 F U R U2 R' U' R U2 R' U' F'",
+      "y2 F R' F R2 U' R' U' R U R' F2",
+      "y S' R' U' R f R' U R U' F'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 31",
+   "subgroup": "P Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyylyylly",
+    "data-ub": "llybbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' U' F U R U' R' F' R",
+      "y2 S' L' U' L U L F' L' f",
+      "y S R U R' U' f' U' F",
+      "y' F R' F' R U R U R' U' R U' R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 32",
+   "subgroup": "P Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llylyylyy",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "yllgggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "S R U R' U' R' F R f'",
+      "y2 L U F' U' L' U L F L'",
+      "R U B' U' R' U R B R'",
+      "y' R' F R F' U' r U' r' U r U r'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 33",
+   "subgroup": "T Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llyyyylly",
+    "data-ub": "lyybbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U' R' F R F'",
+      "y2 L' U' L U L F' L' F",
+      "y2 r' F' r U r U' r' F",
+      "R U R' F' U' F R U' R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 34",
+   "subgroup": "C Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylyyyylll",
+    "data-ub": "lylgggggg",
+    "data-uf": "lylbbbbbb",
+    "data-ul": "llyoooooo",
+    "data-ur": "yllrrrrrr"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y f R f' U' r' U' R U M'",
+      "y2 R U R2 U' R' F R U R U' F'",
+      "F R U R' U' R' F' r U R U' r'",
+      "y2 R U R' U' B' R' F R F' B"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 35",
+   "subgroup": "Fish Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylllyylyy",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "yllgggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "llyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U2 R2 F R F' R U2 R'",
+      "f R U R' U' f' R U R' U R U2 R'",
+      "R U2 R' d' R' F R U' R' F' R",
+      "y L' U2 L2 F' L' F L' U2 L"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 36",
+   "subgroup": "W Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "yllyyllyy",
+    "data-ub": "lylgggggg",
+    "data-uf": "yllbbbbbb",
+    "data-ul": "llloooooo",
+    "data-ur": "lyyrrrrrr"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R U R2 F' U' F U R2 U2 R'",
+      "y2 L' U' L U' L' U L U L F' L' F",
+      "y2 R U R' F' R U R' U' R' F R U' R' F R F'",
+      "R U R' U' F' U2 F U R U R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 37",
+   "subgroup": "Fish Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "yylyyllly",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "lyyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "F R' F' R U R U' R'",
+      "F R U' R' U' R U R' F'",
+      "y F' r U r' U' r' F r",
+      "y2 r2 D' r U' r' D r U r"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 38",
+   "subgroup": "W Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyyyylyll",
+    "data-ub": "llybbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "yyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U R U' R' U' R' F R F'",
+      "y F R U' R' S U' R U R' f'",
+      "r U R' U' r' F R U R U' R' F'",
+      "y2 L U L' U L U' L' U' L' B L B'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 39",
+   "subgroup": "Lightning Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyllyllyy",
+    "data-ub": "ylloooooo",
+    "data-uf": "lllrrrrrr",
+    "data-ul": "lyybbbbbb",
+    "data-ur": "lylgggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' f' r U r' U' r' F r S",
+      "y' R U R' F' U' F U R U2 R'",
+      "y L F' L' U' L U F U' L'",
+      "y' f' L F L' U' L' U L S"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 40",
+   "subgroup": "Lightning Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyylylyyl",
+    "data-ub": "llloooooo",
+    "data-uf": "llyrrrrrr",
+    "data-ul": "yylbbbbbb",
+    "data-ur": "lylgggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R' F R U R' U' F' U R",
+      "y' f R' F' R U R U' R' S'",
+      "R r D r' U r D' r' U' R'",
+      "y' L' U' L F U F' U' L' U2 L"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 41",
+   "subgroup": "Awkward Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylylyylyl",
+    "data-ub": "lylgggggg",
+    "data-uf": "ylybbbbbb",
+    "data-ul": "lyloooooo",
+    "data-ur": "lllrrrrrr"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 R U R' U R U2 R' F R U R' U' F'",
+      "y2 F U R2 D R' U' R D' R2 F'",
+      "y' S U' R' F' U' F U R S'",
+      "M U' F' L' U' L U F M'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 42",
+   "subgroup": "Awkward Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylyyyllyl",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "ylygggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' U' R U' R' U2 R F R U R' U' F'",
+      "y F S' R U R' U' F' U S",
+      "y R' F R F' R' F R F' R U R' U' R U R'",
+      "y R' U' F2 u' R U R' D R2 B"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 43",
+   "subgroup": "P Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "yllyylyyl",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "yyyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R' U' F' U F R",
+      "y2 F' U' L' U L F",
+      "f' L' U' L U f",
+      "B' U' R' U R B"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 44",
+   "subgroup": "P Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llylyylyy",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "f R U R' U' f'",
+      "y2 F U R U' R' F'",
+      "y R U B U' B' R'",
+      "y' L U F U' F' L'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 45",
+   "subgroup": "T Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llyyyylly",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "ylyrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "F R U R' U' F'",
+      "y R' F' U' F U R",
+      "y2 f U R U' R' f'",
+      "y2 F' L' U' L U F"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 46",
+   "subgroup": "C Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "yyllylyyl",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "yyyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R' U' R' F R F' U R",
+      "R' F' U' F R U' R' U2 R",
+      "y F R U R' U' F' U' R U R' U R U2 R'",
+      "l' U2 L2 F' L' F U L' U l"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 47",
+   "subgroup": "L Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyllyylll",
+    "data-ub": "llybbbbbb",
+    "data-uf": "yylgggggg",
+    "data-ul": "lylrrrrrr",
+    "data-ur": "ylyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y' F R' F' R U2 R U' R' U R U2 R'",
+      "F' L' U' L U L' U' L U F",
+      "R' U' R' F R F' R' F R F' U R",
+      "y' R' F' U' F U F' U' F U R"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 48",
+   "subgroup": "L Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lylyyllll",
+    "data-ub": "yllbbbbbb",
+    "data-uf": "lyygggggg",
+    "data-ul": "ylyrrrrrr",
+    "data-ur": "lyloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "F R U R' U' R U R' U' F'",
+      "y2 f U R U' R' U R U' R' f'",
+      "R U2 R' U' R U R' U2 R' F R F'",
+      "F R' F' U2 R U R' U R2 U2 R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 49",
+   "subgroup": "L Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lllyyllyl",
+    "data-ub": "lyygggggg",
+    "data-uf": "yllbbbbbb",
+    "data-ul": "llloooooo",
+    "data-ur": "yyyrrrrrr"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 r U' r2 U r2 U r2 U' r",
+      "l U' l2 U l2 U l2 U' l",
+      "R B' R2 F R2 B R2 F' R",
+      "y2 R' F R' F' R2 U2 B' R B R'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 50",
+   "subgroup": "L Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyylyl",
+    "data-ub": "yylbbbbbb",
+    "data-uf": "llygggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r' U r2 U' r2 U' r2 U r'",
+      "y2 R' F R2 B' R2 F' R2 B R'",
+      "y' R U2 R' U' R U' R' F R U R' U' F'",
+      "y2 l' U l2 U' l2 U' l2 U l'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 51",
+   "subgroup": "Line Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lllyyylll",
+    "data-ub": "yylbbbbbb",
+    "data-uf": "lyygggggg",
+    "data-ul": "ylyrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 F U R U' R' U R U' R' F'",
+      "f R U R' U' R U R' U' f'",
+      "y' R' U' R' F R F' R U' R' U2 R",
+      "y r' F' U' F U F' U' F U r"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 52",
+   "subgroup": "Line Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyllyllyl",
+    "data-ub": "llyoooooo",
+    "data-uf": "yllrrrrrr",
+    "data-ul": "lylbbbbbb",
+    "data-ur": "yyygggggg"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y2 R' F' U' F U' R U R' U R",
+      "R U R' U R U' B U' B' R'",
+      "R U R' U R d' R U' R' F'",
+      "R U R' U R U' y R U' R' F'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 53",
+   "subgroup": "L Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "llllyylyl",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "ylyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r' U' R U' R' U R U' R' U2 r",
+      "y2 l' U' L U' L' U L U' L' U2 l",
+      "y r' U2 R U R' U' R U R' U r",
+      "y' l' U2 L U L' U' L U L' U l"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 54",
+   "subgroup": "L Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyllyylll",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "ylyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U R' U R U' R' U R U2 r'",
+      "y' r U2 R' U' R U R' U' R U' r'",
+      "y' r U r' R U R' U' R U R' U' r U' r'",
+      "y2 l U L' U L U' L' U L U2 l'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 55",
+   "subgroup": "Line Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lyllyllyl",
+    "data-ub": "lllbbbbbb",
+    "data-uf": "lllgggggg",
+    "data-ul": "yyyrrrrrr",
+    "data-ur": "yyyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "y R' F U R U' R2 F' R2 U R' U' R",
+      "y R' F R U R U' R2 F' R2 U' R' U R U R'",
+      "R U2 R2 U' R U' R' U2 F R F'",
+      "r U2 R2 F R F' U2 r' F R F'"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 56",
+   "subgroup": "Line Shapes",
+   "setup": "",
+   "facelets": {
+    "data-us": "lllyyylll",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "ylyrrrrrr",
+    "data-ur": "ylyoooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "r U r' U R U' R' U R U' R' r U' r'",
+      "r U r' U R U' R' M' U R U2 r'",
+      "F R U R' U' R F' r U R' U' r'",
+      "r' U' r U' R' U R U' R' U R r' U r"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OLL 57",
+   "subgroup": "All Corners Oriented",
+   "setup": "",
+   "facelets": {
+    "data-us": "ylyyyyyly",
+    "data-ub": "lylbbbbbb",
+    "data-uf": "lylgggggg",
+    "data-ul": "lllrrrrrr",
+    "data-ur": "llloooooo"
+   },
+   "orientations": [
+    {
+     "name": "",
+     "algs": [
+      "R U R' U' M' U R U' r'",
+      "y R U' R' S' R U R' S",
+      "y R U R' S' R U' R' S",
+      "R U R' U' R' r U R U' r'"
+     ]
+    }
+   ]
+  }
+ ]
+}

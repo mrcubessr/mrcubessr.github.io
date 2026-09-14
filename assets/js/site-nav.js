@@ -9,7 +9,7 @@
   var NAV_DATA = [
     { id: 'home', label: '首页', href: '/' },
     { id: 'tutorial', label: '教程', children: [
-      { id: '3x3', label: '三阶', href: '/tools/3x3' },
+      { id: '3x3', label: '三阶', href: '/tools/3x3/' },
       { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
       { label: '三盲', soon: true },
@@ -33,6 +33,7 @@
       { id: '3x3teach',         label: '三阶魔方教学',     href: '/tools/3x3teach' },
       { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' }
     ]},
+    { id: 'cfop', label: 'CFOP公式库', href: '/tools/cfop/' },
     { id: 'links', label: '外链', children: [
       { id: 'nav', label: '工具导航', href: '/tools/nav' }
     ]}

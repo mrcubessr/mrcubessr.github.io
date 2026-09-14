@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFOP 公式库 · 魔方先生SSR训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/cfop/css/cfop.css">
+</head>
+<body>
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+<div class="cfop-wrap">
+  <div class="cfop-hero">
+    <div>
+      <h1 class="cfop-hero__title">CFOP 公式库</h1>
+      <p class="cfop-hero__sub">复刻自 speedcubedb.com · F2L / Advanced F2L / OLL / PLL / Cross Trainer</p>
+    </div>
+    <div class="cfop-hero__spacer">
+      <button id="themeBtn" class="btn btn--sm">☀ 浅色</button>
+    </div>
+  </div>
+
+  <div class="cfop-hub">
+    <a class="card card--link" href="/tools/cfop/f2l.html">
+      <div class="card__head"><span class="card__title">F2L · 前两层</span><span class="badge badge--brand">41 cases</span></div>
+      <p class="card__desc">第一、二层同步完成。含 FR / FL / BL / BR 四朝向算法。</p>
+    </a>
+    <a class="card card--link" href="/tools/cfop/advanced-f2l.html">
+      <div class="card__head"><span class="card__title">Advanced F2L · 高级前两层</span><span class="badge badge--violet">54 cases</span></div>
+      <p class="card__desc">角块/棱块被困（Trapped）时的直接解法。</p>
+    </a>
+    <a class="card card--link" href="/tools/cfop/oll.html">
+      <div class="card__head"><span class="card__title">OLL · 顶层朝向</span><span class="badge badge--gold">57 cases</span></div>
+      <p class="card__desc">57 个顶层朝向公式，按形状分类。</p>
+    </a>
+    <a class="card card--link" href="/tools/cfop/pll.html">
+      <div class="card__head"><span class="card__title">PLL · 顶层归位</span><span class="badge badge--green">21 cases</span></div>
+      <p class="card__desc">21 个顶层棱角归位公式（含 AUF）。</p>
+    </a>
+    <a class="card card--link" href="/tools/cfop/cross-trainer.html">
+      <div class="card__head"><span class="card__title">Cross Trainer · 十字训练</span><span class="badge badge--amber">交互</span></div>
+      <p class="card__desc">随机打乱 + 计时 + 2D 展开图，专练底层十字。</p>
+    </a>
+  </div>
+</div>
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">公式数据本地化自 speedcubedb.com · 仅供学习训练使用</p>
+</footer>
+<script src="/assets/js/site-nav.js"></script>
+<script src="/tools/cfop/js/cfop-ui.js"></script>
+<script>CFOP.bindTheme("themeBtn");</script>
+</body>
+</html>
