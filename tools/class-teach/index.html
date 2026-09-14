@@ -303,20 +303,34 @@
       <h3 data-page-node-id="XHBk5wukTjVNylWi6NLo23">数据概况</h3>
       <div id="backupStat" class="muted" data-page-node-id="YLzSxNBdSj5gWPofXttd4G">—</div>
 
-      <h3 data-page-node-id="0e5I9uwvkRL3feEZ1YKzi2">云端同步（GitHub 私有仓库）</h3>
-      <p class="muted" data-page-node-id="jT3XkXEFSKYJpzu5CPjptH">把数据存到你的 GitHub 私有仓库，换设备登录即同步。需一个细粒度访问令牌（仅授权本仓库）。</p>
+      <h3 data-page-node-id="0e5I9uwvkRL3feEZ1YKzi2">云端同步（GitHub 一键登录）</h3>
+      <p class="muted" data-page-node-id="jT3XkXEFSKYJpzu5CPjptH">点「GitHub 一键登录」，在浏览器授权一次即可。系统会自动建好你的私有仓库并同步，换设备再点一次就恢复。只需你先建一个 OAuth App 拿 client_id（一次性，下方有说明）。</p>
       <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px" data-page-node-id="Tbq3dx44Urkngb6z2EO1xW">
-        <input class="sync-input" id="ghOwner" placeholder="GitHub 用户名" data-page-node-id="prw4yH3ECEitPFoim1ydlG">
-        <input class="sync-input" id="ghRepo" placeholder="仓库名（如 teacher-data）" data-page-node-id="C1jnRnndCh7A60Zy3OyQAO">
-        <input class="sync-input" id="ghPath" placeholder="文件路径" value="class-teach/data.json" data-page-node-id="uLVnP97tzPzKB6XZu7HP1Z">
-        <input class="sync-input" id="ghToken" type="password" placeholder="访问令牌 token" data-page-node-id="Dq8UBGbXI7rZhdG98EbLVh">
+        <input class="sync-input" id="ghClientId" placeholder="GitHub OAuth App 的 client_id（一次性）" data-page-node-id="prw4yH3ECEitPFoim1ydlG">
+        <button id="ghOauthLogin" data-page-node-id="7m1jy4QKJiVKdXfKyT1TyL">GitHub 一键登录</button>
+        <span id="ghOauthUser" class="muted" data-page-node-id="gCGNUGOCATfX6IAcme0wXB"></span>
       </div>
-      <div class="row" style="margin-top:10px" data-page-node-id="Hsx8HIFCdSTa7iN3Wd9mef">
-        <button id="ghConnect" data-page-node-id="7m1jy4QKJiVKdXfKyT1TyL">保存配置并连接</button>
-        <button class="btn btn--ghost" id="ghPull" data-page-node-id="dX0N6hgfAnlM5mS83ZRy7z">从云端拉取</button>
-        <button class="btn btn--ghost" id="ghPush" data-page-node-id="ZEU7qI2IP1ZGD47A510IIN">立即同步到云端</button>
-        <span id="ghStatus" class="muted" data-page-node-id="gCGNUGOCATfX6IAcme0wXB">未连接</span>
+      <div id="ghOauthBox" class="oauth-box" style="display:none;margin-top:12px;padding:14px 16px;border:1px dashed var(--line);border-radius:8px;background:var(--bg-soft)">
+        <p style="margin:0 0 6px">请在新标签页打开 <a id="ghOauthUrl" href="https://github.com/login/device" target="_blank" rel="noopener" style="color:var(--brand)">github.com/login/device</a>，输入下面的代码：</p>
+        <div class="oauth-code" id="ghOauthCode" style="font-size:28px;font-weight:700;letter-spacing:2px;color:var(--text)">----</div>
+        <p class="muted" style="margin:6px 0 0;font-size:12px">（代码已自动复制到剪贴板，直接 Ctrl/⌘+V 粘贴即可；15 分钟内有效，本页面会后台等待授权）</p>
       </div>
+      <details class="adv" style="margin-top:14px">
+        <summary style="cursor:pointer;color:var(--text-2)">高级：手动令牌方式（旧版）</summary>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+          <input class="sync-input" id="ghOwner" placeholder="GitHub 用户名">
+          <input class="sync-input" id="ghRepo" placeholder="仓库名（如 teacher-data）">
+          <input class="sync-input" id="ghPath" placeholder="文件路径" value="class-teach/data.json">
+          <input class="sync-input" id="ghToken" type="password" placeholder="访问令牌 token">
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="ghConnect">保存配置并连接</button>
+          <button class="btn btn--ghost" id="ghPull">从云端拉取</button>
+          <button class="btn btn--ghost" id="ghPush">立即同步到云端</button>
+        </div>
+      </details>
+      <p class="muted" style="font-size:12px;margin-top:12px">如何获取 client_id：GitHub 右上角头像 → Settings → 最底部 Developer settings → OAuth Apps → New OAuth App。Homepage URL 填任意网址（如 https://mrcubessr.github.io），Authorization callback URL 留空。创建后复制 Client ID 粘贴上方即可（只需填一次，之后本机自动记住）。</p>
+      <span id="ghStatus" class="muted" style="display:block;margin-top:8px">未连接</span>
     </div>
   </div>
 
@@ -1081,15 +1095,17 @@ function nowStr(){return new Date().toISOString();}
 function ghCfg(){return {owner:localStorage.getItem('gh_owner')||'',repo:localStorage.getItem('gh_repo')||'',path:localStorage.getItem('gh_path')||'class-teach/data.json',token:localStorage.getItem('gh_token')||''};}
 function applyGhCfg(){
   var c=ghCfg(); GitHubStore.config(c);
-  var o=document.getElementById('ghOwner'),r=document.getElementById('ghRepo'),p=document.getElementById('ghPath'),t=document.getElementById('ghToken');
+  var o=document.getElementById('ghOwner'),r=document.getElementById('ghRepo'),p=document.getElementById('ghPath'),t=document.getElementById('ghToken'),ci=document.getElementById('ghClientId'),ou=document.getElementById('ghOauthUser');
   if(o)o.value=c.owner; if(r)r.value=c.repo; if(p)p.value=c.path; if(t)t.value=c.token;
+  if(ci){var cid=GitHubStore.loadClientId(); if(cid)ci.value=cid;}
+  if(ou){ou.textContent=localStorage.getItem('gh_oauth')==='1'&&c.owner?('已登录为 @'+c.owner):'';}
 }
 function updateCloudStatus(msg,err){
   var el=document.getElementById('ghStatus');
   if(el){el.textContent=msg; el.style.color=err?'var(--red)':'var(--text-3)';}
 }
 function pullFromCloud(){
-  if(!GitHubStore.isReady()){updateCloudStatus('未连接：请先配置令牌');return;}
+  if(!GitHubStore.isReady()){updateCloudStatus('未连接：请先一键登录或手动配置',true);return;}
   GitHubStore.load().then(function(r){
     if(r&&r.data){
       DB=r.data; if(!DB.radar)DB.radar=[];
@@ -1100,20 +1116,83 @@ function pullFromCloud(){
     }else{updateCloudStatus('云端暂无数据，本地即为最新');}
   }).catch(function(e){updateCloudStatus('拉取失败：'+e.message,true);});
 }
+function syncToCloud(){
+  if(!GitHubStore.isReady()){updateCloudStatus('未连接：请先一键登录或手动配置',true);return Promise.reject();}
+  updateCloudStatus('正在同步到云端…');
+  return GitHubStore.save(DB).then(function(){
+    localStorage.setItem('gh_last_sync',Date.now());
+    updateCloudStatus('已同步到云端 '+new Date().toLocaleTimeString());
+  }).catch(function(e){updateCloudStatus('同步失败：'+e.message,true);});
+}
+/* ===== GitHub 一键登录（OAuth 设备流，免 client secret，纯前端可用）===== */
+var OAUTH_REPO='class-teach-backup';
+function showOauthCode(code,url){
+  var box=document.getElementById('ghOauthBox'),el=document.getElementById('ghOauthCode'),a=document.getElementById('ghOauthUrl');
+  if(box)box.style.display='block';
+  if(el)el.textContent=code;
+  if(a&&url)a.href=url;
+  try{ if(navigator.clipboard) navigator.clipboard.writeText(code); }catch(e){}
+}
+function hideOauthCode(){var box=document.getElementById('ghOauthBox'); if(box)box.style.display='none';}
+function ghOauthLogin(){
+  var ci=document.getElementById('ghClientId');
+  var clientId=ci?ci.value.trim():'';
+  if(!clientId){updateCloudStatus('请先填写 GitHub OAuth App 的 client_id（见下方说明）',true); if(ci)ci.focus(); return;}
+  GitHubStore.saveClientId(clientId);
+  updateCloudStatus('正在向 GitHub 申请登录…');
+  GitHubStore.oauthDeviceCode(clientId,'repo').then(function(d){
+    if(d.error) throw new Error(d.error_description||d.error);
+    showOauthCode(d.user_code, d.verification_uri);
+    pollOauth(clientId, d.device_code, d.interval||5);
+  }).catch(function(e){updateCloudStatus('登录启动失败：'+e.message,true);});
+}
+function pollOauth(clientId,deviceCode,interval){
+  interval=Math.max(interval||5,5);
+  var timer=setInterval(function(){
+    GitHubStore.oauthDeviceToken(clientId,deviceCode).then(function(r){
+      if(r.access_token){clearInterval(timer); onOauthToken(r.access_token);}
+      else if(r.error==='authorization_pending'){/* 继续等待授权 */}
+      else if(r.error==='slow_down'){interval+=5;}
+      else if(r.error){clearInterval(timer); hideOauthCode(); updateCloudStatus('登录失败：'+(r.error_description||r.error),true);}
+    }).catch(function(e){clearInterval(timer); hideOauthCode(); updateCloudStatus('登录轮询失败：'+e.message,true);});
+  }, interval*1000);
+}
+function onOauthToken(token){
+  updateCloudStatus('已授权，正在初始化私有仓库…');
+  GitHubStore.saveToken(token);
+  localStorage.setItem('gh_oauth','1');
+  GitHubStore.getLogin(token).then(function(login){
+    localStorage.setItem('gh_owner',login);
+    return GitHubStore.ensureRepo(token, OAUTH_REPO);
+  }).then(function(){
+    var path='class-teach/data.json';
+    localStorage.setItem('gh_repo',OAUTH_REPO);
+    localStorage.setItem('gh_path',path);
+    GitHubStore.config({owner:localStorage.getItem('gh_owner'),repo:OAUTH_REPO,path:path,token:token});
+    applyGhCfg(); hideOauthCode();
+    updateCloudStatus('已登录为 @'+localStorage.getItem('gh_owner')+'，正在拉取…');
+    pullFromCloud();
+  }).catch(function(e){updateCloudStatus('初始化失败：'+e.message,true);});
+}
+document.getElementById('ghOauthLogin').onclick=ghOauthLogin;
 document.getElementById('ghConnect').onclick=function(){
   var owner=document.getElementById('ghOwner').value.trim();
   var repo=document.getElementById('ghRepo').value.trim();
   var path=document.getElementById('ghPath').value.trim()||'class-teach/data.json';
   var token=document.getElementById('ghToken').value.trim();
   localStorage.setItem('gh_owner',owner);localStorage.setItem('gh_repo',repo);localStorage.setItem('gh_path',path);GitHubStore.saveToken(token);
+  localStorage.removeItem('gh_oauth');
   GitHubStore.config({owner:owner,repo:repo,path:path,token:token});
+  applyGhCfg();
   updateCloudStatus('已连接，正在拉取…');pullFromCloud();
 };
-document.getElementById('ghPush').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先配置并连接',true);return;}syncToCloud();};
-document.getElementById('ghPull').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先配置并连接',true);return;}pullFromCloud();};
+document.getElementById('ghPush').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先一键登录或手动配置',true);return;}syncToCloud();};
+document.getElementById('ghPull').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先一键登录或手动配置',true);return;}pullFromCloud();};
+/* 后台自动同步：OAuth 登录后每 30 秒把本地改动推到云端，换设备/关页面都不丢 */
+setInterval(function(){ if(localStorage.getItem('gh_oauth')==='1' && GitHubStore.isReady()){ try{syncToCloud();}catch(e){} } }, 30000);
 
 load();applyGhCfg();fillClassSel();fillProgCourse();setView('home');
-if(GitHubStore.isReady()){updateCloudStatus('已连接，正在从云端拉取…');pullFromCloud();}else{updateCloudStatus('未连接：在上方「云端同步」填入令牌');}
+if(GitHubStore.isReady()){updateCloudStatus('已连接，正在从云端拉取…');pullFromCloud();}else{updateCloudStatus('未连接：填 client_id 后点「GitHub 一键登录」');}
 </script>
 <script src="/assets/js/site-nav.js"></script>
 <footer class="site-footer">

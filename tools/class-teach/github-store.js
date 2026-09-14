@@ -72,8 +72,56 @@
     });
   }
 
+  // ===== OAuth 设备流（Device Flow，免 client secret，纯前端可用）=====
+  // 申请设备码：返回 { device_code, user_code, verification_uri, expires_in, interval }
+  function oauthDeviceCode(clientId, scope) {
+    return fetch('https://github.com/login/device/code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ client_id: clientId, scope: scope || 'repo' })
+    }).then(function (r) { return r.json(); });
+  }
+  // 轮询换取令牌：成功返回 { access_token }；未授权返回 { error:'authorization_pending' }
+  function oauthDeviceToken(clientId, deviceCode) {
+    return fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        client_id: clientId, device_code: deviceCode,
+        grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
+      })
+    }).then(function (r) { return r.json(); });
+  }
+  // 用令牌取登录名（owner）
+  function getLogin(token) {
+    return fetch(apiBase + '/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d || !d.login) throw new Error('无法读取 GitHub 账号');
+      return d.login;
+    });
+  }
+  // 自动建私有仓库（已存在则忽略）。返回 Promise<boolean>（true=新建）
+  function ensureRepo(token, name) {
+    return fetch(apiBase + '/user/repos', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, private: true, auto_init: true, description: 'class-teach 备份（自动同步）' })
+    }).then(function (r) {
+      if (r.status === 201 || r.status === 200) return true;
+      if (r.status === 422) return false; // 已存在
+      return r.json().then(function (e) { throw new Error('建仓库失败(' + r.status + ')：' + (e && e.message || '')); },
+        function () { throw new Error('建仓库失败(' + r.status + ')'); });
+    });
+  }
+  function saveClientId(id) { try { if (id) localStorage.setItem('gh_client_id', id); else localStorage.removeItem('gh_client_id'); } catch (e) {} }
+  function loadClientId() { try { return localStorage.getItem('gh_client_id') || ''; } catch (e) { return ''; } }
+
   global.GitHubStore = {
     config: config, getConfig: getConfig, isReady: isReady,
-    load: load, save: save, saveToken: saveToken, loadToken: loadToken
+    load: load, save: save, saveToken: saveToken, loadToken: loadToken,
+    oauthDeviceCode: oauthDeviceCode, oauthDeviceToken: oauthDeviceToken,
+    getLogin: getLogin, ensureRepo: ensureRepo,
+    saveClientId: saveClientId, loadClientId: loadClientId
   };
 })(typeof window !== 'undefined' ? window : this);
