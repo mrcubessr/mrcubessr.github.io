@@ -16,7 +16,7 @@
   <div class="cfop-hero">
     <div>
       <h1 class="cfop-hero__title">Cross Trainer · 十字训练</h1>
-      <p class="cfop-hero__sub">随机打乱 + 计时 + 立体魔方视图 · 专练底层十字（复刻自 speedcubedb.com/cross）</p>
+      <p class="cfop-hero__sub">选定十字颜色与目标步数，生成十字最优解恰为该步数的打乱（≤ 10 步）· 复刻自 speedcubedb.com/cross</p>
     </div>
     <div class="cfop-hero__spacer">
       <a class="btn btn--sm btn--ghost" href="/tools/3x3/">← 三阶</a>
@@ -26,25 +26,55 @@
 
   <div class="ct">
     <div class="ct__main">
+      <div class="ct__panel">
+        <div class="ct__field">
+          <span class="ct__label">十字颜色</span>
+          <div class="seg ct__seg" id="ct-colors" role="group" aria-label="选择十字颜色"></div>
+        </div>
+        <div class="ct__field">
+          <span class="ct__label">目标步数</span>
+          <div class="seg ct__seg" id="ct-moves" role="group" aria-label="选择十字最优步数"></div>
+          <span class="ct__sub">即做十字所需的最优步数 · 打乱长度上限 10 步</span>
+        </div>
+      </div>
+
       <div class="ct__scramble" id="ct-scramble">…</div>
+
+      <div class="ct__meta">
+        <span class="badge badge--gold" id="ct-info">—</span>
+        <span class="badge badge--mono" id="ct-len">—</span>
+      </div>
+
+      <div class="ct__solution" id="ct-solution" hidden>
+        <span class="ct__sol-label">十字解法</span>
+        <div class="formula-block ct__sol-text" id="ct-sol-text" title="点击复制"></div>
+      </div>
+
       <div class="ct__row">
         <button class="btn btn--primary" id="ct-new">换一个打乱</button>
-        <a class="btn btn--secondary" id="ct-viz" href="#" target="_blank" rel="noopener">3D 可视化 ↗</a>
+        <button class="btn btn--secondary" id="ct-sol" aria-pressed="false">显示十字解法</button>
+        <button class="btn btn--ghost" id="ct-copy">复制</button>
+        <a class="btn btn--ghost" id="ct-viz" href="#" target="_blank" rel="noopener">3D 可视化 ↗</a>
       </div>
+
       <p class="ct__hint">按 <b>空格</b> 开始 / 暂停计时 · 拖动魔方可旋转视角查看全部 6 面</p>
     </div>
+
     <div class="ct__side">
       <div class="ct__timer" id="ct-timer">0.00</div>
       <div class="ct__net" id="ct-net"></div>
+      <button class="btn btn--sm btn--ghost ct__align" id="ct-align" aria-pressed="false">对准十字色</button>
     </div>
   </div>
 </div>
 <footer class="site-footer">
   <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
-  <p class="site-footer__meta">打乱与训练逻辑本地实现 · 3D 可视化由 cubedb.net 提供</p>
+  <p class="site-footer__meta">打乱与求解在本地完成（十字最优步数表实时计算）· 3D 可视化由 cubedb.net 提供</p>
 </footer>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
+<script src="/tools/cfop/js/rubik-core.js"></script>
+<script src="/tools/cfop/js/cross-solver.js"></script>
 <script src="/tools/cfop/js/cube3d.js"></script>
 <script src="/tools/cfop/js/cross-trainer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>

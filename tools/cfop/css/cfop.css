@@ -73,17 +73,67 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .cfop-stat{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
 
 /* ---------- Cross Trainer ---------- */
-.ct{ display:grid; grid-template-columns:1fr; gap:var(--s4,16px); max-width:720px; margin-inline:auto; }
+.ct{ display:grid; grid-template-columns:1fr; gap:var(--s4,16px); max-width:780px; margin-inline:auto; }
+.ct__main{ display:flex; flex-direction:column; gap:var(--s3,12px); min-width:0; }
+
+/* 控制面板：颜色 / 目标步数 */
+.ct__panel{ display:grid; gap:var(--s4,16px); padding:var(--s4,16px);
+  background:var(--surface-2,#1A2130); border:1px solid var(--line,rgba(255,255,255,.08));
+  border-radius:var(--r-md,12px); }
+.ct__field{ display:flex; flex-direction:column; gap:var(--s2,8px); }
+.ct__label{ font-size:var(--fs-sm,.85rem); font-weight:var(--fw-semi,600); color:var(--fg-2,#AEB8CA); }
+.ct__sub{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
+.ct__seg{ align-self:flex-start; max-width:100%; }
+.ct__color{ display:inline-flex; align-items:center; gap:6px; padding:6px 12px; }
+.ct__dot{ width:12px; height:12px; flex:0 0 auto; border-radius:var(--r-full,999px);
+  border:1px solid var(--line-2,rgba(255,255,255,.28)); }
+.ct__dot--w{ background:var(--face-u,#FFFFFF); }
+.ct__dot--y{ background:var(--face-d,#FFD500); }
+.ct__dot--g{ background:var(--face-f,#2E9E4F); }
+.ct__dot--b{ background:var(--face-b,#1F6FD0); }
+.ct__dot--r{ background:var(--face-r,#E4572E); }
+.ct__dot--o{ background:var(--face-l,#FF8A00); }
+.ct__step{ min-width:40px; padding:6px 10px; text-align:center; }
+
+/* 打乱展示 */
 .ct__scramble{ font-family:var(--font-mono,monospace); font-size:var(--fs-lg,1.15rem); color:var(--gold-ink,#FFD372);
   background:var(--bg-soft,#0F131C); border:1px solid var(--line,rgba(255,255,255,.08)); border-left:3px solid var(--gold,#FFC857);
   border-radius:var(--r-md,12px); padding:var(--s4,16px); text-align:center; word-break:break-word; letter-spacing:.06em; }
-.ct__row{ display:flex; gap:var(--s3,12px); align-items:center; justify-content:center; flex-wrap:wrap; }
-.ct__timer{ font-family:var(--font-mono,monospace); font-size:2.4rem; font-weight:var(--fw-bold,700); font-variant-numeric:tabular-nums; }
-.ct__net{ width:260px; height:260px; margin-inline:auto; cursor:grab; touch-action:none;
+.ct__scramble.is-pop{ animation:ct-pop .28s ease-out; }
+@keyframes ct-pop{ from{ opacity:.3; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+.ct__meta{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--s2,8px); }
+
+/* 解法行 */
+.ct__solution{ display:flex; align-items:center; gap:var(--s2,8px); }
+/* 必须显式处理 hidden：上面的 display:flex 优先级高于 UA 的 [hidden]{display:none}，
+   否则 hidden 属性失效、解法会一直可见（训练时等于直接给答案）。
+   同一约定见 pll-print.css 的 .pp-modal[hidden] 与 3x3teach 的 .modal[hidden]。 */
+.ct__solution[hidden]{ display:none; }
+.ct__sol-label{ flex:0 0 auto; font-size:var(--fs-sm,.85rem); color:var(--fg-3,#7C8798); }
+.ct__sol-text{ flex:1; min-width:0; margin:0; cursor:pointer; transition:border-color var(--t-fast,.15s); }
+.ct__sol-text:hover{ border-color:var(--gold,#FFC857); }
+
+/* 右侧：计时器 + 立体视图 */
+.ct__row{ display:flex; flex-wrap:wrap; align-items:center; gap:var(--s2,8px); }
+.ct__timer{ font-family:var(--font-mono,monospace); font-size:2.4rem; font-weight:var(--fw-bold,700);
+  font-variant-numeric:tabular-nums; text-align:center; color:var(--fg,#EEF2F8); }
+.ct__net{ width:100%; max-width:280px; aspect-ratio:1/1; margin-inline:auto; cursor:grab; touch-action:none;
   border-radius:var(--r-md,12px); background:var(--bg-soft,#0F131C); padding:var(--s2,8px); }
 .ct__net.is-drag{ cursor:grabbing; }
 .ct__net .c3-view{ width:100%; height:100%; display:block; }
 .c3-body{ fill:#101218; stroke:var(--line,rgba(255,255,255,.12)); stroke-width:.8; stroke-linejoin:round; }
-.ct__hint{ text-align:center; color:var(--fg-3,#7C8798); font-size:var(--fs-xs,.75rem); }
+.ct__align{ display:block; width:100%; max-width:280px; margin:var(--s2,8px) auto 0; }
+/* .btn 组件本身没有选中态样式，「对准十字色」「显示十字解法」按下时
+   借用分段按钮的选中观感（品牌底色 + 反相文字），与 .seg__btn.is-active 一致。 */
+.ct .btn.is-active{
+  background:var(--brand,#5B8DEF); border-color:var(--brand,#5B8DEF);
+  color:var(--fg-inverse,#0B0D14);
+}
+.ct .btn.is-active:hover{ background:var(--brand-strong,#3F6FD8); border-color:var(--brand-strong,#3F6FD8); }
+.ct__hint{ margin:0; text-align:center; color:var(--fg-3,#7C8798); font-size:var(--fs-xs,.75rem); }
 
-@media(min-width:768px){ .ct{ grid-template-columns:1fr 288px; align-items:start; } .ct__side{ grid-column:2; } .ct__main{ grid-column:1; } }
+@media(min-width:768px){
+  .ct{ grid-template-columns:1fr 300px; align-items:start; }
+  .ct__side{ grid-column:2; }
+  .ct__main{ grid-column:1; }
+}

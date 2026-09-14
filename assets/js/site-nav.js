@@ -249,8 +249,15 @@
      --------------------------------------------------------- */
   var ARIA_TOGGLE_SEL = '.seg__btn, .stu-tab, .tab, .nbtn';
 
+  /* 选中态类名有 .active 与 .is-active 两种历史写法（组件库统一用的是 .is-active，
+     见 _design/components-preview.html 与 tools/cfop/js/cfop-ui.js），两种都要认，
+     否则 aria-pressed 永远算出 false，屏幕阅读器读不到选中项。 */
+  function isToggleOn(el) {
+    return el.classList.contains('active') || el.classList.contains('is-active');
+  }
+
   function syncToggleAria(el) {
-    el.setAttribute('aria-pressed', el.classList.contains('active') ? 'true' : 'false');
+    el.setAttribute('aria-pressed', isToggleOn(el) ? 'true' : 'false');
   }
 
   function initAriaState(root) {

@@ -1,23 +1,46 @@
+/* =========================================================
+   test_cube.js — 贴纸模型（rubik-core.js）基础回归
+   用法：node tools/cfop/scripts/test_cube.js
+   （十字求解器与打乱生成的完整回归见 test_cross_solver.js）
+   ========================================================= */
+"use strict";
 const fs = require("fs");
-let src = fs.readFileSync(__dirname + "/../js/cross-trainer.js", "utf8");
-global.window = {}; global.performance = { now: () => 0 };
-global.requestAnimationFrame = () => 0; global.cancelAnimationFrame = () => {};
-global.getComputedStyle = () => ({ getPropertyValue: () => "#888" });
-global.document = { readyState: "loading", addEventListener: () => {}, getElementById: () => null, createElementNS: () => ({ setAttribute: () => {}, appendChild: () => {} }) };
-eval(src);
-const C = global.window.__ct;
-function solved(c) { return Object.keys(c).every(f => c[f].every(x => x === c[f][0])); }
+const path = require("path");
+
+globalThis.window = globalThis;
+eval(fs.readFileSync(path.join(__dirname, "..", "js", "rubik-core.js"), "utf8"));
+const R = globalThis.RubikCore;
+
 let ok = 0, fail = 0;
 function check(name, cond) { console.log(name + ":", cond ? "OK" : "FAIL"); cond ? ok++ : fail++; }
 
-let c = C.newCube(); for (let i = 0; i < 4; i++) C.apply(c, "U"); check("U x4 solved", solved(c));
-c = C.newCube(); C.apply(c, "U"); C.apply(c, "U'"); check("U+U' solved", solved(c));
-["R", "F", "L", "B", "D"].forEach(m => { let x = C.newCube(); for (let i = 0; i < 4; i++) C.apply(x, m); check(m + " x4 solved", solved(x)); });
+let c = R.newCube();
+for (let i = 0; i < 4; i++) R.apply(c, "U");
+check("U x4 solved", R.isSolved(c));
 
-let moves = C.scramble(30);
-let x = C.newCube(); moves.forEach(m => C.apply(x, m));
-let inv = moves.slice().reverse().map(m => { if (m.endsWith("2")) return m; if (m.endsWith("'")) return m[0]; return m + "'"; });
-inv.forEach(m => C.apply(x, m));
-check("30-move scramble + inverse solved", solved(x));
+c = R.newCube(); R.apply(c, "U"); R.apply(c, "U'");
+check("U+U' solved", R.isSolved(c));
+
+["R", "F", "L", "B", "D"].forEach(m => {
+  const x = R.newCube();
+  for (let i = 0; i < 4; i++) R.apply(x, m);
+  check(m + " x4 solved", R.isSolved(x));
+});
+
+const moves = R.scramble(30);
+const x = R.newCube();
+R.applyAlg(x, moves.join(" "));
+R.applyAlg(x, R.invertMoves(moves).join(" "));
+check("30-move scramble + inverse solved", R.isSolved(x));
+
+check("scramble 无同面 / 对面相邻", (() => {
+  const s = R.scramble(12);
+  for (let i = 1; i < s.length; i++) {
+    const a = s[i - 1][0], b = s[i][0];
+    if (a === b || a === R.OPP[b]) return false;
+  }
+  return s.length === 12;
+})());
+
 console.log("PASS:", ok, "FAIL:", fail);
 process.exit(fail ? 1 : 0);
