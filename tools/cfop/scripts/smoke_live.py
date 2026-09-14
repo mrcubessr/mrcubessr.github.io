@@ -58,16 +58,16 @@ def main():
                 f"{name}: cards={cards}/{expect} {ok} | flat={flat} iso={iso} shapes={shapes} tabs={tabs} err={len(msgs2)}"
             )
 
-        # ---- 十字训练器（3D）----
+        # ---- 十字训练器（平面展开图）----
         msgs3 = []
         pg.goto(BASE + "/tools/cfop/cross-trainer.html", wait_until="networkidle")
         pg.on("console", lambda m: msgs3.append(m.text) if m.type == "error" else None)
-        pg.wait_for_selector("#ct-net .c3-view", timeout=20000)
+        pg.wait_for_selector("#ct-net .cfop-net--cross", timeout=20000)
         pg.wait_for_timeout(500)
-        polys = pg.eval_on_selector_all("#ct-net polygon", "e => e.length")
-        faces = pg.eval_on_selector_all("#ct-net .c3-face", "e => e.length")
+        rects = pg.eval_on_selector_all("#ct-net .cfop-net--cross rect", "e => e.length")
+        orient = pg.eval_on_selector("#ct-orient", "e => e ? e.textContent.trim().replace(/\s+/g,' ') : '')
         scr = pg.eval_on_selector("#ct-scramble", "e => e ? e.textContent.trim() : ''")
-        print(f"cross-trainer: 3D polys={polys} faces={faces} | scramble='{scr[:30]}...' | err={len(msgs3)}")
+        print(f"cross-trainer: net_rects={rects}/54 orient='{orient}' | scramble='{scr[:30]}...' | err={len(msgs3)}")
 
         b.close()
 
