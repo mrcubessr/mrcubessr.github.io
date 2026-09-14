@@ -779,7 +779,7 @@
   <!-- 左侧大区：12 种单层转动示意图（放大、深色底、高对比） -->
   <section class="left" data-page-node-id="rxYnYAFfoWxrWkVOb8U2tK">
     <div class="legend-zone" data-page-node-id="mmfxR5iuODoVLFVVTSbzMT">
-      <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">红=转动方向 · 蓝=转动层</span></div>
+      <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">红=转动方向 · 黄=转动层</span></div>
       <div class="legend-img-wrap" data-page-node-id="DUGeGQtk9YRJZFkurCBa39">
         <canvas id="legendCanvas" data-page-node-id="OLsSmqUh2cspvXyWm6AbYw"></canvas>
       </div>
@@ -1569,16 +1569,18 @@ function init() {
       } else {
         allBtn.disabled = false;
       }
-      // 长度按钮可见性：15/25 仅 2×2 显示
-      const showExtra = currentCubeType === '2';
-      document.querySelectorAll('.seg__btn[data-len][data-cube="2"]').forEach(btn => {
-        btn.style.display = showExtra ? '' : 'none';
+      // 长度按钮可见性：二阶最多 15 步，三阶保持 6/8/10/12/20
+      const LEN_SET = { '3': [6, 8, 10, 12, 20], '2': [6, 8, 10, 12, 15] };
+      const allowed = LEN_SET[currentCubeType];
+      document.querySelectorAll('.seg__btn[data-len]').forEach(btn => {
+        const len = parseInt(btn.dataset.len, 10);
+        btn.style.display = allowed.includes(len) ? '' : 'none';
       });
-      // 3×3 下若当前长度是 15/25，回落到 6
-      if (currentCubeType === '3' && (currentLength === 15 || currentLength === 25)) {
-        currentLength = 6;
+      // 切换模式后若当前步数不在该模式允许范围内，回落到该模式最大步数
+      if (!allowed.includes(currentLength)) {
+        currentLength = Math.max(...allowed);
         document.querySelectorAll('.seg__btn[data-len]').forEach(btn => {
-          btn.classList.toggle('active', parseInt(btn.dataset.len, 10) === 6);
+          btn.classList.toggle('active', parseInt(btn.dataset.len, 10) === currentLength);
         });
       }
       newQuestion();
@@ -1616,7 +1618,7 @@ if (document.readyState === 'loading') {
 "use strict";
 const BASE_S = 27;             /* 基准贴纸尺寸（三阶） */
 let S = BASE_S;                /* 当前绘制尺寸：二阶按 3/4 缩放，使外轮廓与三阶等大 */
-const MARK = "#BFD7FF";        /* 转动层贴纸（浅蓝填充，浅底上清晰可辨） */
+const MARK = "#FFE08A";        /* 转动层贴纸（浅黄填充，浅底上清晰可辨，与白贴纸区分） */
 const WHITE = "#FFFFFF";       /* 白：未转动贴纸 */
 const EDGE = "#475569";        /* 贴纸描边（深灰蓝，浅底上勾勒魔方轮廓） */
 const CARD_BG = "#FFFFFF";     /* 白色圆角卡片（浅色主题） */
@@ -1799,7 +1801,7 @@ function buildLegend(movesSubset, size){
   // 动态标题：二阶只显示 RUF 3 种，三阶显示 12 种
   const lbl = document.querySelector('.legend-zone .zone-label');
   if(lbl){
-    lbl.innerHTML = '对照图 · ' + items.length + ' 种转动示意<span class="legend-caption">红=转动方向 · 蓝=转动层</span>';
+    lbl.innerHTML = '对照图 · ' + items.length + ' 种转动示意<span class="legend-caption">红=转动方向 · 黄=转动层</span>';
   }
 }
 // 暴露给 newQuestion 调用（T5 联动重绘对照图：2×2 只画 R/U/F 示意）
