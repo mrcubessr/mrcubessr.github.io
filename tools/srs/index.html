@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记忆卡片 · 间隔重复训练 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/srs/srs.css">
+</head>
+<body data-nav="srs">
+<div data-site-nav></div>
+
+<div class="srs-wrap">
+  <div class="srs-pagehead">
+    <h1 class="srs-pagehead__title">记忆卡片 · SRS</h1>
+    <p class="srs-pagehead__sub">基于 SM-2 间隔重复算法，用来记联想词和自建公式卡组。数据存在本机浏览器，不上传。</p>
+  </div>
+
+  <div id="todayBox" class="srs-kv" style="margin-bottom:18px"></div>
+
+  <div class="srs-bar">
+    <button class="btn btn--primary" id="btnNew">新建牌组</button>
+    <span class="srs-bar__spacer"></span>
+    <button class="btn btn--sm btn--ghost" id="btnExport">导出备份</button>
+    <button class="btn btn--sm btn--ghost" id="btnImport">导入备份</button>
+    <button class="btn btn--sm btn--ghost" id="btnStats">总统计</button>
+  </div>
+
+  <div class="srs-decks" id="deckList"></div>
+
+  <div class="srs-panel" style="margin-top:20px">
+    <h3 class="srs-panel__title">怎么用</h3>
+    <p class="srs-panel__desc">
+      1. 「三盲联想词」是预置牌组，打开就能学，卡片方向可在牌组设置里切换（代码→词 / 词→代码 / 混合）。<br>
+      2. 公式类卡组自己建：新建牌组 → 进入编辑页，用「范围生成」按棱块/角块 + 首字母批量建卡，或整段粘贴录入。<br>
+      3. 每天新卡默认 20 张、复习不限量，上限可在牌组设置里改。<br>
+      4. 复习时 <span class="srs-kbd">空格</span> 显示答案，<span class="srs-kbd">1~4</span> 打分，<span class="srs-kbd">Esc</span> 退出。
+    </p>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="application/json,.json" hidden>
+
+<script src="js/sm2.js"></script>
+<script src="js/db.js"></script>
+<script src="data/assoc-words.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var DB = window.SRSDB, SRS = window.SRS, SM2 = window.SM2;
+  var $ = function (id) { return document.getElementById(id); };
+  var el = function (t, c, txt) {
+    var n = document.createElement(t);
+    if (c) n.className = c;
+    if (txt !== undefined) n.textContent = txt;
+    return n;
+  };
+
+  function kvItem(v, k) {
+    var d = el('div', 'srs-kv__i');
+    d.appendChild(el('div', 'srs-kv__v', v));
+    d.appendChild(el('div', 'srs-kv__k', k));
+    return d;
+  }
+
+  function renderToday(decks, allReviews) {
+    var box = $('todayBox');
+    box.innerHTML = '';
+    var from = SRS.todayStart();
+    var today = allReviews.filter(function (r) { return r.ts >= from; });
+    var totalDue = decks.reduce(function (s, d) { return s + (d._stats.due || 0); }, 0);
+    var totalNew = decks.reduce(function (s, d) { return s + (d._stats.new || 0); }, 0);
+    var streak = calcStreak(allReviews);
+    box.appendChild(kvItem(String(today.length), '今日已复习'));
+    box.appendChild(kvItem(String(totalDue), '待复习'));
+    box.appendChild(kvItem(String(totalNew), '未学新卡'));
+    box.appendChild(kvItem(String(streak), '连续天数'));
+    box.appendChild(kvItem(today.length ? SRS.accuracy(today) + '%' : '—', '今日正确率'));
+  }
+
+  function calcStreak(reviews) {
+    if (!reviews.length) return 0;
+    var days = {}, r, d;
+    for (var i = 0; i < reviews.length; i++) {
+      r = reviews[i]; d = SM2.dayStart(r.ts, 4); days[d] = 1;
+    }
+    var cur = SM2.dayStart(Date.now(), 4), n = 0;
+    while (days[cur]) { n++; cur -= 86400000; }
+    return n;
+  }
+
+  function deckCard(d) {
+    var s = d._stats;
+    var a = el('a', 'srs-deck');
+    a.href = 'review.html?deck=' + encodeURIComponent(d.id);
+
+    var top = el('div', 'srs-deck__top');
+    top.appendChild(el('span', 'srs-deck__name', d.name));
+    if (d.type === 'assoc') top.appendChild(el('span', 'badge badge--brand', '预置'));
+    a.appendChild(top);
+    a.appendChild(el('p', 'srs-deck__desc', d.desc || '（无说明）'));
+
+    var nums = el('div', 'srs-deck__nums');
+    nums.appendChild(numBlock(s.new, '未学', 'new'));
+    nums.appendChild(numBlock(s.learn, '学习中', 'learn'));
+    nums.appendChild(numBlock(s.due, '待复习', 'due'));
+    nums.appendChild(numBlock(s.total, '总卡', 'rev'));
+    a.appendChild(nums);
+
+    var done = s.total ? (s.total - s.new) : 0;
+    var bar = el('div', 'srs-pbar');
+    var pct = function (n) { return s.total ? (n / s.total * 100) + '%' : '0%'; };
+    var i1 = el('i', 'srs-pbar__rev'); i1.style.width = pct(s.review);
+    var i2 = el('i', 'srs-pbar__learn'); i2.style.width = pct(s.learn);
+    var i3 = el('i', 'srs-pbar__new'); i3.style.width = pct(s.new);
+    bar.appendChild(i1); bar.appendChild(i2); bar.appendChild(i3);
+    a.appendChild(bar);
+
+    var acts = el('div', 'srs-deck__acts');
+    var bLearn = el('span', 'btn btn--sm btn--primary', s.due ? '开始学习 ' + s.due : '暂无到期');
+    acts.appendChild(bLearn);
+    var bEdit = el('span', 'btn btn--sm btn--ghost', '编辑');
+    acts.appendChild(bEdit);
+    var bStat = el('span', 'btn btn--sm btn--ghost', '统计');
+    acts.appendChild(bStat);
+    a.appendChild(acts);
+
+    // 阻止按钮冒泡到卡片链接
+    bEdit.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      location.href = 'edit.html?deck=' + encodeURIComponent(d.id);
+    });
+    bStat.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      location.href = 'stats.html?deck=' + encodeURIComponent(d.id);
+    });
+    return a;
+  }
+
+  function numBlock(v, k, kind) {
+    var w = el('div', 'srs-num srs-num--' + kind);
+    w.appendChild(el('span', 'srs-num__v', String(v)));
+    w.appendChild(el('span', 'srs-num__k', k));
+    return w;
+  }
+
+  function load() {
+    return SRS.ensurePresets().then(function () {
+      return Promise.all([DB.getDecks(), DB.getAllCards(), DB.getReviews()]);
+    }).then(function (r) {
+      var decks = r[0], cards = r[1], reviews = r[2];
+      var byDeck = {};
+      cards.forEach(function (c) { (byDeck[c.deckId] = byDeck[c.deckId] || []).push(c); });
+      decks.forEach(function (d) {
+        d._stats = SRS.deckStats(d, byDeck[d.id] || [], reviews);
+      });
+      decks.sort(function (a, b) {
+        if (a.type === 'assoc') return -1;
+        if (b.type === 'assoc') return 1;
+        return (a.created || 0) - (b.created || 0);
+      });
+      var list = $('deckList');
+      list.innerHTML = '';
+      decks.forEach(function (d) { list.appendChild(deckCard(d)); });
+      renderToday(decks, reviews);
+    });
+  }
+
+  /* ---------- 操作 ---------- */
+  $('btnNew').addEventListener('click', function () {
+    var name = (prompt('新牌组名称（例如：棱块 A 组公式）') || '').trim();
+    if (!name) return;
+    var d = {
+      id: SRS.uid('deck'), name: name, type: 'custom',
+      desc: '', config: SRS.deckCfg(), created: Date.now()
+    };
+    DB.putDeck(d).then(function () { location.href = 'edit.html?deck=' + encodeURIComponent(d.id); });
+  });
+
+  $('btnExport').addEventListener('click', function () {
+    SRS.exportJSON().then(function (txt) {
+      var blob = new Blob([txt], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'srs-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    });
+  });
+
+  $('btnImport').addEventListener('click', function () { $('fileInput').click(); });
+  $('fileInput').addEventListener('change', function (e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      var merge = confirm('导入备份\n\n「确定」= 合并（保留现有数据，同 id 覆盖）\n「取消」= 替换（清空后导入）');
+      SRS.importJSON(fr.result, merge ? 'merge' : 'replace')
+        .then(function () { alert('导入成功'); location.reload(); })
+        .catch(function (err) { alert('导入失败：' + err.message); });
+    };
+    fr.readAsText(f);
+    e.target.value = '';
+  });
+
+  $('btnStats').addEventListener('click', function () { location.href = 'stats.html'; });
+
+  load().catch(function (e) {
+    document.body.insertBefore(
+      el('div', 'alert alert--err', '初始化失败：' + e.message),
+      document.body.firstChild);
+    console.error(e);
+  });
+})();
+</script>
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>

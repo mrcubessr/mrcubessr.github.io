@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编辑牌组 · 记忆卡片 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/srs/srs.css">
+</head>
+<body data-nav="srs">
+<div data-site-nav></div>
+
+<div class="srs-wrap">
+  <div class="srs-progressline">
+    <span><a href="index.html" style="color:inherit;text-decoration:none">← 牌组</a></span>
+    <span id="deckName">加载中…</span>
+    <span></span>
+  </div>
+
+  <div class="srs-tabs" id="tabs">
+    <button class="srs-tab is-on" data-tab="set">设置</button>
+    <button class="srs-tab" data-tab="cards">卡片</button>
+    <button class="srs-tab" data-tab="imp">批量录入</button>
+  </div>
+
+  <!-- ============ 设置 ============ -->
+  <div id="tab-set">
+    <div class="srs-panel">
+      <h3 class="srs-panel__title">牌组设置</h3>
+      <div class="srs-grid2">
+        <div class="field">
+          <label class="field__label" for="fName">牌组名称</label>
+          <input class="input" id="fName" type="text">
+        </div>
+        <div class="field">
+          <label class="field__label" for="fDesc">说明</label>
+          <input class="input" id="fDesc" type="text" placeholder="选填">
+        </div>
+        <div class="field" id="dirField">
+          <label class="field__label" for="fDir">复习方向</label>
+          <select class="select" id="fDir">
+            <option value="mix">混合（码→词 + 词→码）</option>
+            <option value="c2w">只看 代码 → 联想词</option>
+            <option value="w2c">只看 联想词 → 代码</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="fNew">每日新卡上限</label>
+          <input class="input" id="fNew" type="number" min="0" max="999">
+        </div>
+        <div class="field">
+          <label class="field__label" for="fRev">每日复习上限</label>
+          <input class="input" id="fRev" type="number" min="0" max="9999">
+        </div>
+        <div class="field">
+          <label class="field__label" for="fHint">显示提示（拼音）</label>
+          <select class="select" id="fHint">
+            <option value="1">显示</option>
+            <option value="0">隐藏</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" id="headField" style="margin-top:12px">
+        <label class="field__label">字头范围（不选 = 全部）</label>
+        <div class="srs-chips" id="headChips"></div>
+        <div class="field__hint">只学选中字头的卡片，适合分批推进。</div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn--primary" id="btnSave">保存设置</button>
+        <button class="btn btn--ghost" id="btnStudy">去学习</button>
+        <button class="btn btn--danger" id="btnDel">删除牌组</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 卡片 ============ -->
+  <div id="tab-cards" hidden>
+    <div class="srs-panel">
+      <div class="srs-bar">
+        <input class="input" id="fSearch" placeholder="搜索正面 / 背面…" style="max-width:220px">
+        <span class="srs-bar__spacer"></span>
+        <span class="srs-note" id="cardCount"></span>
+      </div>
+      <div class="srs-scroll">
+        <table class="srs-list">
+          <thead><tr><th style="width:26%">正面</th><th style="width:34%">背面</th><th style="width:14%">提示</th><th style="width:26%">状态 / 操作</th></tr></thead>
+          <tbody id="cardBody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px"><button class="btn btn--sm btn--ghost" id="btnMore">显示更多</button></div>
+    </div>
+  </div>
+
+  <!-- ============ 批量录入 ============ -->
+  <div id="tab-imp" hidden>
+    <!-- 方式 A：范围生成 -->
+    <div class="srs-panel">
+      <h3 class="srs-panel__title">方式一 · 按范围批量建卡（公式用）</h3>
+      <p class="srs-panel__desc">选公式类型 + 首字母，一次生成一批卡片。正面是编码，背面留空由你自己填公式；也可以勾上「带入参考公式」自动从 blddb 取一条候选公式作底稿。</p>
+      <div class="srs-grid2">
+        <div class="field">
+          <label class="field__label" for="gType">公式类型</label>
+          <select class="select" id="gType"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="gLimit">生成数量上限</label>
+          <input class="input" id="gLimit" type="number" value="50" min="1" max="500">
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label class="field__label">首字母（不选 = 全部）</label>
+        <div class="srs-chips" id="gHeads"></div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label class="field__label" for="gFill">背面内容</label>
+        <select class="select" id="gFill">
+          <option value="empty">留空（我自己填）</option>
+          <option value="ref">带入 blddb 参考公式</option>
+        </select>
+        <div class="field__hint" id="gHint">留空模式不联网，生成很快。</div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn--primary" id="btnGen">生成卡片</button>
+        <span class="srs-note" id="genInfo"></span>
+      </div>
+    </div>
+
+    <!-- 方式 B：粘贴 -->
+    <div class="srs-panel">
+      <h3 class="srs-panel__title">方式二 · 整段粘贴录入</h3>
+      <p class="srs-panel__desc">一行一张卡，用 <code>|</code> 或 Tab 分隔：<b>正面 | 背面 | 提示(选填)</b>。例：<code>ADM | U' R' D R U' R' D' R U2</code></p>
+      <textarea class="textarea" id="pasteBox" rows="7" placeholder="ADM | U' R' D R U' R' D' R U2&#10;AB | 阿波罗 | bō"></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn--primary" id="btnPaste">导入文本</button>
+        <label class="srs-note"><input type="checkbox" id="pasteClear" style="vertical-align:-1px"> 导入前清空本牌组</label>
+        <span class="srs-note" id="pasteInfo"></span>
+      </div>
+    </div>
+
+    <!-- 方式 C：单条 -->
+    <div class="srs-panel">
+      <h3 class="srs-panel__title">方式三 · 单条添加</h3>
+      <div class="srs-grid2">
+        <div class="field"><label class="field__label" for="oneF">正面（问题）</label><input class="input" id="oneF" placeholder="ADM"></div>
+        <div class="field"><label class="field__label" for="oneB">背面（答案）</label><input class="input" id="oneB" placeholder="U' R' D R…"></div>
+        <div class="field"><label class="field__label" for="oneH">提示（选填）</label><input class="input" id="oneH" placeholder="拼音 / 备注"></div>
+      </div>
+      <div style="margin-top:10px"><button class="btn btn--primary" id="btnOne">添加</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/sm2.js"></script>
+<script src="js/db.js"></script>
+<script src="data/assoc-words.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var DB = window.SRSDB, SRS = window.SRS, SM2 = window.SM2;
+  var $ = function (id) { return document.getElementById(id); };
+  var deckId = new URLSearchParams(location.search).get('deck');
+  var deck = null, cards = [], shown = 120, headsSel = {}, genHeads = {}, idx = null;
+
+  /* ---------- 载入 ---------- */
+  function load() {
+    if (!deckId) { location.href = 'index.html'; return; }
+    Promise.all([DB.getDeck(deckId), DB.getCards(deckId), SRS.loadBlddbIndex()])
+      .then(function (r) {
+        deck = r[0]; cards = r[1]; idx = r[2];
+        if (!deck) { location.href = 'index.html'; return; }
+        deck.config = SRS.deckCfg(deck);
+        fillSettings();
+        fillTypes();
+        renderCards();
+      })
+      .catch(function (e) { alert('加载失败：' + e.message); console.error(e); });
+  }
+
+  function fillSettings() {
+    document.title = '编辑 ' + deck.name + ' · 记忆卡片';
+    $('deckName').textContent = deck.name;
+    $('fName').value = deck.name;
+    $('fDesc').value = deck.desc || '';
+    $('fDir').value = deck.config.dirMode;
+    $('fNew').value = deck.config.dailyNew;
+    $('fRev').value = deck.config.dailyReview;
+    $('fHint').value = deck.config.showHint ? '1' : '0';
+
+    var isAssoc = deck.type === 'assoc';
+    $('dirField').hidden = !isAssoc;
+    $('headField').hidden = !isAssoc;
+
+    if (isAssoc) {
+      var heads = [];
+      cards.forEach(function (c) { if (c.head && heads.indexOf(c.head) < 0) heads.push(c.head); });
+      heads.sort();
+      var sel = deck.config.heads || [];
+      headsSel = {}; sel.forEach(function (h) { headsSel[h] = 1; });
+      var box = $('headChips'); box.innerHTML = '';
+      heads.forEach(function (h) {
+        var b = document.createElement('button');
+        b.className = 'srs-chip' + (headsSel[h] ? ' is-on' : '');
+        b.textContent = h;
+        b.addEventListener('click', function () {
+          headsSel[h] = !headsSel[h]; b.classList.toggle('is-on');
+        });
+        box.appendChild(b);
+      });
+    }
+  }
+
+  function fillTypes() {
+    var sel = $('gType');
+    Object.keys(idx).forEach(function (k) {
+      var o = document.createElement('option');
+      o.value = k;
+      o.textContent = idx[k].label + '（' + idx[k].count + ' 条）';
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', fillGenHeads);
+    fillGenHeads();
+  }
+
+  function fillGenHeads() {
+    var t = idx[$('gType').value];
+    var set = {}, out = [];
+    t.codes.forEach(function (c) { if (!set[c[0]]) { set[c[0]] = 1; out.push(c[0]); } });
+    var box = $('gHeads'); box.innerHTML = ''; genHeads = {};
+    out.forEach(function (h) {
+      var b = document.createElement('button');
+      b.className = 'srs-chip';
+      b.textContent = h;
+      b.addEventListener('click', function () {
+        genHeads[h] = !genHeads[h]; b.classList.toggle('is-on');
+      });
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- 设置保存 ---------- */
+  $('btnSave').addEventListener('click', function () {
+    deck.name = ($('fName').value || '').trim() || deck.name;
+    deck.desc = $('fDesc').value.trim();
+    deck.config.dirMode = $('fDir').value;
+    deck.config.dailyNew = Math.max(0, parseInt($('fNew').value, 10) || 0);
+    deck.config.dailyReview = Math.max(0, parseInt($('fRev').value, 10) || 0);
+    deck.config.showHint = $('fHint').value === '1';
+    deck.config.heads = Object.keys(headsSel).filter(function (h) { return headsSel[h]; });
+    DB.putDeck(deck).then(function () {
+      alert('已保存'); location.reload();
+    });
+  });
+
+  $('btnStudy').addEventListener('click', function () {
+    location.href = 'review.html?deck=' + encodeURIComponent(deck.id);
+  });
+
+  $('btnDel').addEventListener('click', function () {
+    if (!confirm('删除牌组「' + deck.name + '」及其全部卡片？此操作不可恢复。')) { return; }
+    DB.delDeck(deck.id).then(function () { location.href = 'index.html'; });
+  });
+
+  /* ---------- 卡片列表 ---------- */
+  function stateText(c) {
+    if (c.state === 'new') return '未学';
+    if (c.state === 'learning') return '学习中';
+    if (c.state === 'relearning') return '重练中';
+    return '复习 · ' + c.interval + '天';
+  }
+
+  function renderCards() {
+    var kw = ($('fSearch').value || '').trim().toLowerCase();
+    var list = cards;
+    if (kw) list = cards.filter(function (c) {
+      return (String(c.front).toLowerCase().indexOf(kw) >= 0) ||
+             (String(c.back).toLowerCase().indexOf(kw) >= 0);
+    });
+    $('cardCount').textContent = '共 ' + cards.length + ' 张' + (kw ? '，匹配 ' + list.length + ' 张' : '');
+    var body = $('cardBody');
+    body.innerHTML = '';
+    list.slice(0, shown).forEach(function (c) { body.appendChild(cardRow(c)); });
+    $('btnMore').hidden = list.length <= shown;
+  }
+
+  function cardRow(c) {
+    var tr = document.createElement('tr');
+    tr.appendChild(td(c.front, 'mono'));
+    tr.appendChild(td(c.back || ''));
+    tr.appendChild(td(c.hint || ''));
+    var act = document.createElement('td');
+    var st = document.createElement('span');
+    st.className = 'srs-note';
+    st.textContent = stateText(c) + '　';
+    act.appendChild(st);
+    var be = document.createElement('button');
+    be.className = 'btn btn--sm btn--ghost'; be.textContent = '编辑';
+    be.addEventListener('click', function () { editRow(tr, c); });
+    var bd = document.createElement('button');
+    bd.className = 'btn btn--sm btn--danger'; bd.textContent = '删';
+    bd.addEventListener('click', function () {
+      if (!confirm('删除卡片「' + c.front + '」？')) { return; }
+      DB.delCard(c.id).then(function () {
+        cards = cards.filter(function (x) { return x.id !== c.id; });
+        renderCards();
+      });
+    });
+    var w = document.createElement('div'); w.className = 'srs-list__acts';
+    w.appendChild(be); w.appendChild(bd);
+    act.appendChild(w);
+    tr.appendChild(act);
+    return tr;
+  }
+
+  function td(text, cls) {
+    var d = document.createElement('td');
+    if (cls) d.className = cls;
+    d.textContent = text === undefined || text === null ? '' : text;
+    return d;
+  }
+
+  function editRow(tr, c) {
+    tr.innerHTML = '';
+    var iF = document.createElement('input'); iF.className = 'input'; iF.value = c.front;
+    var iB = document.createElement('input'); iB.className = 'input'; iB.value = c.back || '';
+    var iH = document.createElement('input'); iH.className = 'input'; iH.value = c.hint || '';
+    [iF, iB, iH].forEach(function (i) {
+      var t = td(''); t.appendChild(i); tr.appendChild(t);
+    });
+    var act = td('');
+    var bs = document.createElement('button');
+    bs.className = 'btn btn--sm btn--primary'; bs.textContent = '保存';
+    bs.addEventListener('click', function () {
+      c.front = iF.value.trim(); c.back = iB.value.trim(); c.hint = iH.value.trim();
+      DB.putCard(c).then(function () { renderCards(); });
+    });
+    var bx = document.createElement('button');
+    bx.className = 'btn btn--sm btn--ghost'; bx.textContent = '取消';
+    bx.addEventListener('click', function () { renderCards(); });
+    var w = document.createElement('div'); w.className = 'srs-list__acts';
+    w.appendChild(bs); w.appendChild(bx);
+    act.appendChild(w);
+    tr.appendChild(act);
+  }
+
+  $('fSearch').addEventListener('input', function () { shown = 120; renderCards(); });
+  $('btnMore').addEventListener('click', function () { shown += 200; renderCards(); });
+
+  /* ---------- 方式一：范围生成 ---------- */
+  $('gFill').addEventListener('change', function () {
+    $('gHint').textContent = $('gFill').value === 'ref'
+      ? '需要下载公式库 JSON（棱块约 6MB、奇偶约 28MB），首次较慢，请耐心等待。'
+      : '留空模式不联网，生成很快。';
+  });
+
+  $('btnGen').addEventListener('click', function () {
+    var type = $('gType').value;
+    var limit = Math.max(1, Math.min(500, parseInt($('gLimit').value, 10) || 50));
+    var heads = Object.keys(genHeads).filter(function (h) { return genHeads[h]; });
+    var codes = SRS.codesInRange(idx, type, heads, limit);
+    if (!codes.length) { alert('该范围内没有编码'); return; }
+    $('genInfo').textContent = '命中 ' + codes.length + ' 个编码，处理中…';
+
+    var fill = $('gFill').value;
+    var have = {};
+    cards.forEach(function (c) { have[c.front] = 1; });
+    var todo = codes.filter(function (c) { return !have[c]; });
+    if (!todo.length) { $('genInfo').textContent = '这些编码都已存在，未新增。'; return; }
+
+    var mk = function (code, back) {
+      var s = SM2.newCard(SRS.uid('c'), deck.id, Date.now());
+      return Object.assign(s, {
+        front: code, back: back || '', hint: '', head: code[0],
+        dir: 'c2w', tags: [type], created: Date.now()
+      });
+    };
+
+    if (fill === 'empty') {
+      var arr = todo.map(function (c) { return mk(c, ''); });
+      DB.putCards(arr).then(function () {
+        $('genInfo').textContent = '已新增 ' + arr.length + ' 张（背面留空，可在上方卡片列表填写）';
+        DB.getCards(deck.id).then(function (cs) { cards = cs; renderCards(); });
+      });
+      return;
+    }
+
+    $('genInfo').textContent = '正在下载公式库…';
+    SRS.loadAlgs(type).then(function (algs) {
+      var arr = todo.map(function (c) {
+        var v = algs[c];
+        var one = Array.isArray(v) ? v[0] : v;
+        var txt = typeof one === 'string' ? one : (one && (one.alg || one.algorithm) || '');
+        return mk(c, txt);
+      });
+      return DB.putCards(arr).then(function () {
+        $('genInfo').textContent = '已新增 ' + arr.length + ' 张（含参考公式）';
+        DB.getCards(deck.id).then(function (cs) { cards = cs; renderCards(); });
+      });
+    }).catch(function (e) {
+      $('genInfo').textContent = '下载失败：' + e.message;
+    });
+  });
+
+  /* ---------- 方式二：粘贴 ---------- */
+  $('btnPaste').addEventListener('click', function () {
+    var text = $('pasteBox').value;
+    if (!text.trim()) { alert('请先粘贴内容'); return; }
+    var lines = text.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    var arr = [];
+    lines.forEach(function (l) {
+      var p = l.split(/\t|\|/).map(function (s) { return s.trim(); });
+      if (!p[0]) return;
+      var s = SM2.newCard(SRS.uid('c'), deck.id, Date.now());
+      arr.push(Object.assign(s, {
+        front: p[0], back: p[1] || '', hint: p[2] || '',
+        head: /^[A-Za-z]/.test(p[0]) ? p[0][0].toUpperCase() : '',
+        dir: '', created: Date.now()
+      }));
+    });
+    if (!arr.length) { alert('没有解析到有效行'); return; }
+    var go = function () {
+      return DB.putCards(arr).then(function () {
+        $('pasteInfo').textContent = '已导入 ' + arr.length + ' 张';
+        $('pasteBox').value = '';
+        DB.getCards(deck.id).then(function (cs) { cards = cs; renderCards(); });
+      });
+    };
+    if ($('pasteClear').checked) {
+      if (!confirm('将清空本牌组现有 ' + cards.length + ' 张卡片，继续？')) { return; }
+      DB.clearCards(deck.id).then(go);
+    } else go();
+  });
+
+  /* ---------- 方式三：单条 ---------- */
+  $('btnOne').addEventListener('click', function () {
+    var f = $('oneF').value.trim(), b = $('oneB').value.trim(), h = $('oneH').value.trim();
+    if (!f) { alert('正面不能为空'); return; }
+    var s = SM2.newCard(SRS.uid('c'), deck.id, Date.now());
+    DB.putCard(Object.assign(s, {
+      front: f, back: b, hint: h,
+      head: /^[A-Za-z]/.test(f) ? f[0].toUpperCase() : '', dir: '', created: Date.now()
+    })).then(function () {
+      $('oneF').value = ''; $('oneB').value = ''; $('oneH').value = '';
+      return DB.getCards(deck.id);
+    }).then(function (cs) { cards = cs; renderCards(); });
+    $('oneF').focus();
+  });
+
+  /* ---------- tab ---------- */
+  Array.prototype.forEach.call($('tabs').children, function (b) {
+    b.addEventListener('click', function () {
+      Array.prototype.forEach.call($('tabs').children, function (x) { x.classList.remove('is-on'); });
+      b.classList.add('is-on');
+      ['set', 'cards', 'imp'].forEach(function (k) {
+        $('tab-' + k).hidden = (k !== b.dataset.tab);
+      });
+    });
+  });
+
+  load();
+})();
+</script>
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>

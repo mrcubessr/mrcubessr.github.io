@@ -20,6 +20,7 @@
       { id: 'timer',            label: '计时器',           href: '/tools/timer' },
       { id: 'invert',           label: '逆序转换',         href: '/tools/invert' },
       { id: 'scramble-trainer', label: '打乱公式训练',     href: '/tools/scramble-trainer' },
+      { id: 'srs',              label: '记忆卡片 SRS',     href: '/tools/srs/' },
       { id: '3x3teach',         label: '三阶魔方教学',     href: '/tools/3x3teach' },
       { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' }
     ]},

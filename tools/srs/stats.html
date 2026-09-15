@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>统计 · 记忆卡片 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/srs/srs.css">
+</head>
+<body data-nav="srs">
+<div data-site-nav></div>
+
+<div class="srs-wrap">
+  <div class="srs-progressline">
+    <span><a href="index.html" style="color:inherit;text-decoration:none">← 牌组</a></span>
+    <span>统计</span>
+    <span></span>
+  </div>
+
+  <div class="srs-bar">
+    <select class="select" id="fDeck" style="max-width:240px"></select>
+    <span class="srs-bar__spacer"></span>
+    <button class="btn btn--sm btn--ghost" id="btnBack">去学习</button>
+  </div>
+
+  <div class="srs-kv" id="kv"></div>
+
+  <div class="srs-panel" style="margin-top:16px">
+    <h3 class="srs-panel__title">卡片构成</h3>
+    <div class="srs-pbar" id="mix" style="height:14px;margin:10px 0"></div>
+    <div class="srs-note" id="mixNote"></div>
+  </div>
+
+  <div class="srs-panel">
+    <h3 class="srs-panel__title">近 30 天复习量</h3>
+    <div class="srs-bars" id="bars"></div>
+    <div class="srs-bars__ax"><span>30 天前</span><span>今天</span></div>
+  </div>
+
+  <div class="srs-panel">
+    <h3 class="srs-panel__title">未来 14 天到期预测</h3>
+    <div class="srs-bars" id="fc"></div>
+    <div class="srs-bars__ax"><span>今天</span><span>14 天后</span></div>
+    <div class="srs-note" id="fcNote" style="margin-top:6px"></div>
+  </div>
+
+  <div class="srs-panel">
+    <h3 class="srs-panel__title">评分分布（全部记录）</h3>
+    <div id="gradesDist"></div>
+  </div>
+</div>
+
+<script src="js/sm2.js"></script>
+<script src="js/db.js"></script>
+<script src="data/assoc-words.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var DB = window.SRSDB, SRS = window.SRS, SM2 = window.SM2;
+  var $ = function (id) { return document.getElementById(id); };
+  var q = new URLSearchParams(location.search);
+  var deckId = q.get('deck');
+  var decks = [], allCards = [], allReviews = [];
+
+  function load() {
+    return SRS.ensurePresets()
+      .then(function () {
+        return Promise.all([DB.getDecks(), DB.getAllCards(), DB.getReviews()]);
+      })
+      .then(function (r) {
+        decks = r[0]; allCards = r[1]; allReviews = r[2];
+        var sel = $('fDeck');
+        var o = document.createElement('option');
+        o.value = '__all'; o.textContent = '全部牌组';
+        sel.appendChild(o);
+        decks.forEach(function (d) {
+          var op = document.createElement('option');
+          op.value = d.id; op.textContent = d.name;
+          sel.appendChild(op);
+        });
+        sel.value = deckId || '__all';
+        sel.addEventListener('change', function () {
+          var v = sel.value;
+          location.href = v === '__all' ? 'stats.html' : 'stats.html?deck=' + encodeURIComponent(v);
+        });
+        $('btnBack').onclick = function () {
+          var v = sel.value;
+          location.href = 'review.html?deck=' + encodeURIComponent(v === '__all' ? decks[0].id : v);
+        };
+        render();
+      });
+  }
+
+  function render() {
+    var isAll = !deckId || deckId === '__all';
+    var deck = isAll ? { id: '__all', name: '全部牌组', type: 'all', config: SRS.deckCfg() } : null;
+    if (!isAll) {
+      decks.forEach(function (d) { if (d.id === deckId) deck = d; });
+      if (!deck) { location.href = 'stats.html'; return; }
+    }
+    var cards = isAll ? allCards : allCards.filter(function (c) { return c.deckId === deckId; });
+    var reviews = isAll ? allReviews : allReviews.filter(function (r) { return r.deckId === deckId; });
+    var st = SRS.deckStats(deck, cards, reviews);
+
+    var from = SRS.todayStart();
+    var today = reviews.filter(function (r) { return r.ts >= from; });
+    var avgMs = reviews.length
+      ? reviews.reduce(function (s, r) { return s + (r.elapsedMs || 0); }, 0) / reviews.length : 0;
+
+    var kv = $('kv'); kv.innerHTML = '';
+    kvItem(kv, st.total, '总卡片');
+    kvItem(kv, st.new, '未学');
+    kvItem(kv, st.learn, '学习中');
+    kvItem(kv, st.review, '复习中');
+    kvItem(kv, st.mature, '已成熟(≥21天)');
+    kvItem(kv, st.due, '今日到期');
+    kvItem(kv, today.length, '今日已复习');
+    kvItem(kv, reviews.length ? SRS.accuracy(reviews) + '%' : '—', '总正确率');
+    kvItem(kv, avgMs ? (avgMs / 1000).toFixed(1) + 's' : '—', '平均每张用时');
+
+    // 构成条
+    var mix = $('mix'); mix.innerHTML = '';
+    var pct = function (n) { return st.total ? (n / st.total * 100) + '%' : '0%'; };
+    [['srs-pbar__rev', st.review], ['srs-pbar__learn', st.learn], ['srs-pbar__new', st.new]]
+      .forEach(function (p) {
+        var i = document.createElement('i');
+        i.className = p[0]; i.style.width = pct(p[1]);
+        mix.appendChild(i);
+      });
+    $('mixNote').textContent = '复习中 ' + st.review + ' · 学习中 ' + st.learn + ' · 未学 ' + st.new
+      + '　（成熟 ' + st.mature + ' / 年轻 ' + st.young + '）';
+
+    // 近 30 天
+    var daily = SRS.dailyCounts(reviews, 30);
+    bars($('bars'), daily.map(function (d) { return { v: d.count, t: fmtDay(d.day) }; }));
+
+    // 预测
+    var fc = SRS.forecast(cards, 14);
+    bars($('fc'), fc.map(function (d) { return { v: d.n, t: fmtDay(d.day) }; }));
+    $('fcNote').textContent = '未来 14 天共 ' + fc.reduce(function (s, d) { return s + d.n; }, 0) + ' 张到期';
+
+    // 评分分布
+    var dist = [0, 0, 0, 0];
+    reviews.forEach(function (r) { if (r.grade >= 0 && r.grade <= 3) dist[r.grade]++; });
+    var tot = dist.reduce(function (a, b) { return a + b; }, 0) || 1;
+    var box = $('gradesDist'); box.innerHTML = '';
+    SM2.GRADE_LABEL.forEach(function (label, i) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px;margin:6px 0';
+      var n = document.createElement('span');
+      n.style.cssText = 'width:40px;font-size:12px;color:var(--fg-2)';
+      n.textContent = label;
+      var bar = document.createElement('div');
+      bar.style.cssText = 'flex:1;height:12px;background:var(--surface-3)';
+      var fill = document.createElement('i');
+      fill.style.cssText = 'display:block;height:100%;width:' + (dist[i] / tot * 100) + '%;background:var(--brand)';
+      bar.appendChild(fill);
+      var c = document.createElement('span');
+      c.style.cssText = 'width:70px;text-align:right;font-size:12px;color:var(--fg-3);font-variant-numeric:tabular-nums';
+      c.textContent = dist[i] + ' (' + Math.round(dist[i] / tot * 100) + '%)';
+      row.appendChild(n); row.appendChild(bar); row.appendChild(c);
+      box.appendChild(row);
+    });
+  }
+
+  function kvItem(box, v, k) {
+    var d = document.createElement('div');
+    d.className = 'srs-kv__i';
+    var a = document.createElement('div'); a.className = 'srs-kv__v'; a.textContent = String(v);
+    var b = document.createElement('div'); b.className = 'srs-kv__k'; b.textContent = k;
+    d.appendChild(a); d.appendChild(b); box.appendChild(d);
+  }
+
+  function bars(box, data) {
+    box.innerHTML = '';
+    var max = Math.max.apply(null, data.map(function (d) { return d.v; }).concat([1]));
+    data.forEach(function (d) {
+      var i = document.createElement('div');
+      i.className = 'srs-bars__i' + (d.v ? '' : ' srs-bars__i--empty');
+      i.style.height = Math.max(2, d.v / max * 100) + '%';
+      i.title = d.t + '：' + d.v;
+      box.appendChild(i);
+    });
+  }
+
+  function fmtDay(ts) {
+    var d = new Date(ts);
+    return (d.getMonth() + 1) + '/' + d.getDate();
+  }
+
+  load().catch(function (e) { console.error(e); alert('加载失败：' + e.message); });
+})();
+</script>
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>
