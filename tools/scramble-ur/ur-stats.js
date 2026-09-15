@@ -213,6 +213,47 @@
     box.hidden = data.practiced.length > 0;
   }
 
+  /** 平均成绩明细块：独立成块，按慢 → 快（未练习排最后） */
+  function renderDetail(data) {
+    var box = document.getElementById('ur-detail');
+    if (!box) return;
+    var body = document.getElementById('ur-detail-rows');
+    if (!body) return;
+    var rows = data.rows.slice().sort(function (a, b) {
+      if (a.n === 0 && b.n === 0) return 0;
+      if (a.n === 0) return 1;
+      if (b.n === 0) return -1;
+      return b.ratio - a.ratio;
+    });
+    var html = '';
+    rows.forEach(function (r) {
+      if (!r.n) {
+        html += '<div class="ur-detail__row" data-tier="none">' +
+          '<span class="d-group">' + r.letter + ' 组</span>' +
+          '<span class="d-avg">--</span>' +
+          '<span class="d-delta">未练习</span>' +
+          '<span class="d-n">0</span>' +
+          '<span class="d-tier">未练习</span>' +
+          '</div>';
+        return;
+      }
+      html += '<div class="ur-detail__row" data-tier="' + r.tier + '">' +
+        '<span class="d-group">' + r.letter + ' 组</span>' +
+        '<span class="d-avg">' + fmt(r.cur) + '</span>' +
+        '<span class="d-delta">' + pct(r.ratio) + '</span>' +
+        '<span class="d-n">' + r.n + '</span>' +
+        '<span class="d-tier">' + TIER_LABEL[r.tier] + '</span>' +
+        '</div>';
+    });
+    body.innerHTML = html;
+    var hint = document.getElementById('ur-detail-hint');
+    if (hint) {
+      hint.textContent = isFinite(data.std)
+        ? ('浮动标准 ' + fmt(data.std) + ' · 共 ' + data.rows.length + ' 组')
+        : '暂无标准';
+    }
+  }
+
   function applySort(data, sort) {
     var grid = document.querySelector('.group-grid');
     if (!grid) return;
@@ -239,6 +280,7 @@
     renderKpis(data);
     renderFocus(data);
     renderEmpty(data);
+    renderDetail(data);
     applySort(data, set.sort);
 
     var scopeSel = document.getElementById('ur-scope');
