@@ -1,23 +1,27 @@
 /** ur-stats.js - UR 总览页成绩看板
  * 数据源：ur-timer.js 写入的 localStorage['ur_times'] = {"C":[毫秒,...], ...}
- * 与 UF 看板同一套算法：浮动标准 + 四档配色 + 重点关注。直角风格由 ur-stats.css 控制。
+ * 与 UF 看板同一套算法：每式均速 + 四档配色 + 重点关注。直角风格由 ur-stats.css 控制。
  *
- * 设计要点：
- *  - 组当前成绩 cur：默认取该组「最近 N 次」平均（反映当下水平），可切「全部平均」
- *  - 浮动标准 std：所有已练组 cur 的平均值（组间等权），随练习实时浮动
- *  - 四档配色：深绿 great / 浅绿 good / 黄 warn / 红 bad，未练习为灰 none
- *    ratio = cur / std  →  ≤0.85 深绿 · ≤1.00 浅绿 · ≤1.15 黄 · >1.15 红（不合格）
- *  - 偏离条：中线 = 浮动标准，向左更快（绿）向右更慢（红），越长偏离越大
+ * ★ 关键设计（公平偏离）：UR 每组「一次连拧」= 把该组全部公式顺序做完，
+ *   公式多的组（如 C=18 式）单次时长天然远多于公式少的组（如 X=2 式）。
+ *   若直接用「组平均总时长」比快慢，会被公式数量带偏（大组恒显慢、小组恒显快），
+ *   无法反映真实水平。因此本看板改用「每式均速」衡量：
+ *     - 每式均速 perF = 该组当前成绩(总均时长) ÷ 该组公式数量
+ *     - 浮动标准 std  = 所有已练组的 perF 均值（组间等权）
+ *     - 偏离率 ratio  = perF ÷ std  →  ≤0.85 深绿 · ≤1.00 浅绿 · ≤1.15 黄 · >1.15 红
+ *   卡片仍展示「总均时长」(直觉) 与其下的「每式均速」(公平基准)，颜色与偏离条按 ratio。
+ *   公式数量从卡片 .card-tags 文本（空格分隔的公式码）解析，无需额外数据。
  */
 (function () {
   'use strict';
 
   var TIMES_KEY = 'ur_times';
   var SET_KEY = 'ur_stats_settings';
-  var RECENT_N = 5;          // 「最近 N 次」口径默认窗口
   var GREAT = 0.85;          // ≤ 0.85×标准 → 深绿
   var WARN = 1.15;           // > 1.15×标准 → 红（不合格）
   var BAR_SPAN = 0.4;        // 偏离条满格对应的相对偏离（±40%）
+  var WINDOWS = ['5', '12', '100', 'all'];
+  var COLS = ['auto', '4', '6', '8', '10', '12'];
 
   // ---------- 存储 ----------
   function loadTimes() {
@@ -25,11 +29,12 @@
     catch (e) { return {}; }
   }
   function loadSettings() {
-    var d = { scope: 'recent', sort: 'order' };
+    var d = { window: '5', cols: 'auto', sort: 'order' };
     try {
       var s = JSON.parse(localStorage.getItem(SET_KEY));
       if (s && typeof s === 'object') {
-        if (s.scope === 'recent' || s.scope === 'all') d.scope = s.scope;
+        if (WINDOWS.indexOf(s.window) >= 0) d.window = s.window;
+        if (COLS.indexOf(s.cols) >= 0) d.cols = s.cols;
         if (s.sort === 'order' || s.sort === 'weak') d.sort = s.sort;
       }
     } catch (e) {}
@@ -62,29 +67,47 @@
   }
   function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
+  /** 从卡片 .card-tags 解析该组公式数量（空格分隔的公式码个数） */
+  function formulaCount(el) {
+    var t = el.querySelector('.card-tags');
+    if (!t) return 1;
+    var codes = t.textContent.trim().split(/\s+/).filter(Boolean);
+    return codes.length || 1;
+  }
+
   // ---------- 统计 ----------
-  /** 计算每组成绩 + 全局浮动标准 */
-  function compute(cards, times, scope) {
+  /** 计算每组成绩 + 全局浮动标准（每式均速口径） */
+  function compute(cards, times, win) {
     var rows = [];
     for (var i = 0; i < cards.length; i++) {
       var letter = cards[i].getAttribute('data-group') || '';
       var arr = (times[letter] || []).filter(function (v) { return isFinite(v) && v > 0; });
       var n = arr.length;
+      // 成绩窗口：最近 N 次平均（all = 全部平均）
       var pool = arr;
-      if (scope === 'recent' && n > RECENT_N) pool = arr.slice(-RECENT_N);
+      if (win !== 'all' && n > 0) {
+        var N = parseInt(win, 10);
+        if (n > N) pool = arr.slice(-N);
+      }
+      var cur = mean(pool);                 // 当前成绩：该窗口内总均时长
+      var count = formulaCount(cards[i]);  // 该组公式数量
+      var perF = (n > 0 && isFinite(cur) && count > 0) ? cur / count : NaN; // 每式均速
       rows.push({
         letter: letter,
         el: cards[i],
         n: n,
+        count: count,
         best: n ? Math.min.apply(null, arr) : NaN,
-        cur: mean(pool),
+        cur: cur,
+        perF: perF,
         total: n ? arr.reduce(function (a, b) { return a + b; }, 0) : 0
       });
     }
-    var practiced = rows.filter(function (r) { return r.n > 0; });
-    var std = mean(practiced.map(function (r) { return r.cur; }));
+    // 浮动标准 = 已练组「每式均速」均值（组间等权，不受组大小影响）
+    var practiced = rows.filter(function (r) { return r.n > 0 && isFinite(r.perF); });
+    var std = mean(practiced.map(function (r) { return r.perF; }));
     rows.forEach(function (r) {
-      r.ratio = (r.n > 0 && isFinite(std) && std > 0) ? r.cur / std : NaN;
+      r.ratio = (r.n > 0 && isFinite(r.perF) && isFinite(std) && std > 0) ? r.perF / std : NaN;
       r.tier = !r.n ? 'none'
         : r.ratio <= GREAT ? 'great'
         : r.ratio <= 1.0 ? 'good'
@@ -102,6 +125,7 @@
       return '<div class="ur-stat">' +
         '<div class="ur-stat__row"><span class="ur-stat__avg">--</span>' +
         '<span class="ur-stat__delta">未练习</span></div>' +
+        '<div class="ur-stat__per">每式 --</div>' +
         '<div class="ur-bar"><span class="ur-bar__zero"></span></div>' +
         '<div class="ur-stat__meta"><span>最快 --</span><span>0 次</span></div>' +
         '</div>';
@@ -116,6 +140,7 @@
         '<span class="ur-stat__avg">' + fmt(r.cur) + '</span>' +
         '<span class="ur-stat__delta">' + pct(r.ratio) + '</span>' +
       '</div>' +
+      '<div class="ur-stat__per">每式 ' + fmt(r.perF) + '</div>' +
       '<div class="ur-bar">' +
         '<span class="ur-bar__fill" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%"></span>' +
         '<span class="ur-bar__zero"></span>' +
@@ -132,7 +157,7 @@
       var el = r.el;
       el.setAttribute('data-tier', r.tier);
       el.setAttribute('title', r.n
-        ? (r.letter + '组：平均 ' + fmt(r.cur) + '，标准 ' + fmt(data.std) + '（' + pct(r.ratio) + '）· ' + TIER_LABEL[r.tier])
+        ? (r.letter + '组：总均 ' + fmt(r.cur) + '（每式 ' + fmt(r.perF) + '），标准 ' + fmt(data.std) + '（' + pct(r.ratio) + '）· ' + TIER_LABEL[r.tier])
         : (r.letter + '组：尚未练习'));
       var old = el.querySelector('.ur-stat');
       if (old) old.parentNode.removeChild(old);
@@ -160,7 +185,7 @@
     var items = [
       { v: data.practiced.length + ' / ' + data.rows.length, k: '已练组数', cls: '' },
       { v: String(totalRuns), k: '总连拧次数', cls: '' },
-      { v: isFinite(data.std) ? fmt(data.std) : '--', k: '浮动标准', cls: '' },
+      { v: isFinite(data.std) ? fmt(data.std) : '--', k: '每式均速标准', cls: '' },
       { v: worst ? (worst.letter + ' 组') : '--', k: '最需加强', cls: worst && worst.tier === 'bad' ? 'ur-kpi--alert' : '' },
       { v: best ? (best.letter + ' 组') : '--', k: '目前最强', cls: best && best.tier === 'great' ? 'ur-kpi--ok' : '' },
       { v: String(badCount), k: '不合格组数', cls: badCount ? 'ur-kpi--alert' : '' }
@@ -172,7 +197,7 @@
     var stdEl = document.getElementById('ur-std-value');
     if (stdEl) {
       stdEl.textContent = isFinite(data.std)
-        ? fmt(data.std) + '（' + data.practiced.length + ' 组平均）'
+        ? ('每式 ' + fmt(data.std) + '（' + data.practiced.length + ' 组平均）')
         : '暂无（先去任意组练一次）';
     }
   }
@@ -193,11 +218,11 @@
     box.hidden = false;
     var html = '<div class="ur-focus__title">重点关注 · 建议优先加练</div>';
     if (bad.length) {
-      html += '<div>以下 <b>' + bad.length + '</b> 组连拧成绩<b>不合格</b>（超过浮动标准 ' +
+      html += '<div>以下 <b>' + bad.length + '</b> 组「每式均速」<b>不合格</b>（超过浮动标准 ' +
         Math.round((WARN - 1) * 100) + '% 以上）：</div>';
       html += '<div class="ur-focus__list">' + bad.map(function (r) {
         return '<a class="ur-focus__chip" href="group-' + r.letter + '.html">' +
-          r.letter + ' 组 <b>' + fmt(r.cur) + '</b> <span>' + pct(r.ratio) + '</span></a>';
+          r.letter + ' 组 <b>' + fmt(r.perF) + '</b> <span>' + pct(r.ratio) + '</span></a>';
       }).join('') + '</div>';
     }
     if (warn.length) {
@@ -231,6 +256,7 @@
         html += '<div class="ur-detail__row" data-tier="none">' +
           '<span class="d-group">' + r.letter + ' 组</span>' +
           '<span class="d-avg">--</span>' +
+          '<span class="d-per">--</span>' +
           '<span class="d-delta">未练习</span>' +
           '<span class="d-n">0</span>' +
           '<span class="d-tier">未练习</span>' +
@@ -240,6 +266,7 @@
       html += '<div class="ur-detail__row" data-tier="' + r.tier + '">' +
         '<span class="d-group">' + r.letter + ' 组</span>' +
         '<span class="d-avg">' + fmt(r.cur) + '</span>' +
+        '<span class="d-per">' + fmt(r.perF) + '</span>' +
         '<span class="d-delta">' + pct(r.ratio) + '</span>' +
         '<span class="d-n">' + r.n + '</span>' +
         '<span class="d-tier">' + TIER_LABEL[r.tier] + '</span>' +
@@ -249,7 +276,7 @@
     var hint = document.getElementById('ur-detail-hint');
     if (hint) {
       hint.textContent = isFinite(data.std)
-        ? ('浮动标准 ' + fmt(data.std) + ' · 共 ' + data.rows.length + ' 组')
+        ? ('每式均速标准 ' + fmt(data.std) + ' · 共 ' + data.rows.length + ' 组')
         : '暂无标准';
     }
   }
@@ -270,21 +297,36 @@
     rows.forEach(function (r) { grid.appendChild(r.el); });
   }
 
+  // 列数控制：auto = 随窗口自适应；数字 = 固定 N 列
+  function applyCols(cols) {
+    var grid = document.querySelector('.group-grid');
+    if (!grid) return;
+    if (cols === 'auto' || COLS.indexOf(cols) < 0) {
+      grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(min(180px, 100%), 1fr))';
+    } else {
+      var n = parseInt(cols, 10);
+      grid.style.gridTemplateColumns = 'repeat(' + n + ', minmax(0, 1fr))';
+    }
+  }
+
   // ---------- 主流程 ----------
   function render() {
     var cards = Array.prototype.slice.call(document.querySelectorAll('.group-card[data-group]'));
     if (!cards.length) return;
     var set = loadSettings();
-    var data = compute(cards, loadTimes(), set.scope);
+    var data = compute(cards, loadTimes(), set.window);
     renderCards(data);
     renderKpis(data);
     renderFocus(data);
     renderEmpty(data);
     renderDetail(data);
     applySort(data, set.sort);
+    applyCols(set.cols);
 
-    var scopeSel = document.getElementById('ur-scope');
-    if (scopeSel) scopeSel.value = set.scope;
+    var winSel = document.getElementById('ur-window');
+    if (winSel) winSel.value = set.window;
+    var colSel = document.getElementById('ur-cols');
+    if (colSel) colSel.value = set.cols;
     var btns = document.querySelectorAll('[data-sort]');
     Array.prototype.forEach.call(btns, function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-sort') === set.sort);
@@ -292,13 +334,22 @@
   }
 
   function init() {
-    var scopeSel = document.getElementById('ur-scope');
-    if (scopeSel) {
-      scopeSel.addEventListener('change', function () {
+    var winSel = document.getElementById('ur-window');
+    if (winSel) {
+      winSel.addEventListener('change', function () {
         var s = loadSettings();
-        s.scope = scopeSel.value;
+        s.window = winSel.value;
         saveSettings(s);
         render();
+      });
+    }
+    var colSel = document.getElementById('ur-cols');
+    if (colSel) {
+      colSel.addEventListener('change', function () {
+        var s = loadSettings();
+        s.cols = colSel.value;
+        saveSettings(s);
+        applyCols(s.cols);
       });
     }
     Array.prototype.forEach.call(document.querySelectorAll('[data-sort]'), function (b) {

@@ -30,7 +30,7 @@
     display: flex;
     flex-direction: column;
     gap: 32px;
-    max-width: 960px;
+    max-width: 1280px;
     margin: 0 auto;
   }
   .entry {
@@ -335,7 +335,7 @@
   /* min(200px,100%)：窄屏时轨道可收缩，防止 nowrap 标签撑爆网格 */
   grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
   gap: 16px;
-  max-width: 1080px;
+  max-width: 1280px;
   /* 必须显式 width:100%：父级 .entries 是纵向 flex，auto margin 会按
      max-content 取轨道宽，窄屏直接溢出 */
   width: 100%;
@@ -344,6 +344,7 @@
 .group-card {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   text-decoration: none;
   background: linear-gradient(160deg, var(--surface) 0%, var(--surface) 100%);
   border: 1px solid rgba(100,180,255,0.12);

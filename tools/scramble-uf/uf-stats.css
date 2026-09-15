@@ -7,7 +7,7 @@
 
 /* ===== 看板容器 ===== */
 .uf-dash {
-  max-width: 1080px;
+  max-width: 1280px;
   margin: 0 auto 26px;
   background: linear-gradient(160deg, var(--surface) 0%, var(--surface) 100%);
   border: 1px solid rgba(100, 180, 255, 0.12);
@@ -114,7 +114,7 @@
   align-items: center;
   gap: 10px;
   margin: 0 auto 14px;
-  max-width: 1080px;
+  max-width: 1280px;
   font-size: 12px;
   color: var(--fg-3);
 }
@@ -154,6 +154,13 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 6px;
+}
+.uf-stat__per {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
   margin-bottom: 8px;
 }
 .uf-stat__avg {
@@ -268,7 +275,7 @@
 
 /* ===== 重点关注提示条（直角矩形） ===== */
 .uf-focus {
-  max-width: 1080px;
+  max-width: 1280px;
   margin: 0 auto 18px;
   border-radius: 0;
   border: 1px solid var(--red);
@@ -311,7 +318,7 @@
 
 /* ===== 空状态（直角矩形） ===== */
 .uf-empty {
-  max-width: 1080px;
+  max-width: 1280px;
   margin: 0 auto 18px;
   padding: 16px 20px;
   border: 1px dashed var(--line, rgba(255, 255, 255, 0.14));
@@ -324,7 +331,7 @@
 
 /* ===== 平均成绩明细块（独立成块，按慢→快排） ===== */
 .uf-detail {
-  max-width: 1080px;
+  max-width: 1280px;
   margin: 0 auto 18px;
   border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
   border-radius: 0;
@@ -352,7 +359,7 @@
 }
 .uf-detail__row {
   display: grid;
-  grid-template-columns: 64px 1fr 92px 56px 72px;
+  grid-template-columns: 56px 1fr 84px 84px 52px 70px;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
@@ -368,6 +375,7 @@
 }
 .uf-detail__row .d-group { font-family: var(--font-mono, monospace); font-weight: 700; color: var(--fg, #EEF2F8); }
 .uf-detail__row .d-avg { font-family: var(--font-mono, monospace); font-weight: 700; font-variant-numeric: tabular-nums; }
+.uf-detail__row .d-per { font-family: var(--font-mono, monospace); color: var(--fg-3); font-variant-numeric: tabular-nums; }
 .uf-detail__row .d-delta { font-family: var(--font-mono, monospace); font-variant-numeric: tabular-nums; }
 .uf-detail__row .d-n { font-family: var(--font-mono, monospace); color: var(--fg-3); font-variant-numeric: tabular-nums; }
 .uf-detail__row .d-tier { font-size: 12px; }
@@ -392,5 +400,5 @@
   .uf-dash { padding: 16px 14px; }
   .uf-kpis { grid-template-columns: repeat(2, 1fr); }
   .uf-stat__avg { font-size: 17px; }
-  .uf-detail__row { grid-template-columns: 52px 1fr 76px 44px 60px; font-size: 12px; padding: 7px 12px; }
+  .uf-detail__row { grid-template-columns: 42px 1fr 64px 64px 40px 56px; font-size: 12px; padding: 7px 12px; }
 }

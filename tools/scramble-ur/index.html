@@ -22,7 +22,7 @@
 <div class="ur-dash">
   <div class="ur-dash__head">
     <span class="ur-dash__title">连拧成绩看板</span>
-    <span class="ur-dash__std">浮动标准（全部已练组平均） <b id="ur-std-value">--</b></span>
+    <span class="ur-dash__std">浮动标准（每式均速 · 全部已练组平均） <b id="ur-std-value">--</b></span>
   </div>
   <div class="ur-kpis" id="ur-kpis"></div>
   <div class="ur-legend">
@@ -31,7 +31,7 @@
     <span class="ur-legend__item t-warn"><span class="ur-legend__swatch"></span>需关注 ≤115%</span>
     <span class="ur-legend__item t-bad"><span class="ur-legend__swatch"></span>不合格 &gt;115%</span>
     <span class="ur-legend__item"><span class="ur-legend__swatch ur-swatch--none"></span>未练习</span>
-    <span class="ur-legend__item" style="margin-left:auto">偏离条：中线=标准 · 向左更快 · 向右更慢</span>
+    <span class="ur-legend__item" style="margin-left:auto">偏离条：中线=每式均速标准 · 向左更快 · 向右更慢</span>
   </div>
 </div>
 
@@ -40,10 +40,23 @@
 
 <div class="ur-controls">
   <span class="ur-controls__group">
-    <label for="ur-scope">成绩口径</label>
-    <select id="ur-scope">
-      <option value="recent">最近 5 次平均</option>
+    <label for="ur-window">成绩口径</label>
+    <select id="ur-window">
+      <option value="5">5 次平均</option>
+      <option value="12">12 次平均</option>
+      <option value="100">100 次平均</option>
       <option value="all">全部平均</option>
+    </select>
+  </span>
+  <span class="ur-controls__group">
+    <label for="ur-cols">每行列数</label>
+    <select id="ur-cols">
+      <option value="auto">自适应</option>
+      <option value="4">4 列</option>
+      <option value="6">6 列</option>
+      <option value="8">8 列</option>
+      <option value="10">10 列</option>
+      <option value="12">12 列</option>
     </select>
   </span>
   <span class="ur-controls__group">
@@ -155,7 +168,8 @@
   </div>
   <div class="ur-detail__row d-head">
     <span>组</span>
-    <span>平均</span>
+    <span>总均</span>
+    <span>每式</span>
     <span>偏离标准</span>
     <span>次数</span>
     <span>档位</span>

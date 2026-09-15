@@ -271,7 +271,7 @@ __HEAD__
 <div class="uf-dash">
   <div class="uf-dash__head">
     <span class="uf-dash__title">连拧成绩看板</span>
-    <span class="uf-dash__std">浮动标准（全部已练组平均） <b id="uf-std-value">--</b></span>
+    <span class="uf-dash__std">浮动标准（每式均速 · 全部已练组平均） <b id="uf-std-value">--</b></span>
   </div>
   <div class="uf-kpis" id="uf-kpis"></div>
   <div class="uf-legend">
@@ -280,7 +280,7 @@ __HEAD__
     <span class="uf-legend__item t-warn"><span class="uf-legend__swatch"></span>需关注 ≤115%</span>
     <span class="uf-legend__item t-bad"><span class="uf-legend__swatch"></span>不合格 &gt;115%</span>
     <span class="uf-legend__item"><span class="uf-legend__swatch uf-swatch--none"></span>未练习</span>
-    <span class="uf-legend__item" style="margin-left:auto">偏离条：中线=标准 · 向左更快 · 向右更慢</span>
+    <span class="uf-legend__item" style="margin-left:auto">偏离条：中线=每式均速标准 · 向左更快 · 向右更慢</span>
   </div>
 </div>
 
@@ -289,10 +289,23 @@ __HEAD__
 
 <div class="uf-controls">
   <span class="uf-controls__group">
-    <label for="uf-scope">成绩口径</label>
-    <select id="uf-scope">
-      <option value="recent">最近 5 次平均</option>
+    <label for="uf-window">成绩口径</label>
+    <select id="uf-window">
+      <option value="5">5 次平均</option>
+      <option value="12">12 次平均</option>
+      <option value="100">100 次平均</option>
       <option value="all">全部平均</option>
+    </select>
+  </span>
+  <span class="uf-controls__group">
+    <label for="uf-cols">每行列数</label>
+    <select id="uf-cols">
+      <option value="auto">自适应</option>
+      <option value="4">4 列</option>
+      <option value="6">6 列</option>
+      <option value="8">8 列</option>
+      <option value="10">10 列</option>
+      <option value="12">12 列</option>
     </select>
   </span>
   <span class="uf-controls__group">
@@ -306,6 +319,22 @@ __HEAD__
   <div class="group-grid">
 __CARDS__
   </div>
+</div>
+
+<div class="uf-detail" id="uf-detail">
+  <div class="uf-detail__head">
+    <span class="uf-detail__title">平均成绩明细</span>
+    <span class="uf-detail__hint" id="uf-detail-hint">浮动标准 --</span>
+  </div>
+  <div class="uf-detail__row d-head">
+    <span>组</span>
+    <span>总均</span>
+    <span>每式</span>
+    <span>偏离标准</span>
+    <span>次数</span>
+    <span>档位</span>
+  </div>
+  <div id="uf-detail-rows"></div>
 </div>
 
 __FOOTER__
