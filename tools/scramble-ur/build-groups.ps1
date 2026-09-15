@@ -85,6 +85,7 @@ $head = @'
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
 <link rel="stylesheet" href="ur-common.css">
+<link rel="stylesheet" href="ur-stats.css">
 </head>
 <body data-nav="scramble-ur">
 '@
@@ -218,50 +219,48 @@ __FOOTER__
 
 $indexTemplate = @'
 __HEAD__
-<nav class="site-nav" id="siteNav">
-  <div class="nav-inner">
-    <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
-    <button class="nav-toggle-btn" id="navToggle" aria-label="菜单" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="navLinks">
-      <a href="/" class="nav-link" data-nav="home">首页</a>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tutorial">教程 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/fto" data-nav="fto">FTO</a>
-          <a href="/tools/3x3" data-nav="3x3">三阶</a>
-          <a class="nav-soon" title="即将上线">二阶</a>
-          <a class="nav-soon" title="即将上线">金字塔</a>
-          <a class="nav-soon" title="暂时预留">三盲</a>
-        </div>
-      </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="tools">个人训练工具 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/scramble-ur" data-nav="scramble-ur">UR公式训练</a>
-          <a href="/tools/scramble-uf" data-nav="scramble-uf">UF公式训练</a>
-          <a href="/tools/3bld" data-nav="3bld">出题器</a>
-          <a href="/tools/2x2" data-nav="2x2">二阶练习</a>
-          <a href="/tools/kmap" data-nav="kmap">知识地图</a>
-          <a href="/tools/invert" data-nav="invert">逆序转换</a>
-          <a href="/tools/practice" data-nav="practice">练习纸生成</a>
-        </div>
-      </div>
-      <div class="nav-drop">
-        <span class="nav-link nav-drop-toggle" data-nav="links">外链 <span class="caret">▾</span></span>
-        <div class="nav-menu">
-          <a href="/tools/nav" data-nav="nav">工具导航</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
 <div class="header">
   <h1>UR缓冲公式连拧专项训练</h1>
   <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UR缓冲复原公式，魔方恢复复原状态。点击组卡片进入对应子页训练。</div>
 </div>
+
+<div class="ur-dash">
+  <div class="ur-dash__head">
+    <span class="ur-dash__title">连拧成绩看板</span>
+    <span class="ur-dash__std">浮动标准（全部已练组平均） <b id="ur-std-value">--</b></span>
+  </div>
+  <div class="ur-kpis" id="ur-kpis"></div>
+  <div class="ur-legend">
+    <span class="ur-legend__item t-great"><span class="ur-legend__swatch"></span>优秀 ≤85%</span>
+    <span class="ur-legend__item t-good"><span class="ur-legend__swatch"></span>良好 ≤100%</span>
+    <span class="ur-legend__item t-warn"><span class="ur-legend__swatch"></span>需关注 ≤115%</span>
+    <span class="ur-legend__item t-bad"><span class="ur-legend__swatch"></span>不合格 &gt;115%</span>
+    <span class="ur-legend__item"><span class="ur-legend__swatch ur-swatch--none"></span>未练习</span>
+    <span class="ur-legend__item" style="margin-left:auto">偏离条：中线=标准 · 向左更快 · 向右更慢</span>
+  </div>
+</div>
+
+<div class="ur-focus" id="ur-focus" hidden></div>
+<div class="ur-empty" id="ur-empty" hidden>还没有任何连拧记录。进入任意一组练一次，总页面就会自动统计并用颜色标出需要加强的组。</div>
+
+<div class="ur-controls">
+  <span class="ur-controls__group">
+    <label for="ur-scope">成绩口径</label>
+    <select id="ur-scope">
+      <option value="recent">最近 5 次平均</option>
+      <option value="all">全部平均</option>
+    </select>
+  </span>
+  <span class="ur-controls__group">
+    <span>排序</span>
+    <button type="button" data-sort="order">按组顺序</button>
+    <button type="button" data-sort="weak">最需加强优先</button>
+  </span>
+</div>
+
 <div class="entries">
   <div class="group-grid">
 __CARDS__
@@ -270,12 +269,13 @@ __CARDS__
 
 __FOOTER__
 <script src="/assets/js/site-nav.js"></script>
+<script src="ur-stats.js"></script>
 </body>
 </html>
 '@
 
 $cardTemplate = @'
-<a class="group-card" href="__FILE__">
+<a class="group-card" href="__FILE__" data-group="__LETTER__">
   <span class="card-index">__IDX__</span>
   <div class="card-name">__NAME__</div>
   <div class="card-tags">__TAGS__</div>
@@ -351,7 +351,7 @@ foreach ($g in $groups) {
   $card = $cardTemplate.Replace('__FILE__', $file)
   $card = $card.Replace('__IDX__', $g.index)
   $card = $card.Replace('__NAME__', $g.name)
-  $card = $card.Replace('__TAGS__', ($g.codes -join ' '))
+  $card = $card.Replace('__TAGS__', ($g.codes -join ' ')).Replace('__LETTER__', $letter)
   $cards += $card
 }
 
