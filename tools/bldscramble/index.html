@@ -260,11 +260,18 @@
 
     <!-- 菜单面板 -->
     <div class="card active" id="panel-menu">
+      <div class="field"><label>魔方</label>
+        <select id="puzzleType">
+          <option value="3x3" selected>三阶 3×3</option>
+          <option value="2x2">二阶 2×2</option>
+        </select>
+      </div>
       <div class="count-row">
         <input type="number" id="count" value="1" min="1" max="50">
         <button class="btn btn--primary" id="btnStart">开始</button>
       </div>
 
+      <div id="threeParams">
       <div class="group-title">棱</div>
       <div class="field"><label>编码长度</label><input type="number" id="eLen" min="0" placeholder="不限"></div>
       <div class="field"><label>奇偶</label>
@@ -308,7 +315,13 @@
       <div class="field"><label>小循环包含</label><input type="text" id="cContain" placeholder="如 IK, 逗号分隔"></div>
 
       <div class="hint">编码方案：彳亍法（spooncuber 读码引擎，物理贴纸字母，A=UF / G=UR 等）。<br>棱/角缓冲与颜色方案可在「设置」中调整（默认棱 UF、角 UFR）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。<br>角编码设为 0 时自动采用纯六面共轭公式（X·A·X'），角块完全复原且输出符合 WCA 标准（无 M/E/S）。</div>
-    </div>
+      </div>
+
+      <div id="twoParams" style="display:none">
+        <div class="group-title">二阶设置</div>
+        <div class="field"><label>打乱步数</label><input type="number" id="twoLen" value="20" min="2" max="60"></div>
+        <div class="hint">二阶魔方仅用 R / U / F 三面外层转动，相邻不同面，符合 WCA 二阶打乱特征。<br>步数越多越随机（WCA 标准约 11+ 步，练习常用 20 步）。</div>
+      </div>
 
     <!-- 设置面板 -->
     <div class="card" id="panel-settings">
@@ -3154,6 +3167,7 @@ function fmtCode(letters, colors, colorMode) {
 }
 
 function render() {
+  if ($('puzzleType').value === '2x2') return render2x2();
   const count = Math.max(1, parseInt($('count').value, 10) || 1);
   const coord = $('setCoord').value;
   const showNo = $('setNo').value === '1';
@@ -3226,6 +3240,51 @@ function render() {
   }, 30);
 }
 
+// ========== 二阶 2×2 打乱生成 ==========
+// 二阶魔方仅 R/U/F 三面影响状态，标准打乱为相邻不同面的随机转动序列；步数越多越随机。
+function generate2x2Scramble(len) {
+  const faces = ['R', 'U', 'F'];
+  const suffix = ['', "'", '2'];
+  const moves = [];
+  let last = '';
+  for (let i = 0; i < len; i++) {
+    let f, guard = 0;
+    do { f = faces[randInt(3)]; guard++; } while (f === last && guard < 20);
+    last = f;
+    moves.push(f + suffix[randInt(3)]);
+  }
+  return moves;
+}
+
+function render2x2() {
+  const count = Math.max(1, parseInt($('count').value, 10) || 1);
+  const showNo = $('setNo').value === '1';
+  let len = parseInt($('twoLen').value, 10);
+  if (!len || len < 2) len = 20;
+  len = Math.min(60, Math.max(2, len));
+  const status = $('status');
+  const out = $('output');
+  status.className = 'status';
+  status.textContent = '生成中…';
+  setTimeout(() => {
+    const results = [];
+    for (let i = 0; i < count; i++) {
+      const seq = generate2x2Scramble(len).join(' ');
+      results.push('<span class="scramble">' + (showNo ? (i + 1) + '. ' + seq : seq) + '</span>');
+    }
+    out.innerHTML = results.join('\n\n');
+    status.className = 'status ok';
+    status.textContent = '已生成 ' + count + ' 条二阶打乱（每条约 ' + len + ' 步）· 仅 R/U/F 转动，相邻不同面';
+    copyText(results.map(r => r.replace(/<[^>]+>/g, '')).join('\n\n'));
+    showToast();
+  }, 30);
+}
+
+$('puzzleType').addEventListener('change', () => {
+  const is2 = $('puzzleType').value === '2x2';
+  $('threeParams').style.display = is2 ? 'none' : '';
+  $('twoParams').style.display = is2 ? '' : 'none';
+});
 $('btnStart').addEventListener('click', render);
 $('count').addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
 </script>

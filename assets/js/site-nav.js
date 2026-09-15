@@ -12,29 +12,31 @@
       { id: '3x3', label: '三阶', href: '/tools/3x3/' },
       { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
-      { label: '三盲', soon: true },
       { id: 'fto', label: 'FTO', href: '/fto' }
+    ]},
+    { id: 'cfop', label: 'CFOP公式库', href: '/tools/cfop/' },
+    { id: '3bld', label: '三盲', children: [
+      { id: '3bld-home',      label: '三盲总页',         href: '/tools/3bld/' },
+      { id: '3bld-assoc',     label: '三盲出题器',       href: '/tools/3bld/association.html' },
+      { id: 'scramble-uf',    label: 'UF公式训练',       href: '/tools/scramble-uf' },
+      { id: 'scramble-ur',    label: 'UR公式训练',       href: '/tools/scramble-ur' },
+      { id: 'bldtrainer',     label: '三盲读码还原',     href: '/tools/bldtrainer' },
+      { id: 'bld-trainer',    label: '记忆编码训练',     href: '/tools/bld-trainer' },
+      { id: 'corner-trainer', label: '角块编码训练',     href: '/tools/corner-trainer' },
+      { id: 'edge-trainer',   label: '棱块编码训练',     href: '/tools/edge-trainer' },
+      { id: 'edge-printout',  label: '棱块出题打印',     href: '/tools/edge-printout' },
+      { id: 'kmap',           label: '教学知识地图',     href: '/tools/kmap' },
+      { id: 'practice',       label: '练习纸生成',       href: '/tools/practice' },
+      { id: 'bldscramble',    label: '盲拧打乱生成器',   href: '/tools/bldscramble' },
+      { id: '2x2',            label: '二阶盲拧',         href: '/tools/2x2' }
     ]},
     { id: 'tools', label: '个人训练工具', children: [
       { id: 'timer',            label: '计时器',           href: '/tools/timer' },
-      { id: 'scramble-ur',      label: 'UR公式训练',       href: '/tools/scramble-ur' },
-      { id: 'scramble-uf',      label: 'UF公式训练',       href: '/tools/scramble-uf' },
-      { id: 'bldtrainer',       label: '三盲读码还原',     href: '/tools/bldtrainer' },
-      { id: 'bld-trainer',      label: '记忆编码训练',     href: '/tools/bld-trainer' },
-      { id: '3bld',             label: '三盲出题器',       href: '/tools/3bld' },
-      { id: '2x2',              label: '二阶练习',         href: '/tools/2x2' },
-      { id: 'corner-trainer',   label: '角块编码',         href: '/tools/corner-trainer' },
-      { id: 'edge-trainer',     label: '棱块编码',         href: '/tools/edge-trainer' },
-      { id: 'kmap',             label: '知识地图',         href: '/tools/kmap' },
       { id: 'invert',           label: '逆序转换',         href: '/tools/invert' },
-      { id: 'bldscramble',      label: '盲拧打乱生成器',   href: '/tools/bldscramble' },
       { id: 'scramble-trainer', label: '打乱公式训练',     href: '/tools/scramble-trainer' },
-      { id: 'practice',         label: '练习纸生成',       href: '/tools/practice' },
-      { id: 'edge-printout',    label: '出题打印',         href: '/tools/edge-printout' },
       { id: '3x3teach',         label: '三阶魔方教学',     href: '/tools/3x3teach' },
       { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' }
     ]},
-    { id: 'cfop', label: 'CFOP公式库', href: '/tools/cfop/' },
     { id: 'links', label: '外链', children: [
       { id: 'nav', label: '工具导航', href: '/tools/nav' }
     ]}

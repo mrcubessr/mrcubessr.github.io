@@ -1,0 +1,279 @@
+﻿<!DOCTYPE html>
+<!--
+	Phantom by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+
+<head>
+  <title class="lang" key="title"></title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+  <meta name="description"
+    content="BLDDB is a 3x3x3 Rubik's cube blindfolded algorithms database, including 3-style corner (all buffers), 3-style edge (all buffers), corner twist, edge flip, and so on.">
+  <meta name="keywords" content="bld, algorithm, db, database, blindfolded, cube">
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="icon" href="images/logo.svg" type="image/x-icon" />
+  <link rel="apple-touch-icon" href="images/logo.png" />
+  <meta name="google-site-verification" content="s3hE2D_rJuuUUj4rVvWBADMHqHqiSM-bQh80mnwzDMA" />
+  <meta name="baidu-site-verification" content="code-drW3Xb0ML6" />
+  <style>
+    .popup {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      padding-left: calc(100vw - 100%); 
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 600px;
+      position: relative;
+    }
+
+    .popup h2 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .popup p {
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    .close-btn {
+      background-color: transparent;
+      color: #333;
+      border: none;
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body class="is-preload">
+  <div class="allscreen">
+    <div id="wrapper">
+      <header id="header">
+        <div class="inner">
+          <a href="./" class="logo">
+            <span class="symbol"><img src="images/logo.svg" alt="" /></span><span class="title">blddb</span>
+          </a>
+          <div class="language">
+            <div class="status_circle">
+            </div>
+            <div class="dropdown-content">
+              <div class="status_circle" data-lang="zh">简体中文</div>
+              <div class="status_circle" data-lang="en">English</div>
+              <div class="status_circle" data-lang="ja">日本語</div>
+            </div>
+          </div>
+      </header>
+      <div id="main">
+        <div class="inner">
+          <header>
+            <h1 style="text-align:center" class="lang" key="title"><br /></h1>
+            <p class="lang" key="description"></p>
+          </header>
+          <section class="tiles">
+            <article class="style1">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="corner.html">
+                <h2 class="lang" key="corner"></h2>
+              </a>
+            </article>
+            <article class="style2">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="edge.html">
+                <h2 class="lang" key="edge"></h2>
+              </a>
+            </article>
+            <article class="style3">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="twists.html">
+                <h2 class="lang" key="twists"></h2>
+              </a>
+            </article>
+            <article class="style4">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="2flips.html">
+                <h2 class="lang" key="2flips"></h2>
+              </a>
+            </article>
+            <article class="style5">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="parity.html">
+                <h2 class="lang" key="parity"></h2>
+              </a>
+            </article>
+            <article class="style6" id="image">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="image.html">
+                <h2>联想词库</h2>
+              </a>
+            </article>
+            <article class="style7">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="ltct.html">
+                <h2 class="lang" key="ltct"></h2>
+              </a>
+            </article>
+            <article class="style8">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="2e2e.html">
+                <h2 class="lang" key="2e2e"></h2>
+              </a>
+            </article>
+            <article class="style9">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="ltef.html">
+                <h2 class="lang" key="ltef"></h2>
+              </a>
+            </article>
+            <article class="style10">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="5style.html">
+                <h2 class="lang" key="5style"></h2>
+              </a>
+            </article>
+            <article class="style11">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="nightmare.html">
+                <h2 class="lang" key="nightmare"></h2>
+              </a>
+            </article>
+            <article class="style12">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="custom.html">
+                <h2 class="lang" key="custom"></h2>
+              </a>
+            </article>
+            <article class="style1">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="bigbld.html">
+                <h2 class="lang" key="bigbld"></h2>
+              </a>
+            </article>
+            <article class="style2">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a href="code.html">
+                <h2 class="lang" key="code"></h2>
+              </a>
+            </article>
+            <article class="style3">
+              <span class="image">
+                <img src="images/grey.png" alt="" />
+              </span>
+              <a id="introduction" target="_blank" href="https://docs.blddb.net/zh">
+                <h2 class="lang" key="introduction"></h2>
+              </a>
+            </article>
+          </section>
+        </div>
+      </div>
+      <footer id="footer">
+        <div class="inner">
+          <ul class="copyright">
+            <li>© 2022-2025 Zixing Wang. All rights reserved.</li>
+            <li>Github: <a href="https://github.com/nbwzx/blddb">blddb</a></li>
+            <li>License: <a href="https://www.gnu.org/licenses">GPL-3.0 license</a></li>
+            <li>Powered by <a href="http://html5up.net">HTML5 UP</a></li>
+            <li><a id="donate" href="donate.html">Donate me</a></li>
+          </ul>
+        </div>
+      </footer>
+
+      <div id="beta-popup" class="popup">
+        <div class="popup-content">
+          <button class="close-btn" onclick="closePopup()">✖</button>
+          <h2 class="lang" key="notice"></h2>
+          <p>
+            <sentence class="lang" key="noticeSentence1"></sentence><a href="https://v2.blddb.net" target="_blank"
+              style="color: blue; margin-right: -5px;">v2.blddb.net</a>
+            <sentence class="lang" key="noticeSentence2"></sentence>
+          </p>
+          <div>
+            <input type="checkbox" id="neverShowAgainCheckbox" onclick="neverShowAgain()">
+            <label for="neverShowAgainCheckbox" class="lang" key="neverShowAgain"></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/setcode.js"></script>
+  <script src="assets/js/language.js"></script>
+  <script>
+    function showPopup() {
+      document.getElementById('beta-popup').style.display = 'flex';
+    }
+    function closePopup() {
+      document.getElementById('beta-popup').style.display = 'none';
+    }
+    function neverShowAgain() {
+      const checkbox = document.getElementById('neverShowAgainCheckbox');
+      if (checkbox.checked) {
+        localStorage.setItem('hideBetaPopup', 'true');
+      } else {
+        localStorage.removeItem('hideBetaPopup');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!localStorage.getItem('hideBetaPopup')) {
+        showPopup();
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,415 +1,187 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三盲联想词出题器 — 3BLD Association</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: '微软雅黑', 'Microsoft YaHei', Arial, sans-serif;
-    background: var(--bg);
-    min-height: 100vh;
-    padding: 24px 16px;
-  }
-
-  .container { max-width: 1100px; margin: 0 auto; }
-
-  .header { text-align: center; margin-bottom: 24px; }
-  .header h1 { font-size: 26px; color: var(--brand); margin-bottom: 6px; }
-  .header p { font-size: 14px; color: var(--fg-2); }
-
-  .tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
-    border-bottom: 2px solid rgba(100, 180, 255, 0.15);
-  }
-  .tab-btn {
-    padding: 10px 32px;
-    border: none;
-    background: none;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--fg-2);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
-    transition: all 0.2s;
-  }
-  .tab-btn.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: bold; }
-
-  .toolbar {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-  .btn {
-    padding: 10px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-secondary { background: rgba(100, 180, 255, 0.1); color: var(--brand); border: 1.5px solid var(--brand); }
-  .btn-secondary:hover { background: rgba(100, 180, 255, 0.2); }
-
-  .stats { text-align: center; font-size: 13px; color: var(--fg-2); margin-bottom: 16px; }
-
-  .paper {
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    padding: 32px 36px;
-  }
-
-  .paper-title { text-align: center; margin-bottom: 20px; }
-  .paper-title h2 { font-size: 20px; color: var(--brand); margin-bottom: 4px; }
-  .paper-title .subtitle { font-size: 13px; color: var(--fg-2); margin-bottom: 8px; }
-  .paper-title .info { font-size: 13px; color: var(--fg-3); }
-
-  /* ===== 练习题模式 ===== */
-  .quiz-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 24px;
-  }
-  .quiz-col { display: flex; flex-direction: column; gap: 8px; }
-  .quiz-item {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    padding: 5px 0;
-    border-bottom: 1px dashed rgba(100, 180, 255, 0.1);
-  }
-  .quiz-num { font-size: 12px; color: var(--fg-3); min-width: 26px; }
-  .quiz-code { font-size: 17px; font-weight: bold; color: var(--brand); min-width: 42px; }
-  .quiz-line { flex: 1; border-bottom: 1px solid var(--brand); height: 1px; margin-top: 2px; }
-
-  /* ===== 字母组模式：4行×5列网格，每格一个组 ===== */
-  .groups-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(4, auto);
-    gap: 12px;
-  }
-  
-  .group-box {
-    border: 1.5px solid var(--brand);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .group-box-header {
-    background: var(--brand);
-    color: var(--bg);
-    text-align: center;
-    padding: 6px 4px;
-    font-size: 13px;
-    font-weight: bold;
-  }
-  
-  .group-box-letters {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 4px;
-    background: var(--surface);
-  }
-  
-  .group-box-letters span {
-    font-size: 15px;
-    font-weight: bold;
-    color: var(--fg);
-  }
-
-  .btn-group-row {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 16px;
-  }
-
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  @media print {
-    @page { size: A4 portrait; margin: 15mm 12mm; }
-    body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .container { max-width: 100%; }
-    .toolbar, .stats, .tabs, .btn-group-row { display: none !important; }
-    .paper { box-shadow: none; border-radius: 0; padding: 0; background: white !important; }
-    .paper-title h2, .quiz-code, .group-box { color: var(--brand-strong); border-color: var(--brand-strong) !important; }
-    .paper-title .subtitle, .paper-title .info, .quiz-num, .stats { color: var(--fg-3) !important; }
-    .group-box-letters { background: white !important; }
-    .group-box-letters span { color: var(--surface-2) !important; }
-    .quiz-line { border-bottom-color: var(--fg-3) !important; }
-    .quiz-item { border-bottom-color: var(--fg-2) !important; }
-    .group-box-header { color: white !important; }
-    .paper-title { margin-bottom: 16px; }
-    .paper-title h2 { font-size: 18px; }
-    .groups-grid { gap: 10px; }
-    .group-box-header { background: var(--brand-strong) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .group-box-letters span { font-size: 14px; }
-  }
-
-  /* 移动端适配 */
-  @media (max-width: 640px) {
-    body { padding: 12px 10px; }
-    .header h1 { font-size: 20px; }
-    .tabs { gap: 2px; }
-    .tab-btn { padding: 10px 10px; font-size: 13px; }
-    .paper { padding: 18px 12px; }
-    .quiz-grid { grid-template-columns: 1fr; gap: 0; }
-    .quiz-code { font-size: 16px; min-width: 36px; }
-    .groups-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; gap: 8px; }
-    .group-box-letters { padding: 8px 2px; }
-    .group-box-letters span { font-size: 13px; }
-    .group-box-header { font-size: 12px; }
-    .btn-group-row { flex-wrap: wrap; }
-  }
-
-  </style>
+<title>三盲训练中心 · 公式库 + 全套盲拧工具 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
 <link rel="stylesheet" href="/assets/css/site-nav.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/assets/css/pages/home.css">
+<link rel="stylesheet" href="/tools/3bld/3bld.css">
+<style>
+  /* 三盲总页专属微调：页头强调色 + 卡片图标统一对齐 */
+  .bld-hero { margin-bottom: var(--s5, 24px); }
+  .bld-hero__tag {
+    display: inline-block; margin-bottom: 10px; padding: 3px 10px;
+    font-size: 12px; letter-spacing: .08em; border-radius: 0;
+    color: var(--brand, #5B8DEF); border: 1px solid var(--brand, #5B8DEF);
+  }
+</style>
 </head>
-<body>
+<body data-nav="3bld">
+
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
-<div class="container">
-  <div class="header">
-    <h1>🧩 三盲联想词出题器</h1>
-    <p>随机出题 · 一键打印 · 适合A4纸</p>
+<main class="container home">
+
+  <!-- 页头 -->
+  <div class="bld-hero page-head">
+    <span class="bld-hero__tag">3×3 BLINDFOLD</span>
+    <h1 class="page-head__title">三盲训练中心</h1>
+    <p class="page-head__sub">blddb.net 盲拧公式库全量搬运 · 全套盲拧训练工具一处直达</p>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('quiz')">📝 练习题模式</button>
-    <button class="tab" onclick="switchTab('groups')">🎯 字母组模式</button>
-  </div>
+  <!-- ============ 公式库（blddb.net 搬运） ============ -->
+  <section class="group" aria-labelledby="blddb-h">
+    <h2 class="section-title" id="blddb-h">盲拧公式库 · blddb.net</h2>
+    <p class="x3-path">
+      输入字母对即可查询 3-Style 等算法：角块如 <span class="formula">JAD</span>、棱块如 <span class="formula">ACG</span>。
+      支持梦魇 / 平衡 / 原子 / 人造 多种风格切换，数据由 blddb.net 全量搬运、完整保留。
+    </p>
 
-  <div class="toolbar">
-    <button class="btn btn--primary" onclick="generate()">🎲 随机出题</button>
-    <button class="btn btn--secondary" onclick="printPaper()">🖨️ 打印本页</button>
-  </div>
-
-  <div class="stats" id="stats"></div>
-
-  <div class="paper" id="paper">
-
-    <!-- 练习题模式 -->
-    <div class="tab-content active" id="tab-quiz">
-      <div class="paper-title">
-        <h2>三盲联想词练习题</h2>
-        <div class="info">姓名：______________ &nbsp;&nbsp; 日期：______________ &nbsp;&nbsp; 用时：__________</div>
+    <div class="blddb">
+      <div class="blddb__tabs" role="tablist" aria-label="公式库模块">
+        <button class="blddb__tab is-active" type="button" data-src="/tools/3bld/blddb/corner.html" role="tab" aria-selected="true">角块 3-Style</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/edge.html" role="tab" aria-selected="false">棱块 3-Style</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/2e2e.html" role="tab" aria-selected="false">2e2e</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/2flips.html" role="tab" aria-selected="false">棱翻转</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/twists.html" role="tab" aria-selected="false">角扭转</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/ltct.html" role="tab" aria-selected="false">LTCT</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/ltef.html" role="tab" aria-selected="false">LTEF</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/parity.html" role="tab" aria-selected="false">奇偶</button>
+        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/index.html" role="tab" aria-selected="false">总览</button>
       </div>
-      <div class="quiz-grid" id="quizGrid"></div>
-      <div class="btn-group-row">
-        <button class="btn btn--secondary" onclick="generate()">🔄 换一组</button>
+      <div class="blddb__frame">
+        <iframe id="blddbFrame" src="/tools/3bld/blddb/corner.html" title="blddb 盲拧公式库" loading="lazy"></iframe>
       </div>
+      <p class="blddb__hint">
+        公式库为 blddb.net 全量搬运，含角块 / 棱块 3-Style、2e2e、棱翻转、角扭转、LTCT、LTEF、奇偶等全部模块。
+        移动端可横向查看；需要更大空间可 <a href="/tools/3bld/blddb/index.html" target="_blank" rel="noopener">在新标签打开完整站 ↗</a>。
+      </p>
     </div>
+  </section>
 
-    <!-- 字母组模式：4行×5列网格 -->
-    <div class="tab-content" id="tab-groups">
-      <div class="paper-title">
-        <h2>三盲联想词随机练习（20组 × 6个）</h2>
-        <div class="subtitle">每组6个字母组合，遮住答案，根据联想词回忆字母编码</div>
-        <div class="info">姓名：______________ &nbsp;&nbsp; 日期：______________ &nbsp;&nbsp; 得分：__________</div>
-      </div>
-      <div class="groups-grid" id="groupsContainer"></div>
-      <div class="btn-group-row">
-        <button class="btn btn--secondary" onclick="generateGroups()">🔄 换一组</button>
-      </div>
+  <!-- ============ 盲拧训练工具 ============ -->
+  <section class="group" aria-labelledby="tools-h">
+    <h2 class="section-title" id="tools-h">盲拧训练工具</h2>
+    <div class="bld-tool-grid">
+
+      <a class="card card--print" href="/tools/3bld/association.html">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M6 5h12v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></div>
+        <div class="card-title">三盲出题器（联想词）</div>
+        <div class="card-desc">随机出题、一键打印，适配 A4 练习纸</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">打印</span><span class="badge badge--mono">联想词</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/bldtrainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 12h9V3"/><path d="M12 7v5l3 2"/></svg></div>
+        <div class="card-title">三盲读码还原</div>
+        <div class="card-desc">读码 → 还原 全流程练习，巩固记忆与执行</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">读码</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/bld-trainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/></svg></div>
+        <div class="card-title">记忆编码训练</div>
+        <div class="card-desc">字母编码记忆强化，提升编码速度与准确率</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">编码</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/scramble-uf/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></div>
+        <div class="card-title">UF 公式训练</div>
+        <div class="card-desc">UF 组连拧专项训练，分组进度统计</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">连拧</span><span class="badge badge--mono">UF</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/scramble-ur/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></div>
+        <div class="card-title">UR 公式训练</div>
+        <div class="card-desc">UR 组连拧专项训练，分组进度统计</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">连拧</span><span class="badge badge--mono">UR</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/corner-trainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/></svg></div>
+        <div class="card-title">角块编码训练</div>
+        <div class="card-desc">角块缓冲编码练习，巩固角块记忆</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">角块</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/edge-trainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18M7 6v12M17 6v12"/></svg></div>
+        <div class="card-title">棱块编码训练</div>
+        <div class="card-desc">棱块缓冲编码练习，巩固棱块记忆</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">棱块</span></div>
+      </a>
+
+      <a class="card card--print" href="/tools/edge-printout/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+        <div class="card-title">棱块编码出题打印</div>
+        <div class="card-desc">棱块题单生成与打印，纸面练习更高效</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">打印</span><span class="badge badge--mono">棱块</span></div>
+      </a>
+
+      <a class="card card--teach" href="/tools/kmap/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="17" r="2.5"/><path d="M8 7.5 16 8M7.5 8 11 15M16.5 9 13 15"/></svg></div>
+        <div class="card-title">教学知识地图</div>
+        <div class="card-desc">盲拧知识脉络一张图理清，新手老手都适用</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">图谱</span></div>
+      </a>
+
+      <a class="card card--print" href="/tools/practice/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+        <div class="card-title">魔方练习题纸生成器</div>
+        <div class="card-desc">通用练习纸按需生成，随时打印</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">练习纸</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/bldscramble/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/><path d="M10 7h4M10 17h4M7 10v4M17 10v4"/></svg></div>
+        <div class="card-title">盲拧打乱生成器</div>
+        <div class="card-desc">三阶 / 二阶盲拧打乱生成（已支持二阶）</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">打乱</span><span class="badge badge--mono">3×3·2×2</span></div>
+      </a>
+
+      <a class="card card--train" href="/tools/2x2/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/></svg></div>
+        <div class="card-title">二阶盲拧练习</div>
+        <div class="card-desc">二阶盲拧（2×2 BLD）公式与练习</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">二阶</span><span class="badge badge--mono">2×2</span></div>
+      </a>
+
     </div>
+  </section>
 
-  </div>
-</div>
+  <p class="x3-note">所有工具与公式库均支持深色 / 浅色主题，数据保存在本地浏览器。</p>
+
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
 
 <script>
-// ========== 联想词数据库 ==========
-const WORDS = {
-  AB:'阿波罗',AC:'鹌鹑蛋',AD:'AD钙奶',AE:'阿尔卑斯糖',AF:'埃弗尔铁塔',
-  AG:'阿哥',AH:'暗黑',AJ:'埃及',AK:'AK47',AL:'阿拉伯',
-  AM:'阿妹',AN:'安妮',AP:'阿飘',AQ:'安全带',AR:'矮人',
-  AS:'盎司',AT:'安徒生',AW:'艾薇儿',AX:'爱心',AY:'奥运',AZ:'袄子',
-  BA:'爸',BC:'蹦床',BD:'绷带',BE:'杯',BF:'绑匪',
-  BG:'八卦',BH:'壁虎',BJ:'簸箕',BK:'贝壳',BL:'宾利',
-  BM:'斑马',BN:'白娘子',BP:'鞭炮',BQ:'标枪',BR:'半人马',
-  BS:'别墅',BT:'鼻涕',BW:'布娃',BX:'冰箱',BY:'鲍鱼',BZ:'棒子',
-  CA:'叉',CB:'搓板',CD:'锉刀',CE:'车',CF:'吹风机',
-  CG:'唇膏',CH:'柴火',CJ:'餐巾',CK:'创可贴',CL:'成龙',
-  CM:'筹码',CN:'彩泥',CP:'脆皮',CQ:'充气船',CR:'超人',
-  CS:'穿山甲',CT:'锄头',CW:'刺猬',CX:'草鞋',CY:'苍蝇',CZ:'搋子',
-  DA:'档案',DB:'碉堡',DC:'单车',DE:'蝶',DF:'东风',
-  DG:'蛋糕',DH:'吊环',DJ:'独角兽',DK:'短裤',DL:'灯笼',
-  DM:'盗墓',DN:'豆奶',DP:'盾牌',DQ:'肚脐',DR:'多肉',
-  DS:'袋鼠',DT:'电梯',DW:'动物',DX:'大象',DY:'抖音',DZ:'队长',
-  EA:'鹅',EB:'耳包',EC:'耳垂',ED:'耳钉',EF:'耳返',
-  EG:'二锅头',EH:'二胡',EJ:'二阶魔方',EK:'尔康',EL:'二郎神',
-  EM:'鹅毛',EN:'摁',EP:'耳片',EQ:'恶犬',ER:'耳',
-  ES:'耳勺',ET:'ET',EW:'二维码',EX:'恩熙',EY:'鳄鱼',EZ:'儿子',
-  FA:'发',FB:'粪便',FC:'帆船',FD:'芬达',FE:'飞蛾',
-  FF:'发箍',FG:'发箍',FH:'凤凰',FJ:'佛经',FK:'饭卡',
-  FL:'凤梨',FM:'坟墓',FN:'肥牛',FP:'废品',FQ:'番茄',
-  FR:'缝纫机',FS:'富士',FT:'发条',FW:'福娃',FX:'方向盘',
-  FY:'放映机',FZ:'风筝',
-  GA:'干',GB:'鼓棒',GC:'棺材',GD:'高达',GE:'鸽',
-  GF:'盖饭',GG:'格格',GH:'篝火',GJ:'公交',GK:'钢盔',
-  GL:'咖喱',GM:'根苗',GN:'耕牛',GP:'瓜皮',GQ:'国旗',
-  GR:'光刃',GS:'怪兽',GT:'滚筒',GW:'格瓦斯',GX:'狗熊',
-  GY:'桂圆',GZ:'挂钟',
-  HA:'哈哈镜',HB:'怀表',HC:'红茶',HD:'憨豆',HE:'海尔',
-  HF:'汉服',HG:'黄瓜',HJ:'火炬',HK:'滑块',HL:'灰狼',
-  HM:'航母',HN:'浑南',HP:'画盘',HQ:'猴拳',HR:'黑人',
-  HS:'花生',HT:'核桃',HW:'护腕',HX:'浣熊',HY:'后羿',HZ:'耗子',
-  JA:'JAY',JB:'煎饼',JC:'卷尺',JD:'军刀',JE:'姐',
-  JF:'鸡粪',JG:'金刚',JH:'菊花',JK:'夹克',JL:'降落伞',
-  JM:'芥末',JN:'胶囊',JP:'键盘',JQ:'锦旗',JR:'巨人',
-  JS:'救生圈',JT:'掘土机',JW:'酒窝',JX:'夹心',JY:'鲸鱼',JZ:'镜子',
-  KA:'卡',KB:'挎包',KC:'快餐',KD:'蝌蚪',KE:'坑',
-  KF:'KFC',KG:'苦瓜',KH:'葵花',KJ:'坎肩',KK:'可可',
-  KL:'骷髅',KM:'孔明',KN:'国王',KP:'鲲鹏',KQ:'矿泉水',
-  KR:'扣肉',KS:'口水',KT:'空调',KW:'开卫',KX:'凯旋门',
-  KY:'烤鸭',KZ:'靠枕',
-  LA:'蜡',LB:'萝卜',LC:'凉茶',LD:'漏斗',LE:'灵儿',
-  LF:'雷锋',LG:'乐高',LH:'老虎',LJ:'棱镜',LK:'林肯',
-  LL:'李琳',LM:'龙猫',LN:'辽宁',LP:'脸谱',LQ:'篮球',
-  LR:'猎人',LS:'卵石',LT:'烙铁',LW:'芦苇',LX:'流星',
-  LY:'轮椅',LZ:'栗子',
-  MA:'马',MB:'面包',MC:'迷彩',MD:'麦兜',ME:'门',
-  MF:'蜜蜂',MG:'芒果',MH:'灭火器',MJ:'民警',MK:'棉裤',
-  ML:'牡蛎',MM:'慢慢',MN:'蒙牛',MP:'磨盘',MQ:'麻雀',
-  MR:'鸣人',MS:'猫舍',MT:'馒头',MW:'魔王',MX:'梅西',
-  MY:'木鱼',MZ:'帽子',
-  NA:'NASA',NB:'囊饼',NC:'纳粹',ND:'脑袋',NE:'哪吒',
-  NF:'聂风',NG:'南瓜',NH:'尿壶',NJ:'牛角',NK:'纽扣',
-  NL:'能量球',NM:'柠檬',NP:'弩炮',NQ:'泥鳅',NR:'鸟人',
-  NS:'暖水袋',NT:'奶糖',NW:'女娲',NX:'农械',NY:'内衣',NZ:'念珠',
-  PA:'派',PB:'破冰船',PC:'碰碰车',PD:'剖刀',PE:'普洱',
-  PF:'屏风',PG:'培根',PH:'喷壶',PJ:'盆景',PK:'扑克',
-  PL:'爬犁',PM:'泡面',PN:'匹诺曹',PP:'婆婆',PQ:'佩琪',
-  PR:'飘柔',PS:'磐石',PT:'拼图',PW:'牌位',PX:'螃蟹',
-  PY:'朋友',PZ:'胖子',
-  QA:'恰恰瓜子',QB:'跷板',QC:'雀巢',QD:'气垫',QE:'切格瓦拉',
-  QF:'樵夫',QG:'切割机',QH:'秦昊',QJ:'拳击',QK:'巧克力',
-  QL:'情侣',QM:'骑马',QN:'牵牛花',QP:'枪炮',QQ:'QQ',
-  QR:'穷人',QS:'潜水艇',QT:'蜻蜓',QW:'蔷薇',QX:'球鞋',
-  QY:'蚯蚓',QZ:'裙子',
-  RA:'瓤',RB:'绒布',RC:'若虫',RD:'热带鱼',RE:'瑞恩',
-  RF:'润发',RG:'染缸',RH:'润滑油',RJ:'肉夹馍',RK:'瑞克',
-  RL:'日历',RM:'人民币',RN:'乳牛',RP:'软盘',RQ:'热气球',
-  RR:'人人',RS:'燃烧弹',RT:'软糖',RW:'肉丸',RX:'绕线器',
-  RY:'如意',RZ:'忍者',
-  SA:'厦',SB:'扇贝',SC:'水车',SD:'圣诞树',SE:'蛇',
-  SF:'沙发',SG:'试管',SH:'珊瑚',SJ:'双截棍',SK:'烧烤',
-  SL:'神龙',SM:'酸梅汤',SN:'唢呐',SP:'算盘',SQ:'书签',
-  SR:'兽人',SS:'丝丝',ST:'薯条',SW:'筛网',SX:'速效救心丸',
-  SY:'收音机',SZ:'刷子',
-  TA:'塔',TB:'铜板',TC:'陶瓷',TD:'台灯',TE:'天鹅',
-  TF:'条幅',TG:'铁轨',TH:'糖葫芦',TJ:'头巾',TK:'坦克',
-  TL:'秃驴',TM:'汤姆',TN:'鸵鸟',TP:'托盘',TQ:'提琴',
-  TR:'坛肉',TS:'豚鼠',TT:'天天',TW:'套娃',TX:'腾讯',
-  TY:'太阳',TZ:'团子',
-  WA:'娃',WB:'王八',WC:'厕所',WD:'豌豆',WE:'尾',
-  WF:'汪峰',WG:'瓮缸',WH:'万花筒',WJ:'玩具',WK:'悟空',
-  WL:'瓦力',WM:'乌梅',WN:'蜗牛',WP:'卧铺',WQ:'网球',
-  WR:'温柔',WS:'卫生纸',WT:'外套',WX:'蚊香',WY:'望远镜',
-  WZ:'袜子',
-  XA:'虾',XB:'下巴',XC:'小丑',XD:'鞋垫',XE:'谢尔顿',
-  XF:'旋风',XG:'西瓜',XH:'绣花针',XJ:'陷阱',XK:'星空',
-  XL:'驯鹿',XM:'熊猫',XN:'仙女',XP:'芯片',XQ:'学前班',
-  XR:'雪人',XS:'香水',XT:'喜糖',XW:'漩涡',XX:'星星',
-  XY:'象牙',XZ:'勋章',
-  YA:'鸭',YB:'硬币',YC:'圆葱',YD:'腰带',YE:'椰',
-  YF:'孕妇',YG:'衣柜',YH:'樱花',YJ:'眼镜',YK:'泳裤',
-  YL:'哑铃',YM:'玉米',YN:'云南',YP:'优盘',YQ:'月球',
-  YR:'蚁人',YS:'钥匙',YT:'油条',YW:'阎王',YX:'音箱',
-  YZ:'印章',
-  ZA:'藏獒',ZB:'毡板',ZC:'轴承',ZD:'炸弹',ZE:'沼泽',
-  ZF:'张飞',ZG:'战鼓',ZH:'中华',ZJ:'坐骑',ZK:'竹筐',
-  ZL:'长老',ZM:'芝麻',ZN:'枣泥',ZP:'扎啤',ZQ:'蒸汽',
-  ZR:'猪人',ZS:'钻石',ZT:'枕头',ZW:'指纹',ZX:'准星',
-  ZY:'庄园',ZZ:'ZZ'
-};
-
-const CODES = Object.keys(WORDS).filter(k => k[0] !== k[1]);
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// ===== 练习题模式 =====
-function generate() {
-  const picked = shuffle(CODES).slice(0, 20);
-  const left = picked.slice(0, 10);
-  const right = picked.slice(10);
-  document.getElementById('quizGrid').innerHTML =
-    '<div class="quiz-col">' + left.map((code, i) => `
-      <div class="quiz-item">
-        <span class="quiz-num">${i+1}.</span>
-        <span class="quiz-code">${code}</span>
-        <span class="quiz-line"></span>
-      </div>`).join('') + '</div>' +
-    '<div class="quiz-col">' + right.map((code, i) => `
-      <div class="quiz-item">
-        <span class="quiz-num">${i+11}.</span>
-        <span class="quiz-code">${code}</span>
-        <span class="quiz-line"></span>
-      </div>`).join('') + '</div>';
-  document.getElementById('stats').textContent = `练习题模式 · 20题 · 共 ${CODES.length} 个联想词可选`;
-}
-
-// ===== 字母组模式：4行×5列网格，每格一个组 =====
-function generateGroups() {
-  const shuffled = shuffle(CODES);
-  const groups = [];
-  for (let i = 0; i < 20; i++) {
-    groups.push(shuffled.slice(i * 6, i * 6 + 6));
-  }
-
-  let html = '';
-  for (let g = 0; g < 20; g++) {
-    html += '<div class="card">';
-    html += `<div class="group-box-header">第${String(g + 1).padStart(2, '0')}组</div>`;
-    html += '<div class="group-box-letters">';
-    for (let k = 0; k < 6; k++) {
-      html += `<span>${groups[g][k]}</span>`;
-    }
-    html += '</div></div>';
-  }
-  document.getElementById('groupsContainer').innerHTML = html;
-
-  document.getElementById('stats').textContent = `字母组模式 · 20组×6个 · 共 ${CODES.length} 个联想词可选`;
-}
-
-// ===== 切换标签 =====
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
-  document.getElementById(`tab-${tab}`).classList.add('active');
-}
-
-function printPaper() { window.print(); }
-
-// 初始化
-generate();
-generateGroups();
+  /* 公式库模块切换：点击 tab 切换 iframe 源 */
+  (function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.blddb__tab'));
+    var frame = document.getElementById('blddbFrame');
+    if (!frame) return;
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        tabs.forEach(function (x) { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
+        t.classList.add('is-active');
+        t.setAttribute('aria-selected', 'true');
+        frame.src = t.getAttribute('data-src');
+      });
+    });
+  })();
 </script>
 <script src="/assets/js/site-nav.js"></script>
-<footer class="site-footer">
-      <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
-      <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
-    </footer>
 </body>
 </html>
