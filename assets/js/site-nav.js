@@ -12,24 +12,10 @@
       { id: '3x3', label: '三阶', href: '/tools/3x3/' },
       { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
+      { id: '3bld', label: '三盲', href: '/tools/3bld/' },
       { id: 'fto', label: 'FTO', href: '/fto' }
     ]},
     { id: 'cfop', label: 'CFOP公式库', href: '/tools/cfop/' },
-    { id: '3bld', label: '三盲', children: [
-      { id: '3bld-home',      label: '三盲总页',         href: '/tools/3bld/' },
-      { id: '3bld-assoc',     label: '三盲出题器',       href: '/tools/3bld/association.html' },
-      { id: 'scramble-uf',    label: 'UF公式训练',       href: '/tools/scramble-uf' },
-      { id: 'scramble-ur',    label: 'UR公式训练',       href: '/tools/scramble-ur' },
-      { id: 'bldtrainer',     label: '三盲读码还原',     href: '/tools/bldtrainer' },
-      { id: 'bld-trainer',    label: '记忆编码训练',     href: '/tools/bld-trainer' },
-      { id: 'corner-trainer', label: '角块编码训练',     href: '/tools/corner-trainer' },
-      { id: 'edge-trainer',   label: '棱块编码训练',     href: '/tools/edge-trainer' },
-      { id: 'edge-printout',  label: '棱块出题打印',     href: '/tools/edge-printout' },
-      { id: 'kmap',           label: '教学知识地图',     href: '/tools/kmap' },
-      { id: 'practice',       label: '练习纸生成',       href: '/tools/practice' },
-      { id: 'bldscramble',    label: '盲拧打乱生成器',   href: '/tools/bldscramble' },
-      { id: '2x2',            label: '二阶盲拧',         href: '/tools/2x2' }
-    ]},
     { id: 'tools', label: '个人训练工具', children: [
       { id: 'timer',            label: '计时器',           href: '/tools/timer' },
       { id: 'invert',           label: '逆序转换',         href: '/tools/invert' },
@@ -42,9 +28,22 @@
     ]}
   ];
 
-  /* 目录名与菜单 id 不一致时的别名表 */
+  /* 目录名与菜单 id 不一致时的别名表。
+     三盲相关工具页统一归属到「教程 → 三盲」，打开任一工具页时高亮三盲。 */
   var NAV_ALIAS = {
-    'bld-trainer': 'bld-trainer'
+    'bld-trainer': '3bld',
+    '3bld-home': '3bld',
+    '3bld-assoc': '3bld',
+    'scramble-uf': '3bld',
+    'scramble-ur': '3bld',
+    'bldtrainer': '3bld',
+    'corner-trainer': '3bld',
+    'edge-trainer': '3bld',
+    'edge-printout': '3bld',
+    'kmap': '3bld',
+    'practice': '3bld',
+    'bldscramble': '3bld',
+    '2x2': '3bld'
   };
 
   /* ---------------------------------------------------------
@@ -94,7 +93,7 @@
      --------------------------------------------------------- */
   function resolveCurrent() {
     var fromBody = document.body.getAttribute('data-nav');
-    if (fromBody) return fromBody;
+    if (fromBody) return NAV_ALIAS[fromBody] || fromBody;
 
     var path = window.location.pathname.replace(/\/+$/, '');
     var seg = path.split('/').filter(function (s) { return !!s; });
