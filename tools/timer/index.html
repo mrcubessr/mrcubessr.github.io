@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计时器 · Timer · 魔方先生SSR训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/timer/timer.css">
+</head>
+<body data-nav="timer">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<div class="tm-wrap">
+  <div class="tm-hero">
+    <div>
+      <h1 class="tm-hero__title">计时器 · Timer</h1>
+      <p class="tm-hero__sub">二阶 / 三阶 WCA 风格打乱 · 观察倒计时 · 长按空格计时 · 5 / 12 / 100 次平均 · 成绩导入导出 · 逐日统计</p>
+    </div>
+    <div class="tm-hero__spacer">
+      <button id="themeBtn" class="btn btn--sm" type="button">☀ 浅色</button>
+    </div>
+  </div>
+
+  <div class="tm">
+
+    <!-- ① 打乱 -->
+    <div class="tm-bar">
+      <div class="tm-bar__row">
+        <span class="tm-label">项目</span>
+        <div class="seg" id="tm-events" role="group" aria-label="选择项目"></div>
+        <span class="tm-label">打乱</span>
+        <div class="seg" id="tm-manual-seg" role="group" aria-label="打乱来源">
+          <button type="button" class="seg__btn is-active" data-manual="0">随机生成</button>
+          <button type="button" class="seg__btn" data-manual="1">手动输入</button>
+        </div>
+      </div>
+
+      <div class="tm-scramble">
+        <div class="tm-scramble__text" id="tm-scramble">…</div>
+        <div class="tm-scramble__btns">
+          <button class="btn btn--sm btn--secondary" id="tm-new" type="button">换打乱</button>
+          <button class="btn btn--sm btn--ghost" id="tm-copy" type="button">复制</button>
+        </div>
+      </div>
+
+      <div class="tm-manual-box" id="tm-manual-box" hidden>
+        <input class="input" id="tm-manual-input" type="text"
+               placeholder="手动输入打乱，例如：R U R' U' F2 L D' …" autocomplete="off" spellcheck="false">
+        <button class="btn btn--sm btn--primary" id="tm-manual-apply" type="button">应用</button>
+      </div>
+    </div>
+
+    <!-- ② 计时舞台 -->
+    <div class="tm-stage" id="tm-stage" role="button" tabindex="0" aria-label="计时区：按空格或点按开始">
+      <div class="tm-pen" id="tm-pen" hidden></div>
+      <div class="tm-time" id="tm-time">0.00</div>
+      <div class="tm-state" id="tm-state"></div>
+    </div>
+
+    <!-- ③ 成绩确认 -->
+    <div class="tm-confirm" id="tm-confirm" hidden>
+      <span class="tm-confirm__label">确认本次成绩</span>
+      <span class="tm-confirm__time" id="tm-confirm-time">--</span>
+      <div class="tm-confirm__btns">
+        <button class="btn btn--sm btn--primary" id="tm-confirm-ok" type="button">✓ 记录</button>
+        <button class="btn btn--sm btn--ghost" id="tm-confirm-plus2" type="button">+2</button>
+        <button class="btn btn--sm btn--ghost" id="tm-confirm-dnf" type="button">DNF</button>
+        <button class="btn btn--sm btn--ghost" id="tm-confirm-drop" type="button">✕ 作废</button>
+      </div>
+    </div>
+
+    <!-- ④ 统计条 -->
+    <div class="tm-strip" id="tm-strip">
+      <div class="tm-kpi"><span class="tm-kpi__k">次数</span><b class="tm-kpi__v" id="k-count">0</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k">单次最好</span><b class="tm-kpi__v" id="k-best">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k">当前 ao5</span><b class="tm-kpi__v" id="k-ao5">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k">当前 ao12</span><b class="tm-kpi__v" id="k-ao12">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k">当前 ao100</span><b class="tm-kpi__v" id="k-ao100">--</b></div>
+    </div>
+
+    <!-- ⑤ 工具条 -->
+    <div class="tm-tools">
+      <button class="btn btn--sm btn--secondary" id="tm-stats" type="button">统计</button>
+      <button class="btn btn--sm btn--ghost" id="tm-export" type="button">导出</button>
+      <button class="btn btn--sm btn--ghost" id="tm-import" type="button">导入</button>
+      <input type="file" id="tm-import-file" accept=".json,.txt,application/json,text/plain" hidden>
+      <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空本组</button>
+      <span class="tm-label">观察</span>
+      <select class="input" id="tm-inspect" aria-label="观察时间">
+        <option value="15">15 秒</option>
+        <option value="0">关闭</option>
+      </select>
+      <span class="tm-tools__hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
+    </div>
+
+    <!-- ⑥ 成绩列表 -->
+    <div class="tm-list-wrap" id="tm-list-wrap">
+      <div class="tm-list-head">
+        <span>#</span><span>时间</span><span>ao5</span><span>ao12</span><span>ao100</span><span></span>
+      </div>
+      <ol class="tm-list" id="tm-list"></ol>
+      <p class="tm-empty" id="tm-empty">本组还没有成绩，按空格开始计时。</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- 统计弹窗 -->
+<div class="tm-modal" id="tm-modal" hidden>
+  <div class="tm-modal__mask" data-close="1"></div>
+  <div class="tm-modal__panel" role="dialog" aria-modal="true" aria-labelledby="tm-modal-title">
+    <div class="tm-modal__head">
+      <h2 id="tm-modal-title">成绩统计 · <span id="tm-modal-event">三阶</span></h2>
+      <button class="btn btn--sm btn--ghost" id="tm-modal-close" type="button">关闭</button>
+    </div>
+    <div class="tm-modal__body">
+      <h3 class="tm-h3">本组概览</h3>
+      <div class="tm-grid" id="tm-stat-grid"></div>
+      <h3 class="tm-h3">逐日统计 · 每天做了多少次</h3>
+      <div class="tm-chart" id="tm-chart-daily"></div>
+      <h3 class="tm-h3">成绩趋势</h3>
+      <div class="tm-chart" id="tm-chart-trend"></div>
+      <h3 class="tm-h3">成绩分布</h3>
+      <div class="tm-chart" id="tm-chart-dist"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">打乱与计时均在本地完成 · 成绩保存在本机浏览器（可导出备份）</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="/tools/cfop/js/cfop-ui.js"></script>
+<script src="/tools/timer/scramble.js"></script>
+<script src="/tools/timer/stats.js"></script>
+<script src="/tools/timer/timer.js"></script>
+<script>CFOP.bindTheme("themeBtn");</script>
+</body>
+</html>

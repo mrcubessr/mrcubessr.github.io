@@ -16,6 +16,7 @@
       { id: 'fto', label: 'FTO', href: '/fto' }
     ]},
     { id: 'tools', label: '个人训练工具', children: [
+      { id: 'timer',            label: '计时器',           href: '/tools/timer' },
       { id: 'scramble-ur',      label: 'UR公式训练',       href: '/tools/scramble-ur' },
       { id: 'scramble-uf',      label: 'UF公式训练',       href: '/tools/scramble-uf' },
       { id: 'bldtrainer',       label: '三盲读码还原',     href: '/tools/bldtrainer' },
