@@ -17,7 +17,7 @@
   <div class="tm-hero">
     <div>
       <h1 class="tm-hero__title">计时器 · Timer</h1>
-      <p class="tm-hero__sub">二阶 / 三阶 WCA 风格打乱 · 观察倒计时 · 长按空格计时 · 5 / 12 / 100 次平均 · 成绩导入导出 · 逐日统计</p>
+      <p class="tm-hero__sub">二阶 / 三阶 WCA 风格打乱 · 观察可选 · 长按空格计时 · 5 / 12 / 100 次平均 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
     </div>
     <div class="tm-hero__spacer">
       <button id="themeBtn" class="btn btn--sm" type="button">☀ 浅色</button>
@@ -84,15 +84,20 @@
     <!-- ⑤ 工具条 -->
     <div class="tm-tools">
       <button class="btn btn--sm btn--secondary" id="tm-stats" type="button">统计</button>
-      <button class="btn btn--sm btn--ghost" id="tm-export" type="button">导出</button>
+      <div class="tm-menu-wrap">
+        <button class="btn btn--sm btn--ghost" id="tm-export" type="button"
+                aria-haspopup="true" aria-expanded="false">导出 ▾</button>
+        <div class="tm-menu" id="tm-export-menu" role="menu" hidden>
+          <button type="button" role="menuitem" class="tm-menu__item" data-exp="cstimer">TXT · csTimer 格式（可导回 csTimer）</button>
+          <button type="button" role="menuitem" class="tm-menu__item" data-exp="txt">TXT · 纯时间列表（当前项目 · 每行一条）</button>
+          <button type="button" role="menuitem" class="tm-menu__item" data-exp="json">JSON · 本站备份（二阶 + 三阶）</button>
+        </div>
+      </div>
       <button class="btn btn--sm btn--ghost" id="tm-import" type="button">导入</button>
-      <input type="file" id="tm-import-file" accept=".json,.txt,application/json,text/plain" hidden>
+      <input type="file" id="tm-import-file" accept=".txt,.json,text/plain,application/json" hidden>
       <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空本组</button>
       <span class="tm-label">观察</span>
-      <select class="input" id="tm-inspect" aria-label="观察时间">
-        <option value="15">15 秒</option>
-        <option value="0">关闭</option>
-      </select>
+      <div class="seg" id="tm-inspect-seg" role="group" aria-label="是否启用 15 秒观察"></div>
       <span class="tm-tools__hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
     </div>
 
@@ -125,6 +130,25 @@
       <div class="tm-chart" id="tm-chart-trend"></div>
       <h3 class="tm-h3">成绩分布</h3>
       <div class="tm-chart" id="tm-chart-dist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 导入 csTimer / 多分组文件时的分组映射弹窗 -->
+<div class="tm-modal" id="tm-map" hidden>
+  <div class="tm-modal__mask" data-close="1"></div>
+  <div class="tm-modal__panel tm-modal__panel--sm" role="dialog" aria-modal="true" aria-labelledby="tm-map-title">
+    <div class="tm-modal__head">
+      <h2 id="tm-map-title">导入成绩</h2>
+      <button class="btn btn--sm btn--ghost" id="tm-map-cancel" type="button">取消</button>
+    </div>
+    <div class="tm-modal__body">
+      <p class="tm-map__hint" id="tm-map-hint">检测到以下分组（含 csTimer 导出文件），请确认各自导入到哪个项目。导入按「成绩 + 时间」合并去重，可重复导入不会重复添加。</p>
+      <div class="tm-map__rows" id="tm-map-rows"></div>
+      <div class="tm-map__foot">
+        <span class="tm-map__sum" id="tm-map-sum"></span>
+        <button class="btn btn--sm btn--primary" id="tm-map-ok" type="button">确认导入</button>
+      </div>
     </div>
   </div>
 </div>

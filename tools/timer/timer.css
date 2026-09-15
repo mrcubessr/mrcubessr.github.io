@@ -18,8 +18,22 @@
 .tm-wrap .btn, .tm-wrap .seg, .tm-wrap .seg__btn, .tm-wrap .input,
 .tm-modal .btn, .tm-modal .input { border-radius: 0; }
 
-/* 「观察」下拉：组件默认 width:100% 会撑满一行 */
-#tm-inspect { width: auto; min-width: 104px; }
+/* 「观察」自 v2 起改为分段开关（.seg），不再需要收敛下拉宽度 */
+
+/* ---------- 导出下拉菜单 ---------- */
+.tm-menu-wrap { position: relative; display: inline-block; }
+.tm-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  min-width: 272px; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: 0;
+  box-shadow: var(--menu-shadow);
+}
+.tm-menu__item {
+  text-align: left; padding: 10px 14px; border: 0; border-bottom: 1px solid var(--line);
+  background: transparent; color: var(--fg-2); font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.tm-menu__item:last-child { border-bottom: 0; }
+.tm-menu__item:hover { background: var(--surface-2); color: var(--fg); }
 
 /* ---------- 页头 ---------- */
 .tm-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
@@ -175,6 +189,22 @@
 .tm-svg { display: block; width: 100%; height: auto; }
 .tm-chart__empty { padding: 34px 12px; text-align: center; font-size: 13px; color: var(--fg-3); }
 
+/* ---------- 导入分组映射弹窗 ---------- */
+.tm-modal__panel--sm { max-width: 560px; }
+.tm-map__hint { margin: 0 0 12px; font-size: 13px; line-height: 1.75; color: var(--fg-3); }
+.tm-map__rows { border: 1px solid var(--line); }
+.tm-map__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 68px 118px;
+  align-items: center; gap: 10px; padding: 9px 12px;
+  border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.tm-map__row:last-child { border-bottom: 0; }
+.tm-map__name { min-width: 0; color: var(--fg-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-map__n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--fg-3); text-align: right; }
+.tm-map__sel { width: 100%; padding: 4px 6px; font-size: 13px; }
+.tm-map__foot { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.tm-map__sum { margin-right: auto; font-size: 12px; color: var(--fg-3); }
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 720px) {
   .tm-strip { grid-template-columns: repeat(2, 1fr); }
@@ -191,4 +221,6 @@
   .tm-list-head, .tm-list__item { grid-template-columns: 40px minmax(64px, 1fr) 60px 30px; }
   .tm-list-head span:nth-child(4), .tm-list__item > *:nth-child(4),
   .tm-list-head span:nth-child(5), .tm-list__item > *:nth-child(5) { display: none; }
+  .tm-map__row { grid-template-columns: minmax(0, 1fr) 104px; gap: 8px; }
+  .tm-map__n { display: none; }
 }
