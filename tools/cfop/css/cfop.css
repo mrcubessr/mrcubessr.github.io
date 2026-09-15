@@ -85,20 +85,24 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .ct-page .cfop-hero__title{ font-size:var(--fs-3xl,2.2rem); }
 
 .ct{ display:grid; grid-template-columns:1fr; gap:var(--s5,24px);
-  max-width:var(--container,1080px); margin-inline:auto; align-items:start; }
+  max-width:100%; margin-inline:auto; align-items:start; }
 .ct__main{ display:flex; flex-direction:column; gap:var(--s5,24px); min-width:0; }
 
-/* 控制面板：颜色 / 目标步数 */
-.ct__panel{ display:grid; grid-template-columns:1fr; gap:var(--s5,24px) var(--s6,32px);
+/* 控制面板：单列堆叠，字段左对齐、与页头标题同一条左边线 */
+.ct__panel{ display:grid; grid-template-columns:1fr; gap:var(--s5,24px);
   padding:var(--s5,24px);
   background:var(--surface-2,#1A2130); border:1px solid var(--line,rgba(255,255,255,.10)); }
 .ct__field{ display:flex; flex-direction:column; gap:var(--s3,12px); min-width:0; }
 .ct__label{ font-size:var(--fs-base,1rem); font-weight:var(--fw-semi,600); color:var(--fg,#EEF2F8); letter-spacing:.02em; }
 
-/* 分段控件：占满列宽、按钮等宽对齐、加大点按区 */
-.ct__seg.seg{ display:flex; flex-wrap:wrap; gap:6px; padding:6px; width:100%; }
-.ct__seg .seg__btn{ display:flex; align-items:center; justify-content:center; flex:1 1 auto;
-  min-width:48px; min-height:46px; padding:10px 8px; font-size:var(--fs-base,1rem); }
+/* 分段控件：网格等分，左右与面板对齐，绝不换行 */
+.ct__seg.seg{ display:grid; gap:8px; padding:8px; width:100%; }
+.ct__seg.seg .seg__btn{ display:flex; align-items:center; justify-content:center;
+  width:100%; min-width:0; min-height:48px; padding:10px 6px; font-size:var(--fs-base,1rem); }
+/* 颜色：6 等分一行，永不换行 */
+#ct-colors{ grid-template-columns:repeat(6,1fr); }
+/* 步数：4 列 × 2 行，上 1-4 / 下 5-8 */
+#ct-moves{ grid-template-columns:repeat(4,1fr); }
 .ct__color{ gap:8px; }
 .ct__dot{ width:13px; height:13px; flex:0 0 auto; border:1px solid var(--line-2,rgba(255,255,255,.28)); }
 .ct__dot--w{ background:var(--face-u,#FFFFFF); }
@@ -107,7 +111,6 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .ct__dot--b{ background:var(--face-b,#1F6FD0); }
 .ct__dot--r{ background:var(--face-r,#E4572E); }
 .ct__dot--o{ background:var(--face-l,#FF8A00); }
-.ct__step{ min-width:46px; }
 
 /* 打乱展示（核心 · 放大 · 醒目） */
 .ct__scramble{ position:relative;
@@ -186,11 +189,21 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .ct .btn.is-active:hover{ background:var(--brand-strong,#3F6FD8); border-color:var(--brand-strong,#3F6FD8); }
 .ct__hint{ margin:0; text-align:center; color:var(--fg-3,#7C8798); font-size:var(--fs-sm,.85rem); }
 
-/* 桌面：两栏（主 + 侧），侧栏吸附；控制面板两列对齐 */
+/* 桌面：两栏（主 + 侧），侧栏吸附；控制面板保持单列堆叠（字段左对齐） */
 @media(min-width:768px){
   .ct{ grid-template-columns:1fr 320px; }
-  .ct__panel{ grid-template-columns:1fr 1fr; }
   .ct__side{ position:sticky; top:calc(var(--nav-h,60px) + 16px); }
+}
+
+/* 窄屏：收紧颜色 / 步数间距与按钮内边距，保证 6 等分单行不换行 */
+@media(max-width:480px){
+  #ct-colors{ gap:6px; }
+  #ct-moves{ gap:6px; }
+  .ct__seg.seg .seg__btn{ padding:10px 4px; }
+}
+/* 极窄屏（≤340）：颜色改为 3×2，避免被压到溢出 */
+@media(max-width:340px){
+  #ct-colors{ grid-template-columns:repeat(3,1fr); gap:8px; }
 }
 
 /* 移动端竖版：整体收紧、避免溢出、保证点按区 */
