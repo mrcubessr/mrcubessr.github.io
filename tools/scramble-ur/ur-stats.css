@@ -186,6 +186,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 进步趋势行：↓变快(进步·绿) / ↑变慢(红) / →持平 / 待累积 */
+.ur-trend {
+  margin-top: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}
+.ur-trend--down { color: var(--green); }
+.ur-trend--up { color: var(--red); }
+.ur-trend--flat { color: var(--amber, #FFC857); }
+.ur-trend--na { color: var(--fg-3); opacity: 0.7; }
+
 /* 偏离条：中线 = 浮动标准，向左更快（绿）、向右更慢（红） */
 .ur-bar {
   position: relative;

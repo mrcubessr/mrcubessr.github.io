@@ -89,6 +89,14 @@
       var cur = mean(pool);                 // 当前成绩：该窗口内总均时长
       var count = formulaCount(cards[i]);  // 该组公式数量
       var perF = (n > 0 && isFinite(cur) && count > 0) ? cur / count : NaN; // 每式均速
+      // 进步趋势：成绩序列对半分，后半段均值 vs 前半段均值（负=变快/进步，正=变慢）
+      var trend = NaN;
+      if (n >= 4) {
+        var half = Math.floor(n / 2);
+        var early = mean(arr.slice(0, half));
+        var late = mean(arr.slice(n - half));
+        if (isFinite(early) && early > 0) trend = (late - early) / early;
+      }
       rows.push({
         letter: letter,
         el: cards[i],
@@ -97,6 +105,7 @@
         best: n ? Math.min.apply(null, arr) : NaN,
         cur: cur,
         perF: perF,
+        trend: trend,
         total: n ? arr.reduce(function (a, b) { return a + b; }, 0) : 0
       });
     }
@@ -116,6 +125,16 @@
 
   var TIER_LABEL = { great: '优秀', good: '良好', warn: '需关注', bad: '不合格', none: '未练习' };
 
+  /** 趋势行：负=变快(进步·绿) 正=变慢(红)；|t|<2% 视为持平；数据不足(n<4)显示待累积 */
+  var TREND_FLAT = 2; // 百分比阈值
+  function trendHtml(t) {
+    if (!isFinite(t)) return '<div class="uf-trend uf-trend--na">趋势 待累积</div>';
+    var p = Math.abs(t) * 100;
+    if (p < TREND_FLAT) return '<div class="uf-trend uf-trend--flat">趋势 → 持平 ' + p.toFixed(1) + '%</div>';
+    if (t < 0) return '<div class="uf-trend uf-trend--down">趋势 ↓ 进步 ' + p.toFixed(1) + '%</div>';
+    return '<div class="uf-trend uf-trend--up">趋势 ↑ 变慢 ' + p.toFixed(1) + '%</div>';
+  }
+
   // ---------- 渲染 ----------
   function statHtml(r) {
     if (!r.n) {
@@ -125,6 +144,7 @@
         '<div class="uf-stat__per">每式 --</div>' +
         '<div class="uf-bar"><span class="uf-bar__zero"></span></div>' +
         '<div class="uf-stat__meta"><span>最快 --</span><span>0 次</span></div>' +
+        trendHtml(NaN) +
         '</div>';
     }
     // 偏离条：中线为标准，ratio<1 向左（更快），ratio>1 向右（更慢）
@@ -146,6 +166,7 @@
         '<span>最快 ' + fmt(r.best) + '</span>' +
         '<span>' + r.n + ' 次</span>' +
       '</div>' +
+      trendHtml(r.trend) +
       '</div>';
   }
 
@@ -154,7 +175,7 @@
       var el = r.el;
       el.setAttribute('data-tier', r.tier);
       el.setAttribute('title', r.n
-        ? (r.letter + '组：总均 ' + fmt(r.cur) + '（每式 ' + fmt(r.perF) + '），标准 ' + fmt(data.std) + '（' + pct(r.ratio) + '）· ' + TIER_LABEL[r.tier])
+        ? (r.letter + '组：总均 ' + fmt(r.cur) + '（每式 ' + fmt(r.perF) + '），标准 ' + fmt(data.std) + '（' + pct(r.ratio) + '）· ' + TIER_LABEL[r.tier] + (isFinite(r.trend) ? '，趋势 ' + pct(r.trend) : ''))
         : (r.letter + '组：尚未练习'));
       var old = el.querySelector('.uf-stat');
       if (old) old.parentNode.removeChild(old);

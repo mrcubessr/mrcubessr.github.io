@@ -44,11 +44,14 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .cfop-card__body{ display:flex; flex-direction:column; gap:var(--s3,12px); }
 
 /* ---------- 案例配图（复刻原站：OLL/PLL 顶面示意图 · F2L/进阶F2L 立体魔方） ---------- */
-.cfop-net{ align-self:center; width:128px; height:128px; }
+.cfop-net{ align-self:center; width:128px; height:128px; --net-ink:#101218; }
 .cfop-net--iso{ width:118px; height:118px; }
-.cfop-cube-body polygon,.cfop-cube-body rect{ fill:#101218; }
+.cfop-cube-body polygon,.cfop-cube-body rect{ fill:var(--net-ink,#101218); }
 /* 深色主题下给本体加浅描边，避免黑底淹没轮廓 */
 .cfop-cube-body polygon{ stroke:var(--line,rgba(255,255,255,.12)); stroke-width:.8; stroke-linejoin:round; }
+/* 展开图贴纸统一黑色描边（魔方本体黑）：面与面分区更清晰、观感更硬朗。
+   仅作用于贴纸（--flat 的直接子级 rect），不含十字底板 rect。 */
+.cfop-net--flat > rect{ stroke:var(--net-ink,#101218); stroke-width:.9; stroke-linejoin:round; }
 
 /* ---------- setup 行 ---------- */
 .cfop-setup{ display:flex; align-items:center; gap:var(--s2,8px); font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
@@ -148,7 +151,8 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
   border:1px solid var(--line,rgba(255,255,255,.08)); }
 /* 平面展开图：充满容器，按自身 viewBox 等比居中 */
 .ct__net .cfop-net--cross{ width:100%; height:100%; display:block; }
-.cfop-net--cross rect{ stroke:var(--line,rgba(255,255,255,.14)); stroke-width:.6; }
+/* 六面展开：贴纸黑色描边（原为浅色细线，改本体黑更清晰） */
+.cfop-net--cross rect{ stroke:var(--net-ink,#101218); stroke-width:1.3; stroke-linejoin:round; }
 /* .btn 组件本身没有选中态样式，「批量 10 个」「显示十字解法」按下时
    借用分段按钮的选中观感（品牌底色 + 反相文字），与 .seg__btn.is-active 一致。 */
 .ct .btn.is-active{

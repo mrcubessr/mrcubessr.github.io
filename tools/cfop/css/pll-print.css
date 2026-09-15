@@ -185,10 +185,13 @@
   border:1px solid var(--pp-rule,rgba(16,24,40,.14));
   border-radius:2mm;
 }
-/* 配图容器：固定为正方形，避免不同单元因公式长度不同导致展开图大小不一。
+/* 配图容器：宽高双向受限于单元格（同步缩放），尽量保持正方形，避免不同单元
+   因公式长度不同导致展开图大小不一。行高不足（如 3×5 密集版式）时自动收缩，
+   由内部 svg 等比 letterbox 居中绘制 → 展开图始终完整可见、不溢出重叠。
    svg 绝对定位填充，不参与普通流，避免 Chrome 分页多出空白页。 */
 .pp-cell__art{
-  flex:0 0 auto; width:100%; max-width:42mm; aspect-ratio:1/1;
+  flex:0 1 auto; min-height:0;
+  width:min(100%, 42mm); max-height:100%; aspect-ratio:1/1;
   position:relative; margin:0 auto;
 }
 .pp-cell__art svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
