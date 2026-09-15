@@ -17,7 +17,7 @@
   <div class="tm-hero">
     <div>
       <h1 class="tm-hero__title">计时器 · Timer</h1>
-      <p class="tm-hero__sub">二阶 / 三阶 WCA 风格打乱 · 观察可选 · 长按空格计时 · 5 / 12 / 100 次平均 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
+      <p class="tm-hero__sub">二阶 / 三阶 WCA 风格打乱 · 观察可选 · 长按空格计时 · 分组（会话）式成绩列表 · 5 / 12 / 100 次平均 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
     </div>
     <div class="tm-hero__spacer">
       <button id="themeBtn" class="btn btn--sm" type="button">☀ 浅色</button>
@@ -101,13 +101,21 @@
       <span class="tm-tools__hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
     </div>
 
-    <!-- ⑥ 成绩列表 -->
+    <!-- ⑥ 成绩列表（分组 = csTimer 的会话，统计与列表都只针对当前分组） -->
     <div class="tm-list-wrap" id="tm-list-wrap">
+      <div class="tm-list-bar">
+        <span class="tm-label">分组</span>
+        <select class="select tm-group__sel" id="tm-group-sel" aria-label="切换成绩分组"></select>
+        <button class="btn btn--sm btn--secondary" id="tm-group-new" type="button">＋ 新建分组</button>
+        <button class="btn btn--sm btn--ghost" id="tm-group-ren" type="button">重命名</button>
+        <button class="btn btn--sm btn--ghost" id="tm-group-del" type="button">删除</button>
+        <span class="tm-list-bar__meta" id="tm-group-meta"></span>
+      </div>
       <div class="tm-list-head">
         <span>#</span><span>时间</span><span>ao5</span><span>ao12</span><span>ao100</span><span></span>
       </div>
       <ol class="tm-list" id="tm-list"></ol>
-      <p class="tm-empty" id="tm-empty">本组还没有成绩，按空格开始计时。</p>
+      <p class="tm-empty" id="tm-empty">当前分组还没有成绩：按空格开始计时，或点「导入」载入 csTimer 的成绩文件。</p>
     </div>
 
   </div>
@@ -143,7 +151,7 @@
       <button class="btn btn--sm btn--ghost" id="tm-map-cancel" type="button">取消</button>
     </div>
     <div class="tm-modal__body">
-      <p class="tm-map__hint" id="tm-map-hint">检测到以下分组（含 csTimer 导出文件），请确认各自导入到哪个项目。导入按「成绩 + 时间」合并去重，可重复导入不会重复添加。</p>
+      <p class="tm-map__hint" id="tm-map-hint">检测到以下分组（含 csTimer 导出文件）：每个会话会建成一个成绩分组，分组名沿用会话名。csTimer 里默认的三阶会话不会记录打乱类型，这里按「默认三阶」处理，可手动改。导入按「成绩 + 时间」合并去重，重复导入不会重复添加。</p>
       <div class="tm-map__rows" id="tm-map-rows"></div>
       <div class="tm-map__foot">
         <span class="tm-map__sum" id="tm-map-sum"></span>

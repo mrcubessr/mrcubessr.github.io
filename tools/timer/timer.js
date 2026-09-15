@@ -1,5 +1,5 @@
 /* =========================================================
-   tools/timer/timer.js — 计时器主逻辑（csTimer 风格）
+   tools/timer/timer.js — 计时器主逻辑（csTimer 风格 · 分组版）
    依赖：scramble.js（打乱）、stats.js（统计与图表）、cfop-ui.js（主题切换）
 
    状态机：idle → inspect → ready → running → confirm → idle
@@ -9,6 +9,20 @@
      ready   松开空格 → running
      running 按空格 → confirm（停止并等待确认）
      confirm 空格/回车 = 记录并下一把；Esc = 作废
+
+   分组 = csTimer 的「会话 / Session」：
+     data[项目] = { groups: [{ id, name, solves }], cur: 分组 id }
+     统计（次数 / 最好 / ao5 / ao12 / ao100）与成绩列表都只针对「当前分组」。
+     csTimer 导出文件里的每个会话 → 导入时各成一个分组，分组名取会话名。
+
+   csTimer 数据格式（读其源码 src/js/stats/stats.js 确认）：
+     顶层  { "session1": [条目…], "session2": …, "properties": {…} }
+     条目  [ [penalty, timeMs], 打乱, 备注, 时间戳(秒) ]
+           penalty：0 = OK，2000 = +2，-1 = DNF
+     会话打乱类型**不在** properties.scrType 里，而在
+           properties.sessionData（JSON 字符串）的 [i].opt.scrType，默认 '333' 时被省略。
+           即：某一会话没有 scrType ⇒ 它就是三阶（csTimer 默认值被省略）。
+     sessionData[i] = { name, opt: { scrType, … }, rank, stat: [总数, DNF数, 均值], date: [首, 末] }
    ========================================================= */
 (function () {
   "use strict";
@@ -25,7 +39,8 @@
   ];
   /* 各项目在 csTimer 中的打乱类型标识（TXT 导入导出映射用） */
   var SCR_TYPE = { "3x3": "333", "2x2": "222" };
-  var LS_DATA = "timer_data_v1";
+  var LS_DATA = "timer_data_v2";      /* 分组模型 */
+  var LS_DATA_V1 = "timer_data_v1";   /* 旧版扁平模型（只读，用于迁移） */
   var LS_OPT = "timer_options_v1";
 
   var els = {};
@@ -37,19 +52,43 @@
   var curScramble = "";
 
   var opt = { event: "3x3", manual: false, inspect: 15, manualText: "" };
-  var data = { "3x3": [], "2x2": [] };
 
-  /* 状态提示文案：idle 分支随「是否启用观察」变化 */
-  function stateText() {
-    if (state === "idle") {
-      return opt.inspect > 0
-        ? '按 <b>空格</b> 或点按此处开始（进入 ' + opt.inspect + " 秒观察）"
-        : "长按 <b>空格</b> 预备 · 松开开始";
-    }
-    if (state === "inspect") return "观察中 · 长按 <b>空格</b> 预备";
-    if (state === "ready") return "松开 <b>空格</b> 开始计时";
-    if (state === "running") return "计时中 · 按 <b>空格</b> 停止";
-    return "待确认 · 空格记录 / Esc 作废";
+  /* ---------- 数据模型 ---------- */
+  var data = { "3x3": null, "2x2": null };
+
+  function uid(p) {
+    return (p || "g") + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+  function mkGroup(name, id) {
+    return {
+      id: (typeof id === "string" && id) ? id : uid("g"),
+      name: (name != null && String(name)) || "分组",
+      solves: []
+    };
+  }
+  function emptyBox() { var g = mkGroup("默认分组"); return { groups: [g], cur: g.id }; }
+  function newestFirst(a, b) { return b.date - a.date; }
+
+  function eventBox(k) { var b = data[k]; if (!b) { b = data[k] = emptyBox(); } return b; }
+  function groupsOf(k) { return eventBox(k).groups; }
+  function curGroup(k) {
+    var box = eventBox(k || opt.event);
+    for (var i = 0; i < box.groups.length; i++) if (box.groups[i].id === box.cur) return box.groups[i];
+    box.cur = box.groups[0].id;
+    return box.groups[0];
+  }
+  function solves() { return curGroup(opt.event).solves; }
+  function allSolves(k) {
+    var out = [];
+    groupsOf(k).forEach(function (g) { out = out.concat(g.solves); });
+    return out;
+  }
+  function findGroup(k, name) {
+    var t = String(name || "").trim().toLowerCase();
+    if (!t) return null;
+    var gs = groupsOf(k);
+    for (var i = 0; i < gs.length; i++) if (gs[i].name.trim().toLowerCase() === t) return gs[i];
+    return null;
   }
 
   /* ---------- 工具 ---------- */
@@ -57,7 +96,6 @@
     for (var i = 0; i < EVENTS.length; i++) if (EVENTS[i].key === key) return EVENTS[i];
     return EVENTS[0];
   }
-  function solves() { return data[opt.event] || (data[opt.event] = []); }
   function clamp(n, a, b) { return n < a ? a : n > b ? b : n; }
 
   /* 统一成绩记录结构：{ ms, pen, date, src? }。
@@ -78,17 +116,48 @@
   }
 
   /* ---------- 持久化 ---------- */
-  function loadData() {
-    try {
-      var o = JSON.parse(localStorage.getItem(LS_DATA) || "{}");
-      ["3x3", "2x2"].forEach(function (k) {
-        var arr = o[k];
-        if (Array.isArray(arr)) {
-          data[k] = arr.map(normSolve).filter(Boolean)
-            .sort(function (a, b) { return b.date - a.date; });   /* 保证「最新在前」 */
-        }
+  function normBox(raw) {
+    var groups = [];
+    if (raw && Array.isArray(raw.groups)) {
+      raw.groups.forEach(function (g) {
+        if (!g || typeof g !== "object") return;
+        var o = mkGroup(g.name, g.id);
+        o.solves = (Array.isArray(g.solves) ? g.solves : []).map(normSolve).filter(Boolean).sort(newestFirst);
+        groups.push(o);
       });
+    }
+    if (!groups.length) groups = [mkGroup("默认分组")];
+    var cur = (raw && groups.some(function (g) { return g.id === raw.cur; })) ? raw.cur : groups[0].id;
+    return { groups: groups, cur: cur };
+  }
+  function migrateV1(old) {
+    var out = {};
+    ["3x3", "2x2"].forEach(function (k) {
+      var box = emptyBox();
+      box.groups[0].solves = (Array.isArray(old[k]) ? old[k] : [])
+        .map(normSolve).filter(Boolean).sort(newestFirst);
+      out[k] = box;
+    });
+    return out;
+  }
+  function loadData() {
+    var done = false;
+    try {
+      var raw = JSON.parse(localStorage.getItem(LS_DATA) || "null");
+      if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+        data = { "3x3": normBox(raw["3x3"]), "2x2": normBox(raw["2x2"]) };
+        done = true;
+      }
     } catch (e) { /* 忽略损坏数据 */ }
+    if (done) return;
+    var old = null;
+    try { old = JSON.parse(localStorage.getItem(LS_DATA_V1) || "null"); } catch (e) {}
+    if (old && typeof old === "object" && !Array.isArray(old)) {
+      data = migrateV1(old);
+      saveData();                     /* 迁移结果写入 v2；v1 原样保留作兜底 */
+    } else {
+      data = { "3x3": emptyBox(), "2x2": emptyBox() };
+    }
   }
   function saveData() {
     try { localStorage.setItem(LS_DATA, JSON.stringify(data)); } catch (e) {}
@@ -348,6 +417,19 @@
     }
   }
 
+  /* 状态提示文案：idle 分支随「是否启用观察」变化 */
+  function stateText() {
+    if (state === "idle") {
+      return opt.inspect > 0
+        ? '按 <b>空格</b> 或点按此处开始（进入 ' + opt.inspect + " 秒观察）"
+        : "长按 <b>空格</b> 预备 · 松开开始";
+    }
+    if (state === "inspect") return "观察中 · 长按 <b>空格</b> 预备";
+    if (state === "ready") return "松开 <b>空格</b> 开始计时";
+    if (state === "running") return "计时中 · 按 <b>空格</b> 停止";
+    return "待确认 · 空格记录 / Esc 作废";
+  }
+
   function renderStrip() {
     var arr = solves(), s = S.sessionStats(arr);
     els.kCount.textContent = s.count;
@@ -363,6 +445,78 @@
     el.textContent = S.fmt(v); el.classList.remove("is-dnf");
   }
 
+  /* ---------- 分组控件 ---------- */
+  function renderGroups() {
+    if (!els.groupSel) return;
+    var gs = groupsOf(opt.event), cur = curGroup(opt.event);
+    els.groupSel.innerHTML = "";
+    gs.forEach(function (g) {
+      var o = document.createElement("option");
+      o.value = g.id;
+      o.textContent = g.name + "（" + g.solves.length + " 次）";
+      els.groupSel.appendChild(o);
+    });
+    els.groupSel.value = cur.id;
+    if (els.groupMeta) {
+      els.groupMeta.textContent = "当前 " + cur.name + " · " + cur.solves.length + " 次 · 共 " +
+        gs.length + " 个分组（项目：" + eventDef(opt.event).label + "）";
+    }
+    var only = gs.length <= 1;
+    if (els.groupDel) els.groupDel.disabled = only;
+    els.groupDel.title = only ? "至少保留一个分组" : "删除当前分组";
+  }
+
+  function selectGroup(id) {
+    var box = eventBox(opt.event);
+    var hit = box.groups.some(function (g) { return g.id === id; });
+    if (!hit) return;
+    box.cur = id;
+    saveData();
+    renderGroups(); renderStrip(); renderList();
+  }
+
+  function createGroup(name) {
+    var box = eventBox(opt.event);
+    var g = mkGroup(name || ("分组 " + (box.groups.length + 1)));
+    box.groups.push(g);
+    box.cur = g.id;
+    saveData();
+    renderGroups(); renderStrip(); renderList();
+    return g;
+  }
+
+  function renameGroup() {
+    var g = curGroup(opt.event);
+    var nv = window.prompt("重命名分组（当前：" + g.name + "）", g.name);
+    if (nv == null) return;
+    nv = nv.trim();
+    if (!nv || nv === g.name) return;
+    g.name = nv;
+    saveData(); renderGroups(); renderList();
+  }
+
+  function deleteGroup() {
+    var box = eventBox(opt.event);
+    if (box.groups.length <= 1) { window.alert("至少要保留一个分组。"); return; }
+    var g = curGroup(opt.event);
+    if (!window.confirm("删除分组「" + g.name + "」及其 " + g.solves.length +
+                        " 条成绩？此操作不可撤销。")) return;
+    box.groups = box.groups.filter(function (x) { return x.id !== g.id; });
+    box.cur = box.groups[0].id;
+    saveData(); renderGroups(); renderStrip(); renderList();
+  }
+
+  function clearGroup() {
+    var g = curGroup(opt.event);
+    if (!g.solves.length) return;
+    if (!window.confirm("确定清空分组「" + g.name + "」的 " + g.solves.length +
+                        " 条成绩吗？此操作不可撤销。")) return;
+    g.solves = [];
+    saveData(); renderGroups(); renderStrip(); renderList();
+    flashBtn(els.clearBtn, "已清空 ✓", "清空本组");
+  }
+
+  /* ---------- 成绩列表 ---------- */
   function renderList() {
     var arr = solves(), list = els.list;
     list.innerHTML = "";
@@ -406,12 +560,18 @@
       (function (index) {
         del.addEventListener("click", function () {
           var a = solves(); a.splice(index, 1);
-          saveData(); renderStrip(); renderList();
+          saveData(); renderGroups(); renderStrip(); renderList();
         });
       })(i);
       li.appendChild(del);
 
       frag.appendChild(li);
+    }
+    if (arr.length > MAX_ROWS) {
+      var more = document.createElement("li");
+      more.className = "tm-list__more";
+      more.textContent = "仅显示最近 " + MAX_ROWS + " 条，本分组共 " + arr.length + " 条";
+      frag.appendChild(more);
     }
     list.appendChild(frag);
   }
@@ -440,6 +600,7 @@
           c.classList.toggle("is-active", c.dataset.event === opt.event);
         });
         next(false);
+        renderGroups();
       });
       els.events.appendChild(b);
     });
@@ -486,8 +647,8 @@
 
   /* ---------- 统计弹窗 ---------- */
   function openStats() {
-    var arr = solves(), s = S.sessionStats(arr);
-    els.modalEvent.textContent = eventDef(opt.event).label;
+    var arr = solves(), s = S.sessionStats(arr), g = curGroup(opt.event);
+    els.modalEvent.textContent = eventDef(opt.event).label + " · " + g.name;
     var cells = [
       ["次数", String(s.count)],
       ["有效次数", String(s.valid)],
@@ -541,11 +702,11 @@
   /* ---------- 导出 ---------- */
   var EXPORT_LABEL = "导出 ▾";
 
-  /* ① JSON：本站完整备份（二阶 + 三阶，可原样导回） */
+  /* ① JSON：本站完整备份（含分组，可原样导回） */
   function exportJson() {
     var payload = {
       app: "mrcube-timer",
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       events: data
     };
@@ -554,23 +715,44 @@
   }
 
   /* ② csTimer 导出格式（cstimer.net「导出」产生的就是这个 txt，可双向互导）
-     顶层：{ "session1": [...], "session2": [...], "properties": { sessionN, scrType } }
-     单条：[ [penalty, timeMs], 打乱, 备注, 时间戳(秒) ]
-     penalty：0 = OK，2000 = +2（毫秒），-1 = DNF。csTimer 内部按「旧 → 新」排列。 */
-  function csTimerSolve(rec, scrType) {
+     每个「分组」导成一个 csTimer 会话（名字沿用分组名，打乱类型写进会话选项），
+     这样在 csTimer 里能直接看到分组名与正确的打乱类型。
+     单条：[ [penalty, timeMs], 打乱, 备注, 时间戳(秒) ]，csTimer 内部按「旧 → 新」排列。 */
+  function csTimerSolve(rec) {
     var pen = rec.pen === "DNF" ? -1 : (rec.pen === "+2" ? 2000 : 0);
-    return [[pen, Math.round(rec.ms)], [scrType, "", 0], "", Math.round((rec.date || Date.now()) / 1000)];
+    return [[pen, Math.round(rec.ms)], "", "", Math.round((rec.date || Date.now()) / 1000)];
+  }
+  function csTimerStat(list) {
+    var total = list.length, dnf = 0, sum = 0, n = 0;
+    list.forEach(function (r) {
+      /* list 为「新 → 旧」，取到的是第一项＝最新 */
+      if (r.pen === "DNF") { dnf++; return; }
+      sum += r.ms + (r.pen === "+2" ? 2000 : 0); n++;
+    });
+    return [total, dnf, n ? Math.round(sum / n) : 0];
   }
   function csTimerPayload() {
-    var order = ["3x3", "2x2"];                       /* session1 = 三阶，session2 = 二阶 */
-    var obj = {}, types = [];
-    order.forEach(function (k, i) {
-      obj["session" + (i + 1)] = (data[k] || []).slice().reverse().map(function (r) {
-        return csTimerSolve(r, SCR_TYPE[k]);
+    var sessions = [];
+    ["3x3", "2x2"].forEach(function (k) {
+      groupsOf(k).forEach(function (g) {
+        if (!g.solves.length) return;
+        sessions.push({ event: k, name: g.name, solves: g.solves.slice().sort(newestFirst) });
       });
-      types.push(SCR_TYPE[k]);
     });
-    obj.properties = { sessionN: order.length, scrType: types };
+    var obj = {}, sd = {};
+    sessions.forEach(function (s, i) {
+      obj["session" + (i + 1)] = s.solves.slice().reverse().map(csTimerSolve);
+      var newest = s.solves[0], oldest = s.solves[s.solves.length - 1];
+      sd[String(i + 1)] = {
+        name: s.name,
+        opt: { scrType: SCR_TYPE[s.event] },
+        rank: i + 1,
+        stat: csTimerStat(s.solves),
+        date: [oldest ? Math.round(oldest.date / 1000) : null,
+               newest ? Math.round(newest.date / 1000) : null]
+      };
+    });
+    obj.properties = { sessionN: sessions.length, sessionData: JSON.stringify(sd) };
     return obj;
   }
   function exportCsTimerTxt() {
@@ -578,7 +760,7 @@
     flashBtn(els.exportBtn, "已导出 ✓", EXPORT_LABEL);
   }
 
-  /* ③ 纯时间列表（当前项目 · 每行一条 · 旧 → 新），可直接用本站导入回灌 */
+  /* ③ 纯时间列表（当前分组 · 每行一条 · 旧 → 新），可直接用本站导入回灌 */
   function plainText() {
     return solves().slice().reverse().map(function (r) {
       if (r.pen === "DNF") return "DNF";
@@ -641,36 +823,71 @@
     }
     return out;
   }
+
+  /* 会话元信息：csTimer 把打乱类型放在 sessionData[i].opt.scrType（默认 333 时省略） */
+  function sessionMeta(props, i) {
+    var sd = props ? props.sessionData : null;
+    if (typeof sd === "string") { try { sd = JSON.parse(sd); } catch (e) { sd = null; } }
+    if (!sd || typeof sd !== "object") sd = {};
+    var e = sd[String(i)] || sd[i] || {};
+    var o = (e.opt && typeof e.opt === "object") ? e.opt : {};
+    var t = o.scrType || e.scrType || "";
+    if (typeof t !== "string") t = "";
+    var nm = e.name;
+    var name = (typeof nm === "string") ? nm.trim() : "";
+    /* 兜底：本站旧版导出把类型写成 properties.scrType 数组/字符串 */
+    if (!t && props) {
+      var arr = props.scrType;
+      if (Array.isArray(arr)) {
+        var v = arr[i - 1];
+        if (Array.isArray(v)) v = v[0];
+        if (v != null && typeof v !== "object") t = String(v);
+      } else if (typeof arr === "string" && i === 1) {
+        t = arr;
+      }
+    }
+    return { name: name, scrType: t };
+  }
+
   /* 按会话拆分 csTimer 导出文件；非该格式返回 null */
   function parseCsTimerExport(obj) {
     var keys = Object.keys(obj).filter(function (k) { return /^session\d+$/.test(k); });
     if (!keys.length) return null;
-    var props = (obj.properties && typeof obj.properties === "object") ? obj.properties : {};
+    var props = obj.properties;
+    if (typeof props === "string") { try { props = JSON.parse(props); } catch (e) { props = null; } }
+    if (!props || typeof props !== "object") props = {};
     var maxIdx = 0;
     keys.forEach(function (k) { maxIdx = Math.max(maxIdx, parseInt(k.slice(7), 10) || 0); });
     var n = parseInt(props.sessionN, 10);
     if (!isFinite(n) || n < maxIdx) n = maxIdx;
-    var scrTypes = Array.isArray(props.scrType) ? props.scrType : [];
-    var names = Array.isArray(props.sessionName) ? props.sessionName : [];
-    var sessions = [];
+    var sessions = [], total = 0;
     for (var i = 1; i <= n; i++) {
       var list = parseCsTimerSolves(obj["session" + i]);
       if (!list.length) continue;
-      var st = scrTypes[i - 1], nm = names[i - 1];
-      if (Array.isArray(st)) st = st[0];
+      total += list.length;
+      var meta = sessionMeta(props, i);
+      var hasType = !!meta.scrType;
+      var guess = guessEvent(meta.scrType, meta.name);
+      var assumed = false, unknown = false;
+      if (!hasType && !guess) { guess = "3x3"; assumed = true; }  /* csTimer 默认类型 333 会被省略 */
+      else if (hasType && !guess) { unknown = true; }
       sessions.push({
-        idx: i,
-        scrType: (st == null ? "" : String(st)),
-        name: (typeof nm === "string" ? nm : ""),
-        solves: list,
-        guess: guessEvent(st, nm)
+        idx: i, scrType: meta.scrType, name: meta.name, solves: list,
+        guess: guess, assumed: assumed, unknown: unknown,
+        label: meta.name || ("会话 " + i)
       });
     }
-    return sessions.length ? sessions : null;
+    return { sessions: sessions, total: total, n: n };
   }
+
   /* 会话 → 项目：先看 csTimer 打乱类型，再看会话名 */
   function guessEvent(scrType, name) {
     var s = String(scrType || "").toLowerCase(), n = String(name || "");
+    if (!s) {
+      if (/2x2|二阶/.test(n)) return "2x2";
+      if (/3x3|三阶/.test(n)) return "3x3";
+      return "";
+    }
     if (/^222/.test(s) || /2x2|二阶/.test(n)) return "2x2";
     if (/^333/.test(s) || /3x3|三阶/.test(n)) return "3x3";
     if (/^(ll|oll|pll|zbl?|cmll|coll|lse|2gen|3gen|f2l|lsll|ls|roux|eoline|eocross|sbrx|mt|cross|edges|corners|half|easy|rru|ni|oh|fm|zb|wv|eo|dr)/.test(s)) return "3x3";
@@ -686,88 +903,172 @@
     return h.toString(36);
   }
 
-  /* 解析入口：返回 { csTimer: sessions } 或 { events: {...} } 或 null */
-  function parseImport(txt) {
-    var obj = null;
-    try { obj = JSON.parse(txt); } catch (e) { obj = null; }
-
-    /* ① csTimer 导出文件 → 交给映射弹窗确认分组归属 */
-    if (obj && typeof obj === "object" && !Array.isArray(obj)) {
-      var cs = parseCsTimerExport(obj);
-      if (cs) return { csTimer: cs };
-    }
-
-    var out = { "3x3": [], "2x2": [] }, hasEvent = false;
-
-    if (obj && obj.events && typeof obj.events === "object") {
-      ["3x3", "2x2"].forEach(function (k) {
-        if (Array.isArray(obj.events[k])) {
-          out[k] = obj.events[k].map(normSolve).filter(Boolean);
-          if (out[k].length) hasEvent = true;
-        }
-      });
-    } else if (obj && Array.isArray(obj.solves)) {
-      out[opt.event] = obj.solves.map(normSolve).filter(Boolean);
-      hasEvent = out[opt.event].length > 0;
-    } else if (Array.isArray(obj)) {
-      out[opt.event] = parseCsTimerSolves(obj);      /* 裸数组：可能是直接粘贴的会话数组 */
-      hasEvent = out[opt.event].length > 0;
-    } else {
-      /* 纯文本：每行一条，支持 12.34 / 12.34+ / 1:23.45 / DNF，可带行首序号（1. 1) #1 -） */
-      var arr = [];
-      txt.split(/\r?\n/).forEach(function (raw) {
-        var line = raw.replace(/,/g, ".").trim();
-        if (!line) return;
-        if (/^dnf$/i.test(line) || /\bdnf\b/i.test(line)) { arr.push({ ms: 0, pen: "DNF", date: 0 }); return; }
-        /* 序号后必须跟空白，否则 "12.34" 会被当成「12. 34」截断 */
-        var body = line.replace(/^\s*#?\d+\s*(?:[)\]\-–—]|\.)\s+/, "").replace(/^\s*#\d+\s+/, "");
-        var plus = /\+/.test(body);
-        body = body.replace(/\+/g, " ");
-        var m = body.match(/(\d+):(\d{1,3}(?:\.\d+)?)/);          /* 分:秒 */
-        var sec = m ? parseInt(m[1], 10) * 60 + parseFloat(m[2])
-                    : parseFloat((body.match(/\d+(?:\.\d+)?/) || [])[0]);
-        if (!isFinite(sec) || sec <= 0) return;
-        arr.push({ ms: Math.round(sec * 1000), pen: plus ? "+2" : "", date: 0 });
-      });
-      if (arr.length) {
-        var h = hash32(txt);
-        arr.forEach(function (s, i) { s.src = h + ":" + i; });   /* 无时间戳 → 用文件指纹做身份 */
-        out[opt.event] = arr;
-        hasEvent = true;
+  /* 本站 JSON 备份：v2 还原分组、v1 并入当前分组 */
+  function parseOwnJson(obj) {
+    var ev = obj.events, v2 = null, v1 = { "3x3": [], "2x2": [] }, hasV1 = false;
+    ["3x3", "2x2"].forEach(function (k) {
+      var e = ev[k];
+      if (!e) return;
+      if (Array.isArray(e)) {
+        v1[k] = e.map(normSolve).filter(Boolean);
+        if (v1[k].length) hasV1 = true;
+      } else if (e && typeof e === "object" && Array.isArray(e.groups)) {
+        v2 = v2 || { "3x3": [], "2x2": [] };
+        e.groups.forEach(function (g) {
+          if (!g || typeof g !== "object") return;
+          var o = mkGroup(g.name, g.id);
+          o.solves = (Array.isArray(g.solves) ? g.solves : []).map(normSolve).filter(Boolean);
+          if (o.solves.length) v2[k].push(o);
+        });
       }
+    });
+    if (v2) {
+      var any = v2["3x3"].length + v2["2x2"].length;
+      return any ? { groups: v2 } : { empty: "json" };
     }
-    return hasEvent ? { events: out } : null;
+    return hasV1 ? { events: v1 } : { empty: "json" };
+  }
+
+  /* 纯文本：每行一条，支持 12.34 / 12.34+ / 1:23.45 / DNF，可带行首序号（1. 1) #1 -） */
+  function parsePlainText(txt) {
+    var arr = [];
+    txt.split(/\r?\n/).forEach(function (raw) {
+      var line = raw.replace(/,/g, ".").trim();
+      if (!line) return;
+      if (/^dnf$/i.test(line) || /\bdnf\b/i.test(line)) { arr.push({ ms: 0, pen: "DNF", date: 0 }); return; }
+      /* 序号后必须跟空白，否则 "12.34" 会被当成「12. 34」截断 */
+      var body = line.replace(/^\s*#?\d+\s*(?:[)\]\-–—]|\.)\s+/, "").replace(/^\s*#\d+\s+/, "");
+      var plus = /\+/.test(body);
+      body = body.replace(/\+/g, " ");
+      var m = body.match(/(\d+):(\d{1,3}(?:\.\d+)?)/);          /* 分:秒 */
+      var sec = m ? parseInt(m[1], 10) * 60 + parseFloat(m[2])
+                  : parseFloat((body.match(/\d+(?:\.\d+)?/) || [])[0]);
+      if (!isFinite(sec) || sec <= 0) return;
+      arr.push({ ms: Math.round(sec * 1000), pen: plus ? "+2" : "", date: 0 });
+    });
+    if (arr.length) {
+      var h = hash32(txt);
+      arr.forEach(function (s, i) { s.src = h + ":" + i; });   /* 无时间戳 → 用文件指纹做身份 */
+    }
+    return arr;
+  }
+
+  /* 解析入口：返回
+       { csTimer: sessions } | { groups: {...} } | { events: {...} } | { empty: ... } | null */
+  function parseImport(txt) {
+    var obj = null, isJson = true;
+    try { obj = JSON.parse(txt); } catch (e) { isJson = false; }
+
+    if (isJson && obj && typeof obj === "object" && !Array.isArray(obj)) {
+      /* ① csTimer 导出文件 → 交给映射弹窗确认分组归属 */
+      var cs = parseCsTimerExport(obj);
+      if (cs) return cs.sessions.length ? { csTimer: cs.sessions } : { empty: "csTimer" };
+      /* ② 本站 JSON 备份 */
+      if (obj.events && typeof obj.events === "object") return parseOwnJson(obj);
+      if (Array.isArray(obj.solves)) {
+        var one = { "3x3": [], "2x2": [] };
+        one[opt.event] = obj.solves.map(normSolve).filter(Boolean);
+        return one[opt.event].length ? { events: one } : { empty: "json" };
+      }
+      return null;   /* 合法 JSON 但不是已知结构：明确报错，避免把 JSON 文本当成绩解析 */
+    }
+    if (isJson && Array.isArray(obj)) {
+      var e2 = { "3x3": [], "2x2": [] };
+      e2[opt.event] = parseCsTimerSolves(obj);      /* 裸数组：可能是直接粘贴的会话数组 */
+      return e2[opt.event].length ? { events: e2 } : null;
+    }
+    var plain = parsePlainText(txt);
+    if (!plain.length) return null;
+    var out = { "3x3": [], "2x2": [] };
+    out[opt.event] = plain;
+    return { events: out };
   }
 
   /* ---------- 导入：合并（多重集合去重，同秒/同名成绩不会被误删） ---------- */
+  function addSolve(g, s, rem, i) {
+    s = normSolve(s);
+    if (!s) return false;
+    if (s.src) s.date = Date.now() + i;            /* 无真实时间戳 → 用当前时间并保持行序 */
+    var sig = solveSig(s);
+    if (rem[sig] > 0) { rem[sig]--; return false; }
+    g.solves.push(s);
+    return true;
+  }
+  function sigIndex(k) {
+    var rem = {};
+    allSolves(k).forEach(function (s) {
+      var sig = solveSig(s);
+      rem[sig] = (rem[sig] || 0) + 1;
+    });
+    return rem;
+  }
+  /* 收尾：组内排序；多分组时清掉空分组（保留至少一个）；修正当前分组指向 */
+  function tidyBox(k, prefer) {
+    var box = eventBox(k);
+    box.groups.forEach(function (g) { g.solves.sort(newestFirst); });
+    if (box.groups.length > 1) {
+      var kept = box.groups.filter(function (g) { return g.solves.length > 0; });
+      if (kept.length) box.groups = kept;
+    }
+    if (!box.groups.length) box.groups = [mkGroup("默认分组")];
+    var preferHit = prefer && box.groups.some(function (g) { return g.id === prefer; });
+    if (preferHit) box.cur = prefer;
+    else if (!box.groups.some(function (g) { return g.id === box.cur; })) box.cur = box.groups[0].id;
+  }
+  /* csTimer 会话 → 各成一个分组（同名则并入既有分组，保证重复导入幂等） */
+  function importSessions(picks) {
+    var added = 0, created = 0, per = {};
+    var byEvent = {};
+    picks.forEach(function (p) { (byEvent[p.event] = byEvent[p.event] || []).push(p); });
+    Object.keys(byEvent).forEach(function (k) {
+      var box = eventBox(k), rem = sigIndex(k), first = null, evAdded = 0;
+      byEvent[k].forEach(function (p) {
+        var g = findGroup(k, p.name);
+        if (!g) {
+          g = mkGroup(p.name || ("导入 " + stamp()));
+          box.groups.push(g);
+          created++;
+        }
+        if (!first) first = g.id;
+        p.solves.forEach(function (s, i) { if (addSolve(g, s, rem, i)) evAdded++; });
+      });
+      added += evAdded;
+      if (evAdded) per[k] = evAdded;
+      tidyBox(k, evAdded ? first : null);   /* 有新增才跳转；计数必须按项目各自统计 */
+    });
+    return { added: added, created: created, perEvent: per };
+  }
+  /* 扁平成绩 → 并入目标项目的「当前分组」 */
   function mergeEvents(incoming) {
-    var total = 0, now = Date.now();
+    var added = 0, per = {};
     ["3x3", "2x2"].forEach(function (k) {
       var inc = incoming[k];
       if (!inc || !inc.length) return;
-      var remaining = {};
-      data[k].forEach(function (s) {
-        var sig = solveSig(s);
-        remaining[sig] = (remaining[sig] || 0) + 1;
-      });
-      inc.forEach(function (s, i) {
-        s = normSolve(s);
-        if (!s) return;
-        if (s.src) s.date = now + i;               /* 无真实时间戳 → 用当前时间并保持行序 */
-        var sig = solveSig(s);
-        if (remaining[sig] > 0) { remaining[sig]--; return; }
-        data[k].push(s);
-        total++;
-      });
-      data[k].sort(function (a, b) { return b.date - a.date; });
+      var g = curGroup(k), rem = sigIndex(k), evAdded = 0;
+      inc.forEach(function (s, i) { if (addSolve(g, s, rem, i)) evAdded++; });
+      added += evAdded;
+      if (evAdded) per[k] = evAdded;
+      tidyBox(k, g.id);
     });
-    if (total) { saveData(); renderStrip(); renderList(); }
-    return total;
+    return { added: added, created: 0, perEvent: per };
   }
 
-  function notifyImport(added) {
-    if (!added) window.alert("没有新增成绩（文件中的成绩已全部存在）。");
-    else window.alert("导入完成：新增 " + added + " 条成绩（按成绩与时间合并去重）。");
+  function finishImport(res) {
+    saveData();
+    renderGroups(); renderStrip(); renderList();
+    if (!res.added) {
+      window.alert("没有新增成绩。\n可能原因：① 文件里的成绩都已存在（重复导入不会重复添加）；" +
+                   "② 分组映射里所有会话都被设成了「忽略」。");
+      return;
+    }
+    var parts = [];
+    ["3x3", "2x2"].forEach(function (k) {
+      if (res.perEvent && res.perEvent[k]) parts.push(eventDef(k).label + " " + res.perEvent[k] + " 条");
+    });
+    window.alert("导入完成：新增 " + res.added + " 条成绩" +
+      (res.created ? "，新建 " + res.created + " 个分组" : "") +
+      (parts.length > 1 ? "\n（" + parts.join(" / ") + "，另一项目的数据在「项目」里切换查看）" : "") +
+      "。\n（按成绩与时间合并去重，重复导入不会重复添加。）");
   }
 
   function importFile(file) {
@@ -777,11 +1078,28 @@
       var parsed;
       try { parsed = parseImport(String(reader.result || "")); } catch (e) { parsed = null; }
       if (!parsed) {
-        window.alert("导入失败：无法解析文件内容。\n支持 csTimer 导出的 .txt、本站导出的 .json，以及每行一个时间的纯文本。");
+        window.alert("导入失败：无法解析文件内容。\n支持 csTimer 导出的 .txt、本站导出的 .json，" +
+                     "以及每行一个时间的纯文本。");
+        return;
+      }
+      if (parsed.empty) {
+        window.alert(parsed.empty === "csTimer"
+          ? "这个 csTimer 文件里没有任何成绩（都是空会话）。"
+          : "这个备份文件里没有任何成绩。");
         return;
       }
       if (parsed.csTimer) { openMapDialog(parsed.csTimer); return; }
-      notifyImport(mergeEvents(parsed.events));
+      if (parsed.groups) {
+        var picks = [];
+        ["3x3", "2x2"].forEach(function (k) {
+          (parsed.groups[k] || []).forEach(function (g) {
+            picks.push({ event: k, name: g.name, solves: g.solves });
+          });
+        });
+        finishImport(importSessions(picks));
+        return;
+      }
+      finishImport(mergeEvents(parsed.events));
     };
     reader.readAsText(file);
   }
@@ -798,8 +1116,14 @@
 
       var name = document.createElement("span");
       name.className = "tm-map__name";
-      name.textContent = "会话 " + s.idx + (s.name ? " · " + s.name : "") +
-                         (s.scrType ? "（" + s.scrType + "）" : "");
+      name.textContent = s.label + (s.scrType ? "（" + s.scrType + "）" : "");
+      name.title = name.textContent;
+
+      var tag = document.createElement("span");
+      tag.className = "tm-map__tag";
+      if (s.unknown) { tag.textContent = "类型 " + s.scrType + " 本站不支持"; tag.classList.add("is-bad"); }
+      else if (s.assumed) { tag.textContent = "无类型信息 · 默认三阶"; tag.classList.add("is-assume"); }
+      else { tag.textContent = "自动识别"; tag.classList.add("is-ok"); }
 
       var cnt = document.createElement("span");
       cnt.className = "tm-map__n";
@@ -819,6 +1143,7 @@
       sel.addEventListener("change", updateMapSum);
 
       row.appendChild(name);
+      row.appendChild(tag);
       row.appendChild(cnt);
       row.appendChild(sel);
       els.mapRows.appendChild(row);
@@ -835,21 +1160,23 @@
     Array.prototype.forEach.call(sels, function (sel) {
       if (!sel.value) return;
       var s = pendingSessions[parseInt(sel.dataset.i, 10)];
-      if (s) out.push({ event: sel.value, solves: s.solves });
+      if (s) out.push({ event: sel.value, name: s.label, solves: s.solves });
     });
     return out;
   }
 
   function updateMapSum() {
-    var picks = pickedSessions(), n = 0, labels = [];
+    var picks = pickedSessions(), n = 0, labels = [], groups = 0;
     picks.forEach(function (p) {
       n += p.solves.length;
+      groups++;
       var lab = eventDef(p.event).label;
       if (labels.indexOf(lab) < 0) labels.push(lab);
     });
     els.mapSum.textContent = n
-      ? "将向 " + labels.join(" / ") + " 导入 " + n + " 条成绩"
-      : "未选择任何分组";
+      ? "将向 " + labels.join(" / ") + " 导入 " + n + " 条成绩，建成 " + groups + " 个分组"
+      : "未选择任何分组（点了确认也不会导入）";
+    els.mapSum.classList.toggle("is-warn", !n);
   }
 
   function closeMapDialog() {
@@ -859,11 +1186,12 @@
 
   function confirmMapImport() {
     var picks = pickedSessions();
-    var events = { "3x3": [], "2x2": [] };
-    picks.forEach(function (p) { events[p.event] = events[p.event].concat(p.solves); });
     closeMapDialog();
-    if (!picks.length) return;
-    notifyImport(mergeEvents(events));
+    if (!picks.length) {
+      window.alert("没有选择任何要导入的分组（全部为「忽略」），已取消。");
+      return;
+    }
+    finishImport(importSessions(picks));
   }
 
   /* ---------- 导出菜单 ---------- */
@@ -872,16 +1200,6 @@
     var open = (on == null) ? els.exportMenu.hidden : !!on;
     els.exportMenu.hidden = !open;
     els.exportBtn.setAttribute("aria-expanded", open ? "true" : "false");
-  }
-
-
-  function clearEvent() {
-    var arr = solves();
-    if (!arr.length) return;
-    if (!window.confirm("确定清空「" + eventDef(opt.event).label + "」的 " + arr.length + " 条成绩吗？此操作不可撤销。")) return;
-    data[opt.event] = [];
-    saveData(); renderStrip(); renderList();
-    flashBtn(els.clearBtn, "已清空 ✓", "清空本组");
   }
 
   function flashBtn(btn, txt, back) {
@@ -905,6 +1223,8 @@
       kAo5: $("k-ao5"), kAo12: $("k-ao12"), kAo100: $("k-ao100"),
       list: $("tm-list"), listWrap: $("tm-list-wrap"), empty: $("tm-empty"),
       listHead: document.querySelector(".tm-list-head"),
+      groupSel: $("tm-group-sel"), groupNew: $("tm-group-new"),
+      groupRen: $("tm-group-ren"), groupDel: $("tm-group-del"), groupMeta: $("tm-group-meta"),
       statsBtn: $("tm-stats"), exportBtn: $("tm-export"), exportMenu: $("tm-export-menu"),
       importBtn: $("tm-import"),
       importFile: $("tm-import-file"), clearBtn: $("tm-clear"),
@@ -954,6 +1274,17 @@
     els.btnDnf.addEventListener("click", function () { togglePenalty("DNF"); this.blur(); });
     els.btnDrop.addEventListener("click", function () { discard(); this.blur(); });
 
+    /* 分组控件 */
+    els.groupSel.addEventListener("change", function () { selectGroup(els.groupSel.value); });
+    els.groupNew.addEventListener("click", function () {
+      var nv = window.prompt("新建分组名称", opt.event === "3x3" ? "三阶分组" : "二阶分组");
+      if (nv == null) return;
+      createGroup(nv.trim() || undefined);
+      els.groupNew.blur();
+    });
+    els.groupRen.addEventListener("click", function () { renameGroup(); els.groupRen.blur(); });
+    els.groupDel.addEventListener("click", function () { deleteGroup(); els.groupDel.blur(); });
+
     els.statsBtn.addEventListener("click", function () { openStats(); els.statsBtn.blur(); });
     els.modalClose.addEventListener("click", closeStats);
     els.modal.addEventListener("click", function (e) {
@@ -995,13 +1326,14 @@
     els.mapModal.addEventListener("click", function (e) {
       if (e.target.dataset && e.target.dataset.close) closeMapDialog();
     });
-    els.clearBtn.addEventListener("click", clearEvent);
+    els.clearBtn.addEventListener("click", clearGroup);
 
     bindInput();
 
     curScramble = opt.manual ? opt.manualText : "";
     if (opt.manual) els.manualInput.value = opt.manualText;
     next(true);
+    renderGroups();
   }
 
   /* 供冒烟测试使用 */
@@ -1014,27 +1346,53 @@
     get mapOpen() { return !!(els.mapModal && !els.mapModal.hidden); },
     get exportMenuOpen() { return !!(els.exportMenu && !els.exportMenu.hidden); },
     press: press, release: release,
-    setEvent: function (k) { opt.event = k; buildEvents(); next(true); },
+    setEvent: function (k) { opt.event = k; buildEvents(); next(true); renderGroups(); },
     setInspect: setInspect,
     addSolve: function (ms, pen) {
       solves().unshift({ ms: ms, pen: pen || "", date: Date.now() });
-      saveData(); renderStrip(); renderList();
+      saveData(); renderGroups(); renderStrip(); renderList();
     },
-    clear: function () { data["3x3"] = []; data["2x2"] = []; saveData(); renderStrip(); renderList(); },
+    clear: function () {
+      data["3x3"] = emptyBox(); data["2x2"] = emptyBox();
+      saveData(); renderGroups(); renderStrip(); renderList();
+    },
     stats: function () { return S.sessionStats(solves()); },
     openStats: openStats, closeStats: closeStats,
-    exportPayload: function () { return { app: "mrcube-timer", version: 1, events: data }; },
+    exportPayload: function () { return { app: "mrcube-timer", version: 2, events: data }; },
     csTimerPayload: csTimerPayload,     /* csTimer TXT 导出的对象结构（测试用） */
     plainText: plainText,               /* 纯时间列表 TXT 内容（测试用） */
     parseImport: parseImport,
     mergeEvents: mergeEvents,
+    /* 分组相关 */
+    groups: function (k) {
+      k = k || opt.event;
+      var box = eventBox(k);
+      return box.groups.map(function (g) {
+        return { id: g.id, name: g.name, n: g.solves.length, cur: g.id === box.cur };
+      });
+    },
+    solvesOf: function (k) { return allSolves(k).slice(); },
+    curGroup: function (k) { var g = curGroup(k); return { id: g.id, name: g.name, n: g.solves.length }; },
+    allSolves: function () { return allSolves(opt.event).slice(); },
+    selectGroup: selectGroup, createGroup: createGroup, deleteGroup: deleteGroup,
+    clearGroup: clearGroup,
     mergeTxt: function (txt) {          /* 解析并直接合并（csTimer 文件按猜测自动映射；测试用） */
       var p = parseImport(txt);
       if (!p) return -1;
-      if (!p.csTimer) return mergeEvents(p.events);
-      var ev = { "3x3": [], "2x2": [] };
-      p.csTimer.forEach(function (s) { if (s.guess) ev[s.guess] = ev[s.guess].concat(s.solves); });
-      return mergeEvents(ev);
+      if (p.empty) return 0;
+      if (p.groups) {
+        var picks = [];
+        ["3x3", "2x2"].forEach(function (k) {
+          (p.groups[k] || []).forEach(function (g) { picks.push({ event: k, name: g.name, solves: g.solves }); });
+        });
+        return importSessions(picks).added;
+      }
+      if (!p.csTimer) return mergeEvents(p.events).added;
+      var picks2 = [];
+      p.csTimer.forEach(function (s) {
+        if (s.guess) picks2.push({ event: s.guess, name: s.label, solves: s.solves });
+      });
+      return importSessions(picks2).added;
     },
     openMap: function (txt) {           /* 打开导入映射弹窗（测试用） */
       var p = parseImport(txt);
@@ -1047,6 +1405,7 @@
       Array.prototype.forEach.call(els.mapRows.querySelectorAll(".tm-map__row"), function (row) {
         out.push({
           name: row.querySelector(".tm-map__name").textContent,
+          tag: row.querySelector(".tm-map__tag").textContent,
           n: row.querySelector(".tm-map__n").textContent,
           value: row.querySelector(".tm-map__sel").value
         });
