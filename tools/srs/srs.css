@@ -172,30 +172,16 @@
 .srs-group__body { padding: 4px 12px 14px; }
 .srs-group.is-collapsed .srs-group__body { display: none; }
 
-/* ---------- 选择题作答 ---------- */
-.srs-mc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 540px; margin-top: 6px; }
-.srs-mc__btn {
-  display: flex; align-items: center; gap: 10px; text-align: left;
-  border: 1px solid var(--line-2); background: var(--surface-2); color: var(--fg);
-  border-radius: 0; padding: 12px 14px; cursor: pointer; font-family: inherit; font-size: 15px;
-  transition: background .12s, border-color .12s;
+/* ---------- 评分键位徽标 + 键盘提示 ---------- */
+.srs-grade__key {
+  display: block; width: 20px; height: 20px; margin: 0 auto 4px;
+  border: 1px solid var(--line-2); font-size: 11px; font-weight: 700;
+  color: var(--fg-3); line-height: 18px;
 }
-.srs-mc__btn:hover { background: var(--surface-3); border-color: var(--brand-line); }
-.srs-mc__k {
-  flex: 0 0 auto; width: 22px; height: 22px; display: grid; place-items: center;
-  border: 1px solid var(--line-2); border-radius: 0; font-size: 12px; font-weight: 700; color: var(--fg-3);
+.srs-kbdhint {
+  margin: 14px auto 0; max-width: 720px; text-align: center;
+  font-size: 12px; color: var(--fg-3); line-height: 1.7;
 }
-.srs-mc__t { flex: 1 1 auto; word-break: break-word; line-height: 1.4; }
-.srs-mc__btn.is-correct { background: var(--green); border-color: var(--green); color: #fff; }
-.srs-mc__btn.is-correct .srs-mc__k { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .45); color: #fff; }
-.srs-mc__btn.is-wrong { background: var(--red); border-color: var(--red); color: #fff; }
-.srs-mc__btn.is-wrong .srs-mc__k { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .45); color: #fff; }
-.srs-mc__btn.is-locked { cursor: default; }
-.srs-mc__btn.is-locked:not(.is-correct):not(.is-wrong) { opacity: .45; }
-.srs-quiz__feedback { font-size: 13px; font-weight: 600; margin-top: 4px; }
-.srs-quiz__feedback.is-ok { color: var(--green); }
-.srs-quiz__feedback.is-bad { color: var(--red); }
-.srs-nextbar { margin-top: 14px; text-align: center; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
 /* ---------- 移动端 ---------- */
 @media (max-width: 640px) {
@@ -211,10 +197,6 @@
   .srs-grade { padding: 9px 2px; }
   .srs-decks { grid-template-columns: 1fr; }
   .srs-list th:nth-child(n+4), .srs-list td:nth-child(n+4) { display: none; }
-  .srs-mc { grid-template-columns: 1fr; }
-  .srs-nextbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-    background: var(--bg); padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--line-2); gap: 6px; }
 }
 
 /* 键盘快捷键提示 */
