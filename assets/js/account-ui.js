@@ -1,15 +1,18 @@
 /* =============================================================
  * account-ui.js — 导航账号位 + 账号面板（自注入样式，无需改页面 CSS）
  * -------------------------------------------------------------
- * 依赖（由 sync-boot.js 按序加载）：cloud-store / account / sync-engine
+ * 依赖（由 sync-boot.js 按序加载）：cloud-store / account / cb-config / cb-auth / cb-store / sync-engine
  * 行为：
- *   · 导航 .nav-inner 内追加「账号」按钮（未登录=登录同步 / 已登录=@login+状态点）
- *   · 点击打开面板：手动开通 / GitHub 一键登录 / 各功能同步状态 / 强制同步 / 登出
+ *   · 导航 .nav-inner 内追加「账号」按钮（未登录=登录 / 已登录=手机号或 @login + 状态点）
+ *   · 点击打开面板：
+ *       - 主方式：手机号 + 短信验证码（注册即登录，无需记密码）
+ *       - 高级折叠：GitHub 仓库手动开通（作者自用/备用通道）
  *   · 若页面无导航，降级为右下角浮动按钮，保证入口可达
  * ============================================================= */
 (function (global) {
   'use strict';
   var AC = function () { return global.Account; };
+  var CB = function () { return global.CBAuth; };
   var SE = function () { return global.SyncEngine; };
 
   var STYLE_ID = 'acct-ui-style';
@@ -30,20 +33,24 @@
     'border:1px solid var(--line);border-radius:0;padding:20px;color:var(--fg)}',
     '.acct-modal h3{margin:0 0 4px;font-size:17px}',
     '.acct-modal .sub{color:var(--fg-3);font-size:12.5px;margin-bottom:14px;line-height:1.6}',
+    '.acct-modal .sub a{color:var(--brand)}',
     '.acct-sec{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}',
     '.acct-sec h4{margin:0 0 8px;font-size:14px}',
     '.acct-f{display:block;margin-bottom:9px;font-size:12.5px;color:var(--fg-2)}',
-    '.acct-f input{display:block;width:100%;margin-top:4px;padding:8px 10px;font:inherit;font-size:13px;',
+    '.acct-f input{display:block;width:100%;margin-top:4px;padding:9px 10px;font:inherit;font-size:14px;',
     'color:var(--fg);background:var(--surface-2);border:1px solid var(--line-2);border-radius:0}',
     '.acct-f input:focus{outline:none;border-color:var(--brand)}',
     '.acct-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}',
-    '.acct-btn{padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;border-radius:0;',
+    '.acct-code-row{display:flex;gap:8px;align-items:stretch}',
+    '.acct-code-row input{flex:1 1 auto;min-width:0}',
+    '.acct-code-row button{flex:0 0 auto;white-space:nowrap}',
+    '.acct-btn{padding:9px 14px;font:inherit;font-size:13px;cursor:pointer;border-radius:0;',
     'background:var(--brand);color:var(--on-brand);border:1px solid var(--brand)}',
     '.acct-btn:hover{filter:brightness(1.08)}',
     '.acct-btn.ghost{background:var(--surface-2);color:var(--fg-2);border:1px solid var(--line-2)}',
     '.acct-btn.ghost:hover{color:var(--on-brand);background:var(--brand);border-color:var(--brand)}',
     '.acct-btn.danger{background:transparent;color:var(--red);border:1px solid var(--red)}',
-    '.acct-btn:disabled{opacity:.5;cursor:default}',
+    '.acct-btn:disabled{opacity:.5;cursor:default;filter:none}',
     '.acct-msg{margin-top:10px;font-size:12.5px;color:var(--fg-3);line-height:1.6}',
     '.acct-msg.err{color:var(--red)}.acct-msg.ok{color:var(--green)}',
     '.acct-code{font-size:26px;font-weight:700;letter-spacing:3px;text-align:center;padding:12px;',
@@ -52,7 +59,16 @@
     '.acct-scope:last-child{border-bottom:none}',
     '.acct-scope .nm{flex:1 1 auto}',
     '.acct-scope .tm{font-size:11.5px;color:var(--fg-3)}',
-    '.acct-empty{font-size:12.5px;color:var(--fg-3)}'
+    '.acct-empty{font-size:12.5px;color:var(--fg-3)}',
+    '.acct-backend{display:inline-block;margin-bottom:8px;padding:2px 8px;font-size:11.5px;',
+    'color:var(--fg-3);border:1px solid var(--line-2);background:var(--surface-2)}',
+    '.acct-uid{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--fg-3);',
+    'word-break:break-all;user-select:all;cursor:text}',
+    '.acct-fold{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}',
+    '.acct-fold>summary{cursor:pointer;font-size:13px;color:var(--fg-2);list-style:none}',
+    '.acct-fold>summary::-webkit-details-marker{display:none}',
+    '.acct-fold>summary::before{content:"▸ ";color:var(--fg-3)}',
+    '.acct-fold[open]>summary::before{content:"▾ "}'
   ].join('\n');
 
   function injectStyle() {
@@ -71,9 +87,17 @@
     if (d < 86400000) return Math.floor(d / 3600000) + ' 小时前';
     return new Date(ts).toLocaleString();
   }
+  /** 13812345678 → 138****5678 */
+  function maskPhone(p) {
+    p = String(p || '').replace(/^\+86/, '');
+    if (p.length < 7) return p;
+    return p.slice(0, 3) + '****' + p.slice(-4);
+  }
 
   /* ---------------- 面板 ---------------- */
   var mask = null;
+  var cdTimer = null;      // 验证码倒计时
+  var cdLeft = 0;
 
   function closePanel() { if (mask) { mask.remove(); mask = null; } }
 
@@ -86,74 +110,12 @@
     document.body.appendChild(mask);
     renderPanel();
 
-    // 状态变化实时刷新面板
     var off1 = SE() && SE().onStatus ? SE().onStatus(function () { if (mask) renderPanel(); }) : function () {};
     var off2 = function () { if (mask) renderPanel(); };
-    AC() && AC().onChange(off2);
+    if (AC() && AC().onChange) AC().onChange(off2);
+    if (CB() && CB().onChange) CB().onChange(off2);
     var obs = new MutationObserver(function () { if (!mask) { off1(); try { obs.disconnect(); } catch (e) {} } });
     try { obs.observe(document.body, { childList: true }); } catch (e) {}
-  }
-
-  function renderPanel() {
-    if (!mask) return;
-    var m = mask.querySelector('.acct-modal');
-    var A = AC(), S = SE();
-    var logged = A && A.isLoggedIn();
-    var st = A && A.get();
-
-    if (!logged) {
-      m.innerHTML =
-        '<h3>账号与跨设备同步</h3>' +
-        '<div class="sub">登录后，本站各功能的数据会存到你的 GitHub 私有仓库，' +
-        '换设备用同一账号登录即可自动恢复。<b>初期为手动开通</b>，不会自动注册。</div>' +
-
-        '<div class="acct-sec">' +
-        '<h4>方式一 · 手动开通（自测最快）</h4>' +
-        '<label class="acct-f">GitHub 用户名<input id="acOwner" placeholder="如 mrcubessr" value="' + esc(st && st.owner) + '"></label>' +
-        '<label class="acct-f">同步仓库（不存在会自动尝试创建）<input id="acRepo" value="' + esc((st && st.repo) || 'fto-site-sync') + '"></label>' +
-        '<label class="acct-f">访问令牌（fine-grained，仅授权本仓库）<input id="acToken" type="password" placeholder="ghp_ / github_pat_..."></label>' +
-        '<div class="acct-row"><button class="acct-btn" id="acManual">连接并开通</button></div>' +
-        '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 ' +
-        '<b>Contents: Read and write</b>。不知道怎么弄？' +
-        '<a href="/account-help.html" target="_blank" rel="noopener">查看图文教程</a></div>' +
-        '</div>' +
-
-        '<div class="acct-sec">' +
-        '<h4>方式二 · GitHub 一键登录</h4>' +
-        '<label class="acct-f">OAuth App 的 client_id（只需填一次）<input id="acCid" value="' + esc(A && A.clientId ? A.clientId() : '') + '"></label>' +
-        '<div class="acct-row"><button class="acct-btn ghost" id="acOauth">获取设备码</button></div>' +
-        '<div class="acct-msg">如何获取：GitHub 头像 → Settings → Developer settings → OAuth Apps → New OAuth App，' +
-        'Authorization callback URL 留空。创建后复制 Client ID。</div>' +
-        '</div>' +
-        '<div class="acct-msg" id="acMsg"></div>';
-      wireLogin(m);
-      return;
-    }
-
-    // 已登录
-    var status = (S && S.status) ? S.status() : {};
-    var rows = Object.keys(status).map(function (id) {
-      var s = status[id] || {};
-      var cls = s.state === 'syncing' ? 'is-sync' : s.state === 'error' ? 'is-err' : (s.lastTs ? 'is-ok' : '');
-      var txt = s.state === 'syncing' ? '同步中…' : s.state === 'error' ? ('出错：' + (s.error || '')) : ago(s.lastTs);
-      return '<div class="acct-scope"><span class="acct-dot ' + cls + '"></span>' +
-        '<span class="nm">' + esc(s.label || id) + '</span><span class="tm">' + esc(txt) + '</span></div>';
-    }).join('');
-
-    m.innerHTML =
-      '<h3>已登录 @' + esc(st.login || st.owner) + '</h3>' +
-      '<div class="sub">同步仓库：<b>' + esc(st.owner) + '/' + esc(st.repo) + '</b>（' + esc(st.branch || 'main') + ' 分支）</div>' +
-      '<div class="acct-sec"><h4>各功能同步状态</h4>' +
-      (rows || '<div class="acct-empty">本页没有需要同步的功能（其它页面各自同步自己的数据）。</div>') +
-      '</div>' +
-      '<div class="acct-row">' +
-      '<button class="acct-btn" id="acPull">立即拉取</button>' +
-      '<button class="acct-btn ghost" id="acPush">强制上传全部</button>' +
-      '<button class="acct-btn ghost" id="acForce">强制下载全部</button>' +
-      '<button class="acct-btn danger" id="acOut">退出登录</button>' +
-      '</div>' +
-      '<div class="acct-msg" id="acMsg"></div>';
-    wireLogged(m);
   }
 
   function msg(m, text, cls) {
@@ -163,43 +125,173 @@
     e.textContent = text || '';
   }
 
-  function wireLogin(m) {
+  function statusRows() {
+    var S = SE();
+    var status = (S && S.status) ? S.status() : {};
+    return Object.keys(status).map(function (id) {
+      var s = status[id] || {};
+      var cls = s.state === 'syncing' ? 'is-sync' : s.state === 'error' ? 'is-err' : (s.lastTs ? 'is-ok' : '');
+      var txt = s.state === 'syncing' ? '同步中…' : s.state === 'error' ? ('出错：' + (s.error || '')) : ago(s.lastTs);
+      return '<div class="acct-scope"><span class="acct-dot ' + cls + '"></span>' +
+        '<span class="nm">' + esc(s.label || id) + '</span><span class="tm">' + esc(txt) + '</span></div>';
+    }).join('');
+  }
+
+  function renderPanel() {
+    if (!mask) return;
+    var m = mask.querySelector('.acct-modal');
+    var A = AC(), C = CB();
+
+    // ① CloudBase 手机号账号已登录
+    if (C && C.isLoggedIn()) {
+      var u = C.get().user || {};
+      var be = (SE() && SE().backend) ? SE().backend() : '';
+      m.innerHTML =
+        '<h3>' + esc(maskPhone(u.phone) || '我的账号') + '</h3>' +
+        '<div class="acct-backend">云端：' + (be === 'cloudbase' ? '腾讯云开发（手机号账号）' : 'GitHub 仓库') + '</div>' +
+        '<div class="sub">数据已绑定到你的账号，换设备用同一手机号登录即可恢复。</div>' +
+        '<div class="acct-sec"><h4>本页同步状态</h4>' +
+        (statusRows() || '<div class="acct-empty">本页没有需要同步的功能（其它页面各自同步自己的数据）。</div>') +
+        '</div>' +
+        '<div class="acct-row">' +
+        '<button class="acct-btn" id="acPull">立即拉取</button>' +
+        '<button class="acct-btn ghost" id="acPush">强制上传</button>' +
+        '<button class="acct-btn ghost" id="acForce">强制下载</button>' +
+        '<button class="acct-btn danger" id="acOut">退出登录</button>' +
+        '</div>' +
+        '<div class="acct-sec"><div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div></div>' +
+        '<div class="acct-msg">本页只同步本页用到的功能；要同步其它功能，打开对应页面即可。' +
+        '<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
+        '<div class="acct-msg" id="acMsg"></div>';
+      wireLogged(m, 'cb');
+      return;
+    }
+
+    // ② GitHub 账号已登录（旧通道）
+    if (A && A.isLoggedIn()) {
+      var st = A.get();
+      m.innerHTML =
+        '<h3>已登录 @' + esc(st.login || st.owner) + '</h3>' +
+        '<div class="acct-backend">云端：GitHub 仓库 ' + esc(st.owner) + '/' + esc(st.repo) + '</div>' +
+        '<div class="sub">这是备用同步通道。推荐改用手机号登录，更方便。</div>' +
+        '<div class="acct-sec"><h4>本页同步状态</h4>' +
+        (statusRows() || '<div class="acct-empty">本页没有需要同步的功能。</div>') +
+        '</div>' +
+        '<div class="acct-row">' +
+        '<button class="acct-btn" id="acPull">立即拉取</button>' +
+        '<button class="acct-btn ghost" id="acPush">强制上传</button>' +
+        '<button class="acct-btn ghost" id="acForce">强制下载</button>' +
+        '<button class="acct-btn danger" id="acOut">退出登录</button>' +
+        '</div>' +
+        '<div class="acct-msg"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
+        '<div class="acct-msg" id="acMsg"></div>';
+      wireLogged(m, 'gh');
+      return;
+    }
+
+    // ③ 未登录：手机号登录为主，GitHub 折叠为高级
+    var cbOk = !!(C && C.configured());
+    var head = '<h3>登录 / 注册</h3>' +
+      '<div class="sub">用手机号即可，<b>不用记密码</b>：填手机号 → 收验证码 → 登录。' +
+      '首次登录会自动创建账号。<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
+
+    var phoneSec = cbOk
+      ? '<div class="acct-sec">' +
+        '<label class="acct-f">手机号<input id="acPhone" type="tel" inputmode="numeric" maxlength="11" placeholder="11 位手机号" autocomplete="tel"></label>' +
+        '<label class="acct-f">短信验证码' +
+        '<div class="acct-code-row"><input id="acOtp" inputmode="numeric" maxlength="6" placeholder="6 位验证码">' +
+        '<button class="acct-btn ghost" id="acSend" type="button">获取验证码</button></div></label>' +
+        '<div class="acct-row"><button class="acct-btn" id="acLogin">登录 / 注册</button></div>' +
+        '</div>'
+      : '<div class="acct-sec"><div class="acct-msg err">手机号登录尚未开通：需要在 assets/js/cb-config.js 填入 CloudBase 的 env 与 publishableKey。' +
+        '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
+
+    var ghSec = '<details class="acct-fold"' + (cbOk ? '' : ' open') + '><summary>高级：用 GitHub 仓库同步（备用通道）</summary>' +
+      '<div style="margin-top:10px">' +
+      '<label class="acct-f">GitHub 用户名<input id="acOwner" placeholder="如 mrcubessr" value="' + esc(A && A.get ? A.get().owner : '') + '"></label>' +
+      '<label class="acct-f">同步仓库（不会自动创建）<input id="acRepo" value="' + esc((A && A.get && A.get().repo) || 'fto-site-sync') + '"></label>' +
+      '<label class="acct-f">访问令牌（fine-grained，仅授权本仓库）<input id="acToken" type="password" placeholder="ghp_ / github_pat_..."></label>' +
+      '<div class="acct-row"><button class="acct-btn ghost" id="acManual">连接并开通</button></div>' +
+      '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 <b>Contents: Read and write</b>。</div>' +
+      '</div></details>';
+
+    m.innerHTML = head + phoneSec + ghSec + '<div class="acct-msg" id="acMsg"></div>';
+    if (cbOk) wirePhone(m);
+    wireGithub(m);
+  }
+
+  /* ---------------- 手机号验证码登录 ---------------- */
+  function startCountdown(m) {
+    var btn = m.querySelector('#acSend');
+    if (!btn) return;
+    cdLeft = 60;
+    if (cdTimer) clearInterval(cdTimer);
+    btn.disabled = true;
+    btn.textContent = cdLeft + ' 秒后重发';
+    cdTimer = setInterval(function () {
+      cdLeft--;
+      if (cdLeft <= 0) {
+        clearInterval(cdTimer); cdTimer = null;
+        if (btn) { btn.disabled = false; btn.textContent = '重新获取'; }
+        return;
+      }
+      if (btn) btn.textContent = cdLeft + ' 秒后重发';
+    }, 1000);
+  }
+
+  function wirePhone(m) {
+    var C = CB();
+    m.querySelector('#acSend').onclick = function () {
+      var phone = (m.querySelector('#acPhone').value || '').trim();
+      if (!phone) { msg(m, '请先填写手机号', 'err'); return; }
+      var b = this; b.disabled = true; b.textContent = '发送中…';
+      msg(m, '正在发送验证码…');
+      C.sendCode(phone).then(function () {
+        msg(m, '验证码已发送，请查收短信', 'ok');
+        startCountdown(m);
+        var otp = m.querySelector('#acOtp'); if (otp) otp.focus();
+      }).catch(function (e) {
+        b.disabled = false; b.textContent = '获取验证码';
+        msg(m, '发送失败：' + (e && e.message ? e.message : e), 'err');
+      });
+    };
+
+    m.querySelector('#acLogin').onclick = function () {
+      var code = (m.querySelector('#acOtp').value || '').trim();
+      if (!code) { msg(m, '请输入短信验证码', 'err'); return; }
+      var b = this; b.disabled = true;
+      msg(m, '正在验证…');
+      C.verifyCode(code).then(function (user) {
+        msg(m, '登录成功' + (user && user.phone ? '：' + maskPhone(user.phone) : ''), 'ok');
+        setTimeout(function () { renderPanel(); refreshChip(); }, 400);
+      }).catch(function (e) {
+        b.disabled = false;
+        msg(m, '验证失败：' + (e && e.message ? e.message : e), 'err');
+      });
+    };
+  }
+
+  /* ---------------- GitHub 手动开通（备用） ---------------- */
+  function wireGithub(m) {
     var A = AC();
-    m.querySelector('#acManual').onclick = function () {
+    var btn = m.querySelector('#acManual');
+    if (!btn || !A) return;
+    btn.onclick = function () {
       var b = this; b.disabled = true; msg(m, '正在连接…');
       A.loginManual({
-        owner: m.querySelector('#acOwner').value,
-        repo: m.querySelector('#acRepo').value,
-        token: m.querySelector('#acToken').value
+        owner: (m.querySelector('#acOwner').value || '').trim(),
+        repo: (m.querySelector('#acRepo').value || '').trim(),
+        token: (m.querySelector('#acToken').value || '').trim()
       }).then(function (r) {
         msg(m, '已开通为 @' + r.login + (r.warn ? '（警告：' + r.warn + '）' : ''), 'ok');
         setTimeout(function () { renderPanel(); refreshChip(); }, 400);
       }).catch(function (e) { msg(m, '开通失败：' + (e && e.message || e), 'err'); b.disabled = false; });
     };
-    m.querySelector('#acOauth').onclick = function () {
-      var cid = m.querySelector('#acCid').value.trim();
-      if (!cid) { msg(m, '请先填写 client_id', 'err'); return; }
-      msg(m, '正在申请设备码…');
-      A.loginOAuth({
-        clientId: cid,
-        onCode: function (d) {
-          msg(m, '');
-          var box = document.createElement('div');
-          box.innerHTML = '<div class="acct-sec"><h4>请在 GitHub 输入此设备码</h4>' +
-            '<div class="acct-code">' + esc(d.user_code) + '</div>' +
-            '<div class="acct-msg">打开 <a href="' + esc(d.verification_uri) + '" target="_blank" rel="noopener">' +
-            esc(d.verification_uri) + '</a> 输入上方编码完成授权，本页会自动继续。</div></div>';
-          m.appendChild(box);
-        }
-      }).then(function (r) {
-        msg(m, '已登录为 @' + r.login, 'ok');
-        setTimeout(function () { renderPanel(); refreshChip(); }, 400);
-      }).catch(function (e) { msg(m, '登录失败：' + (e && e.message || e), 'err'); });
-    };
   }
 
-  function wireLogged(m) {
-    var S = SE(), A = AC();
+  /* ---------------- 已登录 ---------------- */
+  function wireLogged(m, kind) {
+    var S = SE();
     m.querySelector('#acPull').onclick = function () {
       var b = this; b.disabled = true; msg(m, '拉取中…');
       S.pullAll().then(function (r) { msg(m, '已拉取 ' + (r || []).length + ' 项', 'ok'); b.disabled = false; renderPanel(); })
@@ -216,8 +308,10 @@
         .catch(function (e) { msg(m, '下载失败：' + e.message, 'err'); b.disabled = false; });
     };
     m.querySelector('#acOut').onclick = function () {
-      if (!confirm('退出登录后本机数据仍保留，但不再同步。确定退出？')) return;
-      A.logout(); renderPanel(); refreshChip();
+      if (!confirm('退出后本机数据仍保留，但不再同步。确定退出？')) return;
+      if (kind === 'cb' && CB()) CB().signOut();
+      else if (AC()) AC().logout();
+      renderPanel(); refreshChip();
     };
   }
 
@@ -240,14 +334,22 @@
   function refreshChip() {
     var chip = document.getElementById('acctChip');
     if (!chip) return;
-    var A = AC();
-    var logged = A && A.isLoggedIn();
-    var st = A ? A.get() : {};
+    var A = AC(), C = CB();
     var s = chipState();
-    chip.innerHTML = logged
-      ? '<span class="acct-dot ' + s.cls + '"></span>@' + esc(st.login || st.owner)
-      : '登录同步';
-    chip.title = logged ? '账号与同步设置' : '登录后可跨设备同步数据';
+    var txt = '登录', title = '登录后可跨设备同步数据';
+
+    if (C && C.isLoggedIn()) {
+      var u = C.get().user || {};
+      txt = maskPhone(u.phone) || '我的账号';
+      title = '已登录（' + (u.uid || '') + '）· 账号与同步设置';
+    } else if (A && A.isLoggedIn()) {
+      var st = A.get();
+      txt = '@' + (st.login || st.owner);
+      title = 'GitHub 同步 · 账号与同步设置';
+    }
+
+    chip.innerHTML = (txt === '登录') ? '登录' : '<span class="acct-dot ' + s.cls + '"></span>' + esc(txt);
+    chip.title = title;
   }
 
   function ensureChip() {
@@ -285,6 +387,7 @@
   function bindUpdates() {
     if (SE() && SE().onStatus) SE().onStatus(refreshChip);
     if (AC() && AC().onChange) AC().onChange(refreshChip);
+    if (CB() && CB().onChange) CB().onChange(refreshChip);
   }
 
   if (document.readyState === 'loading') {

@@ -35,11 +35,24 @@
   var started = false;
   var pullTimer = null;
 
-  function CS() { return global.CloudStore; }
-  function AC() { return global.Account; }
-  function ready() {
-    return !!(CS() && AC() && AC().isLoggedIn() && CS().isReady());
+  /** 后端选择：CloudBase（手机号账号）优先，否则 GitHub（手动 token） */
+  function backend() {
+    if (global.CBAuth && global.CBAuth.isLoggedIn() && global.CbStore && global.CbStore.isReady()) {
+      return global.CbStore;
+    }
+    if (global.Account && global.Account.isLoggedIn() && global.CloudStore && global.CloudStore.isReady()) {
+      return global.CloudStore;
+    }
+    return null;
   }
+  function CS() { return backend() || global.CloudStore || global.CbStore; }
+  function AC() { return global.Account; }
+  /** 当前使用的后端名：'cloudbase' | 'github' | '' */
+  function backendName() {
+    if (!backend()) return '';
+    return (backend() === global.CbStore) ? 'cloudbase' : 'github';
+  }
+  function ready() { return !!backend(); }
 
   function tsKey(id) { return 'sync_ts_' + id; }
   function getTs(id) { try { return parseInt(localStorage.getItem(tsKey(id)) || '0', 10) || 0; } catch (e) { return 0; } }
@@ -204,6 +217,8 @@
       return function () { var i = listeners.indexOf(fn); if (i >= 0) listeners.splice(i, 1); };
     },
     isReady: ready,
+    /** 当前使用的后端：'cloudbase' | 'github' | ''（未登录） */
+    backend: backendName,
 
     /** 启动周期拉取（登录后可调用；引擎也会在登录事件时自动调用） */
     start: function () {
@@ -222,10 +237,12 @@
     }
   };
 
-  /* ---------------- 账号状态联动 ---------------- */
-  function onAccountChange() {
+  /* ---------------- 账号状态联动（CloudBase / GitHub 通用） ---------------- */
+  function onAuthChange() {
     if (AC() && AC().isLoggedIn()) {
-      AC().applyToCloudStore();
+      try { AC().applyToCloudStore(); } catch (e) {}
+    }
+    if (ready()) {
       SyncEngine.start();
       SyncEngine.pullAll();
     } else {
@@ -235,11 +252,18 @@
     }
   }
   try {
-    global.addEventListener('account:change', onAccountChange);
+    global.addEventListener('account:change', onAuthChange);   // GitHub 账号
+    global.addEventListener('cb:change', onAuthChange);         // CloudBase 手机号账号
   } catch (e) {}
 
   // 若脚本加载时已登录，启动一次
   try { if (ready()) { SyncEngine.start(); } } catch (e) {}
+  // CloudBase 会话是异步恢复的，恢复后再拉一次
+  try {
+    if (global.CBAuth && global.CBAuth.onChange) {
+      global.CBAuth.onChange(function () { if (ready()) { SyncEngine.start(); SyncEngine.pullAll(); } });
+    }
+  } catch (e) {}
 
   global.SyncEngine = SyncEngine;
 })(typeof window !== 'undefined' ? window : this);

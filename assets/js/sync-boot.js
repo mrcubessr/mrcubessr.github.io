@@ -21,6 +21,9 @@
   var FILES = [
     '/assets/js/cloud-store.js',
     '/assets/js/account.js',
+    '/assets/js/cb-config.js',
+    '/assets/js/cb-auth.js',
+    '/assets/js/cb-store.js',
     '/assets/js/sync-engine.js',
     '/assets/js/ls-provider.js',
     '/assets/js/account-ui.js'

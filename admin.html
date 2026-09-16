@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据管理（管理员）· 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<style>
+  .adm { max-width: 900px; margin: 0 auto; padding: 22px 16px 72px; }
+  .adm h1 { font-size: 22px; margin: 0 0 6px; }
+  .adm .lead { color: var(--fg-2); font-size: 14px; line-height: 1.75; margin: 0 0 18px; }
+  .adm-card { border: 1px solid var(--line); background: var(--surface); padding: 16px 18px; margin-bottom: 16px; }
+  .adm-card h2 { margin: 0 0 10px; font-size: 15px; }
+  .adm-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+  .adm-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--fg-2); }
+  .adm-f input, .adm-f select { padding: 8px 10px; font: inherit; font-size: 13.5px;
+    color: var(--fg); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 0; }
+  .adm-f input { min-width: 260px; }
+  .adm-f select { min-width: 180px; }
+  .adm-note { border-left: 3px solid var(--brand); background: var(--surface-2); padding: 10px 14px;
+    font-size: 13px; line-height: 1.7; color: var(--fg-2); margin: 10px 0; }
+  .adm-note.warn { border-left-color: var(--amber); }
+  .adm-note b { color: var(--fg); }
+  .adm-uid { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--fg);
+    background: var(--surface-2); border: 1px solid var(--line-2); padding: 2px 7px; word-break: break-all; }
+  .adm-users { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .adm-users button { font: inherit; font-size: 12px; padding: 5px 9px; cursor: pointer; border-radius: 0;
+    background: var(--surface-2); color: var(--fg-2); border: 1px solid var(--line-2); }
+  .adm-users button:hover { color: var(--on-brand); background: var(--brand); border-color: var(--brand); }
+  pre.adm-json { max-height: 420px; overflow: auto; background: var(--surface-2); border: 1px solid var(--line-2);
+    padding: 12px; font-size: 12px; line-height: 1.6; color: var(--fg); white-space: pre-wrap; word-break: break-all; }
+  .adm-meta { font-size: 12.5px; color: var(--fg-3); margin-bottom: 8px; }
+  .adm-empty { font-size: 13px; color: var(--fg-3); padding: 10px 0; }
+  @media (max-width: 640px) { .adm-f input, .adm-f select { min-width: 0; width: 100%; } .adm-f { flex: 1 1 100%; } }
+</style>
+</head>
+<body data-nav="help">
+<div data-site-nav></div>
+
+<div class="adm">
+  <h1>数据管理（管理员）</h1>
+  <p class="lead">
+    用你的账号登录后，可以查看测试用户同步到云端的数据。每个人只能看到自己的数据，
+    只有被列入管理员名单的账号才能查看他人数据。
+  </p>
+
+  <div class="adm-card" id="stateBox">
+    <div class="adm-empty" id="stateText">正在检查登录状态…</div>
+  </div>
+
+  <div class="adm-card" id="toolBox" hidden>
+    <h2>查看某个用户的数据</h2>
+    <div class="adm-row">
+      <label class="adm-f">用户 UID
+        <input id="fUid" placeholder="粘贴要查看的用户 UID">
+      </label>
+      <label class="adm-f">数据类型
+        <select id="fScope">
+          <option value="srs">记忆卡片 SRS</option>
+          <option value="class-teach">课堂管理</option>
+          <option value="timer">计时器</option>
+          <option value="scramble-ur">UR 打乱训练</option>
+          <option value="scramble-uf">UF 打乱训练</option>
+          <option value="bld-trainer">盲拧配对训练</option>
+          <option value="edge-trainer">棱块训练</option>
+          <option value="corner-trainer">角块训练</option>
+        </select>
+      </label>
+      <button class="btn btn--primary" id="btnRead">读取</button>
+      <button class="btn btn--ghost" id="btnList">列出有数据的用户</button>
+    </div>
+
+    <div class="adm-users" id="userList"></div>
+    <div class="adm-meta" id="meta"></div>
+    <pre class="adm-json" id="json" hidden></pre>
+    <div class="adm-row" id="exportRow" hidden>
+      <button class="btn btn--sm btn--ghost" id="btnExport">导出 JSON</button>
+      <button class="btn btn--sm btn--ghost" id="btnCopy">复制</button>
+    </div>
+  </div>
+
+  <div class="adm-card">
+    <h2>在控制台查看全部数据</h2>
+    <div class="adm-note">
+      站点内的管理页适合抽查单个用户；<b>要一次看全部、做统计或导出整表</b>，
+      直接去云开发控制台更方便：<br>
+      云开发平台 → 文档型数据库 → 集合 <b>sync_data</b>，可按 <b>userId</b> 筛选、直接导出 CSV/JSON。
+    </div>
+  </div>
+
+  <div class="adm-card">
+    <h2>如何把自己设为管理员</h2>
+    <div class="adm-note">
+      1. 用你的手机号登录 → 打开右上角账号面板 → 底部复制 <b>UID</b><br>
+      2. 打开 <b>assets/js/cb-config.js</b>，把 UID 填进 <b>adminUids</b> 数组<br>
+      3. 提交推送后刷新本页生效
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/site-nav.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var last = null;
+
+  function setState(html) { $('stateText').innerHTML = html; }
+
+  function render() {
+    var CB = window.CBAuth;
+    $('toolBox').hidden = true;
+    if (!window.CBAuth || !CB.configured()) {
+      setState('手机号登录尚未配置：需要在 <b>assets/js/cb-config.js</b> 填入 CloudBase 的 env 与 publishableKey。' +
+        '<a href="/account-help.html">查看教程</a>');
+      return;
+    }
+    if (!CB.isLoggedIn()) {
+      setState('请先登录。右上角「登录」→ 用手机号验证码登录。');
+      return;
+    }
+    if (!CB.isAdmin()) {
+      setState('当前账号不是管理员。<br>你的 UID：<span class="adm-uid">' + (CB.uid() || '') + '</span><br>' +
+        '把它填进 <b>assets/js/cb-config.js</b> 的 <b>adminUids</b> 后重新打开本页。');
+      return;
+    }
+    setState('已以管理员身份登录　UID：<span class="adm-uid">' + (CB.uid() || '') + '</span>');
+    $('toolBox').hidden = false;
+  }
+
+  function readOne() {
+    var uid = ($('fUid').value || '').trim();
+    var scope = $('fScope').value;
+    if (!uid) { alert('请填写用户 UID'); return; }
+    $('meta').textContent = '读取中…';
+    $('json').hidden = true; $('exportRow').hidden = true;
+    CbStore.readUser(uid, scope + '.json').then(function (r) {
+      if (!r) {
+        $('meta').textContent = '该用户在这个类型下没有数据。';
+        return;
+      }
+      last = { uid: uid, scope: scope, payload: r.data };
+      var ts = r.data && r.data._ts ? new Date(r.data._ts).toLocaleString() : '-';
+      var up = r.updatedAt ? new Date(r.updatedAt).toLocaleString() : '-';
+      $('meta').textContent = '用户 ' + uid + ' · ' + scope + ' · 数据时间 ' + ts + ' · 云端更新 ' + up;
+      $('json').textContent = JSON.stringify(r.data, null, 2);
+      $('json').hidden = false;
+      $('exportRow').hidden = false;
+    }).catch(function (e) {
+      $('meta').textContent = '读取失败：' + (e && e.message ? e.message : e) +
+        '（若提示权限不足，检查集合安全规则是否允许管理员读取）';
+    });
+  }
+
+  function listUsers() {
+    var scope = $('fScope').value;
+    $('meta').textContent = '查询中…';
+    $('userList').innerHTML = '';
+    CbStore.listUserIds(scope + '.json').then(function (rows) {
+      if (!rows.length) { $('meta').textContent = '这个类型下还没有任何用户上传数据。'; return; }
+      $('userList').innerHTML = rows.map(function (r) {
+        return '<button data-uid="' + r.userId + '">' + r.userId.slice(0, 10) + '…</button>';
+      }).join('');
+      $('meta').textContent = '共 ' + rows.length + ' 个用户（点击填入 UID）';
+      Array.prototype.forEach.call($('userList').querySelectorAll('button'), function (b) {
+        b.onclick = function () { $('fUid').value = b.getAttribute('data-uid'); };
+      });
+    }).catch(function (e) {
+      $('meta').textContent = '查询失败：' + (e && e.message ? e.message : e) +
+        '（列出全部用户需要集合安全规则允许管理员读取）';
+    });
+  }
+
+  function exportJson() {
+    if (!last) return;
+    var blob = new Blob([JSON.stringify(last.payload, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = last.uid + '_' + last.scope + '.json';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  SyncBoot.ready(function () {
+    $('btnRead').onclick = readOne;
+    $('btnList').onclick = listUsers;
+    $('btnExport').onclick = exportJson;
+    $('btnCopy').onclick = function () {
+      if (!last) return;
+      navigator.clipboard.writeText(JSON.stringify(last.payload, null, 2)).then(function () {
+        alert('已复制');
+      }, function () { alert('复制失败，请手动选中复制'); });
+    };
+    if (window.CBAuth) CBAuth.onChange(render);
+    render();
+    // CloudBase 会话异步恢复，延迟再刷一次
+    setTimeout(render, 1200);
+  });
+})();
+</script>
+</body>
+</html>
