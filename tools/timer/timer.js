@@ -35,9 +35,10 @@
   var MAX_ROWS = 500;                 /* 列表最多渲染行数（性能保护） */
   var EVENTS = [
     { key: "3x3", label: "三阶", len: 20 },
-    { key: "2x2", label: "二阶", len: 11 }
+    { key: "2x2", label: "二阶", len: 11 },
+    { key: "bld", label: "三盲", len: 20 }
   ];
-  /* 各项目在 csTimer 中的打乱类型标识（TXT 导入导出映射用） */
+  /* 各项目在 csTimer 中的打乱类型标识（TXT 导入导出映射用）；三盲无对应类型，不进 csTimer TXT */
   var SCR_TYPE = { "3x3": "333", "2x2": "222" };
   var LS_DATA = "timer_data_v2";      /* 分组模型 */
   var LS_DATA_V1 = "timer_data_v1";   /* 旧版扁平模型（只读，用于迁移） */
@@ -50,11 +51,26 @@
   var pendingPenalty = "";
   var rawMs = 0;                      /* 未加罚时的原始用时 */
   var curScramble = "";
+  var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
 
-  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "" };
+  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null };
+
+  /* ---------- 三盲默认参数（与 bld-engine 默认值一致） ---------- */
+  function defaultBld() {
+    var d = (window.BLDEngine && window.BLDEngine.DEFAULTS) || {
+      orientation: 0, edgeBuffer: "A", edgeOrder: "GECIKMOQSWY",
+      edgeOrientFlag: false, edgeSkip: false,
+      cornerBuffer: "J", cornerOrder: "GADXWRO",
+      cornerOrientFlag: false, cornerSkip: false
+    };
+    var o = {};
+    for (var k in d) if (Object.prototype.hasOwnProperty.call(d, k)) o[k] = d[k];
+    o.len = 20;
+    return o;
+  }
 
   /* ---------- 数据模型 ---------- */
-  var data = { "3x3": null, "2x2": null };
+  var data = { "3x3": null, "2x2": null, "bld": null };
 
   function uid(p) {
     return (p || "g") + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -108,6 +124,21 @@
       date: (typeof s.date === "number" && isFinite(s.date) && s.date > 0) ? s.date : Date.now()
     };
     if (typeof s.src === "string" && s.src) o.src = s.src;
+    /* 三盲成绩携带解法（解法由 BLDEngine 计算，结构固定，原样保留） */
+    if (s.bld && typeof s.bld === "object") {
+      o.bld = {
+        scramble: typeof s.bld.scramble === "string" ? s.bld.scramble : "",
+        orientation: typeof s.bld.orientation === "number" ? s.bld.orientation : 0,
+        orientationLabel: typeof s.bld.orientationLabel === "string" ? s.bld.orientationLabel : "",
+        edgeBuffer: s.bld.edgeBuffer, edgeOrder: s.bld.edgeOrder,
+        edgeOrientFlag: !!s.bld.edgeOrientFlag, edgeSkip: !!s.bld.edgeSkip,
+        cornerBuffer: s.bld.cornerBuffer, cornerOrder: s.bld.cornerOrder,
+        cornerOrientFlag: !!s.bld.cornerOrientFlag, cornerSkip: !!s.bld.cornerSkip,
+        edge: s.bld.edge, flip: s.bld.flip, corner: s.bld.corner, twist: s.bld.twist,
+        parity: typeof s.bld.parity === "number" ? s.bld.parity : 0,
+        complexity: typeof s.bld.complexity === "number" ? s.bld.complexity : 0
+      };
+    }
     return o;
   }
   /* 合并去重指纹：有 src 用 src；否则用「成绩 + 罚时 + 时间」 */
@@ -145,7 +176,7 @@
     try {
       var raw = JSON.parse(localStorage.getItem(LS_DATA) || "null");
       if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-        data = { "3x3": normBox(raw["3x3"]), "2x2": normBox(raw["2x2"]) };
+        data = { "3x3": normBox(raw["3x3"]), "2x2": normBox(raw["2x2"]), "bld": normBox(raw["bld"]) };
         done = true;
       }
     } catch (e) { /* 忽略损坏数据 */ }
@@ -154,9 +185,10 @@
     try { old = JSON.parse(localStorage.getItem(LS_DATA_V1) || "null"); } catch (e) {}
     if (old && typeof old === "object" && !Array.isArray(old)) {
       data = migrateV1(old);
+      data["bld"] = emptyBox();
       saveData();                     /* 迁移结果写入 v2；v1 原样保留作兜底 */
     } else {
-      data = { "3x3": emptyBox(), "2x2": emptyBox() };
+      data = { "3x3": emptyBox(), "2x2": emptyBox(), "bld": emptyBox() };
     }
   }
   function saveData() {
@@ -168,7 +200,19 @@
       if (eventDef(o.event).key === o.event) opt.event = o.event;
       if (o.inspect === 0 || o.inspect === 15) opt.inspect = o.inspect;
       if (typeof o.manualText === "string") opt.manualText = o.manualText;
-    } catch (e) {}
+      if (o.bld && typeof o.bld === "object") {
+        var merged = defaultBld();
+        for (var k in o.bld) if (Object.prototype.hasOwnProperty.call(o.bld, k)) merged[k] = o.bld[k];
+        merged.orientation = parseInt(merged.orientation, 10) || 0;
+        merged.len = clamp(parseInt(merged.len, 10) || 20, 12, 30);
+        opt.bld = merged;
+      } else {
+        opt.bld = defaultBld();
+      }
+    } catch (e) {
+      opt.bld = defaultBld();
+    }
+    if (!opt.bld) opt.bld = defaultBld();
   }
   function saveOpt() {
     try { localStorage.setItem(LS_OPT, JSON.stringify(opt)); } catch (e) {}
@@ -176,7 +220,18 @@
 
   /* ---------- 打乱 ---------- */
   function newScramble() {
-    if (opt.manual) { renderScramble(); return; }
+    if (opt.manual && opt.event !== "bld") { renderScramble(); return; }
+    if (opt.event === "bld") {
+      if (!opt.bld) opt.bld = defaultBld();
+      var len = clamp(parseInt(opt.bld.len, 10) || 20, 12, 30);
+      /* 三盲用三阶 WCA 风格打乱；解法按用户坐标系算出（不进 csTimer TXT 导出） */
+      curScramble = window.TimerScramble
+        ? window.TimerScramble.gen("3x3", len).join(" ")
+        : ["R", "U", "R'", "U'", "F2", "L", "D'"].join(" ");
+      computeBld();
+      renderScramble();
+      return;
+    }
     var def = eventDef(opt.event);
     var moves = window.TimerScramble ? window.TimerScramble.gen(opt.event, def.len)
                                      : ["R", "U", "R'", "U'"];
@@ -189,6 +244,126 @@
     els.scramble.classList.remove("is-pop");
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
+  }
+
+  /* ---------- 三盲：解法计算与展示 ---------- */
+  function computeBld() {
+    curBld = null;
+    if (opt.event !== "bld" || !window.BLDEngine || !curScramble) { renderBld(); return; }
+    try { curBld = window.BLDEngine.readCodes(curScramble, opt.bld); }
+    catch (e) { curBld = null; }
+    renderBld();
+  }
+
+  function renderBld() {
+    if (opt.event !== "bld" || !els.bldRows) return;
+    if (!curBld) {
+      els.bldRows.innerHTML = '<div class="tm-bld__empty">无法计算解法（请检查参数或刷新页面）</div>';
+      if (els.bldMeta) els.bldMeta.textContent = "";
+      return;
+    }
+    var rows = [
+      ["坐标", curBld.orientationLabel],
+      ["棱读码", curBld.edge || "—"],
+      ["棱翻色", curBld.flip || "—"],
+      ["角读码", curBld.corner || "—"],
+      ["角翻色", curBld.twist || "—"],
+      ["奇偶", curBld.parity === 1 ? "奇（需借位）" : "偶"]
+    ];
+    var html = "";
+    rows.forEach(function (r) {
+      html += '<div class="tm-bld__row"><span class="tm-bld__k">' + r[0] + "</span>" +
+              '<span class="tm-bld__v tm-bld__v--mono">' + (typeof r[1] === "string" ? r[1] : String(r[1])) + "</span></div>";
+    });
+    html += '<div class="tm-bld__meta-line">复杂度（字母数）：<b>' + curBld.complexity + "</b></div>";
+    els.bldRows.innerHTML = html;
+    if (els.bldMeta) els.bldMeta.textContent = curBld.orientationLabel + " · 复杂度 " + curBld.complexity;
+  }
+
+  /* 事件切换时显隐三盲专属 UI（参数面板 / 解法面板 / 统计弹窗分析段 / 隐藏「手动输入」） */
+  function applyEventUI() {
+    var isBld = opt.event === "bld";
+    if (els.bldParams) els.bldParams.hidden = !isBld;
+    if (els.bld) els.bld.hidden = !isBld;
+    if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
+    if (els.manualSeg) els.manualSeg.hidden = isBld;
+    if (isBld && els.manualBox) els.manualBox.hidden = true;
+  }
+
+  function populateOrientation() {
+    if (!els.orientSel || !window.BLDEngine) return;
+    els.orientSel.innerHTML = "";
+    window.BLDEngine.CUBE_ORIENTATIONS.forEach(function (o, i) {
+      var op = document.createElement("option");
+      op.value = String(i);
+      op.textContent = o.label;
+      els.orientSel.appendChild(op);
+    });
+  }
+
+  function syncBldParamsUI() {
+    if (!opt.bld) return;
+    if (els.orientSel) els.orientSel.value = String(opt.bld.orientation);
+    if (els.lenInput) els.lenInput.value = opt.bld.len;
+    if (els.ebuf) els.ebuf.value = opt.bld.edgeBuffer;
+    if (els.eorder) els.eorder.value = opt.bld.edgeOrder;
+    if (els.eorient) els.eorient.checked = !!opt.bld.edgeOrientFlag;
+    if (els.eskip) els.eskip.checked = !!opt.bld.edgeSkip;
+    if (els.cbuf) els.cbuf.value = opt.bld.cornerBuffer;
+    if (els.corder) els.corder.value = opt.bld.cornerOrder;
+    if (els.cororient) els.cororient.checked = !!opt.bld.cornerOrientFlag;
+    if (els.corskip) els.corskip.checked = !!opt.bld.cornerSkip;
+  }
+
+  function readBldParams() {
+    if (!opt.bld) opt.bld = defaultBld();
+    var b = opt.bld;
+    if (els.orientSel) b.orientation = parseInt(els.orientSel.value, 10) || 0;
+    if (els.lenInput) b.len = clamp(parseInt(els.lenInput.value, 10) || 20, 12, 30);
+    if (els.ebuf) b.edgeBuffer = (els.ebuf.value || "A").toUpperCase().slice(0, 1);
+    if (els.eorder) b.edgeOrder = (els.eorder.value || "").toUpperCase().replace(/[^A-Z]/g, "");
+    if (els.eorient) b.edgeOrientFlag = els.eorient.checked;
+    if (els.eskip) b.edgeSkip = els.eskip.checked;
+    if (els.cbuf) b.cornerBuffer = (els.cbuf.value || "J").toUpperCase().slice(0, 1);
+    if (els.corder) b.cornerOrder = (els.corder.value || "").toUpperCase().replace(/[^A-Z]/g, "");
+    if (els.cororient) b.cornerOrientFlag = els.cororient.checked;
+    if (els.corskip) b.cornerSkip = els.corskip.checked;
+    var warn = "";
+    if (window.BLDEngine) {
+      var v = window.BLDEngine.validate(b);
+      if (!v.edge) warn = "棱顺序 + 缓冲块需覆盖 12 个不重复的棱位";
+      else if (!v.corner) warn = "角顺序 + 缓冲块需覆盖 8 个不重复的角位";
+    }
+    if (els.bldWarn) {
+      els.bldWarn.hidden = !warn;
+      if (warn) els.bldWarn.textContent = warn;
+    }
+    saveOpt();
+  }
+
+  function onBldParamChange() {
+    readBldParams();
+    if (opt.event === "bld") computeBld();   /* 参数变了，按当前打乱重算解法 */
+  }
+
+  function copyBld() {
+    if (!curBld) return;
+    var txt = "坐标 " + curBld.orientationLabel +
+      "\n棱 " + (curBld.edge || "") +
+      "\n翻 " + (curBld.flip || "") +
+      "\n角 " + (curBld.corner || "") +
+      "\n扭 " + (curBld.twist || "") +
+      "\n奇偶 " + curBld.parity +
+      "\n复杂度 " + curBld.complexity;
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(function () {});
+    flashBtn(els.bldCopy, "已复制 ✓", "复制解法");
+  }
+
+  function resetBld() {
+    opt.bld = defaultBld();
+    syncBldParamsUI();
+    readBldParams();
+    if (opt.event === "bld") computeBld();
   }
 
   /* ---------- 计时状态机 ---------- */
@@ -279,6 +454,21 @@
   function confirmOk() {
     if (state !== "confirm") return;
     var entry = { ms: Math.round(rawMs), pen: pendingPenalty || "", date: Date.now() };
+    /* 三盲：把当前打乱对应的解法一并存入成绩（分析用） */
+    if (opt.event === "bld" && curBld && opt.bld) {
+      var b = opt.bld;
+      entry.bld = {
+        scramble: curScramble,
+        orientation: b.orientation,
+        orientationLabel: curBld.orientationLabel,
+        edgeBuffer: b.edgeBuffer, edgeOrder: b.edgeOrder,
+        edgeOrientFlag: !!b.edgeOrientFlag, edgeSkip: !!b.edgeSkip,
+        cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
+        cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
+        edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
+        parity: curBld.parity, complexity: curBld.complexity
+      };
+    }
     solves().unshift(entry);
     saveData();
     rawMs = 0;
@@ -546,6 +736,19 @@
         else if (v === s.best) t.classList.add("is-best");
         else if (v === s.worst) t.classList.add("is-worst");
       }
+      /* 三盲：在时间下方显示复杂度，并把解法写进 tooltip */
+      if (rec.bld && rec.bld.complexity != null) {
+        var cm = document.createElement("span");
+        cm.className = "tm-list__cmplx";
+        cm.textContent = "C" + rec.bld.complexity;
+        t.appendChild(cm);
+      }
+      if (rec.bld) {
+        li.title = "坐标 " + (rec.bld.orientationLabel || "") +
+          " · 棱 " + (rec.bld.edge || "") + " · 翻 " + (rec.bld.flip || "") +
+          " · 角 " + (rec.bld.corner || "") + " · 扭 " + (rec.bld.twist || "") +
+          " · 复杂度 " + rec.bld.complexity;
+      }
 
       li.appendChild(idx);
       li.appendChild(t);
@@ -599,6 +802,8 @@
         Array.prototype.forEach.call(els.events.children, function (c) {
           c.classList.toggle("is-active", c.dataset.event === opt.event);
         });
+        applyEventUI();
+        if (opt.event === "bld") syncBldParamsUI();
         next(false);
         renderGroups();
       });
@@ -672,6 +877,13 @@
     els.chartDaily.innerHTML = S.dailyChart(arr);
     els.chartTrend.innerHTML = S.trendChart(arr);
     els.chartDist.innerHTML = S.distChart(arr);
+    if (opt.event === "bld" && els.bldAnalysis && window.TimerBldStats) {
+      els.bldAnalysis.hidden = false;
+      els.bldAnalysis.innerHTML = window.TimerBldStats.renderReport(arr);
+    } else if (els.bldAnalysis) {
+      els.bldAnalysis.hidden = true;
+      els.bldAnalysis.innerHTML = "";
+    }
     els.modal.hidden = false;
     if (els.modalClose && els.modalClose.focus) els.modalClose.focus();
   }
@@ -905,8 +1117,8 @@
 
   /* 本站 JSON 备份：v2 还原分组、v1 并入当前分组 */
   function parseOwnJson(obj) {
-    var ev = obj.events, v2 = null, v1 = { "3x3": [], "2x2": [] }, hasV1 = false;
-    ["3x3", "2x2"].forEach(function (k) {
+    var ev = obj.events, v2 = null, v1 = { "3x3": [], "2x2": [], "bld": [] }, hasV1 = false;
+    ["3x3", "2x2", "bld"].forEach(function (k) {
       var e = ev[k];
       if (!e) return;
       if (Array.isArray(e)) {
@@ -1233,7 +1445,16 @@
       chartTrend: $("tm-chart-trend"), chartDist: $("tm-chart-dist"),
       inspectSeg: $("tm-inspect-seg"),
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
-      mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel")
+      mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
+      bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
+      bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
+      orientSel: $("tm-bld-orient"), lenInput: $("tm-bld-len"),
+      ebuf: $("tm-bld-ebuf"), eorder: $("tm-bld-eorder"),
+      eorient: $("tm-bld-eorient"), eskip: $("tm-bld-eskip"),
+      cbuf: $("tm-bld-cbuf"), corder: $("tm-bld-corder"),
+      cororient: $("tm-bld-cororient"), corskip: $("tm-bld-corskip"),
+      bldReset: $("tm-bld-reset"), bldWarn: $("tm-bld-warn"),
+      bldAnalysis: $("tm-bld-analysis")
     };
     if (!els.stage) return;
 
@@ -1328,6 +1549,19 @@
     });
     els.clearBtn.addEventListener("click", clearGroup);
 
+    /* 三盲：参数面板 + 解法面板 */
+    populateOrientation();
+    syncBldParamsUI();
+    [els.orientSel, els.lenInput, els.ebuf, els.eorder, els.eorient, els.eskip,
+     els.cbuf, els.corder, els.cororient, els.corskip].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener("change", onBldParamChange);
+      if (el.tagName === "INPUT" && el.type === "text") el.addEventListener("input", onBldParamChange);
+    });
+    if (els.bldReset) els.bldReset.addEventListener("click", function () { resetBld(); els.bldReset.blur(); });
+    if (els.bldCopy) els.bldCopy.addEventListener("click", function () { copyBld(); });
+    applyEventUI();
+
     bindInput();
 
     curScramble = opt.manual ? opt.manualText : "";
@@ -1346,7 +1580,20 @@
     get mapOpen() { return !!(els.mapModal && !els.mapModal.hidden); },
     get exportMenuOpen() { return !!(els.exportMenu && !els.exportMenu.hidden); },
     press: press, release: release,
-    setEvent: function (k) { opt.event = k; buildEvents(); next(true); renderGroups(); },
+    setEvent: function (k) {
+      opt.event = k; buildEvents(); applyEventUI();
+      if (k === "bld") syncBldParamsUI();
+      next(true); renderGroups();
+    },
+    get bld() { return curBld ? JSON.parse(JSON.stringify(curBld)) : null; },
+    get bldParams() { return opt.bld ? JSON.parse(JSON.stringify(opt.bld)) : null; },
+    setBldParams: function (partial) {
+      if (!opt.bld) opt.bld = defaultBld();
+      for (var k in partial) if (Object.prototype.hasOwnProperty.call(partial, k)) opt.bld[k] = partial[k];
+      syncBldParamsUI(); readBldParams();
+      if (opt.event === "bld") computeBld();
+      return curBld ? JSON.parse(JSON.stringify(curBld)) : null;
+    },
     setInspect: setInspect,
     addSolve: function (ms, pen) {
       solves().unshift({ ms: ms, pen: pen || "", date: Date.now() });

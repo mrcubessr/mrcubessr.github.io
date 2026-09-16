@@ -231,6 +231,67 @@
 .tm-map__sum { margin-right: auto; font-size: 12px; color: var(--fg-3); }
 .tm-map__sum.is-warn { color: var(--amber); }
 
+/* ---------- 三盲参数面板 ---------- */
+.tm-bld-params {
+  display: flex; flex-direction: column; gap: 10px; padding: 12px 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 0;
+}
+.tm-bld-params__head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.tm-bld-params__hint { font-size: 12px; color: var(--fg-3); }
+.tm-bld-params__grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; align-items: end;
+}
+.tm-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tm-field--wide { grid-column: span 2; }
+.tm-field__k { font-size: 11px; letter-spacing: 1px; color: var(--fg-3); }
+.tm-field__v { width: 100%; padding: 5px 8px; font-size: 13px; font-family: var(--font-mono); }
+.tm-field__v--1 { max-width: 64px; }
+.tm-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-2); padding-bottom: 3px; }
+.tm-check input { width: 15px; height: 15px; accent-color: var(--brand); }
+.tm-bld-params__foot { display: flex; align-items: center; gap: 12px; }
+.tm-bld-params__warn { font-size: 12px; color: var(--red); }
+
+/* ---------- 三盲解法面板 ---------- */
+.tm-bld {
+  display: flex; flex-direction: column; gap: 8px; padding: 12px 16px;
+  background: var(--surface); border: 1px solid var(--gold); border-radius: 0;
+}
+.tm-bld__head { display: flex; align-items: center; gap: 10px; }
+.tm-bld__meta { font-size: 12px; color: var(--fg-2); font-family: var(--font-mono); }
+.tm-bld__copy { margin-left: auto; }
+.tm-bld__rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 16px; }
+.tm-bld__row { display: flex; gap: 8px; align-items: baseline; }
+.tm-bld__k { font-size: 12px; color: var(--fg-3); flex: 0 0 52px; }
+.tm-bld__v { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--fg); word-break: break-word; }
+.tm-bld__v--mono { color: var(--fg); }
+.tm-bld__meta-line { font-size: 12px; color: var(--fg-2); }
+.tm-bld__meta-line b { font-family: var(--font-mono); color: var(--gold); }
+.tm-bld__empty { font-size: 13px; color: var(--fg-3); }
+
+/* ---------- 成绩列表：三盲复杂度角标 ---------- */
+.tm-list__cmplx { display: block; font-size: 10px; font-weight: 600; color: var(--fg-3); margin-top: 2px; }
+
+/* ---------- 三盲专项分析（统计弹窗内） ---------- */
+.tm-ba-ov { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--line); }
+.tm-ba-ov__cell { padding: 10px 12px; border-right: 1px solid var(--line); }
+.tm-ba-ov__cell:last-child { border-right: 0; }
+.tm-ba-ov__k { display: block; font-size: 11px; color: var(--fg-3); margin-bottom: 4px; }
+.tm-ba-ov__v { font-family: var(--font-mono); font-size: 16px; font-weight: 800; color: var(--fg); }
+.tm-ba-table { border: 1px solid var(--line); margin-bottom: 6px; }
+.tm-ba-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tm-ba-table th, .tm-ba-table td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+.tm-ba-table th { background: var(--surface-2); color: var(--fg-3); font-weight: 700; }
+.tm-ba-table td { font-family: var(--font-mono); color: var(--fg-2); }
+.tm-ba-table tr:last-child td { border-bottom: 0; }
+.tm-ba-note { font-size: 13px; color: var(--fg-3); padding: 4px 0 12px; }
+.tm-ba-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.tm-ba-bar { display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
+.tm-ba-bar__k { font-family: var(--font-mono); font-weight: 700; color: var(--fg); }
+.tm-ba-bar__track { height: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.tm-ba-bar__fill { display: block; height: 100%; background: var(--red); opacity: .8; }
+.tm-ba-bar__v { font-family: var(--font-mono); color: var(--fg-3); white-space: nowrap; }
+.tm-ba-foot { font-size: 12px; color: var(--fg-3); line-height: 1.6; margin: 8px 0 0; }
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 720px) {
   .tm-strip { grid-template-columns: repeat(2, 1fr); }

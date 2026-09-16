@@ -19,7 +19,7 @@
   <div class="tm-hero">
     <div>
       <h1 class="tm-hero__title">计时器 · Timer</h1>
-      <p class="tm-hero__sub">二阶 / 三阶 WCA 风格打乱 · 观察可选 · 长按空格计时 · 分组（会话）式成绩列表 · 5 / 12 / 100 次平均 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
+      <p class="tm-hero__sub">二阶 / 三阶 / 三盲 WCA 风格打乱 · 观察可选 · 长按空格计时 · 分组（会话）式成绩列表 · 5 / 12 / 100 次平均 · 三盲自动算解法 + 专项分析 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
     </div>
     <div class="tm-hero__spacer">
       <button id="themeBtn" class="btn btn--sm" type="button">☀ 浅色</button>
@@ -55,11 +55,57 @@
       </div>
     </div>
 
+    <!-- ①-B 三盲参数面板（仅「三盲」项目显示） -->
+    <div class="tm-bld-params" id="tm-bld-params" hidden>
+      <div class="tm-bld-params__head">
+        <span class="tm-label">三盲参数</span>
+        <span class="tm-bld-params__hint">设定你的坐标系与编码习惯，计时器会据此自动算出解法</span>
+      </div>
+      <div class="tm-bld-params__grid">
+        <label class="tm-field"><span class="tm-field__k">坐标朝向</span>
+          <select class="select tm-field__v" id="tm-bld-orient" aria-label="坐标朝向"></select>
+        </label>
+        <label class="tm-field"><span class="tm-field__k">打乱长度</span>
+          <input class="input tm-field__v" id="tm-bld-len" type="number" min="12" max="30" step="1" inputmode="numeric">
+        </label>
+        <label class="tm-field"><span class="tm-field__k">棱缓冲块</span>
+          <input class="input tm-field__v tm-field__v--1" id="tm-bld-ebuf" maxlength="1" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="tm-field tm-field--wide"><span class="tm-field__k">棱读码顺序</span>
+          <input class="input tm-field__v" id="tm-bld-eorder" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="tm-check"><input type="checkbox" id="tm-bld-eorient"><span>棱翻色编码</span></label>
+        <label class="tm-check"><input type="checkbox" id="tm-bld-eskip"><span>棱跳编法</span></label>
+        <label class="tm-field"><span class="tm-field__k">角缓冲块</span>
+          <input class="input tm-field__v tm-field__v--1" id="tm-bld-cbuf" maxlength="1" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="tm-field tm-field--wide"><span class="tm-field__k">角读码顺序</span>
+          <input class="input tm-field__v" id="tm-bld-corder" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="tm-check"><input type="checkbox" id="tm-bld-cororient"><span>角翻色编码</span></label>
+        <label class="tm-check"><input type="checkbox" id="tm-bld-corskip"><span>角跳编法</span></label>
+      </div>
+      <div class="tm-bld-params__foot">
+        <button class="btn btn--sm btn--ghost" id="tm-bld-reset" type="button">恢复默认</button>
+        <span class="tm-bld-params__warn" id="tm-bld-warn" hidden></span>
+      </div>
+    </div>
+
     <!-- ② 计时舞台 -->
     <div class="tm-stage" id="tm-stage" role="button" tabindex="0" aria-label="计时区：按空格或点按开始">
       <div class="tm-pen" id="tm-pen" hidden></div>
       <div class="tm-time" id="tm-time">0.00</div>
       <div class="tm-state" id="tm-state"></div>
+    </div>
+
+    <!-- ②-B 三盲解法（仅「三盲」项目显示） -->
+    <div class="tm-bld" id="tm-bld" hidden>
+      <div class="tm-bld__head">
+        <span class="tm-label">三盲解法</span>
+        <span class="tm-bld__meta" id="tm-bld-meta"></span>
+        <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
+      </div>
+      <div class="tm-bld__rows" id="tm-bld-rows"></div>
     </div>
 
     <!-- ③ 成绩确认 -->
@@ -140,6 +186,7 @@
       <div class="tm-chart" id="tm-chart-trend"></div>
       <h3 class="tm-h3">成绩分布</h3>
       <div class="tm-chart" id="tm-chart-dist"></div>
+      <div id="tm-bld-analysis" hidden></div>
     </div>
   </div>
 </div>
@@ -170,8 +217,10 @@
 
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
+<script src="/assets/js/bld-engine.js"></script>
 <script src="/tools/timer/scramble.js"></script>
 <script src="/tools/timer/stats.js"></script>
+<script src="/tools/timer/bld-stats.js"></script>
 <script src="/tools/timer/timer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>
 <script src="/assets/js/sync-boot.js"></script>
