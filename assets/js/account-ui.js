@@ -5,7 +5,8 @@
  * 行为：
  *   · 导航 .nav-inner 内追加「账号」按钮（未登录=登录 / 已登录=手机号或 @login + 状态点）
  *   · 点击打开面板：
- *       - 主方式：手机号 + 短信验证码（注册即登录，无需记密码）
+ *       - 主方式：手机号 或 邮箱 + 验证码（注册即登录，无需记密码）
+ *         默认邮箱（零短信成本），可切到手机号
  *       - 高级折叠：GitHub 仓库手动开通（作者自用/备用通道）
  *   · 若页面无导航，降级为右下角浮动按钮，保证入口可达
  * ============================================================= */
@@ -68,7 +69,14 @@
     '.acct-fold>summary{cursor:pointer;font-size:13px;color:var(--fg-2);list-style:none}',
     '.acct-fold>summary::-webkit-details-marker{display:none}',
     '.acct-fold>summary::before{content:"▸ ";color:var(--fg-3)}',
-    '.acct-fold[open]>summary::before{content:"▾ "}'
+    '.acct-fold[open]>summary::before{content:"▾ "}',
+    '.acct-tabs{display:flex;gap:0;margin:2px 0 12px;border:1px solid var(--line-2)}',
+    '.acct-tab{flex:1 1 0;padding:9px 8px;font:inherit;font-size:13px;cursor:pointer;text-align:center;',
+    'background:var(--surface-2);color:var(--fg-2);border:none;border-right:1px solid var(--line-2)}',
+    '.acct-tab:last-child{border-right:none}',
+    '.acct-tab.is-on{background:var(--brand);color:var(--on-brand)}',
+    '.acct-tab small{display:block;margin-top:2px;font-size:10.5px;opacity:.75}',
+    '.acct-tip{font-size:12px;color:var(--fg-3);line-height:1.6;margin:-4px 0 8px}'
   ].join('\n');
 
   function injectStyle() {
@@ -93,11 +101,27 @@
     if (p.length < 7) return p;
     return p.slice(0, 3) + '****' + p.slice(-4);
   }
+  /** tester@qq.com → te***@qq.com */
+  function maskEmail(e) {
+    e = String(e || '');
+    var i = e.indexOf('@');
+    if (i < 2) return e;
+    var name = e.slice(0, i), dom = e.slice(i);
+    return name.slice(0, 2) + '***' + dom;
+  }
+  /** 已登录时显示的账号名（优先手机号，其次邮箱） */
+  function accountName(u) {
+    u = u || {};
+    if (u.phone) return maskPhone(u.phone);
+    if (u.email) return maskEmail(u.email);
+    return '我的账号';
+  }
 
   /* ---------------- 面板 ---------------- */
   var mask = null;
   var cdTimer = null;      // 验证码倒计时
   var cdLeft = 0;
+  var curChannel = 'email';// 当前登录通道：email | phone（默认邮箱，零短信成本）
 
   function closePanel() { if (mask) { mask.remove(); mask = null; } }
 
@@ -147,9 +171,9 @@
       var u = C.get().user || {};
       var be = (SE() && SE().backend) ? SE().backend() : '';
       m.innerHTML =
-        '<h3>' + esc(maskPhone(u.phone) || '我的账号') + '</h3>' +
-        '<div class="acct-backend">云端：' + (be === 'cloudbase' ? '腾讯云开发（手机号账号）' : 'GitHub 仓库') + '</div>' +
-        '<div class="sub">数据已绑定到你的账号，换设备用同一手机号登录即可恢复。</div>' +
+        '<h3>' + esc(accountName(u)) + '</h3>' +
+        '<div class="acct-backend">云端：' + (be === 'cloudbase' ? '腾讯云开发' : 'GitHub 仓库') + '</div>' +
+        '<div class="sub">数据已绑定到你的账号，换设备用同一手机号 / 邮箱登录即可恢复。</div>' +
         '<div class="acct-sec"><h4>本页同步状态</h4>' +
         (statusRows() || '<div class="acct-empty">本页没有需要同步的功能（其它页面各自同步自己的数据）。</div>') +
         '</div>' +
@@ -173,7 +197,7 @@
       m.innerHTML =
         '<h3>已登录 @' + esc(st.login || st.owner) + '</h3>' +
         '<div class="acct-backend">云端：GitHub 仓库 ' + esc(st.owner) + '/' + esc(st.repo) + '</div>' +
-        '<div class="sub">这是备用同步通道。推荐改用手机号登录，更方便。</div>' +
+        '<div class="sub">这是备用同步通道。推荐改用手机号 / 邮箱登录，更方便。</div>' +
         '<div class="acct-sec"><h4>本页同步状态</h4>' +
         (statusRows() || '<div class="acct-empty">本页没有需要同步的功能。</div>') +
         '</div>' +
@@ -189,21 +213,36 @@
       return;
     }
 
-    // ③ 未登录：手机号登录为主，GitHub 折叠为高级
+    // ③ 未登录：手机号 / 邮箱验证码登录为主，GitHub 折叠为高级
     var cbOk = !!(C && C.configured());
+    var ch = curChannel;
     var head = '<h3>登录 / 注册</h3>' +
-      '<div class="sub">用手机号即可，<b>不用记密码</b>：填手机号 → 收验证码 → 登录。' +
+      '<div class="sub"><b>不用记密码</b>：填手机号或邮箱 → 收验证码 → 登录。' +
       '首次登录会自动创建账号。<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
 
-    var phoneSec = cbOk
+    var otpSec = cbOk
       ? '<div class="acct-sec">' +
-        '<label class="acct-f">手机号<input id="acPhone" type="tel" inputmode="numeric" maxlength="11" placeholder="11 位手机号" autocomplete="tel"></label>' +
-        '<label class="acct-f">短信验证码' +
+        '<div class="acct-tabs">' +
+        '<button type="button" class="acct-tab' + (ch === 'email' ? ' is-on' : '') + '" id="acTabEmail">' +
+        '邮箱<small>免费，推荐</small></button>' +
+        '<button type="button" class="acct-tab' + (ch === 'phone' ? ' is-on' : '') + '" id="acTabPhone">' +
+        '手机号<small>收短信</small></button>' +
+        '</div>' +
+        '<div class="acct-tip" id="acTip">' + (ch === 'email'
+          ? '验证码发到邮箱，不产生短信费用；收不到请检查垃圾邮件。'
+          : '验证码以短信发送，首月 100 条免费，之后按条计费。') + '</div>' +
+        '<label class="acct-f">' + (ch === 'email' ? '邮箱地址' : '手机号') +
+        '<input id="acAccount" type="' + (ch === 'email' ? 'email' : 'tel') + '" ' +
+        'inputmode="' + (ch === 'email' ? 'email' : 'numeric') + '" ' +
+        (ch === 'phone' ? 'maxlength="11" ' : '') +
+        'autocomplete="' + (ch === 'email' ? 'email' : 'tel') + '" ' +
+        'placeholder="' + (ch === 'email' ? 'you@example.com' : '11 位手机号') + '"></label>' +
+        '<label class="acct-f">验证码' +
         '<div class="acct-code-row"><input id="acOtp" inputmode="numeric" maxlength="6" placeholder="6 位验证码">' +
         '<button class="acct-btn ghost" id="acSend" type="button">获取验证码</button></div></label>' +
         '<div class="acct-row"><button class="acct-btn" id="acLogin">登录 / 注册</button></div>' +
         '</div>'
-      : '<div class="acct-sec"><div class="acct-msg err">手机号登录尚未开通：需要在 assets/js/cb-config.js 填入 CloudBase 的 env 与 publishableKey。' +
+      : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 CloudBase 的 env 与 publishableKey。' +
         '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
 
     var ghSec = '<details class="acct-fold"' + (cbOk ? '' : ' open') + '><summary>高级：用 GitHub 仓库同步（备用通道）</summary>' +
@@ -215,12 +254,12 @@
       '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 <b>Contents: Read and write</b>。</div>' +
       '</div></details>';
 
-    m.innerHTML = head + phoneSec + ghSec + '<div class="acct-msg" id="acMsg"></div>';
-    if (cbOk) wirePhone(m);
+    m.innerHTML = head + otpSec + ghSec + '<div class="acct-msg" id="acMsg"></div>';
+    if (cbOk) wireOtp(m);
     wireGithub(m);
   }
 
-  /* ---------------- 手机号验证码登录 ---------------- */
+  /* ---------------- 手机号 / 邮箱验证码登录 ---------------- */
   function startCountdown(m) {
     var btn = m.querySelector('#acSend');
     if (!btn) return;
@@ -239,15 +278,32 @@
     }, 1000);
   }
 
-  function wirePhone(m) {
+  function setChannel(m, ch) {
+    if (ch === curChannel) return;
+    curChannel = ch;
+    renderPanel();
+    var acc = m.querySelector('#acAccount');
+    if (acc) acc.focus();
+  }
+
+  function acctPlaceholder() {
+    return curChannel === 'email' ? '手机号或邮箱' : '手机号';
+  }
+
+  function wireOtp(m) {
     var C = CB();
+    var tE = m.querySelector('#acTabEmail');
+    var tP = m.querySelector('#acTabPhone');
+    if (tE) tE.onclick = function () { setChannel(m, 'email'); };
+    if (tP) tP.onclick = function () { setChannel(m, 'phone'); };
+
     m.querySelector('#acSend').onclick = function () {
-      var phone = (m.querySelector('#acPhone').value || '').trim();
-      if (!phone) { msg(m, '请先填写手机号', 'err'); return; }
+      var val = (m.querySelector('#acAccount').value || '').trim();
+      if (!val) { msg(m, '请先填写' + acctPlaceholder(), 'err'); return; }
       var b = this; b.disabled = true; b.textContent = '发送中…';
       msg(m, '正在发送验证码…');
-      C.sendCode(phone).then(function () {
-        msg(m, '验证码已发送，请查收短信', 'ok');
+      C.sendCode(val, curChannel).then(function () {
+        msg(m, curChannel === 'email' ? '验证码已发送到邮箱，请查收（注意垃圾邮件）' : '验证码已发送，请查收短信', 'ok');
         startCountdown(m);
         var otp = m.querySelector('#acOtp'); if (otp) otp.focus();
       }).catch(function (e) {
@@ -258,17 +314,27 @@
 
     m.querySelector('#acLogin').onclick = function () {
       var code = (m.querySelector('#acOtp').value || '').trim();
-      if (!code) { msg(m, '请输入短信验证码', 'err'); return; }
+      if (!code) { msg(m, '请输入验证码', 'err'); return; }
       var b = this; b.disabled = true;
       msg(m, '正在验证…');
       C.verifyCode(code).then(function (user) {
-        msg(m, '登录成功' + (user && user.phone ? '：' + maskPhone(user.phone) : ''), 'ok');
+        msg(m, '登录成功' + (user ? '：' + accountName(user) : ''), 'ok');
         setTimeout(function () { renderPanel(); refreshChip(); }, 400);
       }).catch(function (e) {
         b.disabled = false;
         msg(m, '验证失败：' + (e && e.message ? e.message : e), 'err');
       });
     };
+
+    // 回车直接触发登录
+    var acc = m.querySelector('#acAccount');
+    var otp = m.querySelector('#acOtp');
+    if (otp) otp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); var l = m.querySelector('#acLogin'); if (l) l.click(); }
+    });
+    if (acc) acc.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); var s = m.querySelector('#acSend'); if (s && !s.disabled) s.click(); }
+    });
   }
 
   /* ---------------- GitHub 手动开通（备用） ---------------- */
@@ -340,7 +406,7 @@
 
     if (C && C.isLoggedIn()) {
       var u = C.get().user || {};
-      txt = maskPhone(u.phone) || '我的账号';
+      txt = accountName(u);
       title = '已登录（' + (u.uid || '') + '）· 账号与同步设置';
     } else if (A && A.isLoggedIn()) {
       var st = A.get();
