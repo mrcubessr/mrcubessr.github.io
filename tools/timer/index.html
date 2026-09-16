@@ -61,29 +61,68 @@
         <span class="tm-label">三盲参数</span>
         <span class="tm-bld-params__hint">设定你的坐标系与编码习惯，计时器会据此自动算出解法</span>
       </div>
-      <div class="tm-bld-params__grid">
-        <label class="tm-field"><span class="tm-field__k">坐标朝向</span>
-          <select class="select tm-field__v" id="tm-bld-orient" aria-label="坐标朝向"></select>
-        </label>
-        <label class="tm-field"><span class="tm-field__k">打乱长度</span>
-          <input class="input tm-field__v" id="tm-bld-len" type="number" min="12" max="30" step="1" inputmode="numeric">
-        </label>
-        <label class="tm-field"><span class="tm-field__k">棱缓冲块</span>
-          <input class="input tm-field__v tm-field__v--1" id="tm-bld-ebuf" maxlength="1" spellcheck="false" autocomplete="off">
-        </label>
-        <label class="tm-field tm-field--wide"><span class="tm-field__k">棱读码顺序</span>
-          <input class="input tm-field__v" id="tm-bld-eorder" spellcheck="false" autocomplete="off">
-        </label>
-        <label class="tm-check"><input type="checkbox" id="tm-bld-eorient"><span>棱翻色编码</span></label>
-        <label class="tm-check"><input type="checkbox" id="tm-bld-eskip"><span>棱跳编法</span></label>
-        <label class="tm-field"><span class="tm-field__k">角缓冲块</span>
-          <input class="input tm-field__v tm-field__v--1" id="tm-bld-cbuf" maxlength="1" spellcheck="false" autocomplete="off">
-        </label>
-        <label class="tm-field tm-field--wide"><span class="tm-field__k">角读码顺序</span>
-          <input class="input tm-field__v" id="tm-bld-corder" spellcheck="false" autocomplete="off">
-        </label>
-        <label class="tm-check"><input type="checkbox" id="tm-bld-cororient"><span>角翻色编码</span></label>
-        <label class="tm-check"><input type="checkbox" id="tm-bld-corskip"><span>角跳编法</span></label>
+      <div class="tm-bld-group">
+        <div class="tm-bld-group__title">坐标与打乱</div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">坐标朝向</span>
+          <div class="tm-bld-row__v">
+            <select class="select tm-bld-row__mid" id="tm-bld-orient" aria-label="坐标朝向"></select>
+            <span class="tm-bld-row__note">只改变展开图，编码不变</span>
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">打乱长度</span>
+          <div class="tm-bld-row__v">
+            <input class="input tm-bld-row__num" id="tm-bld-len" type="number" min="12" max="30" step="1" inputmode="numeric">
+            <span class="tm-bld-row__note">步</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tm-bld-group">
+        <div class="tm-bld-group__title">棱</div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">缓冲块</span>
+          <div class="tm-bld-row__v">
+            <input class="input tm-bld-row__tiny" id="tm-bld-ebuf" maxlength="1" spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">读码顺序</span>
+          <div class="tm-bld-row__v">
+            <input class="input tm-bld-row__order" id="tm-bld-eorder" spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">编码习惯</span>
+          <div class="tm-bld-row__v tm-bld-row__v--checks">
+            <label class="tm-check"><input type="checkbox" id="tm-bld-eorient"><span>翻色编码</span></label>
+            <label class="tm-check"><input type="checkbox" id="tm-bld-eskip"><span>跳编法</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="tm-bld-group">
+        <div class="tm-bld-group__title">角</div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">缓冲块</span>
+          <div class="tm-bld-row__v">
+            <input class="input tm-bld-row__tiny" id="tm-bld-cbuf" maxlength="1" spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">读码顺序</span>
+          <div class="tm-bld-row__v">
+            <input class="input tm-bld-row__order" id="tm-bld-corder" spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">编码习惯</span>
+          <div class="tm-bld-row__v tm-bld-row__v--checks">
+            <label class="tm-check"><input type="checkbox" id="tm-bld-cororient"><span>翻色编码</span></label>
+            <label class="tm-check"><input type="checkbox" id="tm-bld-corskip"><span>跳编法</span></label>
+          </div>
+        </div>
       </div>
       <div class="tm-bld-params__foot">
         <button class="btn btn--sm btn--ghost" id="tm-bld-reset" type="button">恢复默认</button>
@@ -104,6 +143,13 @@
         <span class="tm-label">三盲解法</span>
         <span class="tm-bld__meta" id="tm-bld-meta"></span>
         <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
+      </div>
+      <div class="tm-bld__main">
+        <div class="tm-bld__net" id="tm-bld-net-wrap">
+          <canvas id="tm-bld-net" aria-label="三盲打乱展开图"></canvas>
+          <span class="tm-bld__net-cap" id="tm-bld-net-cap">展开图</span>
+        </div>
+        <div class="tm-bld__diff" id="tm-bld-diff"></div>
       </div>
       <div class="tm-bld__rows" id="tm-bld-rows"></div>
     </div>
@@ -218,6 +264,7 @@
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
 <script src="/assets/js/bld-engine.js"></script>
+<script src="/assets/js/cube-net.js"></script>
 <script src="/tools/timer/scramble.js"></script>
 <script src="/tools/timer/stats.js"></script>
 <script src="/tools/timer/bld-stats.js"></script>

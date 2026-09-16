@@ -238,18 +238,54 @@
 }
 .tm-bld-params__head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .tm-bld-params__hint { font-size: 12px; color: var(--fg-3); }
-.tm-bld-params__grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; align-items: end;
+.tm-bld-group { display: flex; flex-direction: column; gap: 7px; }
+.tm-bld-group__title {
+  font-size: 11px; letter-spacing: 1px; color: var(--fg-3);
+  padding-bottom: 5px; border-bottom: 1px solid var(--line);
 }
-.tm-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.tm-field--wide { grid-column: span 2; }
-.tm-field__k { font-size: 11px; letter-spacing: 1px; color: var(--fg-3); }
-.tm-field__v { width: 100%; padding: 5px 8px; font-size: 13px; font-family: var(--font-mono); }
-.tm-field__v--1 { max-width: 64px; }
-.tm-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-2); padding-bottom: 3px; }
+/* 固定标签列 + 控件列，保证每行左右严格对齐 */
+.tm-bld-row { display: grid; grid-template-columns: 66px 1fr; gap: 10px; align-items: center; }
+.tm-bld-row__k { font-size: 12px; color: var(--fg-2); text-align: right; line-height: 1.4; }
+.tm-bld-row__v { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.tm-bld-row__v--checks { gap: 18px; }
+.tm-bld-row__note { font-size: 11px; color: var(--fg-3); }
+.tm-bld-row__mid { min-width: 132px; }
+.tm-bld-row__num { width: 74px; font-family: var(--font-mono); }
+.tm-bld-row__tiny { width: 54px; text-align: center; font-family: var(--font-mono); }
+.tm-bld-row__order { flex: 1 1 190px; min-width: 0; font-family: var(--font-mono); letter-spacing: 1px; }
+.tm-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-2); }
 .tm-check input { width: 15px; height: 15px; accent-color: var(--brand); }
 .tm-bld-params__foot { display: flex; align-items: center; gap: 12px; }
 .tm-bld-params__warn { font-size: 12px; color: var(--red); }
+@media (max-width: 560px) {
+  .tm-bld-row { grid-template-columns: 58px 1fr; }
+  .tm-bld-row__k { text-align: left; }
+  .tm-bld-row__mid { min-width: 0; width: 100%; }
+  .tm-bld-row__v--checks { gap: 14px; }
+}
+
+/* ---------- 三盲解法：展开图 + 难度指标 ---------- */
+.tm-bld__main { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+.tm-bld__net { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 0 0 auto; width: 330px; max-width: 100%; }
+.tm-bld__net canvas { display: block; max-width: 100%; }
+.tm-bld__net-cap { font-size: 11px; color: var(--fg-3); }
+.tm-bld__diff { flex: 1 1 230px; min-width: 0; }
+.tm-bld__diff-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tm-bld__diff-notation { font-size: 21px; font-weight: 700; font-family: var(--font-mono); color: var(--fg); }
+.tm-bld__diff-lv { font-size: 12px; padding: 2px 9px; border: 1px solid var(--line); color: var(--fg-2); }
+.tm-bld__diff-lv[data-lv="很难"] { color: var(--red); border-color: var(--red); }
+.tm-bld__diff-lv[data-lv="偏难"] { color: var(--amber); border-color: var(--amber); }
+.tm-bld__diff-lv[data-lv="中等"] { color: var(--brand); border-color: var(--brand); }
+.tm-bld__diff-lv[data-lv="简单"] { color: var(--green); border-color: var(--green); }
+.tm-bld__diff-sub { font-size: 12px; color: var(--fg-2); margin-top: 5px; }
+.tm-bld__diff-sub b { font-family: var(--font-mono); color: var(--gold); }
+.tm-bld__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.tm-chip {
+  font-size: 11px; padding: 2px 8px; border: 1px solid var(--line);
+  color: var(--fg-2); background: var(--surface-2); white-space: nowrap;
+}
+.tm-chip--brand { color: var(--brand); border-color: var(--brand); }
+.tm-chip--warn { color: var(--amber); border-color: var(--amber); }
 
 /* ---------- 三盲解法面板 ---------- */
 .tm-bld {

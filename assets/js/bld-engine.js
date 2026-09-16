@@ -269,7 +269,7 @@
   /* ---------- 读码四件套（纯文本输出） ---------- */
   function stripHtml(s) { return s.replace(/<[^>]+>/g, ""); }
 
-  function edgeRead(s1, opts) {
+  function edgeRead(s1, opts, meta) {
     operatealg(s1);
     const orientFlag = opts.edgeOrientFlag ? 1 : 0;
     const skipCycleNum = opts.edgeSkip ? 1 : 0;
@@ -295,6 +295,7 @@
         sumorient += edgeCh.indexOf(edgereadpartChar[edgereadpartChar.length - 1]) - edgeCh.indexOf(edgereadpartChar[0]);
       }
     }
+    if (meta) meta.cycles = cycleList.length;
     let orientLast = 0, edgereadOut = "", endList = "", codenum = 0;
     for (let i = 0; i < cycleList.length; i++) {
       if (i > 0) orientLast += edgeCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - edgeCh.indexOf(cycleList[i - 1][0]);
@@ -336,7 +337,7 @@
     return out;
   }
 
-  function cornerRead(s1, opts) {
+  function cornerRead(s1, opts, meta) {
     operatealg(s1);
     const orientFlag = opts.cornerOrientFlag ? 1 : 0;
     const skipCycleNum = opts.cornerSkip ? 1 : 0;
@@ -364,6 +365,7 @@
         sumorient += cornerCh.indexOf(cornerreadpartChar[cornerreadpartChar.length - 1]) - cornerCh.indexOf(cornerreadpartChar[0]);
       }
     }
+    if (meta) meta.cycles = cycleList.length;
     let orientLast = 0, cornerreadOut = "", endList = "", codenum = 0;
     for (let i = 0; i < cycleList.length; i++) {
       if (i > 0) orientLast += cornerCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - cornerCh.indexOf(cycleList[i - 1][0]);
@@ -471,23 +473,64 @@
   function letterCount(s) { return (s || "").replace(/[^A-Za-z]/g, "").length; }
 
   /* ---------- 主入口 ---------- */
+  /* ---------- 难度量化 ----------
+     规则（与圈内习惯一致）：2 个编码 = 1 条公式
+       - 棱/角读码：ceil(字母数/2)
+       - 翻色 2 码 = 1 条；三角翻 3 码 = ceil(3/2) = 2 条（同一规则自动成立）
+       - 奇偶：+1 条
+     借位次数 = 循环数 - 1（第一个循环无需借位），作为记忆难度参考指标 */
+  function formulasOfLetters(n) { return Math.ceil((n || 0) / 2); }
+
+  function buildDifficulty(edge, flip, corner, twist, parity, eCycles, cCycles) {
+    const eL = letterCount(edge), fL = letterCount(flip);
+    const cL = letterCount(corner), tL = letterCount(twist);
+    const edgeF = formulasOfLetters(eL), flipF = formulasOfLetters(fL);
+    const cornerF = formulasOfLetters(cL), twistF = formulasOfLetters(tL);
+    const parityF = parity === 1 ? 1 : 0;
+    const borrowEdge = Math.max(0, (eCycles || 1) - 1);
+    const borrowCorner = Math.max(0, (cCycles || 1) - 1);
+    const borrow = borrowEdge + borrowCorner;
+    const total = edgeF + flipF + cornerF + twistF + parityF;
+    const score = Math.round((total + borrow * 0.5) * 10) / 10;
+    let level = "简单";
+    if (total >= 13) level = "很难";
+    else if (total >= 11) level = "偏难";
+    else if (total >= 9) level = "中等";
+    return {
+      edgeLetters: eL, flipLetters: fL, cornerLetters: cL, twistLetters: tL,
+      edgeF: edgeF, flipF: flipF, cornerF: cornerF, twistF: twistF, parityF: parityF,
+      borrowEdge: borrowEdge, borrowCorner: borrowCorner, borrow: borrow,
+      edgeCycles: eCycles || 0, cornerCycles: cCycles || 0,
+      total: total, score: score, level: level,
+      notation: "棱" + edgeF + "+角" + cornerF + (parityF ? "+1" : "")
+    };
+  }
+
   function readCodes(scramble, opts) {
     const o = normalize(opts);
-    const prefix = (CUBE_ORIENTATIONS[o.orientation] || CUBE_ORIENTATIONS[0]).prefix;
-    const oriented = (prefix + scramble).trim().replace(/\s+/g, " ");
-    const edge = edgeRead(oriented, o);
-    const flip = edgeOrientation(oriented, o);
-    const corner = cornerRead(oriented, o);
-    const twist = cornerOrientation(oriented, o);
-    const parity = getParity(oriented);
+    const orient = CUBE_ORIENTATIONS[o.orientation] || CUBE_ORIENTATIONS[0];
+    /* 编码与朝向解耦：一律按「原始打乱」在标准朝向下读码，
+       因此同一个打乱公式，所有人（无论选什么拿法）得到的编码完全一致，便于交流。
+       坐标朝向只喂给展开图 orientedScramble，不影响编码。 */
+    const canonical = String(scramble || "").trim().replace(/\s+/g, " ");
+    const oriented = (orient.prefix + canonical).trim().replace(/\s+/g, " ");
+    const eMeta = {}, cMeta = {};
+    const edge = edgeRead(canonical, o, eMeta);
+    const flip = edgeOrientation(canonical, o);
+    const corner = cornerRead(canonical, o, cMeta);
+    const twist = cornerOrientation(canonical, o);
+    const parity = getParity(canonical);
     const complexity = letterCount(edge) + letterCount(flip) + letterCount(corner) + letterCount(twist);
+    const difficulty = buildDifficulty(edge, flip, corner, twist, parity, eMeta.cycles, cMeta.cycles);
     return {
+      scramble: canonical,
       orientedScramble: oriented,
-      orientationLabel: (CUBE_ORIENTATIONS[o.orientation] || CUBE_ORIENTATIONS[0]).label,
+      orientationLabel: orient.label,
       orientationIndex: o.orientation,
       edge: edge, flip: flip, corner: corner, twist: twist,
       parity: parity,
-      complexity: complexity
+      complexity: complexity,
+      difficulty: difficulty
     };
   }
 
@@ -505,6 +548,7 @@
     getScramble: getScramble,
     fixorientation: fixorientation,
     validate: validate,
+    buildDifficulty: buildDifficulty,
     CUBE_ORIENTATIONS: CUBE_ORIENTATIONS,
     DEFAULTS: DEFAULTS,
     getParity: getParity

@@ -136,7 +136,8 @@
         cornerOrientFlag: !!s.bld.cornerOrientFlag, cornerSkip: !!s.bld.cornerSkip,
         edge: s.bld.edge, flip: s.bld.flip, corner: s.bld.corner, twist: s.bld.twist,
         parity: typeof s.bld.parity === "number" ? s.bld.parity : 0,
-        complexity: typeof s.bld.complexity === "number" ? s.bld.complexity : 0
+        complexity: typeof s.bld.complexity === "number" ? s.bld.complexity : 0,
+        difficulty: normDiff(s.bld.difficulty)
       };
     }
     return o;
@@ -255,29 +256,86 @@
     renderBld();
   }
 
+  /* 难度字段归一化（导入旧数据/外部数据时容错） */
+  function normDiff(d) {
+    if (!d || typeof d !== "object") return null;
+    return {
+      edgeF: +d.edgeF || 0, flipF: +d.flipF || 0,
+      cornerF: +d.cornerF || 0, twistF: +d.twistF || 0,
+      parityF: +d.parityF || 0, borrow: +d.borrow || 0,
+      total: +d.total || 0, score: +d.score || 0,
+      level: typeof d.level === "string" ? d.level : "",
+      notation: typeof d.notation === "string" ? d.notation : ""
+    };
+  }
+
+  /* 展开图：用 cube-net.js 绘制。坐标朝向只影响展开图，不影响编码（编码已与朝向解耦） */
+  function renderBldNet() {
+    if (!els.bldNet) return;
+    var cap = els.bldNetCap;
+    if (opt.event !== "bld" || !curBld) { if (cap) cap.textContent = "展开图"; return; }
+    if (typeof window.drawScrambleNet !== "function") {
+      if (cap) cap.textContent = "展开图（渲染库未加载）";
+      return;
+    }
+    try {
+      window.drawScrambleNet(curBld.orientedScramble, els.bldNet, "white-green");
+      if (cap) cap.textContent = curBld.orientationLabel + " 展开图";
+    } catch (e) {
+      if (cap) cap.textContent = "展开图渲染失败";
+    }
+  }
+
+  /* 难度指标：主记法（棱X+角Y[+1]）+ 总公式数 + 等级 + 明细 chip */
+  function renderBldDiff() {
+    if (!els.bldDiff) return;
+    if (opt.event !== "bld" || !curBld || !curBld.difficulty) { els.bldDiff.innerHTML = ""; return; }
+    var d = curBld.difficulty;
+    var chips = [];
+    chips.push('<span class="tm-chip tm-chip--brand">棱 ' + d.edgeF + " 条</span>");
+    chips.push('<span class="tm-chip">角 ' + d.cornerF + " 条</span>");
+    if (d.flipF) chips.push('<span class="tm-chip">翻色 ' + d.flipF + " 条</span>");
+    if (d.twistF) chips.push('<span class="tm-chip">角翻 ' + d.twistF + " 条</span>");
+    if (d.parityF) chips.push('<span class="tm-chip tm-chip--warn">奇偶 +1</span>');
+    chips.push('<span class="tm-chip' + (d.borrow ? " tm-chip--warn" : "") + '">借位 ' + d.borrow + " 次</span>");
+    els.bldDiff.innerHTML =
+      '<div class="tm-bld__diff-top">' +
+        '<span class="tm-bld__diff-notation">' + d.notation + "</span>" +
+        '<span class="tm-bld__diff-lv" data-lv="' + d.level + '">' + d.level + "</span>" +
+      "</div>" +
+      '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 难度分 <b>" + d.score +
+        "</b> · 编码 " + curBld.complexity + " 码</div>" +
+      '<div class="tm-bld__chips">' + chips.join("") + "</div>";
+  }
+
   function renderBld() {
     if (opt.event !== "bld" || !els.bldRows) return;
     if (!curBld) {
       els.bldRows.innerHTML = '<div class="tm-bld__empty">无法计算解法（请检查参数或刷新页面）</div>';
       if (els.bldMeta) els.bldMeta.textContent = "";
+      if (els.bldDiff) els.bldDiff.innerHTML = "";
+      renderBldNet();
       return;
     }
     var rows = [
-      ["坐标", curBld.orientationLabel],
       ["棱读码", curBld.edge || "—"],
       ["棱翻色", curBld.flip || "—"],
       ["角读码", curBld.corner || "—"],
       ["角翻色", curBld.twist || "—"],
-      ["奇偶", curBld.parity === 1 ? "奇（需借位）" : "偶"]
+      ["奇偶", curBld.parity === 1 ? "奇" : "偶"]
     ];
     var html = "";
     rows.forEach(function (r) {
       html += '<div class="tm-bld__row"><span class="tm-bld__k">' + r[0] + "</span>" +
               '<span class="tm-bld__v tm-bld__v--mono">' + (typeof r[1] === "string" ? r[1] : String(r[1])) + "</span></div>";
     });
-    html += '<div class="tm-bld__meta-line">复杂度（字母数）：<b>' + curBld.complexity + "</b></div>";
     els.bldRows.innerHTML = html;
-    if (els.bldMeta) els.bldMeta.textContent = curBld.orientationLabel + " · 复杂度 " + curBld.complexity;
+    if (els.bldMeta) {
+      els.bldMeta.textContent = curBld.orientationLabel + " · " +
+        (curBld.difficulty ? curBld.difficulty.total + " 条 / " + curBld.difficulty.level : "");
+    }
+    renderBldNet();
+    renderBldDiff();
   }
 
   /* 事件切换时显隐三盲专属 UI（参数面板 / 解法面板 / 统计弹窗分析段 / 隐藏「手动输入」） */
@@ -466,7 +524,8 @@
         cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
         cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
         edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
-        parity: curBld.parity, complexity: curBld.complexity
+        parity: curBld.parity, complexity: curBld.complexity,
+        difficulty: curBld.difficulty
       };
     }
     solves().unshift(entry);
@@ -1448,6 +1507,7 @@
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
       bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
+      bldNet: $("tm-bld-net"), bldNetCap: $("tm-bld-net-cap"), bldDiff: $("tm-bld-diff"),
       orientSel: $("tm-bld-orient"), lenInput: $("tm-bld-len"),
       ebuf: $("tm-bld-ebuf"), eorder: $("tm-bld-eorder"),
       eorient: $("tm-bld-eorient"), eskip: $("tm-bld-eskip"),

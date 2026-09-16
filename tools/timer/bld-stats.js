@@ -64,7 +64,8 @@
       complexityBuckets: {},
       slowEdgePairs: {}, pairTotals: {},
       slowLetters: {}, letterTotals: {},
-      slowCount: 0, verdicts: []
+      slowCount: 0, verdicts: [],
+      difficultyBuckets: [], overallMean: null, trend: null
     };
     if (!arr.length) return out;
 
@@ -129,6 +130,52 @@
         letterPairs(r.bld.corner).forEach(function (p) { out.letterTotals[p] = (out.letterTotals[p] || 0) + 1; });
         letters(r.bld.corner).forEach(function (l) { out.letterTotals[l] = (out.letterTotals[l] || 0) + 1; });
       }
+    });
+
+    /* ⑤ 按难度（总公式条数）分组 —— 同难度互相比较才有意义 */
+    var diffMap = {};
+    arr.forEach(function (r) {
+      var d = r.bld.difficulty;
+      if (!d) return;
+      var key = d.total;
+      var s = diffMap[key] || (diffMap[key] = {
+        total: key, level: d.level, notation: d.notation,
+        count: 0, sum: 0, valid: 0, best: Infinity, vals: []
+      });
+      s.count++;
+      var ms = effectiveMs(r);
+      if (isFinite(ms)) { s.sum += ms; s.valid++; s.vals.push(ms); if (ms < s.best) s.best = ms; }
+    });
+    out.difficultyBuckets = Object.keys(diffMap).map(function (k) {
+      var s = diffMap[k];
+      s.mean = s.valid ? s.sum / s.valid : null;
+      var v = s.vals.slice().sort(function (a, c) { return a - c; });
+      s.median = v.length ? v[Math.floor(v.length / 2)] : null;
+      return s;
+    }).sort(function (x, y) { return x.total - y.total; });
+
+    var allVals = arr.map(effectiveMs).filter(isFinite).sort(function (a, c) { return a - c; });
+    out.overallMean = allVals.length ? allVals.reduce(function (a, c) { return a + c; }, 0) / allVals.length : null;
+
+    /* ⑥ 近期趋势：按时间均分 3 段 × 难度等级，看不同难度打乱的成绩变化 */
+    var withDiff = arr.filter(function (r) { return r.bld.difficulty; })
+      .slice().sort(function (x, y) { return (x.date || 0) - (y.date || 0); });
+    var LEVELS = ["简单", "中等", "偏难", "很难"];
+    var NB = 3, segs = [[], [], []];
+    if (withDiff.length) {
+      var per = Math.ceil(withDiff.length / NB);
+      withDiff.forEach(function (r, i) { segs[Math.min(NB - 1, Math.floor(i / per))].push(r); });
+    }
+    out.trend = { levels: LEVELS, segLabels: ["早期", "中期", "近期"], rows: [] };
+    LEVELS.forEach(function (lv) {
+      var row = { level: lv, means: [], counts: [] };
+      segs.forEach(function (seg) {
+        var vs = seg.filter(function (r) { return r.bld.difficulty.level === lv; })
+                    .map(effectiveMs).filter(isFinite);
+        row.counts.push(vs.length);
+        row.means.push(vs.length ? vs.reduce(function (a, c) { return a + c; }, 0) / vs.length : null);
+      });
+      out.trend.rows.push(row);
     });
 
     return out;
@@ -215,6 +262,46 @@
         h += bar(it.l, it.slow, pct);
       });
       h += "</div>";
+    }
+
+    /* ⑤ 按难度分组（同类对比） */
+    h += '<h3 class="tm-h3">⑤ 按难度分组（同类难度互比）</h3>';
+    if (!a.difficultyBuckets.length) {
+      h += '<div class="tm-ba-note">暂无难度数据（旧成绩不含难度指标，新记录的成绩会自动带上）。</div>';
+    } else {
+      h += '<div class="tm-ba-table"><table><thead><tr><th>难度(总公式)</th><th>等级</th><th>次数</th><th>平均</th><th>中位</th><th>最好</th><th>对比整体</th></tr></thead><tbody>';
+      a.difficultyBuckets.forEach(function (s) {
+        var delta = (s.mean != null && a.overallMean) ? Math.round((s.mean - a.overallMean) / a.overallMean * 100) : null;
+        var dtxt = delta == null ? "—" : (delta > 0 ? "+" + delta + "% 偏慢" : (delta < 0 ? delta + "% 偏快" : "持平"));
+        h += "<tr><td>" + s.total + " 条</td><td>" + esc(s.level) + "</td><td>" + s.count + "</td><td>" +
+          (s.mean != null ? fmt(s.mean) : "—") + "</td><td>" +
+          (s.median != null ? fmt(s.median) : "—") + "</td><td>" +
+          (s.best !== Infinity ? fmt(s.best) : "—") + "</td><td>" + dtxt + "</td></tr>";
+      });
+      h += "</tbody></table></div>";
+      h += '<p class="tm-ba-note">总公式条数相同的打乱难度相当，可直接互比 —— 这就是你的「同类难度基准线」。</p>';
+    }
+
+    /* ⑥ 近期趋势：不同难度打乱的成绩变化 */
+    h += '<h3 class="tm-h3">⑥ 近期练习：不同难度打乱的成绩变化</h3>';
+    var trendRows = ((a.trend && a.trend.rows) || []).filter(function (r) {
+      return r.counts.some(function (c) { return c > 0; });
+    });
+    if (!trendRows.length) {
+      h += '<div class="tm-ba-note">暂无足够数据（需要带难度指标的成绩）。</div>';
+    } else {
+      h += '<div class="tm-ba-table"><table><thead><tr><th>难度等级</th>';
+      a.trend.segLabels.forEach(function (l) { h += "<th>" + l + "</th>"; });
+      h += "<th>早期→近期</th></tr></thead><tbody>";
+      trendRows.forEach(function (r) {
+        h += "<tr><td>" + esc(r.level) + "</td>";
+        r.means.forEach(function (m) { h += "<td>" + (m != null ? fmt(m) : "—") + "</td>"; });
+        var first = r.means[0], last = r.means[r.means.length - 1];
+        var chg = (first != null && last != null && first > 0) ? Math.round((last - first) / first * 100) : null;
+        h += "<td>" + (chg == null ? "—" : (chg < 0 ? "进步 " + (-chg) + "%" : (chg > 0 ? "退步 " + chg + "%" : "持平"))) + "</td></tr>";
+      });
+      h += "</tbody></table></div>";
+      h += '<p class="tm-ba-note">按时间顺序把成绩均分为早期 / 中期 / 近期三段，数值是该段内该难度等级的平均用时。</p>';
     }
 
     h += '<p class="tm-ba-foot">说明：慢局定义为「用时超过同复杂度中位 1.4 倍」。占比越高的组合 / 片段，越值得针对性加练。</p>';
