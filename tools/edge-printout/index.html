@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="0kBqPAk1Nm5E3MCfNsAaNB" data-theme="light">
-<head data-page-node-id="BurKXdOOIjbG6lgDS7lMDj">
-<meta charset="UTF-8" data-page-node-id="73BI4oCaW2V72INh88uQrm">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="JE5T1IdBv0zVStb7YJIyWC">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>棱块编码认知训练出题器</title>
+
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>:root {
   --po-ui-c0392b: #c0392b;
   --po-ui-6b7280: #6b7280;
@@ -36,7 +41,7 @@ body {
   max-width: 960px;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 0;
   padding: 20px 24px;
   margin-bottom: 24px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
@@ -54,13 +59,13 @@ body {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   justify-content: center; margin-bottom: 14px;
   padding: 10px 14px; background: var(--panel-2);
-  border-radius: 10px; border: 1px solid var(--line);
+  border-radius: 0; border: 1px solid var(--line);
 }
 .preset-label {
   font-size: 13px; font-weight: 700; color: var(--fg); margin-right: 4px;
 }
 .preset-btn {
-  padding: 6px 14px; border: 1.5px solid var(--line); border-radius: 8px;
+  padding: 6px 14px; border: 1.5px solid var(--line); border-radius: 0;
   font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer;
   background: var(--on-brand); transition: all 0.15s;
 }
@@ -86,7 +91,7 @@ body {
 .ctrl-group input[type="number"],
 .ctrl-group input[type="date"] {
   padding: 8px 12px; border: 1.5px solid var(--line);
-  border-radius: 10px; font-size: 15px; color: var(--fg);
+  border-radius: 0; font-size: 15px; color: var(--fg);
   background: var(--panel-2); outline: none;
   transition: border-color 0.15s;
 }
@@ -99,13 +104,13 @@ body {
 }
 .color-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  padding: 5px 10px; border-radius: 0; cursor: pointer;
   border: 2px solid var(--line); background: var(--on-brand);
   font-size: 13px; font-weight: 600; color: var(--fg);
   transition: all 0.15s; user-select: none;
 }
 .color-chip .swatch {
-  width: 16px; height: 16px; border-radius: 4px;
+  width: 16px; height: 16px; border-radius: 0;
   border: 1px solid rgba(0,0,0,0.2); display: inline-block;
 }
 .color-chip.checked {
@@ -121,7 +126,7 @@ body {
   display: flex; gap: 6px;
 }
 .orient-chip {
-  padding: 5px 10px; border-radius: 8px; cursor: pointer;
+  padding: 5px 10px; border-radius: 0; cursor: pointer;
   border: 2px solid var(--line); background: var(--on-brand);
   font-size: 13px; font-weight: 600; color: var(--muted);
   transition: all 0.15s; user-select: none;
@@ -133,7 +138,7 @@ body {
 
 /* 切换按钮组 */
 .toggle-group {
-  display: flex; border: 1.5px solid var(--line); border-radius: 10px;
+  display: flex; border: 1.5px solid var(--line); border-radius: 0;
   overflow: hidden; background: var(--panel-2);
 }
 .toggle-btn {
@@ -150,7 +155,7 @@ body {
 }
 
 .btn-generate {
-  padding: 10px 28px; border: none; border-radius: 10px;
+  padding: 10px 28px; border: none; border-radius: 0;
   font-size: 16px; font-weight: 700; cursor: pointer;
   background: var(--brand); color: var(--on-brand);
   box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
@@ -161,7 +166,7 @@ body {
 
 .btn-print {
   padding: 10px 28px; border: 2px solid var(--po-danger);
-  border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
+  border-radius: 0; font-size: 16px; font-weight: 700; cursor: pointer;
   background: var(--on-brand); color: var(--po-danger);
   transition: transform 0.1s, background 0.1s;
 }
@@ -330,9 +335,6 @@ body {
   .main-title { font-size: 22px; }
 }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
 /* 阶段二：导航通栏适配 */
 body{ display:block; padding:0 16px 20px; }
@@ -344,88 +346,88 @@ body{ display:block; padding:0 16px 20px; }
 }
 </style>
 </head>
-<body data-page-node-id="mCrWuBWjoV8alC7tBtZoEm">
+<body>
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
 
 <!-- ========== 顶部控制栏 ========== -->
-<div class="toolbar" data-page-node-id="Zy9QCGAmp8mBwwGHWYciTW">
-  <h1 data-page-node-id="NYauHH0YbyWirzjqJIaekX">棱块编码认知训练出题器</h1>
-  <div class="h1-sub" data-page-node-id="hLYBsqc6U2yyOcwB9q5B0G">三形态 · 颜色筛选 · 循序渐进难度</div>
+<div class="toolbar">
+  <h1>棱块编码认知训练出题器</h1>
+  <div class="h1-sub">三形态 · 颜色筛选 · 循序渐进难度</div>
 
   <!-- 难度预设 -->
-  <div class="preset-row" data-page-node-id="B9TgdkFNvtPhF7PCpjxj2F">
-    <span class="preset-label" data-page-node-id="1s7dBZos63IoQXe5EehpoD">难度预设</span>
-    <button class="seg__btn active" data-preset="L1" data-page-node-id="KwqwB5nDeayEPEyB4DIJ7K">L1 入门（黄红绿）</button>
-    <button class="seg__btn" data-preset="L2" data-page-node-id="GXnbnlyznV7ODD8R3AGK7s">L2 基础（黄红白绿）</button>
-    <button class="seg__btn" data-preset="L3" data-page-node-id="Hd57qKvdWMm9LRjLG1NIfC">L3 进阶（黄红白绿蓝）</button>
-    <button class="seg__btn" data-preset="L4" data-page-node-id="sGSAIaaPiRBkhpHZf8LJJZ">L4 挑战（全6色）</button>
-    <span class="preset-info" id="presetInfo" data-page-node-id="PGfJiatctvD7sjYvDDwz1t">当前可选棱块：4 个</span>
+  <div class="preset-row">
+    <span class="preset-label">难度预设</span>
+    <button class="seg__btn active" data-preset="L1">L1 入门（黄红绿）</button>
+    <button class="seg__btn" data-preset="L2">L2 基础（黄红白绿）</button>
+    <button class="seg__btn" data-preset="L3">L3 进阶（黄红白绿蓝）</button>
+    <button class="seg__btn" data-preset="L4">L4 挑战（全6色）</button>
+    <span class="preset-info" id="presetInfo">当前可选棱块：4 个</span>
   </div>
 
-  <div class="ctrl-row" data-page-node-id="M8V1Jz7oKeHUJdGzIGnHO2">
-    <div class="ctrl-group" data-page-node-id="XjzJPWmDeo2RGT2IGxfatn">
-      <label data-page-node-id="GrX8YBxMdnJgU9WwuUrrBV">学生姓名</label>
-      <input type="text" id="studentName" placeholder="姓名" value="" style="width:120px;" data-page-node-id="O3GUxZheY4m3pcIhjgzfye">
+  <div class="ctrl-row">
+    <div class="ctrl-group">
+      <label>学生姓名</label>
+      <input type="text" id="studentName" placeholder="姓名" value="" style="width:120px;">
     </div>
-    <div class="ctrl-group" data-page-node-id="SBhHdRO27KFv8dEINNPD6l">
-      <label data-page-node-id="FrVlMW2mV16PhiALL5C864">日期</label>
-      <input type="date" id="dateInput" data-page-node-id="sGYCepxaZBPa8VAknw5nLl">
+    <div class="ctrl-group">
+      <label>日期</label>
+      <input type="date" id="dateInput">
     </div>
-    <div class="ctrl-group" data-page-node-id="UNuV77liDRVDufayzqq7kh">
-      <label data-page-node-id="QhEFMa88YvP2hbGTfIOpsY">页数</label>
-      <input type="number" id="pageCount" value="1" min="1" max="10" data-page-node-id="DmubiLceXBhK1O3JYOebWB">
+    <div class="ctrl-group">
+      <label>页数</label>
+      <input type="number" id="pageCount" value="1" min="1" max="10">
     </div>
-    <div class="ctrl-group" data-page-node-id="Ttgb8IN62Md3ogqgiSzjsA">
-      <label data-page-node-id="euRgFe217gcOhiwUldn0cY">每页题数</label>
-      <div class="toggle-group" id="perPagePick" data-page-node-id="UMCthVrYD8kMvHZuoOHR5N">
-        <button class="seg__btn active" data-perpage="12" data-cols="3" data-page-node-id="xkRoiqUKMKESs19udQNREl">12（3×4）</button>
-        <button class="seg__btn" data-perpage="16" data-cols="4" data-page-node-id="izuX8HHtOncnQmdYA3DJWz">16（4×4）</button>
-        <button class="seg__btn" data-perpage="20" data-cols="4" data-page-node-id="kUijxYuU4iBTnYnOzs9Zzp">20（4×5）</button>
-        <button class="seg__btn" data-perpage="24" data-cols="4" data-page-node-id="gwpLzZwFlkqQk4v0aVHhIm">24（4×6）</button>
+    <div class="ctrl-group">
+      <label>每页题数</label>
+      <div class="toggle-group" id="perPagePick">
+        <button class="seg__btn active" data-perpage="12" data-cols="3">12（3×4）</button>
+        <button class="seg__btn" data-perpage="16" data-cols="4">16（4×4）</button>
+        <button class="seg__btn" data-perpage="20" data-cols="4">20（4×5）</button>
+        <button class="seg__btn" data-perpage="24" data-cols="4">24（4×6）</button>
       </div>
     </div>
-    <div class="ctrl-group" data-page-node-id="IA7q9Ot0EFAth5LiCFIFDw">
-      <label data-page-node-id="9Ljku3fDPDEa6QIeaRqwri">模式</label>
-      <div class="toggle-group" data-page-node-id="jNDjWVccC9ZdutQfya0Ela">
-        <button class="seg__btn active" data-mode="write" data-page-node-id="cfxlOK99ani1lCTcwBz9Fe">写编码（有横线）</button>
-        <button class="seg__btn" data-mode="read" data-page-node-id="EDASLL44nwo4mT5uiNhg4y">读编码（无横线）</button>
+    <div class="ctrl-group">
+      <label>模式</label>
+      <div class="toggle-group">
+        <button class="seg__btn active" data-mode="write">写编码（有横线）</button>
+        <button class="seg__btn" data-mode="read">读编码（无横线）</button>
       </div>
     </div>
-    <div class="ctrl-group" data-page-node-id="OaTHyixyap1nC4ZEsABbyw">
-      <label data-page-node-id="tKMnD9AmVHfpdosVmOF9iG">颜色筛选（指定出题棱块范围）</label>
-      <div class="color-pick" id="colorPick" data-page-node-id="Ywm7E3ZVyaHaHnXZYAzNxM"></div>
+    <div class="ctrl-group">
+      <label>颜色筛选（指定出题棱块范围）</label>
+      <div class="color-pick" id="colorPick"></div>
     </div>
-    <div class="ctrl-group" data-page-node-id="GCGNstZnyMBARbwIqK93KN">
-      <label data-page-node-id="D1Sd9c8FATAOZfAwjwjPTq">棱块形态</label>
-      <div class="orient-pick" id="orientPick" data-page-node-id="WzVtUkPtn7GX4pUVWcdOGy">
-        <span class="badge checked" data-orient="standard" data-page-node-id="TfqBTDd0aaZlQCjFwQQnYk">标准</span>
-        <span class="badge checked" data-orient="flipped" data-page-node-id="L2IyWdPyhqGXb5ZjY2NwA5">镜像</span>
-        <span class="badge checked" data-orient="rot" data-page-node-id="q8kHacz0kNZQLxhlQlT85t">旋转120°</span>
+    <div class="ctrl-group">
+      <label>棱块形态</label>
+      <div class="orient-pick" id="orientPick">
+        <span class="badge checked" data-orient="standard">标准</span>
+        <span class="badge checked" data-orient="flipped">镜像</span>
+        <span class="badge checked" data-orient="rot">旋转120°</span>
       </div>
     </div>
-    <div class="ctrl-group" data-page-node-id="AsceTckPYFrnAvCauvUIeK">
-      <label data-page-node-id="W3TlGj0UNCOsFC2UOZ00mD">显示选项</label>
-      <div style="display:flex;flex-direction:column;gap:4px;" data-page-node-id="sEPP0S66w7vxgfJtZJnVRl">
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;" data-page-node-id="3ELqzCJmSqsgc6vm3KRYRR">
-          <input type="checkbox" id="showName" checked data-page-node-id="bamaA8hq8BjpTvrnSzIbF8"> 显示姓名
+    <div class="ctrl-group">
+      <label>显示选项</label>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
+          <input type="checkbox" id="showName" checked> 显示姓名
         </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;" data-page-node-id="gNZuUE94Rj92ZqyK24zyY0">
-          <input type="checkbox" id="showDate" checked data-page-node-id="lUE4WoXRamUyME3vLZcCYV"> 显示日期
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
+          <input type="checkbox" id="showDate" checked> 显示日期
         </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;" data-page-node-id="3h8eaiR1lNqW7Cny5wIdbO">
-          <input type="checkbox" id="showPageNum" checked data-page-node-id="qNdQbGGJDB2vTlA5tBh63J"> 显示页码
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;">
+          <input type="checkbox" id="showPageNum" checked> 显示页码
         </label>
       </div>
     </div>
-    <button class="btn btn--primary" onclick="generate()" data-page-node-id="ZsdoYTHewaQSGljQ0bGwOo">生成题目</button>
-    <button class="btn btn--secondary" onclick="window.print()" data-page-node-id="VQqFKrbQQbjpDa6nl1yYr6">打印 / 导出PDF</button>
+    <button class="btn btn--primary" onclick="generate()">生成题目</button>
+    <button class="btn btn--secondary" onclick="window.print()">打印 / 导出PDF</button>
   </div>
 </div>
 
 <!-- ========== 题目页面容器 ========== -->
-<div class="pages-container" id="pagesContainer" data-page-node-id="ce7l4G181pRt8N6cBXt3f7">
+<div class="pages-container" id="pagesContainer">
   <!-- 页面由 JS 动态生成 -->
 </div>
 

@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="we4T3fdpLd4QTBCZO5Qg7v" data-theme="light">
-<head data-page-node-id="ZDqDQ4NUEbvIX35p1HeSmo">
-<meta charset="UTF-8" data-page-node-id="HD9t15cEg92cFgWyDTnwly">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="KGjTcGr34MUMplESnnv4gx">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>魔方盲拧记忆编码训练器</title>
+
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   :root{ --ok-soft:var(--green-soft); --bad-soft:var(--red-soft);
-    --radius:10px; --shadow:0 6px 24px rgba(31,41,51,.08);
+    --radius:0; --shadow:0 6px 24px rgba(31,41,51,.08);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);
@@ -19,22 +24,22 @@
   .card h2{font-size:15px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
   .card h2 .tag{font-size:11px;color:var(--fg-3);font-weight:400}
   label{font-size:12px;color:var(--fg-3)}
-  input[type=text],select{border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-size:14px;background:var(--on-brand);color:var(--fg);outline:none}
+  input[type=text],select{border:1px solid var(--line);border-radius:0;padding:9px 10px;font-size:14px;background:var(--on-brand);color:var(--fg);outline:none}
   input:focus,select:focus{border-color:var(--brand)}
-  .btn{border:none;border-radius:6px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--brand);color:var(--on-brand);transition:.15s}
+  .btn{border:none;border-radius:0;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--brand);color:var(--on-brand);transition:.15s}
   .btn:hover{filter:brightness(1.05)}
   .btn.ghost{background:var(--on-brand);color:var(--brand);border:1px solid var(--brand)}
   .btn.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand);font-weight:700}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
   .modtabs{display:flex;gap:8px;flex-wrap:wrap}
-  .modtabs button{flex:1;min-width:210px;border:1px solid var(--line);background:var(--on-brand);color:var(--fg-3);padding:12px 14px;border-radius:8px;cursor:pointer;text-align:left;font-size:12px}
+  .modtabs button{flex:1;min-width:210px;border:1px solid var(--line);background:var(--on-brand);color:var(--fg-3);padding:12px 14px;border-radius:0;cursor:pointer;text-align:left;font-size:12px}
   .modtabs button b{display:block;color:var(--fg);font-size:15px;margin-bottom:3px}
   .modtabs button.active{border-color:var(--brand);background:var(--brand-soft)}
   .modtabs button.active b{color:var(--brand)}
   #stage{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:8px 0}
   .hint{color:var(--fg-3);font-size:14px;text-align:center}
-  .banner{background:var(--brand-soft);color:var(--brand);border-radius:8px;padding:10px 14px;font-size:14px;max-width:640px;text-align:center;line-height:1.7}
+  .banner{background:var(--brand-soft);color:var(--brand);border-radius:0;padding:10px 14px;font-size:14px;max-width:640px;text-align:center;line-height:1.7}
   .banner.big{font-size:22px;font-weight:700;padding:18px 26px;line-height:1.6}
   /* ===== 训练区：3 组一行 / 4 组两行(2+2) / 5 组两行(3+2) ===== */
   .scene{display:grid;gap:14px;justify-content:center;justify-items:center;margin:4px auto}
@@ -44,20 +49,20 @@
   .scene.c5 .cell{grid-column:span 2}
   .scene.c5 .cell:nth-child(4){grid-column:2 / span 2}
   .scene.c5 .cell:nth-child(5){grid-column:4 / span 2}
-  .cell{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 8px 8px}
+  .cell{position:relative;border:1px solid var(--line);border-radius:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 8px 8px}
   .cell .idx{position:absolute;top:4px;left:8px;font-size:13px;font-weight:700;color:var(--fg-3)}
   .cubeWrap{display:flex;gap:2px;align-items:center;justify-content:center;margin:8px 0 0}
   .cube{display:inline-flex;gap:2px;vertical-align:middle}
   .cube canvas{display:block}
   .seg{display:flex;gap:6px;margin-top:6px}
-  .segbtn{border:1px solid var(--line);background:var(--on-brand);border-radius:6px;padding:6px 14px;font-size:14px;cursor:pointer;transition:.12s}
+  .segbtn{border:1px solid var(--line);background:var(--on-brand);border-radius:0;padding:6px 14px;font-size:14px;cursor:pointer;transition:.12s}
   .segbtn:hover{border-color:var(--brand)}
   .segbtn.active{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
   .big-num{font-size:96px;font-weight:800;color:var(--brand);line-height:1}
   .read-timer{font-size:15px;color:var(--fg-3)}
   /* 三阶段指示 */
   .steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .step{font-size:13px;color:var(--fg-3);border:1px solid var(--line);padding:4px 14px;border-radius:999px;background:var(--on-brand)}
+  .step{font-size:13px;color:var(--fg-3);border:1px solid var(--line);padding:4px 14px;border-radius:0;background:var(--on-brand)}
   .step.on{color:var(--on-brand);background:var(--brand);border-color:var(--brand);font-weight:600}
   .step.done{color:var(--green);border-color:var(--green);background:var(--ok-soft)}
   /* ===== 答题区 ===== */
@@ -82,12 +87,12 @@
   .kbdgrp button.hit{background:var(--brand);color:var(--on-brand);border-color:var(--brand);position:relative;z-index:1}
   .kbdgrp button.dim{color:var(--fg-2)}
   .qbtns{display:flex;gap:10px;margin-top:4px}
-  .qbtns button{border:1px solid var(--line);background:var(--on-brand);border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--fg-3)}
+  .qbtns button{border:1px solid var(--line);background:var(--on-brand);border-radius:0;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--fg-3)}
   .qbtns button:hover{border-color:var(--brand);color:var(--brand)}
   .kbd-tip{font-size:12px;color:var(--fg-3)}
   /* 选项 / 结果 */
   .opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-  .opt{border:1px solid var(--line);border-radius:8px;background:var(--on-brand);width:150px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;cursor:pointer;transition:.12s}
+  .opt{border:1px solid var(--line);border-radius:0;background:var(--on-brand);width:150px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px;cursor:pointer;transition:.12s}
   .opt:hover{border-color:var(--brand);transform:translateY(-2px)}
   .opt:disabled{opacity:.7;cursor:default;transform:none}
   .opt .pw{font-size:26px;font-weight:700;color:var(--fg);text-align:center;line-height:1.25}
@@ -97,7 +102,7 @@
   .bigq{font-size:30px;font-weight:800;color:var(--fg);text-align:center;line-height:1.4}
   .cyc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:26px;font-weight:700;color:var(--fg)}
   .cyc i{font-style:normal;color:var(--fg-3);font-size:20px}
-  .cyc span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:24px;letter-spacing:1px}
+  .cyc span{background:var(--surface);border:1px solid var(--line);border-radius:0;padding:6px 12px;font-size:24px;letter-spacing:1px}
   .cyc span em{display:block;font-style:normal;font-size:13px;color:var(--fg-3);font-weight:400;letter-spacing:0}
   .cyc span.hit{background:var(--brand-soft);border-color:var(--brand)}
   .err-tip{font-size:20px;font-weight:700;color:var(--red)}
@@ -120,7 +125,7 @@
   .dict-filter{margin-left:auto}
   .muted{color:var(--fg-3);font-size:12px}
   .hidden{display:none!important}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:10px 18px;border-radius:0;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:.95}
   .field{display:flex;flex-direction:column;gap:6px;min-width:190px}
   /* ===== 移动端（竖屏）自适应 ===== */
@@ -173,91 +178,88 @@
     .err-tip{font-size:17px}
   }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
-<body data-page-node-id="dZ2BMqZICNdyUY2WL9aHau">
+<body>
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
-<div class="wrap" data-page-node-id="y0hSy9JhcUjCxUNtKWMX7i">
-  <header data-page-node-id="YONQucMy4UTPm2YXO7PJwI">
-    <h1 data-page-node-id="79cAnPiBJUMlBMrqGzvnAk">🧠 魔方盲拧记忆编码训练器</h1>
+<div class="wrap">
+  <header>
+    <h1>🧠 魔方盲拧记忆编码训练器</h1>
   </header>
 
-  <section class="card" data-page-node-id="PRr99KvXUP4YnuRmqL5NmS">
-    <h2 data-page-node-id="TAncRb9tYdU4v0g0OQXfDn">选择模块</h2>
-    <div class="tabs" id="modTabs" data-page-node-id="EiYSZgpPGCwYAw0yQ7Todb">
-      <button data-mod="m1" class="active" data-page-node-id="hzRUSSte8Uns82Cryf4NzJ"><b data-page-node-id="EFBzjHffLuUxfzIbqPQfVs">模块1 · 编码联想记忆</b>读一遍记忆 → 读一遍串联记忆 → 回忆编码</button>
-      <button data-mod="m2" data-page-node-id="M8EOHOAYGPqDHS7arCdent"><b data-page-node-id="JsNJi8H4TXj8SkfHHtIQF8">模块2 · 记忆间隔提取训练</b>读一遍 → 停留 N 秒 → 复述全部编码</button>
-      <button data-mod="m3" data-page-node-id="IHX7gUjQLRfjYOaUbOmZJ4"><b data-page-node-id="mil8qsbPmdePKwcaSJN8gN">模块3 · 主动刷新</b>读一遍记忆 → 做棱块 → 主动刷新 → 回忆编码</button>
+  <section class="card">
+    <h2>选择模块</h2>
+    <div class="tabs" id="modTabs">
+      <button data-mod="m1" class="active"><b>模块1 · 编码联想记忆</b>读一遍记忆 → 读一遍串联记忆 → 回忆编码</button>
+      <button data-mod="m2"><b>模块2 · 记忆间隔提取训练</b>读一遍 → 停留 N 秒 → 复述全部编码</button>
+      <button data-mod="m3"><b>模块3 · 主动刷新</b>读一遍记忆 → 做棱块 → 主动刷新 → 回忆编码</button>
     </div>
-    <div style="display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;align-items:flex-end" data-page-node-id="QuWmGKM6doacAugAbQgrpQ">
-      <div class="field" data-page-node-id="U0AVFUoAuK4A6vHJgaBmE6">
-        <label data-page-node-id="Dl7LCQAxIH3ij8ryNqCBlb">每组图数：<b id="grpVal" data-page-node-id="mW0q56w6S4AATLixhHMbTM">4</b></label>
-        <div class="seg" id="grpSeg" data-page-node-id="QfzD9nmKlvrGaiFubtfKzx">
-          <button class="seg__btn" data-g="3" data-page-node-id="EERkx0dKkNqGbeTm5XLuBR">3 组</button>
-          <button class="seg__btn active" data-g="4" data-page-node-id="wJCv5KmXzHznN2YhZVwnjd">4 组</button>
-          <button class="seg__btn" data-g="5" data-page-node-id="LNtjMzGpLHvtst9mLDWdVm">5 组</button>
+    <div style="display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;align-items:flex-end">
+      <div class="field">
+        <label>每组图数：<b id="grpVal">4</b></label>
+        <div class="seg" id="grpSeg">
+          <button class="seg__btn" data-g="3">3 组</button>
+          <button class="seg__btn active" data-g="4">4 组</button>
+          <button class="seg__btn" data-g="5">5 组</button>
         </div>
       </div>
-      <div class="field" id="gapField" data-page-node-id="80LjH3oZo845IGtEpdXQTI">
-        <label data-page-node-id="dwxJnQVi5HIFxzVOAt7H5m">模块2 中间间隔：<b id="gapVal" data-page-node-id="KVzp9OY3KaXxsqkDkTDKGI">15</b> 秒</label>
-        <div class="seg" id="gapSeg" data-page-node-id="4A1EtyoG80MbUMuWhw9ftH">
-          <button class="seg__btn" data-t="10" data-page-node-id="KOTpsDx1oKFdIiR1pDAFpH">10s</button>
-          <button class="seg__btn active" data-t="15" data-page-node-id="5VI092DUDWl9j1V0EOHE63">15s</button>
-          <button class="seg__btn" data-t="20" data-page-node-id="STdlfj3ad8rJlgoFB20bAp">20s</button>
-          <button class="seg__btn" data-t="30" data-page-node-id="UQfOS0rTQkEskms0DIAw12">30s</button>
+      <div class="field" id="gapField">
+        <label>模块2 中间间隔：<b id="gapVal">15</b> 秒</label>
+        <div class="seg" id="gapSeg">
+          <button class="seg__btn" data-t="10">10s</button>
+          <button class="seg__btn active" data-t="15">15s</button>
+          <button class="seg__btn" data-t="20">20s</button>
+          <button class="seg__btn" data-t="30">30s</button>
         </div>
       </div>
-      <button class="btn" id="startBtn" data-page-node-id="XUKVjGPjRoTWltg5MOhmUa">开始本模块</button>
+      <button class="btn" id="startBtn">开始本模块</button>
     </div>
   </section>
 
-  <section class="card" data-page-node-id="LaWFww7BKrltLud6nXVcZX">
-    <h2 data-page-node-id="qRUPfW7pPJgw1yHYfvJFb3">训练区 <span class="badge" id="stageTag" data-page-node-id="aRG9YNGdguUQHhMSSar28G">模块1 · 编码联想记忆</span></h2>
-    <div id="stage" data-page-node-id="SlThpJC9JuwkPF1CbAEsZK"><div class="hint" data-page-node-id="g6KBTa4WhE0AZaTBzMV2sb">选择上方模块，点「开始本模块」。</div></div>
+  <section class="card">
+    <h2>训练区 <span class="badge" id="stageTag">模块1 · 编码联想记忆</span></h2>
+    <div id="stage"><div class="hint">选择上方模块，点「开始本模块」。</div></div>
   </section>
 
-  <section class="card" data-page-node-id="LgriBoHFDQsaoEfZkxvTcB">
-    <h2 data-page-node-id="BOPvNvxzITvKwyq5lyzjvz">成绩 <span class="badge" data-page-node-id="aVeCij14XSivwtjUUfelmc">完成才算成绩 · 记录用时</span></h2>
-    <table data-page-node-id="b07u0CJEEXBqqWZnfBPbl4">
-      <thead data-page-node-id="qH62Y6M7JxknFlDWnQtStO"><tr data-page-node-id="8lCIIG76q5WlZX6L1XTaZS"><th data-page-node-id="teImqHAVEEG5XSBlMpbYw9">模块</th><th data-page-node-id="ObO620OIgxD3qAXjDlkSfv">最快</th><th data-page-node-id="PYA2Cy5fLf5ocDDkuNHVTk">最近 5 次平均</th><th data-page-node-id="sgEcXx0xB7Tjxw7Ox8tOmF">最近 12 次平均</th><th data-page-node-id="axfu4SJ3f2ag3Ru2IgQxYM">完成次数</th></tr></thead>
-      <tbody data-page-node-id="7cTBdjz5BtKk1ouH3IptJN">
-        <tr data-page-node-id="25BkPS8b382GPLbg8TiWco"><td data-page-node-id="2EqaV7vFTqAGSYcx12LmAS">模块1 · 编码联想记忆</td><td id="m1_best" data-page-node-id="YrDRP5JggH0uYQSR8ODc3J">—</td><td id="m1_a5" data-page-node-id="4VY6Gmszz1yWip4DZBWNHK">—</td><td id="m1_a12" data-page-node-id="AYwzBqWhOLtJhVGXKjBO4C">—</td><td id="m1_n" data-page-node-id="1bzgRDCwJ0hA6eGAz1KX4S">0</td></tr>
-        <tr data-page-node-id="TAPCJoIxoukXMWVT1bWWzT"><td data-page-node-id="HPV7BcH8AI52XUIui1a3IC">模块2 · 记忆间隔提取训练</td><td id="m2_best" data-page-node-id="bPBVrxDSDfMdGF4RGqi7cg">—</td><td id="m2_a5" data-page-node-id="JB8FYW6qG69fAh8dqklelP">—</td><td id="m2_a12" data-page-node-id="FLHnjZe2yDiCoLzHeOFUII">—</td><td id="m2_n" data-page-node-id="ZYX9G0ppB8roLIkHHpAoG0">0</td></tr>
-        <tr data-page-node-id="PFOX0jywNPGY4yRjnOeTLZ"><td data-page-node-id="yH6wPnPjQ69GSgtdzw89t8">模块3 · 主动刷新</td><td id="m3_best" data-page-node-id="yKBxcGO1blleNF2xrB6SJs">—</td><td id="m3_a5" data-page-node-id="o7P2EtpAkGhfx8FQ99NnX7">—</td><td id="m3_a12" data-page-node-id="6cVILjrZa2tyCqmrqYhNmR">—</td><td id="m3_n" data-page-node-id="w34KeH1KiViWaNUorChmn7">0</td></tr>
+  <section class="card">
+    <h2>成绩 <span class="badge">完成才算成绩 · 记录用时</span></h2>
+    <table>
+      <thead><tr><th>模块</th><th>最快</th><th>最近 5 次平均</th><th>最近 12 次平均</th><th>完成次数</th></tr></thead>
+      <tbody>
+        <tr><td>模块1 · 编码联想记忆</td><td id="m1_best">—</td><td id="m1_a5">—</td><td id="m1_a12">—</td><td id="m1_n">0</td></tr>
+        <tr><td>模块2 · 记忆间隔提取训练</td><td id="m2_best">—</td><td id="m2_a5">—</td><td id="m2_a12">—</td><td id="m2_n">0</td></tr>
+        <tr><td>模块3 · 主动刷新</td><td id="m3_best">—</td><td id="m3_a5">—</td><td id="m3_a12">—</td><td id="m3_n">0</td></tr>
       </tbody>
     </table>
-    <p class="muted" style="margin:10px 0 0" data-page-node-id="lT10G7tZIcrr2F4wbImjSZ">未完成的一轮不计成绩，也不写入记录。最快 = 历史最好用时；平均取最近 N 次成功。</p>
+    <p class="muted" style="margin:10px 0 0">未完成的一轮不计成绩，也不写入记录。最快 = 历史最好用时；平均取最近 N 次成功。</p>
   </section>
 
-  <section class="card" data-page-node-id="kroAFIw5A59bu0YzPEjgv3">
-    <h2 data-page-node-id="DBAnHPIjhIOfvWB7w5z6d1">对码词典（优尔） <span class="badge" data-page-node-id="SEO883y08TdU56wRESxNlL">可编辑·自动保存</span></h2>
-    <div class="tabs" data-page-node-id="lOxYOMWC3QLNcb0u7k3NMf">
-      <button class="btn ghost" id="exportBtn" style="padding:7px 14px" data-page-node-id="F25keW9xQgUlBAjUIhpHEa">导出词典</button>
-      <button class="btn ghost" id="importBtn" style="padding:7px 14px" data-page-node-id="rW202z32lAQwCVYZDgV7wE">导入词典</button>
-      <button class="btn ghost" id="missBtn" style="padding:7px 14px" data-page-node-id="t6qQebGJn7uJxBXS7xzUWV">只看待补 · <span id="missNum" data-page-node-id="h0gH5mlF3UZDkYnAuWFZVs">0</span></button>
-      <input type="text" id="dictFilter" class="dict-filter" placeholder="筛选代码或联想词…" data-page-node-id="dmnM5FnOpBIBxaFG2Emx1g">
+  <section class="card">
+    <h2>对码词典（优尔） <span class="badge">可编辑·自动保存</span></h2>
+    <div class="tabs">
+      <button class="btn ghost" id="exportBtn" style="padding:7px 14px">导出词典</button>
+      <button class="btn ghost" id="importBtn" style="padding:7px 14px">导入词典</button>
+      <button class="btn ghost" id="missBtn" style="padding:7px 14px">只看待补 · <span id="missNum">0</span></button>
+      <input type="text" id="dictFilter" class="dict-filter" placeholder="筛选代码或联想词…">
     </div>
-    <div class="card hidden" id="importPanel" style="margin-top:10px;background:var(--bg)" data-page-node-id="MQZRMGKGiP4GOXnswEYyxH">
-      <div class="hint" style="text-align:left" data-page-node-id="TUAaQMKviA13aIEDBjosrj">支持格式：① md 表格（<code data-page-node-id="LT5n9XDkDMwHgbrUZX2jgY">| AB | 阿波罗 | bō |</code>）② JSON <code data-page-node-id="usS8i4sHd9WwblsTwHQkZd">{"AB":"阿波罗"}</code> ③ 每行 <code data-page-node-id="UlVdIEy4NtjGRAZpxUc7HZ">AB 阿波罗</code>。只更新匹配到的对码；联想词里的括号内容会自动去掉。</div>
-      <textarea id="importText" rows="5" placeholder="把词典粘贴到这里，或选择文件…" style="width:100%;margin-top:8px;border:1px solid var(--line);border-radius:6px;padding:10px;font-size:13px;resize:vertical"></textarea>
-      <div class="toolbar" style="justify-content:flex-start" data-page-node-id="HysPzdh3hlhoRB4CAcxz0Y">
-        <input type="file" id="importFile" accept=".json,.txt,.csv,.md" style="font-size:12px;flex:1;min-width:200px" data-page-node-id="VInhj4oTEJpiCK1XqLoazD">
-        <button class="btn" id="applyImport" data-page-node-id="Aqi4RLFrf9aDXwb9O2aQrf">应用导入</button>
-        <button class="btn ghost" id="cancelImport" data-page-node-id="EwdQi52QphyrfCBC7bEGZv">取消</button>
+    <div class="card hidden" id="importPanel" style="margin-top:10px;background:var(--bg)">
+      <div class="hint" style="text-align:left">支持格式：① md 表格（<code>| AB | 阿波罗 | bō |</code>）② JSON <code>{"AB":"阿波罗"}</code> ③ 每行 <code>AB 阿波罗</code>。只更新匹配到的对码；联想词里的括号内容会自动去掉。</div>
+      <textarea id="importText" rows="5" placeholder="把词典粘贴到这里，或选择文件…" style="width:100%;margin-top:8px;border:1px solid var(--line);border-radius:0;padding:10px;font-size:13px;resize:vertical"></textarea>
+      <div class="toolbar" style="justify-content:flex-start">
+        <input type="file" id="importFile" accept=".json,.txt,.csv,.md" style="font-size:12px;flex:1;min-width:200px">
+        <button class="btn" id="applyImport">应用导入</button>
+        <button class="btn ghost" id="cancelImport">取消</button>
       </div>
-      <div class="hint" id="importMsg" style="text-align:left" data-page-node-id="m5qBjpR4kgQqbjTpZD71OX"></div>
+      <div class="hint" id="importMsg" style="text-align:left"></div>
     </div>
-    <div style="max-height:340px;overflow:auto;margin-top:10px" data-page-node-id="SHZqX7BOKZDvG751lkIJYO">
-      <table data-page-node-id="e7oO2NV5Lg7ieHmWIvKWiE"><thead data-page-node-id="LaXxfUAx2rBw5bLEhsVF1p"><tr data-page-node-id="g7UJfZtQuY1ABQbFC1Te4E"><th data-page-node-id="HIKlA4HKItQ1R707eH1Dif">代码</th><th data-page-node-id="W0yjAP9TdEAwqDwZeCdKoF">角块图</th><th data-page-node-id="zn6h0l5KwS9QLoZf7av6Dl">联想词</th></tr></thead><tbody id="dictBody" data-page-node-id="J96ZXxUBJQwLH2AEvExPu2"></tbody></table>
+    <div style="max-height:340px;overflow:auto;margin-top:10px">
+      <table><thead><tr><th>代码</th><th>角块图</th><th>联想词</th></tr></thead><tbody id="dictBody"></tbody></table>
     </div>
-    <p class="muted" style="margin-top:8px" data-page-node-id="myBIGbKVaQwcF5WIfq0Sw6">字母方案 = A–Z 去掉 U、V，共 24 个字母 → 有序对 552 条（原优尔表 462 条 + 含 I/O 的 90 条待补）。<b data-page-node-id="XlLA5JGdkGcvjnvmuwDtYB">待补的条目联想词为空，但照样会出题</b>，可在上表直接填入（改动即时保存）。</p>
+    <p class="muted" style="margin-top:8px">字母方案 = A–Z 去掉 U、V，共 24 个字母 → 有序对 552 条（原优尔表 462 条 + 含 I/O 的 90 条待补）。<b>待补的条目联想词为空，但照样会出题</b>，可在上表直接填入（改动即时保存）。</p>
   </section>
 </div>
-<div class="toast" id="toast" data-page-node-id="IDCvd0aikmWrEYdrBUGs3B"></div>
+<div class="toast" id="toast"></div>
 
 <script>
 "use strict";

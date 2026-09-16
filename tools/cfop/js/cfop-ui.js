@@ -231,9 +231,18 @@
     });
   }
 
-  /* ---------- 主题切换（与全站 data-theme 保持一致） ---------- */
+  /* ---------- 主题切换 ----------
+     自 2026-09-16 起全站主题由 /assets/js/theme.js 统一管理
+     （三态：跟随系统 / 浅色 / 深色，持久化 + 防闪烁）。
+     这里只把页面内的 #themeBtn 接到同一份状态上，不再各写一套，
+     以免出现「导航按钮与页面按钮状态不一致」。 */
   function bindTheme(btnId) {
     var btn = document.getElementById(btnId); if (!btn) return;
+    if (window.Theme && typeof window.Theme.attach === 'function') {
+      window.Theme.attach(btn);
+      return;
+    }
+    /* 兜底：theme.js 未加载时保持旧行为（二态切换） */
     function paint() { btn.textContent = document.documentElement.getAttribute("data-theme") === "light" ? "🌙 深色" : "☀ 浅色"; }
     paint();
     btn.addEventListener("click", function () {

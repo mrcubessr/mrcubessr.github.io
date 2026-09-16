@@ -1,22 +1,27 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="10wuhvw8AHeoNekMpsGpcz" data-theme="light">
-<head data-page-node-id="FlHxLBCXzhWtAsf3s9tYYc">
-<meta charset="UTF-8" data-page-node-id="L1hRF3ItH9g7b9mCiaePDa">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="SaaSm1I8Jdc7E0xro8XoKY">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>魔方课堂教学系统</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="/assets/css/site-nav.css" />
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   :root{
     --primary:var(--brand);--brand-soft:var(--surface);--fg-3:var(--fg-3);--text-2:var(--fg-3);--text-3:var(--fg-3);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;color:var(--fg);background:var(--bg);line-height:1.6}
-  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 16px;font-size:14px;background:var(--primary);color:var(--on-brand);transition:.15s}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:0;padding:8px 16px;font-size:14px;background:var(--primary);color:var(--on-brand);transition:.15s}
   button:hover{filter:brightness(1.08)}
   button.sec{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line)}
   button.ghost{background:transparent;color:var(--text-2)}
   button.sm{padding:4px 10px;font-size:13px}
-  input,textarea,select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;outline:none;background:var(--on-brand);color:var(--fg)}
+  input,textarea,select{font-family:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:0;outline:none;background:var(--on-brand);color:var(--fg)}
   input:focus,textarea:focus,select:focus{border-color:var(--primary)}
   a{color:var(--primary);cursor:pointer}
 
@@ -37,12 +42,12 @@
 
   .wrap{max-width:1320px;margin:0 auto;padding:20px}
   .view{display:none}.view.active{display:block}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:0;padding:20px;margin-bottom:18px}
   h2{font-size:24px;margin-bottom:4px}
   h3{font-size:15px;margin:16px 0 8px;color:var(--fg)}
   .muted{color:var(--text-3);font-size:13px}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill{display:inline-block;padding:2px 10px;border-radius:0;font-size:12px;font-weight:600}
 
   /* 计分方块网格 */
   .scorebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
@@ -50,20 +55,20 @@
   body.wide .wrap{max-width:none}                       /* 计分页撑满视口 */
   #view-score .card{padding:12px 16px 14px}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;width:100%;margin:0 auto;justify-content:center}
-  .kid{border-radius:12px;padding:6px 4px 5px;text-align:center;color:var(--on-brand);position:relative;cursor:pointer;user-select:none;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.08);transition:transform .08s;container-type:size;overflow:hidden}
+  .kid{border-radius:0;padding:6px 4px 5px;text-align:center;color:var(--on-brand);position:relative;cursor:pointer;user-select:none;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.08);transition:transform .08s;container-type:size;overflow:hidden}
   .kid:active{transform:scale(.96)}
   .kid .num{font-size:34cqw;font-weight:800;line-height:1}
   .kid .name{font-size:13cqw;font-weight:600;margin-top:1px;line-height:1.15}
   .kid .nick{font-size:10.5cqw;opacity:.92;line-height:1.1}
   .kid .sid{font-size:9cqw;opacity:.7}
-  .kid .undo{position:absolute;top:4cqw;right:4cqw;background:rgba(255,255,255,.34);border-radius:6px;font-size:10cqw;padding:1cqw 5cqw;font-weight:700;line-height:1.3}
-  .kid .undo:hover{background:rgba(255,255,255,.6)}
+  .kid .undo{position:absolute;top:4cqw;right:4cqw;background:var(--surface-2);color:var(--fg);border-radius:0;font-size:10cqw;padding:1cqw 5cqw;font-weight:700;line-height:1.3}
+  .kid .undo:hover{background:var(--surface-3)}
   .kid.bump .num{animation:bump .3s}
   @keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
 
   /* 结算/表扬榜 */
   .rank{display:flex;flex-direction:column;gap:8px}
-  .rrow{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+  .rrow{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1px solid var(--line);border-radius:0;padding:10px 14px}
   .rrow .rk{width:30px;text-align:center;font-weight:700;color:var(--text-3)}
   .rrow.top1{background:var(--amber-soft);border-color:var(--amber-soft)}
   .rrow.top1 .rk{color:var(--amber);font-size:18px}
@@ -82,7 +87,7 @@
   .table td{border:1px solid var(--line)}
 
   /* 进度状态 */
-  .st{display:inline-flex;align-items:center;gap:4px;border-radius:7px;padding:3px 12px;font-size:13px;font-weight:600;border:1px solid var(--line);cursor:pointer;white-space:nowrap}
+  .st{display:inline-flex;align-items:center;gap:4px;border-radius:0;padding:3px 12px;font-size:13px;font-weight:600;border:1px solid var(--line);cursor:pointer;white-space:nowrap}
   .st.s0{background:var(--surface);color:var(--fg-3)}
   .st.s1{background:var(--gold-soft);color:var(--amber);border-color:var(--gold)}
   .st.s2{background:var(--green-soft);color:var(--green);border-color:var(--green)}
@@ -95,25 +100,25 @@
   /* 热力表 */
   .heat th,.heat td{text-align:center;font-size:12px}
   .heat th:first-child,.heat td:first-child{text-align:left}
-  .heatcell{width:30px;height:30px;border-radius:5px;cursor:pointer;border:1.5px solid rgba(0,0,0,.12);transition:transform .1s}
+  .heatcell{width:30px;height:30px;border-radius:0;cursor:pointer;border:1.5px solid rgba(0,0,0,.12);transition:transform .1s}
   .heatcell:hover{transform:scale(1.15);z-index:2}
   .hc0{background:var(--fg-2);border-color:var(--fg-3)}.hc1{background:var(--amber);border-color:var(--amber)}.hc2{background:var(--green);border-color:var(--green)}.hc3{background:var(--red);border-color:var(--red)}
 
   .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
   .modalbg.show{display:flex}
-  .modal{background:var(--on-brand);border-radius:14px;padding:24px;max-width:720px;width:100%;max-height:88vh;overflow:auto}
+  .modal{background:var(--on-brand);border-radius:0;padding:24px;max-width:720px;width:100%;max-height:88vh;overflow:auto}
   .modal h3{margin-top:0}
   .empty{text-align:center;color:var(--text-3);padding:40px 0}
 
   .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text-2);margin:8px 0}
-  .legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:4px;vertical-align:-2px}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:0;margin-right:4px;vertical-align:-2px}
 
   /* 学生主页 */
   .stu-topbar{display:flex;align-items:center;gap:14px;margin-bottom:16px}
   .stu-info{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-  .stu-info .avatar{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--on-brand);flex-shrink:0}
+  .stu-info .avatar{width:56px;height:56px;border-radius:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--on-brand);flex-shrink:0}
   .stu-info .stats{display:flex;gap:14px;margin-left:auto}
-  .stu-info .stat{background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:8px 18px;text-align:center;min-width:80px}
+  .stu-info .stat{background:var(--bg-soft);border:1px solid var(--line);border-radius:0;padding:8px 18px;text-align:center;min-width:80px}
   .stu-info .stat .v{font-size:22px;font-weight:700;color:var(--primary)}
   .stu-info .stat .l{font-size:12px;color:var(--text-3)}
   .radar-section{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
@@ -123,15 +128,15 @@
   .radar-slider label{min-width:70px;font-size:14px;color:var(--text-2)}
   .radar-slider input[type=range]{flex:1;accent-color:var(--primary)}
   .radar-slider .val{min-width:30px;text-align:right;font-weight:700;color:var(--primary)}
-  .prog-bar{height:8px;border-radius:4px;background:var(--surface);overflow:hidden}
-  .prog-bar .fill{height:100%;background:var(--green);border-radius:4px;transition:width .3s}
+  .prog-bar{height:8px;border-radius:0;background:var(--surface);overflow:hidden}
+  .prog-bar .fill{height:100%;background:var(--green);border-radius:0;transition:width .3s}
 
   /* 进度页 - 横条/饼图容器 */
   #progContent{min-height:300px}
   .rate-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .rate-row .rate-name{min-width:80px;font-size:14px;font-weight:600;cursor:pointer}
   .rate-row .rate-name:hover{color:var(--primary)}
-  .rate-bar{flex:1;height:26px;border-radius:6px;background:var(--surface);overflow:hidden;position:relative}
+  .rate-bar{flex:1;height:26px;border-radius:0;background:var(--surface);overflow:hidden;position:relative}
   .rate-bar .seg{height:100%;float:left;transition:width .3s}
   .rate-bar .seg.s0{background:var(--fg-2)}
   .rate-bar .seg.s1{background:var(--amber)}
@@ -142,175 +147,172 @@
   .pie-chart{width:320px;height:320px}
   .pie-stats{display:flex;flex-direction:column;gap:10px}
   .pie-stats .ps-row{display:flex;align-items:center;gap:8px;font-size:14px}
-  .pie-stats .ps-row i{display:inline-block;width:16px;height:16px;border-radius:4px}
+  .pie-stats .ps-row i{display:inline-block;width:16px;height:16px;border-radius:0}
   .prog-summary{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
-  .prog-summary .ps{background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:10px 20px;text-align:center;min-width:100px}
+  .prog-summary .ps{background:var(--bg-soft);border:1px solid var(--line);border-radius:0;padding:10px 20px;text-align:center;min-width:100px}
   .prog-summary .ps .v{font-size:24px;font-weight:700}
   .prog-summary .ps .l{font-size:12px;color:var(--text-3)}
   .radar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
 /* 学生主页 Tab 与阶段按钮 + toast */
 .stu-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;padding-bottom:8px;border-bottom:1px solid var(--line)}
-.stu-tab{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:8px;padding:6px 14px;font-size:14px;font-weight:500;cursor:pointer}
+.stu-tab{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:0;padding:6px 14px;font-size:14px;font-weight:500;cursor:pointer}
 .stu-tab.active{background:var(--primary);color:var(--on-brand);border-color:var(--primary)}
-.stage-btn{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:13px;cursor:pointer}
+.stage-btn{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:0;padding:4px 14px;font-size:13px;cursor:pointer}
 .stage-btn.active{background:var(--brand-soft);color:var(--primary);border-color:var(--primary)}
 .dim-auto{color:var(--text-3);font-size:12px;margin-left:6px}
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:8px;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:0;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
 </style>
-  <link rel="stylesheet" href="/assets/css/site-nav.css" data-page-node-id="zs7TAbYKKItbcHe9Qk7e7H" />
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
-<body data-nav="class-teach" style="padding-top:60px" data-page-node-id="eRcpbs65yATz2bxhkteVTM">
+<body data-nav="class-teach" style="padding-top:60px">
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
-<div class="topbar" data-page-node-id="iU2JGpArtXIgmLLFErpExu">
-  <div class="logo" data-page-node-id="PY1nQ5RrSM3o8nSl32K7to">🧩 魔方课堂教学系统</div>
-  <nav id="nav" data-page-node-id="C05Wd7vl6d8dyJlV0d7qFw">
-    <button class="nbtn" data-view="home" data-page-node-id="ST4gq2JWhQNgX4dEcEyCEf">首页</button>
-    <button class="nbtn" data-view="score" data-page-node-id="N0FrSdnkEQRPZDiZDRlc7I">课堂计分</button>
-    <button class="nbtn" data-view="progress" data-page-node-id="ZPa28i1hoODyaRX2VjTEQT">学习进度</button>
-    <button class="nbtn" data-view="students" data-page-node-id="nDqMtSGS8qxzMcvSDHZmMA">学生管理</button>
-    <button class="nbtn" data-view="course" data-page-node-id="sfzaorZKhOmDqYGKqiZV6u">课程知识点</button>
-    <button class="nbtn" data-view="backup" data-page-node-id="WmxQjqIdbCG4mAQCPOCeFR">备份</button>
+<div class="topbar">
+  <div class="logo">🧩 魔方课堂教学系统</div>
+  <nav id="nav">
+    <button class="nbtn" data-view="home">首页</button>
+    <button class="nbtn" data-view="score">课堂计分</button>
+    <button class="nbtn" data-view="progress">学习进度</button>
+    <button class="nbtn" data-view="students">学生管理</button>
+    <button class="nbtn" data-view="course">课程知识点</button>
+    <button class="nbtn" data-view="backup">备份</button>
   </nav>
-  <div class="spacer" data-page-node-id="IubNNVY4GgZZBDQpn856Nx"></div>
-  <div class="classpick" data-page-node-id="FmuMsuTgDwVAn6PqRIFvyZ">当前班级：<select id="classSel" data-page-node-id="fIZfWhPaUsjfbkEaLFjgDA"></select></div>
+  <div class="spacer"></div>
+  <div class="classpick">当前班级：<select id="classSel"></select></div>
 </div>
 
-<div class="wrap" data-page-node-id="TU3iOo7548vlGStzaA8gHF">
+<div class="wrap">
 
   <!-- 首页 -->
-  <div class="view" id="view-home" data-page-node-id="fDRjPRGyOtXUWIO2M10orW">
-    <div class="card" data-page-node-id="PeminINDCYYe4pTzsI1Wa6">
-      <h2 data-page-node-id="aBQlUpUxcvRUp9UE1dvJUT">欢迎使用</h2>
-      <p class="muted" data-page-node-id="5I7gqRfxfWtlwxBESh4v7H">选择上方功能模块开始。当前班级可在右上角切换。</p>
-      <div class="row" style="margin-top:18px" data-page-node-id="Hq5iq9BPPPemmN4dvnHjiC">
-        <button data-go="score" data-page-node-id="AFAtgNSFb4D2kihYkn9lZK">进入课堂计分 →</button>
-        <button class="btn btn--ghost" data-go="progress" data-page-node-id="a5Xsgld2FnhmLDIcNphqc3">查看学习进度 →</button>
-        <button class="btn btn--ghost" data-go="students" data-page-node-id="QLuj3SPdk1eCTfGGnqT0sL">管理学生 →</button>
+  <div class="view" id="view-home">
+    <div class="card">
+      <h2>欢迎使用</h2>
+      <p class="muted">选择上方功能模块开始。当前班级可在右上角切换。</p>
+      <div class="row" style="margin-top:18px">
+        <button data-go="score">进入课堂计分 →</button>
+        <button class="btn btn--ghost" data-go="progress">查看学习进度 →</button>
+        <button class="btn btn--ghost" data-go="students">管理学生 →</button>
       </div>
     </div>
-    <div class="card" data-page-node-id="BHdcxQCEuXggEUtPFeNzcA">
-      <h3 data-page-node-id="1JVmygT9DbGq02tTFFq9mQ">本班概况</h3>
-      <div id="homeStat" class="muted" data-page-node-id="bvHBZT8NQE3wR1jxNnyiFI">—</div>
+    <div class="card">
+      <h3>本班概况</h3>
+      <div id="homeStat" class="muted">—</div>
     </div>
   </div>
 
   <!-- 计分页 -->
-  <div class="view" id="view-score" data-page-node-id="iwRdabNd0DRlMmY5eAC3NW">
-    <div class="card" data-page-node-id="paC3a0M50sGWOIqxfwF5sa">
-      <div class="scorebar" data-page-node-id="Golxw53e7RzsbcGkBdxAiR">
-        <h2 style="margin:0" data-page-node-id="k2s5IiLHedaZb7xdFM413i">课堂计分</h2>
-        <span class="meta" id="scoreMeta" data-page-node-id="6tFtiEuc5sPIVNQbEgczLW">—</span>
-        <span class="meta" data-page-node-id="XvefQofu1czCfdkC1TnVX9">本节累计：<b id="scoreTotal" style="color:var(--primary)" data-page-node-id="xvKlF1YzKaZGujaY1hTATW">0</b> 次</span>
-        <label class="meta" data-page-node-id="lRFgy1SBEWtAxCeO2CGztS">排列：<select id="scoreSort" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)" data-page-node-id="xqtbyIcf5EI9SXjPa0fRqn">
-          <option value="sid" data-page-node-id="KOKb7BFtSDijWY00sb2U1L">按学号</option>
-          <option value="score" data-page-node-id="3nzvO8zd6vuCMSYpMxvSLl">按积分</option>
+  <div class="view" id="view-score">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">课堂计分</h2>
+        <span class="meta" id="scoreMeta">—</span>
+        <span class="meta">本节累计：<b id="scoreTotal" style="color:var(--primary)">0</b> 次</span>
+        <label class="meta">排列：<select id="scoreSort" style="padding:5px 10px;border-radius:0;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
+          <option value="sid">按学号</option>
+          <option value="score">按积分</option>
         </select></label>
-        <div style="flex:1" data-page-node-id="x3e4VbDfXP7rnYr8jUe3C9"></div>
-        <button class="btn btn--ghost btn--sm" id="newSession" data-page-node-id="4VeZjjmHy64JE4Ej8MO8Kj">开始新课</button>
-        <button id="finishBtn" data-page-node-id="DMMLncGcolKdY8tckbp7t3">完成本节课</button>
+        <div style="flex:1"></div>
+        <button class="btn btn--ghost btn--sm" id="newSession">开始新课</button>
+        <button id="finishBtn">完成本节课</button>
       </div>
-      <div id="scoreGrid" class="grid" data-page-node-id="VN138x3xHPO47h2v7Kx8N3"></div>
+      <div id="scoreGrid" class="grid"></div>
     </div>
   </div>
 
   <!-- 结算页（复用 home 区下方，用 modal） -->
   <!-- 学习进度 -->
-  <div class="view" id="view-progress" data-page-node-id="ALBt0rFzUpxwKIBqw3Bz4x">
-    <div class="card" data-page-node-id="fR27O6YW0Uc2sdATy8Z3QX">
-      <div class="scorebar" data-page-node-id="2ztOF8kGhuFkR5AS1eubdi">
-        <h2 style="margin:0" data-page-node-id="E2m9SQjZmlRRoHXluA3RWG">班级学习进度</h2>
-        <span class="meta" id="progMeta" data-page-node-id="x6DcXcj6aQ07mO34cJXCMB">—</span>
-        <div style="flex:1" data-page-node-id="5FurnuAuqFjjeytHPNuqI3"></div>
-        <label class="meta" data-page-node-id="onq3y3y2qLBBj3eWLr6UY2">魔方：<select id="progCourse" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)" data-page-node-id="ZTCteCprh720mKmBTzn1Fr"></select></label>
-        <label class="meta" data-page-node-id="9dg3B0AmFGxfELLbjdLXcZ">图表：<select id="progChartType" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;color:var(--text-2)" data-page-node-id="ozvmEHGlDyFUiE4Hj16xJj">
-          <option value="bar" data-page-node-id="P3wmczWWGvVmGJ4nrwjfu2">柱状图（已掌握数）</option>
-          <option value="stacked" data-page-node-id="BLuceo3HKFyl6xCbv5vvnc">堆叠柱状图（分状态）</option>
-          <option value="heat" data-page-node-id="PDrrCNVRmK9205f7HFLChi">热力图（逐知识点）</option>
-          <option value="pie" data-page-node-id="BEGl4dZeyzQrGacTmm7Df5">饼图（状态分布）</option>
-          <option value="rate" data-page-node-id="7QklFrJAEivqME4QWHbXSz">掌握率横条</option>
-          <option value="radar" data-page-node-id="goxz92CMdmE6b7BHbaxP3H">雷达图（六维均值）</option>
+  <div class="view" id="view-progress">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">班级学习进度</h2>
+        <span class="meta" id="progMeta">—</span>
+        <div style="flex:1"></div>
+        <label class="meta">魔方：<select id="progCourse" style="padding:5px 10px;border-radius:0;border:1px solid var(--border);font-size:13px;color:var(--text-2)"></select></label>
+        <label class="meta">图表：<select id="progChartType" style="padding:5px 10px;border-radius:0;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
+          <option value="bar">柱状图（已掌握数）</option>
+          <option value="stacked">堆叠柱状图（分状态）</option>
+          <option value="heat">热力图（逐知识点）</option>
+          <option value="pie">饼图（状态分布）</option>
+          <option value="rate">掌握率横条</option>
+          <option value="radar">雷达图（六维均值）</option>
         </select></label>
       </div>
-      <div class="legend" data-page-node-id="EYUE7UAfw3jOb96Ba1ZtvV">
-        <span data-page-node-id="1DNycnzlnk83fa8AoxDJpy"><i class="hc0" data-page-node-id="ye1jvgcKIzZZfGz12n0zfc"></i>未开始</span>
-        <span data-page-node-id="8xBxLQNAtsOn5EPBOyDeZK"><i class="hc1" data-page-node-id="hqm0fOhu7jG3zdi4dFuiip"></i>学习中</span>
-        <span data-page-node-id="HMUo4ePa9lwxvph94ouKI7"><i class="hc2" data-page-node-id="I3hkypGOnLcVYPvXjh7bDR"></i>已掌握</span>
-        <span data-page-node-id="IYvAviX3CCBe7ugrWrZhZT"><i class="hc3" data-page-node-id="sloQj8v5zgmzZGFt5gSeNY"></i>需复习</span>
+      <div class="legend">
+        <span><i class="hc0"></i>未开始</span>
+        <span><i class="hc1"></i>学习中</span>
+        <span><i class="hc2"></i>已掌握</span>
+        <span><i class="hc3"></i>需复习</span>
       </div>
-      <div id="progContent" data-page-node-id="A92WTxGJFtxUP05jH9TBxd"></div>
+      <div id="progContent"></div>
     </div>
   </div>
 
   <!-- 学生管理 -->
-  <div class="view" id="view-students" data-page-node-id="ccGlMu9F6iwurrZ5QGXYa4">
-    <div class="card" data-page-node-id="lo0ObfIqbqBkdhyEolOgzA">
-      <div class="scorebar" data-page-node-id="Yw9ll0MSnjDBfwSth5HZGY">
-        <h2 style="margin:0" data-page-node-id="IqLc8TEbqBmMIw9Xaha6CY">学生管理</h2>
-        <span class="meta" id="stuMeta" data-page-node-id="E5RxZxAsTTt7O89QGh5vAj">—</span>
-        <div style="flex:1" data-page-node-id="PHqdonl5YoER0lw7FwLx4m"></div>
-        <button class="btn btn--ghost btn--sm" id="clearScores" style="color:var(--red)" data-page-node-id="J5sAgulNz4uVDja4uorfxr">批量清零积分（本班）</button>
+  <div class="view" id="view-students">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">学生管理</h2>
+        <span class="meta" id="stuMeta">—</span>
+        <div style="flex:1"></div>
+        <button class="btn btn--ghost btn--sm" id="clearScores" style="color:var(--red)">批量清零积分（本班）</button>
       </div>
-      <h3 data-page-node-id="D5AsDjC7E2ODEu2hsL3Mei">添加学生</h3>
-      <div class="row" data-page-node-id="y5TEKj7zFVRJaltOkb0ajt">
-        学号<input id="inSid" style="width:90px" data-page-node-id="k8sk5wFFFjtKdHxvxILjGk">
-        大名<input id="inName" style="width:140px" data-page-node-id="NHxl4Y3plzB2CGZFLHfJK8">
-        小名<input id="inNick" style="width:120px" data-page-node-id="kCtKhaYQ79AqFC1LxvGRbl">
-        <button id="addStu" data-page-node-id="nHyf6TV1uwvDXwLPMyJk3p">添加</button>
+      <h3>添加学生</h3>
+      <div class="row">
+        学号<input id="inSid" style="width:90px">
+        大名<input id="inName" style="width:140px">
+        小名<input id="inNick" style="width:120px">
+        <button id="addStu">添加</button>
       </div>
-      <h3 data-page-node-id="3wQhxA9JMlK5P7qxfrGHk1">批量导入（每行：学号,大名,小名）</h3>
+      <h3>批量导入（每行：学号,大名,小名）</h3>
       <textarea id="bulk" rows="4" style="width:100%;max-width:520px" placeholder="01,王一诺,诺诺&#10;02,李梓豪,豪豪"></textarea>
-      <div class="row" style="margin-top:8px" data-page-node-id="TcReTc9GcLNxSQcyRXW6If"><button class="btn btn--ghost btn--sm" id="bulkBtn" data-page-node-id="gr1bFgr0Vvlpi9HUa1ZuVC">批量导入</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn btn--ghost btn--sm" id="bulkBtn">批量导入</button></div>
     </div>
-    <div class="card" data-page-node-id="nAktVsFlRtBV2aL0bZWVHA">
-      <div class="scorebar" data-page-node-id="A7x6JxRF6C7GzpyixZWrbC">
-        <h3 style="margin:0" data-page-node-id="bbHA7SVNcpXpXSWecpGGlU">学生列表</h3>
-        <span class="meta" data-page-node-id="6QXLLr0rNqDHxVQDjN1GJ1">排列：</span>
-        <select id="stuSort" class="sel" data-page-node-id="Jc8RPSDuzHn3GzqEbk2WQE">
-          <option value="sid" data-page-node-id="uvOrYQQArPCDCqknuI1kjC">按学号</option>
-          <option value="score" data-page-node-id="R4iKlwzLskK286ngio1k14">按积分</option>
+    <div class="card">
+      <div class="scorebar">
+        <h3 style="margin:0">学生列表</h3>
+        <span class="meta">排列：</span>
+        <select id="stuSort" class="sel">
+          <option value="sid">按学号</option>
+          <option value="score">按积分</option>
         </select>
       </div>
-      <table class="table" data-page-node-id="amFO1ATyeWtfhOCUF9lJnL"><thead data-page-node-id="OOhL2yOqAHuKbl9ofj5sMG"><tr data-page-node-id="stMLbWGrCxTfzCZZy7RQ3I"><th data-page-node-id="YlVs70ZKGo67jKCDvh8Tv6">学号</th><th data-page-node-id="ynbj2GUDiHCajbB1V6kBJK">大名</th><th data-page-node-id="isDO5dLiqu37cpXre6i9cL">小名</th><th data-page-node-id="SviWgUumnHze8euEuIZgmn">颜色</th><th data-page-node-id="lBDGm3tEBrnKfyr29EKmWe">累计积分</th><th data-page-node-id="0HTzsCkEj9aL4EgqoQp4YL">操作</th></tr></thead>
-        <tbody id="stuBody" data-page-node-id="CE4KQXHxuQg8kEUYNyCqo7"></tbody>
+      <table class="table"><thead><tr><th>学号</th><th>大名</th><th>小名</th><th>颜色</th><th>累计积分</th><th>操作</th></tr></thead>
+        <tbody id="stuBody"></tbody>
       </table>
     </div>
   </div>
 
   <!-- 课程知识点 -->
-  <div class="view" id="view-course" data-page-node-id="e6jXZrSlHLJEnd1hA2Jc0O">
-    <div class="card" data-page-node-id="vYRxopYX8l3NwNqvXhdI4I">
-      <h2 data-page-node-id="JBb2dMELbPutzuugUNvrSB">课程知识点设置</h2>
-      <p class="muted" data-page-node-id="y0Jx1ElF5rDuOFD2SM9zUo">点击知识点可重命名/删除；可新增知识点与魔方类型。变更会即时保存。</p>
-      <div id="courseBox" data-page-node-id="Pyziqa9fti0GzHqp79fmQ6"></div>
+  <div class="view" id="view-course">
+    <div class="card">
+      <h2>课程知识点设置</h2>
+      <p class="muted">点击知识点可重命名/删除；可新增知识点与魔方类型。变更会即时保存。</p>
+      <div id="courseBox"></div>
     </div>
   </div>
 
   <!-- 备份 -->
-  <div class="view" id="view-backup" data-page-node-id="5BUznekjO4ye6OmOHdhlfy">
-    <div class="card" data-page-node-id="vqfvFMZcpoAuoqAsTvBAJi">
-      <h2 data-page-node-id="YAZW2ItNDzIibvCEHFLf04">数据备份与迁移</h2>
-      <p class="muted" data-page-node-id="TgnG3wyFQ35hT5fMcLPIMh">第一版本地存储。定期导出 JSON 文件备份，换电脑时导入即可继续使用。</p>
-      <div class="row" style="margin-top:14px" data-page-node-id="xlIHqIG8EkZ8unNxLemJYB">
-        <button id="exportBtn" data-page-node-id="CebOHcwB6fFzBkJc4nQLTk">导出备份（JSON）</button>
-        <button class="btn btn--ghost" id="importBtn" data-page-node-id="twNZP3VcDC5zeG1KBI3Dfy">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none" data-page-node-id="Bdwb2H58fIlzcn85poGI44">
-        <button class="btn btn--ghost btn--sm" id="wipeBtn" style="color:var(--red)" data-page-node-id="TNvM17bPtU0PZykxZDXHRF">清空全部数据</button>
+  <div class="view" id="view-backup">
+    <div class="card">
+      <h2>数据备份与迁移</h2>
+      <p class="muted">第一版本地存储。定期导出 JSON 文件备份，换电脑时导入即可继续使用。</p>
+      <div class="row" style="margin-top:14px">
+        <button id="exportBtn">导出备份（JSON）</button>
+        <button class="btn btn--ghost" id="importBtn">导入备份</button><input type="file" id="importFile" accept="application/json" style="display:none">
+        <button class="btn btn--ghost btn--sm" id="wipeBtn" style="color:var(--red)">清空全部数据</button>
       </div>
-      <h3 data-page-node-id="XHBk5wukTjVNylWi6NLo23">数据概况</h3>
-      <div id="backupStat" class="muted" data-page-node-id="YLzSxNBdSj5gWPofXttd4G">—</div>
+      <h3>数据概况</h3>
+      <div id="backupStat" class="muted">—</div>
 
-      <h3 data-page-node-id="0e5I9uwvkRL3feEZ1YKzi2">云端同步（GitHub 一键登录）</h3>
-      <p class="muted" data-page-node-id="jT3XkXEFSKYJpzu5CPjptH">点「GitHub 一键登录」，在浏览器授权一次即可。系统会自动建好你的私有仓库并同步，换设备再点一次就恢复。只需你先建一个 OAuth App 拿 client_id（一次性，下方有说明）。</p>
-      <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px" data-page-node-id="Tbq3dx44Urkngb6z2EO1xW">
-        <input class="sync-input" id="ghClientId" placeholder="GitHub OAuth App 的 client_id（一次性）" data-page-node-id="prw4yH3ECEitPFoim1ydlG">
-        <button id="ghOauthLogin" data-page-node-id="7m1jy4QKJiVKdXfKyT1TyL">GitHub 一键登录</button>
-        <span id="ghOauthUser" class="muted" data-page-node-id="gCGNUGOCATfX6IAcme0wXB"></span>
+      <h3>云端同步（GitHub 一键登录）</h3>
+      <p class="muted">点「GitHub 一键登录」，在浏览器授权一次即可。系统会自动建好你的私有仓库并同步，换设备再点一次就恢复。只需你先建一个 OAuth App 拿 client_id（一次性，下方有说明）。</p>
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+        <input class="sync-input" id="ghClientId" placeholder="GitHub OAuth App 的 client_id（一次性）">
+        <button id="ghOauthLogin">GitHub 一键登录</button>
+        <span id="ghOauthUser" class="muted"></span>
       </div>
-      <div id="ghOauthBox" class="oauth-box" style="display:none;margin-top:12px;padding:14px 16px;border:1px dashed var(--line);border-radius:8px;background:var(--bg-soft)">
+      <div id="ghOauthBox" class="oauth-box" style="display:none;margin-top:12px;padding:14px 16px;border:1px dashed var(--line);border-radius:0;background:var(--bg-soft)">
         <p style="margin:0 0 6px">请在新标签页打开 <a id="ghOauthUrl" href="https://github.com/login/device" target="_blank" rel="noopener" style="color:var(--brand)">github.com/login/device</a>，输入下面的代码：</p>
         <div class="oauth-code" id="ghOauthCode" style="font-size:28px;font-weight:700;letter-spacing:2px;color:var(--text)">----</div>
         <p class="muted" style="margin:6px 0 0;font-size:12px">（代码已自动复制到剪贴板，直接 Ctrl/⌘+V 粘贴即可；15 分钟内有效，本页面会后台等待授权）</p>
@@ -335,19 +337,19 @@
   </div>
 
   <!-- 学生个人主页（全屏页面，非弹窗） -->
-  <div class="view" id="view-stuPage" data-page-node-id="HAjamMPhFtAhKGooDQVgpV">
-    <div id="stuPageContent" data-page-node-id="kUFMCbA8s8RmGRVPmib4ux"></div>
+  <div class="view" id="view-stuPage">
+    <div id="stuPageContent"></div>
   </div>
 
 </div>
-<div class="modalbg" id="settleModal" data-page-node-id="AREAzuf2eJ3ACq9ZRwo1fZ">
-  <div class="modal" style="max-width:640px" data-page-node-id="YdGgThTjBCWpT9kkj1oc8R">
-    <h3 data-page-node-id="8Igd5ike0W76xLC3yg1VIF">本节课结算 · 表扬榜</h3>
-    <div class="muted" id="settleDate" style="margin-bottom:10px" data-page-node-id="wQXy4lWPdRwUHB62waGtSV"></div>
-    <div class="rank" id="settleRank" data-page-node-id="MBwEXjwZfJuXDdjBYYfxxC"></div>
-    <div class="row" style="margin-top:18px;justify-content:flex-end" data-page-node-id="epTD2ZcMk2XkCqxdRJcSV7">
-      <button class="btn btn--ghost" id="settleClose" data-page-node-id="AX6dEYPsJzL9GG62xLzHcm">返回计分</button>
-      <button id="settleConfirm" data-page-node-id="HpdqsUzCki5K9qDDENqVy8">确认归档并清零</button>
+<div class="modalbg" id="settleModal">
+  <div class="modal" style="max-width:640px">
+    <h3>本节课结算 · 表扬榜</h3>
+    <div class="muted" id="settleDate" style="margin-bottom:10px"></div>
+    <div class="rank" id="settleRank"></div>
+    <div class="row" style="margin-top:18px;justify-content:flex-end">
+      <button class="btn btn--ghost" id="settleClose">返回计分</button>
+      <button id="settleConfirm">确认归档并清零</button>
     </div>
   </div>
 </div>
@@ -864,7 +866,7 @@ function renderStuPage(){
       const r=radarOf(s.id,co.id);
       const stageTxt=['未学','入门','进阶','精通'][r.stage||0]||'未学';
       const v=stuRadar6(s.id,co.id);
-      html+=`<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:#fff;">
+      html+=`<div style="border:1px solid var(--border);border-radius:0;padding:12px;background:#fff;">
         <div style="font-weight:bold;font-size:16px;">${co.name}</div>
         <div style="font-size:14px;color:#666;">掌握率 ${rate}%</div>
         <div style="font-size:14px;color:var(--primary);">阶段：${stageTxt}</div>
@@ -901,7 +903,7 @@ function renderStuPage(){
       html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">`;
       html+=`<span style="font-weight:bold;">阶段：</span>`;
       ['未学','入门','进阶','精通'].forEach((txt,idx)=>{const active=idx===stage?'active':'';html+=`<button class="stage-btn ${active}" onclick="updateStage('${s.id}','${co.id}',${idx})">${txt}</button>`;});
-      html+=`<input type="text" placeholder="评语" value="${stageNote}" onchange="updateStageNote('${s.id}','${co.id}',this.value)" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;flex:1;min-width:120px;">`;
+      html+=`<input type="text" placeholder="评语" value="${stageNote}" onchange="updateStageNote('${s.id}','${co.id}',this.value)" style="padding:4px 8px;border:1px solid #ccc;border-radius:0;flex:1;min-width:120px;">`;
       html+=`</div>`;
       /* 六维雷达 */
       html+=`<div style="max-width:400px;margin:12px 0;"><canvas id="radar-${co.id}" style="width:100%;height:280px;"></canvas></div>`;
@@ -913,12 +915,12 @@ function renderStuPage(){
         html+=`<div style="display:flex;flex-direction:column;gap:2px;">`;
         html+=`<div style="display:flex;justify-content:space-between;font-size:14px;"><span><strong>${label}</strong> ${isManual?'':'<span class="dim-auto">(自动)</span>'}</span><span id="rv-${co.id}-${key}">${val}</span></div>`;
         if(isManual){html+=`<input type="range" min="0" max="10" step="1" value="${val}" oninput="updateRadar('${s.id}','${co.id}','${key}',this.value)">`;}
-        else{html+=`<div style="height:6px;background:#e0e0e0;border-radius:3px;width:100%;"><div style="height:100%;width:${val*10}%;background:#4f6ef7;border-radius:3px;"></div></div>`;}
+        else{html+=`<div style="height:6px;background:#e0e0e0;border-radius:0;width:100%;"><div style="height:100%;width:${val*10}%;background:#4f6ef7;border-radius:0;"></div></div>`;}
         html+=`</div>`;
       });
       html+=`</div>`;
       /* 掌握率进度条 */
-      html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;">掌握率</span><div style="flex:1;height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;"><div style="height:100%;width:${rate}%;background:#4caf50;border-radius:4px;"></div></div><span>${rate}% (${m}/${total2})</span></div>`;
+      html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;">掌握率</span><div style="flex:1;height:8px;background:#e0e0e0;border-radius:0;overflow:hidden;"><div style="height:100%;width:${rate}%;background:#4caf50;border-radius:0;"></div></div><span>${rate}% (${m}/${total2})</span></div>`;
       /* 知识点进度 */
       html+=`<h3 style="margin-top:14px">知识点进度（点击状态切换，标「已掌握」会前向补齐前面未掌握的点）</h3>`;
       html+=`<div class="legend"><span><i class="hc0"></i>未开始</span><span><i class="hc1"></i>学习中</span><span><i class="hc2"></i>已掌握</span><span><i class="hc3"></i>需复习</span></div>`;
@@ -927,7 +929,7 @@ function renderStuPage(){
         const p=progOf(s.id,sk.id);const st=p?.state??0;
         const label=['未开始','学习中','已掌握','需复习'][st];
         const color=['#aaa','#f90','#4caf50','#f44336'][st];
-        html+=`<div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;padding:4px 10px;border-radius:20px;border-left:4px solid ${color};"><span>${sk.name}</span><span style="font-size:12px;color:${color};">${label}</span><button onclick="cycleSt('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:12px;cursor:pointer;">切换</button><button onclick="editNote('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:12px;cursor:pointer;">✎</button></div>`;
+        html+=`<div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;padding:4px 10px;border-radius:0;border-left:4px solid ${color};"><span>${sk.name}</span><span style="font-size:12px;color:${color};">${label}</span><button onclick="cycleSt('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:0;cursor:pointer;">切换</button><button onclick="editNote('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:0;cursor:pointer;">✎</button></div>`;
       });
       html+=`</div>`;
     }
@@ -990,7 +992,7 @@ function renderStudents(){
     <td>${s.sid||''}</td>
     <td><a href="javascript:void(0)" onclick="openStu(${s.id})" style="font-weight:600;color:var(--primary)">${s.name}</a></td>
     <td>${s.nick||''}</td>
-    <td><span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:${s.color}"></span></td>
+    <td><span style="display:inline-block;width:22px;height:22px;border-radius:0;background:${s.color}"></span></td>
     <td>${totalScoreOf(s.id)}</td>
     <td><button class="btn btn--ghost btn--sm" onclick="openStu(${s.id})" style="color:var(--primary)">查看详情</button> <button class="btn btn--ghost btn--sm" onclick="delStu(${s.id})" style="color:var(--red)">删除</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">无学生</td></tr>';
 }
@@ -1030,7 +1032,7 @@ function renderCourse(){
   const box=document.getElementById('courseBox');
   box.innerHTML=DB.courses.map(co=>{
     const skills=DB.skills.filter(sk=>sk.courseId===co.id).sort((a,b)=>a.order-b.order);
-    return `<div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:10px">
+    return `<div style="margin-bottom:18px;padding:14px;border:1px solid var(--border);border-radius:0">
       <div class="row"><b style="font-size:16px">${co.name}</b><span class="muted">${skills.length}步</span>
         <div style="flex:1"></div>
         <button class="btn btn--ghost btn--sm" onclick="addSkill(${co.id})">+ 添加知识点</button>

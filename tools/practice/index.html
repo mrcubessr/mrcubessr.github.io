@@ -2,8 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>魔方练习题生成器</title>
+
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
   :root {
     --panel: var(--surface-2);
@@ -38,7 +43,7 @@
   .panel {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 20px;
     margin-bottom: 20px;
   }
@@ -53,7 +58,7 @@
     background: var(--surface);
     color: var(--fg);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     padding: 12px;
     font-family: Consolas, "Courier New", monospace;
     font-size: 14px;
@@ -79,7 +84,7 @@
     background: var(--surface);
     color: var(--fg);
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: 0;
     padding: 6px 10px;
     font-size: 13px;
   }
@@ -95,7 +100,7 @@
     background: var(--brand);
     color: var(--bg);
     border: none;
-    border-radius: 8px;
+    border-radius: 0;
     padding: 10px 22px;
     font-size: 14px;
     font-weight: 600;
@@ -126,7 +131,7 @@
   .page-wrap {
     background: var(--on-brand);
     box-shadow: 0 10px 30px rgba(0,0,0,.5);
-    border-radius: 6px;
+    border-radius: 0;
     overflow: hidden;
     line-height: 0;
   }
@@ -142,7 +147,7 @@
     color: var(--muted);
     padding: 60px 20px;
     border: 1px dashed var(--line);
-    border-radius: 12px;
+    border-radius: 0;
     font-size: 14px;
   }
   .status {
@@ -174,9 +179,6 @@
     .page-wrap { max-width: 100%; }
   }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>

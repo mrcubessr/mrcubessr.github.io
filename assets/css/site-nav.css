@@ -48,7 +48,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 0;
   transition: color 0.2s, background 0.2s;
   cursor: pointer;
   user-select: none;
@@ -92,7 +92,7 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--brand-line, rgba(100, 180, 255, 0.18));
-  border-radius: 12px;
+  border-radius: 0;
   padding: 8px;
   box-shadow: var(--menu-shadow, 0 12px 40px rgba(0, 0, 0, 0.5));
   opacity: 0;
@@ -113,7 +113,7 @@
   text-decoration: none;
   font-size: 0.88rem;
   padding: 9px 14px;
-  border-radius: 8px;
+  border-radius: 0;
   transition: color 0.2s, background 0.2s;
   white-space: nowrap;
 }
@@ -183,7 +183,7 @@
   padding: 8px;
   background: transparent;
   border: 1px solid var(--brand-line, rgba(100, 180, 255, 0.2));
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
 }
 
@@ -192,7 +192,7 @@
   height: 2px;
   width: 100%;
   background: var(--fg-2, #b9c0cf);
-  border-radius: 2px;
+  border-radius: 0;
   transition: transform 0.2s, opacity 0.2s;
 }
 
@@ -304,3 +304,51 @@
   background:var(--nav-bg, rgba(13,13,26,.82));
 }
 [data-site-nav]:empty{ /* 注入完成前也不塌陷 */ }
+
+/* =========================================================
+   主题切换按钮（由 theme.js 统一注入到 .nav-inner 末尾）
+   直角风格；桌面端贴导航右侧，移动端贴汉堡按钮左侧。
+   ========================================================= */
+.site-nav .nav-theme-btn{
+  order: 2;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14));
+  border-radius: 0;                 /* 全站直角风格 */
+  color: var(--fg-2, #b9c0cf);
+  cursor: pointer;
+  transition: color var(--t-fast,.15s) ease,
+              background var(--t-fast,.15s) ease,
+              border-color var(--t-fast,.15s) ease;
+}
+.site-nav .nav-theme-btn:hover{
+  color: var(--fg, #fff);
+  background: var(--brand-soft, rgba(100,180,255,.12));
+  border-color: var(--brand-line, rgba(100,180,255,.30));
+}
+.site-nav .nav-theme-btn:focus-visible{
+  outline: 2px solid var(--nav-accent, #64b4ff);
+  outline-offset: 2px;
+}
+.site-nav .nav-theme-btn svg{ display: block; }
+
+/* 桌面端：让「菜单 + 主题按钮」整体靠右成组 */
+@media (min-width: 901px){
+  .site-nav .nav-links{ margin-left: auto; }
+  .site-nav .nav-theme-btn{ margin-left: 0; }
+}
+
+/* 移动端：菜单收进抽屉，主题按钮常驻在汉堡左侧（换主题不必先开菜单） */
+@media (max-width: 900px){
+  .site-nav .nav-theme-btn{ order: 2; margin-left: auto; }
+  .site-nav .nav-toggle-btn{ order: 3; }
+}
+@media (max-width: 480px){
+  .site-nav .nav-theme-btn{ width: 34px; height: 34px; }
+}

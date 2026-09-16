@@ -5,6 +5,14 @@
    ========================================================= */
 @import url("/assets/css/tokens.css");
 
+/* ---------- 页面基础底色（兜底）----------
+   base.css 里有 body{background:var(--bg)}，但站点部分页面只引用
+   site-nav / components / site-layout 三层，并未引用 base.css，
+   导致 body 背景落到浏览器默认白色，与当前主题脱节。
+   这里统一兜底：页面底色始终跟随 --bg 令牌。
+   （页面若自带更具体的 body 背景规则，仍会覆盖本行。） */
+html, body{ background: var(--bg); }
+
 /* ---------- 页脚 ---------- */
 .site-footer{
   margin-top:var(--s8);

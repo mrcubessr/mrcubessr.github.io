@@ -183,7 +183,7 @@
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
   gap:1mm; padding:1.6mm 1.2mm;
   border:1px solid var(--pp-rule,rgba(16,24,40,.14));
-  border-radius:2mm;
+  border-radius:0;
 }
 /* 配图容器：宽高双向受限于单元格（同步缩放），尽量保持正方形，避免不同单元
    因公式长度不同导致展开图大小不一。行高不足（如 3×5 密集版式）时自动收缩，

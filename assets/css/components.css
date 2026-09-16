@@ -92,7 +92,8 @@
 .seg__btn{
   border:0; background:transparent; color:var(--fg-2,#AEB8CA);
   font:inherit; font-size:var(--fs-sm,.85rem); font-weight:var(--fw-medium,500);
-  padding:6px 14px; min-height:30px; border-radius:calc(var(--r-md,12px) - 3px);
+  /* 内嵌于 .seg 容器，需要比容器略小一圈；圆角令牌归零后 max() 保证不为负 */
+  padding:6px 14px; min-height:30px; border-radius:max(0px, calc(var(--r-md,12px) - 3px));
   cursor:pointer; white-space:nowrap;
   transition:background var(--t-fast,.15s ease), color var(--t-fast,.15s ease);
 }
@@ -106,7 +107,7 @@
 .badge{
   display:inline-flex; align-items:center; gap:4px;
   font-size:var(--fs-xs,.75rem); font-weight:var(--fw-semi,600); line-height:1;
-  padding:4px 9px; border-radius:var(--r-full,999px);
+  padding:4px 9px; border-radius:0;
   border:1px solid var(--line-2,rgba(255,255,255,.14));
   background:var(--surface-2,#1A2130); color:var(--fg-2,#AEB8CA);
 }
@@ -214,7 +215,7 @@
 /* =========================================================
    10. 进度 .progress
    ========================================================= */
-.progress{ height:8px; border-radius:var(--r-full,999px); background:var(--surface-2,#1A2130); overflow:hidden; }
+.progress{ height:8px; border-radius:0; background:var(--surface-2,#1A2130); overflow:hidden; }
 .progress__bar{ height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--brand,#5B8DEF),var(--violet,#A78BFA)); transition:width var(--t-mid,.25s ease); }
 .progress__text{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); font-variant-numeric:tabular-nums; }
 
@@ -241,7 +242,7 @@
   position:fixed; left:50%; bottom:calc(var(--s6,32px) + env(safe-area-inset-bottom,0px));
   transform:translateX(-50%) translateY(8px); z-index:var(--z-toast,1200);
   max-width:min(92vw,420px);
-  padding:10px 20px; border-radius:var(--r-full,999px);
+  padding:10px 20px; border-radius:0;
   background:var(--surface-3,#232C3E); color:var(--fg,#EEF2F8);
   border:1px solid var(--line-2,rgba(255,255,255,.14)); box-shadow:var(--sh-lg,0 16px 44px rgba(0,0,0,.50));
   font-size:var(--fs-sm,.85rem); text-align:center;

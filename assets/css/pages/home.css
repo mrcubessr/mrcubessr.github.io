@@ -41,7 +41,7 @@
 }
 .section-title::before{
   content:''; position:absolute; left:0; top:.18em; bottom:.18em; width:4px;
-  border-radius:var(--r-full);
+  border-radius:0;                 /* 全站直角风格：装饰竖条也是方头 */
   background:linear-gradient(180deg,var(--brand),var(--violet));
 }
 

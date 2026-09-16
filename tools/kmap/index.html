@@ -2,8 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>二阶魔方盲拧 · 教学知识地图</title>
+
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>:root {
   --km-ui-4ecdc4: #4ECDC4;
   --km-ui-5b8c3e: #5B8C3E;
@@ -31,7 +36,7 @@ body{
 /* 顶部标题 */
 .map-header{
   grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
-  padding:24px 32px;background:var(--surface);border-radius:14px;border:1px solid var(--line);
+  padding:24px 32px;background:var(--surface);border-radius:0;border:1px solid var(--line);
 }
 .map-header .title-group h1{
   font-size:28px;font-weight:900;letter-spacing:3px;
@@ -47,14 +52,14 @@ body{
 
 /* 通用 */
 .block{
-  background:var(--surface);border-radius:12px;border:1px solid var(--line);padding:22px;
+  background:var(--surface);border-radius:0;border:1px solid var(--line);padding:22px;
 }
 .block-title{
   font-size:13px;font-weight:700;letter-spacing:2px;
   margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:8px;
 }
-.block-title::before{content:'';width:4px;height:16px;border-radius:2px;flex-shrink:0}
+.block-title::before{content:'';width:4px;height:16px;border-radius:0;flex-shrink:0}
 .block-title.orange::before{background:var(--km-orange)}
 .block-title.teal::before{background:var(--km-teal)}
 .block-title.blue::before{background:var(--km-blue)}
@@ -76,7 +81,7 @@ body{
 
 /* 阶段卡片 */
 .stage-card{
-  background:var(--surface-2);border-radius:10px;padding:16px 18px;margin-bottom:12px;
+  background:var(--surface-2);border-radius:0;padding:16px 18px;margin-bottom:12px;
   border-left:4px solid transparent;
 }
 .stage-card.s1{border-left-color:var(--km-orange)}
@@ -94,34 +99,34 @@ body{
 .step-list{display:flex;flex-direction:column;gap:8px}
 .step-item{
   display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
-  background:var(--surface-2);border-radius:8px;font-size:13px;line-height:1.6;
+  background:var(--surface-2);border-radius:0;font-size:13px;line-height:1.6;
 }
-.step-item .sn{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--on-brand);flex-shrink:0}
+.step-item .sn{width:26px;height:26px;border-radius:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--on-brand);flex-shrink:0}
 .step-item .si strong{display:block;font-size:14px;margin-bottom:2px}
 .step-item .si span{color:var(--fg-3);font-size:12px}
 .sn-o{background:var(--km-orange)}.sn-t{background:var(--km-teal)}.sn-b{background:var(--km-blue)}.sn-y{background:var(--km-yellow)}.sn-p{background:var(--km-purple)}.sn-r{background:var(--km-red)}
 
 /* 思维导图 */
-.mindmap{background:var(--surface);border-radius:12px;border:1px solid var(--line);padding:22px}
+.mindmap{background:var(--surface);border-radius:0;border:1px solid var(--line);padding:22px}
 .mindmap .mm-group{margin-bottom:24px}
 .mindmap .mm-group:last-child{margin-bottom:0}
 .mindmap .mm-label{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--fg-2);margin-bottom:16px}
   /* 思维导图缩略图 + lightbox */
-  .mindmap-thumb{max-width:460px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid var(--line);cursor:zoom-in;transition:border-color .2s,transform .2s}
+  .mindmap-thumb{max-width:460px;margin:0 auto;border-radius:0;overflow:hidden;border:1px solid var(--line);cursor:zoom-in;transition:border-color .2s,transform .2s}
   .mindmap-thumb:hover{border-color:var(--blue-l,var(--brand));transform:translateY(-2px)}
   .mindmap-thumb img{width:100%;height:auto;display:block}
   .mindmap-hint{text-align:center;font-size:12px;color:var(--fg-3);margin-top:12px;letter-spacing:1px}
   .lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:24px}
   .lightbox.open{display:flex}
-  .lightbox img{max-width:95vw;max-height:92vh;border-radius:8px;box-shadow:0 12px 60px rgba(0,0,0,.6)}
+  .lightbox img{max-width:95vw;max-height:92vh;border-radius:0;box-shadow:0 12px 60px rgba(0,0,0,.6)}
   .lightbox-close{position:absolute;top:18px;right:22px;width:44px;height:44px;border:none;border-radius:50%;background:rgba(255,255,255,.14);color:var(--on-brand);font-size:28px;line-height:1;cursor:pointer;transition:background .2s}
   .lightbox-close:hover{background:rgba(255,255,255,.3)}
 .mm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .mm-node{
-  width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  width:52px;height:52px;border-radius:0;display:flex;align-items:center;justify-content:center;
   font-size:19px;font-weight:900;flex-shrink:0;
 }
-.mm-node.final{width:62px;height:62px;border-radius:14px;font-size:24px}
+.mm-node.final{width:62px;height:62px;border-radius:0;font-size:24px}
 .mm-arrow{color:var(--fg-3);font-size:18px;font-weight:700;flex-shrink:0}
 .mm-bracket{color:var(--fg-3);font-size:22px;flex-shrink:0;font-weight:300}
 .mm-vert{width:2px;height:22px;background:var(--fg-3)}
@@ -143,7 +148,7 @@ body{
 .table td.g-c{color:var(--km-orange-l);font-size:15px}
 
 /* 标签 */
-.tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1px}
+.tag{display:inline-block;padding:3px 10px;border-radius:0;font-size:10px;font-weight:700;letter-spacing:1px}
 .tag.or{background:rgba(232,120,42,.15);color:var(--km-orange-l)}
 .tag.te{background:rgba(46,168,154,.12);color:var(--km-teal-l)}
 .tag.bl{background:rgba(74,144,217,.12);color:var(--km-blue-l)}
@@ -190,9 +195,6 @@ body{
   .panel-bottom{grid-template-columns:1fr}
 }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
 </head>
 <body>
 <div data-site-nav></div>
@@ -268,17 +270,17 @@ body{
   <div class="block" style="background:var(--bg-card2)">
     <div class="block-title purple">盲拧实战流程</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:600">
-      <div style="background:rgba(232,120,42,.15);color:var(--orange-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(232,120,42,.3)">观察</div>
+      <div style="background:rgba(232,120,42,.15);color:var(--orange-l);padding:8px 14px;border-radius:0;border:1px solid rgba(232,120,42,.3)">观察</div>
       <span style="color:var(--text3);font-size:16px">→</span>
-      <div style="background:rgba(212,168,67,.12);color:var(--yellow-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(212,168,67,.25)">转变成编码</div>
+      <div style="background:rgba(212,168,67,.12);color:var(--yellow-l);padding:8px 14px;border-radius:0;border:1px solid rgba(212,168,67,.25)">转变成编码</div>
       <span style="color:var(--text3);font-size:16px">→</span>
-      <div style="background:rgba(46,168,154,.12);color:var(--teal-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(46,168,154,.25)">记忆编码串</div>
+      <div style="background:rgba(46,168,154,.12);color:var(--teal-l);padding:8px 14px;border-radius:0;border:1px solid rgba(46,168,154,.25)">记忆编码串</div>
       <span style="color:var(--text3);font-size:16px">→</span>
-      <div style="background:rgba(74,144,217,.12);color:var(--blue-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(74,144,217,.25)">回忆编码</div>
+      <div style="background:rgba(74,144,217,.12);color:var(--blue-l);padding:8px 14px;border-radius:0;border:1px solid rgba(74,144,217,.25)">回忆编码</div>
       <span style="color:var(--text3);font-size:16px">→</span>
-      <div style="background:rgba(155,89,182,.12);color:var(--purple-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(155,89,182,.25)">执行对应公式</div>
+      <div style="background:rgba(155,89,182,.12);color:var(--purple-l);padding:8px 14px;border-radius:0;border:1px solid rgba(155,89,182,.25)">执行对应公式</div>
       <span style="color:var(--text3);font-size:16px">→</span>
-      <div style="background:rgba(91,140,62,.12);color:var(--green-l);padding:8px 14px;border-radius:8px;border:1px solid rgba(91,140,62,.25)">复原魔方</div>
+      <div style="background:rgba(91,140,62,.12);color:var(--green-l);padding:8px 14px;border-radius:0;border:1px solid rgba(91,140,62,.25)">复原魔方</div>
     </div>
   </div>
 

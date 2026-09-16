@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>一图流速通 FTO-TCP</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -69,9 +70,9 @@
     max-width: 1000px;
     margin: 0 auto 36px;
     padding: 24px;
-    background: rgba(24, 24, 36, 0.7);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: 0;
     font-size: 0.95rem;
     color: var(--fg-3);
     line-height: 1.8;
@@ -124,9 +125,9 @@
   }
 
   .col-panel {
-    background: rgba(18, 18, 30, 0.75);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: 0;
     overflow: hidden;
     backdrop-filter: blur(10px);
   }
@@ -156,12 +157,12 @@
     align-items: flex-start;
     gap: 12px;
     padding: 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--line);
     transition: background 0.15s;
   }
 
   .case-row:last-child { border-bottom: none; }
-  .case-row:hover { background: rgba(255,255,255,0.03); }
+  .case-row:hover { background: var(--surface-3); }
 
   .case-label {
     flex-shrink: 0;
@@ -177,7 +178,7 @@
     font-size: 1.1rem;
     font-weight: 800;
     padding: 4px 14px;
-    border-radius: 12px;
+    border-radius: 0;
     text-align: center;
     letter-spacing: 0.06em;
   }
@@ -203,15 +204,15 @@
     align-items: center;
     gap: 4px;
     padding: 12px;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
-    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line-2);
+    border-radius: 0;
+    background: var(--surface-2);
   }
 
   .case-img {
     width: 144px;
     height: 144px;
-    border-radius: 8px;
+    border-radius: 0;
     object-fit: contain;
     flex-shrink: 0;
   }

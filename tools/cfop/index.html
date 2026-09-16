@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/js/theme.js"></script>
 <title>CFOP 公式库 · 魔方先生SSR训练中心</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
@@ -52,6 +53,6 @@
 </footer>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
-<script>CFOP.bindTheme("themeBtn");</script>
+<script>if(window.Theme) Theme.attach(document.getElementById("themeBtn"));</script>
 </body>
 </html>

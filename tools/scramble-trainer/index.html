@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="SnOv5BfUJ7B8Qwooxw4oho" data-theme="light">
-<head data-page-node-id="CwOiaerYmNw4kBPFCGFlAw">
-<meta charset="UTF-8" data-page-node-id="sLAn3GArnMgraDcCHlefHb">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="AvZdpkRok5l9NnwlAcSilN">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>魔方打乱公式随机出题训练器</title>
+
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>:root {
   --st-ui-c0392b: #c0392b;
   --st-ui-f2f4f7: #f2f4f7;
@@ -59,7 +64,7 @@
     background: rgba(29,78,216,0.10);
     color: var(--brand-strong);   /* 阶段四：--brand 在此底上仅 4.02:1 */
     padding: 3px 10px;
-    border-radius: 4px;
+    border-radius: 0;
     font-size: 12px;
     border: 1px solid rgba(29,78,216,0.28);
     font-weight: 600;
@@ -82,7 +87,7 @@
     color: var(--muted);
     padding: 4px 12px;
     font-size: 12px;
-    border-radius: 4px;
+    border-radius: 0;
     cursor: pointer;
     font-family: inherit;
   }
@@ -148,7 +153,7 @@
     width: 4px;
     height: 14px;
     background: var(--brand);
-    border-radius: 2px;
+    border-radius: 0;
   }
   .net-img-wrap {
     display: flex;
@@ -189,12 +194,12 @@
     width: 4px;
     height: 14px;
     background: var(--brand);
-    border-radius: 2px;
+    border-radius: 0;
   }
   .legend-img-wrap {
-    background: #f1f5f9;
+    background: var(--surface-2);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -227,13 +232,13 @@
     text-align: center;
     padding: 16px;
     border: 2px dashed var(--line);
-    border-radius: 8px;
+    border-radius: 0;
   }
   .legend-fallback code {
     color: var(--brand);
     background: rgba(29,78,216,0.10);
     padding: 1px 6px;
-    border-radius: 3px;
+    border-radius: 0;
     font-size: 12px;
   }
 
@@ -259,7 +264,7 @@
     width: 4px;
     height: 16px;
     background: var(--st-danger);
-    border-radius: 2px;
+    border-radius: 0;
   }
   /* 六字母覆盖校验徽标 */
   .cover-badge {
@@ -270,7 +275,7 @@
     background: rgba(21,128,61,0.10);
     border: 1px solid rgba(21,128,61,0.30);
     padding: 2px 9px;
-    border-radius: 4px;
+    border-radius: 0;
     letter-spacing: 0.5px;
   }
   .cover-badge.warn {
@@ -283,7 +288,7 @@
   .formula-display {
     background: var(--on-brand);
     border: 3px solid var(--fg);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 14px 12px;
     flex: 1 1 auto;          /* 吃掉剩余高度 */
     min-height: 120px;       /* 保证公式框有可用高度，不被控件挤压到一行 */
@@ -346,7 +351,7 @@
   .length-row .seg__btn {
     background: var(--on-brand);
     border: 2px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     padding: 9px 16px;
     font-size: 16px;
     font-weight: 700;
@@ -379,7 +384,7 @@
   .seg-toggle {
     display: inline-flex;
     border: 2px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
   }
   .seg__btn {
@@ -416,7 +421,7 @@
   .btn {
     color: var(--on-brand);
     border: none;
-    border-radius: 10px;
+    border-radius: 0;
     padding: 16px 18px;
     font-size: 17px;
     font-weight: 700;
@@ -488,7 +493,7 @@
     border: 1px solid var(--line);
     color: var(--muted);
     padding: 6px 14px;
-    border-radius: 6px;
+    border-radius: 0;
     cursor: pointer;
     font-family: inherit;
     font-size: 13px;
@@ -507,7 +512,7 @@
   .step-item {
     background: var(--formula-bg);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 0;
     padding: 10px 14px;
     display: flex;
     align-items: center;
@@ -540,7 +545,7 @@
     background: var(--success);
     color: var(--on-brand);
     padding: 12px 20px;
-    border-radius: 8px;
+    border-radius: 0;
     font-size: 14px;
     font-weight: 600;
     box-shadow: 0 6px 18px rgba(21,128,61,0.25);
@@ -687,7 +692,7 @@
       max-height: 32vh;
       border-width: 3px;
       border-color: var(--fg);
-      border-radius: 12px;
+      border-radius: 0;
       background: var(--panel);       /* 白底，与网页端一致 */
       padding: 6px 10px;
       overflow: auto;                 /* 多步换行后纵向滚动 */
@@ -748,9 +753,6 @@
     .btn.primary { font-size: 14px; padding: 10px 12px; }
   }
 </style>
-<link rel="stylesheet" href="/assets/css/site-nav.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/site-layout.css">
 <style>
 /* 阶段二：导航接入适配 */
 [data-site-nav], body > .site-nav{ flex:0 0 auto; }
@@ -762,44 +764,44 @@
 }
 </style>
 </head>
-<body data-page-node-id="5sB48WEkqQmQBUYyOF2xjf">
+<body>
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
 
-<div class="header" data-page-node-id="SdNApf9XUiTParOXwDW38K">
-  <h1 data-page-node-id="L3rI0kUPYeXWacw6zqD3FU">🎲 魔方打乱公式随机出题训练器 <span class="badge" data-page-node-id="IDQNsxpSdyFqxJ43f3lAtF">WCA 标准 · 白顶绿前</span></h1>
-  <div class="count" data-page-node-id="AUA4LAjG2rJ0aIGvaVORJz">
-    已出题 <b id="countNum" data-page-node-id="l8csWDjvkl942bJg8Mxi8N">0</b> 题
-    <button class="reset" id="resetBtn" data-page-node-id="ja8ZufnWSCa2HoWAduBVba">重置</button>
+<div class="header">
+  <h1>🎲 魔方打乱公式随机出题训练器 <span class="badge">WCA 标准 · 白顶绿前</span></h1>
+  <div class="count">
+    已出题 <b id="countNum">0</b> 题
+    <button class="reset" id="resetBtn">重置</button>
   </div>
 </div>
 
-<div class="main" data-page-node-id="dKCiZkmZfVMKowGDN3IaQq">
+<div class="main">
   <!-- 左侧大区：12 种单层转动示意图（放大、深色底、高对比） -->
-  <section class="left" data-page-node-id="rxYnYAFfoWxrWkVOb8U2tK">
-    <div class="legend-zone" data-page-node-id="mmfxR5iuODoVLFVVTSbzMT">
-      <div class="zone-label" data-page-node-id="5GQMO2mqi9upcHtmzd2Hoq">对照图 · 12 种单层转动示意<span class="legend-caption" data-page-node-id="d8rMVP2j6zx3idRklewBPS">红=转动方向 · 黄=转动层</span></div>
-      <div class="legend-img-wrap" data-page-node-id="DUGeGQtk9YRJZFkurCBa39">
-        <canvas id="legendCanvas" data-page-node-id="OLsSmqUh2cspvXyWm6AbYw"></canvas>
+  <section class="left">
+    <div class="legend-zone">
+      <div class="zone-label">对照图 · 12 种单层转动示意<span class="legend-caption">红=转动方向 · 黄=转动层</span></div>
+      <div class="legend-img-wrap">
+        <canvas id="legendCanvas"></canvas>
       </div>
     </div>
   </section>
 
   <!-- 右侧栏：缩小展开图（上） + 公式区（下） -->
-  <aside class="right" data-page-node-id="WhnyQcVow1ZyEHL0sdKbqA">
+  <aside class="right">
     <!-- 右上：缩小展开图（置于打乱公式上方） -->
-    <div class="net-zone" data-page-node-id="szNetZone">
-      <div class="zone-label" data-page-node-id="szNetLabel">展开图</div>
-      <div class="net-img-wrap" data-page-node-id="szNetWrap">
-        <canvas id="netCanvas" data-page-node-id="SZF6ariclKKBtzz30W0SkL"></canvas>
+    <div class="net-zone">
+      <div class="zone-label">展开图</div>
+      <div class="net-img-wrap">
+        <canvas id="netCanvas"></canvas>
       </div>
     </div>
 
     <!-- 右下：公式区 -->
-    <div class="formula-zone" data-page-node-id="rqRrjtjScJc1UsMs4y3kFA">
-      <div class="zone-label" data-page-node-id="7G6GHTjrj3wjJL32JdKHOF">打乱公式 <span class="badge" id="coverBadge" data-page-node-id="cKUEADLEjA5KKmX3lDwPxi">✓ R U F L B D 齐全</span></div>
-      <div class="formula-display" id="formulaText" data-page-node-id="6EfwwxhEcjCxuiIFHuMrok"><div class="formula-inner" id="formulaInner" data-page-node-id="ZMZM2XuUgRsGUWv1DQC8NF">—</div></div>
+    <div class="formula-zone">
+      <div class="zone-label">打乱公式 <span class="badge" id="coverBadge">✓ R U F L B D 齐全</span></div>
+      <div class="formula-display" id="formulaText"><div class="formula-inner" id="formulaInner">—</div></div>
 
       <!-- 难度设置 -->
       <div class="settings-row">
@@ -816,20 +818,20 @@
       </div>
 
       <!-- 长度 -->
-      <div class="length-row" data-page-node-id="23tzhEFGiC27A5O6RE0UoK">
-        <span class="lbl" data-page-node-id="YGsGIm2QXlFbLxjdVoS5BF">长度：</span>
-        <button class="seg__btn active" data-len="6" data-page-node-id="Ekd3bA7F9dLwFiBGJtjF6f">6</button>
-        <button class="seg__btn" data-len="8" data-page-node-id="pmoc2BP4hTj5hInC9U8urV">8</button>
-        <button class="seg__btn" data-len="10" data-page-node-id="zYYZPbPeJAVJ8lEN0k5YQm">10</button>
-        <button class="seg__btn" data-len="12" data-page-node-id="FQD4SaZ9Ah41uNBoFxXQEb">12</button>
+      <div class="length-row">
+        <span class="lbl">长度：</span>
+        <button class="seg__btn active" data-len="6">6</button>
+        <button class="seg__btn" data-len="8">8</button>
+        <button class="seg__btn" data-len="10">10</button>
+        <button class="seg__btn" data-len="12">12</button>
         <button class="seg__btn" data-len="15" data-cube="2" style="display:none;">15</button>
-        <button class="seg__btn" data-len="20" data-page-node-id="mmlJtVMrA6ocEHtpnzcuHc">20</button>
+        <button class="seg__btn" data-len="20">20</button>
         <button class="seg__btn" data-len="25" data-cube="2" style="display:none;">25</button>
       </div>
 
       <!-- 按钮 -->
-      <div class="action-row" data-page-node-id="TRjGsg2BPSYZ5pJv8NXjFa">
-        <button class="btn primary full" id="newBtn" data-page-node-id="jFt4Hsv9iKPAA9ccEJW3XH">🎲 换一题</button>
+      <div class="action-row">
+        <button class="btn primary full" id="newBtn">🎲 换一题</button>
       </div>
     </div>
   </aside>
@@ -837,7 +839,7 @@
 
 <!-- 分步抽屉已移除 -->
 
-<div class="toast" id="toast" data-page-node-id="Aiyig8gdqus51Jtnsmz9Q7">已复制到剪贴板</div>
+<div class="toast" id="toast">已复制到剪贴板</div>
 
 <script>
 /* ====================================================================
@@ -1774,7 +1776,7 @@ function buildLegend(movesSubset, size){
   const H = ROWS*CARD_H + (ROWS-1)*GAP;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
-  // 背景透明：白色圆角卡片由本函数逐张绘制，外层 .legend-img-wrap 浅灰底（#f1f5f9）衬托卡片
+  // 背景透明：白色圆角卡片由本函数逐张绘制，外层 .legend-img-wrap 浅灰底（var(--surface-2)）衬托卡片
 
   items.forEach((mv, i)=>{
     const col = i % COLS, row = (i/COLS)|0;

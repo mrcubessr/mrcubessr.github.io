@@ -76,11 +76,10 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .cfop-stat{ font-size:var(--fs-xs,.75rem); color:var(--fg-3,#7C8798); }
 
 /* =========================================================
-   Cross Trainer — 直角 / 大幅排版 / 对齐整齐 / 移动端竖版
-   作用域：仅本页 (body.ct-page)。通过覆盖半径令牌实现全页直角，
-   按钮 / 分段 / 卡片自动跟随，不影响其它 cfop 页。
+   Cross Trainer — 大幅排版 / 对齐整齐 / 移动端竖版
+   直角风格自 2026-09-16 起由 tokens.css 全局承担
+   （--r-sm/md/lg/xl 全部为 0），本页不必再覆盖半径令牌。
    ========================================================= */
-.ct-page{ --r-sm:0; --r-md:0; --r-lg:0; --r-xl:0; --r-full:0; }
 /* 页头标题略放大，呼应「排版大一些」 */
 .ct-page .cfop-hero__title{ font-size:var(--fs-3xl,2.2rem); }
 
