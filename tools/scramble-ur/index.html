@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="/assets/js/theme.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UR缓冲公式连拧专项训练</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -184,5 +185,7 @@
     </footer>
 <script src="/assets/js/site-nav.js"></script>
 <script src="ur-stats.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<script>SyncBoot.ready(function(){LSProvider.register({id:'scramble-ur',label:'UR 打乱训练',path:'scramble-ur.json',keys:['ur_ref_style','ur_ref_selections','ur-orientation','ur_times','ur_stats_settings']});});</script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="/assets/js/theme.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>计时器 · Timer · 魔方先生SSR训练中心</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -173,5 +174,7 @@
 <script src="/tools/timer/stats.js"></script>
 <script src="/tools/timer/timer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>
+<script src="/assets/js/sync-boot.js"></script>
+<script>SyncBoot.ready(function(){LSProvider.register({id:'timer',label:'计时成绩',path:'timer.json',keys:['timer_data_v2','timer_options_v1']});});</script>
 </body>
 </html>

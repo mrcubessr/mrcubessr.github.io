@@ -356,6 +356,7 @@
 
 <!-- GitHub 云端读写封装（页面内 GitHubStore 依赖它；此前缺失导致 "GitHubStore is not defined"） -->
 <script src="github-store.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
 <script>
 /* ============ 数据层 ============ */
 const KEY='mf_data_v1';
@@ -1188,13 +1189,53 @@ document.getElementById('ghConnect').onclick=function(){
   applyGhCfg();
   updateCloudStatus('已连接，正在拉取…');pullFromCloud();
 };
-document.getElementById('ghPush').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先一键登录或手动配置',true);return;}syncToCloud();};
-document.getElementById('ghPull').onclick=function(){if(!GitHubStore.isReady()){updateCloudStatus('请先一键登录或手动配置',true);return;}pullFromCloud();};
+document.getElementById('ghPush').onclick=function(){if(window.SyncEngine&&window.Account&&Account.isLoggedIn()){SyncEngine.push('class-teach');updateCloudStatus('已触发上传（详见右上角账号面板）');}else{updateCloudStatus('请先在右上角「登录同步」开通账号',true);}};
+document.getElementById('ghPull').onclick=function(){if(window.SyncEngine&&window.Account&&Account.isLoggedIn()){SyncEngine.pull('class-teach');updateCloudStatus('已触发拉取（详见右上角账号面板）');}else{updateCloudStatus('请先在右上角「登录同步」开通账号',true);}};
 /* 后台自动同步：OAuth 登录后每 30 秒把本地改动推到云端，换设备/关页面都不丢 */
-setInterval(function(){ if(localStorage.getItem('gh_oauth')==='1' && GitHubStore.isReady()){ try{syncToCloud();}catch(e){} } }, 30000);
 
-load();applyGhCfg();fillClassSel();fillProgCourse();setView('home');
-if(GitHubStore.isReady()){updateCloudStatus('已连接，正在从云端拉取…');pullFromCloud();}else{updateCloudStatus('未连接：填 client_id 后点「GitHub 一键登录」');}
+load();fillClassSel();fillProgCourse();setView('home');
+if(window.Account&&Account.isLoggedIn()){updateCloudStatus('已接入全站账号同步（右上角账号面板管理）');}else{updateCloudStatus('未开通：点右上角「登录同步」开通账号后自动同步',true);}
+
+/* ============ 全站账号同步（统一引擎） ============ */
+(function(){
+  var _ls=[];
+  function _notify(){_ls.forEach(function(f){try{f();}catch(e){}});}
+  try{
+    var _of=flushSave;
+    flushSave=function(){var r=_of.apply(null,arguments);_notify();return r;};
+    var _os=save;
+    save=function(){var r=_os.apply(null,arguments);_notify();return r;};
+  }catch(e){}
+  if(!window.SyncBoot)return;
+  SyncBoot.ready(function(){
+    if(!window.SyncEngine)return;
+    SyncEngine.register({
+      id:'class-teach', label:'课堂管理', path:'class-teach.json',
+      getSnapshot:function(){
+        try{flushSave();}catch(e){}
+        return Promise.resolve({
+          mf_data_v1:localStorage.getItem(KEY),
+          mf_cur_class:localStorage.getItem('mf_cur_class')
+        });
+      },
+      applySnapshot:function(d){
+        if(!d)return Promise.resolve();
+        try{
+          if(d.mf_data_v1!=null)localStorage.setItem(KEY,d.mf_data_v1);
+          if(d.mf_cur_class!=null)localStorage.setItem('mf_cur_class',d.mf_cur_class);
+          else localStorage.removeItem('mf_cur_class');
+          var av=document.querySelector('.view.active');var vn=av?av.id:'';
+          load();fillClassSel();fillProgCourse();
+          if(vn){try{setView(vn);}catch(e){}}
+        }catch(e){}
+        return Promise.resolve();
+      },
+      subscribe:function(cb){if(typeof cb==='function')_ls.push(cb);
+        return function(){var i=_ls.indexOf(cb);if(i>=0)_ls.splice(i,1);};}
+    });
+  });
+})();
+
 </script>
 <script src="/assets/js/site-nav.js"></script>
 <footer class="site-footer">

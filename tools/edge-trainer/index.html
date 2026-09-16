@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="/assets/js/theme.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>棱块编码识别训练</title>
 
@@ -666,5 +667,7 @@ renderOverview();
       <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
       <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
     </footer>
+<script src="/assets/js/sync-boot.js"></script>
+<script>SyncBoot.ready(function(){LSProvider.register({id:'edge-trainer',label:'棱块训练',path:'edge-trainer.json',keys:['edge_trainer_records_v1']});});</script>
 </body>
 </html>
