@@ -8,6 +8,22 @@
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
 <link rel="stylesheet" href="/tools/cfop/css/cfop.css">
+<style>
+  /* 拿法朝向选择（页面私有，前缀 ct__） */
+  .ct__orientpick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ct__orientpick .select { min-width: 96px; }
+  .ct__orient-note { display: block; margin-top: 6px; font-size: 12px; color: var(--fg-3); line-height: 1.5; }
+  .ct__sol-ori { margin-left: 6px; font-size: 12px; color: var(--fg-3); }
+  .ct__sol-alt {
+    margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line-2);
+    font-size: 12px; color: var(--fg-3); line-height: 1.7; word-break: break-word;
+  }
+  .ct__sol-alt b { color: var(--fg-2); font-weight: 600; }
+  @media (max-width: 640px) {
+    .ct__orientpick { width: 100%; }
+    .ct__orientpick .select { flex: 1 1 0; min-width: 0; }
+  }
+</style>
 </head>
 <body data-nav="3x3" class="ct-page">
 <div data-site-nav></div>
@@ -35,13 +51,22 @@
           <span class="ct__label">目标步数</span>
           <div class="seg ct__seg" id="ct-moves" role="group" aria-label="选择十字最优步数"></div>
         </div>
+        <div class="ct__field">
+          <span class="ct__label">拿法朝向</span>
+          <div class="ct__orientpick">
+            <select class="select" id="ct-top" aria-label="顶面颜色"></select>
+            <select class="select" id="ct-front" aria-label="前面颜色"></select>
+          </div>
+          <span class="ct__orient-note" id="ct-orient-note"></span>
+        </div>
       </div>
 
       <div class="ct__scramble" id="ct-scramble">…</div>
 
       <div class="ct__solution" id="ct-solution" hidden>
-        <span class="ct__sol-label">十字解法</span>
+        <span class="ct__sol-label">十字解法<span class="ct__sol-ori" id="ct-sol-ori"></span></span>
         <div class="formula-block ct__sol-text" id="ct-sol-text" title="点击复制"></div>
+        <div class="ct__sol-alt" id="ct-sol-alt" hidden></div>
       </div>
 
       <div class="ct__row">
@@ -63,9 +88,9 @@
     </div>
 
     <div class="ct__side">
-      <div class="ct__orient" id="ct-orient" role="note" aria-label="打乱朝向">
-        <span class="ct__orient-title">打乱朝向</span>
-        <span class="ct__orient-pill">白顶 · 绿前</span>
+      <div class="ct__orient" id="ct-orient" role="note" aria-label="拿法朝向">
+        <span class="ct__orient-title">拿法朝向</span>
+        <span class="ct__orient-pill" id="ct-orient-pill">白顶 · 绿前</span>
       </div>
       <div class="ct__timer" id="ct-timer">0.00</div>
       <div class="ct__net" id="ct-net"></div>
@@ -79,6 +104,7 @@
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
 <script src="/tools/cfop/js/rubik-core.js"></script>
+<script src="/tools/cfop/js/orient.js"></script>
 <script src="/tools/cfop/js/cross-solver.js"></script>
 <script src="/tools/cfop/js/cube-art.js"></script>
 <script src="/tools/cfop/js/cross-trainer.js"></script>

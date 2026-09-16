@@ -13,8 +13,9 @@
   var MAX_LEN = 10;
   var BATCH = 10;
 
-  var state = { color: "w", steps: 4 };
-  var current = null;         /* 当前打乱结果 */
+  /* orient = 拿法朝向：top/front 为颜色 key，默认白顶绿前（标准朝向，恒等变换） */
+  var state = { color: "w", steps: 4, orient: { top: "w", front: "g" } };
+  var current = null;         /* 当前打乱结果（solution 为标准朝向解法） */
   var els = {};
 
   function $(id) { return document.getElementById(id); }
@@ -35,14 +36,123 @@
     setTimeout(function () { node.textContent = back != null ? back : old; node.__flashing = false; }, 900);
   }
   function save() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ color: state.color, steps: state.steps })); } catch (e) {}
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        color: state.color, steps: state.steps, orient: state.orient
+      }));
+    } catch (e) {}
   }
   function load() {
     try {
       var o = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
       if (window.CrossSolver && CrossSolver.COLORS_BY_KEY[o.color]) state.color = o.color;
       if (o.steps >= 1 && o.steps <= 8) state.steps = o.steps;
+      if (o.orient && window.Orient) {
+        var t = o.orient.top, f = o.orient.front;
+        if (Orient.COLOR_FACE[t] && Orient.COLOR_FACE[f] &&
+            Orient.validFronts(t).indexOf(f) >= 0) {
+          state.orient = { top: t, front: f };
+        }
+      }
     } catch (e) {}
+  }
+
+  /* ---------- 拿法朝向 ---------- */
+  function cname(k) {
+    var c = window.CrossSolver && CrossSolver.COLORS_BY_KEY[k];
+    return c ? c.label : k;
+  }
+
+  function isStdOrient() {
+    return state.orient.top === "w" && state.orient.front === "g";
+  }
+  /** 当前拿法下的解法（标准解法做共轭变换 R·alg·R⁻¹） */
+  function orientedSolution() {
+    if (!current || !window.Orient) return current ? current.solution.slice() : [];
+    var map = Orient.mapFor(state.orient.top, state.orient.front);
+    if (!map || isStdOrient()) return current.solution.slice();
+    return Orient.transform(current.solution, map);
+  }
+  /** 当前拿法下，目标十字所在的面（位置名） */
+  function crossFaceAt() {
+    if (!window.Orient) return "U";
+    var map = Orient.mapFor(state.orient.top, state.orient.front);
+    var stdFace = Orient.COLOR_FACE[state.color] || "U";
+    return (map && map[stdFace]) || stdFace;
+  }
+  function orientText() {
+    return cname(state.orient.top) + "顶 · " + cname(state.orient.front) + "前";
+  }
+
+  function buildOrient() {
+    var top = $("ct-top"), front = $("ct-front");
+    if (!top || !front || !window.Orient) return;
+    window.CrossSolver.COLORS.forEach(function (c) {
+      var o = document.createElement("option");
+      o.value = c.key; o.textContent = c.label + "顶";
+      top.appendChild(o);
+    });
+    top.value = state.orient.top;
+    fillFronts();
+    top.addEventListener("change", function () {
+      var k = top.value;
+      if (Orient.validFronts(k).indexOf(state.orient.front) < 0) {
+        state.orient.front = Orient.validFronts(k)[0];
+      }
+      state.orient.top = k;
+      fillFronts(); save(); paintOrient(); renderSolution();
+    });
+    front.addEventListener("change", function () {
+      state.orient.front = front.value;
+      save(); paintOrient(); renderSolution();
+    });
+  }
+  function fillFronts() {
+    var front = $("ct-front");
+    if (!front) return;
+    var valid = Orient.validFronts(state.orient.top);
+    front.innerHTML = "";
+    valid.forEach(function (k) {
+      var o = document.createElement("option");
+      o.value = k; o.textContent = cname(k) + "前";
+      front.appendChild(o);
+    });
+    front.value = state.orient.front;
+  }
+
+  /** 刷新解法区（含变换后的解法、原解法对照、十字所在面提示） */
+  function renderSolution() {
+    if (!els.solText || !current) return;
+    var alg = orientedSolution().join(" ");
+    els.solText.textContent = alg;
+    els.solText.dataset.alg = alg;
+
+    if (els.solOri) els.solOri.textContent = isStdOrient() ? "" : "（" + orientText() + "）";
+    if (els.solAlt) {
+      if (isStdOrient()) els.solAlt.hidden = true;
+      else {
+        els.solAlt.hidden = false;
+        els.solAlt.innerHTML = "";
+        var b1 = el("b", null, "标准朝向（白顶 · 绿前）：");
+        els.solAlt.appendChild(b1);
+        els.solAlt.appendChild(document.createTextNode(current.solution.join(" ")));
+      }
+    }
+    if (els.orientNote) {
+      var face = crossFaceAt();
+      var c = window.CrossSolver.COLORS_BY_KEY[state.color];
+      els.orientNote.textContent = isStdOrient()
+        ? "标准朝向：按下方打乱执行即可，解法为常规写法。"
+        : "按标准朝向（白顶绿前）打乱后，转到「" + orientText() + "」再做十字；"
+          + "此时" + (c ? c.label : "") + "十字做在 " + face + " 面（"
+          + (window.Orient.POS_NAME[face] || face) + "）。";
+    }
+    if (els.orientPill) els.orientPill.textContent = orientText();
+  }
+
+  function paintOrient() {
+    if ($("ct-top")) $("ct-top").value = state.orient.top;
+    fillFronts();
   }
 
   /* ---------- 计时器 ---------- */
@@ -86,10 +196,7 @@
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
 
-    if (els.solText) {
-      els.solText.textContent = r.solution.join(" ");
-      els.solText.dataset.alg = r.solution.join(" ");
-    }
+    renderSolution();
     /* 解法面板的显示/隐藏状态跨打乱沿用：正在「看解法」时不因换打乱被打断，
        按钮文案与选中态始终与面板可见性保持一致。 */
     var show = !!(els.solution && !els.solution.hidden);
@@ -204,6 +311,10 @@
     els.batchPanel = $("ct-batch-panel");
     els.batchList = $("ct-batch-list");
     els.batchTitle = $("ct-batch-title");
+    els.solOri = $("ct-sol-ori");
+    els.solAlt = $("ct-sol-alt");
+    els.orientNote = $("ct-orient-note");
+    els.orientPill = $("ct-orient-pill");
     if (!els.scramble) return;
     if (!window.CrossSolver || !window.RubikCore || !window.CubeArt) {
       els.scramble.textContent = "求解器加载失败";
@@ -213,6 +324,7 @@
     load();
     buildColors();
     buildSteps();
+    buildOrient();     /* 拿法朝向（依赖 orient.js，缺失则跳过，不影响原功能） */
     paintSegs();
 
     $("ct-new").addEventListener("click", gen);
@@ -264,6 +376,12 @@
     selectColor: function (k) { selectColor(k); },
     selectSteps: function (n) { selectSteps(n); },
     gen: function () { gen(); },
-    generateBatch: function () { generateBatch(); }
+    generateBatch: function () { generateBatch(); },
+    setOrient: function (t, f) {
+      state.orient = { top: t, front: f };
+      paintOrient(); save(); renderSolution();
+    },
+    orient: function () { return state.orient; },
+    orientedSolution: function () { return orientedSolution(); }
   };
 })();
