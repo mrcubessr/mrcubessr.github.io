@@ -182,6 +182,33 @@
     });
   }
 
+  /**
+   * 检查仓库是否可访问（手动开通前先探一次，避免「登录成功但同步一直失败」）
+   * @returns Promise<{ok:boolean, missing?:boolean, private?:boolean, error?:string}>
+   */
+  function checkRepo(owner, repo, token) {
+    var o = owner || cfg.owner, r = repo || cfg.repo, t = token || cfg.token;
+    if (!o || !r) return Promise.reject(new Error('缺少仓库信息（owner/repo）'));
+    return fetch(apiBase + '/repos/' + o + '/' + r, {
+      headers: { 'Authorization': 'Bearer ' + t, 'Accept': 'application/vnd.github+json' }
+    }).then(function (res) {
+      if (res.ok) {
+        return res.json().then(function (d) {
+          return { ok: true, private: !!d.private, fullName: d.full_name };
+        }, function () { return { ok: true }; });
+      }
+      if (res.status === 404) return { ok: false, missing: true };
+      if (res.status === 401 || res.status === 403) {
+        return res.json().then(function (e) {
+          return { ok: false, error: '(' + res.status + ') ' + ((e && e.message) || '令牌无效或无权访问该仓库') };
+        }, function () { return { ok: false, error: '(' + res.status + ') 令牌无效或无权访问该仓库' }; });
+      }
+      return res.json().then(function (e) {
+        return { ok: false, error: '(' + res.status + ') ' + ((e && e.message) || '') };
+      }, function () { return { ok: false, error: '(' + res.status + ')' }; });
+    });
+  }
+
   function saveClientId(id) { try { if (id) localStorage.setItem('gh_client_id', id); else localStorage.removeItem('gh_client_id'); } catch (e) {} }
   function loadClientId() { try { return localStorage.getItem('gh_client_id') || ''; } catch (e) { return ''; } }
 
@@ -192,7 +219,7 @@
     load: load, save: save,
     saveToken: saveToken, loadToken: loadToken,
     oauthDeviceCode: oauthDeviceCode, oauthDeviceToken: oauthDeviceToken,
-    getLogin: getLogin, ensureRepo: ensureRepo,
+    getLogin: getLogin, ensureRepo: ensureRepo, checkRepo: checkRepo,
     saveClientId: saveClientId, loadClientId: loadClientId
   };
   // 旧名兼容：class-teach 里的 github-store.js 暴露的是 GitHubStore

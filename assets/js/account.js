@@ -100,18 +100,34 @@
       var CS = global.CloudStore;
       if (!CS) return Promise.reject(new Error('cloud-store.js 未加载'));
       CS.config({ owner: owner, repo: repo, branch: branch, token: token });
-      // 校验令牌并取真实登录名
-      return CS.getLogin(token).then(function (login) {
-        writeState({ token: token, owner: owner, repo: repo, branch: branch, login: login, mode: 'manual' });
-        Account.applyToCloudStore();
-        emit();
-        return { login: login, owner: owner, repo: repo };
-      }, function (err) {
-        // 令牌可能无 user 读权限，退化为用 owner 作 login
-        writeState({ token: token, owner: owner, repo: repo, branch: branch, login: owner, mode: 'manual' });
-        Account.applyToCloudStore();
-        emit();
-        return { login: owner, owner: owner, repo: repo, warn: err && err.message };
+
+      // 先探仓库：不存在则尝试自动建（fine-grained 令牌无建仓权限时会失败 → 给明确指引）
+      return CS.checkRepo(owner, repo, token).then(function (r) {
+        if (r && r.ok) return null;                 // 仓库可访问，继续
+        if (r && r.missing) {
+          return CS.ensureRepo(token, repo).then(function () { return null; })
+            .catch(function () {
+              throw new Error('仓库 ' + owner + '/' + repo + ' 不存在，且当前令牌无法自动创建。' +
+                '请到 GitHub 右上角 + → New repository，名称填 ' + repo +
+                '、勾选 Private 和 Add a README file 创建后，再回来连接。');
+            });
+        }
+        throw new Error('无法访问仓库 ' + owner + '/' + repo + ' ' + ((r && r.error) || '') +
+          '。请确认：①令牌授权了该仓库 ②权限为 Contents: Read and write ③令牌未过期。');
+      }).then(function () {
+        // 校验令牌并取真实登录名
+        return CS.getLogin(token).then(function (login) {
+          writeState({ token: token, owner: owner, repo: repo, branch: branch, login: login, mode: 'manual' });
+          Account.applyToCloudStore();
+          emit();
+          return { login: login, owner: owner, repo: repo };
+        }, function (err) {
+          // 令牌可能无 user 读权限，退化为用 owner 作 login
+          writeState({ token: token, owner: owner, repo: repo, branch: branch, login: owner, mode: 'manual' });
+          Account.applyToCloudStore();
+          emit();
+          return { login: owner, owner: owner, repo: repo, warn: err && err.message };
+        });
       });
     },
 

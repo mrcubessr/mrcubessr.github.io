@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>账号登录与跨设备同步教程 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<style>
+  .help { max-width: 860px; margin: 0 auto; padding: 22px 16px 72px; }
+  .help-hero { border: 1px solid var(--line); background: var(--surface-2); padding: 22px 20px; margin-bottom: 22px; }
+  .help-hero h1 { margin: 0 0 8px; font-size: 24px; line-height: 1.3; }
+  .help-hero p { margin: 0; color: var(--fg-2); font-size: 14px; line-height: 1.75; }
+  .help-hero .row { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .help-toc { border: 1px solid var(--line); background: var(--surface); padding: 14px 18px; margin-bottom: 22px; }
+  .help-toc h2 { margin: 0 0 8px; font-size: 14px; color: var(--fg-3); font-weight: 600; }
+  .help-toc ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 2; color: var(--fg-2); }
+  .help-toc a { color: var(--brand); text-decoration: none; }
+  .help-toc a:hover { text-decoration: underline; }
+
+  .step { border: 1px solid var(--line); background: var(--surface); margin-bottom: 18px; }
+  .step__hd { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+  .step__no { flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center;
+    background: var(--brand); color: var(--on-brand); font-size: 14px; font-weight: 700; }
+  .step__hd h2 { margin: 0; font-size: 17px; }
+  .step__hd .tag { margin-left: auto; font-size: 12px; color: var(--fg-3); }
+  .step__bd { padding: 16px 18px; font-size: 14px; line-height: 1.85; color: var(--fg-2); }
+  .step__bd p { margin: 0 0 10px; }
+  .step__bd p:last-child { margin-bottom: 0; }
+  .step__bd b { color: var(--fg); }
+  .step__bd ol, .step__bd ul { margin: 0 0 10px; padding-left: 22px; }
+  .step__bd li { margin-bottom: 4px; }
+
+  .kbd { display: inline-block; padding: 1px 6px; font-size: 12.5px; font-family: ui-monospace, Consolas, monospace;
+    background: var(--surface-2); border: 1px solid var(--line-2); color: var(--fg); }
+  .path { font-size: 13px; color: var(--fg-3); }
+  .val { display: inline-block; padding: 1px 7px; font-family: ui-monospace, Consolas, monospace; font-size: 13px;
+    background: var(--surface-2); border: 1px solid var(--line-2); color: var(--fg); }
+
+  .note { border-left: 3px solid var(--brand); background: var(--surface-2); padding: 10px 14px; margin: 12px 0; font-size: 13.5px; line-height: 1.7; }
+  .note--warn { border-left-color: var(--amber); }
+  .note--danger { border-left-color: var(--red); }
+  .note--ok { border-left-color: var(--green); }
+  .note b { color: var(--fg); }
+
+  .perm { border: 1px solid var(--line-2); background: var(--surface-2); margin: 10px 0; }
+  .perm__row { display: flex; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .perm__row:last-child { border-bottom: none; }
+  .perm__k { flex: 0 0 180px; color: var(--fg); font-weight: 600; }
+  .perm__v { flex: 1 1 auto; color: var(--fg-2); }
+
+  .help table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  .help th, .help td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; }
+  .help th { background: var(--surface-2); color: var(--fg); font-weight: 600; }
+  .help td { color: var(--fg-2); }
+
+  .faq { border: 1px solid var(--line); background: var(--surface); margin-bottom: 10px; }
+  .faq__q { padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--fg); background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .faq__a { padding: 12px 16px; font-size: 13.5px; line-height: 1.8; color: var(--fg-2); }
+  .faq__a p { margin: 0 0 8px; }
+  .faq__a p:last-child { margin-bottom: 0; }
+
+  .shot { border: 1px dashed var(--line-2); background: var(--surface-2); padding: 14px; margin: 10px 0; font-size: 13px; color: var(--fg-3); line-height: 1.7; }
+  .shot b { color: var(--fg-2); }
+  .shot .fake-field { display: block; margin-top: 6px; padding: 7px 10px; background: var(--surface); border: 1px solid var(--line-2); color: var(--fg); }
+
+  @media (max-width: 640px) {
+    .help { padding: 16px 12px 64px; }
+    .help-hero h1 { font-size: 20px; }
+    .perm__k { flex-basis: 120px; }
+  }
+</style>
+</head>
+<body data-nav="help">
+<div data-site-nav></div>
+
+<div class="help">
+  <div class="help-hero">
+    <h1>账号登录与跨设备同步 · 使用教程</h1>
+    <p>
+      开通账号后，站内各功能的数据会存进<b>你自己的 GitHub 私有仓库</b>，换手机、换电脑、清缓存都不丢。
+      整个过程只要三步、约 3 分钟：<b>建仓库 → 生成令牌 → 回站点登录</b>。
+      本站是纯静态站点、没有后端服务器，所以账号用 GitHub 当"云盘"，数据只属于你。
+    </p>
+    <div class="row">
+      <button class="btn btn--primary" id="btnOpenAcct">打开登录面板</button>
+      <a class="btn btn--ghost" href="https://github.com/new" target="_blank" rel="noopener">① 去建仓库</a>
+      <a class="btn btn--ghost" href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">② 去生成令牌</a>
+    </div>
+  </div>
+
+  <div class="help-toc">
+    <h2>目录</h2>
+    <ol>
+      <li><a href="#s1">在 GitHub 建一个私有仓库</a></li>
+      <li><a href="#s2">生成专用令牌（只授权这一个仓库）</a></li>
+      <li><a href="#s3">回站点登录并开通</a></li>
+      <li><a href="#s4">确认同步成功</a></li>
+      <li><a href="#s5">换设备 / 换浏览器怎么恢复</a></li>
+      <li><a href="#s6">哪些数据会被同步</a></li>
+      <li><a href="#s7">常见问题排查</a></li>
+      <li><a href="#s8">安全须知</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <section class="step" id="s1">
+    <div class="step__hd"><span class="step__no">1</span><h2>在 GitHub 建一个私有仓库</h2><span class="tag">约 1 分钟</span></div>
+    <div class="step__bd">
+      <p>打开 <a href="https://github.com/new" target="_blank" rel="noopener">github.com/new</a>（没有 GitHub 账号先免费注册一个），按下面填：</p>
+      <div class="shot">
+        <b>New repository 页面填法示意</b>
+        <span class="fake-field">Owner: 你的用户名　Repository name: <b>fto-site-sync</b></span>
+        <span class="fake-field">○ Public　● <b>Private</b>（务必选私有）</span>
+        <span class="fake-field">☑ <b>Add a README file</b>（勾上，保证仓库非空）</span>
+        <span class="fake-field">[ Create repository ]</span>
+      </div>
+      <ul>
+        <li><b>Repository name</b>：填 <span class="val">fto-site-sync</span>。想改别的名字也行，登录时填一致即可。</li>
+        <li><b>Private</b>：必须选私有，数据只有你看得到。</li>
+        <li><b>Add a README file</b>：勾上，空仓库有时会导致首次写入失败。</li>
+      </ul>
+      <div class="note">仓库建好后先别关，下一步马上要用它。</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step" id="s2">
+    <div class="step__hd"><span class="step__no">2</span><h2>生成专用令牌（只授权这一个仓库）</h2><span class="tag">约 1 分钟</span></div>
+    <div class="step__bd">
+      <p>打开 <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">Settings → Developer settings → Personal access tokens → Fine-grained tokens</a>，点 <b>Generate new token</b>。</p>
+      <div class="perm">
+        <div class="perm__row"><span class="perm__k">Token name</span><span class="perm__v">随便填，例如 <span class="val">fto-site-sync</span></span></div>
+        <div class="perm__row"><span class="perm__k">Expiration</span><span class="perm__v">建议 90 天或 1 年。到期后重新生成一个再登录一次即可</span></div>
+        <div class="perm__row"><span class="perm__k">Repository access</span><span class="perm__v"><b>● Only select repositories</b> → 只勾选刚才建的 <span class="val">fto-site-sync</span></span></div>
+        <div class="perm__row"><span class="perm__k">Permissions</span><span class="perm__v">Repository permissions → 找到 <b>Contents</b> → 设为 <b>Read and write</b></span></div>
+      </div>
+      <div class="note note--warn">
+        <b>权限别多给。</b>只勾 <b>Contents: Read and write</b> 就够了（Metadata: Read-only 是系统自动带的）。
+        千万不要勾"All repositories"，那等于把你的全部仓库交给浏览器。
+      </div>
+      <p>点 <b>Generate token</b> 后，页面上会出现一串以 <span class="val">github_pat_</span> 开头的字符串 —— <b>立刻复制保存</b>，它只显示这一次，关掉就看不到了。</p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="step" id="s3">
+    <div class="step__hd"><span class="step__no">3</span><h2>回站点登录并开通</h2><span class="tag">约 30 秒</span></div>
+    <div class="step__bd">
+      <p>打开本站<b>任意页面</b>，右上角有一个 <b>「登录同步」</b> 按钮（手机上是右下角浮动按钮），点它：</p>
+      <div class="shot">
+        <b>账号面板 · 方式一「手动开通」填法示意</b>
+        <span class="fake-field">GitHub 用户名：你的 GitHub 用户名（不是邮箱）</span>
+        <span class="fake-field">同步仓库：fto-site-sync</span>
+        <span class="fake-field">访问令牌：github_pat_xxxx（粘贴刚才复制的）</span>
+        <span class="fake-field">[ 连接并开通 ]</span>
+      </div>
+      <ol>
+        <li><b>GitHub 用户名</b>：填用户名，不是邮箱。</li>
+        <li><b>同步仓库</b>：默认 <span class="val">fto-site-sync</span>，跟你建的仓库名保持一致。</li>
+        <li><b>访问令牌</b>：粘贴第 2 步复制的令牌。</li>
+        <li>点 <b>连接并开通</b>，成功后右上角会变成 <b>@你的用户名</b>。</li>
+      </ol>
+      <div class="note note--ok">
+        成功后本站会自动把<b>当前页面</b>的数据上传一次。之后每次改动会<b>自动同步</b>，不用手动点。
+      </div>
+      <div class="note note--danger">
+        <b>顺序很重要：先在数据最多的那台设备上登录。</b>
+        同步规则是"最后写入的胜出"。如果你先拿一台空数据的设备登录，它会把空数据传上去；
+        等你再用有数据的设备登录时，可能被判定为"远端更新"而覆盖掉本地数据。<br>
+        正确顺序：<b>主力设备登录 → 确认上传完成 → 再去其它设备登录</b>。
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="step" id="s4">
+    <div class="step__hd"><span class="step__no">4</span><h2>确认同步成功</h2><span class="tag">10 秒</span></div>
+    <div class="step__bd">
+      <p>点右上角 <b>@用户名</b> 打开面板，会列出本页各功能的同步状态：</p>
+      <ul>
+        <li><b>绿点 + 刚刚</b>：同步正常。</li>
+        <li><b>黄点 + 同步中…</b>：正在传，稍等几秒。</li>
+        <li><b>红点 + 出错</b>：看第 7 节排查。</li>
+      </ul>
+      <p>更直接的验证：打开你的 GitHub 仓库，应该能看到自动生成的文件，例如 <span class="val">srs.json</span>、<span class="val">timer.json</span>，提交记录写着 <span class="val">fto-site data sync</span>。</p>
+      <div class="note">
+        面板里的三个按钮：<b>立即拉取</b>（把云端拉回来）、<b>强制上传全部</b>（本页数据覆盖云端）、<b>强制下载全部</b>（云端覆盖本机）。
+        一般不用管，遇到数据对不上时再用来手动纠正。
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step" id="s5">
+    <div class="step__hd"><span class="step__no">5</span><h2>换设备 / 换浏览器怎么恢复</h2><span class="tag">30 秒</span></div>
+    <div class="step__bd">
+      <p>在新设备（或新浏览器、清过缓存之后）上，<b>重复第 3 步</b>：打开站点 → 登录同步 → 填<b>同样的用户名、同样的仓库名、同样的令牌</b>。</p>
+      <p>登录后会自动从云端把数据拉回来，各功能状态变成"刚刚"即恢复完成。</p>
+      <div class="note note--warn">
+        令牌只会显示一次，建议生成时存进密码管理器。<b>忘了令牌不用慌</b>：重新生成一个，用它重新登录即可，仓库里的数据不受影响。
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="step" id="s6">
+    <div class="step__hd"><span class="step__no">6</span><h2>哪些数据会被同步</h2></div>
+    <div class="step__bd">
+      <p>每个功能在你的仓库里对应一个文件，互不影响：</p>
+      <table>
+        <thead><tr><th>功能</th><th>仓库中的文件</th><th>在哪登录后生效</th></tr></thead>
+        <tbody>
+          <tr><td>记忆卡片 SRS</td><td><span class="val">srs.json</span></td><td>记忆卡任意页面</td></tr>
+          <tr><td>课堂管理</td><td><span class="val">class-teach.json</span></td><td>课堂管理页</td></tr>
+          <tr><td>计时器</td><td><span class="val">timer.json</span></td><td>计时器页</td></tr>
+          <tr><td>UR / UF 打乱训练</td><td><span class="val">scramble-ur.json</span> / <span class="val">scramble-uf.json</span></td><td>对应训练页</td></tr>
+          <tr><td>盲拧配对 / 棱块 / 角块训练</td><td><span class="val">bld-trainer.json</span> / <span class="val">edge-trainer.json</span> / <span class="val">corner-trainer.json</span></td><td>对应训练页</td></tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <b>各功能在自己的页面里同步。</b>比如你在记忆卡页面，面板里就只显示"记忆卡"这一项；想同步计时成绩，打开计时器页面即可（已登录状态下会自动同步）。
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="step" id="s7">
+    <div class="step__hd"><span class="step__no">7</span><h2>常见问题排查</h2></div>
+    <div class="step__bd">
+      <div class="faq">
+        <div class="faq__q">提示"仓库不存在，且当前令牌无法自动创建"</div>
+        <div class="faq__a">
+          <p>检查三件事：①仓库名是否拼错（区分大小写）；②仓库是不是建在别的用户名/组织下；③令牌的 Repository access 是否勾选了这个仓库。</p>
+          <p>最快的办法：回 GitHub 打开仓库，看地址栏是不是 <span class="val">github.com/你的用户名/fto-site-sync</span>。</p>
+        </div>
+      </div>
+      <div class="faq">
+        <div class="faq__q">提示"无法访问仓库 (401/403)"</div>
+        <div class="faq__a">
+          <p>令牌无效或权限不够。常见原因：①复制时少了开头或结尾；②令牌已过期；③Repository access 没勾这个仓库；④Contents 权限不是 Read and write。</p>
+          <p>重新生成一个令牌再试是最快的解法。</p>
+        </div>
+      </div>
+      <div class="faq">
+        <div class="faq__q">登录成功了，但状态一直显示"出错"</div>
+        <div class="faq__a">
+          <p>打开 GitHub 仓库看有没有生成 json 文件。如果一直没有，多半是令牌过期或权限不足（见上一条）。</p>
+          <p>如果文件有、但状态报错，刷新页面重试；仍不行就把报错文字发给我。</p>
+        </div>
+      </div>
+      <div class="faq">
+        <div class="faq__q">数据没同步过去</div>
+        <div class="faq__a">
+          <p>确认你当前打开的是<b>该功能自己的页面</b>（见第 6 节），并且面板里能看到那一项的状态。</p>
+          <p>也可以点面板里的 <b>强制上传全部</b> 手动推一次。</p>
+        </div>
+      </div>
+      <div class="faq">
+        <div class="faq__q">退出登录后数据会没吗</div>
+        <div class="faq__a">
+          <p>不会。退出只是停止同步，本机数据和云端仓库里的数据都还在。重新登录即可继续。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="step" id="s8">
+    <div class="step__hd"><span class="step__no">8</span><h2>安全须知</h2></div>
+    <div class="step__bd">
+      <ul>
+        <li>本站是纯静态站、没有后端，令牌只存在<b>你这台设备的浏览器</b>里，不会传到任何服务器。</li>
+        <li>务必使用<b>只授权那一个仓库</b>的 fine-grained 令牌，不要用全权限的经典令牌。</li>
+        <li>公用电脑登录后记得退出；<b>退出登录</b>会清除本机令牌。</li>
+        <li>令牌到期前的最后一刻都可以续：重新生成 → 重新登录，数据不受影响。</li>
+      </ul>
+      <div class="note note--warn">
+        数据同步依赖 GitHub 的服务可用性。重要数据建议偶尔用各功能自带的<b>导出备份</b>另存一份。
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="/assets/js/site-nav.js"></script>
+<script>
+SyncBoot.ready(function () {
+  var b = document.getElementById('btnOpenAcct');
+  if (b && window.AccountUI) b.addEventListener('click', function () { AccountUI.open(); });
+});
+</script>
+</body>
+</html>

@@ -110,9 +110,12 @@
         '<div class="acct-sec">' +
         '<h4>方式一 · 手动开通（自测最快）</h4>' +
         '<label class="acct-f">GitHub 用户名<input id="acOwner" placeholder="如 mrcubessr" value="' + esc(st && st.owner) + '"></label>' +
-        '<label class="acct-f">同步仓库（会自动创建）<input id="acRepo" value="' + esc((st && st.repo) || 'fto-site-sync') + '"></label>' +
+        '<label class="acct-f">同步仓库（不存在会自动尝试创建）<input id="acRepo" value="' + esc((st && st.repo) || 'fto-site-sync') + '"></label>' +
         '<label class="acct-f">访问令牌（fine-grained，仅授权本仓库）<input id="acToken" type="password" placeholder="ghp_ / github_pat_..."></label>' +
         '<div class="acct-row"><button class="acct-btn" id="acManual">连接并开通</button></div>' +
+        '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 ' +
+        '<b>Contents: Read and write</b>。不知道怎么弄？' +
+        '<a href="/account-help.html" target="_blank" rel="noopener">查看图文教程</a></div>' +
         '</div>' +
 
         '<div class="acct-sec">' +
