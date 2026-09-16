@@ -26,7 +26,7 @@
     enabled: true,
 
     /** 环境 ID（必填） */
-    env: '',
+    env: 'mrcubessr-prod',
 
     /** 地域：短信验证码仅支持 ap-shanghai */
     region: 'ap-shanghai',
