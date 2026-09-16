@@ -4,7 +4,7 @@
  * ⚠️ 部署前必须把下面的 env / publishableKey 填好（见 account-help.html 教程）：
  *
  *   1. env（环境 ID）
- *      云开发平台 → 环境概览 → 环境 ID，形如 fto-site-3gxxxxxxxx
+ *      云开发平台 → 环境概览 → 环境 ID，形如 mrcubessr-site-3gxxxxxxxx
  *      ⚠️ 短信验证码仅支持「上海」地域，环境地域必须是 ap-shanghai
  *
  *   2. publishableKey（可公开的前端密钥）

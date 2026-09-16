@@ -248,7 +248,7 @@
     var ghSec = '<details class="acct-fold"' + (cbOk ? '' : ' open') + '><summary>高级：用 GitHub 仓库同步（备用通道）</summary>' +
       '<div style="margin-top:10px">' +
       '<label class="acct-f">GitHub 用户名<input id="acOwner" placeholder="如 mrcubessr" value="' + esc(A && A.get ? A.get().owner : '') + '"></label>' +
-      '<label class="acct-f">同步仓库（不会自动创建）<input id="acRepo" value="' + esc((A && A.get && A.get().repo) || 'fto-site-sync') + '"></label>' +
+      '<label class="acct-f">同步仓库（不会自动创建）<input id="acRepo" value="' + esc((A && A.get && A.get().repo) || 'mrcubessr-site-sync') + '"></label>' +
       '<label class="acct-f">访问令牌（fine-grained，仅授权本仓库）<input id="acToken" type="password" placeholder="ghp_ / github_pat_..."></label>' +
       '<div class="acct-row"><button class="acct-btn ghost" id="acManual">连接并开通</button></div>' +
       '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 <b>Contents: Read and write</b>。</div>' +

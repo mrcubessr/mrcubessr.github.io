@@ -79,7 +79,7 @@
   }
 
   function doPut(obj, path, sha, message) {
-    var payload = { message: message || 'fto-site data sync', content: utf8ToB64(JSON.stringify(obj)) };
+    var payload = { message: message || 'mrcubessr-site data sync', content: utf8ToB64(JSON.stringify(obj)) };
     if (sha) payload.sha = sha;
     return fetch(fileUrlNoRef(path), {
       method: 'PUT',
@@ -126,7 +126,7 @@
   }
   function writeMeta(obj) {
     return read(META_PATH).then(function (r) {
-      return doPut(obj, META_PATH, r ? r.sha : null, 'fto-site meta sync');
+      return doPut(obj, META_PATH, r ? r.sha : null, 'mrcubessr-site meta sync');
     });
   }
 
@@ -171,7 +171,7 @@
       },
       body: JSON.stringify({
         name: name, private: true, auto_init: true,
-        description: description || 'fto-site 数据同步（自动创建）'
+        description: description || 'mrcubessr-site 数据同步（自动创建）'
       })
     }).then(function (r) {
       if (r.status === 201 || r.status === 200) return true;

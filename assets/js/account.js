@@ -14,7 +14,7 @@
 (function (global) {
   'use strict';
 
-  var DEFAULT_REPO = 'fto-site-sync';
+  var DEFAULT_REPO = 'mrcubessr-site-sync';
   var DEFAULT_BRANCH = 'main';
 
   var K = {
