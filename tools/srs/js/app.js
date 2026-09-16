@@ -8,15 +8,12 @@
   var SM2 = root.SM2, DB = root.SRSDB;
   var DAY = 86400000;
 
-  var PRESET_DECK = {
-    id: 'assoc-3bld',
-    name: '三盲联想词',
-    type: 'assoc',
-    desc: '代码 ⇄ 联想词双向记忆（优尔 0901 版，含拼音提示）'
-  };
+  var PRESET_PREFIX = 'assoc-3bld';          // 旧版单一牌组 id，迁移时删除
+  var PRESET_OLD_ID = 'assoc-3bld';
+  var PRESET_NAME = '三盲联想词';
 
   var DEFAULT_DECK_CFG = {
-    dirMode: 'mix',      // c2w | w2c | mix
+    dirMode: 'mix',      // c2w | w2c | mix（自定义公式牌组默认双向；联想词子牌组强制 c2w）
     heads: [],           // 空 = 全部字头
     dailyNew: 20,
     dailyReview: 200,
@@ -38,53 +35,79 @@
     return SM2.dayStart(Date.now(), cutoffHour === undefined ? 4 : cutoffHour);
   }
 
-  /* ---------------- 预置牌组初始化 ---------------- */
-  function buildAssocCards(now) {
-    var words = root.SRS_ASSOC || [];
+  /* ---------------- 预置牌组：三盲联想词，按字头拆成独立子牌组 ---------------- */
+  /** 返回词表里出现过的字头（字母）列表，升序 */
+  function assocLetters() {
+    var set = {};
+    (root.SRS_ASSOC || []).forEach(function (w) { if (w.h) set[w.h] = 1; });
+    return Object.keys(set).sort();
+  }
+  function assocDeckId(L) { return PRESET_PREFIX + '-' + L; }
+
+  /** 单个字头牌组定义：单向（码→词） */
+  function buildAssocDeck(L, now) {
+    var c = deckCfg();
+    c.dirMode = 'c2w';     // 单向：只看代码 → 回忆联想词
+    c.heads = [L];
+    c.showHint = true;
+    return {
+      id: assocDeckId(L),
+      name: '联想词 ' + L + ' 组',
+      type: 'assoc',
+      desc: '代码 → 联想词（' + L + ' 字头，单向记忆）',
+      config: c,
+      created: now,
+      _letter: L
+    };
+  }
+
+  /** 单个字头的卡片（仅 c2w 单向，front=代码 back=联想词） */
+  function buildAssocCards(L, now) {
     var out = [];
-    words.forEach(function (w) {
-      var base = { deckId: PRESET_DECK.id, head: w.h, created: now };
-      var s = SM2.newCard('', PRESET_DECK.id, now);
-      out.push(Object.assign({
-        id: PRESET_DECK.id + ':c2w:' + w.c,
-        front: w.c, back: w.w, hint: w.p, dir: 'c2w'
-      }, base, s, { id: PRESET_DECK.id + ':c2w:' + w.c }));
-      var s2 = SM2.newCard('', PRESET_DECK.id, now);
-      out.push(Object.assign({
-        id: PRESET_DECK.id + ':w2c:' + w.c,
-        front: w.w, back: w.c, hint: w.p, dir: 'w2c'
-      }, base, s2, { id: PRESET_DECK.id + ':w2c:' + w.c }));
+    (root.SRS_ASSOC || []).forEach(function (w) {
+      if (w.h !== L) return;
+      var s = SM2.newCard(assocDeckId(L) + ':c2w:' + w.c, assocDeckId(L), now);
+      out.push(Object.assign(s, {
+        front: w.c, back: w.w, hint: w.p, dir: 'c2w', head: w.h, created: now
+      }));
     });
     return out;
   }
 
-  /** 保证预置牌组存在；已存在则不覆盖用户进度（仅补齐新增词） */
+  /** 保证每个字头子牌组存在；已存在则不覆盖进度（仅补齐词表新增的卡）。迁移：删旧单一牌组。 */
   function ensurePresets() {
     var now = Date.now();
-    return DB.getDeck(PRESET_DECK.id).then(function (d) {
-      if (!d) {
-        d = {
-          id: PRESET_DECK.id, name: PRESET_DECK.name, type: PRESET_DECK.type,
-          desc: PRESET_DECK.desc, config: deckCfg(), created: now
-        };
-        return DB.putDeck(d).then(function () {
-          return DB.putCards(buildAssocCards(now)).then(function () { return d; });
+    var letters = assocLetters();
+    // 1) 迁移：删除旧版单一牌组（含其卡片与复习记录）
+    return DB.getDeck(PRESET_OLD_ID).then(function (old) {
+      if (!old) return;
+      return DB.delDeck(PRESET_OLD_ID);
+    }).then(function () {
+      // 2) 逐字头确保牌组 + 补齐缺失卡
+      return Promise.all(letters.map(function (L) {
+        return DB.getDeck(assocDeckId(L)).then(function (d) {
+          if (d) {
+            return DB.getCards(assocDeckId(L)).then(function (cards) {
+              var have = {};
+              cards.forEach(function (c) { have[c.id] = 1; });
+              var add = buildAssocCards(L, now).filter(function (c) { return !have[c.id]; });
+              return add.length ? DB.putCards(add) : null;
+            });
+          }
+          return DB.putDeck(buildAssocDeck(L, now))
+            .then(function () { return DB.putCards(buildAssocCards(L, now)); });
         });
-      }
-      // 补齐：若词表更新过，追加缺失卡
-      return DB.getCards(PRESET_DECK.id).then(function (cards) {
-        var have = {};
-        cards.forEach(function (c) { have[c.id] = 1; });
-        var add = buildAssocCards(now).filter(function (c) { return !have[c.id]; });
-        if (!add.length) return d;
-        return DB.putCards(add).then(function () { return d; });
-      });
+      }));
     });
   }
 
-  /** 重置预置牌组（清空卡片但保留复习日志？—— 一并清空该牌组日志） */
+  /** 重置全部联想词子牌组（含卡片与复习记录） */
   function resetPreset() {
-    return DB.clearCards(PRESET_DECK.id);
+    return Promise.all(assocLetters().map(function (L) {
+      return DB.getDeck(assocDeckId(L)).then(function (d) {
+        return d ? DB.delDeck(assocDeckId(L)) : null;
+      });
+    }));
   }
 
   /* ---------------- 队列 ---------------- */
@@ -274,7 +297,8 @@
   }
 
   root.SRS = {
-    PRESET_DECK: PRESET_DECK, DEFAULT_DECK_CFG: DEFAULT_DECK_CFG,
+    PRESET_PREFIX: PRESET_PREFIX, assocLetters: assocLetters, assocDeckId: assocDeckId,
+    DEFAULT_DECK_CFG: DEFAULT_DECK_CFG,
     deckCfg: deckCfg, uid: uid, todayStart: todayStart,
     ensurePresets: ensurePresets, resetPreset: resetPreset,
     buildQueue: buildQueue, answer: answer,

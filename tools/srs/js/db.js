@@ -125,10 +125,17 @@
     putDeck: function (d) { return put('decks', d); },
     delDeck: function (id) {
       return API.getCards(id).then(function (cards) {
-        return tx(['cards', 'decks'], 'readwrite').then(function (t) {
+        return tx(['cards', 'decks', 'reviews'], 'readwrite').then(function (t) {
           var cs = t.objectStore('cards');
           cards.forEach(function (c) { cs.delete(c.id); });
           t.objectStore('decks').delete(id);
+          // 一并删除该牌组的复习记录，避免残留孤儿数据影响全局统计
+          var ri = t.objectStore('reviews').index('deckId');
+          var keysReq = ri.getAllKeys(id);
+          keysReq.onsuccess = function () {
+            var rs = t.objectStore('reviews');
+            (keysReq.result || []).forEach(function (k) { rs.delete(k); });
+          };
           return done(t);
         });
       });
