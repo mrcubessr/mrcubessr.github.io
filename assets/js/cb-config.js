@@ -18,10 +18,10 @@
     },
 
     /** Supabase 项目 URL（必填） */
-    supabaseUrl: '',
+    supabaseUrl: 'https://pjgkevyhhnswknvwgvar.supabase.co',
 
     /** 公开的 anon key（必填，可暴露在前端） */
-    anonKey: '',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2tldnloaG5zd2tudndndmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjk2NTUsImV4cCI6MjEwNTIwNTY1NX0.68Qua_WLoA6dbSm2bZnrg8NYI1KmOIoqIoVW0-SG3dk',
 
     /** SDK 地址：固定 2.x（UMD 全局名 window.supabase） */
     sdkUrl: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
