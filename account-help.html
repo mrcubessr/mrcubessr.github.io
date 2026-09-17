@@ -184,7 +184,7 @@
         </div>
       </div>
       <div class="faq">
-        <div class="faq__q">提示"尚未配置 CloudBase"</div>
+        <div class="faq__q">提示"尚未配置 Supabase"</div>
         <div class="faq__a">
           <p>这是站长还没开通账号登录功能，把这一页发给站长看第 5 节。</p>
         </div>
@@ -219,30 +219,28 @@
   <section class="step" id="s5b">
     <div class="step__hd"><span class="step__no">5</span><h2>开通账号登录（邮箱 + 手机号）</h2><span class="tag">约 15 分钟</span></div>
     <div class="step__bd">
-      <p>用腾讯云开发 CloudBase 作为后端。它原生支持<b>邮箱验证码</b>与<b>手机号短信验证码</b>两种注册登录，两者流程一致、可同时开启。</p>
+      <p>用 <a href="https://supabase.com/" target="_blank" rel="noopener">Supabase</a> 作为后端（永久免费层，无安全域名白名单限制，靠 anon key + Row Level Security 隔离）。它原生支持<b>邮箱验证码</b>登录；<b>手机号短信验证码</b>也能用，但短信需要另购 SMS provider，通常会产生费用，建议测试用户一律走邮箱。</p>
       <ol>
-        <li>开通 <a href="https://tcb.cloud.tencent.com/" target="_blank" rel="noopener">云开发 CloudBase</a>，新建环境，<b>地域选「上海」</b>（短信仅支持上海地域）。</li>
-        <li><b>开启登录方式</b>：控制台 → 身份认证 → 登录方式 → 把 <b>邮箱验证码</b> 和 <b>短信验证码</b> 都开启（只想省事可只开邮箱）。</li>
-        <li><b>加安全域名</b>：环境配置 → 安全配置 → 添加你的站点域名（约 10 分钟生效）。不加会报 CORS 错误。</li>
-        <li><b>生成 Publishable Key</b>：环境 → API Key 配置 → 生成（只能生成一次，保存好）。</li>
+        <li>注册 <a href="https://supabase.com/" target="_blank" rel="noopener">Supabase</a>，<b>New Project</b>（免费层即可，地域任选）。</li>
+        <li>左侧 <b>Project Settings → API</b>，复制 <b>Project URL</b> 与 <b>anon public key</b>（可安全暴露在前端）。</li>
         <li>把这两项填进 <span class="val">assets/js/cb-config.js</span>：</li>
       </ol>
-      <pre class="code">env: '你的环境ID',                    // 如 mrcubessr-site-3gxxxxxxxx
-publishableKey: '你的 Publishable Key',</pre>
+      <pre class="code">supabaseUrl: 'https://xxxx.supabase.co',   // 你的 Project URL
+anonKey:     'eyJhbGci...',                    // 你的 anon public key</pre>
 
-      <h3 style="margin:18px 0 8px;font-size:15px">费用：环境免费，只有短信要钱</h3>
+      <h3 style="margin:18px 0 8px;font-size:15px">费用：永久免费，邮箱登录 0 元</h3>
       <table>
         <thead><tr><th>项目</th><th>费用</th><th>说明</th></tr></thead>
         <tbody>
-          <tr><td>云开发环境</td><td><b>0 元</b></td><td>免费体验版 3000 资源点/月，覆盖数据库读写与登录调用，几个测试用户完全够用；有效期 6 个月，到期可续。</td></tr>
-          <tr><td>邮箱验证码</td><td><b>0 元</b></td><td>完全不走短信通道，不产生任何费用。<b>测试期建议让用户走这个。</b></td></tr>
-          <tr><td>短信验证码</td><td>首月 100 条免费<br>之后约 5 分/条</td><td>短信资源包 1000 条 50 元 / 1 万条 470 元。限流：同号 30 秒 1 条、每天最多 30 条。</td></tr>
+          <tr><td>Supabase 免费层</td><td><b>0 元</b></td><td>50,000 MAU、500MB Postgres、5GB 流量/月，几个测试用户完全够用，无到期时间。</td></tr>
+          <tr><td>邮箱登录</td><td><b>0 元</b></td><td>验证码发到邮箱（或密码登录），不产生任何费用。<b>测试期一律让用户走这个。</b></td></tr>
+          <tr><td>手机号短信</td><td>按量付费</td><td>需在 Supabase 接入 Twilio 等 SMS provider，按条计费；免费层默认发不了短信 → 手机号通道会提示失败，改用邮箱即可。</td></tr>
         </tbody>
       </table>
       <div class="note note--warn">
         <b>两个要注意的点：</b><br>
-        ① 免费体验版官方说明「暂不支持加购扩展资源包」，而短信资源包属于扩展资源包 —— 也就是说<b>免费环境可能买不了短信包</b>，首月 100 条用完后要么升个人版（19.9 元/月）才能加购，要么改用邮箱。保险起见，测试用户一律走邮箱。<br>
-        ② 登录态会持久化（refresh token 约 30 天），用户不会每次打开都收短信，实际短信消耗远低于直觉。
+        ① 免费层<b>不卡安全域名白名单</b>（靠 anon key + RLS 隔离），所以 GitHub Pages 上线也不会 CORS 报错 —— 这正是从 CloudBase 换过来的原因。<br>
+        ② 登录态会持久化在浏览器 localStorage，用户不会每次打开都收验证码，实际邮件/短信消耗远低于直觉。
       </div>
     </div>
   </section>
@@ -250,19 +248,34 @@ publishableKey: '你的 Publishable Key',</pre>
   <section class="step" id="s6">
     <div class="step__hd"><span class="step__no">6</span><h2>数据隔离与管理员</h2></div>
     <div class="step__bd">
-      <p>在控制台 → 文档型数据库 → 新建集合 <span class="val">sync_data</span>，权限管理切到<b>安全规则</b>，填：</p>
-      <pre class="code">{
-  "read":  "doc.userId == auth.uid || auth.uid in ['这里填你的UID']",
-  "write": "doc.userId == auth.uid"
-}</pre>
-      <p>含义：每个人只能读写自己的数据；填进列表的 UID 可以读全部（管理员）。</p>
+      <p>在 Supabase 左侧 <b>SQL Editor</b> 里执行下面建表 + 权限（Row Level Security）语句：</p>
+      <pre class="code">create table if not exists sync_data (
+  id          text primary key,
+  user_id     uuid not null,
+  scope       text not null,
+  data        jsonb,
+  updated_at  bigint
+);
+alter table sync_data enable row level security;
+
+-- 每个人只能读写自己的数据
+create policy "own_rw" on sync_data
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- 管理员可读全部（把下面的 UUID 换成你自己的）
+create policy "admin_read" on sync_data
+  for select
+  using (auth.uid() = '这里填你的UUID');</pre>
+      <p>含义：每个人只能读写自己的数据；填进 <span class="val">adminUids</span> 的账号（UID 即 Supabase 的 user id）可以多读一份他人数据（管理员）。</p>
       <ol>
-        <li>先用你的邮箱或手机号登录 → 右上角账号面板底部复制 <b>UID</b>。</li>
-        <li>把 UID 填进上面规则里，同时填进 <span class="val">cb-config.js</span> 的 <b>adminUids</b> 数组。</li>
-        <li>打开 <a href="/admin.html">/admin.html</a>，输入某个用户的 UID 就能查看他的数据；也可以在控制台的 <span class="val">sync_data</span> 集合里按 userId 筛选、导出整表。</li>
+        <li>先用你的邮箱登录 → 右上角账号面板底部复制 <b>UID</b>（形如 UUID）。</li>
+        <li>把该 UUID 填进上面第二条 policy，同时填进 <span class="val">cb-config.js</span> 的 <b>adminUids</b> 数组。</li>
+        <li>打开 <a href="/admin.html">/admin.html</a>，输入某个用户的 UID 就能查看他的数据；也可以在 Supabase 控制台的 <span class="val">sync_data</span> 表里按 user_id 筛选、导出。</li>
       </ol>
       <div class="note note--warn">
-        安全规则修改后约 2–5 分钟生效；如果立刻读写报权限错误，等一会儿再试。
+        RLS policy 保存后立即生效；如果立刻读写报权限错误，检查 anon key 是否对应同一个项目、以及是否执行了 <code>enable row level security</code>。
       </div>
     </div>
   </section>
@@ -277,7 +290,7 @@ publishableKey: '你的 Publishable Key',</pre>
         <li>回到面板填 用户名 / 仓库名 / 令牌 → 连接并开通。</li>
       </ol>
       <div class="note">
-        两条通道<b>同一时间只用一条</b>：手机号登录后优先用 CloudBase；退出手机号账号才会走 GitHub。
+        两条通道<b>同一时间只用一条</b>：邮箱/手机号登录后优先用 Supabase；退出该账号才会走 GitHub。
       </div>
     </div>
   </section>

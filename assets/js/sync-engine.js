@@ -47,10 +47,10 @@
   }
   function CS() { return backend() || global.CloudStore || global.CbStore; }
   function AC() { return global.Account; }
-  /** 当前使用的后端名：'cloudbase' | 'github' | '' */
+  /** 当前使用的后端名：'supabase' | 'github' | '' */
   function backendName() {
     if (!backend()) return '';
-    return (backend() === global.CbStore) ? 'cloudbase' : 'github';
+    return (backend() === global.CbStore) ? 'supabase' : 'github';
   }
   function ready() { return !!backend(); }
 
@@ -253,7 +253,8 @@
   }
   try {
     global.addEventListener('account:change', onAuthChange);   // GitHub 账号
-    global.addEventListener('cb:change', onAuthChange);         // CloudBase 手机号账号
+    global.addEventListener('sb:change', onAuthChange);          // Supabase 账号
+    global.addEventListener('cb:change', onAuthChange);          // 兼容旧监听
   } catch (e) {}
 
   // 若脚本加载时已登录，启动一次

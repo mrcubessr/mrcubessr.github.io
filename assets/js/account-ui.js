@@ -166,13 +166,13 @@
     var m = mask.querySelector('.acct-modal');
     var A = AC(), C = CB();
 
-    // ① CloudBase 手机号账号已登录
+    // ① Supabase 账号已登录
     if (C && C.isLoggedIn()) {
       var u = C.get().user || {};
       var be = (SE() && SE().backend) ? SE().backend() : '';
       m.innerHTML =
         '<h3>' + esc(accountName(u)) + '</h3>' +
-        '<div class="acct-backend">云端：' + (be === 'cloudbase' ? '腾讯云开发' : 'GitHub 仓库') + '</div>' +
+        '<div class="acct-backend">云端：' + (be === 'supabase' ? 'Supabase' : 'GitHub 仓库') + '</div>' +
         '<div class="sub">数据已绑定到你的账号，换设备用同一手机号 / 邮箱登录即可恢复。</div>' +
         '<div class="acct-sec"><h4>本页同步状态</h4>' +
         (statusRows() || '<div class="acct-empty">本页没有需要同步的功能（其它页面各自同步自己的数据）。</div>') +
@@ -226,11 +226,11 @@
         '<button type="button" class="acct-tab' + (ch === 'email' ? ' is-on' : '') + '" id="acTabEmail">' +
         '邮箱<small>免费，推荐</small></button>' +
         '<button type="button" class="acct-tab' + (ch === 'phone' ? ' is-on' : '') + '" id="acTabPhone">' +
-        '手机号<small>收短信</small></button>' +
+        '手机号<small>短信(付费)</small></button>' +
         '</div>' +
         '<div class="acct-tip" id="acTip">' + (ch === 'email'
           ? '验证码发到邮箱，不产生短信费用；收不到请检查垃圾邮件。'
-          : '验证码以短信发送，首月 100 条免费，之后按条计费。') + '</div>' +
+          : '手机号验证码走 Supabase 短信服务（需另购 SMS provider），可能产生费用；否则请用邮箱登录。') + '</div>' +
         '<label class="acct-f">' + (ch === 'email' ? '邮箱地址' : '手机号') +
         '<input id="acAccount" type="' + (ch === 'email' ? 'email' : 'tel') + '" ' +
         'inputmode="' + (ch === 'email' ? 'email' : 'numeric') + '" ' +
@@ -242,7 +242,7 @@
         '<button class="acct-btn ghost" id="acSend" type="button">获取验证码</button></div></label>' +
         '<div class="acct-row"><button class="acct-btn" id="acLogin">登录 / 注册</button></div>' +
         '</div>'
-      : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 CloudBase 的 env 与 publishableKey。' +
+      : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。' +
         '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
 
     var ghSec = '<details class="acct-fold"' + (cbOk ? '' : ' open') + '><summary>高级：用 GitHub 仓库同步（备用通道）</summary>' +
