@@ -49,6 +49,8 @@
   var holding = false, holdTimer = 0, raf = 0;
   var inspectStart = 0, runStart = 0;
   var pendingPenalty = "";
+  var memoMs = 0, memoMarked = false;     /* 三盲分段计时：记忆用时 / 是否已标记 */
+  var pendingDnfReason = "";              /* DNF 归因：memo 记忆错 / exec 执行错 / other 其他 */
   var rawMs = 0;                      /* 未加罚时的原始用时 */
   var curScramble = "";
   var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
@@ -66,7 +68,24 @@
     var o = {};
     for (var k in d) if (Object.prototype.hasOwnProperty.call(d, k)) o[k] = d[k];
     o.len = 20;
+    o.split = true;                    /* 记忆 / 执行 分段计时（可关） */
+    o.steps = normSteps(null);         /* 各类公式平均步数（TPS 估算用） */
     return o;
+  }
+
+  /* 步数配置归一化：缺失或非法的项回落到引擎默认值 */
+  function normSteps(s) {
+    var d = (window.BLDEngine && window.BLDEngine.STEP_DEFAULTS) ||
+            { edge: 9, corner: 10, flip: 8, twist: 11, parity: 15 };
+    var out = {}, k;
+    for (k in d) if (Object.prototype.hasOwnProperty.call(d, k)) out[k] = d[k];
+    if (s && typeof s === "object") {
+      for (k in out) if (Object.prototype.hasOwnProperty.call(out, k)) {
+        var v = Number(s[k]);
+        if (isFinite(v) && v > 0) out[k] = v;
+      }
+    }
+    return out;
   }
 
   /* ---------- 数据模型 ---------- */
@@ -206,6 +225,8 @@
         for (var k in o.bld) if (Object.prototype.hasOwnProperty.call(o.bld, k)) merged[k] = o.bld[k];
         merged.orientation = parseInt(merged.orientation, 10) || 0;
         merged.len = clamp(parseInt(merged.len, 10) || 20, 12, 30);
+        merged.split = o.bld.split !== false;
+        merged.steps = normSteps(o.bld.steps);
         opt.bld = merged;
       } else {
         opt.bld = defaultBld();
@@ -260,9 +281,13 @@
   function normDiff(d) {
     if (!d || typeof d !== "object") return null;
     return {
+      edgeLetters: +d.edgeLetters || 0, flipLetters: +d.flipLetters || 0,
+      cornerLetters: +d.cornerLetters || 0, twistLetters: +d.twistLetters || 0,
       edgeF: +d.edgeF || 0, flipF: +d.flipF || 0,
       cornerF: +d.cornerF || 0, twistF: +d.twistF || 0,
       parityF: +d.parityF || 0, borrow: +d.borrow || 0,
+      borrowEdge: +d.borrowEdge || 0, borrowCorner: +d.borrowCorner || 0,
+      edgeCycles: +d.edgeCycles || 0, cornerCycles: +d.cornerCycles || 0,
       total: +d.total || 0, score: +d.score || 0,
       level: typeof d.level === "string" ? d.level : "",
       notation: typeof d.notation === "string" ? d.notation : ""
@@ -371,6 +396,12 @@
     if (els.corder) els.corder.value = opt.bld.cornerOrder;
     if (els.cororient) els.cororient.checked = !!opt.bld.cornerOrientFlag;
     if (els.corskip) els.corskip.checked = !!opt.bld.cornerSkip;
+    if (els.bldSplit) els.bldSplit.checked = opt.bld.split !== false;
+    if (els.stepEdge) els.stepEdge.value = opt.bld.steps.edge;
+    if (els.stepCorner) els.stepCorner.value = opt.bld.steps.corner;
+    if (els.stepFlip) els.stepFlip.value = opt.bld.steps.flip;
+    if (els.stepTwist) els.stepTwist.value = opt.bld.steps.twist;
+    if (els.stepParity) els.stepParity.value = opt.bld.steps.parity;
   }
 
   function readBldParams() {
@@ -386,6 +417,16 @@
     if (els.corder) b.cornerOrder = (els.corder.value || "").toUpperCase().replace(/[^A-Z]/g, "");
     if (els.cororient) b.cornerOrientFlag = els.cororient.checked;
     if (els.corskip) b.cornerSkip = els.corskip.checked;
+    if (els.bldSplit) b.split = els.bldSplit.checked;
+    if (els.stepEdge || els.stepCorner || els.stepFlip || els.stepTwist || els.stepParity) {
+      b.steps = normSteps({
+        edge: els.stepEdge && els.stepEdge.value,
+        corner: els.stepCorner && els.stepCorner.value,
+        flip: els.stepFlip && els.stepFlip.value,
+        twist: els.stepTwist && els.stepTwist.value,
+        parity: els.stepParity && els.stepParity.value
+      });
+    }
     var warn = "";
     if (window.BLDEngine) {
       var v = window.BLDEngine.validate(b);
@@ -479,15 +520,38 @@
     }
     state = "running";
     runStart = performance.now();
-    els.pen.hidden = !pendingPenalty;
-    if (pendingPenalty) els.pen.textContent = pendingPenalty;
+    memoMs = 0; memoMarked = false; pendingDnfReason = "";
+    if (els.memo) { els.memo.classList.remove("is-done"); els.memo.textContent = ""; }
     runTick();
+    paint();
+  }
+
+  /* 三盲：是否启用「记忆 / 执行」分段计时 */
+  function bldSplitOn() {
+    return opt.event === "bld" && !!opt.bld && opt.bld.split !== false;
+  }
+
+  /* 三盲：标记「记忆结束」，之后的时间计入执行段。M 键或屏幕按钮触发 */
+  function markMemo() {
+    if (state !== "running" || !bldSplitOn() || memoMarked) return;
+    memoMs = performance.now() - runStart;
+    memoMarked = true;
+    if (els.memo) {
+      els.memo.textContent = "记忆 " + S.fmt(memoMs) + " · 执行中";
+      els.memo.classList.add("is-done");
+    }
     paint();
   }
 
   function runTick() {
     if (state !== "running") return;
-    els.time.textContent = S.fmt(performance.now() - runStart);
+    var elapsed = performance.now() - runStart;
+    els.time.textContent = S.fmt(elapsed);
+    if (bldSplitOn() && els.memo) {
+      els.memo.textContent = memoMarked
+        ? "记忆 " + S.fmt(memoMs) + " · 执行 " + S.fmt(elapsed - memoMs)
+        : "记忆 " + S.fmt(elapsed) + " · 按 M 标记记忆结束";
+    }
     raf = requestAnimationFrame(runTick);
   }
 
@@ -512,7 +576,7 @@
   function confirmOk() {
     if (state !== "confirm") return;
     var entry = { ms: Math.round(rawMs), pen: pendingPenalty || "", date: Date.now() };
-    /* 三盲：把当前打乱对应的解法一并存入成绩（分析用） */
+    /* 三盲：把当前打乱对应的解法 + 指标一并存入成绩（分析用） */
     if (opt.event === "bld" && curBld && opt.bld) {
       var b = opt.bld;
       entry.bld = {
@@ -525,13 +589,19 @@
         cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
         edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
         parity: curBld.parity, complexity: curBld.complexity,
-        difficulty: curBld.difficulty
+        difficulty: curBld.difficulty,
+        dnfReason: pendingPenalty === "DNF" ? pendingDnfReason || "other" : ""
       };
+      if (window.BLDEngine && window.BLDEngine.bldMetrics && curBld.difficulty) {
+        var m = window.BLDEngine.bldMetrics(curBld.difficulty, memoMs, rawMs, b.steps);
+        entry.bld.metrics = m;
+      }
     }
     solves().unshift(entry);
     saveData();
     rawMs = 0;
     pendingPenalty = "";
+    pendingDnfReason = "";
     if (els.confirm) els.confirm.hidden = true;
     next(false);
   }
@@ -551,6 +621,47 @@
       : S.fmt(eff) + (pendingPenalty === "+2" ? "（含 +2）" : "");
     els.btnPlus2.classList.toggle("is-on", pendingPenalty === "+2");
     els.btnDnf.classList.toggle("is-on", pendingPenalty === "DNF");
+    renderConfirmMetrics();
+  }
+
+  /* 确认区：展示本次盲拧指标（记忆/执行/占比/TPS/每公式秒数）；DNF 时给出归因选择 */
+  function renderConfirmMetrics() {
+    if (!els.confirmMetrics) return;
+    if (opt.event !== "bld" || !curBld || !curBld.difficulty) { els.confirmMetrics.innerHTML = ""; }
+    else {
+      var m = window.BLDEngine && window.BLDEngine.bldMetrics
+        ? window.BLDEngine.bldMetrics(curBld.difficulty, memoMs, rawMs, opt.bld.steps)
+        : null;
+      if (!m) { els.confirmMetrics.innerHTML = ""; }
+      else {
+        var parts = [];
+        parts.push(metric("估算步数", m.steps + " 步"));
+        if (m.split) {
+          parts.push(metric("记忆", S.fmt(m.memoMs)));
+          parts.push(metric("执行", S.fmt(m.execMs)));
+          parts.push(metric("记忆占比", Math.round(m.memoRatio * 100) + "%"));
+          parts.push(metric("记忆速度", m.lettersPerMin.toFixed(1) + " 字母/分"));
+          parts.push(metric("执行 TPS", m.tpsExec.toFixed(2)));
+        } else {
+          parts.push(metric("TPS", m.tpsAll.toFixed(2), "未分段"));
+        }
+        parts.push(metric("每公式秒数", m.secPerAlg.toFixed(2) + "s"));
+        els.confirmMetrics.innerHTML = '<div class="tm-confirm__metrics">' + parts.join("") + "</div>";
+      }
+    }
+    if (els.dnfReason) {
+      els.dnfReason.hidden = pendingPenalty !== "DNF";
+      if (pendingPenalty === "DNF") {
+        var cur = pendingDnfReason || "other";
+        [["memo", els.dnfMemo], ["exec", els.dnfExec], ["other", els.dnfOther]].forEach(function (p) {
+          if (p[1]) p[1].classList.toggle("is-on", p[0] === cur);
+        });
+      }
+    }
+  }
+  function metric(label, val, note) {
+    return '<div class="tm-metric"><span class="tm-metric__k">' + label + "</span>" +
+           '<span class="tm-metric__v">' + val + (note ? ' <i class="tm-metric__note">' + note + "</i>" : "") + "</span></div>";
   }
 
   function next(keepState) {
@@ -625,6 +736,7 @@
         return;
       }
       if (code === "Escape" || k === "Escape" || k === "Esc") { e.preventDefault(); abortKey(); return; }
+      if ((k === "m" || k === "M") && state === "running") { e.preventDefault(); markMemo(); return; }
       if ((k === "n" || k === "N") && (state === "idle" || state === "confirm")) {
         e.preventDefault();
         if (state === "confirm") discard(); else next(false);
@@ -795,12 +907,18 @@
         else if (v === s.best) t.classList.add("is-best");
         else if (v === s.worst) t.classList.add("is-worst");
       }
-      /* 三盲：在时间下方显示复杂度，并把解法写进 tooltip */
+      /* 三盲：在时间下方显示复杂度 + 执行 TPS，并把解法写进 tooltip */
       if (rec.bld && rec.bld.complexity != null) {
         var cm = document.createElement("span");
         cm.className = "tm-list__cmplx";
         cm.textContent = "C" + rec.bld.complexity;
         t.appendChild(cm);
+      }
+      if (rec.bld && rec.bld.metrics && rec.bld.metrics.tpsAll != null) {
+        var tp = document.createElement("span");
+        tp.className = "tm-list__tps";
+        tp.textContent = "TPS " + rec.bld.metrics.tpsAll.toFixed(2);
+        t.appendChild(tp);
       }
       if (rec.bld) {
         li.title = "坐标 " + (rec.bld.orientationLabel || "") +
@@ -1514,7 +1632,18 @@
       cbuf: $("tm-bld-cbuf"), corder: $("tm-bld-corder"),
       cororient: $("tm-bld-cororient"), corskip: $("tm-bld-corskip"),
       bldReset: $("tm-bld-reset"), bldWarn: $("tm-bld-warn"),
-      bldAnalysis: $("tm-bld-analysis")
+      bldAnalysis: $("tm-bld-analysis"),
+      /* 分段计时与步数配置 */
+      bldSplit: $("tm-bld-split"), bldStepsBtn: $("tm-bld-steps-toggle"),
+      stepEdge: $("tm-step-edge"), stepCorner: $("tm-step-corner"),
+      stepFlip: $("tm-step-flip"), stepTwist: $("tm-step-twist"), stepParity: $("tm-step-parity"),
+      bldStepsWrap: $("tm-bld-steps"),
+      /* 计时中：记忆/执行分段提示 */
+      memo: $("tm-memo"),
+      /* 确认区：本次指标 + DNF 归因 */
+      confirmMetrics: $("tm-confirm-metrics"),
+      dnfReason: $("tm-dnf-reason"),
+      dnfMemo: $("tm-dnf-memo"), dnfExec: $("tm-dnf-exec"), dnfOther: $("tm-dnf-other")
     };
     if (!els.stage) return;
 
@@ -1620,6 +1749,21 @@
     });
     if (els.bldReset) els.bldReset.addEventListener("click", function () { resetBld(); els.bldReset.blur(); });
     if (els.bldCopy) els.bldCopy.addEventListener("click", function () { copyBld(); });
+    /* 分段计时开关 + 步数估算配置 */
+    [els.bldSplit, els.stepEdge, els.stepCorner, els.stepFlip, els.stepTwist, els.stepParity].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener("change", function () { readBldParams(); });
+    });
+    if (els.bldStepsBtn && els.bldStepsWrap) {
+      els.bldStepsBtn.addEventListener("click", function () {
+        els.bldStepsWrap.hidden = !els.bldStepsWrap.hidden;
+        els.bldStepsBtn.setAttribute("aria-expanded", String(!els.bldStepsWrap.hidden));
+      });
+    }
+    /* 确认区：DNF 归因（记忆错 / 执行错 / 其他） */
+    if (els.dnfMemo) els.dnfMemo.addEventListener("click", function () { pendingDnfReason = "memo"; renderConfirmMetrics(); });
+    if (els.dnfExec) els.dnfExec.addEventListener("click", function () { pendingDnfReason = "exec"; renderConfirmMetrics(); });
+    if (els.dnfOther) els.dnfOther.addEventListener("click", function () { pendingDnfReason = "other"; renderConfirmMetrics(); });
     applyEventUI();
 
     bindInput();

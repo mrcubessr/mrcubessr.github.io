@@ -506,6 +506,61 @@
     };
   }
 
+  /* 估算步数：盲拧执行的是固定公式库（3-style 等），实际步数由「公式条数」决定，
+     与最优解无关，因此按「各类公式条数 × 该类平均步数」估算，用于计算 TPS。
+     默认值取自常见公式库经验值，可在计时器三盲参数里按个人习惯调整。 */
+  var STEP_DEFAULTS = { edge: 9, corner: 10, flip: 8, twist: 11, parity: 15 };
+
+  function estimateSteps(diff, cfg) {
+    var c = {}, k;
+    for (k in STEP_DEFAULTS) if (Object.prototype.hasOwnProperty.call(STEP_DEFAULTS, k)) c[k] = STEP_DEFAULTS[k];
+    if (cfg && typeof cfg === "object") {
+      for (k in c) if (Object.prototype.hasOwnProperty.call(c, k)) {
+        var v = Number(cfg[k]);
+        if (isFinite(v) && v > 0) c[k] = v;
+      }
+    }
+    var d = diff || {};
+    var e = (d.edgeF || 0) * c.edge,
+        f = (d.flipF || 0) * c.flip,
+        co = (d.cornerF || 0) * c.corner,
+        t = (d.twistF || 0) * c.twist,
+        p = (d.parityF || 0) * c.parity;
+    return {
+      edge: e, flip: f, corner: co, twist: t, parity: p,
+      total: Math.round(e + f + co + t + p), cfg: c
+    };
+  }
+
+  /* 一把成绩的派生指标：分段（memo/exec）→ 记忆速度、TPS、每公式秒数
+     memoMs 为 0 表示未分段，此时执行时间按总时间计（执行 TPS 会被记忆时间稀释，UI 需标注） */
+  function bldMetrics(diff, memoMs, totalMs, cfg) {
+    var d = diff || {};
+    var st = estimateSteps(d, cfg);
+    var totalSec = Math.max(0, (Number(totalMs) || 0)) / 1000;
+    var memoSec = Math.max(0, (Number(memoMs) || 0)) / 1000;
+    var split = memoSec > 0 && memoSec < totalSec;
+    var execSec = split ? totalSec - memoSec : totalSec;
+    var letters = (d.edgeLetters || 0) + (d.flipLetters || 0) + (d.cornerLetters || 0) + (d.twistLetters || 0);
+    var totalF = d.total || 0;
+    return {
+      steps: st.total,
+      stepsDetail: st,
+      split: split,
+      memoMs: Math.round(memoSec * 1000),
+      execMs: Math.round(execSec * 1000),
+      totalMs: Math.round(totalSec * 1000),
+      memoRatio: totalSec > 0 ? memoSec / totalSec : 0,
+      /* 记忆速度：每编码平均耗时（秒）；未分段时用总时间粗估 */
+      secPerLetter: letters > 0 ? (split ? memoSec : totalSec) / letters : 0,
+      lettersPerMin: (split ? memoSec : totalSec) > 0 ? letters / (split ? memoSec : totalSec) * 60 : 0,
+      /* TPS：执行 TPS = 步数 ÷ 执行时间（真手速）；整体 TPS = 步数 ÷ 总时间（综合效率） */
+      tpsExec: execSec > 0 ? st.total / execSec : 0,
+      tpsAll: totalSec > 0 ? st.total / totalSec : 0,
+      secPerAlg: totalF > 0 ? execSec / totalF : 0
+    };
+  }
+
   function readCodes(scramble, opts) {
     const o = normalize(opts);
     const orient = CUBE_ORIENTATIONS[o.orientation] || CUBE_ORIENTATIONS[0];
@@ -549,8 +604,11 @@
     fixorientation: fixorientation,
     validate: validate,
     buildDifficulty: buildDifficulty,
+    estimateSteps: estimateSteps,
+    bldMetrics: bldMetrics,
     CUBE_ORIENTATIONS: CUBE_ORIENTATIONS,
     DEFAULTS: DEFAULTS,
+    STEP_DEFAULTS: STEP_DEFAULTS,
     getParity: getParity
   };
 });

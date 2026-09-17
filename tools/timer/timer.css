@@ -328,6 +328,41 @@
 .tm-ba-bar__v { font-family: var(--font-mono); color: var(--fg-3); white-space: nowrap; }
 .tm-ba-foot { font-size: 12px; color: var(--fg-3); line-height: 1.6; margin: 8px 0 0; }
 
+/* ---------- 计时中：记忆/执行分段提示 ---------- */
+.tm-memo {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  color: var(--gold); margin-top: 6px; letter-spacing: .5px;
+}
+.tm-memo.is-done { color: var(--green); }
+
+/* ---------- 确认区：本次盲拧指标 ---------- */
+.tm-confirm__metrics { flex: 1 1 auto; width: 100%; margin: 8px 0 4px; }
+.tm-confirm__metrics:empty { display: none; }
+.tm-confirm__metrics .tm-confirm__metrics { margin: 0; }
+.tm-confirm__metrics > .tm-confirm__metrics { display: contents; }
+.tm-confirm__metrics-wrap { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.tm-metric { display: inline-flex; flex-direction: column; line-height: 1.2; padding: 2px 0; }
+.tm-metric__k { font-size: 10px; color: var(--fg-3); letter-spacing: .5px; }
+.tm-metric__v { font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--fg); }
+.tm-metric__note { font-size: 10px; font-style: normal; color: var(--amber); font-family: var(--font-sans); }
+
+/* ---------- 确认区：DNF 归因 ---------- */
+.tm-dnf-reason {
+  flex: 1 1 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 4px 0 6px; padding: 6px 8px; border: 1px dashed var(--line-2);
+}
+.tm-dnf-reason__k { font-size: 12px; color: var(--fg-2); }
+
+/* ---------- 参数面板：步数估算配置 ---------- */
+.tm-bld-steps { margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface-2); }
+.tm-bld-steps__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+.tm-bld-step { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--fg-2); }
+.tm-bld-step > span { font-size: 11px; color: var(--fg-3); }
+.tm-bld-step .input { width: 100%; text-align: center; }
+
+/* ---------- 成绩列表：TPS 角标 ---------- */
+.tm-list__tps { display: block; font-size: 10px; font-weight: 600; color: var(--brand); margin-top: 2px; }
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 720px) {
   .tm-strip { grid-template-columns: repeat(2, 1fr); }

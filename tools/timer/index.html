@@ -124,6 +124,31 @@
           </div>
         </div>
       </div>
+      <div class="tm-bld-group">
+        <div class="tm-bld-group__title">计时与步数</div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">分段计时</span>
+          <div class="tm-bld-row__v tm-bld-row__v--checks">
+            <label class="tm-check"><input type="checkbox" id="tm-bld-split" checked><span>记忆/执行分段（按 M 标记记忆结束）</span></label>
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">步数估算</span>
+          <div class="tm-bld-row__v">
+            <button type="button" class="btn btn--sm btn--ghost" id="tm-bld-steps-toggle" aria-expanded="false">配置各类平均步数 ▾</button>
+          </div>
+        </div>
+        <div class="tm-bld-steps" id="tm-bld-steps" hidden>
+          <div class="tm-bld-steps__grid">
+            <label class="tm-bld-step"><span>棱</span><input class="input tm-bld-row__tiny" id="tm-step-edge" type="number" min="1" max="40" step="1" inputmode="numeric"></label>
+            <label class="tm-bld-step"><span>角</span><input class="input tm-bld-row__tiny" id="tm-step-corner" type="number" min="1" max="40" step="1" inputmode="numeric"></label>
+            <label class="tm-bld-step"><span>翻色</span><input class="input tm-bld-row__tiny" id="tm-step-flip" type="number" min="1" max="40" step="1" inputmode="numeric"></label>
+            <label class="tm-bld-step"><span>角翻</span><input class="input tm-bld-row__tiny" id="tm-step-twist" type="number" min="1" max="40" step="1" inputmode="numeric"></label>
+            <label class="tm-bld-step"><span>奇偶</span><input class="input tm-bld-row__tiny" id="tm-step-parity" type="number" min="1" max="40" step="1" inputmode="numeric"></label>
+          </div>
+          <span class="tm-bld-params__hint">执行 TPS = 估算步数 ÷ 执行时间。默认值 9/10/8/11/15 步，可按你的公式库调整。</span>
+        </div>
+      </div>
       <div class="tm-bld-params__foot">
         <button class="btn btn--sm btn--ghost" id="tm-bld-reset" type="button">恢复默认</button>
         <span class="tm-bld-params__warn" id="tm-bld-warn" hidden></span>
@@ -135,6 +160,7 @@
       <div class="tm-pen" id="tm-pen" hidden></div>
       <div class="tm-time" id="tm-time">0.00</div>
       <div class="tm-state" id="tm-state"></div>
+      <div class="tm-memo" id="tm-memo" hidden></div>
     </div>
 
     <!-- ②-B 三盲解法（仅「三盲」项目显示） -->
@@ -158,6 +184,13 @@
     <div class="tm-confirm" id="tm-confirm" hidden>
       <span class="tm-confirm__label">确认本次成绩</span>
       <span class="tm-confirm__time" id="tm-confirm-time">--</span>
+      <div class="tm-confirm__metrics" id="tm-confirm-metrics"></div>
+      <div class="tm-dnf-reason" id="tm-dnf-reason" hidden>
+        <span class="tm-dnf-reason__k">DNF 归因：</span>
+        <button type="button" class="btn btn--xs btn--ghost" id="tm-dnf-memo">记忆错</button>
+        <button type="button" class="btn btn--xs btn--ghost" id="tm-dnf-exec">执行错</button>
+        <button type="button" class="btn btn--xs btn--ghost" id="tm-dnf-other">其他</button>
+      </div>
       <div class="tm-confirm__btns">
         <button class="btn btn--sm btn--primary" id="tm-confirm-ok" type="button">✓ 记录</button>
         <button class="btn btn--sm btn--ghost" id="tm-confirm-plus2" type="button">+2</button>
