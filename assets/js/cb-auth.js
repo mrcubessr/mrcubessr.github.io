@@ -224,6 +224,43 @@
       });
     },
 
+    /**
+     * 邮箱 + 密码登录（免验证码，适合换设备）
+     * @param {string} email
+     * @param {string} password
+     */
+    loginWithPassword: function (email, password) {
+      var acc = normEmail(email);
+      if (!RE_EMAIL.test(acc)) return Promise.reject(new Error('请填写正确的邮箱地址'));
+      if (!password || password.length < 6) return Promise.reject(new Error('密码至少 6 位'));
+      return ensure().then(function (client) {
+        return client.auth.signInWithPassword({ email: acc, password: password }).then(function (r) {
+          if (r && r.error) throw new Error(r.error.message || '登录失败');
+          return refresh().then(function () { emit(); return state.user; });
+        });
+      }).catch(function (e) {
+        throw new Error(e && e.message ? e.message : e);
+      });
+    },
+
+    /**
+     * 为已登录账号设置 / 修改密码（无需输旧密码，当前会话即凭证）
+     * 适用于：此前用验证码注册、尚未设过密码的账号。
+     * @param {string} newPassword
+     */
+    setPassword: function (newPassword) {
+      if (!CBAuth.isLoggedIn()) return Promise.reject(new Error('请先登录'));
+      if (!newPassword || newPassword.length < 6) return Promise.reject(new Error('密码至少 6 位'));
+      var client = state.client;
+      if (!client || !client.auth) return Promise.reject(new Error('账号未初始化'));
+      return client.auth.updateUser({ password: newPassword }).then(function (r) {
+        if (r && r.error) throw new Error(r.error.message || '设置失败');
+        return true;
+      }).catch(function (e) {
+        throw new Error(e && e.message ? e.message : e);
+      });
+    },
+
     signOut: function () {
       var client = state.client;
       var p = (client && client.auth && typeof client.auth.signOut === 'function')

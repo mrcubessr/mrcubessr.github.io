@@ -122,6 +122,7 @@
   var cdTimer = null;      // 验证码倒计时
   var cdLeft = 0;
   var curChannel = 'email';// 当前登录通道：email | phone（默认邮箱，零短信成本）
+  var loginMode = 'otp';   // 登录方式：otp 验证码 | pwd 密码
 
   function closePanel() { if (mask) { mask.remove(); mask = null; } }
 
@@ -177,6 +178,12 @@
         '<div class="acct-sec"><h4>本页同步状态</h4>' +
         (statusRows() || '<div class="acct-empty">本页没有需要同步的功能（其它页面各自同步自己的数据）。</div>') +
         '</div>' +
+        '<div class="acct-sec"><h4>登录密码</h4>' +
+        '<div class="acct-tip">设置密码后，换设备可直接用「邮箱 + 密码」登录，免收验证码。</div>' +
+        '<label class="acct-f">新密码<input id="acNewPwd" type="password" autocomplete="new-password" placeholder="至少 6 位"></label>' +
+        '<label class="acct-f">确认新密码<input id="acNewPwd2" type="password" autocomplete="new-password" placeholder="再输一次"></label>' +
+        '<div class="acct-row"><button class="acct-btn ghost" id="acSetPwd">设置 / 修改密码</button></div>' +
+        '</div>' +
         '<div class="acct-row">' +
         '<button class="acct-btn" id="acPull">立即拉取</button>' +
         '<button class="acct-btn ghost" id="acPush">强制上传</button>' +
@@ -213,12 +220,17 @@
       return;
     }
 
-    // ③ 未登录：手机号 / 邮箱验证码登录为主，GitHub 折叠为高级
+    // ③ 未登录：邮箱/手机号验证码 为主，密码登录为辅，GitHub 折叠为高级
     var cbOk = !!(C && C.configured());
     var ch = curChannel;
     var head = '<h3>登录 / 注册</h3>' +
-      '<div class="sub"><b>不用记密码</b>：填手机号或邮箱 → 收验证码 → 登录。' +
-      '首次登录会自动创建账号。<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
+      '<div class="sub">填手机号或邮箱收验证码即可登录；也可在登录后设置密码，' +
+      '换设备用「邮箱 + 密码」免验证码。<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
+
+    var modeToggle = '<div class="acct-tabs">' +
+      '<button type="button" class="acct-tab' + (loginMode === 'otp' ? ' is-on' : '') + '" id="acModeOtp">验证码登录</button>' +
+      '<button type="button" class="acct-tab' + (loginMode === 'pwd' ? ' is-on' : '') + '" id="acModePwd">密码登录</button>' +
+      '</div>';
 
     var otpSec = cbOk
       ? '<div class="acct-sec">' +
@@ -245,6 +257,17 @@
       : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。' +
         '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
 
+    var pwdSec = cbOk
+      ? '<div class="acct-sec">' +
+        '<div class="acct-tip">用「邮箱 + 密码」登录，换设备无需收验证码。还没有密码？先切到「验证码登录」收一次码，登录后在面板里「设置密码」。</div>' +
+        '<label class="acct-f">邮箱地址<input id="acAccount" type="email" autocomplete="email" placeholder="you@example.com"></label>' +
+        '<label class="acct-f">密码<input id="acPwd" type="password" autocomplete="current-password" placeholder="至少 6 位"></label>' +
+        '<div class="acct-row"><button class="acct-btn" id="acLoginPwd">登录</button></div>' +
+        '</div>'
+      : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。</div></div>';
+
+    var bodySec = (loginMode === 'pwd') ? pwdSec : otpSec;
+
     var ghSec = '<details class="acct-fold"' + (cbOk ? '' : ' open') + '><summary>高级：用 GitHub 仓库同步（备用通道）</summary>' +
       '<div style="margin-top:10px">' +
       '<label class="acct-f">GitHub 用户名<input id="acOwner" placeholder="如 mrcubessr" value="' + esc(A && A.get ? A.get().owner : '') + '"></label>' +
@@ -254,8 +277,8 @@
       '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 <b>Contents: Read and write</b>。</div>' +
       '</div></details>';
 
-    m.innerHTML = head + otpSec + ghSec + '<div class="acct-msg" id="acMsg"></div>';
-    if (cbOk) wireOtp(m);
+    m.innerHTML = head + modeToggle + bodySec + ghSec + '<div class="acct-msg" id="acMsg"></div>';
+    if (cbOk) { if (loginMode === 'pwd') wirePwd(m); else wireOtp(m); wireMode(m); }
     wireGithub(m);
   }
 
@@ -355,6 +378,40 @@
     };
   }
 
+  /* ---------------- 登录方式切换 / 密码登录 ---------------- */
+  function wireMode(m) {
+    var o = m.querySelector('#acModeOtp');
+    var p = m.querySelector('#acModePwd');
+    if (o) o.onclick = function () { loginMode = 'otp'; renderPanel(); var a = m.querySelector('#acAccount'); if (a) a.focus(); };
+    if (p) p.onclick = function () { loginMode = 'pwd'; renderPanel(); var a = m.querySelector('#acAccount'); if (a) a.focus(); };
+  }
+
+  function wirePwd(m) {
+    var C = CB();
+    m.querySelector('#acLoginPwd').onclick = function () {
+      var email = (m.querySelector('#acAccount').value || '').trim();
+      var pwd = (m.querySelector('#acPwd').value || '');
+      if (!email) { msg(m, '请填写邮箱', 'err'); return; }
+      if (!pwd) { msg(m, '请填写密码', 'err'); return; }
+      var b = this; b.disabled = true; msg(m, '正在登录…');
+      C.loginWithPassword(email, pwd).then(function (user) {
+        msg(m, '登录成功' + (user ? '：' + accountName(user) : ''), 'ok');
+        setTimeout(function () { renderPanel(); refreshChip(); }, 400);
+      }).catch(function (e) {
+        b.disabled = false;
+        msg(m, '登录失败：' + (e && e.message ? e.message : e), 'err');
+      });
+    };
+    var acc = m.querySelector('#acAccount');
+    var pwd = m.querySelector('#acPwd');
+    if (acc) acc.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); var l = m.querySelector('#acLoginPwd'); if (l) l.click(); }
+    });
+    if (pwd) pwd.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); var l = m.querySelector('#acLoginPwd'); if (l) l.click(); }
+    });
+  }
+
   /* ---------------- 已登录 ---------------- */
   function wireLogged(m, kind) {
     var S = SE();
@@ -372,6 +429,23 @@
       var b = this; b.disabled = true; msg(m, '下载中…');
       S.pullAll(true).then(function (r) { msg(m, '已下载 ' + (r || []).length + ' 项', 'ok'); b.disabled = false; renderPanel(); })
         .catch(function (e) { msg(m, '下载失败：' + e.message, 'err'); b.disabled = false; });
+    };
+    var setPwd = m.querySelector('#acSetPwd');
+    if (setPwd) setPwd.onclick = function () {
+      var p1 = (m.querySelector('#acNewPwd').value || '');
+      var p2 = (m.querySelector('#acNewPwd2').value || '');
+      if (!p1) { msg(m, '请输入新密码', 'err'); return; }
+      if (p1.length < 6) { msg(m, '密码至少 6 位', 'err'); return; }
+      if (p1 !== p2) { msg(m, '两次输入的密码不一致', 'err'); return; }
+      var b = this; b.disabled = true; msg(m, '正在设置…');
+      CB().setPassword(p1).then(function () {
+        msg(m, '密码已设置，下次可用「邮箱 + 密码」登录', 'ok');
+        b.disabled = false;
+        m.querySelector('#acNewPwd').value = '';
+        m.querySelector('#acNewPwd2').value = '';
+      }).catch(function (e) {
+        msg(m, '设置失败：' + (e && e.message ? e.message : e), 'err'); b.disabled = false;
+      });
     };
     m.querySelector('#acOut').onclick = function () {
       if (!confirm('退出后本机数据仍保留，但不再同步。确定退出？')) return;
