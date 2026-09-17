@@ -55,7 +55,7 @@
   var curScramble = "";
   var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
 
-  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null };
+  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true };
 
   /* ---------- 三盲默认参数（与 bld-engine 默认值一致） ---------- */
   function defaultBld() {
@@ -231,6 +231,8 @@
       } else {
         opt.bld = defaultBld();
       }
+      /* 参数面板默认收起（设定一次即可，不必一直显示） */
+      opt.bldCollapsed = (typeof o.bldCollapsed === "boolean") ? o.bldCollapsed : true;
     } catch (e) {
       opt.bld = defaultBld();
     }
@@ -370,7 +372,33 @@
     if (els.bld) els.bld.hidden = !isBld;
     if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
     if (els.manualSeg) els.manualSeg.hidden = isBld;
+    if (els.bldNetSide) els.bldNetSide.hidden = !isBld;   /* 展开图与打乱公式同处显示 */
     if (isBld && els.manualBox) els.manualBox.hidden = true;
+    if (isBld) applyBldCollapse();                        /* 恢复上次收起/展开状态 */
+  }
+
+  /* 三盲参数面板：收起后只留一行摘要，点标题展开 */
+  function applyBldCollapse() {
+    var collapsed = opt.bldCollapsed !== false;
+    if (!els.bldParams) return;
+    els.bldParams.classList.toggle("is-collapsed", collapsed);
+    if (els.bldBody) els.bldBody.hidden = collapsed;
+    if (els.bldParamsToggle) els.bldParamsToggle.setAttribute("aria-expanded", String(!collapsed));
+    renderBldSummary();
+  }
+  function toggleBldCollapse() {
+    opt.bldCollapsed = !(opt.bldCollapsed !== false);
+    saveOpt();
+    applyBldCollapse();
+  }
+  /* 收起时显示当前坐标系与编码习惯摘要 */
+  function renderBldSummary() {
+    if (!els.bldSummary || !opt.bld) return;
+    var b = opt.bld;
+    var orient = (window.BLDEngine && window.BLDEngine.CUBE_ORIENTATIONS[b.orientation])
+      ? window.BLDEngine.CUBE_ORIENTATIONS[b.orientation].label : ("#" + b.orientation);
+    els.bldSummary.textContent = orient + " · 棱 " + b.edgeBuffer + "/" + b.edgeOrder +
+      " · 角 " + b.cornerBuffer + "/" + b.cornerOrder;
   }
 
   function populateOrientation() {
@@ -402,6 +430,7 @@
     if (els.stepFlip) els.stepFlip.value = opt.bld.steps.flip;
     if (els.stepTwist) els.stepTwist.value = opt.bld.steps.twist;
     if (els.stepParity) els.stepParity.value = opt.bld.steps.parity;
+    renderBldSummary();
   }
 
   function readBldParams() {
@@ -442,6 +471,7 @@
 
   function onBldParamChange() {
     readBldParams();
+    renderBldSummary();
     if (opt.event === "bld") computeBld();   /* 参数变了，按当前打乱重算解法 */
   }
 
@@ -980,6 +1010,7 @@
           c.classList.toggle("is-active", c.dataset.event === opt.event);
         });
         applyEventUI();
+        applyBldCollapse();
         if (opt.event === "bld") syncBldParamsUI();
         next(false);
         renderGroups();
@@ -1624,6 +1655,8 @@
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
+      bldParamsToggle: $("tm-bld-collapse"), bldBody: $("tm-bld-body"), bldSummary: $("tm-bld-summary"),
+      bldNetSide: $("tm-bld-net-side"),
       bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
       bldNet: $("tm-bld-net"), bldNetCap: $("tm-bld-net-cap"), bldDiff: $("tm-bld-diff"),
       orientSel: $("tm-bld-orient"), lenInput: $("tm-bld-len"),
@@ -1741,6 +1774,13 @@
     /* 三盲：参数面板 + 解法面板 */
     populateOrientation();
     syncBldParamsUI();
+    if (els.bldParamsToggle) els.bldParamsToggle.addEventListener("click", toggleBldCollapse);
+    if (els.bldParams) els.bldParams.addEventListener("click", function (e) {
+      /* 点击摘要行（非交互控件）也能展开，方便快速查看 */
+      if (els.bldBody && els.bldBody.hidden && (e.target === els.bldSummary || e.target.classList.contains("tm-bld-params__head"))) {
+        toggleBldCollapse();
+      }
+    });
     [els.orientSel, els.lenInput, els.ebuf, els.eorder, els.eorient, els.eskip,
      els.cbuf, els.corder, els.cororient, els.corskip].forEach(function (el) {
       if (!el) return;
@@ -1765,6 +1805,8 @@
     if (els.dnfExec) els.dnfExec.addEventListener("click", function () { pendingDnfReason = "exec"; renderConfirmMetrics(); });
     if (els.dnfOther) els.dnfOther.addEventListener("click", function () { pendingDnfReason = "other"; renderConfirmMetrics(); });
     applyEventUI();
+    applyBldCollapse();
+    renderBldSummary();
 
     bindInput();
 

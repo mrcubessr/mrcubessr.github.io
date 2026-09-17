@@ -28,7 +28,7 @@
 
   <div class="tm">
 
-    <!-- ① 打乱 -->
+    <!-- ① 打乱：公式 + 展开图 并排展示 -->
     <div class="tm-bar">
       <div class="tm-bar__row">
         <span class="tm-label">项目</span>
@@ -40,11 +40,18 @@
         </div>
       </div>
 
-      <div class="tm-scramble">
-        <div class="tm-scramble__text" id="tm-scramble">…</div>
-        <div class="tm-scramble__btns">
-          <button class="btn btn--sm btn--secondary" id="tm-new" type="button">换打乱</button>
-          <button class="btn btn--sm btn--ghost" id="tm-copy" type="button">复制</button>
+      <div class="tm-scramble-block">
+        <div class="tm-scramble">
+          <div class="tm-scramble__text" id="tm-scramble">…</div>
+          <div class="tm-scramble__btns">
+            <button class="btn btn--sm btn--secondary" id="tm-new" type="button">换打乱</button>
+            <button class="btn btn--sm btn--ghost" id="tm-copy" type="button">复制</button>
+          </div>
+        </div>
+        <!-- 三盲：展开图与打乱公式同处展示（仅「三盲」项目显示） -->
+        <div class="tm-bld-net-side" id="tm-bld-net-side" hidden>
+          <canvas id="tm-bld-net" aria-label="三盲打乱展开图"></canvas>
+          <span class="tm-bld__net-cap" id="tm-bld-net-cap">展开图</span>
         </div>
       </div>
 
@@ -58,9 +65,15 @@
     <!-- ①-B 三盲参数面板（仅「三盲」项目显示） -->
     <div class="tm-bld-params" id="tm-bld-params" hidden>
       <div class="tm-bld-params__head">
-        <span class="tm-label">三盲参数</span>
-        <span class="tm-bld-params__hint">设定你的坐标系与编码习惯，计时器会据此自动算出解法</span>
+        <button class="tm-bld-params__toggle" id="tm-bld-collapse" type="button"
+                aria-expanded="true" aria-controls="tm-bld-body">
+          <span class="tm-bld-params__caret" aria-hidden="true">▾</span>
+          <span class="tm-label">三盲参数</span>
+        </button>
+        <span class="tm-bld-params__summary" id="tm-bld-summary"></span>
+        <span class="tm-bld-params__hint">点标题展开/收起 · 设定一次即可</span>
       </div>
+      <div class="tm-bld-params__body" id="tm-bld-body">
       <div class="tm-bld-group">
         <div class="tm-bld-group__title">坐标与打乱</div>
         <div class="tm-bld-row">
@@ -153,6 +166,7 @@
         <button class="btn btn--sm btn--ghost" id="tm-bld-reset" type="button">恢复默认</button>
         <span class="tm-bld-params__warn" id="tm-bld-warn" hidden></span>
       </div>
+      </div><!-- /tm-bld-params__body -->
     </div>
 
     <!-- ② 计时舞台 -->
@@ -170,13 +184,7 @@
         <span class="tm-bld__meta" id="tm-bld-meta"></span>
         <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
       </div>
-      <div class="tm-bld__main">
-        <div class="tm-bld__net" id="tm-bld-net-wrap">
-          <canvas id="tm-bld-net" aria-label="三盲打乱展开图"></canvas>
-          <span class="tm-bld__net-cap" id="tm-bld-net-cap">展开图</span>
-        </div>
-        <div class="tm-bld__diff" id="tm-bld-diff"></div>
-      </div>
+      <div class="tm-bld__diff" id="tm-bld-diff"></div>
       <div class="tm-bld__rows" id="tm-bld-rows"></div>
     </div>
 
