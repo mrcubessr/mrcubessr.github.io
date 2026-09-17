@@ -70,6 +70,7 @@
     o.len = 20;
     o.split = true;                    /* 记忆 / 执行 分段计时（可关） */
     o.steps = normSteps(null);         /* 各类公式平均步数（TPS 估算用） */
+    o.showAfter = true;                /* 三盲解法默认“计时后才显示”，便于复盘（可改为立即显示） */
     return o;
   }
 
@@ -227,6 +228,7 @@
         merged.len = clamp(parseInt(merged.len, 10) || 20, 12, 30);
         merged.split = o.bld.split !== false;
         merged.steps = normSteps(o.bld.steps);
+        merged.showAfter = o.bld.showAfter !== false;
         opt.bld = merged;
       } else {
         opt.bld = defaultBld();
@@ -264,7 +266,11 @@
   }
   function renderScramble() {
     if (!els.scramble) return;
-    els.scramble.textContent = curScramble || "—";
+    /* 每个转法作为独立 token，配合 CSS flex-wrap 实现整齐换行 */
+    var moves = (curScramble || "").split(/\s+/).filter(Boolean);
+    els.scramble.innerHTML = moves.length
+      ? moves.map(function (m) { return '<span class="tm-mv">' + m + "</span>"; }).join("")
+      : "—";
     els.scramble.classList.remove("is-pop");
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
@@ -342,6 +348,7 @@
       if (els.bldMeta) els.bldMeta.textContent = "";
       if (els.bldDiff) els.bldDiff.innerHTML = "";
       renderBldNet();
+      updateBldReveal();
       return;
     }
     var rows = [
@@ -363,18 +370,28 @@
     }
     renderBldNet();
     renderBldDiff();
+    updateBldReveal();
+  }
+
+  /* 三盲解法面板的显隐：默认“计时后才显示”（复盘用），也可在参数里设为“立即显示”。
+     showAfter=true 时：仅在计时完成（state=confirm）后显示；立即显示时随时可见。 */
+  function updateBldReveal() {
+    if (opt.event !== "bld" || !els.bld) { if (els.bld) els.bld.hidden = true; return; }
+    var showAfter = !opt.bld || opt.bld.showAfter !== false;
+    var show = !showAfter || state === "confirm";
+    els.bld.hidden = !show;
   }
 
   /* 事件切换时显隐三盲专属 UI（参数面板 / 解法面板 / 统计弹窗分析段 / 隐藏「手动输入」） */
   function applyEventUI() {
     var isBld = opt.event === "bld";
     if (els.bldParams) els.bldParams.hidden = !isBld;
-    if (els.bld) els.bld.hidden = !isBld;
     if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
     if (els.manualSeg) els.manualSeg.hidden = isBld;
     if (els.bldNetSide) els.bldNetSide.hidden = !isBld;   /* 展开图与打乱公式同处显示 */
     if (isBld && els.manualBox) els.manualBox.hidden = true;
     if (isBld) applyBldCollapse();                        /* 恢复上次收起/展开状态 */
+    updateBldReveal();                                    /* 解法面板按显示时机显隐 */
   }
 
   /* 三盲参数面板：收起后只留一行摘要，点标题展开 */
@@ -425,6 +442,12 @@
     if (els.cororient) els.cororient.checked = !!opt.bld.cornerOrientFlag;
     if (els.corskip) els.corskip.checked = !!opt.bld.cornerSkip;
     if (els.bldSplit) els.bldSplit.checked = opt.bld.split !== false;
+    if (els.revealSeg) {
+      var after = opt.bld.showAfter !== false;
+      els.revealSeg.querySelectorAll("[data-reveal]").forEach(function (b) {
+        b.classList.toggle("is-active", (b.dataset.reveal === "after") === after);
+      });
+    }
     if (els.stepEdge) els.stepEdge.value = opt.bld.steps.edge;
     if (els.stepCorner) els.stepCorner.value = opt.bld.steps.corner;
     if (els.stepFlip) els.stepFlip.value = opt.bld.steps.flip;
@@ -591,6 +614,7 @@
     rawMs = performance.now() - runStart;
     state = "confirm";
     showConfirm();
+    updateBldReveal();   /* 计时完成：按“显示时机”设置，此时解法面板出现 */
     paint();
   }
 
@@ -732,6 +756,7 @@
       inspectStart = 0;
       els.time.textContent = "0.00";
       if (els.confirm) els.confirm.hidden = true;
+      updateBldReveal();   /* 中途取消：若设为“计时后显示”，则解法重新收起 */
       paint();
     }
   }
@@ -1668,6 +1693,7 @@
       bldAnalysis: $("tm-bld-analysis"),
       /* 分段计时与步数配置 */
       bldSplit: $("tm-bld-split"), bldStepsBtn: $("tm-bld-steps-toggle"),
+      revealSeg: $("tm-bld-reveal-seg"),
       stepEdge: $("tm-step-edge"), stepCorner: $("tm-step-corner"),
       stepFlip: $("tm-step-flip"), stepTwist: $("tm-step-twist"), stepParity: $("tm-step-parity"),
       bldStepsWrap: $("tm-bld-steps"),
@@ -1800,6 +1826,18 @@
         els.bldStepsBtn.setAttribute("aria-expanded", String(!els.bldStepsWrap.hidden));
       });
     }
+    /* 解法显示时机：计时后显示 / 立即显示 */
+    if (els.revealSeg) {
+      els.revealSeg.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-reveal]");
+        if (!b || !opt.bld) return;
+        opt.bld.showAfter = (b.dataset.reveal === "after");
+        saveOpt();
+        syncBldParamsUI();
+        updateBldReveal();
+        b.blur();
+      });
+    }
     /* 确认区：DNF 归因（记忆错 / 执行错 / 其他） */
     if (els.dnfMemo) els.dnfMemo.addEventListener("click", function () { pendingDnfReason = "memo"; renderConfirmMetrics(); });
     if (els.dnfExec) els.dnfExec.addEventListener("click", function () { pendingDnfReason = "exec"; renderConfirmMetrics(); });
@@ -1833,11 +1871,14 @@
     },
     get bld() { return curBld ? JSON.parse(JSON.stringify(curBld)) : null; },
     get bldParams() { return opt.bld ? JSON.parse(JSON.stringify(opt.bld)) : null; },
+    get showAfter() { return !!(opt.bld && opt.bld.showAfter !== false); },
+    get bldHidden() { return !!(els.bld && els.bld.hidden); },
     setBldParams: function (partial) {
       if (!opt.bld) opt.bld = defaultBld();
       for (var k in partial) if (Object.prototype.hasOwnProperty.call(partial, k)) opt.bld[k] = partial[k];
       syncBldParamsUI(); readBldParams();
       if (opt.event === "bld") computeBld();
+      updateBldReveal();
       return curBld ? JSON.parse(JSON.stringify(curBld)) : null;
     },
     setInspect: setInspect,

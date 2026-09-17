@@ -51,14 +51,19 @@
 
 /* 打乱公式 + 展开图 并排（三盲时展开图显示，其余项目只占一列） */
 .tm-scramble-block { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
-.tm-scramble { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1 1 320px; min-width: 0; }
+/* 左列：打乱公式 + 三盲解法（解法默认计时后显示，落在公式下方的空位） */
+.tm-scramble-main { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.tm-scramble { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .tm-scramble__text {
-  flex: 1 1 300px; min-width: 0;
+  flex: 1 1 300px; min-width: 0; max-width: 460px;
   font-family: var(--font-mono); font-size: 17px; font-weight: 600; letter-spacing: 1px;
   line-height: 1.6; color: var(--gold);
-  word-break: break-word; user-select: all;
+  display: flex; flex-wrap: wrap; gap: 3px 9px;
+  user-select: all;
 }
-.tm-scramble__btns { display: flex; gap: 8px; flex: 0 0 auto; }
+/* 每个转法作为独立 token，flex-wrap 让长打乱均匀换行，避免末尾孤字 */
+.tm-mv { white-space: nowrap; }
+.tm-scramble__btns { display: flex; gap: 8px; flex: 0 0 auto; align-self: flex-start; }
 
 /* 展开图：跟随打乱公式，固定在右侧（窄屏下移到底部并居中） */
 .tm-bld-net-side {
@@ -248,15 +253,18 @@
 }
 .tm-bld-params__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .tm-bld-params__hint { font-size: 12px; color: var(--fg-3); }
-/* 折叠：标题作为按钮，可点开/收起；收起时只显示摘要 */
+/* 折叠：标题作为按钮，可点开/收起；收起时只显示摘要。
+   用品牌色 + 悬停底色强调“这里可以设置”，让设置入口更显眼 */
 .tm-bld-params__toggle {
   display: inline-flex; align-items: center; gap: 6px;
-  margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer;
-  color: var(--fg);
+  margin: 0; padding: 4px 8px; border: 1px solid transparent; border-radius: 0;
+  background: transparent; cursor: pointer; color: var(--brand);
+  transition: background-color .12s linear, border-color .12s linear;
 }
-.tm-bld-params__toggle:hover .tm-label { color: var(--brand); }
-.tm-bld-params__toggle .tm-label { font-size: 12px; letter-spacing: 1px; color: var(--fg-3); }
-.tm-bld-params__caret { display: inline-block; font-size: 11px; line-height: 1; color: var(--fg-2); transition: transform .12s linear; }
+.tm-bld-params__toggle:hover { background: var(--brand-soft); border-color: var(--brand-line); }
+.tm-bld-params__toggle .tm-label { font-size: 12px; letter-spacing: 1px; color: var(--brand); font-weight: 600; }
+.tm-bld-params__head .tm-bld-params__hint { color: var(--brand-strong); }
+.tm-bld-params__caret { display: inline-block; font-size: 11px; line-height: 1; color: var(--brand); transition: transform .12s linear; }
 .tm-bld-params.is-collapsed .tm-bld-params__caret { transform: rotate(-90deg); }
 .tm-bld-params__summary {
   font-size: 12px; color: var(--fg-2); font-family: var(--font-mono);

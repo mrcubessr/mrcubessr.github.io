@@ -41,11 +41,23 @@
       </div>
 
       <div class="tm-scramble-block">
-        <div class="tm-scramble">
-          <div class="tm-scramble__text" id="tm-scramble">…</div>
-          <div class="tm-scramble__btns">
-            <button class="btn btn--sm btn--secondary" id="tm-new" type="button">换打乱</button>
-            <button class="btn btn--sm btn--ghost" id="tm-copy" type="button">复制</button>
+        <div class="tm-scramble-main">
+          <div class="tm-scramble">
+            <div class="tm-scramble__text" id="tm-scramble">…</div>
+            <div class="tm-scramble__btns">
+              <button class="btn btn--sm btn--secondary" id="tm-new" type="button">换打乱</button>
+              <button class="btn btn--sm btn--ghost" id="tm-copy" type="button">复制</button>
+            </div>
+          </div>
+          <!-- 三盲解法：合并进打乱区，默认计时后才显示（可在参数里改“立即显示”） -->
+          <div class="tm-bld" id="tm-bld" hidden>
+            <div class="tm-bld__head">
+              <span class="tm-label">三盲解法</span>
+              <span class="tm-bld__meta" id="tm-bld-meta"></span>
+              <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
+            </div>
+            <div class="tm-bld__diff" id="tm-bld-diff"></div>
+            <div class="tm-bld__rows" id="tm-bld-rows"></div>
           </div>
         </div>
         <!-- 三盲：展开图与打乱公式同处展示（仅「三盲」项目显示） -->
@@ -162,6 +174,19 @@
           <span class="tm-bld-params__hint">执行 TPS = 估算步数 ÷ 执行时间。默认值 9/10/8/11/15 步，可按你的公式库调整。</span>
         </div>
       </div>
+      <div class="tm-bld-group">
+        <div class="tm-bld-group__title">解法显示</div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">显示时机</span>
+          <div class="tm-bld-row__v">
+            <div class="seg" id="tm-bld-reveal-seg" role="group" aria-label="解法显示时机">
+              <button type="button" class="seg__btn" data-reveal="after">计时后显示</button>
+              <button type="button" class="seg__btn" data-reveal="now">立即显示</button>
+            </div>
+            <span class="tm-bld-row__note">计时后显示便于复盘，立即显示可边看解法边记</span>
+          </div>
+        </div>
+      </div>
       <div class="tm-bld-params__foot">
         <button class="btn btn--sm btn--ghost" id="tm-bld-reset" type="button">恢复默认</button>
         <span class="tm-bld-params__warn" id="tm-bld-warn" hidden></span>
@@ -175,17 +200,6 @@
       <div class="tm-time" id="tm-time">0.00</div>
       <div class="tm-state" id="tm-state"></div>
       <div class="tm-memo" id="tm-memo" hidden></div>
-    </div>
-
-    <!-- ②-B 三盲解法（仅「三盲」项目显示） -->
-    <div class="tm-bld" id="tm-bld" hidden>
-      <div class="tm-bld__head">
-        <span class="tm-label">三盲解法</span>
-        <span class="tm-bld__meta" id="tm-bld-meta"></span>
-        <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
-      </div>
-      <div class="tm-bld__diff" id="tm-bld-diff"></div>
-      <div class="tm-bld__rows" id="tm-bld-rows"></div>
     </div>
 
     <!-- ③ 成绩确认 -->
