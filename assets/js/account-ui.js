@@ -76,7 +76,14 @@
     '.acct-tab:last-child{border-right:none}',
     '.acct-tab.is-on{background:var(--brand);color:var(--on-brand)}',
     '.acct-tab small{display:block;margin-top:2px;font-size:10.5px;opacity:.75}',
-    '.acct-tip{font-size:12px;color:var(--fg-3);line-height:1.6;margin:-4px 0 8px}'
+    '.acct-tip{font-size:12px;color:var(--fg-3);line-height:1.6;margin:-4px 0 8px}',
+    '.acct-pri{width:100%;margin-top:4px}',
+    '.acct-hint{font-size:11.5px;color:var(--fg-3);text-align:center;margin-top:10px}',
+    '.acct-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:12px}',
+    '.acct-link{background:none;border:none;color:var(--brand);cursor:pointer;font:inherit;font-size:12.5px;padding:2px 0}',
+    '.acct-link:hover{text-decoration:underline}',
+    '.acct-link.danger{color:var(--red)}',
+    '.acct-status-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2);margin-bottom:12px}'
   ].join('\n');
 
   function injectStyle() {
@@ -121,7 +128,6 @@
   var mask = null;
   var cdTimer = null;      // 验证码倒计时
   var cdLeft = 0;
-  var curChannel = 'email';// 当前登录通道：email | phone（默认邮箱，零短信成本）
   var loginMode = 'otp';   // 登录方式：otp 验证码 | pwd 密码
 
   function closePanel() { if (mask) { mask.remove(); mask = null; } }
@@ -162,6 +168,24 @@
     }).join('');
   }
 
+  function overallStatus() {
+    var S = SE();
+    var st = (S && S.status) ? S.status() : {};
+    var keys = Object.keys(st);
+    if (!keys.length) return { cls: '', text: '本页暂无同步数据' };
+    var anyErr = false, anySync = false, anyTs = 0;
+    keys.forEach(function (id) {
+      var s = st[id] || {};
+      if (s.state === 'error') anyErr = true;
+      if (s.state === 'syncing') anySync = true;
+      if (s.lastTs) anyTs = Math.max(anyTs, s.lastTs);
+    });
+    if (anyErr) return { cls: 'is-err', text: '同步出错，点「立即同步」重试' };
+    if (anySync) return { cls: 'is-sync', text: '正在同步…' };
+    if (anyTs) return { cls: 'is-ok', text: '已同步（' + ago(anyTs) + '）' };
+    return { cls: '', text: '本页暂无同步数据' };
+  }
+
   function renderPanel() {
     if (!mask) return;
     var m = mask.querySelector('.acct-modal');
@@ -171,28 +195,32 @@
     if (C && C.isLoggedIn()) {
       var u = C.get().user || {};
       var be = (SE() && SE().backend) ? SE().backend() : '';
+      var ov = overallStatus();
       m.innerHTML =
         '<h3>' + esc(accountName(u)) + '</h3>' +
-        '<div class="acct-backend">云端：' + (be === 'supabase' ? 'Supabase' : 'GitHub 仓库') + '</div>' +
-        '<div class="sub">数据已绑定到你的账号，换设备用同一手机号 / 邮箱登录即可恢复。</div>' +
-        '<div class="acct-sec"><h4>本页同步状态</h4>' +
-        (statusRows() || '<div class="acct-empty">本页没有需要同步的功能（其它页面各自同步自己的数据）。</div>') +
+        '<div class="acct-backend">已登录 · 云端：' + (be === 'supabase' ? 'Supabase' : 'GitHub 仓库') + '</div>' +
+        '<div class="sub">你的训练数据已自动备份到云端，换设备用同一账号登录即可恢复。</div>' +
+        '<div class="acct-status-line"><span class="acct-dot ' + ov.cls + '"></span>' + esc(ov.text) + '</div>' +
+        '<button class="acct-btn acct-pri" id="acPull">立即同步</button>' +
+        '<div class="acct-links">' +
+        '<button class="acct-link" id="acToSet">设置 / 修改密码 ›</button>' +
+        '<button class="acct-link danger" id="acOut">退出登录</button>' +
         '</div>' +
-        '<div class="acct-sec"><h4>登录密码</h4>' +
-        '<div class="acct-tip">设置密码后，换设备可直接用「邮箱 + 密码」登录，免收验证码。</div>' +
+        '<details class="acct-fold"><summary>登录密码</summary>' +
+        '<div class="acct-tip">设置密码后，换设备可直接「邮箱 + 密码」登录，免收验证码。</div>' +
         '<label class="acct-f">新密码<input id="acNewPwd" type="password" autocomplete="new-password" placeholder="至少 6 位"></label>' +
         '<label class="acct-f">确认新密码<input id="acNewPwd2" type="password" autocomplete="new-password" placeholder="再输一次"></label>' +
         '<div class="acct-row"><button class="acct-btn ghost" id="acSetPwd">设置 / 修改密码</button></div>' +
+        '</details>' +
+        '<details class="acct-fold"><summary>高级同步设置</summary>' +
+        '<div class="acct-sec"><h4>本页同步明细</h4>' +
+        (statusRows() || '<div class="acct-empty">本页暂无需要同步的功能（其它页面各自同步自己的数据）。</div>') +
         '</div>' +
-        '<div class="acct-row">' +
-        '<button class="acct-btn" id="acPull">立即拉取</button>' +
-        '<button class="acct-btn ghost" id="acPush">强制上传</button>' +
-        '<button class="acct-btn ghost" id="acForce">强制下载</button>' +
-        '<button class="acct-btn danger" id="acOut">退出登录</button>' +
-        '</div>' +
-        '<div class="acct-sec"><div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div></div>' +
-        '<div class="acct-msg">本页只同步本页用到的功能；要同步其它功能，打开对应页面即可。' +
-        '<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
+        '<div class="acct-row"><button class="acct-btn ghost" id="acPush">强制上传</button>' +
+        '<button class="acct-btn ghost" id="acForce">强制下载</button></div>' +
+        '<div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div>' +
+        '</details>' +
+        '<div class="acct-hint"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
         '<div class="acct-msg" id="acMsg"></div>';
       wireLogged(m, 'cb');
       return;
@@ -220,64 +248,50 @@
       return;
     }
 
-    // ③ 未登录：邮箱/手机号验证码 为主，密码登录为辅，GitHub 折叠为高级
+    // ③ 未登录：单字段「手机号或邮箱」+ 验证码，登录即注册；密码登录为次级入口
     var cbOk = !!(C && C.configured());
-    var ch = curChannel;
     var head = '<h3>登录 / 注册</h3>' +
-      '<div class="sub">填手机号或邮箱收验证码即可登录；也可在登录后设置密码，' +
-      '换设备用「邮箱 + 密码」免验证码。<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
+      '<div class="sub">输入<b>手机号或邮箱</b>，收验证码即可登录；未注册将自动创建账号，<b>登录即注册</b>。' +
+      '<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
 
-    var modeToggle = '<div class="acct-tabs">' +
-      '<button type="button" class="acct-tab' + (loginMode === 'otp' ? ' is-on' : '') + '" id="acModeOtp">验证码登录</button>' +
-      '<button type="button" class="acct-tab' + (loginMode === 'pwd' ? ' is-on' : '') + '" id="acModePwd">密码登录</button>' +
+    var errBox = '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。' +
+      '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
+
+    var otpBody = cbOk
+      ? '<label class="acct-f">手机号或邮箱' +
+        '<input id="acAccount" type="text" inputmode="email" autocomplete="username" placeholder="请输入手机号或邮箱"></label>' +
+        '<label class="acct-f">验证码' +
+        '<div class="acct-code-row"><input id="acOtp" inputmode="numeric" maxlength="10" placeholder="请输入验证码">' +
+        '<button class="acct-btn ghost" id="acSend" type="button">获取验证码</button></div></label>' +
+        '<button class="acct-btn acct-pri" id="acLogin">登录 / 注册</button>'
+      : errBox;
+
+    var pwdBody = cbOk
+      ? '<label class="acct-f">邮箱' +
+        '<input id="acAccount" type="email" autocomplete="username" placeholder="请输入邮箱"></label>' +
+        '<label class="acct-f">密码' +
+        '<input id="acPwd" type="password" autocomplete="current-password" placeholder="请输入密码"></label>' +
+        '<button class="acct-btn acct-pri" id="acLoginPwd">登录</button>'
+      : errBox;
+
+    var bottomLinks = '<div class="acct-links">' +
+      (loginMode === 'otp'
+        ? '<button class="acct-link" id="acToPwd" type="button">使用密码登录 ›</button>'
+        : '<button class="acct-link" id="acToOtp" type="button">‹ 使用验证码登录</button>') +
       '</div>';
 
-    var otpSec = cbOk
-      ? '<div class="acct-sec">' +
-        '<div class="acct-tabs">' +
-        '<button type="button" class="acct-tab' + (ch === 'email' ? ' is-on' : '') + '" id="acTabEmail">' +
-        '邮箱<small>免费，推荐</small></button>' +
-        '<button type="button" class="acct-tab' + (ch === 'phone' ? ' is-on' : '') + '" id="acTabPhone">' +
-        '手机号<small>短信(付费)</small></button>' +
-        '</div>' +
-        '<div class="acct-tip" id="acTip">' + (ch === 'email'
-          ? '验证码发到邮箱，不产生短信费用；收不到请检查垃圾邮件。'
-          : '手机号验证码走 Supabase 短信服务（需另购 SMS provider），可能产生费用；否则请用邮箱登录。') + '</div>' +
-        '<label class="acct-f">' + (ch === 'email' ? '邮箱地址' : '手机号') +
-        '<input id="acAccount" type="' + (ch === 'email' ? 'email' : 'tel') + '" ' +
-        'inputmode="' + (ch === 'email' ? 'email' : 'numeric') + '" ' +
-        (ch === 'phone' ? 'maxlength="11" ' : '') +
-        'autocomplete="' + (ch === 'email' ? 'email' : 'tel') + '" ' +
-        'placeholder="' + (ch === 'email' ? 'you@example.com' : '11 位手机号') + '"></label>' +
-        '<label class="acct-f">验证码' +
-        '<div class="acct-code-row"><input id="acOtp" inputmode="numeric" maxlength="10" placeholder="4-10 位验证码">' +
-        '<button class="acct-btn ghost" id="acSend" type="button">获取验证码</button></div></label>' +
-        '<div class="acct-row"><button class="acct-btn" id="acLogin">登录 / 注册</button></div>' +
-        '</div>'
-      : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。' +
-        '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
-
-    var pwdSec = cbOk
-      ? '<div class="acct-sec">' +
-        '<div class="acct-tip">用「邮箱 + 密码」登录，换设备无需收验证码。还没有密码？先切到「验证码登录」收一次码，登录后在面板里「设置密码」。</div>' +
-        '<label class="acct-f">邮箱地址<input id="acAccount" type="email" autocomplete="email" placeholder="you@example.com"></label>' +
-        '<label class="acct-f">密码<input id="acPwd" type="password" autocomplete="current-password" placeholder="至少 6 位"></label>' +
-        '<div class="acct-row"><button class="acct-btn" id="acLoginPwd">登录</button></div>' +
-        '</div>'
-      : '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。</div></div>';
-
-    var bodySec = (loginMode === 'pwd') ? pwdSec : otpSec;
-
-    var ghSec = '<details class="acct-fold"' + (cbOk ? '' : ' open') + '><summary>高级：用 GitHub 仓库同步（备用通道）</summary>' +
+    var ghFold = '<details class="acct-fold"><summary>其他登录方式（GitHub 备用）</summary>' +
       '<div style="margin-top:10px">' +
       '<label class="acct-f">GitHub 用户名<input id="acOwner" placeholder="如 mrcubessr" value="' + esc(A && A.get ? A.get().owner : '') + '"></label>' +
-      '<label class="acct-f">同步仓库（不会自动创建）<input id="acRepo" value="' + esc((A && A.get && A.get().repo) || 'mrcubessr-site-sync') + '"></label>' +
-      '<label class="acct-f">访问令牌（fine-grained，仅授权本仓库）<input id="acToken" type="password" placeholder="ghp_ / github_pat_..."></label>' +
+      '<label class="acct-f">同步仓库<input id="acRepo" value="' + esc((A && A.get && A.get().repo) || 'mrcubessr-site-sync') + '"></label>' +
+      '<label class="acct-f">访问令牌<input id="acToken" type="password" placeholder="ghp_ / github_pat_..."></label>' +
       '<div class="acct-row"><button class="acct-btn ghost" id="acManual">连接并开通</button></div>' +
-      '<div class="acct-msg">仓库需先在 GitHub 建好（Private + 勾 Add a README），令牌权限选 <b>Contents: Read and write</b>。</div>' +
+      '<div class="acct-msg">仓库需先在 GitHub 建好，令牌权限选 Contents: Read and write。</div>' +
       '</div></details>';
 
-    m.innerHTML = head + modeToggle + bodySec + ghSec + '<div class="acct-msg" id="acMsg"></div>';
+    m.innerHTML = head + (loginMode === 'pwd' ? pwdBody : otpBody) + bottomLinks +
+      '<div class="acct-hint">未注册将自动创建账号，登录即注册</div>' + ghFold +
+      '<div class="acct-msg" id="acMsg"></div>';
     if (cbOk) { if (loginMode === 'pwd') wirePwd(m); else wireOtp(m); wireMode(m); }
     wireGithub(m);
   }
@@ -301,32 +315,17 @@
     }, 1000);
   }
 
-  function setChannel(m, ch) {
-    if (ch === curChannel) return;
-    curChannel = ch;
-    renderPanel();
-    var acc = m.querySelector('#acAccount');
-    if (acc) acc.focus();
-  }
-
-  function acctPlaceholder() {
-    return curChannel === 'email' ? '手机号或邮箱' : '手机号';
-  }
-
   function wireOtp(m) {
     var C = CB();
-    var tE = m.querySelector('#acTabEmail');
-    var tP = m.querySelector('#acTabPhone');
-    if (tE) tE.onclick = function () { setChannel(m, 'email'); };
-    if (tP) tP.onclick = function () { setChannel(m, 'phone'); };
 
     m.querySelector('#acSend').onclick = function () {
       var val = (m.querySelector('#acAccount').value || '').trim();
-      if (!val) { msg(m, '请先填写' + acctPlaceholder(), 'err'); return; }
+      if (!val) { msg(m, '请输入手机号或邮箱', 'err'); return; }
+      var ch = (C.detectChannel ? C.detectChannel(val) : (/^\d/.test(val) ? 'phone' : 'email'));
       var b = this; b.disabled = true; b.textContent = '发送中…';
       msg(m, '正在发送验证码…');
-      C.sendCode(val, curChannel).then(function () {
-        msg(m, curChannel === 'email' ? '验证码已发送到邮箱，请查收（注意垃圾邮件）' : '验证码已发送，请查收短信', 'ok');
+      C.sendCode(val).then(function () {
+        msg(m, '验证码已发送，请查收' + (ch === 'email' ? '邮件（注意垃圾箱）' : '短信'), 'ok');
         startCountdown(m);
         var otp = m.querySelector('#acOtp'); if (otp) otp.focus();
       }).catch(function (e) {
@@ -380,8 +379,8 @@
 
   /* ---------------- 登录方式切换 / 密码登录 ---------------- */
   function wireMode(m) {
-    var o = m.querySelector('#acModeOtp');
-    var p = m.querySelector('#acModePwd');
+    var o = m.querySelector('#acToOtp');
+    var p = m.querySelector('#acToPwd');
     if (o) o.onclick = function () { loginMode = 'otp'; renderPanel(); var a = m.querySelector('#acAccount'); if (a) a.focus(); };
     if (p) p.onclick = function () { loginMode = 'pwd'; renderPanel(); var a = m.querySelector('#acAccount'); if (a) a.focus(); };
   }
