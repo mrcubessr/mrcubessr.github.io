@@ -189,17 +189,34 @@
       if (!state.pending) return Promise.reject(new Error('请先获取验证码'));
       var pending = state.pending;
       var code = String(token || '').trim();
-      if (!/^\d{4,8}$/.test(code)) return Promise.reject(new Error('请输入验证码（4-8 位数字）'));
+      if (!/^\d{4,10}$/.test(code)) return Promise.reject(new Error('请输入验证码（4-10 位数字）'));
 
       var client = state.client;
       if (!client || !client.auth) return Promise.reject(new Error('账号未初始化'));
 
-      return client.auth.verifyOtp({
-        [pending.channel === 'email' ? 'email' : 'phone']: pending.account,
-        token: code,
-        type: pending.channel === 'email' ? 'email' : 'sms'
+      var accountKey = pending.channel === 'email' ? 'email' : 'phone';
+      // Supabase 邮箱 OTP 校验：手填 6 位码时 type 应为 'email'；
+      // 'magiclink' 仅用于 PKCE/链接回调场景。手机号仍为 'sms'。
+      var codeType = pending.channel === 'email' ? 'email' : 'sms';
+      function tryVerify(type) {
+        return client.auth.verifyOtp({
+          [accountKey]: pending.account,
+          token: code,
+          type: type
+        }).then(function (r) {
+          if (r && r.error) throw r.error;
+          return r;
+        });
+      }
+
+      // 若项目仍开启「Confirm email」，新用户首次会走 Confirm signup 模板，
+      // 此时同一段 6 位码还能用 type='signup' 再验证一次，作兜底尝试。
+      return tryVerify(codeType).catch(function (err) {
+        if (pending.channel === 'email') {
+          return tryVerify('signup').catch(function () { throw err; });
+        }
+        throw err;
       }).then(function (r) {
-        if (r && r.error) throw new Error(r.error.message || '验证失败');
         state.pending = null;
         return refresh().then(function () { emit(); return state.user; });
       }).catch(function (e) {

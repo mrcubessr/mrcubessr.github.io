@@ -238,7 +238,7 @@
         'autocomplete="' + (ch === 'email' ? 'email' : 'tel') + '" ' +
         'placeholder="' + (ch === 'email' ? 'you@example.com' : '11 位手机号') + '"></label>' +
         '<label class="acct-f">验证码' +
-        '<div class="acct-code-row"><input id="acOtp" inputmode="numeric" maxlength="6" placeholder="6 位验证码">' +
+        '<div class="acct-code-row"><input id="acOtp" inputmode="numeric" maxlength="10" placeholder="4-10 位验证码">' +
         '<button class="acct-btn ghost" id="acSend" type="button">获取验证码</button></div></label>' +
         '<div class="acct-row"><button class="acct-btn" id="acLogin">登录 / 注册</button></div>' +
         '</div>'
