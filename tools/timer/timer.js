@@ -1102,6 +1102,18 @@
     var has = arr.length > 0;
     els.empty.hidden = has;
     els.listHead.hidden = !has;
+
+    /* 三盲：DNF 占比高，aoN 会整列变成 DNF，故换成「滚动成功率 / mea」三列；
+       速拧仍保留 csTimer 口径的 ao5 / ao12 / ao100。
+       注意：列标题要在「无成绩提前返回」之前同步，否则切项目时标题会停在上一档。 */
+    var isBld = opt.event === "bld";
+    if (els.lh1) els.lh1.textContent = isBld ? "成功率" : "ao5";
+    if (els.lh2) els.lh2.textContent = isBld ? "mea5" : "ao12";
+    if (els.lh3) els.lh3.textContent = isBld ? "mea12" : "ao100";
+    if (els.listHead) els.listHead.title = isBld
+      ? "成功率 = 最近 5 次里成功的比例；mea5 / mea12 = 最近 5 / 12 次剔除 DNF 后的平均（不会整列变 DNF）"
+      : "ao5 / ao12 / ao100 = csTimer 口径的滚动去尾平均（窗口内 DNF 过多时该格为 DNF）";
+
     if (!has) return;
 
     var show = Math.min(arr.length, MAX_ROWS);
@@ -1149,9 +1161,16 @@
 
       li.appendChild(idx);
       li.appendChild(t);
-      li.appendChild(avgCell(S.avgN(arr, 5, i)));
-      li.appendChild(avgCell(S.avgN(arr, 12, i)));
-      li.appendChild(avgCell(S.avgN(arr, 100, i)));
+      if (isBld) {
+        /* 成功率（近 5）· mea5 · mea12 —— 都不受 DNF 作废影响 */
+        li.appendChild(rateCell(S.succN(arr, 5, i)));
+        li.appendChild(meaCell(S.meaN(arr, 5, i), 5));
+        li.appendChild(meaCell(S.meaN(arr, 12, i), 12));
+      } else {
+        li.appendChild(avgCell(S.avgN(arr, 5, i)));
+        li.appendChild(avgCell(S.avgN(arr, 12, i)));
+        li.appendChild(avgCell(S.avgN(arr, 100, i)));
+      }
 
       var del = document.createElement("button");
       del.type = "button"; del.className = "tm-list__del"; del.textContent = "✕";
@@ -1190,6 +1209,26 @@
     if (v == null) { sp.textContent = "—"; return sp; }
     if (v === Infinity) { sp.textContent = "DNF"; sp.classList.add("is-dnf"); return sp; }
     sp.textContent = S.fmt(v);
+    return sp;
+  }
+  /* 三盲列①：滚动成功率（近 5 次）——成功率是盲拧最核心的稳定性指标 */
+  function rateCell(v) {
+    var sp = document.createElement("span");
+    sp.className = "tm-list__a tm-list__rate";
+    if (v == null) { sp.textContent = "—"; return sp; }
+    sp.textContent = Math.round(v * 100) + "%";
+    if (v >= 0.8) sp.classList.add("is-best");
+    else if (v < 0.5) sp.classList.add("is-worst");
+    sp.title = "最近 5 次成功率 " + Math.round(v * 100) + "%（DNF 不计入完成）";
+    return sp;
+  }
+  /* 三盲列②③：mea（窗口内剔除 DNF 后取平均；窗口内无有效成绩记 —） */
+  function meaCell(v, n) {
+    var sp = document.createElement("span");
+    sp.className = "tm-list__a";
+    if (v == null) { sp.textContent = "—"; return sp; }
+    sp.textContent = S.fmt(v);
+    sp.title = "最近 " + (n || 5) + " 次剔除 DNF 后的平均（不作废、不显示 DNF）";
     return sp;
   }
 
@@ -1867,6 +1906,7 @@
       kAo5K: $("k-ao5-k"), kAo12K: $("k-ao12-k"), kAo100K: $("k-ao100-k"),
       list: $("tm-list"), listWrap: $("tm-list-wrap"), empty: $("tm-empty"),
       listHead: document.querySelector(".tm-list-head"),
+      lh1: $("tm-lh-1"), lh2: $("tm-lh-2"), lh3: $("tm-lh-3"),
       groupSel: $("tm-group-sel"), groupNew: $("tm-group-new"),
       groupRen: $("tm-group-ren"), groupDel: $("tm-group-del"), groupMeta: $("tm-group-meta"),
       statsBtn: $("tm-stats"), exportBtn: $("tm-export"), exportMenu: $("tm-export-menu"),

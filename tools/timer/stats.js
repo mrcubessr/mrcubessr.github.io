@@ -108,6 +108,16 @@
     return ok / arr.length;
   }
 
+  /* 滚动成功率：窗口 arr[idx .. idx+n-1] 内完成数 / 窗口长度；
+     窗口不满 → null（无从判断）；全 DNF → 0（是有效信息，不作废） */
+  function succN(arr, n, idx) {
+    idx = idx || 0;
+    if (!arr || arr.length < idx + n) return null;
+    var ok = 0;
+    for (var i = idx; i < idx + n; i++) if (val(arr[i]) !== INF) ok++;
+    return ok / n;
+  }
+
   /* ---------- 本组概览 ---------- */
   function sessionStats(arr) {
     arr = arr || [];
@@ -295,7 +305,7 @@
 
   root.TimerStats = {
     fmt: fmt, val: val, avgN: avgN, bestAvgN: bestAvgN,
-    meaN: meaN, bestMeaN: bestMeaN, successRate: successRate,
+    meaN: meaN, bestMeaN: bestMeaN, successRate: successRate, succN: succN,
     sessionStats: sessionStats, byDay: byDay,
     dailyChart: dailyChart, trendChart: trendChart, distChart: distChart,
     escapeHtml: escapeHtml
