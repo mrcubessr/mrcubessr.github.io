@@ -162,6 +162,31 @@
 .dim-auto{color:var(--text-3);font-size:12px;margin-left:6px}
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:0;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
+  /* ===== 课堂宠物体系 ===== */
+  .pet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
+  .pet-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.15s;min-height:196px;text-align:center}
+  .pet-card:hover{border-color:var(--brand);transform:translateY(-2px)}
+  .pet-card--empty{cursor:default}
+  .pet-card--empty:hover{transform:none;border-color:var(--line)}
+  .pet-emoji{font-size:44px;line-height:1.1}
+  .pet-name{font-size:15px;font-weight:700;color:var(--fg)}
+  .pet-owner{font-size:12px;color:var(--fg-2)}
+  .pet-lv{margin-top:2px;font-size:13px;font-weight:600;color:var(--brand)}
+  .pet-bar{width:100%;height:7px;margin-top:8px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+  .pet-bar>i{display:block;height:100%;background:var(--brand)}
+  .pet-sub{font-size:11px;color:var(--fg-2)}
+  /* 领养弹窗 · 物种选择 */
+  .pet-species{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+  .pet-sp{text-align:center;padding:12px 8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.15s}
+  .pet-sp:hover{border-color:var(--brand)}
+  .pet-sp.active{border-color:var(--brand);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--brand)}
+  .pet-sp .e{font-size:30px}
+  .pet-sp .n{font-size:13px;font-weight:700;color:var(--fg);margin-top:2px}
+  .pet-sp .d{font-size:11px;color:var(--fg-2);margin-top:2px}
+  /* 学生主页宠物卡 */
+  .pet-stu{display:flex;align-items:center;gap:16px}
+  .pet-stu-e{font-size:48px;line-height:1}
+  @media(max-width:640px){.pet-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
 </style>
 </head>
 <body data-nav="class-teach" style="padding-top:60px">
@@ -176,6 +201,7 @@
     <button class="nbtn" data-view="progress">学习进度</button>
     <button class="nbtn" data-view="students">学生管理</button>
     <button class="nbtn" data-view="course">课程知识点</button>
+    <button class="nbtn" data-view="pets">🐾 宠物园</button>
     <button class="nbtn" data-view="backup">备份</button>
   </nav>
   <div class="spacer"></div>
@@ -193,6 +219,7 @@
         <button data-go="score">进入课堂计分 →</button>
         <button class="btn btn--ghost" data-go="progress">查看学习进度 →</button>
         <button class="btn btn--ghost" data-go="students">管理学生 →</button>
+        <button class="btn btn--ghost" data-go="pets">🐾 进入宠物园 →</button>
       </div>
     </div>
     <div class="card">
@@ -293,6 +320,25 @@
   </div>
 
   <!-- 备份 -->
+  <!-- 宠物园 -->
+  <div class="view" id="view-pets">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">🐾 班级宠物园</h2>
+        <span class="meta" id="petsMeta">—</span>
+      </div>
+      <p class="muted" style="margin:8px 0 0">宠物等级由每位小朋友的<b>累计课堂积分</b>自动成长，不需要额外喂养；积分越高，宠物越强大。</p>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px">🏆 本班宠物榜</h3>
+      <div id="petRank"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px">全部宠物</h3>
+      <div id="petsBox"></div>
+    </div>
+  </div>
+
   <div class="view" id="view-backup">
     <div class="card">
       <h2>数据备份与迁移</h2>
@@ -342,6 +388,20 @@
   </div>
 
 </div>
+<!-- 领养宠物弹窗 -->
+<div class="modalbg" id="petModal">
+  <div class="modal">
+    <h3 id="petModalTitle" style="margin:0 0 10px">领养宠物</h3>
+    <p class="muted" style="margin:0 0 14px">选一只伙伴、起个名字。它会陪着小朋友一起升级。</p>
+    <div id="petSpecies" class="pet-species"></div>
+    <div style="margin-top:14px"><input id="petName" placeholder="给它起个名字（留空则用默认名）" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:0;background:var(--surface);color:var(--fg);font-size:14px;font-family:inherit"></div>
+    <div class="row" style="margin-top:16px;justify-content:flex-end">
+      <button class="btn btn--ghost" id="petCancel">取消</button>
+      <button id="petOk">确认领养</button>
+    </div>
+  </div>
+</div>
+
 <div class="modalbg" id="settleModal">
   <div class="modal" style="max-width:640px">
     <h3>本节课结算 · 表扬榜</h3>
@@ -364,6 +424,34 @@ const PALETTE=['#6366f1','#f59e0b','#10b981','#ec4899','#0ea5e9','#8b5cf6','#ef4
 const STATE={0:{n:'未开始',c:'s0'},1:{n:'学习中',c:'s1'},2:{n:'已掌握',c:'s2'},3:{n:'需复习',c:'s3'}};
 const STATE_ARR=[STATE[0],STATE[1],STATE[2],STATE[3]];
 const RADAR_DIMS=[{key:'tech',name:'手法准确'},{key:'cognition',name:'基础认知'},{key:'formula',name:'公式熟练'},{key:'speed',name:'复原速度'},{key:'interest',name:'学习兴趣'},{key:'efficiency',name:'练习效率'}];
+
+/* ===== 课堂宠物体系 =====
+   双轨制：① 累计积分（totalScore）→ 宠物等级，只读派生，永不落库，杜绝双真值源不一致；
+          ② 可用余额（student.balance）→ 后续商店/喂食消费，消费写 pointLogs 流水可审计。 */
+const PET_SPECIES=[
+  {key:'cubie', name:'小方块', emoji:'🧊', desc:'稳重可靠，转得动'},
+  {key:'bear',  name:'魔方熊', emoji:'🐻', desc:'力气大，最爱转圈圈'},
+  {key:'fox',   name:'灵狐',   emoji:'🦊', desc:'手速快，公式记得牢'},
+  {key:'owl',   name:'智慧鸮', emoji:'🦉', desc:'观察力强，擅长十字'},
+  {key:'panda', name:'滚滚',   emoji:'🐼', desc:'慢悠悠，但很扎实'},
+  {key:'dragon',name:'小龙',   emoji:'🐉', desc:'稀有伙伴，高手专属'}
+];
+const PET_LV_MAX=30;
+const PET_TITLES=[[1,'新手'],[4,'学徒'],[7,'熟练'],[10,'高手'],[14,'大师'],[18,'宗师'],[21,'传说']];
+/* 等级门槛：PET_LV_GATE[i] = 升到 Lv(i+1) 所需累计积分；线性递增，一学期可到 Lv10 上下 */
+const PET_LV_GATE=(function(){var t=[0];for(var i=2;i<=PET_LV_MAX;i++){t.push(t[t.length-1]+(10+(i-2)*5));}return t;})();
+function petLvOf(score){var lv=1;for(var i=0;i<PET_LV_GATE.length;i++){if(score>=PET_LV_GATE[i])lv=i+1;else break;}return lv;}
+function petTitleOf(lv){var t=PET_TITLES[0][1];PET_TITLES.forEach(function(x){if(lv>=x[0])t=x[1];});return t;}
+function petProgressOf(score){
+  var lv=petLvOf(score);
+  if(lv>=PET_LV_MAX)return{lv:lv,cur:0,need:0,pct:100};
+  var base=PET_LV_GATE[lv-1],next=PET_LV_GATE[lv];
+  return{lv:lv,cur:score-base,need:next-base,pct:Math.min(100,Math.round((score-base)/(next-base)*100))};
+}
+function petOf(stuId){return DB.pets.find(p=>p.studentId===stuId);}
+function speciesOf(key){return PET_SPECIES.find(s=>s.key===key)||PET_SPECIES[0];}
+/* HTML 转义：姓名/宠物名会进内联 onclick 与 innerHTML，必须转义 */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
 function freshDB(){
   const classes=[{id:1,name:'大一班'},{id:2,name:'大二班'},{id:3,name:'大三班'},{id:4,name:'大四班'}];
@@ -389,13 +477,15 @@ function freshDB(){
     {id:14,courseId:3,name:'特殊公式',order:3},
     {id:15,courseId:3,name:'全复原',order:4}
   ];
-  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],version:1,nextId:100,rate:1};
+  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],pets:[],pointLogs:[],version:1,nextId:100,rate:1};
 }
 let DB=null, curClass=null, curSessionId=null, stuChart=null, stuSort='sid', scoreSort='sid', curStuId=null, prevView='students', stuRadarCharts={}, progCourseId='all', progChartType='bar', progCharts=[], curStuCourseId='overview';
 
 function load(){
   DB=JSON.parse(localStorage.getItem(KEY)||'null')||freshDB();
   if(!DB.radar)DB.radar=[];
+  if(!DB.pets)DB.pets=[];        // 兼容旧库：宠物体系后加，老数据补空集合
+  if(!DB.pointLogs)DB.pointLogs=[];
   if(!DB.version)DB.version=1; // 兼容旧库：无版本号旧数据补 1，不破坏既有数据
 }
 // === D8 自动保存兜底：防抖 + 卸载 flush，防止漏调 save 丢数据 ===
@@ -437,12 +527,13 @@ function setView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('#nav .nbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
-  document.body.classList.toggle('wide',name==='score'||name==='stuPage');
+  document.body.classList.toggle('wide',name==='score'||name==='stuPage'||name==='pets');
   if(name==='home')renderHome();
   if(name==='score')renderScore();
   if(name==='progress')renderProgress();
   if(name==='students')renderStudents();
   if(name==='course')renderCourse();
+  if(name==='pets')renderPets();
   if(name==='backup')renderBackup();
   if(name==='stuPage')renderStuPage();
 }
@@ -571,11 +662,94 @@ document.getElementById('settleClose').onclick=()=>document.getElementById('sett
 document.getElementById('settleConfirm').onclick=()=>{
   const sess=DB.sessions.find(s=>s.id===settleSessionId);if(!sess)return;
   const ss=students(curClassId());
-  ss.forEach(s=>{const t=getTally(sess.id,s.id);if(t){const sc=t.count*DB.rate;t.score=sc;s.totalScore=(s.totalScore||0)+sc;}});
+  const ups=[];
+  ss.forEach(s=>{
+    const t=getTally(sess.id,s.id);if(!t)return;
+    const sc=t.count*DB.rate;t.score=sc;s.totalScore=(s.totalScore||0)+sc;
+    /* 双轨②：本次得分同时进「可用余额」，供后续商店/喂食消费 */
+    s.balance=(s.balance||0)+sc;
+    DB.pointLogs.push({id:uid(),studentId:s.id,ts:nowStr(),delta:sc,reason:'课堂计分 · '+sess.date,sessionId:sess.id});
+    /* 双轨①：等级由累计积分派生，只做记录便于播报升级；真值永远是 totalScore */
+    const lvBefore=s.petLv||0, lvAfter=petLvOf(s.totalScore||0);
+    s.petLv=lvAfter;
+    if(lvBefore>0&&lvAfter>lvBefore){
+      const p=petOf(s.id);
+      if(p)ups.push(`${p.name||speciesOf(p.species).name}（${s.name}）升到 Lv${lvAfter} · ${petTitleOf(lvAfter)}`);
+    }
+  });
   sess.settled=true;sess.settledAt=nowStr();save();
   document.getElementById('settleModal').classList.remove('show');
-  alert('已归档！积分已累加到每位小朋友。可开始下一节课。');
+  alert('已归档！积分已累加到每位小朋友。可开始下一节课。'+(ups.length?'\n\n🎉 宠物升级：\n'+ups.join('\n'):''));
   renderScore();
+};
+
+/* ============ 宠物园 ============ */
+let adoptStuId=null, adoptSpecies='cubie';
+function renderPets(){
+  const ss=students(curClassId());
+  const rankBox=document.getElementById('petRank');
+  const ctn=document.getElementById('petsBox');
+  document.getElementById('petsMeta').textContent=`${curClass.name} · ${ss.length}人`;
+  if(!ss.length){ctn.innerHTML='<div class="empty">当前班级还没有学生，请先到"学生管理"录入。</div>';rankBox.innerHTML='';return;}
+  const rows=ss.map(s=>({s,sc:totalScoreOf(s.id)||0,p:petOf(s.id)}));
+  rows.forEach(r=>{r.pg=petProgressOf(r.sc);});
+  /* 本班宠物榜：复用结算弹窗的 .rrow 排行样式 */
+  const ranked=rows.filter(r=>r.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,3);
+  if(!ranked.length)rankBox.innerHTML='<div class="empty">还没有积分，先去"课堂计分"给小朋友加加分吧。</div>';
+  else rankBox.innerHTML=ranked.map((r,i)=>{
+    const sp=r.p?speciesOf(r.p.species):null;
+    const sub=sp?`${sp.emoji} ${esc(r.p.name||sp.name)} · Lv${r.pg.lv}`:'未领养 · Lv'+r.pg.lv;
+    return `<div class="rrow ${['top1','top2','top3'][i]}"><div class="rk">${i+1}</div><div class="rname">${esc(r.s.name)}<span class="n">${sub}</span></div><div class="rcnt">${petTitleOf(r.pg.lv)}</div><div class="rsc">${r.sc} 分</div></div>`;
+  }).join('');
+  /* 宠物卡片网格 */
+  ctn.innerHTML='<div class="pet-grid">'+rows.map(r=>{
+    if(r.p){
+      const sp=speciesOf(r.p.species);
+      return `<div class="pet-card" onclick="openStu(${r.s.id})">
+        <div class="pet-emoji">${sp.emoji}</div>
+        <div class="pet-name">${esc(r.p.name||sp.name)}</div>
+        <div class="pet-owner">${esc(r.s.name)} · ${esc(r.s.sid||'—')}</div>
+        <div class="pet-lv">Lv${r.pg.lv} · ${petTitleOf(r.pg.lv)}</div>
+        <div class="pet-bar"><i style="width:${r.pg.pct}%"></i></div>
+        <div class="pet-sub">${r.pg.cur} / ${r.pg.need} 分升到 Lv${Math.min(PET_LV_MAX,r.pg.lv+1)}</div>
+      </div>`;
+    }
+    return `<div class="pet-card pet-card--empty">
+      <div class="pet-emoji" style="opacity:.35">🥚</div>
+      <div class="pet-name">未领养</div>
+      <div class="pet-owner">${esc(r.s.name)} · ${esc(r.s.sid||'—')}</div>
+      <div class="pet-lv">已有 ${r.sc} 分</div>
+      <button class="btn btn--sm" style="margin-top:auto" onclick="openAdopt(${r.s.id},event)">+ 领养宠物</button>
+    </div>`;
+  }).join('')+'</div>';
+}
+function renderAdoptSpecies(){
+  document.getElementById('petSpecies').innerHTML=PET_SPECIES.map(sp=>
+    `<div class="pet-sp ${adoptSpecies===sp.key?'active':''}" onclick="pickSpecies('${sp.key}')"><div class="e">${sp.emoji}</div><div class="n">${sp.name}</div><div class="d">${sp.desc}</div></div>`
+  ).join('');
+}
+window.pickSpecies=function(k){adoptSpecies=k;renderAdoptSpecies();};
+window.openAdopt=function(stuId,ev){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  adoptStuId=stuId;adoptSpecies='cubie';
+  const s=DB.students.find(x=>x.id===stuId);
+  document.getElementById('petModalTitle').textContent='为 '+(s?s.name:'')+' 领养宠物';
+  document.getElementById('petName').value='';
+  renderAdoptSpecies();
+  document.getElementById('petModal').classList.add('show');
+};
+document.getElementById('petCancel').onclick=()=>document.getElementById('petModal').classList.remove('show');
+document.getElementById('petOk').onclick=()=>{
+  if(adoptStuId==null)return;
+  if(petOf(adoptStuId)){alert('这位小朋友已经有宠物啦。');return;}
+  const sp=speciesOf(adoptSpecies);
+  const nm=document.getElementById('petName').value.trim();
+  DB.pets.push({id:uid(),studentId:adoptStuId,species:adoptSpecies,name:nm||sp.name,adoptedAt:nowStr(),hunger:60,mood:60,clean:60});
+  save();
+  document.getElementById('petModal').classList.remove('show');
+  toast('领养成功！'+sp.emoji);
+  if(document.getElementById('view-pets').classList.contains('active'))renderPets();
+  else if(document.getElementById('view-stuPage').classList.contains('active'))renderStuPage();
 };
 
 /* ============ 学习进度 ============ */
@@ -846,6 +1020,22 @@ function renderStuPage(){
   const firstChar=s.name?s.name[0]:'?';
   html+=`<div class="card stu-info"><div class="avatar" style="background:${s.color}">${firstChar}</div><div><div style="font-size:18px;font-weight:700">${s.name} <span class="muted" style="font-size:14px">${s.nick?('('+s.nick+')'):''}</span></div><div class="muted">学号：${s.sid||'—'} · 班级：${cls.name}</div></div><div class="stats"><div class="stat"><div class="v">${total}</div><div class="l">累计积分</div></div><div class="stat"><div class="v">${masteryRate}%</div><div class="l">总体掌握率</div></div><div class="stat"><div class="v">${sessCount}</div><div class="l">已上课次</div></div></div></div>`;
 
+  /* 宠物卡片：等级由累计积分派生（双轨①），可用余额供后续消费（双轨②） */
+  const _pet=petOf(s.id);
+  if(_pet){
+    const _sp=speciesOf(_pet.species), _pg=petProgressOf(total);
+    html+=`<div class="card pet-stu"><div class="pet-stu-e">${_sp.emoji}</div><div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700">${esc(_pet.name||_sp.name)} <span class="muted" style="font-size:13px">Lv${_pg.lv} · ${petTitleOf(_pg.lv)}</span></div>
+      <div class="pet-bar" style="margin:8px 0 4px"><i style="width:${_pg.pct}%"></i></div>
+      <div class="muted" style="font-size:12px">${_pg.cur} / ${_pg.need} 分升到 Lv${Math.min(PET_LV_MAX,_pg.lv+1)} · 可用余额 ${s.balance||0}</div>
+    </div></div>`;
+  }else{
+    html+=`<div class="card pet-stu"><div class="pet-stu-e" style="opacity:.35">🥚</div><div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700">还没有宠物</div>
+      <div class="muted" style="font-size:13px">领养一只伙伴，它会随着课堂积分一起成长。</div>
+    </div><button onclick="openAdopt(${s.id})">+ 领养宠物</button></div>`;
+  }
+
   /* Tab 栏：总览 + 各课程 */
   html+=`<div class="stu-tabs">`;
   html+=`<button class="stu-tab ${curStuCourseId==='overview'?'active':''}" onclick="setStuCourse('overview')">总览</button>`;
@@ -1003,7 +1193,7 @@ document.getElementById('addStu').onclick=()=>{
   const name=document.getElementById('inName').value.trim();
   const nick=document.getElementById('inNick').value.trim();
   if(!name){alert('请输入大名');return;}
-  DB.students.push({id:uid(),classId:curClassId(),sid,name,nick,color:nextColor(),totalScore:0});save();
+  DB.students.push({id:uid(),classId:curClassId(),sid,name,nick,color:nextColor(),totalScore:0,balance:0});save();
   ['inSid','inName','inNick'].forEach(i=>document.getElementById(i).value='');renderStudents();
 };
 document.getElementById('bulkBtn').onclick=()=>{
@@ -1011,11 +1201,11 @@ document.getElementById('bulkBtn').onclick=()=>{
   if(!txt){alert('请粘贴数据');return;}
   let n=0;txt.split('\n').forEach(line=>{
     const p=line.split(/[,\t，]/).map(x=>x.trim());
-    if(p[0]||p[1]){DB.students.push({id:uid(),classId:curClassId(),sid:p[0]||'',name:p[1]||p[0]||'',nick:p[2]||'',color:nextColor(),totalScore:0});n++;}
+    if(p[0]||p[1]){DB.students.push({id:uid(),classId:curClassId(),sid:p[0]||'',name:p[1]||p[0]||'',nick:p[2]||'',color:nextColor(),totalScore:0,balance:0});n++;}
   });
   save();document.getElementById('bulk').value='';alert('已导入 '+n+' 名学生。');renderStudents();
 };
-window.delStu=function(id){if(!confirm('删除该学生？其计分与进度记录也会清除。'))return;DB.students=DB.students.filter(s=>s.id!==id);DB.tallies=DB.tallies.filter(t=>t.studentId!==id);DB.progress=DB.progress.filter(p=>p.studentId!==id);DB.radar=DB.radar.filter(r=>r.studentId!==id);save();renderStudents();};
+window.delStu=function(id){if(!confirm('删除该学生？其计分、进度与宠物记录也会清除。'))return;DB.students=DB.students.filter(s=>s.id!==id);DB.tallies=DB.tallies.filter(t=>t.studentId!==id);DB.progress=DB.progress.filter(p=>p.studentId!==id);DB.radar=DB.radar.filter(r=>r.studentId!==id);DB.pets=DB.pets.filter(p=>p.studentId!==id);DB.pointLogs=DB.pointLogs.filter(l=>l.studentId!==id);save();renderStudents();};
 document.getElementById('clearScores').onclick=()=>{
   const cId=curClassId();
   const cnt=DB.sessions.filter(s=>s.classId===cId&&s.settled).length;
@@ -1024,8 +1214,8 @@ document.getElementById('clearScores').onclick=()=>{
   const ids=DB.sessions.filter(s=>s.classId===cId&&s.settled).map(s=>s.id);
   DB.sessions=DB.sessions.filter(s=>!(s.classId===cId&&s.settled));
   DB.tallies=DB.tallies.filter(t=>!ids.includes(t.sessionId));
-  DB.students.forEach(s=>{if(s.classId===cId)s.totalScore=0;});
-  save();renderStudents();alert('已清零本班积分与课次记录。');
+  DB.students.forEach(s=>{if(s.classId===cId){s.totalScore=0;s.balance=0;}});
+  save();renderStudents();alert('已清零本班积分与课次记录（含宠物可用余额）。');
 };
 
 /* ============ 课程知识点 ============ */
@@ -1063,7 +1253,7 @@ document.getElementById('exportBtn').onclick=()=>{
 document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
 function validateBackup(d){
   if(!d||typeof d!=='object')return {ok:false,msg:'不是对象'};
-  const arr=['classes','courses','skills','students','sessions','tallies','progress','radar'];
+  const arr=['classes','courses','skills','students','sessions','tallies','progress','radar','pets','pointLogs'];
   for(const k of arr){ if(!Array.isArray(d[k])) return {ok:false,msg:'缺少数组字段 '+k}; }
   if(typeof d.nextId!=='number') return {ok:false,msg:'缺少数字字段 nextId'};
   if(typeof d.rate!=='number') return {ok:false,msg:'缺少数字字段 rate'};
