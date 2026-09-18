@@ -158,6 +158,28 @@
     min-height: 18px;
   }
   .status.err { color: var(--red); }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .seg__btn {
+    background: var(--panel);
+    border: none;
+    padding: 9px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--fg);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .seg__btn:hover { color: var(--brand); }
+  .seg__btn.is-active { background: var(--brand); color: var(--on-brand); }
+  .is-hidden { display: none !important; }
+  #autoPanel { margin-top: 4px; }
   @media print {
     body { background: var(--on-brand); }
     .container { padding: 0; max-width: none; }
@@ -191,8 +213,45 @@
 
 <div class="container">
   <div class="card">
-    <h2>输入公式（每行一条）</h2>
-    <textarea id="formulas" placeholder="U&#39; R&#39; U&#39; F2 U&#39; F2 U&#39; F U&#39; F&#39;&#10;R F&#39; R&#39; U F&#39; U&#39; F&#39; U R&#39; F&#39;&#10;每行一条公式，支持括号分组与数字重复"></textarea>
+    <h2>练习题设置</h2>
+    <div class="seg" id="genModeSeg">
+      <button type="button" class="seg__btn is-active" id="genModeManual">手动输入公式</button>
+      <button type="button" class="seg__btn" id="genModeAuto">自动生成打乱</button>
+    </div>
+    <div id="manualPanel">
+      <textarea id="formulas" placeholder="U&#39; R&#39; U&#39; F2 U&#39; F2 U&#39; F U&#39; F&#39;&#10;R F&#39; R&#39; U F&#39; U&#39; F&#39; U R&#39; F&#39;&#10;每行一条公式，支持括号分组与数字重复"></textarea>
+    </div>
+    <div id="autoPanel" class="is-hidden">
+      <div class="row">
+        <div class="field">
+          <label>魔方阶数</label>
+          <select id="genSize">
+            <option value="3" selected>三阶</option>
+            <option value="2">二阶</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>难度</label>
+          <select id="genMode">
+            <option value="ruf">RUF 入门</option>
+            <option value="all" selected>六面标准</option>
+            <option value="wca">WCA 标准</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>每条长度</label>
+          <input type="number" id="genLen" value="10" min="2" max="40">
+        </div>
+        <div class="field">
+          <label>生成条数</label>
+          <input type="number" id="genCount" value="10" min="1" max="200">
+        </div>
+        <div class="field">
+          <button class="btn" id="btnAutoGen" type="button">批量生成打乱</button>
+        </div>
+      </div>
+      <div class="hint">按所选阶数 / 难度 / 长度批量生成多条打乱公式，填入上方公式框并立即出卷（可手动微调个别条目）。WCA 标准采用比赛真实随机打乱（三阶 20 步 / 二阶 11 步）。</div>
+    </div>
     <div class="row">
       <div class="field">
         <label>姓名</label>
@@ -229,6 +288,16 @@
         </select>
       </div>
     </div>
+    <div class="row">
+      <div class="field">
+        <label>版式</label>
+        <select id="layoutSel">
+          <option value="both" selected>题目 + 答案（并排）</option>
+          <option value="q">仅题目</option>
+          <option value="split">题目与答案分卷</option>
+        </select>
+      </div>
+    </div>
     <div class="btns">
       <button class="btn" onclick="generate()">生成练习纸</button>
       <button class="btn btn--secondary no-print" onclick="exportPNG()">导出 PNG 图片</button>
@@ -251,6 +320,8 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/assets/js/scramble-gen.js"></script>
+<script src="/tools/timer/scramble.js"></script>
 <script>
 // ========== 公式解析 ==========
 const PRIME_CHARS = new Set(["'", "\u2019", "\u2018", "\u201B", "`", "\u02BC", "\u02C8", "\uFF07", "\u00B4", "\u2035", "\u2032"]);
@@ -1022,7 +1093,7 @@ function wrapText(text, maxW, ctx) {
   return lines;
 }
 
-function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo, cubeSize) {
+function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo, cubeSize, mode) {
   const canvas = document.createElement('canvas');
   canvas.width = A4_W;
   canvas.height = A4_H;
@@ -1057,33 +1128,39 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
   const rowBottom = A4_H - 70;
   const rowH = (rowBottom - rowTop) / rowsPerPage;
   const formulaCol = margin + 30;          // 公式左对齐位置
-  const expandCX = A4_W * 0.72;           // 展开图中心 x
+  const isQ = mode === 'q';                // 仅题目：不画展开图
+  const isA = mode === 'a';                // 仅答案：不画公式文字
+  const expandCX = isA ? A4_W / 2 : A4_W * 0.72;   // 答案卷居中
 
   for (let r = 0; r < rowsPerPage; r++) {
     const idx = pageIndex * rowsPerPage + r;
     const y = rowTop + r * rowH;
     if (idx < formulas.length) {
       const f = formulas[idx];
-      // 公式文本（原样显示，保持输入大小写），靠左靠上对齐；过长时在展开图前自动折行
-      ctx.fillStyle = '#000';
-      ctx.font = '500 27px Consolas, "Courier New", monospace';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      const es = (cubeSize === 3 ? 28 : 43) * cubeSize;
-      const expHalf = (3 * es + 2 * 8) / 2;         // 展开图半宽/半高（十字宽=高）
-      const maxTextWidth = A4_W / 2;                // 超过页面中央即换行（再提前三个字）
-      const textTop = y + rowH / 2 - expHalf;       // 公式顶部与展开图上沿对齐
-      // 序号前缀（如 "1. "）单独绘制，折行后第二行与公式符号对齐、不对齐序号
-      const numMatch = f.text.match(/^(\d+\.)\s*/);
-      const numPrefix = numMatch ? numMatch[1] + ' ' : '';
-      const bodyText = numMatch ? f.text.slice(numMatch[0].length) : f.text;
-      const numWidth = ctx.measureText(numPrefix).width;
-      const textLines = wrapText(bodyText, maxTextWidth, ctx);
-      if (numPrefix) ctx.fillText(numPrefix, formulaCol, textTop);
-      textLines.forEach((ln, li) => ctx.fillText(ln, formulaCol + numWidth, textTop + li * 34));
-      // 展开图
-      const state = f.state;
-      drawExpansion(ctx, state, expandCX, y + rowH / 2, cubeSize);
+      if (!isA) {
+        // 公式文本（原样显示，保持输入大小写），靠左靠上对齐；过长时在展开图前自动折行
+        ctx.fillStyle = '#000';
+        ctx.font = '500 27px Consolas, "Courier New", monospace';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const es = (cubeSize === 3 ? 28 : 43) * cubeSize;
+        const expHalf = (3 * es + 2 * 8) / 2;         // 展开图半宽/半高（十字宽=高）
+        const maxTextWidth = A4_W / 2;                // 超过页面中央即换行（再提前三个字）
+        const textTop = y + rowH / 2 - expHalf;       // 公式顶部与展开图上沿对齐
+        // 序号前缀（如 "1. "）单独绘制，折行后第二行与公式符号对齐、不对齐序号
+        const numMatch = f.text.match(/^(\d+\.)\s*/);
+        const numPrefix = numMatch ? numMatch[1] + ' ' : '';
+        const bodyText = numMatch ? f.text.slice(numMatch[0].length) : f.text;
+        const numWidth = ctx.measureText(numPrefix).width;
+        const textLines = wrapText(bodyText, maxTextWidth, ctx);
+        if (numPrefix) ctx.fillText(numPrefix, formulaCol, textTop);
+        textLines.forEach((ln, li) => ctx.fillText(ln, formulaCol + numWidth, textTop + li * 34));
+      }
+      if (!isQ) {
+        // 展开图（答案）
+        const state = f.state;
+        drawExpansion(ctx, state, expandCX, y + rowH / 2, cubeSize);
+      }
     }
     // 行分隔线
     if (r < rowsPerPage - 1) {
@@ -1106,6 +1183,38 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
   return canvas;
 }
 
+function setGenMode(m) {
+  const manual = m === 'manual';
+  document.getElementById('genModeManual').classList.toggle('is-active', manual);
+  document.getElementById('genModeAuto').classList.toggle('is-active', !manual);
+  document.getElementById('manualPanel').classList.toggle('is-hidden', !manual);
+  document.getElementById('autoPanel').classList.toggle('is-hidden', manual);
+}
+
+function doAutoGenerate() {
+  const size = document.getElementById('genSize').value;
+  const mode = document.getElementById('genMode').value;
+  const len = parseInt(document.getElementById('genLen').value, 10) || (size === '2' ? 10 : 6);
+  const count = parseInt(document.getElementById('genCount').value, 10) || 10;
+  // 生成的阶数同步给渲染层（展开图按此阶数绘制）
+  document.getElementById('cubeSize').value = size;
+  let list;
+  try {
+    if (mode === 'wca') list = ScrambleGen.wca({ size: size, length: len, count: count });
+    else list = ScrambleGen.simple({ size: size, mode: mode, length: len, count: count });
+  } catch (e) {
+    const st = document.getElementById('status');
+    st.textContent = '生成失败：' + (e && e.message ? e.message : e);
+    st.className = 'status err';
+    return;
+  }
+  document.getElementById('formulas').value = list.join('\n');
+  const st = document.getElementById('status');
+  st.textContent = '已生成 ' + list.length + ' 条打乱，已填入公式框';
+  st.className = 'status';
+  generate();
+}
+
 function generate() {
   const raw = document.getElementById('formulas').value;
   const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -1125,6 +1234,7 @@ function generate() {
   const name = document.getElementById('name').value;
   const date = document.getElementById('date').value;
   const title = document.getElementById('title').value;
+  const layout = (document.getElementById('layoutSel') || {}).value || 'both';
 
   const formulas = [];
   let bad = 0;
@@ -1141,22 +1251,31 @@ function generate() {
 
   pagesEl.innerHTML = '';
   const pageCount = Math.ceil(formulas.length / rowsPerPage);
-  for (let p = 0; p < pageCount; p++) {
-    const canvas = renderPage(formulas, p, rowsPerPage, name, date, title, startNo, cubeSize);
-    const wrap = document.createElement('div');
-    wrap.className = 'page-wrap';
-    wrap.appendChild(canvas);
-    const label = document.createElement('div');
-    label.className = 'page-label';
-    label.textContent = '第 ' + (p + 1) + ' 页（共 ' + pageCount + ' 页）';
-    const holder = document.createElement('div');
-    holder.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
-    holder.appendChild(wrap);
-    holder.appendChild(label);
-    pagesEl.appendChild(holder);
+  function renderSet(mode, prefix) {
+    for (let p = 0; p < pageCount; p++) {
+      const canvas = renderPage(formulas, p, rowsPerPage, name, date, title, startNo, cubeSize, mode);
+      const wrap = document.createElement('div');
+      wrap.className = 'page-wrap';
+      wrap.appendChild(canvas);
+      const label = document.createElement('div');
+      label.className = 'page-label';
+      label.textContent = prefix + '第 ' + (p + 1) + ' 页（共 ' + pageCount + ' 页）';
+      const holder = document.createElement('div');
+      holder.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+      holder.appendChild(wrap);
+      holder.appendChild(label);
+      pagesEl.appendChild(holder);
+    }
+  }
+  if (layout === 'split') {
+    renderSet('q', '题目卷 ');
+    renderSet('a', '答案卷 ');
+  } else {
+    renderSet(layout === 'q' ? 'q' : 'both', '');
   }
 
-  status.textContent = '已生成 ' + pageCount + ' 页，共 ' + formulas.length + ' 条公式' + (bad ? '（忽略无效行 ' + bad + ' 行）' : '');
+  const outPages = layout === 'split' ? pageCount * 2 : pageCount;
+  status.textContent = '已生成 ' + outPages + ' 页，共 ' + formulas.length + ' 条公式' + (bad ? '（忽略无效行 ' + bad + ' 行）' : '');
   status.className = 'status';
 }
 
@@ -1210,6 +1329,20 @@ function loadSample() {
 
 // 自动载入示例
 loadSample();
+
+// 题目来源切换 / 自动生成 / 阶数联动
+document.getElementById('genModeManual').addEventListener('click', function () { setGenMode('manual'); });
+document.getElementById('genModeAuto').addEventListener('click', function () { setGenMode('auto'); });
+document.getElementById('btnAutoGen').addEventListener('click', doAutoGenerate);
+document.getElementById('genSize').addEventListener('change', function () {
+  document.getElementById('cubeSize').value = this.value;
+});
+document.getElementById('genMode').addEventListener('change', function () {
+  if (this.value === 'wca') {
+    document.getElementById('genLen').value = document.getElementById('genSize').value === '2' ? 11 : 20;
+  }
+});
+setGenMode('manual');
 </script>
 <script src="/assets/js/site-nav.js"></script>
 <footer class="site-footer">
