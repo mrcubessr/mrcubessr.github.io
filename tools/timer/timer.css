@@ -51,6 +51,24 @@
 
 /* 打乱公式 + 展开图 并排（三盲时展开图显示，其余项目只占一列） */
 .tm-scramble-block { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
+
+/* 回放历史成绩：整块打乱区变色高亮 + 顶部返回条 */
+.tm-replay-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 10px;
+  background: var(--brand-soft); border: 1px solid var(--brand-line); border-left: 3px solid var(--brand);
+  border-radius: 0;
+}
+.tm-replay-bar__txt { font-size: 12px; color: var(--brand-strong); flex: 1 1 auto; min-width: 0; }
+.tm-replay-bar__txt b { font-family: var(--font-mono); font-size: 13px; }
+.tm-replay-bar__dnf {
+  margin-left: 6px; padding: 1px 6px;
+  font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  color: var(--red); background: var(--red-soft); border: 1px solid var(--red);
+}
+.tm-replay-bar .btn { flex: 0 0 auto; }
+.tm-scramble-block.is-replaying { }
+.tm-scramble-block.is-replaying .tm-scramble__text { color: var(--fg); }
 /* 左列：打乱公式 + 三盲解法（解法默认计时后显示，落在公式下方的空位） */
 .tm-scramble-main { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .tm-scramble { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
@@ -333,28 +351,6 @@
 .tm-bld__meta-line { font-size: 12px; color: var(--fg-2); }
 .tm-bld__meta-line b { font-family: var(--font-mono); color: var(--gold); }
 .tm-bld__empty { font-size: 13px; color: var(--fg-3); }
-
-/* 查看历史解法时的提示条 + 返回 */
-.tm-bld__viewbar {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  padding: 7px 10px; margin-bottom: 8px;
-  background: var(--brand-soft); border: 1px solid var(--brand-line); border-radius: 0;
-}
-.tm-bld__viewtxt { font-size: 12px; color: var(--brand-strong); flex: 1 1 auto; min-width: 0; }
-.tm-bld__viewbar .btn { flex: 0 0 auto; }
-
-/* 回看历史时同步显示那一把的打乱公式（方便对着解法复盘） */
-.tm-bld__scr {
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-  padding: 8px 10px; margin-bottom: 2px;
-  background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--gold);
-}
-.tm-bld__scr-k { font-size: 11px; letter-spacing: 1px; color: var(--fg-3); flex: 0 0 auto; }
-.tm-bld__scr-v { display: flex; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
-.tm-bld__scr-v .tm-mv {
-  font-family: var(--font-mono); font-size: 14px; font-weight: 700;
-  color: var(--fg); white-space: nowrap;
-}
 
 /* 计时长按时反馈：提示“保持按住” */
 .tm-stage.is-holding { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }

@@ -40,7 +40,13 @@
         </div>
       </div>
 
-      <div class="tm-scramble-block">
+      <!-- 回放历史成绩时，整块打乱区（公式 + 展开图）切换为该把的打乱，顶部出现返回条 -->
+      <div class="tm-replay-bar" id="tm-replay-bar" hidden>
+        <span class="tm-replay-bar__txt" id="tm-replay-txt"></span>
+        <button class="btn btn--sm btn--secondary" id="tm-replay-return" type="button">返回当前</button>
+      </div>
+
+      <div class="tm-scramble-block" id="tm-scramble-block">
         <div class="tm-scramble-main">
           <div class="tm-scramble">
             <div class="tm-scramble__text" id="tm-scramble">…</div>
@@ -51,18 +57,10 @@
           </div>
           <!-- 三盲解法：合并进打乱区，默认计时后才显示（可在参数里改“立即显示”） -->
           <div class="tm-bld" id="tm-bld" hidden>
-            <div class="tm-bld__viewbar" id="tm-bld-viewbar" hidden>
-              <span class="tm-bld__viewtxt" id="tm-bld-viewtxt"></span>
-              <button class="btn btn--sm btn--ghost" id="tm-bld-return" type="button">返回当前</button>
-            </div>
             <div class="tm-bld__head">
               <span class="tm-label">三盲解法</span>
               <span class="tm-bld__meta" id="tm-bld-meta"></span>
               <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
-            </div>
-            <div class="tm-bld__scr" id="tm-bld-viewscr" hidden>
-              <span class="tm-bld__scr-k">那一把的打乱</span>
-              <span class="tm-bld__scr-v" id="tm-bld-viewscr-v"></span>
             </div>
             <div class="tm-bld__diff" id="tm-bld-diff"></div>
             <div class="tm-bld__rows" id="tm-bld-rows"></div>

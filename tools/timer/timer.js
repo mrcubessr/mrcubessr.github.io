@@ -50,6 +50,8 @@
   var ARM_MS = 350;               /* 长按启动阈值：低于此时间的点按/误触不触发计时 */
   var pressX = 0, pressY = 0;     /* 记录按下坐标，滑动（滚动）则取消，避免误触 */
   var viewingSolve = false, viewingSolveNum = 0;  /* 正在查看某把历史解法 */
+  var viewingScramble = "";           /* 回放中：该把成绩的打乱公式 */
+  var liveScramble = "";              /* 当前（非回放）这一把的打乱，退出回放时还原用 */
   var inspectStart = 0, runStart = 0;
   var pendingPenalty = "";
   var memoMs = 0, memoMarked = false;     /* 三盲分段计时：记忆用时 / 是否已标记 */
@@ -162,7 +164,10 @@
         edge: s.bld.edge, flip: s.bld.flip, corner: s.bld.corner, twist: s.bld.twist,
         parity: typeof s.bld.parity === "number" ? s.bld.parity : 0,
         complexity: typeof s.bld.complexity === "number" ? s.bld.complexity : 0,
-        difficulty: normDiff(s.bld.difficulty)
+        difficulty: normDiff(s.bld.difficulty),
+        /* 指标与 DNF 归因也要留存，否则刷新后回看历史会丢 TPS / DNF 标记 */
+        metrics: (s.bld.metrics && typeof s.bld.metrics === "object") ? s.bld.metrics : undefined,
+        dnfReason: typeof s.bld.dnfReason === "string" ? s.bld.dnfReason : ""
       };
     }
     return o;
@@ -251,7 +256,7 @@
 
   /* ---------- 打乱 ---------- */
   function newScramble() {
-    if (opt.manual && opt.event !== "bld") { renderScramble(); return; }
+    if (opt.manual && opt.event !== "bld") { liveScramble = curScramble; renderScramble(); return; }
     if (opt.event === "bld") {
       if (!opt.bld) opt.bld = defaultBld();
       var len = clamp(parseInt(opt.bld.len, 10) || 20, 12, 30);
@@ -259,6 +264,7 @@
       curScramble = window.TimerScramble
         ? window.TimerScramble.gen("3x3", len).join(" ")
         : ["R", "U", "R'", "U'", "F2", "L", "D'"].join(" ");
+      liveScramble = curScramble;   /* 记下“当前这一把”，回放退出时用它还原 */
       computeBld();
       renderScramble();
       return;
@@ -267,6 +273,7 @@
     var moves = window.TimerScramble ? window.TimerScramble.gen(opt.event, def.len)
                                      : ["R", "U", "R'", "U'"];
     curScramble = moves.join(" ");
+    liveScramble = curScramble;
     renderScramble();
   }
   function renderScramble() {
@@ -283,6 +290,8 @@
 
   /* ---------- 三盲：解法计算与展示 ---------- */
   function computeBld() {
+    /* 回放历史中：curScramble 是那一把的历史打乱，不能拿来重算/覆盖当前解法 */
+    if (viewingSolve) return;
     curBld = null;
     if (opt.event !== "bld" || !window.BLDEngine || !curScramble) { renderBld(); return; }
     try { curBld = window.BLDEngine.readCodes(curScramble, opt.bld); }
@@ -324,8 +333,9 @@
     }
   }
 
-  /* 难度指标：主记法（棱X+角Y[+1]）+ 总公式数 + 等级 + 明细 chip */
-  function renderBldDiff(d) {
+  /* 难度指标：主记法（棱X+角Y[+1]）+ 总公式数 + 等级 + 明细 chip
+     d = difficulty 对象；complexity 由调用方传入（当前打乱或历史成绩各自的编码数） */
+  function renderBldDiff(d, complexity) {
     if (!els.bldDiff) return;
     if (!d) { els.bldDiff.innerHTML = ""; return; }
     var chips = [];
@@ -340,15 +350,16 @@
     if (!d.borrowEdge && !d.borrowCorner) chips.push('<span class="tm-chip">无借位</span>');
     els.bldDiff.innerHTML =
       '<div class="tm-bld__diff-top">' +
-        '<span class="tm-bld__diff-notation">' + d.notation + "</span>" +
+        '<span class="tm-bld__diff-notation">' + (d.notation || "") + "</span>" +
         '<span class="tm-bld__diff-lv" data-lv="' + d.level + '">' + d.level + "</span>" +
       "</div>" +
       '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 难度分 <b>" + d.score +
-        "</b> · 编码 " + (curBld ? curBld.complexity : "") + " 码</div>" +
+        "</b>" + (complexity != null ? " · 编码 " + complexity + " 码" : "") + "</div>" +
       '<div class="tm-bld__chips">' + chips.join("") + "</div>";
   }
 
   function renderBld() {
+    if (viewingSolve) return;   /* 回放中：解法面板由回放数据驱动，别被当前打乱覆盖 */
     if (opt.event !== "bld" || !els.bldRows) return;
     if (!curBld) {
       els.bldRows.innerHTML = '<div class="tm-bld__empty">无法计算解法（请检查参数或刷新页面）</div>';
@@ -384,7 +395,7 @@
         (b.difficulty ? b.difficulty.total + " 条 / " + b.difficulty.level : "");
     }
     renderBldNetFrom(b);
-    renderBldDiff(b.difficulty);
+    renderBldDiff(b.difficulty, b.complexity);
   }
 
   /* 历史成绩的展开图：用存下来的 orientation + scramble 还原朝向后的打乱再绘制 */
@@ -413,7 +424,8 @@
     if (!viewingSolve) els.bld.hidden = !show;   /* 查看历史时强制显示，不受显示时机限制 */
   }
 
-  /* 点击历史成绩 → 把那一把的解法重新显示在解法面板（含展开图与借位拆分） */
+  /* 点击历史成绩 → 整块打乱区（公式 + 展开图）切换为该把的打乱，解法面板同步显示那一把的解法。
+     顶部出现「正在回放 #N · 返回当前」条；退出后打乱区还原为当前打乱。 */
   function viewSolveBld(rec, num) {
     if (!rec || !rec.bld) return;
     var b = rec.bld;
@@ -428,22 +440,46 @@
       orientationLabel: b.orientationLabel, complexity: b.complexity,
       difficulty: b.difficulty, orientedScramble: oriented
     };
-    renderBldFrom(viewObj);
     viewingSolve = true; viewingSolveNum = num;
+    viewingScramble = b.scramble || "";
+    /* ① 顶部打乱公式整块换成那一把（走同一套 render，换行/配色一致） */
+    curScramble = viewingScramble;
+    renderScramble();
+    /* ② 解法面板显示那一把的解法（内部会一并重绘展开图），并强制展开 */
+    renderBldFrom(viewObj);
     if (els.bld) els.bld.hidden = false;
-    if (els.bldViewbar) els.bldViewbar.hidden = false;
-    if (els.bldViewtxt) els.bldViewtxt.textContent = "正在查看 #" + num + " 的解法" + (b.dnfReason ? "（DNF）" : "");
-    /* 复盘关键：把那一把的打乱公式同步显示出来，否则只看到解法却对不上打乱 */
-    if (els.bldViewScrV) els.bldViewScrV.innerHTML = fmtMoves(b.scramble || "");
-    if (els.bldViewScr) els.bldViewScr.hidden = false;
+    /* ③ 打乱区置为回放态：出返回条、把「换打乱」换成「换这一把」 */
+    setReplayUI(true, num, b.dnfReason);
   }
-  function exitSolveView() {
+  /* 打乱区的回放态 / 当前态切换 */
+  function setReplayUI(on, num, dnfReason) {
+    var blk = els.scrambleBlock || els.scramble;
+    if (els.replayBar) els.replayBar.hidden = !on;
+    if (on && els.replayTxt) {
+      els.replayTxt.innerHTML = "正在回放 <b>#" + num + "</b> 的打乱与解法" +
+        (dnfReason ? '<span class="tm-replay-bar__dnf">DNF</span>' : "");
+    }
+    if (blk && blk.classList) blk.classList.toggle("is-replaying", !!on);
+    if (els.newBtn) els.newBtn.textContent = on ? "换这一把" : "换打乱";
+    if (els.copyBtn) {
+      els.copyBtn.textContent = on ? "复制这一把" : "复制";
+      els.copyBtn.title = on ? "复制该把成绩的打乱公式" : "复制当前打乱公式";
+    }
+  }
+  /* 仅复位回放状态（不还原打乱），用于「接下来马上就要换新打乱」的场景 */
+  function clearSolveView() {
     if (!viewingSolve) return;
     viewingSolve = false; viewingSolveNum = 0;
-    if (els.bldViewbar) els.bldViewbar.hidden = true;
-    if (els.bldViewScr) els.bldViewScr.hidden = true;
-    renderBld();           /* 回到当前打乱的解法 */
-    updateBldReveal();     /* 按显示时机重新决定是否收起 */
+    viewingScramble = "";
+    setReplayUI(false);
+  }
+  /* 退出回放并把打乱区还原为「当前这一把」（不重新生成打乱，避免看一眼历史就丢掉当前打乱） */
+  function exitSolveView() {
+    if (!viewingSolve) return;
+    clearSolveView();
+    curScramble = liveScramble;
+    renderScramble();
+    if (opt.event === "bld") computeBld(); else renderBld();
   }
   /* 转法串 → 便于换行的 token 片段 */
   function fmtMoves(str) {
@@ -796,7 +832,7 @@
 
   function next(keepState) {
     stopRaf();
-    exitSolveView();   /* 记录/换打乱后退出“查看历史解法”状态 */
+    clearSolveView();  /* 记录/换打乱后退出“查看历史解法”状态（随后会生成新打乱，无需还原） */
     inspectStart = 0;
     pendingPenalty = "";
     state = "idle";
@@ -1818,6 +1854,8 @@
     els = {
       stage: $("tm-stage"), time: $("tm-time"), state: $("tm-state"), pen: $("tm-pen"),
       scramble: $("tm-scramble"), newBtn: $("tm-new"), copyBtn: $("tm-copy"),
+      scrambleBlock: $("tm-scramble-block"),
+      replayBar: $("tm-replay-bar"), replayTxt: $("tm-replay-txt"), replayReturn: $("tm-replay-return"),
       events: $("tm-events"), manualSeg: $("tm-manual-seg"), manualBox: $("tm-manual-box"),
       manualInput: $("tm-manual-input"), manualApply: $("tm-manual-apply"),
       confirm: $("tm-confirm"), confirmTime: $("tm-confirm-time"),
@@ -1845,8 +1883,6 @@
       bldNetSide: $("tm-bld-net-side"),
       bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
       bldNet: $("tm-bld-net"), bldNetCap: $("tm-bld-net-cap"), bldDiff: $("tm-bld-diff"),
-      bldViewbar: $("tm-bld-viewbar"), bldViewtxt: $("tm-bld-viewtxt"), bldReturn: $("tm-bld-return"),
-      bldViewScr: $("tm-bld-viewscr"), bldViewScrV: $("tm-bld-viewscr-v"),
       orientSel: $("tm-bld-orient"), lenInput: $("tm-bld-len"),
       ebuf: $("tm-bld-ebuf"), eorder: $("tm-bld-eorder"),
       eorient: $("tm-bld-eorient"), eskip: $("tm-bld-eskip"),
@@ -1894,10 +1930,15 @@
       opt.manualText = els.manualInput.value; saveOpt();
     });
 
-    els.newBtn.addEventListener("click", function () { newScramble(); els.newBtn.blur(); });
+    els.newBtn.addEventListener("click", function () {
+      /* 回放中点「换这一把」= 离开回放，换一把新打乱 */
+      if (viewingSolve) { clearSolveView(); renderList(); }
+      newScramble();
+      els.newBtn.blur();
+    });
     els.copyBtn.addEventListener("click", function () {
       if (navigator.clipboard) navigator.clipboard.writeText(curScramble).catch(function () {});
-      flashBtn(els.copyBtn, "已复制 ✓", "复制");
+      flashBtn(els.copyBtn, "已复制 ✓", viewingSolve ? "复制这一把" : "复制");
       els.copyBtn.blur();
     });
 
@@ -1978,7 +2019,7 @@
     });
     if (els.bldReset) els.bldReset.addEventListener("click", function () { resetBld(); els.bldReset.blur(); });
     if (els.bldCopy) els.bldCopy.addEventListener("click", function () { copyBld(); });
-    if (els.bldReturn) els.bldReturn.addEventListener("click", function () { exitSolveView(); renderList(); els.bldReturn.blur(); });
+    if (els.replayReturn) els.replayReturn.addEventListener("click", function () { exitSolveView(); renderList(); els.replayReturn.blur(); });
     /* 分段计时开关 + 步数估算配置 */
     [els.bldSplit, els.stepEdge, els.stepCorner, els.stepFlip, els.stepTwist, els.stepParity].forEach(function (el) {
       if (!el) return;
