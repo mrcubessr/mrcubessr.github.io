@@ -15,161 +15,128 @@
   body {
     background: var(--bg);
     color: var(--fg-2);
-    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
-  .top-nav {
-    max-width: 960px;
-    margin: 0 auto 24px;
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 18px 12px 0;
-  }
-  .top-nav a {
-    color: var(--fg-3);
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 16px;
-    border: 1px solid var(--line);
-    border-radius: 0;
-    transition: all 0.2s;
-  }
-  .top-nav a:hover { color: var(--fg-3); border-color: var(--line-3); }
-  .top-nav a.active { color: var(--on-brand); background: var(--brand); border-color: var(--brand); }
 
-  .header {
-    text-align: center;
-    padding: 26px 16px 10px;
-  }
-  .header h1 {
+  .page-head { text-align: center; padding: 28px 16px 6px; }
+  .page-head h1 {
     color: var(--brand);
-    font-size: 1.9rem;
-    letter-spacing: 3px;
-    text-shadow: 0 0 18px rgba(100,180,255,0.35);
-    border-bottom: 1px solid rgba(100,180,255,0.25);
+    font-size: 1.75rem;
+    letter-spacing: 2px;
     display: inline-block;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--brand);
   }
-  .header .sub {
-    color: var(--brand);
-    font-size: 0.85rem;
-    margin-top: 10px;
-    letter-spacing: 1px;
-  }
+  .page-sub { color: var(--fg-3); font-size: 0.85rem; margin-top: 10px; letter-spacing: 0.5px; }
 
   .container {
-    max-width: 1100px;
-    margin: 20px auto;
+    max-width: 1180px;
+    width: 100%;
+    margin: 22px auto 40px;
     padding: 0 16px;
     display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 20px;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+    align-items: start;
     flex: 1;
-    width: 100%;
-  }
-  @media (max-width: 820px) {
-    .container { grid-template-columns: 1fr; }
   }
 
   .card {
-    background: linear-gradient(160deg, var(--surface), var(--surface));
-    border: 1px solid rgba(100,180,255,0.12);
+    background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: 0;
     padding: 18px;
   }
 
-  .tabs {
+  /* 左侧参数卡：常驻可见，内部独立滚动，开始按钮始终在底部 */
+  .panel-card {
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
     display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
+    flex-direction: column;
+    overflow: hidden;
   }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
   .tab {
-    padding: 7px 22px;
-    border-radius: 0;
+    flex: 1;
+    padding: 9px 0;
     border: 1px solid var(--line);
-    color: var(--fg-3);
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
+    border-radius: 0;
     background: transparent;
+    color: var(--fg-3);
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: all 0.2s;
   }
-  .tab.active {
-    color: var(--on-brand);
-    background: var(--brand);
-    border-color: var(--brand);
-  }
+  .tab:hover { border-color: var(--brand); color: var(--brand); }
+  .tab.active { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
 
   .panel { display: none; }
-  .panel.active { display: block; }
+  .panel.active { display: block; flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px; }
 
-  .field {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .field label {
-    flex: 0 0 78px;
-    font-size: 0.85rem;
-    color: var(--fg-2);
-  }
+  .field { display: grid; grid-template-columns: 84px 1fr; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .field label { font-size: 0.85rem; color: var(--fg-2); text-align: right; }
   .field input, .field select {
-    flex: 1;
+    width: 100%;
     background: var(--bg-soft);
     border: 1px solid var(--line-2);
     border-radius: 0;
     color: var(--fg-2);
-    padding: 7px 10px;
+    padding: 8px 10px;
     font-size: 0.9rem;
     outline: none;
     transition: border-color 0.2s;
   }
-  .field input:focus, .field select:focus { border-color: rgba(100,180,255,0.5); }
+  .field input:focus, .field select:focus { border-color: var(--brand); }
 
   .group-title {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 700;
     color: var(--brand);
-    margin: 16px 0 10px;
+    margin: 18px 0 10px;
     padding-bottom: 6px;
-    border-bottom: 1px solid rgba(100,180,255,0.15);
+    border-bottom: 1px solid var(--line);
     letter-spacing: 1px;
   }
   .group-title:first-of-type { margin-top: 4px; }
 
-  .count-row {
+  .action-bar { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .btn-block { width: 100%; padding: 12px; font-size: 1rem; letter-spacing: 2px; }
+
+  .hint {
+    font-size: 0.78rem;
+    color: var(--fg-3);
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    line-height: 1.7;
+  }
+
+  /* 右侧输出 */
+  .output-card { display: flex; flex-direction: column; min-height: 480px; }
+  .output-head {
     display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 6px;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
   }
-  .count-row input { flex: 1; }
-  .btn-start {
-    flex: 0 0 auto;
-    padding: 9px 26px;
-    background: linear-gradient(135deg, var(--brand), var(--brand));
-    color: var(--bg);
-    border: none;
-    border-radius: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 2px;
-  }
-  .btn-start:hover { filter: brightness(1.15); transform: translateY(-1px); }
-  .btn-start:active { transform: translateY(0); }
+  .output-title { font-size: 1rem; font-weight: 700; color: var(--fg); }
+  .output-tip { font-size: 0.76rem; color: var(--fg-3); }
 
   .output-area {
+    flex: 1;
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 0;
     padding: 16px;
-    min-height: 480px;
-    max-height: 680px;
+    min-height: 420px;
+    max-height: 70vh;
     overflow: auto;
     font-family: Consolas, "Courier New", monospace;
     font-size: 0.95rem;
@@ -178,55 +145,44 @@
     word-break: break-all;
     color: var(--fg-2);
   }
-  .output-area .scramble { color: var(--brand); }
-  .output-area .code-line { color: var(--fg-3); font-size: 0.8rem; }
-  .output-area .code-line .hi { color: var(--red); font-weight: 700; }
+  .output-area .scramble { color: var(--brand); font-size: 1.05rem; font-weight: 600; }
+  .output-area .formula-block { color: var(--fg-3); font-size: 0.85rem; }
+  .output-area .hi { color: var(--red); font-weight: 700; }
   .placeholder { color: var(--fg-3); text-align: center; padding-top: 180px; }
 
-  .status {
-    margin-top: 12px;
-    font-size: 0.85rem;
-    min-height: 20px;
-  }
+  .status { margin-top: 12px; font-size: 0.85rem; min-height: 20px; }
   .status.err { color: var(--red); }
   .status.ok { color: var(--green); }
   .status.warn { color: var(--amber); }
 
-  /* 弹窗 */
+  /* 复制成功弹窗 */
   .toast {
-    position: fixed;
-    top: 50%; left: 50%;
+    position: fixed; top: 50%; left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     background: rgba(10,10,20,0.92);
-    border: 1px solid rgba(100,180,255,0.3);
+    border: 1px solid var(--brand-soft, rgba(100,180,255,0.3));
     border-radius: 0;
     padding: 28px 42px;
     color: var(--on-brand);
     font-size: 1.05rem;
     text-align: center;
-    opacity: 0;
-    pointer-events: none;
+    opacity: 0; pointer-events: none;
     transition: all 0.25s;
     z-index: 99;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   }
   .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   .toast .tick {
-    display: inline-block;
-    width: 34px; height: 34px;
-    line-height: 30px;
-    border-radius: 50%;
-    background: rgba(122,217,154,0.2);
-    color: var(--green);
-    font-size: 20px;
-    margin-bottom: 10px;
+    display: inline-block; width: 34px; height: 34px; line-height: 30px;
+    border-radius: 50%; background: rgba(122,217,154,0.2); color: var(--green);
+    font-size: 20px; margin-bottom: 10px;
   }
 
-  .hint {
-    font-size: 0.78rem;
-    color: var(--fg-3);
-    margin-top: 12px;
-    line-height: 1.6;
+  @media (max-width: 820px) {
+    .container { grid-template-columns: 1fr; }
+    .panel-card { position: static; max-height: none; overflow: visible; }
+    .panel.active { overflow: visible; }
+    .output-area { max-height: none; }
   }
 </style>
 </head>
@@ -234,168 +190,111 @@
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
-<div class="top-nav">
-  <a href="/">Home</a>
-  <a href="/fto/tcp">TCP</a>
-  <a href="/fto/l3t">L3T</a>
-  <a href="/fto/lbt">LBT</a>
-  <a href="/tools/scramble-trainer">打乱公式库</a>
-  <a href="/tools/3bld">三盲出题器</a>
-  <a href="/tools/2x2">二阶魔方练习工具</a>
-  <a href="/tools/kmap">教学知识地图</a>
-  <a href="/tools/invert">公式逆序转换</a>
-  <a href="/tools/practice">魔方练习题生成器</a>
-  <a href="/tools/bldscramble" class="active">盲拧打乱生成器</a>
-</div>
-
-<div class="header">
+<header class="page-head">
   <h1>盲拧打乱生成器</h1>
-  <div class="sub">彳亍编码 · 按编码特征生成 WCA 打乱 · 严格满足参数</div>
-</div>
+  <p class="page-sub">彳亍编码 · 按编码特征生成 WCA 打乱 · 严格满足参数</p>
+</header>
 
-<div class="container">
-  <!-- 左侧参数面板 -->
-  <div class="card">
+<main class="container">
+  <aside class="card panel-card">
     <div class="tabs">
-      <button class="tab active" data-panel="menu">菜单</button>
+      <button class="tab active" data-panel="menu">参数</button>
       <button class="tab" data-panel="settings">设置</button>
     </div>
 
-    <!-- 菜单面板 -->
-    <div class="card active" id="panel-menu">
-      <div class="field"><label>魔方</label>
+    <section class="panel active" id="panel-menu">
+      <div class="field">
+        <label for="puzzleType">魔方</label>
         <select id="puzzleType">
           <option value="3x3" selected>三阶 3×3</option>
           <option value="2x2">二阶 2×2</option>
         </select>
       </div>
-      <div class="count-row">
+      <div class="field">
+        <label for="count">生成条数</label>
         <input type="number" id="count" value="1" min="1" max="50">
-        <button class="btn btn--primary" id="btnStart">开始</button>
       </div>
 
       <div id="threeParams">
-      <div class="group-title">棱</div>
-      <div class="field"><label>编码长度</label><input type="number" id="eLen" min="0" placeholder="不限"></div>
-      <div class="field"><label>奇偶</label>
-        <select id="eParity">
-          <option value="any">任意</option>
-          <option value="odd">奇</option>
-          <option value="even">偶</option>
-        </select>
-      </div>
-      <div class="field"><label>翻色数量</label><input type="number" id="eFlip" min="0" placeholder="不限"></div>
-      <div class="field"><label>色向</label>
-        <select id="eOrient">
-          <option value="any">任意</option>
-          <option value="all">全对</option>
-          <option value="none">全错</option>
-        </select>
-      </div>
-      <div class="field"><label>大循环长</label><input type="number" id="eBig" min="0" placeholder="不限"></div>
-      <div class="field"><label>小循环数</label><input type="number" id="eSmall" min="0" placeholder="不限"></div>
-      <div class="field"><label>小循环包含</label><input type="text" id="eContain" placeholder="如 IK, 逗号分隔"></div>
+        <div class="group-title">棱 Edge</div>
+        <div class="field"><label for="eLen">编码长度</label><input type="number" id="eLen" min="0" placeholder="不限"></div>
+        <div class="field"><label for="eParity">奇偶</label>
+          <select id="eParity"><option value="any">任意</option><option value="odd">奇</option><option value="even">偶</option></select>
+        </div>
+        <div class="field"><label for="eFlip">翻色数量</label><input type="number" id="eFlip" min="0" placeholder="不限"></div>
+        <div class="field"><label for="eOrient">色向</label>
+          <select id="eOrient"><option value="any">任意</option><option value="all">全对</option><option value="none">全错</option></select>
+        </div>
+        <div class="field"><label for="eBig">大循环长</label><input type="number" id="eBig" min="0" placeholder="不限"></div>
+        <div class="field"><label for="eSmall">小循环数</label><input type="number" id="eSmall" min="0" placeholder="不限"></div>
+        <div class="field"><label for="eContain">小循环含</label><input type="text" id="eContain" placeholder="如 IK，逗号分隔"></div>
 
-      <div class="group-title">角</div>
-      <div class="field"><label>编码长度</label><input type="number" id="cLen" min="0" placeholder="不限"></div>
-      <div class="field"><label>奇偶</label>
-        <select id="cParity">
-          <option value="any">任意</option>
-          <option value="odd">奇</option>
-          <option value="even">偶</option>
-        </select>
-      </div>
-      <div class="field"><label>翻色数量</label><input type="number" id="cFlip" min="0" placeholder="不限"></div>
-      <div class="field"><label>色向</label>
-        <select id="cOrient">
-          <option value="any">任意</option>
-          <option value="all">全对</option>
-          <option value="none">全错</option>
-        </select>
-      </div>
-      <div class="field"><label>大循环长</label><input type="number" id="cBig" min="0" placeholder="不限"></div>
-      <div class="field"><label>小循环数</label><input type="number" id="cSmall" min="0" placeholder="不限"></div>
-      <div class="field"><label>小循环包含</label><input type="text" id="cContain" placeholder="如 IK, 逗号分隔"></div>
+        <div class="group-title">角 Corner</div>
+        <div class="field"><label for="cLen">编码长度</label><input type="number" id="cLen" min="0" placeholder="不限"></div>
+        <div class="field"><label for="cParity">奇偶</label>
+          <select id="cParity"><option value="any">任意</option><option value="odd">奇</option><option value="even">偶</option></select>
+        </div>
+        <div class="field"><label for="cFlip">翻色数量</label><input type="number" id="cFlip" min="0" placeholder="不限"></div>
+        <div class="field"><label for="cOrient">色向</label>
+          <select id="cOrient"><option value="any">任意</option><option value="all">全对</option><option value="none">全错</option></select>
+        </div>
+        <div class="field"><label for="cBig">大循环长</label><input type="number" id="cBig" min="0" placeholder="不限"></div>
+        <div class="field"><label for="cSmall">小循环数</label><input type="number" id="cSmall" min="0" placeholder="不限"></div>
+        <div class="field"><label for="cContain">小循环含</label><input type="text" id="cContain" placeholder="如 IK，逗号分隔"></div>
 
-      <div class="hint">编码方案：彳亍法（spooncuber 读码引擎，物理贴纸字母，A=UF / G=UR 等）。<br>棱/角缓冲与颜色方案可在「设置」中调整（默认棱 UF、角 UFR）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。<br>角编码设为 0 时自动采用纯六面共轭公式（X·A·X'），角块完全复原且输出符合 WCA 标准（无 M/E/S）。</div>
+        <p class="hint">编码方案：彳亍法（spooncuber 读码引擎，物理贴纸字母，A=UF / G=UR 等）。<br>棱/角缓冲与颜色方案可在「设置」中调整（默认棱 UF、角 UFR）。<br>参数留空 = 不限制；严格满足时参数组合过严可能生成较慢或失败。<br>角编码设为 0 时自动采用纯六面共轭公式（X·A·X'），角块完全复原且输出符合 WCA 标准（无 M/E/S）。</p>
       </div>
 
       <div id="twoParams" style="display:none">
         <div class="group-title">二阶设置</div>
-        <div class="field"><label>打乱步数</label><input type="number" id="twoLen" value="20" min="2" max="60"></div>
-        <div class="hint">二阶魔方仅用 R / U / F 三面外层转动，相邻不同面，符合 WCA 二阶打乱特征。<br>步数越多越随机（WCA 标准约 11+ 步，练习常用 20 步）。</div>
+        <div class="field"><label for="twoLen">打乱步数</label><input type="number" id="twoLen" value="20" min="2" max="60"></div>
+        <p class="hint">二阶魔方仅用 R / U / F 三面外层转动，相邻不同面，符合 WCA 二阶打乱特征。<br>步数越多越随机（WCA 标准约 11+ 步，练习常用 20 步）。</p>
       </div>
+    </section>
 
-    <!-- 设置面板 -->
-    <div class="card" id="panel-settings">
-      <div class="field"><label>公式序号</label>
-        <select id="setNo">
-          <option value="1">显示序号</option>
-          <option value="0">不显示</option>
-        </select>
+    <section class="panel" id="panel-settings">
+      <div class="field"><label for="setNo">公式序号</label>
+        <select id="setNo"><option value="1">显示序号</option><option value="0">不显示</option></select>
       </div>
-      <div class="field"><label>打乱坐标</label>
-        <select id="setCoord">
-          <option value="yellow-red">黄顶红前</option>
-          <option value="white-green">白顶绿前</option>
-        </select>
+      <div class="field"><label for="setCoord">打乱坐标</label>
+        <select id="setCoord"><option value="yellow-red">黄顶红前</option><option value="white-green">白顶绿前</option></select>
       </div>
-      <div class="field"><label>显示编码</label>
-        <select id="setCode">
-          <option value="1">显示棱/角编码</option>
-          <option value="0">仅打乱步骤</option>
-        </select>
+      <div class="field"><label for="setCode">显示编码</label>
+        <select id="setCode"><option value="1">显示棱/角编码</option><option value="0">仅打乱步骤</option></select>
       </div>
-      <div class="field"><label>棱缓冲</label>
+      <div class="field"><label for="setEdgeBuf">棱缓冲</label>
         <select id="setEdgeBuf">
-          <option value="UF" selected>UF (A)</option>
-          <option value="UR">UR (G)</option>
-          <option value="UL">UL (C)</option>
-          <option value="UB">UB (E)</option>
-          <option value="DR">DR (O)</option>
-          <option value="DL">DL (K)</option>
-          <option value="FR">FR (Q)</option>
-          <option value="FL">FL (S)</option>
-          <option value="BL">BL (Y)</option>
-          <option value="DF">DF (I)</option>
-          <option value="BR">BR (W)</option>
-          <option value="DB">DB (M)</option>
+          <option value="UF" selected>UF (A)</option><option value="UR">UR (G)</option><option value="UL">UL (C)</option><option value="UB">UB (E)</option><option value="DR">DR (O)</option><option value="DL">DL (K)</option><option value="FR">FR (Q)</option><option value="FL">FL (S)</option><option value="BL">BL (Y)</option><option value="DF">DF (I)</option><option value="BR">BR (W)</option><option value="DB">DB (M)</option>
         </select>
       </div>
-      <div class="field"><label>角缓冲</label>
+      <div class="field"><label for="setCornerBuf">角缓冲</label>
         <select id="setCornerBuf">
-          <option value="UFR" selected>UFR (J)</option>
-          <option value="UBR">UBR (G)</option>
-          <option value="UFL">UFL (A)</option>
-          <option value="UBL">UBL (D)</option>
-          <option value="DFR">DFR (X)</option>
-          <option value="DFL">DFL (W)</option>
-          <option value="DBR">DBR (R)</option>
-          <option value="DBL">DBL (O)</option>
+          <option value="UFR" selected>UFR (J)</option><option value="UBR">UBR (G)</option><option value="UFL">UFL (A)</option><option value="UBL">UBL (D)</option><option value="DFR">DFR (X)</option><option value="DFL">DFL (W)</option><option value="DBR">DBR (R)</option><option value="DBL">DBL (O)</option>
         </select>
       </div>
-      <div class="field"><label>颜色方案</label>
-        <select id="setColor">
-          <option value="0" selected>单色编码</option>
-          <option value="1">高低色标记 (H/L)</option>
-        </select>
+      <div class="field"><label for="setColor">颜色方案</label>
+        <select id="setColor"><option value="0" selected>单色编码</option><option value="1">高低色标记 (H/L)</option></select>
       </div>
-      <div class="field"><label>结尾双层转动</label>
-        <input type="text" id="setWide" placeholder="留空不追加，如 Rw' Uw2">
-      </div>
-      <div class="hint">「棱缓冲/角缓冲」决定彳亍法读码起点（默认棱 UF、角 UFR，与 spooncuber 一致）。<br>「高低色标记」将高色贴纸字母加粗着色，便于记忆区分。<br>「结尾双层转动」为练习工具可选功能，非 WCA 官方打乱规范；填写后每条打乱末尾会追加该步骤。</div>
-    </div>
-  </div>
+      <div class="field"><label for="setWide">结尾双层</label><input type="text" id="setWide" placeholder="留空不追加，如 Rw' Uw2"></div>
+      <p class="hint">「棱缓冲/角缓冲」决定彳亍法读码起点（默认棱 UF、角 UFR，与 spooncuber 一致）。<br>「高低色标记」将高色贴纸字母加粗着色，便于记忆区分。<br>「结尾双层转动」为练习工具可选功能，非 WCA 官方打乱规范；填写后每条打乱末尾会追加该步骤。</p>
+    </section>
 
-  <!-- 右侧输出区 -->
-  <div class="card">
+    <div class="action-bar">
+      <button class="btn btn--primary btn-block" id="btnStart">开始生成</button>
+    </div>
+  </aside>
+
+  <section class="card output-card">
+    <div class="output-head">
+      <span class="output-title">生成结果</span>
+      <span class="output-tip">生成后自动复制，可直接粘贴到计时器</span>
+    </div>
     <div class="output-area" id="output">
-      <div class="placeholder">点击「开始」生成盲拧打乱公式</div>
+      <div class="placeholder">点击「开始生成」生成盲拧打乱公式</div>
     </div>
     <div class="status" id="status"></div>
-  </div>
-</div>
-
+  </section>
+</main>
 <footer class="site-footer">
       <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
       <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
