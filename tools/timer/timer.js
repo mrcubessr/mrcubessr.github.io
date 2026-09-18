@@ -377,12 +377,17 @@
      历史查看时只改这里的数据源，不影响当前打乱与计时。 */
   function renderBldFrom(b) {
     if (!els.bldRows) return;
+    var _pf = (opt.bld && opt.bld.parityFlip) || "none";
+    var _parityTxt = "偶";
+    if (b.parity === 1) {
+      _parityTxt = _pf === "edge" ? "奇偶带翻棱" : _pf === "corner" ? "奇偶带翻角" : "奇";
+    }
     var rows = [
       ["棱读码", b.edge || "—"],
       ["棱翻色", b.flip || "—"],
       ["角读码", b.corner || "—"],
       ["角翻色", b.twist || "—"],
-      ["奇偶", b.parity === 1 ? "奇" : "偶"]
+      ["奇偶", _parityTxt]
     ];
     var html = "";
     rows.forEach(function (r) {

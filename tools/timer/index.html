@@ -181,6 +181,26 @@
         </div>
       </div>
       <div class="tm-bld-group">
+        <div class="tm-bld-group__title">高级编码习惯</div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">奇偶带翻</span>
+          <div class="tm-bld-row__v">
+            <select class="tm-bld-row__select" id="tm-bld-pflip">
+              <option value="none">无（标准奇偶）</option>
+              <option value="edge">奇偶带翻棱</option>
+              <option value="corner">奇偶带翻角</option>
+            </select>
+            <span class="tm-bld-row__note">会的选手勾选；解法奇偶处标注对应带翻写法</span>
+          </div>
+        </div>
+        <div class="tm-bld-row">
+          <span class="tm-bld-row__k">浮动缓冲</span>
+          <div class="tm-bld-row__v tm-bld-row__v--checks">
+            <label class="tm-check"><input type="checkbox" id="tm-bld-fbuf"><span>启用浮动缓冲（UR/UB 省 1 条提示）</span></label>
+          </div>
+        </div>
+      </div>
+      <div class="tm-bld-group">
         <div class="tm-bld-group__title">解法显示</div>
         <div class="tm-bld-row">
           <span class="tm-bld-row__k">显示时机</span>

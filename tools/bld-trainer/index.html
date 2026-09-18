@@ -195,6 +195,8 @@
       <button data-mod="m1" class="active"><b>模块1 · 编码联想记忆</b>读一遍记忆 → 读一遍串联记忆 → 回忆编码</button>
       <button data-mod="m2"><b>模块2 · 记忆间隔提取训练</b>读一遍 → 停留 N 秒 → 复述全部编码</button>
       <button data-mod="m3"><b>模块3 · 主动刷新</b>读一遍记忆 → 做棱块 → 主动刷新 → 回忆编码</button>
+      <button data-mod="m4"><b>模块4 · 图像记忆训练</b>看编码 → 在脑中唤起它的联想图像（图像记忆法）</button>
+      <button data-mod="m5"><b>模块5 · 定桩法训练</b><span style="color:var(--amber)">即将上线</span> 用桩子串联编码图像</button>
     </div>
     <div style="display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;align-items:flex-end">
       <div class="field">
@@ -888,8 +890,97 @@ document.getElementById('gapSeg').addEventListener('click',e=>{
   document.getElementById('gapField').style.display='none';
 })();
 document.getElementById('startBtn').addEventListener('click',()=>{
-  if(curMod==='m1')startM1();else if(curMod==='m2')startM2();else startM3();
+  if(curMod==='m1')startM1();
+  else if(curMod==='m2')startM2();
+  else if(curMod==='m3')startM3();
+  else if(curMod==='m4')startM4();
+  else startM5();
 });
+
+/* ===== 模块4 · 图像记忆训练 / 模块5 · 定桩法（占位） ===== */
+function bldtEl(tag, opts, kids){
+  const e=document.createElement(tag);
+  if(opts)for(const k in opts){
+    if(k==='cls')e.className=opts[k];
+    else if(k==='html')e.innerHTML=opts[k];
+    else if(k==='text')e.textContent=opts[k];
+    else if(k==='css')e.style.cssText=opts[k];
+    else e.setAttribute(k,opts[k]);
+  }
+  if(kids){(Array.isArray(kids)?kids:[kids]).forEach(c=>{if(c)e.appendChild(typeof c==='string'?document.createTextNode(c):c);});}
+  return e;
+}
+function startM4(){
+  const n=grpCount||4;
+  const pool=[];
+  for(const k in DEFAULT_PAIR_DICT){ if(DEFAULT_PAIR_DICT[k]) pool.push(k); }
+  for(let i=pool.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const codes=pool.slice(0,n);
+  const words=codes.map(k=>DEFAULT_PAIR_DICT[k]);
+  let idx=0,correct=0;const t0=Date.now();const rec=[];
+  clearStage();const s=stage();
+  function steps(cur){
+    const order=['记忆','回忆','成绩'];
+    const wrap=bldtEl('div',{cls:'steps'});
+    order.forEach((nm,i)=>{
+      const ci=order.indexOf(cur);
+      const st=i<ci?'done':(i===ci?'on':'');
+      wrap.appendChild(bldtEl('div',{cls:'step'+(st?' '+st:'')},nm));
+    });
+    return wrap;
+  }
+  function show(){
+    s.innerHTML='';
+    s.appendChild(steps('mem'));
+    s.appendChild(bldtEl('div',{cls:'hint'},'看编码，在脑中唤起它的联想图像（'+(idx+1)+' / '+n+'）'));
+    const wrap=bldtEl('div',{cls:'qwrap'});
+    wrap.appendChild(bldtEl('div',{cls:'qpos'},codes[idx]+' <small>对应哪个图像？</small>'));
+    const inp=bldtEl('input',{type:'text',cls:'input',placeholder:'输入联想词 / 图像…',css:'width:min(360px,92%);font-size:16px;text-align:center;padding:10px;margin-top:8px'});
+    wrap.appendChild(inp);
+    const btn=bldtEl('button',{cls:'btn'},'确认');
+    wrap.appendChild(btn);
+    s.appendChild(wrap);
+    setTimeout(()=>inp.focus(),50);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+    btn.addEventListener('click',go);
+    function go(){
+      const v=inp.value.trim();
+      const ok=v && (v===words[idx] || words[idx].indexOf(v)>=0 || v.indexOf(words[idx])>=0);
+      rec[idx]={code:codes[idx],want:words[idx],got:v,ok:!!ok};
+      if(ok)correct++;
+      idx++;
+      if(idx<n)show();else result();
+    }
+  }
+  function result(){
+    const sec=((Date.now()-t0)/1000).toFixed(1);
+    s.innerHTML='';
+    s.appendChild(steps('res'));
+    s.appendChild(bldtEl('div',{cls:'banner big'},'正确 '+correct+' / '+n+'　用时 '+sec+'s'));
+    const box=bldtEl('div',{cls:'resbox'});
+    rec.forEach((a,i)=>{
+      box.appendChild(bldtEl('div',{cls:'res-item '+(a.ok?'okc':'badc')},[
+        bldtEl('span',{cls:'no'},'第'+(i+1)+'组'),
+        bldtEl('span',{cls:'code'},a.code),
+        bldtEl('span',{cls:'word'},a.ok?('「'+a.want+'」'):('应为「'+a.want+'」 你填「'+a.got+'」'))
+      ]));
+    });
+    s.appendChild(box);
+    s.appendChild(againBtn(startM4));
+  }
+  show();
+}
+function startM5(){
+  clearStage();const s=stage();
+  s.appendChild(bldtEl('div',{cls:'banner big'},'🚧 定桩法训练工具 · 开发中'));
+  s.appendChild(bldtEl('div',{cls:'hint',css:'max-width:580px;margin-top:12px;line-height:1.85;text-align:center'},
+    '定桩法（Peg System）是把编码图像挂到固定「桩子」（如 1–20 的数字形象、身体桩、地点桩）上，'+
+    '用桩子的顺序串联整条记忆链，适合长串编码。本模块将提供：① 常用桩子表 ② 自动把 N 组编码分配到桩子并生成串联故事 ③ 按桩子顺序回忆图像。'+
+    '当前为预留入口，训练逻辑待上线。'));
+  const b=bldtEl('button',{cls:'btn',css:'margin-top:16px'},'去看看「图像记忆训练」');
+  b.addEventListener('click',()=>{const t=document.getElementById('modTabs').querySelector('[data-mod="m4"]');if(t)t.click();});
+  s.appendChild(b);
+}
 
 // ===== 初始化 =====
 renderDict('');renderStats();updateMissNum();

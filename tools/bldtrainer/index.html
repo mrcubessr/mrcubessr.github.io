@@ -3850,13 +3850,22 @@ function expandMoveNet(base, dir){
 }
 
 // 绘制标准十字展开图
+var _lastNetAlg = "";
 function drawScrambleNet(alg){
+    _lastNetAlg = alg || "";
     const canvas = document.getElementById("player");
     if(!canvas) return;
     const cube = new Cube(3);
     cube.applyAlg(alg);
     const colors = NET_COLORS;
     const ctx = canvas.getContext('2d');
+    const cs = getComputedStyle(document.documentElement);
+    const _cv = function(n, fb){ var v = (cs.getPropertyValue(n) || "").trim(); return v || fb; };
+    const _light = window.Theme && Theme.mode ? Theme.mode() === 'light' : false;
+    const _netBg = _cv('--bg', '#0B0D14');
+    const _faceBg = _cv('--surface-2', '#1A2130');
+    const _label = _cv('--fg-2', '#AEB8CA');
+    const _whiteBd = _light ? '#C2C8D2' : '#cccccc';
     const rect = canvas.parentElement.getBoundingClientRect();
     const availW = Math.max(rect.width, 240);
     const availH = Math.max(rect.height, 280);
@@ -3923,6 +3932,10 @@ function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
     }
 }
 
+/* 主题切换时重绘展开图，使底色跟随浅色 / 深色 */
+if (window.Theme && Theme.onChange) {
+  Theme.onChange(function () { drawScrambleNet(_lastNetAlg); });
+}
 </script>
 <script>
 drawScrambleNet("");

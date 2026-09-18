@@ -338,6 +338,7 @@
 }
 .tm-chip--brand { color: var(--brand); border-color: var(--brand); }
 .tm-chip--warn { color: var(--amber); border-color: var(--amber); }
+.tm-chip--info { color: var(--brand); border-color: var(--brand); background: var(--surface-2); }
 
 /* ---------- 三盲解法面板 ---------- */
 .tm-bld {
