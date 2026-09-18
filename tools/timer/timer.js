@@ -59,6 +59,8 @@
   var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
 
   var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true };
+  /* 速拧的「观察」偏好：三盲会临时把 opt.inspect 压成 0，切回速拧时用它还原 */
+  var speedInspect = 15;
 
   /* ---------- 三盲默认参数（与 bld-engine 默认值一致） ---------- */
   function defaultBld() {
@@ -222,7 +224,7 @@
     try {
       var o = JSON.parse(localStorage.getItem(LS_OPT) || "{}");
       if (eventDef(o.event).key === o.event) opt.event = o.event;
-      if (o.inspect === 0 || o.inspect === 15) opt.inspect = o.inspect;
+      if (o.inspect === 0 || o.inspect === 15) { opt.inspect = o.inspect; speedInspect = o.inspect; }
       if (typeof o.manualText === "string") opt.manualText = o.manualText;
       if (o.bld && typeof o.bld === "object") {
         var merged = defaultBld();
@@ -431,13 +433,23 @@
     if (els.bld) els.bld.hidden = false;
     if (els.bldViewbar) els.bldViewbar.hidden = false;
     if (els.bldViewtxt) els.bldViewtxt.textContent = "正在查看 #" + num + " 的解法" + (b.dnfReason ? "（DNF）" : "");
+    /* 复盘关键：把那一把的打乱公式同步显示出来，否则只看到解法却对不上打乱 */
+    if (els.bldViewScrV) els.bldViewScrV.innerHTML = fmtMoves(b.scramble || "");
+    if (els.bldViewScr) els.bldViewScr.hidden = false;
   }
   function exitSolveView() {
     if (!viewingSolve) return;
     viewingSolve = false; viewingSolveNum = 0;
     if (els.bldViewbar) els.bldViewbar.hidden = true;
+    if (els.bldViewScr) els.bldViewScr.hidden = true;
     renderBld();           /* 回到当前打乱的解法 */
     updateBldReveal();     /* 按显示时机重新决定是否收起 */
+  }
+  /* 转法串 → 便于换行的 token 片段 */
+  function fmtMoves(str) {
+    var moves = String(str || "").split(/\s+/).filter(Boolean);
+    if (!moves.length) return "—";
+    return moves.map(function (m) { return '<span class="tm-mv">' + m + "</span>"; }).join("");
   }
 
   /* 事件切换时显隐三盲专属 UI（参数面板 / 解法面板 / 统计弹窗分析段 / 隐藏「手动输入」） */
@@ -449,6 +461,11 @@
     if (els.manualSeg) els.manualSeg.hidden = isBld;
     if (els.bldNetSide) els.bldNetSide.hidden = !isBld;   /* 展开图与打乱公式同处显示 */
     if (isBld && els.manualBox) els.manualBox.hidden = true;
+    /* 三盲不需要 15 秒观察（盲拧靠记忆，观察无意义）→ 隐藏该选项并强制关闭；
+       切回速拧时还原用户原本的观察偏好 */
+    if (els.inspectLabel) els.inspectLabel.hidden = isBld;
+    if (els.inspectSeg) els.inspectSeg.hidden = isBld;
+    setInspect(isBld ? 0 : speedInspect, true);
     if (isBld) applyBldCollapse();                        /* 恢复上次收起/展开状态 */
     updateBldReveal();                                    /* 解法面板按显示时机显隐 */
   }
@@ -927,14 +944,45 @@
 
   function renderStrip() {
     var arr = solves(), s = S.sessionStats(arr);
-    els.kCount.textContent = s.count;
-    els.kBest.textContent = s.best == null ? "--" : S.fmt(s.best);
-    els.kBest.classList.toggle("is-best", s.best != null);
-    setAvgEl(els.kAo5, s.ao5);
-    setAvgEl(els.kAo12, s.ao12);
-    setAvgEl(els.kAo100, s.ao100);
+    var isBld = opt.event === "bld";
+
+    if (isBld) {
+      /* 盲拧：大量 DNF 会让 aoN 整片作废 → 改用「成功率 / 平均 / mea」口径。
+         5 格 = 次数 · 成功率 · 单次最好 · 平均 · 最佳 mea12 */
+      if (els.kBestK) els.kBestK.textContent = "成功率";
+      if (els.kAo5K) els.kAo5K.textContent = "单次最好";
+      if (els.kAo12K) els.kAo12K.textContent = "平均";
+      if (els.kAo100K) els.kAo100K.textContent = "最佳 mea12";
+
+      els.kCount.textContent = s.count;
+      if (els.kBest) {
+        els.kBest.textContent = s.successRate == null ? "--" : Math.round(s.successRate * 100) + "%";
+        els.kBest.classList.remove("is-dnf");
+        els.kBest.classList.toggle("is-best", s.successRate != null && s.successRate >= 0.5);
+      }
+      els.kAo5.textContent = s.best == null ? "--" : S.fmt(s.best);
+      els.kAo5.classList.toggle("is-dnf", false);
+      els.kAo5.classList.toggle("is-best", s.best != null);
+      setAvgEl(els.kAo12, s.mean);          /* 平均：有效成绩平均（DNF 不计入、不作废） */
+      setAvgEl(els.kAo100, s.bestMea12);    /* 最佳 mea12：稳定水准 */
+    } else {
+      if (els.kBestK) els.kBestK.textContent = "单次最好";
+      if (els.kAo5K) els.kAo5K.textContent = "当前 ao5";
+      if (els.kAo12K) els.kAo12K.textContent = "当前 ao12";
+      if (els.kAo100K) els.kAo100K.textContent = "当前 ao100";
+
+      els.kCount.textContent = s.count;
+      els.kBest.textContent = s.best == null ? "--" : S.fmt(s.best);
+      els.kBest.classList.toggle("is-best", s.best != null);
+      els.kBest.classList.remove("is-dnf");
+      els.kAo5.classList.remove("is-best");
+      setAvgEl(els.kAo5, s.ao5);
+      setAvgEl(els.kAo12, s.ao12);
+      setAvgEl(els.kAo100, s.ao100);
+    }
   }
   function setAvgEl(el, v) {
+    if (!el) return;
     if (v == null) { el.textContent = "--"; el.classList.remove("is-dnf"); return; }
     if (v === Infinity) { el.textContent = "DNF"; el.classList.add("is-dnf"); return; }
     el.textContent = S.fmt(v); el.classList.remove("is-dnf");
@@ -1134,12 +1182,14 @@
     });
   }
 
-  /* 「观察」开关：15 秒 WCA 观察 ↔ 不用观察（空格直接起停） */
-  function setInspect(v) {
+  /* 「观察」开关：15 秒 WCA 观察 ↔ 不用观察（空格直接起停）。
+     三盲时由 applyEventUI 强制设为 0，silent=true 跳过持久化以免覆盖用户的速拧偏好。 */
+  function setInspect(v, silent) {
     v = (parseInt(v, 10) === 0) ? 0 : 15;
+    if (!silent) speedInspect = v;    /* 用户手动选的是速拧偏好，三盲强制 0 不影响它 */
     if (opt.inspect === v) return;
     opt.inspect = v;
-    saveOpt();
+    if (!silent) saveOpt();
     if (state === "inspect" || state === "ready") abortKey();   /* 中途切换不留脏状态 */
     Array.prototype.forEach.call(els.inspectSeg.children, function (c) {
       c.classList.toggle("is-active", c.dataset.inspect === String(opt.inspect));
@@ -1177,19 +1227,38 @@
   function openStats() {
     var arr = solves(), s = S.sessionStats(arr), g = curGroup(opt.event);
     els.modalEvent.textContent = eventDef(opt.event).label + " · " + g.name;
-    var cells = [
-      ["次数", String(s.count)],
-      ["有效次数", String(s.valid)],
-      ["单次最好", s.best == null ? "--" : S.fmt(s.best), s.best != null],
-      ["单次最差", s.worst == null ? "--" : (s.worst === Infinity ? "DNF" : S.fmt(s.worst))],
-      ["平均", s.mean == null ? "--" : S.fmt(s.mean)],
-      ["当前 ao5", avgText(s.ao5)],
-      ["当前 ao12", avgText(s.ao12)],
-      ["当前 ao100", avgText(s.ao100)],
-      ["最好 ao5", s.bestAo5 == null ? "--" : S.fmt(s.bestAo5), s.bestAo5 != null],
-      ["最好 ao12", s.bestAo12 == null ? "--" : S.fmt(s.bestAo12), s.bestAo12 != null],
-      ["最好 ao100", s.bestAo100 == null ? "--" : S.fmt(s.bestAo100), s.bestAo100 != null]
-    ];
+    var cells;
+    if (opt.event === "bld") {
+      /* 盲拧：aoN 会被 DNF 整片作废 → 换成成功率 / mea 口径 */
+      cells = [
+        ["次数", String(s.count)],
+        ["有效次数", String(s.valid)],
+        ["DNF 次数", String(s.dnf)],
+        ["成功率", s.successRate == null ? "--" : Math.round(s.successRate * 100) + "%",
+          s.successRate != null && s.successRate >= 0.5],
+        ["单次最好", s.best == null ? "--" : S.fmt(s.best), s.best != null],
+        ["平均", s.mean == null ? "--" : S.fmt(s.mean)],
+        ["当前 mea3", s.mea3 == null ? "--" : S.fmt(s.mea3)],
+        ["当前 mea12", s.mea12 == null ? "--" : S.fmt(s.mea12)],
+        ["最佳 mea3", s.bestMea3 == null ? "--" : S.fmt(s.bestMea3), s.bestMea3 != null],
+        ["最佳 mea12", s.bestMea12 == null ? "--" : S.fmt(s.bestMea12), s.bestMea12 != null],
+        ["单次最差", s.worst == null ? "--" : (s.worst === Infinity ? "DNF" : S.fmt(s.worst))]
+      ];
+    } else {
+      cells = [
+        ["次数", String(s.count)],
+        ["有效次数", String(s.valid)],
+        ["单次最好", s.best == null ? "--" : S.fmt(s.best), s.best != null],
+        ["单次最差", s.worst == null ? "--" : (s.worst === Infinity ? "DNF" : S.fmt(s.worst))],
+        ["平均", s.mean == null ? "--" : S.fmt(s.mean)],
+        ["当前 ao5", avgText(s.ao5)],
+        ["当前 ao12", avgText(s.ao12)],
+        ["当前 ao100", avgText(s.ao100)],
+        ["最好 ao5", s.bestAo5 == null ? "--" : S.fmt(s.bestAo5), s.bestAo5 != null],
+        ["最好 ao12", s.bestAo12 == null ? "--" : S.fmt(s.bestAo12), s.bestAo12 != null],
+        ["最好 ao100", s.bestAo100 == null ? "--" : S.fmt(s.bestAo100), s.bestAo100 != null]
+      ];
+    }
     var html = "";
     cells.forEach(function (c) {
       html += '<div class="tm-cell"><span class="tm-cell__k">' + c[0] + '</span>' +
@@ -1756,6 +1825,8 @@
       btnDnf: $("tm-confirm-dnf"), btnDrop: $("tm-confirm-drop"),
       strip: $("tm-strip"), kCount: $("k-count"), kBest: $("k-best"),
       kAo5: $("k-ao5"), kAo12: $("k-ao12"), kAo100: $("k-ao100"),
+      kCountK: $("k-count-k"), kBestK: $("k-best-k"),
+      kAo5K: $("k-ao5-k"), kAo12K: $("k-ao12-k"), kAo100K: $("k-ao100-k"),
       list: $("tm-list"), listWrap: $("tm-list-wrap"), empty: $("tm-empty"),
       listHead: document.querySelector(".tm-list-head"),
       groupSel: $("tm-group-sel"), groupNew: $("tm-group-new"),
@@ -1766,7 +1837,7 @@
       modal: $("tm-modal"), modalClose: $("tm-modal-close"), modalEvent: $("tm-modal-event"),
       statGrid: $("tm-stat-grid"), chartDaily: $("tm-chart-daily"),
       chartTrend: $("tm-chart-trend"), chartDist: $("tm-chart-dist"),
-      inspectSeg: $("tm-inspect-seg"),
+      inspectSeg: $("tm-inspect-seg"), inspectLabel: $("tm-inspect-label"),
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
@@ -1775,6 +1846,7 @@
       bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
       bldNet: $("tm-bld-net"), bldNetCap: $("tm-bld-net-cap"), bldDiff: $("tm-bld-diff"),
       bldViewbar: $("tm-bld-viewbar"), bldViewtxt: $("tm-bld-viewtxt"), bldReturn: $("tm-bld-return"),
+      bldViewScr: $("tm-bld-viewscr"), bldViewScrV: $("tm-bld-viewscr-v"),
       orientSel: $("tm-bld-orient"), lenInput: $("tm-bld-len"),
       ebuf: $("tm-bld-ebuf"), eorder: $("tm-bld-eorder"),
       eorient: $("tm-bld-eorient"), eskip: $("tm-bld-eskip"),

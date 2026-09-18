@@ -60,6 +60,10 @@
               <span class="tm-bld__meta" id="tm-bld-meta"></span>
               <button class="btn btn--sm btn--ghost tm-bld__copy" id="tm-bld-copy" type="button">复制解法</button>
             </div>
+            <div class="tm-bld__scr" id="tm-bld-viewscr" hidden>
+              <span class="tm-bld__scr-k">那一把的打乱</span>
+              <span class="tm-bld__scr-v" id="tm-bld-viewscr-v"></span>
+            </div>
             <div class="tm-bld__diff" id="tm-bld-diff"></div>
             <div class="tm-bld__rows" id="tm-bld-rows"></div>
           </div>
@@ -227,11 +231,11 @@
 
     <!-- ④ 统计条 -->
     <div class="tm-strip" id="tm-strip">
-      <div class="tm-kpi"><span class="tm-kpi__k">次数</span><b class="tm-kpi__v" id="k-count">0</b></div>
-      <div class="tm-kpi"><span class="tm-kpi__k">单次最好</span><b class="tm-kpi__v" id="k-best">--</b></div>
-      <div class="tm-kpi"><span class="tm-kpi__k">当前 ao5</span><b class="tm-kpi__v" id="k-ao5">--</b></div>
-      <div class="tm-kpi"><span class="tm-kpi__k">当前 ao12</span><b class="tm-kpi__v" id="k-ao12">--</b></div>
-      <div class="tm-kpi"><span class="tm-kpi__k">当前 ao100</span><b class="tm-kpi__v" id="k-ao100">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k" id="k-count-k">次数</span><b class="tm-kpi__v" id="k-count">0</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k" id="k-best-k">单次最好</span><b class="tm-kpi__v" id="k-best">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k" id="k-ao5-k">当前 ao5</span><b class="tm-kpi__v" id="k-ao5">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k" id="k-ao12-k">当前 ao12</span><b class="tm-kpi__v" id="k-ao12">--</b></div>
+      <div class="tm-kpi"><span class="tm-kpi__k" id="k-ao100-k">当前 ao100</span><b class="tm-kpi__v" id="k-ao100">--</b></div>
     </div>
 
     <!-- ⑤ 工具条 -->
@@ -249,7 +253,7 @@
       <button class="btn btn--sm btn--ghost" id="tm-import" type="button">导入</button>
       <input type="file" id="tm-import-file" accept=".txt,.json,text/plain,application/json" hidden>
       <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空本组</button>
-      <span class="tm-label">观察</span>
+      <span class="tm-label" id="tm-inspect-label">观察</span>
       <div class="seg" id="tm-inspect-seg" role="group" aria-label="是否启用 15 秒观察"></div>
       <span class="tm-tools__hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
     </div>

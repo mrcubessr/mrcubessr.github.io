@@ -12,6 +12,11 @@
      · ao5 / ao12  → 去掉 1 个最好、1 个最差，其余取平均
      · ao100       → 去掉 5 个最好、5 个最差，其余取平均
      · DNF 记为 +∞；若窗口内 DNF 数量超过被去掉的个数，该平均记为 DNF
+
+   盲拧专用口径（大量 DNF 时 aoN 会整片作废，故另设）：
+     · meaN  → 窗口内 DNF 直接剔除，其余取平均（不因 DNF 作废）；
+               窗口内 1 次有效都没有时返回 null；跳过仍有 >0 有效成绩的窗口
+     · 成功率 → 完成次数 / 总次数（+2 计入完成，DNF 不计）
    ========================================================= */
 (function (root) {
   "use strict";
@@ -66,6 +71,43 @@
     return best;
   }
 
+  /* ---------- 盲拧口径：meaN（DNF 剔除，不整片作废） ----------
+     arr 为「最新在前」；取 arr[idx .. idx+n-1] 窗口，剔除 DNF 后取平均。
+     窗口内一次有效成绩都没有 → null（该窗口无参考价值）。
+     arr[idx]（最新一次）本身是 DNF 且窗口内无其它有效 → 仍返回平均，
+     因为盲拧正是要看「含 DNF 的这段练习」的平均水准。 */
+  function meaN(arr, n, idx) {
+    idx = idx || 0;
+    if (!arr || arr.length < idx + n) return null;
+    var sum = 0, cnt = 0;
+    for (var i = idx; i < idx + n; i++) {
+      var v = val(arr[i]);
+      if (v === INF) continue;      /* DNF 直接剔除，不作废整个窗口 */
+      sum += v; cnt++;
+    }
+    return cnt ? sum / cnt : null;
+  }
+
+  /* 全会话最好的 meaN（跳过 null） */
+  function bestMeaN(arr, n) {
+    if (!arr || arr.length < n) return null;
+    var best = null;
+    for (var i = 0; i + n <= arr.length; i++) {
+      var a = meaN(arr, n, i);
+      if (a == null) continue;
+      if (best == null || a < best) best = a;
+    }
+    return best;
+  }
+
+  /* 成功率：完成（含 +2）/ 总次数；无成绩返回 null */
+  function successRate(arr) {
+    if (!arr || !arr.length) return null;
+    var ok = 0;
+    for (var i = 0; i < arr.length; i++) if (val(arr[i]) !== INF) ok++;
+    return ok / arr.length;
+  }
+
   /* ---------- 本组概览 ---------- */
   function sessionStats(arr) {
     arr = arr || [];
@@ -89,7 +131,14 @@
       ao100: avgN(arr, 100, 0),
       bestAo5: bestAvgN(arr, 5),
       bestAo12: bestAvgN(arr, 12),
-      bestAo100: bestAvgN(arr, 100)
+      bestAo100: bestAvgN(arr, 100),
+      /* 盲拧口径：DNF 不计入但也不作废，成功率单独统计 */
+      dnf: n - valid,
+      successRate: successRate(arr),
+      mea3: meaN(arr, 3, 0),
+      mea12: meaN(arr, 12, 0),
+      bestMea3: bestMeaN(arr, 3),
+      bestMea12: bestMeaN(arr, 12)
     };
   }
 
@@ -246,6 +295,7 @@
 
   root.TimerStats = {
     fmt: fmt, val: val, avgN: avgN, bestAvgN: bestAvgN,
+    meaN: meaN, bestMeaN: bestMeaN, successRate: successRate,
     sessionStats: sessionStats, byDay: byDay,
     dailyChart: dailyChart, trendChart: trendChart, distChart: distChart,
     escapeHtml: escapeHtml

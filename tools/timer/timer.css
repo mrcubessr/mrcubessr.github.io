@@ -343,6 +343,19 @@
 .tm-bld__viewtxt { font-size: 12px; color: var(--brand-strong); flex: 1 1 auto; min-width: 0; }
 .tm-bld__viewbar .btn { flex: 0 0 auto; }
 
+/* 回看历史时同步显示那一把的打乱公式（方便对着解法复盘） */
+.tm-bld__scr {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 8px 10px; margin-bottom: 2px;
+  background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--gold);
+}
+.tm-bld__scr-k { font-size: 11px; letter-spacing: 1px; color: var(--fg-3); flex: 0 0 auto; }
+.tm-bld__scr-v { display: flex; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
+.tm-bld__scr-v .tm-mv {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+  color: var(--fg); white-space: nowrap;
+}
+
 /* 计时长按时反馈：提示“保持按住” */
 .tm-stage.is-holding { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
 
