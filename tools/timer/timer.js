@@ -47,6 +47,9 @@
   var els = {};
   var state = "idle";
   var holding = false, holdTimer = 0, raf = 0;
+  var ARM_MS = 350;               /* 长按启动阈值：低于此时间的点按/误触不触发计时 */
+  var pressX = 0, pressY = 0;     /* 记录按下坐标，滑动（滚动）则取消，避免误触 */
+  var viewingSolve = false, viewingSolveNum = 0;  /* 正在查看某把历史解法 */
   var inspectStart = 0, runStart = 0;
   var pendingPenalty = "";
   var memoMs = 0, memoMarked = false;     /* 三盲分段计时：记忆用时 / 是否已标记 */
@@ -320,24 +323,26 @@
   }
 
   /* 难度指标：主记法（棱X+角Y[+1]）+ 总公式数 + 等级 + 明细 chip */
-  function renderBldDiff() {
+  function renderBldDiff(d) {
     if (!els.bldDiff) return;
-    if (opt.event !== "bld" || !curBld || !curBld.difficulty) { els.bldDiff.innerHTML = ""; return; }
-    var d = curBld.difficulty;
+    if (!d) { els.bldDiff.innerHTML = ""; return; }
     var chips = [];
     chips.push('<span class="tm-chip tm-chip--brand">棱 ' + d.edgeF + " 条</span>");
     chips.push('<span class="tm-chip">角 ' + d.cornerF + " 条</span>");
     if (d.flipF) chips.push('<span class="tm-chip">翻色 ' + d.flipF + " 条</span>");
     if (d.twistF) chips.push('<span class="tm-chip">角翻 ' + d.twistF + " 条</span>");
     if (d.parityF) chips.push('<span class="tm-chip tm-chip--warn">奇偶 +1</span>');
-    chips.push('<span class="tm-chip' + (d.borrow ? " tm-chip--warn" : "") + '">借位 ' + d.borrow + " 次</span>");
+    /* 借位次数拆分为「棱借位 / 角借位」，便于看清记忆负担来自哪一类 */
+    if (d.borrowEdge) chips.push('<span class="tm-chip tm-chip--warn">棱借位 ' + d.borrowEdge + " 次</span>");
+    if (d.borrowCorner) chips.push('<span class="tm-chip tm-chip--warn">角借位 ' + d.borrowCorner + " 次</span>");
+    if (!d.borrowEdge && !d.borrowCorner) chips.push('<span class="tm-chip">无借位</span>');
     els.bldDiff.innerHTML =
       '<div class="tm-bld__diff-top">' +
         '<span class="tm-bld__diff-notation">' + d.notation + "</span>" +
         '<span class="tm-bld__diff-lv" data-lv="' + d.level + '">' + d.level + "</span>" +
       "</div>" +
       '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 难度分 <b>" + d.score +
-        "</b> · 编码 " + curBld.complexity + " 码</div>" +
+        "</b> · 编码 " + (curBld ? curBld.complexity : "") + " 码</div>" +
       '<div class="tm-bld__chips">' + chips.join("") + "</div>";
   }
 
@@ -351,12 +356,20 @@
       updateBldReveal();
       return;
     }
+    renderBldFrom(curBld);
+    updateBldReveal();
+  }
+
+  /* 渲染任意一份解法数据（当前打乱的 curBld，或历史成绩里存下来的 rec.bld）。
+     历史查看时只改这里的数据源，不影响当前打乱与计时。 */
+  function renderBldFrom(b) {
+    if (!els.bldRows) return;
     var rows = [
-      ["棱读码", curBld.edge || "—"],
-      ["棱翻色", curBld.flip || "—"],
-      ["角读码", curBld.corner || "—"],
-      ["角翻色", curBld.twist || "—"],
-      ["奇偶", curBld.parity === 1 ? "奇" : "偶"]
+      ["棱读码", b.edge || "—"],
+      ["棱翻色", b.flip || "—"],
+      ["角读码", b.corner || "—"],
+      ["角翻色", b.twist || "—"],
+      ["奇偶", b.parity === 1 ? "奇" : "偶"]
     ];
     var html = "";
     rows.forEach(function (r) {
@@ -365,12 +378,28 @@
     });
     els.bldRows.innerHTML = html;
     if (els.bldMeta) {
-      els.bldMeta.textContent = curBld.orientationLabel + " · " +
-        (curBld.difficulty ? curBld.difficulty.total + " 条 / " + curBld.difficulty.level : "");
+      els.bldMeta.textContent = (b.orientationLabel || "") + " · " +
+        (b.difficulty ? b.difficulty.total + " 条 / " + b.difficulty.level : "");
     }
-    renderBldNet();
-    renderBldDiff();
-    updateBldReveal();
+    renderBldNetFrom(b);
+    renderBldDiff(b.difficulty);
+  }
+
+  /* 历史成绩的展开图：用存下来的 orientation + scramble 还原朝向后的打乱再绘制 */
+  function renderBldNetFrom(b) {
+    if (!els.bldNet) return;
+    var cap = els.bldNetCap;
+    if (!b || !b.orientedScramble) { if (cap) cap.textContent = "展开图"; return; }
+    if (typeof window.drawScrambleNet !== "function") {
+      if (cap) cap.textContent = "展开图（渲染库未加载）";
+      return;
+    }
+    try {
+      window.drawScrambleNet(b.orientedScramble, els.bldNet, "white-green");
+      if (cap) cap.textContent = (b.orientationLabel || "") + " 展开图";
+    } catch (e) {
+      if (cap) cap.textContent = "展开图渲染失败";
+    }
   }
 
   /* 三盲解法面板的显隐：默认“计时后才显示”（复盘用），也可在参数里设为“立即显示”。
@@ -379,12 +408,42 @@
     if (opt.event !== "bld" || !els.bld) { if (els.bld) els.bld.hidden = true; return; }
     var showAfter = !opt.bld || opt.bld.showAfter !== false;
     var show = !showAfter || state === "confirm";
-    els.bld.hidden = !show;
+    if (!viewingSolve) els.bld.hidden = !show;   /* 查看历史时强制显示，不受显示时机限制 */
+  }
+
+  /* 点击历史成绩 → 把那一把的解法重新显示在解法面板（含展开图与借位拆分） */
+  function viewSolveBld(rec, num) {
+    if (!rec || !rec.bld) return;
+    var b = rec.bld;
+    var oriented = "";
+    if (window.BLDEngine && window.BLDEngine.CUBE_ORIENTATIONS) {
+      var idx = b.orientation | 0;
+      var pre = (window.BLDEngine.CUBE_ORIENTATIONS[idx] || {}).prefix || "";
+      oriented = (pre + " " + (b.scramble || "")).trim().replace(/\s+/g, " ");
+    }
+    var viewObj = {
+      edge: b.edge, flip: b.flip, corner: b.corner, twist: b.twist, parity: b.parity,
+      orientationLabel: b.orientationLabel, complexity: b.complexity,
+      difficulty: b.difficulty, orientedScramble: oriented
+    };
+    renderBldFrom(viewObj);
+    viewingSolve = true; viewingSolveNum = num;
+    if (els.bld) els.bld.hidden = false;
+    if (els.bldViewbar) els.bldViewbar.hidden = false;
+    if (els.bldViewtxt) els.bldViewtxt.textContent = "正在查看 #" + num + " 的解法" + (b.dnfReason ? "（DNF）" : "");
+  }
+  function exitSolveView() {
+    if (!viewingSolve) return;
+    viewingSolve = false; viewingSolveNum = 0;
+    if (els.bldViewbar) els.bldViewbar.hidden = true;
+    renderBld();           /* 回到当前打乱的解法 */
+    updateBldReveal();     /* 按显示时机重新决定是否收起 */
   }
 
   /* 事件切换时显隐三盲专属 UI（参数面板 / 解法面板 / 统计弹窗分析段 / 隐藏「手动输入」） */
   function applyEventUI() {
     var isBld = opt.event === "bld";
+    exitSolveView();   /* 切换项目时退出“查看历史解法”状态 */
     if (els.bldParams) els.bldParams.hidden = !isBld;
     if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
     if (els.manualSeg) els.manualSeg.hidden = isBld;
@@ -720,6 +779,7 @@
 
   function next(keepState) {
     stopRaf();
+    exitSolveView();   /* 记录/换打乱后退出“查看历史解法”状态 */
     inspectStart = 0;
     pendingPenalty = "";
     state = "idle";
@@ -735,16 +795,26 @@
     if (holding) return;
     holding = true;
     if (state === "idle") {
-      if (opt.inspect > 0) startInspect(); else toReady();
+      /* 长按才触发，避免手机上点按 / 误触直接开始计时 */
+      if (els.stage) els.stage.classList.add("is-holding");
+      paint();   /* 显示“保持按住…”提示 */
+      holdTimer = setTimeout(function () {
+        if (state !== "idle" || !holding) return;
+        if (els.stage) els.stage.classList.remove("is-holding");
+        if (opt.inspect > 0) startInspect(); else toReady();
+        paint();
+      }, ARM_MS);
       return;
     }
     if (state === "inspect") { holdTimer = setTimeout(toReady, HOLD_MS); return; }
     if (state === "running") { stop(); return; }
     if (state === "confirm") { confirmOk(); return; }
   }
-  function release() {
+  function release(cancel) {
     holding = false;
     clearTimeout(holdTimer);
+    if (els.stage) els.stage.classList.remove("is-holding");
+    if (cancel) return;       /* 滑动取消：不进入计时 */
     if (state === "ready") startRun();
   }
   function abortKey() {
@@ -756,6 +826,7 @@
       inspectStart = 0;
       els.time.textContent = "0.00";
       if (els.confirm) els.confirm.hidden = true;
+      exitSolveView();   /* 中途取消：退出“查看历史解法”状态 */
       updateBldReveal();   /* 中途取消：若设为“计时后显示”，则解法重新收起 */
       paint();
     }
@@ -812,10 +883,17 @@
     els.stage.addEventListener("pointerdown", function (e) {
       if (e.button != null && e.button !== 0 && e.pointerType === "mouse") return;
       e.preventDefault();
+      pressX = e.clientX; pressY = e.clientY;
       press();
     });
+    /* 按下后若发生明显滑动（滚动页面），取消本次长按，避免误触计时 */
+    els.stage.addEventListener("pointermove", function (e) {
+      if (!holding) return;
+      var dx = e.clientX - pressX, dy = e.clientY - pressY;
+      if (dx * dx + dy * dy > 144) release(true);   /* 移动 >12px 视为滚动，取消 */
+    });
     window.addEventListener("pointerup", function () { release(); });
-    window.addEventListener("pointercancel", function () { release(); });
+    window.addEventListener("pointercancel", function () { release(true); });
   }
 
   /* ---------- 渲染 ---------- */
@@ -836,11 +914,12 @@
   /* 状态提示文案：idle 分支随「是否启用观察」变化 */
   function stateText() {
     if (state === "idle") {
+      if (holding) return "保持按住…";
       return opt.inspect > 0
-        ? '按 <b>空格</b> 或点按此处开始（进入 ' + opt.inspect + " 秒观察）"
+        ? '长按此处或长按 <b>空格</b> 开始（进入 ' + opt.inspect + " 秒观察）"
         : "长按 <b>空格</b> 预备 · 松开开始";
     }
-    if (state === "inspect") return "观察中 · 长按 <b>空格</b> 预备";
+    if (state === "inspect") return "观察中 · 继续按住 <b>空格</b> 预备";
     if (state === "ready") return "松开 <b>空格</b> 开始计时";
     if (state === "running") return "计时中 · 按 <b>空格</b> 停止";
     return "待确认 · 空格记录 / Esc 作废";
@@ -944,10 +1023,12 @@
     var show = Math.min(arr.length, MAX_ROWS);
     var s = S.sessionStats(arr);
     var frag = document.createDocumentFragment();
-    for (var i = 0; i < show; i++) {
-      var rec = arr[i], v = S.val(rec);
+    for (let i = 0; i < show; i++) {
+      let rec = arr[i], v = S.val(rec);
+      let num = arr.length - i;
       var li = document.createElement("li");
       li.className = "tm-list__item";
+      if (viewingSolve && num === viewingSolveNum) li.classList.add("is-viewing");
 
       var idx = document.createElement("span");
       idx.className = "tm-list__idx";
@@ -992,13 +1073,22 @@
       del.type = "button"; del.className = "tm-list__del"; del.textContent = "✕";
       del.title = "删除该次成绩";
       del.setAttribute("aria-label", "删除该次成绩");
-      (function (index) {
-        del.addEventListener("click", function () {
-          var a = solves(); a.splice(index, 1);
-          saveData(); renderGroups(); renderStrip(); renderList();
-        });
-      })(i);
+      del.addEventListener("click", function (e) {
+        e.stopPropagation();   /* 点删除不触发“查看解法” */
+        var a = solves(); a.splice(i, 1);
+        saveData(); renderGroups(); renderStrip(); renderList();
+      });
       li.appendChild(del);
+
+      /* 点成绩行 → 回看这一把的解法（三盲带解法时）；无解法不响应 */
+      li.style.cursor = rec.bld ? "pointer" : "";
+      li.addEventListener("click", function (e) {
+        if (e.target.closest(".tm-list__del")) return;
+        if (!rec.bld) return;
+        Array.prototype.forEach.call(list.children, function (c) { c.classList.remove("is-viewing"); });
+        li.classList.add("is-viewing");
+        viewSolveBld(rec, num);
+      });
 
       frag.appendChild(li);
     }
@@ -1684,6 +1774,7 @@
       bldNetSide: $("tm-bld-net-side"),
       bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
       bldNet: $("tm-bld-net"), bldNetCap: $("tm-bld-net-cap"), bldDiff: $("tm-bld-diff"),
+      bldViewbar: $("tm-bld-viewbar"), bldViewtxt: $("tm-bld-viewtxt"), bldReturn: $("tm-bld-return"),
       orientSel: $("tm-bld-orient"), lenInput: $("tm-bld-len"),
       ebuf: $("tm-bld-ebuf"), eorder: $("tm-bld-eorder"),
       eorient: $("tm-bld-eorient"), eskip: $("tm-bld-eskip"),
@@ -1815,6 +1906,7 @@
     });
     if (els.bldReset) els.bldReset.addEventListener("click", function () { resetBld(); els.bldReset.blur(); });
     if (els.bldCopy) els.bldCopy.addEventListener("click", function () { copyBld(); });
+    if (els.bldReturn) els.bldReturn.addEventListener("click", function () { exitSolveView(); renderList(); els.bldReturn.blur(); });
     /* 分段计时开关 + 步数估算配置 */
     [els.bldSplit, els.stepEdge, els.stepCorner, els.stepFlip, els.stepTwist, els.stepParity].forEach(function (el) {
       if (!el) return;

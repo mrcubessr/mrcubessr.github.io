@@ -174,6 +174,7 @@
 .tm-list__item { border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .tm-list__item:last-child { border-bottom: 0; }
 .tm-list__item:hover { background: var(--surface-2); }
+.tm-list__item.is-viewing { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
 .tm-list__more { padding: 10px 14px; font-size: 12px; color: var(--fg-3); text-align: center; background: var(--surface-2); }
 .tm-list__idx { font-size: 12px; color: var(--fg-3); }
 .tm-list__t { font-size: 16px; font-weight: 800; color: var(--fg); text-align: right; }
@@ -333,6 +334,18 @@
 .tm-bld__meta-line b { font-family: var(--font-mono); color: var(--gold); }
 .tm-bld__empty { font-size: 13px; color: var(--fg-3); }
 
+/* 查看历史解法时的提示条 + 返回 */
+.tm-bld__viewbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 7px 10px; margin-bottom: 8px;
+  background: var(--brand-soft); border: 1px solid var(--brand-line); border-radius: 0;
+}
+.tm-bld__viewtxt { font-size: 12px; color: var(--brand-strong); flex: 1 1 auto; min-width: 0; }
+.tm-bld__viewbar .btn { flex: 0 0 auto; }
+
+/* 计时长按时反馈：提示“保持按住” */
+.tm-stage.is-holding { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+
 /* ---------- 成绩列表：三盲复杂度角标 ---------- */
 .tm-list__cmplx { display: block; font-size: 10px; font-weight: 600; color: var(--fg-3); margin-top: 2px; }
 
@@ -393,6 +406,29 @@
 .tm-list__tps { display: block; font-size: 10px; font-weight: 600; color: var(--brand); margin-top: 2px; }
 
 /* ---------- 响应式 ---------- */
+/* 手机端紧凑化：缩小展开图、压缩计时舞台与区块间距，减少上下滚动长度 */
+@media (max-width: 600px) {
+  .tm-wrap { padding: 16px 12px 48px; }
+  .tm-hero { margin-bottom: 12px; }
+  .tm-hero__sub { display: none; }            /* 省掉冗长说明，首屏更短 */
+  .tm { gap: 10px; }
+  .tm-bar { padding: 12px; gap: 10px; }
+  .tm-bar__row { gap: 8px; }
+  .tm-label { font-size: 11px; letter-spacing: .5px; }
+  .tm-scramble-block { gap: 12px; }
+  .tm-scramble { gap: 8px; }
+  .tm-scramble__text { font-size: 15px; max-width: 100%; gap: 2px 7px; }
+  /* 计时舞台压低，首屏能同时看到打乱与计时 */
+  .tm-stage { min-height: 160px; padding: 16px 14px; }
+  .tm-time { font-size: clamp(46px, 17vw, 88px); }
+  .tm-confirm { padding: 10px 12px; gap: 8px; }
+  .tm-confirm__btns { width: 100%; }
+  .tm-confirm__btns .btn { flex: 1 1 auto; }
+  .tm-tools__hint { display: none; }            /* 快捷键提示在手机上无意义 */
+  .tm-list-head, .tm-list__item { grid-template-columns: 38px minmax(56px, 1fr) 58px 30px; }
+  .tm-list-head span:nth-child(4), .tm-list__item > *:nth-child(4),
+  .tm-list-head span:nth-child(5), .tm-list__item > *:nth-child(5) { display: none; }
+}
 @media (max-width: 720px) {
   .tm-strip { grid-template-columns: repeat(2, 1fr); }
   .tm-kpi { border-bottom: 1px solid var(--line); }
@@ -418,5 +454,6 @@
   /* 打乱公式 + 展开图在窄屏改为上下堆叠（展开图居中） */
   .tm-scramble-block { flex-direction: column; }
   .tm-scramble { flex-basis: auto; }
-  .tm-bld-net-side { width: auto; max-width: 280px; margin: 0 auto; }
+  .tm-bld-net-side { width: auto; max-width: 180px; margin: 0 auto; }
+  .tm-bld-net-side canvas { width: 170px; max-width: 100%; height: auto; }
 }
