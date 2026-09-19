@@ -149,7 +149,7 @@
     border-radius: 0;
     border: 1px solid rgba(255,255,255,0.06);
     letter-spacing: 1.5px;
-    word-break: break-all;
+    word-break: normal;
     border-left: 3px solid var(--gold);
   }
 
@@ -222,7 +222,7 @@
     cursor: pointer;
     transition: all 0.2s;
     line-height: 1.5;
-    word-break: break-all;
+    word-break: normal;
   }
   .ref-sel-box:hover { border-color: rgba(100,180,255,0.5); color: var(--fg-2); }
   .ref-sel-box.ref-selected {
@@ -258,7 +258,7 @@
     padding: 7px 10px;
     cursor: pointer;
     line-height: 1.5;
-    word-break: break-all;
+    word-break: normal;
   }
   .ref-opt:last-child { border-bottom: none; }
   .ref-opt:hover { background: rgba(100,180,255,0.12); color: var(--on-brand); }

@@ -216,7 +216,7 @@
   font-family:var(--font-mono,"SF Mono","Cascadia Code","Consolas",monospace);
   font-size:8pt; line-height:1.4; letter-spacing:.02em;
   color:var(--pp-ink,#101828); text-align:center;
-  word-break:break-word; overflow-wrap:anywhere;
+  word-break:break-word; overflow-wrap:normal;
 }
 .pp-cell--noalg .pp-cell__alg{ display:none; }
 .pp-cell--noname .pp-cell__name{ display:none; }

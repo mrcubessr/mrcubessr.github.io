@@ -165,7 +165,7 @@
   padding:var(--s3,12px) var(--s4,16px);
   font-family:var(--font-mono,"SF Mono",Consolas,monospace);
   font-size:var(--fs-sm,.85rem); letter-spacing:.06em; line-height:var(--lh-loose,1.8);
-  color:var(--fg,#EEF2F8); word-break:break-all;
+  color:var(--fg,#EEF2F8); word-break:normal; overflow-wrap:normal;
 }
 .formula-block__label{
   display:block; margin-bottom:var(--s2,8px);
