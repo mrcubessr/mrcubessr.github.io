@@ -204,8 +204,30 @@
 
       <div id="twoParams" style="display:none">
         <div class="group-title">二阶设置</div>
-        <div class="field"><label for="twoLen">打乱步数</label><input type="number" id="twoLen" value="20" min="2" max="60"></div>
-        <p class="hint">二阶魔方仅用 R / U / F 三面外层转动，相邻不同面，符合 WCA 二阶打乱特征。<br>步数越多越随机（WCA 标准约 11+ 步，练习常用 20 步）。</p>
+        <div class="field"><label for="twoCode">编码数量（错位角块）</label>
+          <select id="twoCode">
+            <option value="any">不限（随机打乱）</option>
+            <option value="3">3 个</option>
+            <option value="4" selected>4 个</option>
+            <option value="5">5 个</option>
+            <option value="6">6 个</option>
+            <option value="7">7 个</option>
+            <option value="8">8 个</option>
+          </select>
+        </div>
+        <div class="field"><label for="twoFlip">翻色数量（扭曲角块）</label>
+          <select id="twoFlip">
+            <option value="any">不限</option>
+            <option value="0">0 个</option>
+            <option value="1">1 个（自动转 2）</option>
+            <option value="2" selected>2 个</option>
+            <option value="3">3 个</option>
+            <option value="4">4 个</option>
+            <option value="5">5 个</option>
+            <option value="6">6 个</option>
+          </select>
+        </div>
+        <p class="hint">「编码数量」选具体数字（3–8）后，生成器会精确产出对应错位角块数的二阶打乱（求解器逆推、步数最优）；选「不限」则退回普通随机打乱。<br>「翻色数量」选具体数字后，额外精确控制扭曲角块数（单角翻色物理上不可能，选 1 自动按 2）；选「不限」则扭曲角块数随机，但编码数量仍受上方控制。<br>求解器可能用到任意面转动，但保证打乱后恰好满足所选的错位 / 翻色角块数。</p>
       </div>
     </section>
 
@@ -1652,7 +1674,8 @@ var min2phase = (function() {
 			PARTIAL_INIT_LEVEL = 0;
 			initPrunTables();
 		},
-		INVERSE_SOLUTION: INVERSE_SOLUTION
+		INVERSE_SOLUTION: INVERSE_SOLUTION,
+		CubieCube: CubieCube
 	}
 })();
 
@@ -3115,25 +3138,98 @@ function generate2x2Scramble(len) {
   return moves;
 }
 
+// ========== 二阶精确控制：编码数量 + 翻色数量 ==========
+// 思路：构造一个恰好 k 个角块错位、恰好 f 个角块扭曲的合法二阶状态（偶数置换 + 色向和≡0），
+// 用 min2phase 求解得到「还原步骤」，逆序即为满足要求的二阶打乱。
+function shuffleArr2(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+// 生成恰好 k 个错位角块的偶置换（ca[i]=位于 i 位的块编号）
+function buildPerm2x2(k) {
+  k = Math.max(3, Math.min(8, k | 0));
+  const order = shuffleArr2([0, 1, 2, 3, 4, 5, 6, 7]);
+  const active = order.slice(0, k);
+  let cyc;
+  if (k === 3) cyc = [[0, 1, 2]];
+  else if (k === 4) cyc = [[0, 1], [2, 3]];
+  else if (k === 5) cyc = [[0, 1, 2, 3, 4]];
+  else if (k === 6) cyc = Math.random() < 0.5 ? [[0, 1, 2], [3, 4, 5]] : [[0, 1, 2, 3], [4, 5]];
+  else if (k === 7) cyc = [[0, 1, 2, 3, 4, 5, 6]];
+  else cyc = Math.random() < 0.5 ? [[0, 1, 2, 3, 4], [5, 6, 7]] : [[0, 1, 2, 3], [4, 5, 6, 7]];
+  const P = [0, 1, 2, 3, 4, 5, 6, 7];
+  cyc.forEach(c => { for (let t = 0; t < c.length; t++) P[active[c[t]]] = active[c[(t + 1) % c.length]]; });
+  return P;
+}
+// 生成随机合法色向（和≡0 mod3），用于「翻色不限」：扭曲角块数随机构成
+function randomOrient2x2() {
+  const O = [0, 0, 0, 0, 0, 0, 0, 0];
+  let sum = 0;
+  for (let i = 0; i < 8; i++) { O[i] = randInt(3); sum += O[i]; }
+  const fix = ((-sum) % 3 + 3) % 3;          // 把总和修正到 ≡0 mod3
+  if (fix) O[0] = (O[0] + fix) % 3;
+  return O;
+}
+// 生成恰好 f 个角块扭曲的色向数组（和≡0 mod3）；f=1 物理不可能→按 2；f=-1 随机
+function buildOrient2x2(f) {
+  if (f === -1) return randomOrient2x2();
+  f = Math.max(0, Math.min(8, f | 0));
+  if (f === 1) f = 2;
+  const O = [0, 0, 0, 0, 0, 0, 0, 0];
+  if (f === 0) return O;
+  const pos = shuffleArr2([0, 1, 2, 3, 4, 5, 6, 7]).slice(0, f);
+  pos.forEach(p => O[p] = 1);
+  let add = (3 - (f % 3)) % 3;
+  for (let t = 0; add > 0; t++) { O[pos[t % f]] = (O[pos[t % f]] + 1) % 3; add--; }
+  return O;
+}
+const SOLVED_EA_2X2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+// 生成一条满足 k 错位 / f 扭曲的二阶打乱（min2phase 逆解）
+function scramble2x2Controlled(k, f) {
+  const P = buildPerm2x2(k);
+  const O = buildOrient2x2(f);
+  const ca = [];
+  for (let i = 0; i < 8; i++) ca[i] = (P[i] & 0xf) | ((O[i] & 3) << 4);
+  const facelet = new min2phase.CubieCube().init(ca, SOLVED_EA_2X2).toFaceCube();
+  const S = (min2phase.solve(facelet, 21, 1e9, 0, 0) || '').trim().split(/\s+/).filter(Boolean);
+  return invertMoves(S);
+}
+
 function render2x2() {
   const count = Math.max(1, parseInt($('count').value, 10) || 1);
   const showNo = $('setNo').value === '1';
-  let len = parseInt($('twoLen').value, 10);
-  if (!len || len < 2) len = 20;
-  len = Math.min(60, Math.max(2, len));
+  const codeMode = $('twoCode').value;
+  const flipMode = $('twoFlip').value;
   const status = $('status');
   const out = $('output');
   status.className = 'status';
   status.textContent = '生成中…';
   setTimeout(() => {
     const results = [];
+    let meta = '';
     for (let i = 0; i < count; i++) {
-      const seq = generate2x2Scramble(len).join(' ');
+      let seq;
+      if (codeMode === 'any') {
+        let len = $('twoLen') ? parseInt($('twoLen').value, 10) : 20;
+        if (!len || len < 2) len = 20;
+        len = Math.min(60, Math.max(2, len));
+        seq = generate2x2Scramble(len).join(' ');
+        meta = '随机打乱（仅 R/U/F，相邻不同面）';
+      } else {
+        const k = parseInt(codeMode, 10);
+        const f = flipMode === 'any' ? -1 : parseInt(flipMode, 10);
+        seq = scramble2x2Controlled(k, f).join(' ');
+        const fTxt = f < 0 ? '翻色不限' : ('翻色 ' + (f === 1 ? 2 : f) + ' 个');
+        meta = '编码 ' + k + ' 个 · ' + fTxt + ' · 求解器逆推最优步';
+      }
       results.push('<div class="scramble-item"><span class="scramble">' + (showNo ? (i + 1) + '. ' + seq : seq) + '</span></div>');
     }
     out.innerHTML = results.join('\n\n');
     status.className = 'status ok';
-    status.textContent = '已生成 ' + count + ' 条二阶打乱（每条约 ' + len + ' 步）· 仅 R/U/F 转动，相邻不同面';
+    status.textContent = '已生成 ' + count + ' 条二阶打乱 · ' + meta;
     copyText(results.map(r => r.replace(/<[^>]+>/g, '')).join('\n\n'));
     showToast();
   }, 30);
