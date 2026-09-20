@@ -26,8 +26,7 @@
     ]},
     { id: 'links', label: '外链', children: [
       { id: 'nav', label: '工具导航', href: '/tools/nav' }
-    ]},
-    { id: 'help', label: '账号同步', href: '/account-help.html' }
+    ]}
   ];
 
   /* 目录名与菜单 id 不一致时的别名表。

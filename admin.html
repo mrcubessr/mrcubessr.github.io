@@ -116,8 +116,7 @@
     var CB = window.CBAuth;
     $('toolBox').hidden = true;
     if (!window.CBAuth || !CB.configured()) {
-      setState('手机号登录尚未配置：需要在 <b>assets/js/cb-config.js</b> 填入 CloudBase 的 env 与 publishableKey。' +
-        '<a href="/account-help.html">查看教程</a>');
+      setState('账号登录尚未配置：需要在 <b>assets/js/cb-config.js</b> 填入 Supabase 的 URL 与 anonKey。');
       return;
     }
     if (!CB.isLoggedIn()) {

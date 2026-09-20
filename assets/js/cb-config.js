@@ -1,7 +1,7 @@
 /* =============================================================
  * cb-config.js — Supabase 接入配置（账号登录 + 跨设备同步）
  * -------------------------------------------------------------
- * ⚠️ 部署前必须填入（见 account-help.html 教程）：
+ * ⚠️ 部署前必须填入：
  *   1. supabaseUrl：项目 URL（Project Settings → API → Project URL）
  *   2. anonKey：公开的 anon key（Settings → API → anon public）
  *
