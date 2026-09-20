@@ -952,6 +952,17 @@
     });
     window.addEventListener("pointerup", function () { release(); });
     window.addEventListener("pointercancel", function () { release(true); });
+
+    /* 视口变化（横竖屏切换 / 缩放）时刷新提示文案与观察按钮标签，
+       让「空格 / 计时区」「15 秒观察 / 15s」随移动端断点正确切换。 */
+    var lastTouchUI = isTouchUI();
+    window.addEventListener("resize", function () {
+      if (els.state) els.state.innerHTML = stateText();
+      if (isTouchUI() !== lastTouchUI) {
+        lastTouchUI = isTouchUI();
+        if (els.inspectSeg) buildInspect();
+      }
+    });
   }
 
   /* ---------- 渲染 ---------- */
@@ -969,18 +980,32 @@
     }
   }
 
-  /* 状态提示文案：idle 分支随「是否启用观察」变化 */
+  /* 是否手机端：决定提示文案说「空格」还是「计时区」。
+     必须与 timer.css 的移动端断点（max-width: 600px）保持一致，
+     否则会出现「桌面布局却提示长按计时区」的错配。
+     注意：不能靠 navigator.maxTouchPoints / 'ontouchstart' —— 桌面 Chromium 也会返回真值。 */
+  function isTouchUI() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(max-width: 600px)").matches);
+    } catch (e) { return false; }
+  }
+
+  /* 状态提示文案：idle 分支随「是否启用观察」变化；手机端不提空格键 */
   function stateText() {
+    var touch = isTouchUI();
     if (state === "idle") {
       if (holding) return "保持按住…";
-      return opt.inspect > 0
-        ? '长按此处或长按 <b>空格</b> 开始（进入 ' + opt.inspect + " 秒观察）"
-        : "长按 <b>空格</b> 预备 · 松开开始";
+      if (opt.inspect > 0) {
+        return touch
+          ? "长按计时区开始（进入 " + opt.inspect + " 秒观察）"
+          : '长按此处或长按 <b>空格</b> 开始（进入 ' + opt.inspect + " 秒观察）";
+      }
+      return touch ? "长按计时区预备 · 松开开始" : "长按 <b>空格</b> 预备 · 松开开始";
     }
-    if (state === "inspect") return "观察中 · 继续按住 <b>空格</b> 预备";
-    if (state === "ready") return "松开 <b>空格</b> 开始计时";
-    if (state === "running") return "计时中 · 按 <b>空格</b> 停止";
-    return "待确认 · 空格记录 / Esc 作废";
+    if (state === "inspect") return touch ? "观察中 · 继续按住计时区预备" : "观察中 · 继续按住 <b>空格</b> 预备";
+    if (state === "ready") return touch ? "松开计时区开始计时" : "松开 <b>空格</b> 开始计时";
+    if (state === "running") return touch ? "计时中 · 点按计时区停止" : "计时中 · 按 <b>空格</b> 停止";
+    return touch ? "待确认 · 点记录 / 点作废" : "待确认 · 空格记录 / Esc 作废";
   }
 
   function renderStrip() {
@@ -1278,7 +1303,11 @@
   }
   function buildInspect() {
     els.inspectSeg.innerHTML = "";
-    [["15", "15 秒观察"], ["0", "不用观察"]].forEach(function (o) {
+    /* 手机端空间紧张用短标签，桌面端保留完整说明 */
+    var labels = isTouchUI()
+      ? [["15", "15s"], ["0", "无"]]
+      : [["15", "15 秒观察"], ["0", "不用观察"]];
+    labels.forEach(function (o) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "seg__btn" + (String(opt.inspect) === o[0] ? " is-active" : "");
