@@ -478,15 +478,26 @@
        - 棱/角读码：ceil(字母数/2)
        - 翻色 2 码 = 1 条；三角翻 3 码 = ceil(3/2) = 2 条（同一规则自动成立）
        - 奇偶：+1 条
+     奇偶合并（重要）：奇偶=1 时，棱缓冲单步与角缓冲单步由同一条奇偶公式一并解决，
+       不应各自单列。故当对应缓冲确实出单（字母数为奇）时，棱/角公式数各减 1，
+       该合并步计入上面的「奇偶 +1」。例：棱 13 字母(含单步)→棱 7→6、角 9 字母(含单步)→角 5→4。
      借位次数 = 循环数 - 1（第一个循环无需借位），作为记忆难度参考指标 */
   function formulasOfLetters(n) { return Math.ceil((n || 0) / 2); }
 
   function buildDifficulty(edge, flip, corner, twist, parity, eCycles, cCycles) {
     const eL = letterCount(edge), fL = letterCount(flip);
     const cL = letterCount(corner), tL = letterCount(twist);
-    const edgeF = formulasOfLetters(eL), flipF = formulasOfLetters(fL);
-    const cornerF = formulasOfLetters(cL), twistF = formulasOfLetters(tL);
     const parityF = parity === 1 ? 1 : 0;
+    /* 奇偶（parity=1）时，棱缓冲单步与角缓冲单步由同一条奇偶公式一并解决，
+       不再各自单列。故仅当对应缓冲确实出单（字母数为奇）时，棱/角公式数各减 1。
+       例：棱 GT…G 共 13 字母（含单步 G）→ 棱 7→6 条；角 ZH…G 共 9 字母（含单步 G）
+       → 角 5→4 条；奇偶 +1 即那条合并公式，总条数 7+5+1=13 → 6+4+1=11。 */
+    const hasEdgeSingle = (eL % 2) === 1;
+    const hasCornerSingle = (cL % 2) === 1;
+    const edgeF = formulasOfLetters(eL) - (parityF && hasEdgeSingle ? 1 : 0);
+    const flipF = formulasOfLetters(fL);
+    const cornerF = formulasOfLetters(cL) - (parityF && hasCornerSingle ? 1 : 0);
+    const twistF = formulasOfLetters(tL);
     const borrowEdge = Math.max(0, (eCycles || 1) - 1);
     const borrowCorner = Math.max(0, (cCycles || 1) - 1);
     const borrow = borrowEdge + borrowCorner;
