@@ -97,6 +97,26 @@
   .skrow .skname{min-width:130px;font-size:14px}
   .skrow .note{font-size:12px;color:var(--text-3);font-style:italic}
 
+  /* 学生主页 · 知识点进度：四个状态块直接点选（替代旧的"切换/备注"两个小按钮） */
+  .sk-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:10px;margin:10px 0}
+  .sk-item{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--fg-3);border-radius:0;padding:8px 10px;display:flex;flex-direction:column;gap:7px}
+  .sk-item--s0{border-left-color:var(--fg-3)}
+  .sk-item--s1{border-left-color:var(--amber)}
+  .sk-item--s2{border-left-color:var(--green)}
+  .sk-item--s3{border-left-color:var(--red)}
+  .sk-item__hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .sk-item__name{font-size:14px;font-weight:600;color:var(--fg)}
+  .sk-item__tag{font-size:12px;color:var(--text-3);white-space:nowrap}
+  .sk-item__st{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .sk-st{font-size:12px;line-height:1.5;padding:4px 0;border:1px solid var(--line);background:var(--surface);color:var(--text-2);border-radius:0;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+  .sk-st:hover{border-color:var(--fg-3)}
+  .sk-st--s0.is-on{background:var(--fg-2);color:var(--on-brand);border-color:var(--fg-2)}
+  .sk-st--s1.is-on{background:var(--amber);color:var(--on-brand);border-color:var(--amber)}
+  .sk-st--s2.is-on{background:var(--green);color:var(--on-brand);border-color:var(--green)}
+  .sk-st--s3.is-on{background:var(--red);color:var(--on-brand);border-color:var(--red)}
+  .sk-item__note{font-size:12px;padding:4px 8px;border:1px solid var(--line);background:var(--bg-soft);color:var(--fg);border-radius:0}
+  .sk-item__note::placeholder{color:var(--text-3)}
+
   /* 热力表 */
   .heat th,.heat td{text-align:center;font-size:12px}
   .heat th:first-child,.heat td:first-child{text-align:left}
@@ -448,7 +468,38 @@ function petProgressOf(score){
   var base=PET_LV_GATE[lv-1],next=PET_LV_GATE[lv];
   return{lv:lv,cur:score-base,need:next-base,pct:Math.min(100,Math.round((score-base)/(next-base)*100))};
 }
-function petOf(stuId){return DB.pets.find(p=>p.studentId===stuId);}
+/* ===== id 归一化：DOM 属性/内联 onclick 取回的 id 一定是字符串，而库里存的是数字。
+   历史 bug：查找一律用 === 严格比较 → "12" === 12 为 false，永远找不到记录，
+   表现为「点状态没反应、还会不断写入孤儿记录」。所有按 id 查找统一走 sameId。 ===== */
+function toId(v){ if(v===null||v===undefined||v==='')return v; const n=Number(v); return isNaN(n)?v:n; }
+function sameId(a,b){ return a===b || (a!=null&&b!=null&&String(a)===String(b)); }
+/* 载入时修复历史脏数据：id 归一化 + 按唯一键合并误点产生的重复记录 */
+function migrateIds(){
+  ['progress','radar','pets','pointLogs','tallies'].forEach(k=>{
+    if(!Array.isArray(DB[k]))return;
+    DB[k].forEach(o=>{['studentId','skillId','courseId','sessionId'].forEach(f=>{if(f in o)o[f]=toId(o[f]);});});
+  });
+  DB.students.forEach(s=>{s.id=toId(s.id);s.classId=toId(s.classId);});
+  DB.classes.forEach(c=>c.id=toId(c.id));
+  DB.courses.forEach(c=>c.id=toId(c.id));
+  DB.skills.forEach(s=>{s.id=toId(s.id);s.courseId=toId(s.courseId);});
+  DB.sessions.forEach(s=>{s.id=toId(s.id);s.classId=toId(s.classId);});
+  // progress 同键合并：state 取最大（误点产生的多条 state=1 不应覆盖用户真正标过的 2/3），备注取最后一条非空
+  const pm=new Map();
+  DB.progress.forEach(p=>{const k=p.studentId+'|'+p.skillId;const o=pm.get(k);
+    if(!o)pm.set(k,p);
+    else{o.state=Math.max(o.state||0,p.state||0);if(p.note)o.note=p.note;o.updatedAt=p.updatedAt||o.updatedAt;}});
+  DB.progress=[...pm.values()];
+  // radar 同键合并：逐字段取「最后一个有值」的，保留最早那条的 id
+  const rm=new Map();
+  DB.radar.forEach(r=>{const k=r.studentId+'|'+r.courseId;const o=rm.get(k);
+    if(!o)rm.set(k,r);
+    else{['tech','cognition','formula','speed','interest','efficiency','stage'].forEach(f=>{if(r[f])o[f]=r[f];});if(r.stageNote)o.stageNote=r.stageNote;}});
+  DB.radar=[...rm.values()];
+  // 直接落盘（不走 save()）：避免触发同步引擎的变更通知造成下载→上传回环
+  try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}
+}
+function petOf(stuId){return DB.pets.find(p=>sameId(p.studentId,stuId));}
 function speciesOf(key){return PET_SPECIES.find(s=>s.key===key)||PET_SPECIES[0];}
 /* HTML 转义：姓名/宠物名会进内联 onclick 与 innerHTML，必须转义 */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -487,6 +538,7 @@ function load(){
   if(!DB.pets)DB.pets=[];        // 兼容旧库：宠物体系后加，老数据补空集合
   if(!DB.pointLogs)DB.pointLogs=[];
   if(!DB.version)DB.version=1; // 兼容旧库：无版本号旧数据补 1，不破坏既有数据
+  migrateIds();                // 修复历史脏数据（字符串 id / 误点重复记录）
 }
 // === D8 自动保存兜底：防抖 + 卸载 flush，防止漏调 save 丢数据 ===
 let _saveTimer=null;
@@ -503,11 +555,11 @@ window.addEventListener('beforeunload',flushSave);
 document.addEventListener('visibilitychange',function(){ if(document.hidden)flushSave(); });
 function uid(){ return DB.nextId++; }
 function curClassId(){ return curClass?curClass.id:DB.classes[0].id; }
-function students(cId){ return DB.students.filter(s=>s.classId===cId).sort((a,b)=>(a.sid||'').localeCompare(b.sid||'')); }
-function activeSession(cId){ return DB.sessions.find(s=>s.classId===cId&&!s.settled); }
-function getTally(sessionId,studentId){ return DB.tallies.find(t=>t.sessionId===sessionId&&t.studentId===studentId); }
-function progOf(studentId,skillId){ return DB.progress.find(p=>p.studentId===studentId&&p.skillId===skillId); }
-function radarOf(stuId,cId){ let r=DB.radar.find(x=>x.studentId===stuId&&x.courseId===cId); if(!r){r={id:uid(),studentId:stuId,courseId:cId,tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0,stage:0,stageNote:''};DB.radar.push(r);save();} return r; }
+function students(cId){ return DB.students.filter(s=>sameId(s.classId,cId)).sort((a,b)=>(a.sid||'').localeCompare(b.sid||'')); }
+function activeSession(cId){ return DB.sessions.find(s=>sameId(s.classId,cId)&&!s.settled); }
+function getTally(sessionId,studentId){ return DB.tallies.find(t=>sameId(t.sessionId,sessionId)&&sameId(t.studentId,studentId)); }
+function progOf(studentId,skillId){ return DB.progress.find(p=>sameId(p.studentId,studentId)&&sameId(p.skillId,skillId)); }
+function radarOf(stuId,cId){ let r=DB.radar.find(x=>sameId(x.studentId,stuId)&&sameId(x.courseId,cId)); if(!r){r={id:uid(),studentId:toId(stuId),courseId:toId(cId),tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0,stage:0,stageNote:''};DB.radar.push(r);save();} return r; }
 function radarVal(r,key){ return r&&r[key]!=null?r[key]:0; }
 function scoreOf(t){return t?(t.score!=null?t.score:t.count*DB.rate):0;}
 function totalScoreOf(stuId){return DB.sessions.filter(s=>s.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,stuId)),0);}
@@ -841,7 +893,7 @@ function buildHeatTable(ss,skills){
   ss.forEach(s=>{
     const c=stateCountsForStudent(s.id,skills);
     html+=`<tr><td><a href="javascript:void(0)" onclick="openStu(${s.id})" style="font-weight:600;color:var(--primary)">${s.name}<span class="muted"> ${s.nick||''}</span></a></td>`;
-    skills.forEach(sk=>{const st=progOf(s.id,sk.id)?.state||0;html+=`<td><div class="heatcell hc${st}" title="${s.name} - ${sk.name}: ${STATE[st].n}" onclick="openStu(${s.id})"></div></td>`;});
+    skills.forEach(sk=>{const st=progOf(s.id,sk.id)?.state||0;html+=`<td><div class="heatcell hc${st}" title="${s.name} - ${sk.name}: ${STATE[st].n}（点击进入该生该魔方页填写）" onclick="openStu(${s.id},${sk.courseId})"></div></td>`;});
     html+=`<td style="font-size:12px;color:var(--text-3)">${c[2]}/${skills.length}</td></tr>`;
   });
   html+='</tbody></table></div>';
@@ -957,9 +1009,11 @@ function renderProgCharts(ss,skills,courses){
 document.getElementById('progCourse')?.addEventListener('change',e=>{progCourseId=e.target.value;renderProgress();});
 document.getElementById('progChartType')?.addEventListener('change',e=>{progChartType=e.target.value;renderProgress();});
 
-window.openStu=function(stuId){
+window.openStu=function(stuId,cId){
   prevView=document.querySelector('.view.active')?.id.replace('view-','')||'students';
-  curStuId=stuId;
+  curStuId=toId(stuId);
+  // 从进度页热力图进入时带上课程，直接落到对应魔方 Tab；从学生列表进入保持原有 Tab
+  if(cId!=null)curStuCourseId=(cId==='overview'?'overview':toId(cId));
   setView('stuPage');
 };
 window.stuBack=function(){
@@ -1093,8 +1147,8 @@ function renderStuPage(){
       /* 阶段状态小卡 */
       html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">`;
       html+=`<span style="font-weight:bold;">阶段：</span>`;
-      ['未学','入门','进阶','精通'].forEach((txt,idx)=>{const active=idx===stage?'active':'';html+=`<button class="stage-btn ${active}" onclick="updateStage('${s.id}','${co.id}',${idx})">${txt}</button>`;});
-      html+=`<input type="text" placeholder="评语" value="${stageNote}" onchange="updateStageNote('${s.id}','${co.id}',this.value)" style="padding:4px 8px;border:1px solid #ccc;border-radius:0;flex:1;min-width:120px;">`;
+      ['未学','入门','进阶','精通'].forEach((txt,idx)=>{const active=idx===stage?'active':'';html+=`<button class="stage-btn ${active}" onclick="updateStage(${s.id},${co.id},${idx})">${txt}</button>`;});
+      html+=`<input type="text" placeholder="评语" value="${esc(stageNote)}" onchange="updateStageNote(${s.id},${co.id},this.value)" style="padding:4px 8px;border:1px solid var(--line);border-radius:0;background:var(--surface);color:var(--fg);flex:1;min-width:120px;">`;
       html+=`</div>`;
       /* 六维雷达 */
       html+=`<div style="max-width:400px;margin:12px 0;"><canvas id="radar-${co.id}" style="width:100%;height:280px;"></canvas></div>`;
@@ -1105,22 +1159,25 @@ function renderStuPage(){
         const isManual=(key==='interest'||key==='efficiency');
         html+=`<div style="display:flex;flex-direction:column;gap:2px;">`;
         html+=`<div style="display:flex;justify-content:space-between;font-size:14px;"><span><strong>${label}</strong> ${isManual?'':'<span class="dim-auto">(自动)</span>'}</span><span id="rv-${co.id}-${key}">${val}</span></div>`;
-        if(isManual){html+=`<input type="range" min="0" max="10" step="1" value="${val}" oninput="updateRadar('${s.id}','${co.id}','${key}',this.value)">`;}
+        if(isManual){html+=`<input type="range" min="0" max="10" step="1" value="${val}" oninput="updateRadar(${s.id},${co.id},'${key}',this.value)">`;}
         else{html+=`<div style="height:6px;background:#e0e0e0;border-radius:0;width:100%;"><div style="height:100%;width:${val*10}%;background:#4f6ef7;border-radius:0;"></div></div>`;}
         html+=`</div>`;
       });
       html+=`</div>`;
       /* 掌握率进度条 */
       html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;">掌握率</span><div style="flex:1;height:8px;background:#e0e0e0;border-radius:0;overflow:hidden;"><div style="height:100%;width:${rate}%;background:#4caf50;border-radius:0;"></div></div><span>${rate}% (${m}/${total2})</span></div>`;
-      /* 知识点进度 */
-      html+=`<h3 style="margin-top:14px">知识点进度（点击状态切换，标「已掌握」会前向补齐前面未掌握的点）</h3>`;
-      html+=`<div class="legend"><span><i class="hc0"></i>未开始</span><span><i class="hc1"></i>学习中</span><span><i class="hc2"></i>已掌握</span><span><i class="hc3"></i>需复习</span></div>`;
-      html+=`<div style="margin:12px 0;display:flex;flex-wrap:wrap;gap:8px;">`;
+      /* 知识点进度：四个状态块直接点选，点哪个亮哪个；备注就地输入，不再弹窗要求手打 */
+      html+=`<h3 style="margin-top:18px">知识点进度　<span class="muted" style="font-size:13px;font-weight:400">点状态块立即生效；标「已掌握」会自动补齐前面未掌握的知识点</span></h3>`;
+      html+=`<div class="sk-list">`;
       skills.forEach(sk=>{
-        const p=progOf(s.id,sk.id);const st=p?.state??0;
-        const label=['未开始','学习中','已掌握','需复习'][st];
-        const color=['#aaa','#f90','#4caf50','#f44336'][st];
-        html+=`<div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;padding:4px 10px;border-radius:0;border-left:4px solid ${color};"><span>${sk.name}</span><span style="font-size:12px;color:${color};">${label}</span><button onclick="cycleSt('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:0;cursor:pointer;">切换</button><button onclick="editNote('${s.id}','${sk.id}')" style="font-size:12px;padding:0 6px;border:1px solid #999;background:#fff;border-radius:0;cursor:pointer;">✎</button></div>`;
+        const p=progOf(s.id,sk.id);const st=p?p.state:0;const note=(p&&p.note)||'';
+        html+=`<div class="sk-item sk-item--s${st}">`;
+        html+=`<div class="sk-item__hd"><span class="sk-item__name">${esc(sk.name)}</span><span class="sk-item__tag">${STATE[st].n}</span></div>`;
+        html+=`<div class="sk-item__st">`;
+        STATE_ARR.forEach((sx,i)=>{html+=`<button type="button" class="sk-st sk-st--s${i}${st===i?' is-on':''}" onclick="setSt(${s.id},${sk.id},${i})">${sx.n}</button>`;});
+        html+=`</div>`;
+        html+=`<input type="text" class="sk-item__note" value="${esc(note)}" placeholder="备注（选填，点这里直接打字）" oninput="setNote(${s.id},${sk.id},this.value)">`;
+        html+=`</div>`;
       });
       html+=`</div>`;
     }
@@ -1164,11 +1221,33 @@ window.updateRadar=function(stuId,cId,metric,val){
   if(metric!=='interest'&&metric!=='efficiency')return;
   const r=radarOf(stuId,cId);r[metric]=parseInt(val);save();drawStuRadar(stuId,cId);
 };
-window.cycleSt=function(stuId,skId){let p=progOf(stuId,skId);if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}const prev=p.state;p.state=(p.state+1)%4;p.updatedAt=nowStr();
-  if(p.state===2&&prev!==2){const sk=DB.skills.find(s=>s.id===skId);if(sk){const cid=sk.courseId;const before=DB.skills.filter(s=>s.courseId===cid&&s.order<sk.order).sort((a,b)=>a.order-b.order);let filled=0;before.forEach(bs=>{let q=progOf(stuId,bs.id);if((q?.state||0)!==2){if(!q){q={studentId:stuId,skillId:bs.id,state:0};DB.progress.push(q);}q.state=2;q.updatedAt=nowStr();filled++;}});if(filled>0)setTimeout(()=>toast(`已自动将前面 ${filled} 个未掌握知识点标记为「已掌握」`),50);}}
-  save();renderStuPage();if(document.getElementById('view-progress')?.classList.contains('active'))renderProgress();
+function afterProgChange(){save();renderStuPage();if(document.getElementById('view-progress')?.classList.contains('active'))renderProgress();}
+/* 直接设定掌握状态：0未开始 1学习中 2已掌握 3需复习（旧版是循环切换，一点一档更直观） */
+window.setSt=function(stuId,skId,st){
+  st=parseInt(st,10)||0;
+  let p=progOf(stuId,skId);
+  if(!p){p={studentId:toId(stuId),skillId:toId(skId),state:0};DB.progress.push(p);}
+  const prev=p.state||0;p.state=st;p.updatedAt=nowStr();
+  if(st===2&&prev!==2){
+    const sk=DB.skills.find(s=>sameId(s.id,skId));
+    if(sk){
+      const before=DB.skills.filter(s=>sameId(s.courseId,sk.courseId)&&s.order<sk.order).sort((a,b)=>a.order-b.order);
+      let filled=0;
+      before.forEach(bs=>{let q=progOf(stuId,bs.id);if((q?.state||0)!==2){if(!q){q={studentId:toId(stuId),skillId:bs.id,state:0};DB.progress.push(q);}q.state=2;q.updatedAt=nowStr();filled++;}});
+      if(filled>0)setTimeout(()=>toast(`已自动把前面 ${filled} 个未掌握知识点标为「已掌握」`),50);
+    }
+  }
+  afterProgChange();
 };
-window.editNote=function(stuId,skId){let p=progOf(stuId,skId);const v=prompt('编辑备注（如：本周已掌握，下节课复习）：',p?.note||'');if(v===null)return;if(!p){p={studentId:stuId,skillId:skId,state:0};DB.progress.push(p);}p.note=v;save();renderStuPage();};
+/* 备注就地输入：每键落库但不重渲染，避免输入框失焦、不需要再弹窗手打 */
+window.setNote=function(stuId,skId,val){
+  let p=progOf(stuId,skId);
+  if(!p){p={studentId:toId(stuId),skillId:toId(skId),state:0};DB.progress.push(p);}
+  p.note=val;p.updatedAt=nowStr();save();
+};
+/* 旧入口保留，内部循环切换，防止别处老调用失效 */
+window.cycleSt=function(stuId,skId){const p=progOf(stuId,skId);window.setSt(stuId,skId,((p?(p.state||0):0)+1)%4);};
+window.editNote=function(stuId,skId){ /* 已改为就地输入，不再弹窗 */ };
 
 /* ============ 学生管理 ============ */
 function renderStudents(){
