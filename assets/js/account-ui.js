@@ -30,9 +30,12 @@
     'color:var(--on-brand);background:var(--brand);border:1px solid var(--brand);border-radius:0;cursor:pointer}',
     '.acct-mask{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:flex;',
     'align-items:center;justify-content:center;padding:16px}',
-    '.acct-modal{width:100%;max-width:520px;max-height:86vh;overflow:auto;background:var(--surface);',
+    '.acct-modal{position:relative;width:100%;max-width:520px;max-height:86vh;overflow:auto;background:var(--surface);',
     'border:1px solid var(--line);border-radius:0;padding:20px;color:var(--fg)}',
-    '.acct-modal h3{margin:0 0 4px;font-size:17px}',
+    '.acct-modal h3{margin:0 0 6px;padding-right:32px;font-size:17px}',
+    '.acct-x{position:absolute;top:12px;right:12px;width:26px;height:26px;padding:0;font:inherit;font-size:16px;',
+    'line-height:1;color:var(--fg-3);background:none;border:1px solid transparent;border-radius:0;cursor:pointer}',
+    '.acct-x:hover{color:var(--fg);background:var(--surface-2);border-color:var(--line-2)}',
     '.acct-modal .sub{color:var(--fg-3);font-size:12.5px;margin-bottom:14px;line-height:1.6}',
     '.acct-modal .sub a{color:var(--brand)}',
     '.acct-sec{border-top:1px solid var(--line);margin-top:14px;padding-top:14px}',
@@ -60,7 +63,6 @@
     '.acct-scope:last-child{border-bottom:none}',
     '.acct-scope .nm{flex:1 1 auto}',
     '.acct-scope .tm{font-size:11.5px;color:var(--fg-3)}',
-    '.acct-empty{font-size:12.5px;color:var(--fg-3)}',
     '.acct-backend{display:inline-block;margin-bottom:8px;padding:2px 8px;font-size:11.5px;',
     'color:var(--fg-3);border:1px solid var(--line-2);background:var(--surface-2)}',
     '.acct-uid{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--fg-3);',
@@ -77,13 +79,13 @@
     '.acct-tab.is-on{background:var(--brand);color:var(--on-brand)}',
     '.acct-tab small{display:block;margin-top:2px;font-size:10.5px;opacity:.75}',
     '.acct-tip{font-size:12px;color:var(--fg-3);line-height:1.6;margin:-4px 0 8px}',
-    '.acct-pri{width:100%;margin-top:4px}',
-    '.acct-hint{font-size:11.5px;color:var(--fg-3);text-align:center;margin-top:10px}',
-    '.acct-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:12px}',
+    '.acct-pri{width:100%;margin-top:2px}',
+    '.acct-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:16px}',
     '.acct-link{background:none;border:none;color:var(--brand);cursor:pointer;font:inherit;font-size:12.5px;padding:2px 0}',
     '.acct-link:hover{text-decoration:underline}',
     '.acct-link.danger{color:var(--red)}',
-    '.acct-status-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2);margin-bottom:12px}',
+    '.acct-row--split{display:grid;grid-template-columns:1fr 1fr;gap:8px}',
+    '.acct-row--split .acct-btn{padding:9px 8px;font-size:12.5px;text-align:center}',
     '.acct-syncbar{display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:13px;line-height:1.4;margin-bottom:12px;border:1px solid var(--line-2);border-left:3px solid var(--fg-3);background:var(--surface-2)}',
     '.acct-syncbar.is-ok{border-left-color:var(--green)}',
     '.acct-syncbar.is-sync{border-left-color:var(--amber)}',
@@ -92,10 +94,9 @@
     '.acct-syncbar .txt{flex:1 1 auto;color:var(--fg-2)}',
     '.acct-syncbar.is-err .txt{color:var(--red)}',
     '.acct-syncbar.is-ok .txt{color:var(--green)}',
-    '.acct-subtip{font-size:11.5px;color:var(--fg-3);line-height:1.6;margin:-6px 0 10px;text-align:center}',
-    '.acct-result{margin-top:12px;font-size:13px;line-height:1.5;padding:9px 11px;border:1px solid var(--line-2);border-left:3px solid var(--fg-3)}',
-    '.acct-result.ok{border-left-color:var(--green);color:var(--green)}',
-    '.acct-result.err{border-left-color:var(--red);color:var(--red)}',
+    '.acct-result{margin-top:10px;font-size:12.5px;line-height:1.55;color:var(--fg-2)}',
+    '.acct-result.ok{color:var(--green)}',
+    '.acct-result.err{color:var(--red)}',
     '.acct-badge{display:inline-block;padding:1px 7px;font-size:11px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line-2);color:var(--fg-3);margin-left:6px}',
     '.acct-badge.downloaded{color:var(--green);border-color:var(--green)}',
     '.acct-badge.uploaded{color:var(--brand);border-color:var(--brand)}',
@@ -104,7 +105,8 @@
     '.acct-badge.error{color:var(--red);border-color:var(--red)}',
     '.acct-tip.warn{color:var(--amber)}',
     '.acct-fold.danger{margin-top:12px}',
-    '.acct-fold.danger>summary{color:var(--red)}'
+    '.acct-fold.danger>summary{color:var(--red)}',
+    '.acct-sec[hidden],.acct-result[hidden]{display:none}'
   ].join('\n');
 
   function injectStyle() {
@@ -157,9 +159,13 @@
     closePanel();
     mask = document.createElement('div');
     mask.className = 'acct-mask';
-    mask.innerHTML = '<div class="acct-modal" role="dialog" aria-modal="true" aria-label="账号与同步"></div>';
+    mask.innerHTML = '<div class="acct-modal" role="dialog" aria-modal="true" aria-label="账号与同步">' +
+      '<button class="acct-x" id="acClose" type="button" aria-label="关闭">×</button>' +
+      '<div class="acct-body"></div></div>';
     mask.addEventListener('click', function (e) { if (e.target === mask) closePanel(); });
     document.body.appendChild(mask);
+    var xBtn = mask.querySelector('#acClose');
+    if (xBtn) xBtn.addEventListener('click', closePanel);
     renderPanel();
 
     var off1 = SE() && SE().onStatus ? SE().onStatus(function () { refreshSyncPanel(); }) : function () {};
@@ -180,17 +186,28 @@
   /* 轻量刷新：仅更新状态条与各数据项，不重建整个面板（保留结果提示与按钮状态） */
   function refreshSyncPanel() {
     if (!mask) return;
-    var m = mask.querySelector('.acct-modal');
+    var m = mask.querySelector('.acct-body') || mask.querySelector('.acct-modal');
     if (!m) return;
-    var ov = overallStatus();
+    updateBar(m, overallStatus());
+    renderScopes(m);
+  }
+
+  /* 状态条：一眼看结果 */
+  function updateBar(m, ov) {
     var bar = m.querySelector('#acBar');
-    if (bar) {
-      bar.className = 'acct-syncbar ' + ov.cls;
-      var t = bar.querySelector('.txt'); if (t) t.textContent = ov.text;
-      var d = bar.querySelector('.acct-dot'); if (d) d.className = 'acct-dot ' + ov.cls;
-    }
+    if (!bar) return;
+    bar.className = 'acct-syncbar ' + ov.cls;
+    var t = bar.querySelector('.txt'); if (t) t.textContent = ov.text;
+    var d = bar.querySelector('.acct-dot'); if (d) d.className = 'acct-dot ' + ov.cls;
+  }
+
+  /* 本页同步数据项：没有就不占位（状态条已说明"本页暂无需要同步的数据"） */
+  function renderScopes(m) {
+    var rows = statusRows();
+    var sec = m.querySelector('#acScopeSec');
     var list = m.querySelector('#acScopeList');
-    if (list) list.innerHTML = statusRows() || '<div class="acct-empty">本页暂无需要同步的功能。</div>';
+    if (list) list.innerHTML = rows;
+    if (sec) sec.hidden = !rows;
   }
 
   function statusRows() {
@@ -241,44 +258,44 @@
 
   function renderPanel() {
     if (!mask) return;
-    var m = mask.querySelector('.acct-modal');
+    var m = mask.querySelector('.acct-body');
+    if (!m) return;
     var A = AC(), C = CB();
+
+    /* 已登录视图共用的「状态条 + 同步按钮 + 结果 + 数据项」区块 */
+    function syncBlock(ov) {
+      return '<div class="acct-syncbar ' + ov.cls + '" id="acBar"><span class="acct-dot ' + ov.cls + '"></span><span class="txt">' + esc(ov.text) + '</span></div>' +
+        '<button class="acct-btn acct-pri" id="acSync">立即同步（双向）</button>' +
+        '<div class="acct-row acct-row--split">' +
+          '<button class="acct-btn ghost" id="acDown">↓ 从云端下载到本机</button>' +
+          '<button class="acct-btn ghost" id="acUp">↑ 把本机备份到云端</button>' +
+        '</div>' +
+        '<div class="acct-result" id="acResult" hidden></div>' +
+        '<div class="acct-sec" id="acScopeSec" hidden><h4>本页同步数据</h4><div id="acScopeList"></div></div>';
+    }
+
     // ① Supabase 账号已登录
     if (C && C.isLoggedIn()) {
       var u = C.get().user || {};
       var be = (SE() && SE().backend) ? SE().backend() : '';
-      var ov = overallStatus();
       m.innerHTML =
         '<h3>' + esc(accountName(u)) + '</h3>' +
         '<div class="acct-backend">已登录 · 云端：' + (be === 'supabase' ? 'Supabase' : 'GitHub 仓库') + '</div>' +
-        '<div class="sub">你的训练数据已自动备份到云端，换设备用同一账号登录即可恢复。</div>' +
-        '<div class="acct-syncbar ' + ov.cls + '" id="acBar"><span class="acct-dot ' + ov.cls + '"></span><span class="txt">' + esc(ov.text) + '</span></div>' +
-        '<button class="acct-btn acct-pri" id="acSync">立即同步（双向）</button>' +
-        '<div class="acct-subtip">云端有更新就下载到本机，本机有改动就备份到云端；以最新修改时间为准，不会丢失数据。</div>' +
-        '<div class="acct-row">' +
-          '<button class="acct-btn ghost" id="acDown">↓ 从云端下载到本机</button>' +
-          '<button class="acct-btn ghost" id="acUp">↑ 把本机备份到云端</button>' +
-        '</div>' +
-        '<div class="acct-sec"><h4>各数据项</h4><div id="acScopeList">' +
-          (statusRows() || '<div class="acct-empty">本页暂无需要同步的功能（其它页面各自同步自己的数据）。</div>') +
-        '</div></div>' +
-        '<div class="acct-result" id="acResult" style="display:none"></div>' +
-        '<details class="acct-fold danger"><summary>⚠️ 高级 / 危险操作</summary>' +
-          '<div class="acct-tip warn">仅当你确定要用本机数据替换云端时使用。此操作会丢失云端中比本机更新的数据，且无法恢复。</div>' +
-          '<div class="acct-row"><button class="acct-btn danger" id="acForceUp">用本机覆盖云端（丢失云端较新数据）</button></div>' +
-          '<div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div>' +
-        '</details>' +
+        syncBlock(overallStatus()) +
         '<details class="acct-fold"><summary>登录密码</summary>' +
           '<div class="acct-tip">设置密码后，换设备可直接「邮箱 + 密码」登录，免收验证码。</div>' +
           '<label class="acct-f">新密码<input id="acNewPwd" type="password" autocomplete="new-password" placeholder="至少 6 位"></label>' +
           '<label class="acct-f">确认新密码<input id="acNewPwd2" type="password" autocomplete="new-password" placeholder="再输一次"></label>' +
           '<div class="acct-row"><button class="acct-btn ghost" id="acSetPwd">设置 / 修改密码</button></div>' +
         '</details>' +
-        '<div class="acct-links">' +
-          '<button class="acct-link danger" id="acOut">退出登录</button>' +
-        '</div>' +
-        '<div class="acct-hint"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
+        '<details class="acct-fold danger"><summary>高级 / 危险操作</summary>' +
+          '<div class="acct-tip warn">仅当你确定要用本机数据替换云端时使用。此操作会丢失云端中比本机更新的数据，且无法恢复。</div>' +
+          '<div class="acct-row"><button class="acct-btn danger" id="acForceUp">用本机覆盖云端（丢失云端较新数据）</button></div>' +
+          '<div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div>' +
+        '</details>' +
+        '<div class="acct-links"><button class="acct-link danger" id="acOut">退出登录</button></div>' +
         '<div class="acct-msg" id="acMsg"></div>';
+      renderScopes(m);
       wireLogged(m, 'cb');
       return;
     }
@@ -286,28 +303,18 @@
     // ② GitHub 账号已登录（旧通道）
     if (A && A.isLoggedIn()) {
       var st = A.get();
-      var ov2 = overallStatus();
       m.innerHTML =
         '<h3>已登录 @' + esc(st.login || st.owner) + '</h3>' +
         '<div class="acct-backend">云端：GitHub 仓库 ' + esc(st.owner) + '/' + esc(st.repo) + '</div>' +
-        '<div class="sub">这是备用同步通道。推荐改用手机号 / 邮箱登录，更方便。</div>' +
-        '<div class="acct-syncbar ' + ov2.cls + '" id="acBar"><span class="acct-dot ' + ov2.cls + '"></span><span class="txt">' + esc(ov2.text) + '</span></div>' +
-        '<button class="acct-btn acct-pri" id="acSync">立即同步（双向）</button>' +
-        '<div class="acct-subtip">云端有更新就下载到本机，本机有改动就备份到云端；以最新修改时间为准。</div>' +
-        '<div class="acct-row">' +
-          '<button class="acct-btn ghost" id="acDown">↓ 从云端下载</button>' +
-          '<button class="acct-btn ghost" id="acUp">↑ 备份到云端</button>' +
-        '</div>' +
-        '<div class="acct-sec"><h4>各数据项</h4><div id="acScopeList">' +
-          (statusRows() || '<div class="acct-empty">本页没有需要同步的功能。</div>') +
-        '</div></div>' +
-        '<div class="acct-result" id="acResult" style="display:none"></div>' +
-        '<div class="acct-row">' +
-          '<button class="acct-btn danger" id="acForceUp">用本机覆盖云端</button>' +
-          '<button class="acct-btn danger" id="acOut">退出登录</button>' +
-        '</div>' +
-        '<div class="acct-hint"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
+        syncBlock(overallStatus()) +
+        '<details class="acct-fold danger"><summary>高级 / 危险操作</summary>' +
+          '<div class="acct-tip warn">仅当你确定要用本机数据替换云端时使用。此操作会丢失云端中比本机更新的数据，且无法恢复。</div>' +
+          '<div class="acct-row"><button class="acct-btn danger" id="acForceUp">用本机覆盖云端</button></div>' +
+          '<div class="acct-tip">这是备用同步通道（GitHub 仓库）。推荐改用手机号 / 邮箱登录，更方便。</div>' +
+        '</details>' +
+        '<div class="acct-links"><button class="acct-link danger" id="acOut">退出登录</button></div>' +
         '<div class="acct-msg" id="acMsg"></div>';
+      renderScopes(m);
       wireLogged(m, 'gh');
       return;
     }
@@ -315,11 +322,9 @@
     // ③ 未登录：单字段「手机号或邮箱」+ 验证码，登录即注册；密码登录为次级入口
     var cbOk = !!(C && C.configured());
     var head = '<h3>登录 / 注册</h3>' +
-      '<div class="sub">输入<b>手机号或邮箱</b>，收验证码即可登录；未注册将自动创建账号，<b>登录即注册</b>。' +
-      '<a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>';
+      '<div class="sub">输入<b>手机号或邮箱</b>，收验证码即可登录；未注册将自动创建账号，<b>登录即注册</b>。</div>';
 
-    var errBox = '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。' +
-      '<a href="/account-help.html" target="_blank" rel="noopener">查看配置教程</a></div></div>';
+    var errBox = '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。</div></div>';
 
     var otpBody = cbOk
       ? '<label class="acct-f">手机号或邮箱' +
@@ -353,8 +358,7 @@
       '<div class="acct-msg">仓库需先在 GitHub 建好，令牌权限选 Contents: Read and write。</div>' +
       '</div></details>';
 
-    m.innerHTML = head + (loginMode === 'pwd' ? pwdBody : otpBody) + bottomLinks +
-      '<div class="acct-hint">未注册将自动创建账号，登录即注册</div>' + ghFold +
+    m.innerHTML = head + (loginMode === 'pwd' ? pwdBody : otpBody) + bottomLinks + ghFold +
       '<div class="acct-msg" id="acMsg"></div>';
     if (cbOk) { if (loginMode === 'pwd') wirePwd(m); else wireOtp(m); wireMode(m); }
     wireGithub(m);
@@ -481,15 +485,8 @@
 
     // 同步完成后就地刷新状态条与各数据项，不整面板重建（保留结果提示）
     function updateSyncArea() {
-      var ov = overallStatus();
-      var bar = m.querySelector('#acBar');
-      if (bar) {
-        bar.className = 'acct-syncbar ' + ov.cls;
-        var t = bar.querySelector('.txt'); if (t) t.textContent = ov.text;
-        var d = bar.querySelector('.acct-dot'); if (d) d.className = 'acct-dot ' + ov.cls;
-      }
-      var list = m.querySelector('#acScopeList');
-      if (list) list.innerHTML = statusRows() || '<div class="acct-empty">本页暂无需要同步的功能。</div>';
+      updateBar(m, overallStatus());
+      renderScopes(m);
     }
     function showResult(arr, label) {
       var box = m.querySelector('#acResult');
@@ -503,7 +500,7 @@
         else if (r.kind === 'error') err++;
         else if (r.kind === 'uptodate' || r.kind === 'skipped') same++;
       });
-      box.style.display = 'block';
+      box.hidden = false;
       var total = dl + up + keep + same;
       if (err) {
         box.className = 'acct-result err';
@@ -532,7 +529,7 @@
       }).catch(function (e) {
         setBusy(btn, false);
         var box = m.querySelector('#acResult');
-        if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 双向同步失败：' + (e && e.message || e); }
+        if (box) { box.hidden = false; box.className = 'acct-result err'; box.textContent = '❌ 双向同步失败：' + (e && e.message || e); }
       });
     };
     var bDown = m.querySelector('#acDown');
@@ -543,7 +540,7 @@
       }).catch(function (e) {
         setBusy(btn, false);
         var box = m.querySelector('#acResult');
-        if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 下载失败：' + (e && e.message || e); }
+        if (box) { box.hidden = false; box.className = 'acct-result err'; box.textContent = '❌ 下载失败：' + (e && e.message || e); }
       });
     };
     var bUp = m.querySelector('#acUp');
@@ -554,7 +551,7 @@
       }).catch(function (e) {
         setBusy(btn, false);
         var box = m.querySelector('#acResult');
-        if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 备份失败：' + (e && e.message || e); }
+        if (box) { box.hidden = false; box.className = 'acct-result err'; box.textContent = '❌ 备份失败：' + (e && e.message || e); }
       });
     };
     var bForce = m.querySelector('#acForceUp');
@@ -571,7 +568,7 @@
         }).catch(function (e) {
           setBusy(btn, false);
           var box = m.querySelector('#acResult');
-          if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 覆盖上传失败：' + (e && e.message || e); }
+          if (box) { box.hidden = false; box.className = 'acct-result err'; box.textContent = '❌ 覆盖上传失败：' + (e && e.message || e); }
         });
       }).catch(function () {});
     };
