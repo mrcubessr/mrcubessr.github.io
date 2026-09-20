@@ -83,7 +83,28 @@
     '.acct-link{background:none;border:none;color:var(--brand);cursor:pointer;font:inherit;font-size:12.5px;padding:2px 0}',
     '.acct-link:hover{text-decoration:underline}',
     '.acct-link.danger{color:var(--red)}',
-    '.acct-status-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2);margin-bottom:12px}'
+    '.acct-status-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2);margin-bottom:12px}',
+    '.acct-syncbar{display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:13px;line-height:1.4;margin-bottom:12px;border:1px solid var(--line-2);border-left:3px solid var(--fg-3);background:var(--surface-2)}',
+    '.acct-syncbar.is-ok{border-left-color:var(--green)}',
+    '.acct-syncbar.is-sync{border-left-color:var(--amber)}',
+    '.acct-syncbar.is-err{border-left-color:var(--red)}',
+    '.acct-syncbar.is-warn{border-left-color:var(--amber)}',
+    '.acct-syncbar .txt{flex:1 1 auto;color:var(--fg-2)}',
+    '.acct-syncbar.is-err .txt{color:var(--red)}',
+    '.acct-syncbar.is-ok .txt{color:var(--green)}',
+    '.acct-subtip{font-size:11.5px;color:var(--fg-3);line-height:1.6;margin:-6px 0 10px;text-align:center}',
+    '.acct-result{margin-top:12px;font-size:13px;line-height:1.5;padding:9px 11px;border:1px solid var(--line-2);border-left:3px solid var(--fg-3)}',
+    '.acct-result.ok{border-left-color:var(--green);color:var(--green)}',
+    '.acct-result.err{border-left-color:var(--red);color:var(--red)}',
+    '.acct-badge{display:inline-block;padding:1px 7px;font-size:11px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line-2);color:var(--fg-3);margin-left:6px}',
+    '.acct-badge.downloaded{color:var(--green);border-color:var(--green)}',
+    '.acct-badge.uploaded{color:var(--brand);border-color:var(--brand)}',
+    '.acct-badge.remotekept{color:var(--amber);border-color:var(--amber)}',
+    '.acct-badge.uptodate{color:var(--fg-3)}',
+    '.acct-badge.error{color:var(--red);border-color:var(--red)}',
+    '.acct-tip.warn{color:var(--amber)}',
+    '.acct-fold.danger{margin-top:12px}',
+    '.acct-fold.danger>summary{color:var(--red)}'
   ].join('\n');
 
   function injectStyle() {
@@ -141,8 +162,8 @@
     document.body.appendChild(mask);
     renderPanel();
 
-    var off1 = SE() && SE().onStatus ? SE().onStatus(function () { if (mask) renderPanel(); }) : function () {};
-    var off2 = function () { if (mask) renderPanel(); };
+    var off1 = SE() && SE().onStatus ? SE().onStatus(function () { refreshSyncPanel(); }) : function () {};
+    var off2 = function () { refreshSyncPanel(); };
     if (AC() && AC().onChange) AC().onChange(off2);
     if (CB() && CB().onChange) CB().onChange(off2);
     var obs = new MutationObserver(function () { if (!mask) { off1(); try { obs.disconnect(); } catch (e) {} } });
@@ -156,15 +177,35 @@
     e.textContent = text || '';
   }
 
+  /* 轻量刷新：仅更新状态条与各数据项，不重建整个面板（保留结果提示与按钮状态） */
+  function refreshSyncPanel() {
+    if (!mask) return;
+    var m = mask.querySelector('.acct-modal');
+    if (!m) return;
+    var ov = overallStatus();
+    var bar = m.querySelector('#acBar');
+    if (bar) {
+      bar.className = 'acct-syncbar ' + ov.cls;
+      var t = bar.querySelector('.txt'); if (t) t.textContent = ov.text;
+      var d = bar.querySelector('.acct-dot'); if (d) d.className = 'acct-dot ' + ov.cls;
+    }
+    var list = m.querySelector('#acScopeList');
+    if (list) list.innerHTML = statusRows() || '<div class="acct-empty">本页暂无需要同步的功能。</div>';
+  }
+
   function statusRows() {
     var S = SE();
     var status = (S && S.status) ? S.status() : {};
+    var badgeMap = { downloaded: '已下载', uploaded: '已上传', 'uploaded-new': '已上传', remotekept: '保留云端', uptodate: '已是最新', error: '出错', skipped: '' };
     return Object.keys(status).map(function (id) {
       var s = status[id] || {};
       var cls = s.state === 'syncing' ? 'is-sync' : s.state === 'error' ? 'is-err' : (s.lastTs ? 'is-ok' : '');
+      var res = s.result || {};
+      var badge = res.kind ? '<span class="acct-badge ' + res.kind + '">' + (badgeMap[res.kind] || '') + '</span>' : '';
       var txt = s.state === 'syncing' ? '同步中…' : s.state === 'error' ? ('出错：' + (s.error || '')) : ago(s.lastTs);
       return '<div class="acct-scope"><span class="acct-dot ' + cls + '"></span>' +
-        '<span class="nm">' + esc(s.label || id) + '</span><span class="tm">' + esc(txt) + '</span></div>';
+        '<span class="nm">' + esc(s.label || id) + '</span>' + badge +
+        '<span class="tm">' + esc(txt) + '</span></div>';
     }).join('');
   }
 
@@ -172,25 +213,36 @@
     var S = SE();
     var st = (S && S.status) ? S.status() : {};
     var keys = Object.keys(st);
-    if (!keys.length) return { cls: '', text: '本页暂无同步数据' };
-    var anyErr = false, anySync = false, anyTs = 0;
+    if (!keys.length) return { cls: '', text: '本页暂无需要同步的数据' };
+    var anyErr = false, anySync = false, anyTs = 0, anyResult = null, anyResultAt = 0;
     keys.forEach(function (id) {
       var s = st[id] || {};
       if (s.state === 'error') anyErr = true;
       if (s.state === 'syncing') anySync = true;
       if (s.lastTs) anyTs = Math.max(anyTs, s.lastTs);
+      if (s.result && s.result.at > anyResultAt) { anyResultAt = s.result.at; anyResult = s.result; }
     });
-    if (anyErr) return { cls: 'is-err', text: '同步出错，点「立即同步」重试' };
     if (anySync) return { cls: 'is-sync', text: '正在同步…' };
+    if (anyErr) return { cls: 'is-err', text: '同步出错，点按钮重试' };
+    if (anyResult) {
+      var map = {
+        downloaded: '已从云端更新到本机',
+        uploaded: '已把本机备份到云端',
+        'uploaded-new': '已把本机备份到云端（首次）',
+        remotekept: '云端数据较新，已保留云端（本机未覆盖）',
+        uptodate: '本机与云端均已是最新',
+        error: '上次同步出错，请重试'
+      };
+      return { cls: anyResult.kind === 'error' ? 'is-err' : 'is-ok', text: (map[anyResult.kind] || '已同步') + ' · ' + ago(anyResult.at) };
+    }
     if (anyTs) return { cls: 'is-ok', text: '已同步（' + ago(anyTs) + '）' };
-    return { cls: '', text: '本页暂无同步数据' };
+    return { cls: '', text: '本页暂无需要同步的数据' };
   }
 
   function renderPanel() {
     if (!mask) return;
     var m = mask.querySelector('.acct-modal');
     var A = AC(), C = CB();
-
     // ① Supabase 账号已登录
     if (C && C.isLoggedIn()) {
       var u = C.get().user || {};
@@ -200,26 +252,31 @@
         '<h3>' + esc(accountName(u)) + '</h3>' +
         '<div class="acct-backend">已登录 · 云端：' + (be === 'supabase' ? 'Supabase' : 'GitHub 仓库') + '</div>' +
         '<div class="sub">你的训练数据已自动备份到云端，换设备用同一账号登录即可恢复。</div>' +
-        '<div class="acct-status-line"><span class="acct-dot ' + ov.cls + '"></span>' + esc(ov.text) + '</div>' +
-        '<button class="acct-btn acct-pri" id="acPull">立即同步</button>' +
-        '<div class="acct-links">' +
-        '<button class="acct-link" id="acToSet">设置 / 修改密码 ›</button>' +
-        '<button class="acct-link danger" id="acOut">退出登录</button>' +
+        '<div class="acct-syncbar ' + ov.cls + '" id="acBar"><span class="acct-dot ' + ov.cls + '"></span><span class="txt">' + esc(ov.text) + '</span></div>' +
+        '<button class="acct-btn acct-pri" id="acSync">立即同步（双向）</button>' +
+        '<div class="acct-subtip">云端有更新就下载到本机，本机有改动就备份到云端；以最新修改时间为准，不会丢失数据。</div>' +
+        '<div class="acct-row">' +
+          '<button class="acct-btn ghost" id="acDown">↓ 从云端下载到本机</button>' +
+          '<button class="acct-btn ghost" id="acUp">↑ 把本机备份到云端</button>' +
         '</div>' +
+        '<div class="acct-sec"><h4>各数据项</h4><div id="acScopeList">' +
+          (statusRows() || '<div class="acct-empty">本页暂无需要同步的功能（其它页面各自同步自己的数据）。</div>') +
+        '</div></div>' +
+        '<div class="acct-result" id="acResult" style="display:none"></div>' +
+        '<details class="acct-fold danger"><summary>⚠️ 高级 / 危险操作</summary>' +
+          '<div class="acct-tip warn">仅当你确定要用本机数据替换云端时使用。此操作会丢失云端中比本机更新的数据，且无法恢复。</div>' +
+          '<div class="acct-row"><button class="acct-btn danger" id="acForceUp">用本机覆盖云端（丢失云端较新数据）</button></div>' +
+          '<div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div>' +
+        '</details>' +
         '<details class="acct-fold"><summary>登录密码</summary>' +
-        '<div class="acct-tip">设置密码后，换设备可直接「邮箱 + 密码」登录，免收验证码。</div>' +
-        '<label class="acct-f">新密码<input id="acNewPwd" type="password" autocomplete="new-password" placeholder="至少 6 位"></label>' +
-        '<label class="acct-f">确认新密码<input id="acNewPwd2" type="password" autocomplete="new-password" placeholder="再输一次"></label>' +
-        '<div class="acct-row"><button class="acct-btn ghost" id="acSetPwd">设置 / 修改密码</button></div>' +
+          '<div class="acct-tip">设置密码后，换设备可直接「邮箱 + 密码」登录，免收验证码。</div>' +
+          '<label class="acct-f">新密码<input id="acNewPwd" type="password" autocomplete="new-password" placeholder="至少 6 位"></label>' +
+          '<label class="acct-f">确认新密码<input id="acNewPwd2" type="password" autocomplete="new-password" placeholder="再输一次"></label>' +
+          '<div class="acct-row"><button class="acct-btn ghost" id="acSetPwd">设置 / 修改密码</button></div>' +
         '</details>' +
-        '<details class="acct-fold"><summary>高级同步设置</summary>' +
-        '<div class="acct-sec"><h4>本页同步明细</h4>' +
-        (statusRows() || '<div class="acct-empty">本页暂无需要同步的功能（其它页面各自同步自己的数据）。</div>') +
+        '<div class="acct-links">' +
+          '<button class="acct-link danger" id="acOut">退出登录</button>' +
         '</div>' +
-        '<div class="acct-row"><button class="acct-btn ghost" id="acPush">强制上传</button>' +
-        '<button class="acct-btn ghost" id="acForce">强制下载</button></div>' +
-        '<div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div>' +
-        '</details>' +
         '<div class="acct-hint"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
         '<div class="acct-msg" id="acMsg"></div>';
       wireLogged(m, 'cb');
@@ -229,20 +286,27 @@
     // ② GitHub 账号已登录（旧通道）
     if (A && A.isLoggedIn()) {
       var st = A.get();
+      var ov2 = overallStatus();
       m.innerHTML =
         '<h3>已登录 @' + esc(st.login || st.owner) + '</h3>' +
         '<div class="acct-backend">云端：GitHub 仓库 ' + esc(st.owner) + '/' + esc(st.repo) + '</div>' +
         '<div class="sub">这是备用同步通道。推荐改用手机号 / 邮箱登录，更方便。</div>' +
-        '<div class="acct-sec"><h4>本页同步状态</h4>' +
-        (statusRows() || '<div class="acct-empty">本页没有需要同步的功能。</div>') +
-        '</div>' +
+        '<div class="acct-syncbar ' + ov2.cls + '" id="acBar"><span class="acct-dot ' + ov2.cls + '"></span><span class="txt">' + esc(ov2.text) + '</span></div>' +
+        '<button class="acct-btn acct-pri" id="acSync">立即同步（双向）</button>' +
+        '<div class="acct-subtip">云端有更新就下载到本机，本机有改动就备份到云端；以最新修改时间为准。</div>' +
         '<div class="acct-row">' +
-        '<button class="acct-btn" id="acPull">立即拉取</button>' +
-        '<button class="acct-btn ghost" id="acPush">强制上传</button>' +
-        '<button class="acct-btn ghost" id="acForce">强制下载</button>' +
-        '<button class="acct-btn danger" id="acOut">退出登录</button>' +
+          '<button class="acct-btn ghost" id="acDown">↓ 从云端下载</button>' +
+          '<button class="acct-btn ghost" id="acUp">↑ 备份到云端</button>' +
         '</div>' +
-        '<div class="acct-msg"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
+        '<div class="acct-sec"><h4>各数据项</h4><div id="acScopeList">' +
+          (statusRows() || '<div class="acct-empty">本页没有需要同步的功能。</div>') +
+        '</div></div>' +
+        '<div class="acct-result" id="acResult" style="display:none"></div>' +
+        '<div class="acct-row">' +
+          '<button class="acct-btn danger" id="acForceUp">用本机覆盖云端</button>' +
+          '<button class="acct-btn danger" id="acOut">退出登录</button>' +
+        '</div>' +
+        '<div class="acct-hint"><a href="/account-help.html" target="_blank" rel="noopener">使用教程</a></div>' +
         '<div class="acct-msg" id="acMsg"></div>';
       wireLogged(m, 'gh');
       return;
@@ -414,20 +478,102 @@
   /* ---------------- 已登录 ---------------- */
   function wireLogged(m, kind) {
     var S = SE();
-    m.querySelector('#acPull').onclick = function () {
-      var b = this; b.disabled = true; msg(m, '拉取中…');
-      S.pullAll().then(function (r) { msg(m, '已拉取 ' + (r || []).length + ' 项', 'ok'); b.disabled = false; renderPanel(); })
-        .catch(function (e) { msg(m, '拉取失败：' + e.message, 'err'); b.disabled = false; });
+
+    // 同步完成后就地刷新状态条与各数据项，不整面板重建（保留结果提示）
+    function updateSyncArea() {
+      var ov = overallStatus();
+      var bar = m.querySelector('#acBar');
+      if (bar) {
+        bar.className = 'acct-syncbar ' + ov.cls;
+        var t = bar.querySelector('.txt'); if (t) t.textContent = ov.text;
+        var d = bar.querySelector('.acct-dot'); if (d) d.className = 'acct-dot ' + ov.cls;
+      }
+      var list = m.querySelector('#acScopeList');
+      if (list) list.innerHTML = statusRows() || '<div class="acct-empty">本页暂无需要同步的功能。</div>';
+    }
+    function showResult(arr, label) {
+      var box = m.querySelector('#acResult');
+      if (!box) return;
+      var dl = 0, up = 0, keep = 0, same = 0, err = 0;
+      [].concat(arr || []).forEach(function (r) {
+        if (!r) return;
+        if (r.kind === 'downloaded' || r.kind === 'uploaded-new') dl++;
+        else if (r.kind === 'uploaded') up++;
+        else if (r.kind === 'remotekept') keep++;
+        else if (r.kind === 'error') err++;
+        else if (r.kind === 'uptodate' || r.kind === 'skipped') same++;
+      });
+      box.style.display = 'block';
+      var total = dl + up + keep + same;
+      if (err) {
+        box.className = 'acct-result err';
+        box.textContent = '❌ ' + label + '未完全成功：' + err + ' 项失败' +
+          (total ? '，其余 ' + total + ' 项正常' : '') + '。请点按钮重试。';
+        return;
+      }
+      var upWord = (label === '覆盖上传') ? '已用本机覆盖云端 ' : '已备份到云端 ';
+      var parts = [];
+      if (dl) parts.push('从云端更新到本机 ' + dl + ' 项');
+      if (up) parts.push(upWord + up + ' 项');
+      if (keep) parts.push('云端有更新、已保留云端 ' + keep + ' 项（未覆盖）');
+      if (same) parts.push('已是最新 ' + same + ' 项');
+      box.className = 'acct-result ok';
+      box.textContent = '✅ ' + label + '成功' + (parts.length ? '：' + parts.join(' · ') : '') + '。';
+    }
+    function setBusy(btn, on) { if (btn) btn.disabled = !!on; }
+
+    var bSync = m.querySelector('#acSync');
+    if (bSync) bSync.onclick = function () {
+      var btn = this; setBusy(btn, true);
+      S.syncAll().then(function (res) {
+        setBusy(btn, false);
+        showResult([].concat(res.pull || [], res.push || []), '双向同步');
+        updateSyncArea(); refreshChip();
+      }).catch(function (e) {
+        setBusy(btn, false);
+        var box = m.querySelector('#acResult');
+        if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 双向同步失败：' + (e && e.message || e); }
+      });
     };
-    m.querySelector('#acPush').onclick = function () {
-      var b = this; b.disabled = true; msg(m, '上传中…');
-      S.pushAll().then(function (r) { msg(m, '已上传 ' + (r || []).length + ' 项', 'ok'); b.disabled = false; renderPanel(); })
-        .catch(function (e) { msg(m, '上传失败：' + e.message, 'err'); b.disabled = false; });
+    var bDown = m.querySelector('#acDown');
+    if (bDown) bDown.onclick = function () {
+      var btn = this; setBusy(btn, true);
+      S.pullAll().then(function (r) {
+        setBusy(btn, false); showResult(r, '下载'); updateSyncArea(); refreshChip();
+      }).catch(function (e) {
+        setBusy(btn, false);
+        var box = m.querySelector('#acResult');
+        if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 下载失败：' + (e && e.message || e); }
+      });
     };
-    m.querySelector('#acForce').onclick = function () {
-      var b = this; b.disabled = true; msg(m, '下载中…');
-      S.pullAll(true).then(function (r) { msg(m, '已下载 ' + (r || []).length + ' 项', 'ok'); b.disabled = false; renderPanel(); })
-        .catch(function (e) { msg(m, '下载失败：' + e.message, 'err'); b.disabled = false; });
+    var bUp = m.querySelector('#acUp');
+    if (bUp) bUp.onclick = function () {
+      var btn = this; setBusy(btn, true);
+      S.pushAll().then(function (r) {
+        setBusy(btn, false); showResult(r, '备份'); updateSyncArea(); refreshChip();
+      }).catch(function (e) {
+        setBusy(btn, false);
+        var box = m.querySelector('#acResult');
+        if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 备份失败：' + (e && e.message || e); }
+      });
+    };
+    var bForce = m.querySelector('#acForceUp');
+    if (bForce) bForce.onclick = function () {
+      var btn = this;
+      S.conflictScopes().then(function (conf) {
+        var extra = (conf && conf.length)
+          ? '\n\n云端以下数据比本机更新，将被本机覆盖而丢失：\n' + conf.map(function (c) { return '· ' + c.label + '（' + ago(c.remoteTs) + '）'; }).join('\n')
+          : '';
+        if (!confirm('确定要用本机数据覆盖云端吗？此操作会丢失云端中比本机更新的数据，且无法恢复。' + extra)) return;
+        setBusy(btn, true);
+        S.forcePushAll().then(function (r) {
+          setBusy(btn, false); showResult(r, '覆盖上传'); updateSyncArea(); refreshChip();
+        }).catch(function (e) {
+          setBusy(btn, false);
+          var box = m.querySelector('#acResult');
+          if (box) { box.style.display = 'block'; box.className = 'acct-result err'; box.textContent = '❌ 覆盖上传失败：' + (e && e.message || e); }
+        });
+      }).catch(function () {});
     };
     var setPwd = m.querySelector('#acSetPwd');
     if (setPwd) setPwd.onclick = function () {
@@ -446,7 +592,8 @@
         msg(m, '设置失败：' + (e && e.message ? e.message : e), 'err'); b.disabled = false;
       });
     };
-    m.querySelector('#acOut').onclick = function () {
+    var out = m.querySelector('#acOut');
+    if (out) out.onclick = function () {
       if (!confirm('退出后本机数据仍保留，但不再同步。确定退出？')) return;
       if (kind === 'cb' && CB()) CB().signOut();
       else if (AC()) AC().logout();

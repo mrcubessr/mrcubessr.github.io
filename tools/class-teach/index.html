@@ -393,8 +393,8 @@
         </div>
         <div class="row" style="margin-top:10px">
           <button id="ghConnect">保存配置并连接</button>
-          <button class="btn btn--ghost" id="ghPull">从云端拉取</button>
-          <button class="btn btn--ghost" id="ghPush">立即同步到云端</button>
+          <button class="btn btn--ghost" id="ghPull">↓ 从云端下载到本机</button>
+          <button class="btn btn--ghost" id="ghPush">↑ 把本机备份到云端</button>
         </div>
       </details>
       <p class="muted" style="font-size:12px;margin-top:12px">如何获取 client_id：GitHub 右上角头像 → Settings → 最底部 Developer settings → OAuth Apps → New OAuth App。Homepage URL 填任意网址（如 https://mrcubessr.github.io），Authorization callback URL 留空。创建后复制 Client ID 粘贴上方即可（只需填一次，之后本机自动记住）。</p>
@@ -1458,8 +1458,8 @@ document.getElementById('ghConnect').onclick=function(){
   applyGhCfg();
   updateCloudStatus('已连接，正在拉取…');pullFromCloud();
 };
-document.getElementById('ghPush').onclick=function(){if(window.SyncEngine&&window.Account&&Account.isLoggedIn()){SyncEngine.push('class-teach');updateCloudStatus('已触发上传（详见右上角账号面板）');}else{updateCloudStatus('请先在右上角「登录同步」开通账号',true);}};
-document.getElementById('ghPull').onclick=function(){if(window.SyncEngine&&window.Account&&Account.isLoggedIn()){SyncEngine.pull('class-teach');updateCloudStatus('已触发拉取（详见右上角账号面板）');}else{updateCloudStatus('请先在右上角「登录同步」开通账号',true);}};
+document.getElementById('ghPush').onclick=function(){if(window.SyncEngine&&window.Account&&Account.isLoggedIn()){SyncEngine.push('class-teach');updateCloudStatus('已触发上传：本机 → 云端（云端更新时会自动保留云端，详见右上角账号面板）');}else{updateCloudStatus('请先在右上角「登录同步」开通账号',true);}};
+document.getElementById('ghPull').onclick=function(){if(window.SyncEngine&&window.Account&&Account.isLoggedIn()){SyncEngine.pull('class-teach');updateCloudStatus('已触发下载：云端 → 本机（本机更新时不会覆盖，详见右上角账号面板）');}else{updateCloudStatus('请先在右上角「登录同步」开通账号',true);}};
 /* 后台自动同步：OAuth 登录后每 30 秒把本地改动推到云端，换设备/关页面都不丢 */
 
 load();fillClassSel();fillProgCourse();setView('home');

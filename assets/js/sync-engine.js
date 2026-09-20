@@ -14,11 +14,14 @@
  *   });
  *
  * 策略（用户已拍板：LWW 最后写入胜）
- *   · 登录成功 / 周期(5min) → pullAll：远端 _ts > 本机已同步 ts ⇒ 应用远端
- *   · 本地变更 → 防抖 3s → push：以 now 写入；若远端比本机已同步的还新，
- *     说明另一台设备刚写过 —— 此时「远端优先」先应用远端，避免静默覆盖
+ *   比较基准 = localStamp(id) = max(本机最后修改时间, 上次同步 _ts)，
+ *   即「本机数据真正的版本」，而不是只看「上次同步时间」——
+ *   否则本机刚改的新数据会被云端的中间版本顶掉（丢数据）。
+ *   · 登录成功 / 周期(5min) → pullAll：远端 _ts > localStamp ⇒ 应用远端，否则本机已是最新
+ *   · 本地变更 → 防抖 3s → push：远端 _ts > localStamp 说明云端更新 ——
+ *     「远端优先」先应用远端，绝不静默覆盖（remotekept）；否则正常上传
  *   · 写冲突 409 → 重新读取并按同样规则重试一次
- *   · 强制上传/下载按钮处理极端情况
+ *   · forcePushAll 为危险路径（盲目覆盖云端），必须由 UI 二次确认后才调用
  * ============================================================= */
 (function (global) {
   'use strict';
@@ -58,8 +61,25 @@
   function getTs(id) { try { return parseInt(localStorage.getItem(tsKey(id)) || '0', 10) || 0; } catch (e) { return 0; } }
   function setTs(id, v) { try { localStorage.setItem(tsKey(id), String(v)); } catch (e) {} }
 
+  /* 本机数据的「最后修改时间」。
+     仅看 lastTs（上次同步时间）会误判：本机改动后 lastTs 不更新，
+     于是「本机刚改的新版」会被当成旧版而被云端中间版本顶掉 → 丢数据。
+     用 max(lastTs, 本地最后修改) 作为本机数据版本，才是真正的「最新版」比较。 */
+  function modKey(id) { return 'sync_mod_' + id; }
+  function getMod(id) { try { return parseInt(localStorage.getItem(modKey(id)) || '0', 10) || 0; } catch (e) { return 0; } }
+  function setMod(id, v) { try { localStorage.setItem(modKey(id), String(v)); } catch (e) {} }
+  /** 本机数据版本戳：取「本机最后修改」与「已同步基线」的较大者 */
+  function localStamp(id) { return Math.max(getTs(id), getMod(id)); }
+
   function setStat(id, s) {
     stat[id] = Object.assign({ label: (providers[id] && providers[id].label) || id }, stat[id] || {}, s);
+    emit();
+  }
+  /** 记录某次操作的结果（供面板展示「已下载/已上传/已是最新/出错」） */
+  function setResult(id, kind, detail) {
+    var base = stat[id] || (stat[id] = {});
+    base.label = base.label || (providers[id] && providers[id].label) || id;
+    base.result = { kind: kind, detail: detail || '', at: Date.now() };
     emit();
   }
   function emit() {
@@ -70,61 +90,75 @@
 
   /* ---------------- 单个 scope 的推拉 ---------------- */
 
-  /** 拉取单个 scope：远端更新则写回本地 */
+  /** 拉取单个 scope：远端更新则写回本地；返回结构化结果 */
   function pullScope(p, force) {
-    if (!ready()) return Promise.resolve(null);
+    if (!ready()) return Promise.resolve({ id: p.id, kind: 'skipped', detail: '未就绪' });
     setStat(p.id, { state: 'syncing', error: '' });
     return CS().read(p.path).then(function (r) {
       if (!r || !r.data) { // 云端还没有这个文件 → 把本地推上去
         setTs(p.id, 0);
-        return pushScope(p, true).then(function () { return 'pushed-new'; });
+        return pushScope(p, true).then(function () {
+          return { id: p.id, kind: 'uploaded-new', detail: '云端无数据，已上传本机' };
+        });
       }
       var remoteTs = r.data._ts || 0;
-      var localTs = getTs(p.id);
-      if (!force && remoteTs <= localTs) { setStat(p.id, { state: 'idle', lastTs: localTs }); return 'up-to-date'; }
+      var localTs = localStamp(p.id);   // 本机数据的真实版本（含未同步的本地改动）
+      if (!force && remoteTs <= localTs) {
+        setStat(p.id, { state: 'idle', lastTs: getTs(p.id) });
+        setResult(p.id, 'uptodate', '本机已是最新');
+        return { id: p.id, kind: 'uptodate', detail: '本机已是最新' };
+      }
       applying[p.id] = true;
       return Promise.resolve(p.applySnapshot(r.data.data))
         .then(function () {
           setTs(p.id, remoteTs);
           setStat(p.id, { state: 'idle', lastTs: remoteTs, error: '' });
-          return 'applied';
+          setResult(p.id, 'downloaded', '已从云端更新');
+          return { id: p.id, kind: 'downloaded', detail: '已从云端更新' };
         })
         .catch(function (e) {
           setStat(p.id, { state: 'error', error: e && e.message || String(e) });
+          setResult(p.id, 'error', e && e.message || String(e));
           throw e;
         })
         .then(function (v) { applying[p.id] = false; return v; },
           function (e) { applying[p.id] = false; throw e; });
     }).catch(function (e) {
       setStat(p.id, { state: 'error', error: e && e.message || String(e) });
-      return null;
+      setResult(p.id, 'error', e && e.message || String(e));
+      return { id: p.id, kind: 'error', detail: e && e.message || String(e) };
     });
   }
 
-  /** 上传单个 scope：LWW；若远端比本机已同步的还新，则先应用远端（远端优先） */
+  /** 上传单个 scope：LWW；非强制时若远端比本机已同步的还新，则先应用远端（绝不覆盖更新的云端） */
   function pushScope(p, force) {
-    if (!ready()) return Promise.resolve(null);
+    if (!ready()) return Promise.resolve({ id: p.id, kind: 'skipped', detail: '未就绪' });
     setStat(p.id, { state: 'syncing', error: '' });
     return Promise.resolve(p.getSnapshot()).then(function (snap) {
       var payload = wrap(snap);
       return CS().read(p.path).then(function (r) {
         var remoteTs = (r && r.data && r.data._ts) || 0;
-        var localTs = getTs(p.id);
-        // 远端有本机没见过的新数据，且非强制上传 → 远端优先，先应用
+        var localTs = localStamp(p.id);   // 本机数据的真实版本（含未同步的本地改动）
+        // 云端比「本机数据」更新（不只是比上次同步新）→ 远端优先，先应用，绝不覆盖更新的云端
         if (!force && remoteTs > localTs) {
           applying[p.id] = true;
           return Promise.resolve(p.applySnapshot(r.data.data)).then(function () {
             setTs(p.id, remoteTs);
             setStat(p.id, { state: 'idle', lastTs: remoteTs, error: '' });
-            return 'remote-newer-applied';
+            setResult(p.id, 'remotekept', '云端更新，已保留云端');
+            return { id: p.id, kind: 'remotekept', detail: '云端更新，已保留云端' };
           }).then(function (v) { applying[p.id] = false; return v; },
             function (e) { applying[p.id] = false; throw e; });
         }
-        return writeWithRetry(p, payload, 0);
+        return writeWithRetry(p, payload, 0).then(function () {
+          setResult(p.id, 'uploaded', '已备份到云端');
+          return { id: p.id, kind: 'uploaded', detail: '已备份到云端' };
+        });
       });
     }).catch(function (e) {
       setStat(p.id, { state: 'error', error: e && e.message || String(e) });
-      return null;
+      setResult(p.id, 'error', e && e.message || String(e));
+      return { id: p.id, kind: 'error', detail: e && e.message || String(e) };
     });
   }
 
@@ -168,7 +202,11 @@
       // 订阅本地变更 → 防抖上传
       if (typeof p.subscribe === 'function') {
         try {
-          p.subscribe(function () { if (!applying[p.id]) schedulePush(p); });
+          p.subscribe(function () {
+            if (applying[p.id]) return;          // 正在应用远端，不算本机改动
+            setMod(p.id, Date.now());            // 记录本机修改时间，供「最新版」判定
+            schedulePush(p);
+          });
         } catch (e) { /* 订阅失败不影响其它功能 */ }
       }
 
@@ -186,24 +224,60 @@
 
     providers: function () { return Object.keys(providers).map(function (k) { return providers[k]; }); },
 
-    /** 登录 / 手动触发：全量拉取本站已注册的所有 scope */
+    /** 登录 / 手动触发：全量拉取本站已注册的所有 scope（只应用比本机新的） */
     pullAll: function (force) {
       if (!ready()) return Promise.resolve([]);
       return Promise.all(SyncEngine.providers().map(function (p) {
-        return pullScope(p, force).catch(function () { return null; });
+        return pullScope(p, force).catch(function () { return { id: p.id, kind: 'error', detail: '拉取失败' }; });
       }));
     },
 
-    /** 全量强制上传 */
+    /** 全量上传（安全：云端更新时自动保留云端，不会用旧本机覆盖） */
     pushAll: function () {
       if (!ready()) return Promise.resolve([]);
       return Promise.all(SyncEngine.providers().map(function (p) {
-        return pushScope(p, true).catch(function () { return null; });
+        return pushScope(p, false).catch(function () { return { id: p.id, kind: 'error', detail: '上传失败' }; });
       }));
     },
 
-    pull: function (id) { var p = providers[id]; return p ? pullScope(p, true) : Promise.resolve(null); },
-    push: function (id) { var p = providers[id]; return p ? pushScope(p, true) : Promise.resolve(null); },
+    /** 全量强制上传（危险：盲目覆盖云端，UI 必须二次确认后才调用） */
+    forcePushAll: function () {
+      if (!ready()) return Promise.resolve([]);
+      return Promise.all(SyncEngine.providers().map(function (p) {
+        return pushScope(p, true).catch(function () { return { id: p.id, kind: 'error', detail: '上传失败' }; });
+      }));
+    },
+
+    /** 安全双向同步：先拉云端更新，再推本机改动（均为 LWW，不丢数据） */
+    syncAll: function () {
+      if (!ready()) return Promise.resolve({ pull: [], push: [] });
+      return SyncEngine.pullAll().then(function (pull) {
+        return SyncEngine.pushAll().then(function (push) {
+          return { pull: pull, push: push };
+        });
+      });
+    },
+
+    /** 检测「上传会覆盖云端较新数据」的 scope，供 UI 二次确认时列出 */
+    conflictScopes: function () {
+      if (!ready()) return Promise.resolve([]);
+      return Promise.all(SyncEngine.providers().map(function (p) {
+        return CS().read(p.path).then(function (r) {
+          var remoteTs = (r && r.data && r.data._ts) || 0;
+          var localTs = localStamp(p.id);   // 与 pushScope 同口径，避免漏报/误报
+          if (remoteTs > localTs) return { id: p.id, label: p.label, remoteTs: remoteTs, lastTs: localTs };
+          return null;
+        }).catch(function () { return null; });
+      })).then(function (arr) { return arr.filter(Boolean); });
+    },
+
+    /** 单个 scope 的安全同步（绝不盲覆盖：以最新版为准） */
+    pull: function (id) { var p = providers[id]; return p ? pullScope(p, false) : Promise.resolve(null); },
+    push: function (id) { var p = providers[id]; return p ? pushScope(p, false) : Promise.resolve(null); },
+    /** 危险：无条件用云端覆盖本机（必须由用户二次确认后调用） */
+    forcePull: function (id) { var p = providers[id]; return p ? pullScope(p, true) : Promise.resolve(null); },
+    /** 危险：无条件用本机覆盖云端（必须由用户二次确认后调用） */
+    forcePush: function (id) { var p = providers[id]; return p ? pushScope(p, true) : Promise.resolve(null); },
 
     status: function () {
       var out = {};
