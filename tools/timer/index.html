@@ -13,6 +13,8 @@
 </head>
 <body data-nav="timer">
 <div data-site-nav></div>
+<!-- 手机端：隐藏顶部站点导航后，顶部留一条触控条，点按可显示/隐藏导航 -->
+<div class="tm-nav-handle" id="tm-nav-handle" aria-label="点按显示/隐藏顶部导航"></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
 <div class="tm-wrap">
@@ -357,6 +359,9 @@
       </div>
       <h3 class="tm-h3">项目</h3>
       <div class="seg" id="tm-settings-events" role="group" aria-label="选择项目"></div>
+      <h3 class="tm-h3">打乱</h3>
+      <button class="btn btn--sm btn--secondary" id="tm-settings-next" type="button">换一条打乱</button>
+      <span class="tm-bld-params__hint">主界面不显示换打乱按钮：每次完成自动换题，需要跳过时点这里。</span>
     </div>
   </div>
 </div>

@@ -18,6 +18,16 @@
    手机端单屏布局下这 16px 会让文档比视口高、出现上下滚动。 */
 body { margin: 0; }
 
+/* 手机端：顶部导航隐藏/显示切换把手（默认在桌面端不显示） */
+.tm-nav-handle {
+  position: fixed; top: 0; left: 0; right: 0; height: 12px; z-index: 10001;
+  cursor: pointer; background: transparent; display: none;
+}
+.tm-nav-handle::after {
+  content: ""; position: absolute; left: 50%; bottom: 2px; width: 40px; height: 4px;
+  background: var(--fg-3); opacity: .35; border-radius: 2px;
+  transform: translateX(-50%);
+}
 /* 直角风格：与 UF / UR 训练页保持一致（本站组件默认是圆角） */
 .tm-wrap .btn, .tm-wrap .seg, .tm-wrap .seg__btn, .tm-wrap .input,
 .tm-modal .btn, .tm-modal .input { border-radius: 0; }
@@ -483,43 +493,59 @@ body { margin: 0; }
    目标：主流手机一屏内看完核心信息，尽量不上下滚动。
    ========================================================= */
 @media (max-width: 600px) {
-  /* 页面级：去掉页头页脚，计时器占满视口（扣除 sticky 导航） */
-  .tm-wrap { display: flex; flex-direction: column; padding: 0; height: calc(100dvh - var(--nav-h, 60px)); overflow: hidden; }
+  /* 页面级：去掉页头页脚 */
   .tm-hero, body > .site-footer { display: none !important; }
+
+  /* 手机端：隐藏顶部站点导航，顶部留把手；点按把手切换 body.tm-nav-visible */
+  .tm-wrap { display: flex; flex-direction: column; padding: 0; overflow: hidden; height: 100dvh; }
+  body.tm-nav-visible .tm-wrap { height: calc(100dvh - var(--nav-h, 60px)); }
+  body:not(.tm-nav-visible) [data-site-nav] { min-height: 0; }
+  /* 隐藏导航时彻底脱离文档流，避免占用 60px 导致可滚动 */
+  body:not(.tm-nav-visible) .site-nav { position: absolute; transform: translateY(-100%); transition: transform .22s ease; }
+  body.tm-nav-visible [data-site-nav] { min-height: var(--nav-h, 60px); }
+  body.tm-nav-visible .site-nav { position: sticky; transform: translateY(0); }
+  /* 把手常驻：导航显示时也能点它收起 */
+  .tm-nav-handle { display: block; }
   .tm { flex: 1 1 auto; min-height: 0; gap: 3px; padding: 2px 4px 4px; }
 
-  /* 顺序：打乱 → 计时 → 确认 → 统计 → 成绩 → 三盲参数(底部) → 工具栏 */
+  /* 顺序：打乱 → 计时 → 确认 → 统计 → 成绩 → 工具栏 → 三盲参数(最底部) */
   .tm-bar { order: 1; }
   .tm-stage { order: 2; }
   .tm-confirm { order: 3; }
   .tm-strip { order: 4; }
   .tm-list-wrap { order: 5; }
-  .tm-bld-params { order: 6; }
-  .tm-tools { order: 7; }
+  .tm-tools { order: 6; }
+  .tm-bld-params { order: 7; }
 
-  /* ---------- 顶部打乱区 ---------- */
-  .tm-bar { flex: 0 0 auto; padding: 4px 6px; gap: 4px; background: transparent; border: 0; }
-  .tm-bar__row { gap: 5px; flex-wrap: nowrap; }
+  /* ---------- 顶部打乱区：只留最精简信息，不抢中间空间 ---------- */
+  .tm-bar { flex: 0 0 auto; padding: 3px 6px; gap: 3px; background: transparent; border: 0; }
+  .tm-bar__row { gap: 4px; flex-wrap: nowrap; }
   .tm-bar__row > .tm-label { display: none; }              /* 项目/打乱 标签省掉 */
   .tm-bar__row #tm-events { display: none; }               /* 手机端项目选择器收进「设置」 */
   .tm-bar__row .seg { flex: 0 1 auto; }
-  .tm-bar__row .seg__btn { padding: 4px 7px; font-size: 11px; }
-  /* 公式与展开图上下堆叠、居中；公式字号放大，手机上更易读 */
-  .tm-scramble-block { gap: 6px; flex-direction: column; align-items: stretch; }
-  .tm-scramble { gap: 4px; flex: 1 1 auto; align-items: center; justify-content: center; flex-wrap: wrap; }
-  .tm-scramble__text { flex: 1 1 auto; min-width: 0; width: 100%; text-align: center; justify-content: center;
-    font-size: 17px; font-weight: 600; line-height: 1.4; gap: 2px 6px; max-width: none; }
+  .tm-bar__row .seg__btn { padding: 3px 6px; font-size: 10px; }
+  /* 公式靠左小字，展开图居中放大；计时区占剩余空间 */
+  .tm-scramble-block { gap: 3px; flex-direction: column; align-items: stretch; }
+  /* 桌面端 flex: 1 1 340px 在纵向 flex 下会变成 340px 高，手机端必须改回内容高度 */
+  .tm-scramble-main { flex: 0 0 auto; width: 100%; gap: 4px; }
+  .tm-scramble { gap: 4px; flex: 0 0 auto; align-items: center; justify-content: space-between; flex-wrap: nowrap; }
+  .tm-scramble__text {
+    flex: 1 1 auto; min-width: 0; text-align: left; justify-content: flex-start;
+    font-size: 14px; font-weight: 600; line-height: 1.35; gap: 2px 5px; max-width: none;
+  }
   .tm-scramble__btns { gap: 3px; flex: 0 0 auto; }
   .tm-scramble__btns #tm-copy { display: none; }            /* 手机上省位，长按文本即可复制 */
-  .tm-scramble__btns .btn { padding: 3px 6px; font-size: 10px; }
+  /* 手机主界面不需要「换打乱」：每题完成后会自动切换，也可通过设置/手动源切换 */
+  .tm-scramble__btns #tm-new { display: none; }
+  .tm-scramble__btns .btn { padding: 3px 5px; font-size: 10px; }
   /* 三盲展开图：居中放大，其余空间留给计时区 */
-  .tm-bld-net-side { width: 132px; max-width: 132px; margin: 2px auto 0; align-self: center; }
-  .tm-bld-net-side canvas { width: 126px !important; height: 126px !important; }
+  .tm-bld-net-side { width: min(48vw, 190px); max-width: 100%; margin: 2px auto 0; align-self: center; }
+  .tm-bld-net-side canvas { width: min(46vw, 180px) !important; height: min(46vw, 180px) !important; }
   .tm-bld__net-cap { display: none; }
   .tm-manual-box { margin-top: 2px; }
-  .tm-manual-box .input { padding: 5px 7px; font-size: 12px; }
-  .tm-manual-box .btn { padding: 5px 8px; font-size: 11px; }
-  .tm-replay-bar { padding: 5px 7px; gap: 6px; }
+  .tm-manual-box .input { padding: 4px 6px; font-size: 11px; }
+  .tm-manual-box .btn { padding: 4px 7px; font-size: 10px; }
+  .tm-replay-bar { padding: 4px 6px; gap: 5px; }
 
   /* ---------- 三盲参数：收起时只占一行；展开时全屏覆盖 ---------- */
   .tm-bld-params { flex: 0 0 auto; padding: 5px 7px; gap: 4px; }
@@ -544,11 +570,11 @@ body { margin: 0; }
   .tm-bld-params:not(.is-collapsed) .tm-bld-params__body { max-height: none; }
 
   /* ---------- 计时舞台：吸收剩余空间并垂直居中，大字（csTimer 式大计时区） ---------- */
-  .tm-stage { flex: 1 1 auto; min-height: 150px; padding: 5px 7px; gap: 3px; border-width: 1px; }
-  .tm-time { font-size: clamp(64px, 28vw, 122px); letter-spacing: 1px; }
-  .tm-state { font-size: 11px; }
-  .tm-pen { top: 6px; right: 7px; font-size: 10px; padding: 2px 5px; }
-  .tm-memo { font-size: 11px; margin-top: 2px; }
+  .tm-stage { flex: 1 1 auto; min-height: 220px; padding: 4px 6px; gap: 2px; border-width: 1px; }
+  .tm-time { font-size: clamp(72px, 32vw, 150px); letter-spacing: 1px; }
+  .tm-state { font-size: 10px; }
+  .tm-pen { top: 5px; right: 6px; font-size: 9px; padding: 2px 4px; }
+  .tm-memo { font-size: 10px; margin-top: 2px; }
 
   /* ---------- 成绩确认 ---------- */
   .tm-confirm { flex: 0 0 auto; padding: 5px 7px; gap: 5px; }
@@ -593,20 +619,20 @@ body { margin: 0; }
   }
   .tm-tools .tm-menu__item { white-space: normal; }
 
-  /* ---------- 成绩列表：只露最近 2~3 行 ---------- */
+  /* ---------- 成绩列表：只露最近 1~2 行，把空间让给计时区 ---------- */
   .tm-list-wrap { flex: 0 0 auto; border: 1px solid var(--line); }
-  .tm-list-bar { padding: 4px 6px; gap: 4px; background: var(--surface-2); }
+  .tm-list-bar { padding: 3px 5px; gap: 3px; background: var(--surface-2); }
   .tm-list-bar > .tm-label { display: none; }
-  .tm-group__sel { min-width: 0; flex: 1 1 auto; max-width: none; padding: 3px 5px; font-size: 12px; }
+  .tm-group__sel { min-width: 0; flex: 1 1 auto; max-width: none; padding: 2px 4px; font-size: 11px; }
   #tm-group-ren, #tm-group-del { display: none; }          /* 手机上简化分组操作 */
-  #tm-group-new { padding: 3px 7px; font-size: 11px; }
-  .tm-list-bar__meta { font-size: 10px; margin-left: 0; flex: 0 0 auto; }
+  #tm-group-new { padding: 2px 6px; font-size: 10px; }
+  .tm-list-bar__meta { font-size: 9px; margin-left: 0; flex: 0 0 auto; }
   .tm-list-head, .tm-list__item {
-    grid-template-columns: 28px minmax(48px, 1fr) 54px 28px;
-    padding: 5px 6px; gap: 4px; font-size: 12px;
+    grid-template-columns: 26px minmax(44px, 1fr) 50px 26px;
+    padding: 4px 5px; gap: 3px; font-size: 11px;
   }
-  .tm-list-head { padding: 4px 6px; }
-  .tm-list { max-height: 70px; overflow: hidden; }          /* 约 2~3 行，不滚动 */
+  .tm-list-head { padding: 3px 5px; }
+  .tm-list { max-height: 54px; overflow: hidden; }          /* 约 1~2 行 */
   .tm-list__idx { font-size: 10px; }
   .tm-list__t { font-size: 14px; }
   .tm-list__a { font-size: 10px; }

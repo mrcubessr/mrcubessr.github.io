@@ -1972,6 +1972,7 @@
       settingsBtn: $("tm-settings"), settingsModal: $("tm-settings-modal"),
       settingsClose: $("tm-settings-close"),
       settingsEvents: $("tm-settings-events"), settingsTheme: $("tm-settings-theme"),
+      settingsNext: $("tm-settings-next"),
       modal: $("tm-modal"), modalClose: $("tm-modal-close"), modalEvent: $("tm-modal-event"),
       statGrid: $("tm-stat-grid"), chartDaily: $("tm-chart-daily"),
       chartTrend: $("tm-chart-trend"), chartDist: $("tm-chart-dist"),
@@ -2119,6 +2120,12 @@
           b.blur();
         });
       }
+      if (els.settingsNext) {
+        els.settingsNext.addEventListener("click", function () {
+          next(false);
+          closeSettings();
+        });
+      }
       Theme.onChange(refreshThemeActive);
     }
 
@@ -2171,6 +2178,14 @@
     applyEventUI();
     applyBldCollapse();
     renderBldSummary();
+
+    /* 手机端：顶部导航隐藏，点顶部把手显示/隐藏 */
+    var navHandle = document.getElementById("tm-nav-handle");
+    if (navHandle) {
+      navHandle.addEventListener("click", function () {
+        document.body.classList.toggle("tm-nav-visible");
+      });
+    }
 
     bindInput();
 
