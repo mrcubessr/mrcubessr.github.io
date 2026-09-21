@@ -625,10 +625,20 @@ function countSkills(cid){return DB.skills.filter(s=>s.courseId===cid).length;}
 
 /* ============ 计分页 ============ */
 function scoreCellSize(n){
-  // 根据班级人数和视口，计算方块边长，保证一屏全部显示
+  // 根据班级人数和可用空间，计算方块边长，保证一屏全部显示
   const cols=7, gap=10;
   const rows=Math.max(1,Math.ceil(n/cols));
-  const availW=window.innerWidth-72;     // 计分页已撑满视口，减去 card/边距
+  // 可用宽度从「计分卡」实测，不再拿 window.innerWidth 减魔法值（旧值 72 =
+  // .wrap 左右各 20 + .card 左右各 16）。工作台骨架给主体加了左侧导航偏移后，
+  // 视口宽度已不等于内容宽度，硬编码会在侧栏存在时算出过大的方块导致横向溢出。
+  let availW=0;
+  const gridEl=document.getElementById('scoreGrid');
+  const cardEl=gridEl&&gridEl.parentElement;
+  if(cardEl&&cardEl.clientWidth){
+    const cs=getComputedStyle(cardEl);
+    availW=cardEl.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);
+  }
+  if(!(availW>0))availW=window.innerWidth-72;   // 兜底：卡片不可见时退回旧口径
   const availH=window.innerHeight-180;   // 减去顶栏+scorebar+padding
   let size=Math.floor(Math.min((availW-(cols-1)*gap)/cols,(availH-(rows-1)*gap)/rows));
   return Math.max(size,86);              // 最小 86px 保证可读

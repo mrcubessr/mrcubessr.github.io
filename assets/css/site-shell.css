@@ -1,0 +1,420 @@
+/* =========================================================
+   魔方先生SSR魔方训练中心 · 工作台骨架 site-shell.css
+   ---------------------------------------------------------
+   把既有的 .site-nav（顶部横向导航条）改造成「左侧常驻导航 + 右侧主体」的
+   工作台布局。零 HTML 改动：本文件由 site-nav.js 在运行时注入 <head>，
+   因此全站挂载 [data-site-nav] 占位符的页面全部自动生效。
+
+   设计原则
+   - 只覆盖布局，不新增菜单：菜单结构仍来自 site-nav.js 的 NAV_DATA。
+   - 不移动 DOM：body 直接子元素的位置关系全部保持，避免破坏页面内已有的
+     `body > .xxx` 选择器与脚本对 body.children 的假设。
+   - 让出宽度用 border 而不是 padding（见 §2 说明），不覆盖页面自带的
+     body 内外边距。
+   - 上游冻结产物 site-nav.css / components.css / tokens.css 一律不改，
+     靠「后置加载 + 同特异性」覆盖。
+   - 颜色全部取 token，禁止硬编码。
+   ========================================================= */
+@import url("/assets/css/tokens.css");
+
+:root{
+  --sidebar-w: 240px;
+}
+
+/* ---------- ① 占位符退场 ----------
+   site-nav.css 给 [data-site-nav] 预留了 60px 行高并预涂导航底。
+   桌面端真正的导航是固定定位（脱离文档流），占位符不能再占位，
+   否则内容顶部会多出 60px 空白。窄屏由 §8 重新把这 60px 还回去。 */
+[data-site-nav]{
+  display:block;
+  min-height:0;
+  background:none;
+}
+
+/* box-sizing 兜底：给 body 强制 border-box，避免自带 width:100% 的页面
+   在加上左边框后横向溢出。对 width:auto 的页面无影响。 */
+body{
+  box-sizing:border-box;
+}
+
+/* ---------- ② 主体让出侧栏宽度 ----------
+   用 border-left 而不是 padding-left，两个原因：
+   1) 叠加而非覆盖 —— 多个页面自带 `body{padding:0 16px 28px}` 这类基础规则
+      （tools/corner-trainer、tools/edge-printout、tools/kmap、
+      tools/github-save-demo），padding-left 会把它们的左侧留白一并盖掉，
+      手机端还会让内容贴到屏幕左边；border 与 padding 互不干扰。
+   2) box-sizing:border-box 下 `body{width:100%}` 的页面（tools/scramble-trainer
+      的 html,body{width:100%}）不会因为多出 240px 撑出横向滚动条。
+   body 背景默认 background-clip:border-box，border 区域照旧被背景铺满，
+   视觉上不可见（侧栏本身也是不透明的）。
+   只在桌面断点生效：窄屏侧栏变成顶部条，body 不该有任何偏移。
+
+   副产物（别去"修"）：以 body 为定位祖先的绝对定位元素会跟着 padding box 一起
+   右移，百分比也按收窄后的宽度重算，天然落在内容列里。实测 tools/2x2 的
+   .cube-decoration 就是这种情况（body 有 position:relative），
+   给它再叠加侧栏偏移量会重复偏移 240px —— 千万别加。 */
+@media (min-width:1025px){
+  body{
+    border-left: var(--sidebar-w) solid transparent;
+  }
+}
+
+/* ---------- ③ 侧栏外壳 ---------- */
+.site-nav{
+  position:fixed;
+  top:0;
+  left:0;
+  bottom:0;
+  width:var(--sidebar-w);
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:var(--z-nav,1000);
+  background:var(--nav-bg-solid, rgba(13,13,26,.97));
+  border-bottom:0;
+  border-right:1px solid var(--nav-line, rgba(100,180,255,.16));
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+
+.site-nav .nav-inner{
+  max-width:none;
+  margin:0;
+  padding:0;
+  height:auto;
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:0;
+}
+
+.site-nav .nav-logo{
+  flex:0 0 auto;
+  padding:18px 18px 16px;
+  font-size:.94rem;
+  line-height:1.35;
+  white-space:normal;
+  border-bottom:1px solid var(--nav-line, rgba(100,180,255,.16));
+}
+
+/* ---------- ④ 菜单列（可滚动） ---------- */
+.site-nav .nav-links{
+  position:static;
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none;
+  margin:0;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:2px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  background:transparent;
+  border:0;
+}
+
+/* ---------- ⑤ 一级项 ---------- */
+.site-nav .nav-link{
+  display:block;
+  width:100%;
+  padding:10px 12px;
+  font-size:.9rem;
+  text-align:left;
+  white-space:normal;
+  border-left:2px solid transparent;
+}
+
+.site-nav .nav-link.active{
+  border-left-color:var(--nav-accent, #64b4ff);
+}
+
+/* 「主题」菜单项是手机抽屉专用的：桌面端由侧栏底部的图标按钮承担。
+   ⚠️ 这里必须显式隐藏，不能只靠 site-nav.css 的 .nav-theme-item{display:none}
+   （0-1-0）——上面 ⑤ 的 .site-nav .nav-link{display:block} 是 0-2-0，
+   而 .nav-theme-item 同时带 nav-link 类，会被它重新显示出来（实测踩到）。 */
+.site-nav .nav-theme-item{
+  display:none;
+}
+
+/* 分组标题：比子项更沉一档，弱化颜色 */
+.site-nav .nav-drop{position:static;width:100%;}
+
+.site-nav .nav-drop-toggle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  font-size:.8rem;
+  font-weight:600;
+  letter-spacing:.04em;
+  color:var(--fg-3, #7C8798);
+}
+
+.site-nav .nav-drop-toggle.active{
+  color:var(--nav-accent, #64b4ff);
+}
+
+/* ---------- ⑥ 二级菜单：常驻展开、缩进 + 左侧细线 ---------- */
+.site-nav .nav-menu{
+  position:static;
+  top:auto;
+  left:auto;
+  transform:none;
+  min-width:0;
+  margin:2px 0 6px 8px;
+  padding:2px 0 2px 8px;
+  display:none;
+  opacity:1;
+  visibility:visible;
+  background:transparent;
+  border:0;
+  border-left:2px solid var(--brand-line, rgba(100,180,255,.2));
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  z-index:auto;
+}
+
+.site-nav .nav-drop.open .nav-menu{
+  display:block;
+  transform:none;
+}
+
+.site-nav .nav-menu a{
+  padding:8px 12px;
+  font-size:.86rem;
+}
+
+/* 三级（当前 NAV_DATA 未使用，保留兼容） */
+.site-nav .nav-drop.sub .nav-menu.sub-menu{
+  position:static;
+  top:auto;
+  left:auto;
+  transform:none;
+  min-width:0;
+  margin:2px 0 4px 8px;
+}
+
+.site-nav .nav-drop.sub .nav-drop-toggle .caret,
+.site-nav .nav-drop.sub.open .nav-drop-toggle .caret{
+  transform:none;
+}
+
+/* ---------- ⑦ 主题按钮：落到侧栏底部，带文字标签 ---------- */
+.site-nav .nav-theme-btn{
+  flex:0 0 auto;
+  order:9;
+  width:auto;
+  height:46px;
+  margin:0;
+  padding:0 18px;
+  gap:10px;
+  justify-content:flex-start;
+  border:0;
+  border-top:1px solid var(--nav-line, rgba(100,180,255,.16));
+}
+
+.site-nav .nav-theme-btn::after{
+  content:"切换主题";
+  font-size:.86rem;
+  font-weight:500;
+}
+
+/* =========================================================
+   ⑦b 交互反馈：hover / 键盘焦点 / 当前项底色 / caret 旋转 / 滚动条
+   只加反馈，不动布局；颜色一律取 token 并带兜底值。
+   ========================================================= */
+.site-nav .nav-link,
+.site-nav .nav-menu a{
+  transition:background .15s ease, color .15s ease;
+}
+
+.site-nav .nav-link:hover,
+.site-nav .nav-menu a:hover{
+  background:var(--brand-soft, rgba(100,180,255,.10));
+  color:var(--fg, #E6EAF2);
+}
+
+/* 键盘可见焦点：侧栏里 Tab 走查全靠它 */
+.site-nav .nav-link:focus-visible,
+.site-nav .nav-menu a:focus-visible,
+.site-nav .nav-links button:focus-visible{
+  outline:2px solid var(--nav-accent, #64b4ff);
+  outline-offset:-2px;
+}
+
+/* 当前页：左侧色条（⑤ 已给）+ 底色，双重标识 */
+.site-nav .nav-link.active,
+.site-nav .nav-menu a.active{
+  background:var(--brand-soft, rgba(100,180,255,.10));
+  color:var(--nav-accent, #64b4ff);
+  font-weight:600;
+}
+
+.site-nav .nav-drop-toggle .caret{
+  display:inline-block;
+  transition:transform .18s ease;
+}
+.site-nav .nav-drop.open > .nav-drop-toggle .caret{
+  transform:rotate(180deg);
+}
+
+/* 菜单过长时可滚动，滚动条收细并跟主题走 */
+.site-nav .nav-links{
+  scrollbar-width:thin;
+  scrollbar-color:var(--line-2, rgba(127,127,127,.45)) transparent;
+}
+.site-nav .nav-links::-webkit-scrollbar{ width:8px; }
+.site-nav .nav-links::-webkit-scrollbar-track{ background:transparent; }
+.site-nav .nav-links::-webkit-scrollbar-thumb{
+  background:var(--line-2, rgba(127,127,127,.45));
+  border-radius:0;                     /* 全站直角风格 */
+}
+
+/* =========================================================
+   ⑧ 窄屏：顶部条 + 左侧滑出抽屉
+   桌面端的「常驻侧栏」在窄屏会让内容区过窄，改为：
+   顶部一行放 logo 与汉堡按钮，点汉堡从左侧滑出抽屉面板。
+   交互仍复用 site-nav.js 原有的 .open 开关与「点击外部/Esc 关闭」。
+   ⚠️ 这一层**不动 body**：桌面端的 border-left 由 min-width 断点隔离，
+   窄屏下页面的 body 内外边距全部保持原样。
+   ========================================================= */
+@media (max-width:1024px){
+  /* 顶部条是固定定位，占位符必须把 60px 高度还给文档流，
+     否则内容最上面一截会被顶部条盖住。 */
+  [data-site-nav]{
+    min-height: var(--nav-h, 60px);
+  }
+
+  .site-nav{
+    right:0;
+    bottom:auto;
+    width:auto;
+    height:var(--nav-h, 60px);
+  }
+
+  .site-nav .nav-inner{
+    flex-direction:row;
+    align-items:center;
+    height:var(--nav-h, 60px);
+    padding:0 16px;
+    gap:12px;
+  }
+
+  .site-nav .nav-logo{
+    flex:1 1 auto;
+    min-width:0;
+    padding:0;
+    border-bottom:0;
+    font-size:.95rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  /* 顶部条只放得下一处文字：有面包屑时用「当前所在页」顶掉站点全名。
+     面包屑由 site-nav.js 写入 data-crumb；取不到时属性不存在，回退显示全名。 */
+  .site-nav .nav-logo[data-crumb]:not([data-crumb=""]){
+    font-size:0;                       /* 隐藏全名，但保留 ::before */
+  }
+  .site-nav .nav-logo[data-crumb]:not([data-crumb=""])::before{
+    content:attr(data-crumb);
+    font-size:.95rem;
+    font-weight:600;
+    color:var(--nav-accent, #64b4ff);
+  }
+
+  /* 抽屉遮罩：关闭动作由 site-nav.js 的「点击外部/Esc」处理，这里只做视觉。
+     放在 body 上而不是导航里，才能盖住整个内容区（z-index 低于侧栏）。 */
+  body.nav-drawer-open::after{
+    content:'';
+    position:fixed;
+    inset:0;
+    z-index:999;
+    background:rgba(0,0,0,.45);
+  }
+
+  .site-nav .nav-toggle-btn{
+    display:flex;
+    order:3;
+    margin-left:auto;
+  }
+
+  .site-nav .nav-theme-btn{
+    order:2;
+    width:38px;
+    height:38px;
+    padding:0;
+    margin:0 0 0 auto;
+    justify-content:center;
+    border:1px solid var(--line-2, rgba(255,255,255,.14));
+    border-top:1px solid var(--line-2, rgba(255,255,255,.14));
+  }
+  .site-nav .nav-theme-btn::after{
+    content:none;
+  }
+
+  /* 抽屉面板：从左侧滑入，不撑开顶部条下方空间 */
+  .site-nav .nav-links{
+    position:fixed;
+    top:var(--nav-h, 60px);
+    left:0;
+    right:auto;
+    bottom:0;
+    width:min(82vw, 300px);
+    max-height:none;
+    padding:10px 12px calc(16px + env(safe-area-inset-bottom));
+    flex-direction:column;
+    align-items:stretch;
+    background:var(--nav-bg-solid, rgba(13,13,26,.97));
+    border:0;
+    border-right:1px solid var(--nav-line, rgba(100,180,255,.16));
+    transform:translateX(-100%);
+    visibility:hidden;
+    transition:transform .22s ease;
+  }
+
+  .site-nav .nav-links.open{
+    display:flex;
+    transform:none;
+    visibility:visible;
+  }
+
+  /* 抽屉里的「主题」项（桌面端隐藏），窄屏恢复显示 */
+  .site-nav .nav-theme-item{
+    display:block;
+  }
+}
+
+@media (max-width:480px){
+  .site-nav .nav-links{
+    width:86vw;
+  }
+}
+
+/* =========================================================
+   ⑨ 打印：只撤销本文件加过的东西，不碰页面自身的打印内边距
+   服务于 tools/edge-printout、tools/practice、tools/2x2 等出纸页面。
+   ⚠️ 必须写在本文件末尾。桌面端的 border-left 已被 min-width 断点隔离，
+   这里再兜一次；窄屏分支若在打印时命中（打印视口通常 <1024px），
+   侧栏与占位符高度也要一并清掉。
+   ========================================================= */
+@media print{
+  body{
+    border-left-width:0 !important;
+  }
+  .site-nav{
+    display:none !important;
+  }
+  [data-site-nav]{
+    display:none !important;
+    min-height:0 !important;
+  }
+}

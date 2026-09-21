@@ -335,6 +335,10 @@
         
         .cube-1 {
             top: 50px;
+            /* 5% 以 body 的 padding box 解析（本页 body 是 position:relative）。
+               工作台骨架给 body 加的是 border-left，padding box 会随之右移，
+               所以这里的百分比天然落在内容列内，**不要**再叠加侧栏偏移量，
+               否则会重复偏移 240px。 */
             left: 5%;
             background: linear-gradient(135deg, var(--amber), var(--brand));
             transform: rotate(15deg);

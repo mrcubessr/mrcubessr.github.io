@@ -113,11 +113,63 @@
     return null;
   }
 
+  /* ---------------------------------------------------------
+     侧栏分组的展开状态记忆
+     侧栏模式下二级菜单默认收起，只有当前页所在的分组自动展开。
+     用户手动点开的分组要记住，否则每次换页都被打回默认态。
+     存 localStorage（键带版本号，方便日后改结构时整体作废）。
+     --------------------------------------------------------- */
+  var NAV_OPEN_KEY = 'site_nav_open_v1';
+  var navOpenMemo = {};
+
+  function readOpenState() {
+    try {
+      var raw = localStorage.getItem(NAV_OPEN_KEY);
+      var m = raw ? JSON.parse(raw) : null;
+      return (m && typeof m === 'object') ? m : {};
+    } catch (e) { return {}; }      /* 隐私模式 / 禁用存储时静默降级 */
+  }
+
+  function saveDropOpen(id, open) {
+    if (!id) return;
+    navOpenMemo[id] = !!open;
+    try { localStorage.setItem(NAV_OPEN_KEY, JSON.stringify(navOpenMemo)); } catch (e) {}
+  }
+
+  /* 菜单 id → 显示名，用于窄屏顶部条的面包屑 */
+  function findLabel(id) {
+    for (var i = 0; i < NAV_DATA.length; i++) {
+      var it = NAV_DATA[i];
+      if (it.id === id) return it.label;
+      if (it.children) {
+        for (var j = 0; j < it.children.length; j++) {
+          if (it.children[j].id === id) return it.children[j].label;
+        }
+      }
+    }
+    return '';
+  }
+
   /* 开关单个下拉，并同步 aria-expanded */
   function setDropOpen(drop, open) {
     if (open) { drop.classList.add('open'); } else { drop.classList.remove('open'); }
     var t = drop.querySelector(':scope > .nav-drop-toggle');
     if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  /* 窄屏抽屉的统一开关：菜单面板 + 遮罩 + 汉堡按钮三处状态一起切。
+     必须是模块级函数 —— initNav 里「点主题后收起抽屉」也要用到，
+     否则只清了 .open 而漏掉 body.nav-drawer-open，遮罩会留在屏幕上。 */
+  function setDrawer(open) {
+    var linksBox = document.getElementById('navLinks');
+    var toggleBtn = document.getElementById('navToggle');
+    if (linksBox) linksBox.classList.toggle('open', open);
+    if (document.body) document.body.classList.toggle('nav-drawer-open', open);
+    if (toggleBtn) {
+      toggleBtn.classList.toggle('open', open);
+      toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggleBtn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    }
   }
 
   function closeAllDrops(nav) {
@@ -132,14 +184,21 @@
     var linksBox = document.getElementById('navLinks');
     var drops = nav.querySelectorAll('.nav-drop');
 
+    navOpenMemo = readOpenState();
+
+    /* 先套用记住的分组展开状态 */
+    drops.forEach(function (drop) {
+      var toggle = drop.querySelector(':scope > .nav-drop-toggle');
+      if (!toggle) return;
+      var key = toggle.getAttribute('data-nav');
+      if (key && typeof navOpenMemo[key] === 'boolean') setDropOpen(drop, navOpenMemo[key]);
+    });
+
     /* 汉堡菜单 */
     if (toggleBtn && linksBox) {
       toggleBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        var open = linksBox.classList.toggle('open');
-        toggleBtn.classList.toggle('open', open);
-        toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        toggleBtn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+        setDrawer(!linksBox.classList.contains('open'));
       });
     }
 
@@ -159,6 +218,10 @@
           menu.querySelectorAll(':scope > .nav-drop').forEach(function (d) { setDropOpen(d, false); });
         }
         if (!isOpen) setDropOpen(drop, true);
+
+        /* 记住用户的手动选择（只在真正切换时写，避免初始化误覆盖） */
+        var key = toggle.getAttribute('data-nav');
+        if (key) saveDropOpen(key, !isOpen);
       }
 
       toggle.addEventListener('click', function (e) {
@@ -185,14 +248,7 @@
     /* 点击外部关闭 */
     document.addEventListener('click', function () {
       closeAllDrops(nav);
-      if (linksBox) {
-        linksBox.classList.remove('open');
-        if (toggleBtn) {
-          toggleBtn.classList.remove('open');
-          toggleBtn.setAttribute('aria-expanded', 'false');
-          toggleBtn.setAttribute('aria-label', '打开菜单');
-        }
-      }
+      setDrawer(false);
     });
 
     /* Esc 全局关闭 */
@@ -200,14 +256,7 @@
       var k = e.key || '';
       if (k === 'Escape' || k === 'Esc' || e.keyCode === 27) {
         closeAllDrops(nav);
-        if (linksBox) {
-          linksBox.classList.remove('open');
-          if (toggleBtn) {
-            toggleBtn.classList.remove('open');
-            toggleBtn.setAttribute('aria-expanded', 'false');
-            toggleBtn.setAttribute('aria-label', '打开菜单');
-          }
-        }
+        setDrawer(false);
       }
     });
 
@@ -222,8 +271,14 @@
 
       var drop = el.closest('.nav-drop');
       while (drop) {
-        var parentToggle = drop.querySelector(':scope > .nav-drop-toggle');
-        if (parentToggle) parentToggle.classList.add('active');
+        /* 侧栏模式下二级菜单默认收起；当前页所在的分组自动展开，
+           否则用户看不到自己处在哪一节。
+           例外：用户手动收起过该分组（存储里有显式 false）→ 尊重用户选择。 */
+        var dt = drop.querySelector(':scope > .nav-drop-toggle');
+        var dkey = dt ? dt.getAttribute('data-nav') : null;
+        var explicit = (dkey && typeof navOpenMemo[dkey] === 'boolean');
+        if (!explicit) drop.classList.add('open');
+        if (dt) dt.classList.add('active');
         drop = drop.parentElement.closest('.nav-drop');
       }
     });
@@ -244,6 +299,21 @@
     link.rel = 'icon';
     link.type = 'image/svg+xml';
     link.href = '/favicon.svg';
+    document.head.appendChild(link);
+  }
+
+  /* ---------------------------------------------------------
+     工作台骨架样式：运行时注入 assets/css/site-shell.css
+     把顶部导航条改造成「左侧常驻导航 + 右侧主体」的工作台布局。
+     在这里注入而不是逐页加 <link>，是为了让全站 80 个页面零改动。
+     详见 assets/css/site-shell.css 文件头说明。
+     --------------------------------------------------------- */
+  function ensureShellCSS() {
+    if (document.querySelector('link[data-site-shell]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/assets/css/site-shell.css';
+    link.setAttribute('data-site-shell', '');
     document.head.appendChild(link);
   }
 
@@ -294,6 +364,7 @@
   }
 
   function initNav() {
+    ensureShellCSS();
     ensureFavicon();
     initAriaState(document);
     var placeholder = document.querySelector('[data-site-nav]');
@@ -312,15 +383,17 @@
     if (themeItem && window.Theme && window.Theme.attach) {
       window.Theme.attach(themeItem);
       themeItem.addEventListener('click', function () {
-        var linksBox = document.getElementById('navLinks');
-        var tgl = document.getElementById('navToggle');
-        if (linksBox) linksBox.classList.remove('open');
-        if (tgl) {
-          tgl.classList.remove('open');
-          tgl.setAttribute('aria-expanded', 'false');
-          tgl.setAttribute('aria-label', '打开菜单');
-        }
+        setDrawer(false);
       });
+    }
+
+    /* 窄屏顶部条的空间只够放一处文字：把站点全名换成「当前所在页」，
+       窄屏下用 CSS 切换显示（桌面端仍显示全名，逻辑见 site-shell.css）。
+       找不到对应菜单项时不写属性 → CSS 回退显示站点全名。 */
+    var crumb = findLabel(resolveCurrent());
+    if (crumb) {
+      var logo = nav.querySelector('.nav-logo');
+      if (logo) logo.setAttribute('data-crumb', crumb);
     }
   }
 
