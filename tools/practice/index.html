@@ -116,6 +116,13 @@
   }
   .btn.ghost:hover { background: var(--surface-3); }
   .btn.pink { background: var(--accent2); }
+  /* 变体按钮：上面这条页面级 .btn 会把 components.css 里 .btn--secondary /
+     .btn--ghost 的底色一起盖成品牌蓝，只剩变量色没被盖 → 「蓝底蓝字」看不清、
+     ghost 与主按钮也分不出层级。这里按同样优先级补回（源码顺序在后即生效）。 */
+  .btn--secondary { background: var(--surface-3); color: var(--fg); }
+  .btn--secondary:hover { background: var(--line); }
+  .btn--ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+  .btn--ghost:hover { background: var(--surface-3); }
   .hint {
     color: var(--muted);
     font-size: 12px;
