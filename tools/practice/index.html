@@ -301,7 +301,7 @@
         <div class="field"><label>&nbsp;</label><button class="btn" id="btnBldGen" type="button">批量生成并出卷</button></div>
         <div class="field"><label>&nbsp;</label><button class="btn btn--secondary" id="btnBldCopy" type="button">复制公式+编码</button></div>
       </div>
-      <div class="hint">按彳亍法编码结构定向生成打乱（三阶）：参数支持 <b>任意区间</b>——<b>10-12</b>、<b>6~20</b>、<b>6到20</b>、<b>8—14</b>（全角/中文符号都认，区间多宽都行），也可写 <b>10,12,15</b>（枚举）、<b>5-10,15</b>（混写）、<b>11</b>（定值）、留空（不限）；区间内自动摊匀随机分布，不可达取值自动跳过。编码长度/翻色数/循环结构按 bldscramble 同一套读码引擎判定（缓冲默认棱 UF、角 UFR，可在框内改）。生成结果会填入公式框并立即出卷。答案区「答案含读码」打开后，读码印在每条公式下方左侧：<b>棱块读码 / 棱块翻色 / 角块读码 / 角块翻色</b> 四行，每 2 个字母一组用 <b>-</b> 连接（如 <b>GM-AS-FD-GF</b>），<b>蓝色</b>=借位、<b>红色加下划线</b>=归还；角编码为 0 时角块两行不显示。参数过严时只出已生成的条数，可放宽后重试。</div>
+      <div class="hint">按彳亍法编码结构定向生成打乱（三阶）：参数支持 <b>任意区间</b>——<b>10-12</b>、<b>6~20</b>、<b>6到20</b>、<b>8—14</b>（全角/中文符号都认，区间多宽都行），也可写 <b>10,12,15</b>（枚举）、<b>5-10,15</b>（混写）、<b>11</b>（定值）、留空（不限）；区间内自动摊匀随机分布，不可达取值自动跳过。编码长度/翻色数/循环结构按 bldscramble 同一套读码引擎判定（缓冲默认棱 UF、角 UFR，可在框内改）。生成结果会填入公式框并立即出卷。答案区「答案含读码」打开后，读码印在每条公式下方左侧：<b>棱块读码 / 棱块翻色 / 角块读码 / 角块翻色</b> 四行，每 2 个字母一组用 <b>-</b> 连接（如 <b>GM-AS-FD-GF</b>）；角编码为 0 时角块两行不显示。参数过严时只出已生成的条数，可放宽后重试。</div>
       <div class="range-echo" id="bldEcho"></div>
       <div class="status" id="bldProgress"></div>
     </div>
@@ -1152,20 +1152,18 @@ function wrapText(text, maxW, ctx) {
 
 // ========== 三盲读码区（答案卷左侧、公式下方） ==========
 // 四行：棱块读码 / 棱块翻色 / 角块读码 / 角块翻色；每 2 个字母一组用 - 连接（GM-AS-FD-GF）。
-// 借位=蓝色加粗，归还=红色加粗+下划线（黑白打印也能区分）；内容为空的行不画
+// 借位=蓝色，归还=红色+下划线（黑白打印也能区分）；内容为空的行不画
 // （角编码为 0 时「角块读码 / 角块翻色」自动省略）。字号在可用空间内取最大。
 function drawBldReadout(ctx, info, x, top, maxW, maxH) {
   if (typeof BldCore === 'undefined' || !BldCore.readLines) return 0;
   const rows = BldCore.readLines(info);
   if (!rows.length) return 0;
   const SEP = '-';
-  const br = BldCore.borrowReturn(info);
-  const hasRole = !!(br.edgeBorrow.length || br.edgeReturn.length || br.cornerBorrow.length || br.cornerReturn.length);
   const C_NORMAL = '#111111', C_BORROW = '#1565c0', C_RETURN = '#c62828', C_LABEL = '#333333';
 
   const build = function (fs) {
-    const codeFont = '700 ' + fs + 'px Consolas, "Courier New", monospace';
-    const labelFont = '600 ' + Math.max(12, Math.round(fs * 0.76)) + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+    const codeFont = '400 ' + fs + 'px Consolas, "Courier New", monospace';
+    const labelFont = '500 ' + Math.max(11, Math.round(fs * 0.78)) + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
     const lh = Math.round(fs * 1.5);
     ctx.font = codeFont;
     const adv = ctx.measureText('M').width;              // 等宽字体：字母与连字符同宽，逐字绘制不会错位
@@ -1193,12 +1191,12 @@ function drawBldReadout(ctx, info, x, top, maxW, maxH) {
       });
       out.push.apply(out, lines);
     });
-    const legendH = hasRole ? Math.round(lh * 0.8) : 0;
-    return { lines: out, lh: lh, legendH: legendH, adv: adv, h: out.length * lh + legendH };
+    return { lines: out, lh: lh, adv: adv, h: out.length * lh };
   };
 
   // 字号从大到小试，取能塞进可用高度的最大值（塞不下就用最小号，宁可挤一点也不丢编码）
-  const SIZES = [32, 30, 28, 26, 24, 22, 20, 18, 16, 14];
+  // 上限压到 22：读码是公式的辅助信息，比打乱公式（27px 加粗）小一档更清爽
+  const SIZES = [22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12];
   let plan = null;
   for (let i = 0; i < SIZES.length; i++) {
     const p = build(SIZES[i]);
@@ -1214,15 +1212,16 @@ function drawBldReadout(ctx, info, x, top, maxW, maxH) {
     const baseY = y + Math.round(plan.lh * 0.74);
     ln.items.forEach(function (it) {
       if (it.t === 'label') {
-        ctx.font = '600 ' + Math.max(12, Math.round(plan.lh / 1.5 * 0.76)) + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+        // 字号公式必须与 build() 里的 labelFont 完全一致，否则测量宽度与实际绘制不符、换行错位
+        ctx.font = '500 ' + Math.max(11, Math.round(plan.lh / 1.5 * 0.78)) + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
         ctx.fillStyle = C_LABEL;
         ctx.fillText(it.text, cx, baseY);
       } else if (it.t === 'sep') {
-        ctx.font = '700 ' + Math.round(plan.lh / 1.5) + 'px Consolas, "Courier New", monospace';
+        ctx.font = '400 ' + Math.round(plan.lh / 1.5) + 'px Consolas, "Courier New", monospace';
         ctx.fillStyle = '#9aa0a6';
         ctx.fillText(SEP, cx, baseY);
       } else {
-        ctx.font = '700 ' + Math.round(plan.lh / 1.5) + 'px Consolas, "Courier New", monospace';
+        ctx.font = '400 ' + Math.round(plan.lh / 1.5) + 'px Consolas, "Courier New", monospace';
         ctx.fillStyle = it.role === 'borrow' ? C_BORROW : (it.role === 'return' ? C_RETURN : C_NORMAL);
         ctx.fillText(it.ch, cx, baseY);
         // 归还加下划线：即便黑白打印也能一眼区分借与还
@@ -1233,21 +1232,6 @@ function drawBldReadout(ctx, info, x, top, maxW, maxH) {
     y += plan.lh;
   });
 
-  if (plan.legendH) {
-    const fs2 = Math.max(11, Math.round(plan.lh / 1.5 * 0.62));
-    ctx.font = '500 ' + fs2 + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
-    const ly = y + Math.round(plan.legendH * 0.75);
-    let lx = x;
-    const put = function (text, color) {
-      ctx.fillStyle = color;
-      ctx.fillText(text, lx, ly);
-      lx += ctx.measureText(text).width;
-    };
-    put('蓝色', C_BORROW);
-    put('=借位　', '#777777');
-    put('红色+下划线', C_RETURN);
-    put('=归还', '#777777');
-  }
   return plan.h;
 }
 
@@ -1305,7 +1289,7 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
       if (!isA) {
         // 公式文本（原样显示，保持输入大小写），靠左靠上对齐；过长时在展开图前自动折行
         ctx.fillStyle = '#000';
-        ctx.font = '500 27px Consolas, "Courier New", monospace';
+        ctx.font = '700 27px Consolas, "Courier New", monospace';   // 打乱公式加粗，与下方读码形成层级
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         const maxTextWidth = A4_W / 2;                // 超过页面中央即换行（再提前三个字）
