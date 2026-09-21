@@ -36,7 +36,7 @@
         <span class="tm-label">项目</span>
         <div class="seg" id="tm-events" role="group" aria-label="选择项目"></div>
         <span class="tm-label">打乱</span>
-        <div class="seg" id="tm-manual-seg" role="group" aria-label="打乱来源">
+        <div class="seg" id="tm-manual-seg" data-manual-seg role="group" aria-label="打乱来源">
           <button type="button" class="seg__btn is-active" data-manual="0">随机生成</button>
           <button type="button" class="seg__btn" data-manual="1">手动输入</button>
         </div>
@@ -230,6 +230,13 @@
       <div class="tm-memo" id="tm-memo" hidden></div>
     </div>
 
+    <!-- ②-B 当前平均 / 对比（csTimer 式：显示 ao5 / ao12 / 与平均差） -->
+    <div class="tm-ao" id="tm-ao" hidden>
+      <span class="tm-ao__cmp" id="tm-ao-cmp"></span>
+      <span class="tm-ao__ao5" id="tm-ao-5"></span>
+      <span class="tm-ao__ao12" id="tm-ao-12"></span>
+    </div>
+
     <!-- ③ 成绩确认 -->
     <div class="tm-confirm" id="tm-confirm" hidden>
       <span class="tm-confirm__label">确认本次成绩</span>
@@ -276,7 +283,7 @@
       <input type="file" id="tm-import-file" accept=".txt,.json,text/plain,application/json" hidden>
       <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空本组</button>
       <span class="tm-label" id="tm-inspect-label">观察</span>
-      <div class="seg" id="tm-inspect-seg" role="group" aria-label="是否启用 15 秒观察"></div>
+      <div class="seg" id="tm-inspect-seg" data-inspect-seg role="group" aria-label="是否启用 15 秒观察"></div>
       <span class="tm-tools__hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
     </div>
 
@@ -297,6 +304,22 @@
       </div>
       <ol class="tm-list" id="tm-list"></ol>
       <p class="tm-empty" id="tm-empty">当前分组还没有成绩：长按计时区（或按空格）开始计时，也可导入已有的成绩文件。</p>
+    </div>
+
+    <!-- ⑦ 底部 csTimer 式图标工具栏（仅手机端显示） -->
+    <div class="tm-bottom-bar" id="tm-bottom-bar" aria-label="快捷工具栏">
+      <button class="tm-bottom-bar__btn" id="tm-bar-stats" type="button" aria-label="统计">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">▤</span><span class="tm-bottom-bar__lbl">统计</span>
+      </button>
+      <button class="tm-bottom-bar__btn" id="tm-bar-settings" type="button" aria-label="设置">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">⚙</span><span class="tm-bottom-bar__lbl">设置</span>
+      </button>
+      <button class="tm-bottom-bar__btn" id="tm-bar-next" type="button" aria-label="换打乱">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">⟳</span><span class="tm-bottom-bar__lbl">换打乱</span>
+      </button>
+      <button class="tm-bottom-bar__btn" id="tm-bar-theme" type="button" aria-label="切换主题">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">☀</span><span class="tm-bottom-bar__lbl">主题</span>
+      </button>
     </div>
 
   </div>
@@ -360,13 +383,32 @@
       </div>
       <h3 class="tm-h3">项目</h3>
       <div class="seg" id="tm-settings-events" role="group" aria-label="选择项目"></div>
+      <div id="tm-settings-inspect-wrap">
+        <h3 class="tm-h3">观察</h3>
+        <div class="seg" id="tm-settings-inspect" data-inspect-seg role="group" aria-label="是否启用 15 秒观察"></div>
+        <span class="tm-bld-params__hint">15s = WCA 式 15 秒观察；无 = 直接起停。三盲自动关闭。</span>
+      </div>
       <h3 class="tm-h3">打乱</h3>
-      <button class="btn btn--sm btn--secondary" id="tm-settings-next" type="button">换一条打乱</button>
-      <span class="tm-bld-params__hint">主界面不显示换打乱按钮：每次完成自动换题，需要跳过时点这里。</span>
+      <div id="tm-settings-manual-wrap">
+        <div class="seg" id="tm-settings-manual" data-manual-seg role="group" aria-label="打乱来源">
+          <button type="button" class="seg__btn is-active" data-manual="0">随机生成</button>
+          <button type="button" class="seg__btn" data-manual="1">手动输入</button>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <button class="btn btn--sm btn--secondary" id="tm-settings-next" type="button">换一条打乱</button>
+      </div>
+      <span class="tm-bld-params__hint">主界面不显示换打乱按钮：每次完成自动换题，需要跳过时点这里。手动输入后请在主界面输入框里填写并「应用」。</span>
       <h3 class="tm-h3">数据</h3>
       <div class="tm-settings-row">
         <button class="btn btn--sm btn--secondary" id="tm-settings-import" type="button">导入成绩</button>
+        <button class="btn btn--sm btn--ghost" id="tm-settings-export" type="button">导出 ▾</button>
         <button class="btn btn--sm btn--ghost" id="tm-settings-clear" type="button">清空当前分组</button>
+      </div>
+      <div class="tm-menu tm-menu--inline" id="tm-settings-export-menu" hidden>
+        <button type="button" class="tm-menu__item" data-exp="cstimer">TXT · csTimer 格式（可导回 csTimer）</button>
+        <button type="button" class="tm-menu__item" data-exp="txt">TXT · 纯时间列表（当前项目 · 每行一条）</button>
+        <button type="button" class="tm-menu__item" data-exp="json">JSON · 本站备份（全部项目）</button>
       </div>
       <span class="tm-bld-params__hint">支持 csTimer 导出的 TXT 与本站导出的 JSON；清空前会二次确认。</span>
     </div>

@@ -499,13 +499,15 @@
     exitSolveView();   /* 切换项目时退出“查看历史解法”状态 */
     if (els.bldParams) els.bldParams.hidden = !isBld;
     if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
-    if (els.manualSeg) els.manualSeg.hidden = isBld;
+    manualSegs().forEach(function (seg) { seg.hidden = isBld; });
     if (els.bldNetSide) els.bldNetSide.hidden = !isBld;   /* 展开图与打乱公式同处显示 */
     if (isBld && els.manualBox) els.manualBox.hidden = true;
     /* 三盲不需要 15 秒观察（盲拧靠记忆，观察无意义）→ 隐藏该选项并强制关闭；
        切回速拧时还原用户原本的观察偏好 */
     if (els.inspectLabel) els.inspectLabel.hidden = isBld;
     if (els.inspectSeg) els.inspectSeg.hidden = isBld;
+    if (els.settingsInspectWrap) els.settingsInspectWrap.hidden = isBld;
+    if (els.settingsManualWrap) els.settingsManualWrap.hidden = isBld;
     setInspect(isBld ? 0 : speedInspect, true);
     if (isBld) applyBldCollapse();                        /* 恢复上次收起/展开状态 */
     updateBldReveal();                                    /* 解法面板按显示时机显隐 */
@@ -1054,6 +1056,49 @@
     el.textContent = S.fmt(v); el.classList.remove("is-dnf");
   }
 
+  /* ---------- 计时数字下方：对比 / ao5 / ao12（csTimer 手机版那一行小字） ----------
+     仅在手机端显示（CSS 控制），桌面端仍用统计条。
+     速拧：最近一次与「本组有效平均」的差 + ao5 + ao12
+     三盲：滚动成功率 + mea5 + mea12（aoN 会被 DNF 整片作废，改用 mea 口径） */
+  function refreshAo() {
+    if (!els.ao) return;
+    var arr = solves();
+    if (!arr.length) { els.ao.hidden = true; return; }
+    els.ao.hidden = false;
+    var s = S.sessionStats(arr), isBld = opt.event === "bld";
+
+    if (isBld) {
+      if (els.aoCmp) {
+        els.aoCmp.textContent = "成功率 " +
+          (s.successRate == null ? "--" : Math.round(s.successRate * 100) + "%");
+        els.aoCmp.classList.remove("is-better", "is-worse");
+      }
+      if (els.ao5) els.ao5.textContent = "mea5 " + fmtOrDash(S.meaN(arr, 5, 0));
+      if (els.ao12) els.ao12.textContent = "mea12 " + fmtOrDash(S.meaN(arr, 12, 0));
+      return;
+    }
+    /* 对比：最近一次（有效）与本组平均的差，快=绿 慢=红，中文习惯涨红跌绿 → 这里用「更快=绿」 */
+    if (els.aoCmp) {
+      var last = arr[0], v = S.val(last);
+      var txt = "", cls = "";
+      if (v !== Infinity && s.mean != null && isFinite(v)) {
+        var d = (v - s.mean) / 1000;
+        txt = "(" + (d >= 0 ? "+" : "−") + Math.abs(d).toFixed(2) + ")";
+        cls = d < 0 ? "is-better" : (d > 0 ? "is-worse" : "");
+      }
+      els.aoCmp.textContent = txt;
+      els.aoCmp.classList.remove("is-better", "is-worse");
+      if (cls) els.aoCmp.classList.add(cls);
+    }
+    if (els.ao5) els.ao5.textContent = "ao5 " + fmtOrDash(s.ao5);
+    if (els.ao12) els.ao12.textContent = "ao12 " + fmtOrDash(s.ao12);
+  }
+  function fmtOrDash(v) {
+    if (v == null) return "--";
+    if (v === Infinity) return "DNF";
+    return S.fmt(v);
+  }
+
   /* ---------- 分组控件 ---------- */
   function renderGroups() {
     if (!els.groupSel) return;
@@ -1145,6 +1190,8 @@
     if (els.listHead) els.listHead.title = isBld
       ? "成功率 = 最近 5 次里成功的比例；mea5 / mea12 = 最近 5 / 12 次剔除 DNF 后的平均（不会整列变 DNF）"
       : "ao5 / ao12 / ao100 = csTimer 口径的滚动去尾平均（窗口内 DNF 过多时该格为 DNF）";
+
+    refreshAo();
 
     if (!has) return;
 
@@ -1305,10 +1352,18 @@
       });
     }
     /* 工具栏里的主题按钮：文案写「点一下会切到哪个模式」 */
+    var light = Theme.mode() === "light";
     if (els.themeToggle) {
-      var light = Theme.mode() === "light";
       els.themeToggle.textContent = light ? "🌙 深色" : "☀ 浅色";
       els.themeToggle.setAttribute("aria-label", light ? "切换到深色主题" : "切换到浅色主题");
+    }
+    /* 底部图标栏的主题按钮：图标 + 文案都跟着当前模式走 */
+    if (els.barTheme) {
+      var ico = els.barTheme.querySelector(".tm-bottom-bar__ico");
+      var lbl = els.barTheme.querySelector(".tm-bottom-bar__lbl");
+      if (ico) ico.textContent = light ? "🌙" : "☀";
+      if (lbl) lbl.textContent = light ? "深色" : "浅色";
+      els.barTheme.setAttribute("aria-label", light ? "切换到深色主题" : "切换到浅色主题");
     }
   }
   function openSettings() {
@@ -1321,39 +1376,70 @@
 
   /* 「观察」开关：15 秒 WCA 观察 ↔ 不用观察（空格直接起停）。
      三盲时由 applyEventUI 强制设为 0，silent=true 跳过持久化以免覆盖用户的速拧偏好。 */
+  /* 「观察」开关可能同时存在于工具栏（桌面）与设置弹窗（手机）两处，
+     用 data-inspect-seg 统一收集，保证两处渲染与选中态始终一致。 */
+  function inspectSegs() {
+    var out = [];
+    Array.prototype.forEach.call(document.querySelectorAll("[data-inspect-seg]"), function (el) {
+      out.push(el);
+    });
+    if (!out.length && els.inspectSeg) out.push(els.inspectSeg);
+    return out;
+  }
+  function syncInspectActive() {
+    inspectSegs().forEach(function (seg) {
+      Array.prototype.forEach.call(seg.children, function (c) {
+        c.classList.toggle("is-active", c.dataset.inspect === String(opt.inspect));
+      });
+    });
+  }
   function setInspect(v, silent) {
     v = (parseInt(v, 10) === 0) ? 0 : 15;
     if (!silent) speedInspect = v;    /* 用户手动选的是速拧偏好，三盲强制 0 不影响它 */
-    if (opt.inspect === v) return;
+    if (opt.inspect === v) { syncInspectActive(); return; }
     opt.inspect = v;
     if (!silent) saveOpt();
     if (state === "inspect" || state === "ready") abortKey();   /* 中途切换不留脏状态 */
-    Array.prototype.forEach.call(els.inspectSeg.children, function (c) {
-      c.classList.toggle("is-active", c.dataset.inspect === String(opt.inspect));
-    });
+    syncInspectActive();
     paint();
   }
   function buildInspect() {
-    els.inspectSeg.innerHTML = "";
+    var segs = inspectSegs();
+    if (!segs.length) return;
     /* 手机端空间紧张用短标签，桌面端保留完整说明 */
     var labels = isTouchUI()
       ? [["15", "15s"], ["0", "无"]]
       : [["15", "15 秒观察"], ["0", "不用观察"]];
-    labels.forEach(function (o) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "seg__btn" + (String(opt.inspect) === o[0] ? " is-active" : "");
-      b.textContent = o[1];
-      b.dataset.inspect = o[0];
-      b.addEventListener("click", function () { setInspect(o[0]); b.blur(); });
-      els.inspectSeg.appendChild(b);
+    segs.forEach(function (seg) {
+      seg.innerHTML = "";
+      labels.forEach(function (o) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "seg__btn" + (String(opt.inspect) === o[0] ? " is-active" : "");
+        b.textContent = o[1];
+        b.dataset.inspect = o[0];
+        b.addEventListener("click", function () { setInspect(o[0]); b.blur(); });
+        seg.appendChild(b);
+      });
     });
   }
 
+  /* 「打乱来源」开关同样可能在打乱区（桌面）与设置弹窗（手机）两处，
+     用 data-manual-seg 收集，保持两处选中态一致。 */
+  function manualSegs() {
+    var out = [];
+    Array.prototype.forEach.call(document.querySelectorAll("[data-manual-seg]"), function (el) {
+      out.push(el);
+    });
+    if (!out.length && els.manualSeg) out.push(els.manualSeg);
+    return out;
+  }
   function setManual(on, silent) {
     opt.manual = !!on; saveOpt();
-    Array.prototype.forEach.call(els.manualSeg.children, function (c) {
-      c.classList.toggle("is-active", c.dataset.manual === (on ? "1" : "0"));
+    manualSegs().forEach(function (seg) {
+      Array.prototype.forEach.call(seg.children, function (c) {
+        c.classList.toggle("is-active", c.dataset.manual === (on ? "1" : "0"));
+      });
     });
     els.manualBox.hidden = !on;
     els.newBtn.hidden = !!on;
@@ -1968,6 +2054,9 @@
       btnDnf: $("tm-confirm-dnf"), btnDrop: $("tm-confirm-drop"),
       strip: $("tm-strip"), kCount: $("k-count"), kBest: $("k-best"),
       kAo5: $("k-ao5"), kAo12: $("k-ao12"), kAo100: $("k-ao100"),
+      ao: $("tm-ao"), aoCmp: $("tm-ao-cmp"), ao5: $("tm-ao-5"), ao12: $("tm-ao-12"),
+      barStats: $("tm-bar-stats"), barSettings: $("tm-bar-settings"),
+      barNext: $("tm-bar-next"), barTheme: $("tm-bar-theme"),
       kCountK: $("k-count-k"), kBestK: $("k-best-k"),
       kAo5K: $("k-ao5-k"), kAo12K: $("k-ao12-k"), kAo100K: $("k-ao100-k"),
       list: $("tm-list"), listWrap: $("tm-list-wrap"), empty: $("tm-empty"),
@@ -1983,11 +2072,14 @@
       settingsEvents: $("tm-settings-events"), settingsTheme: $("tm-settings-theme"),
       settingsNext: $("tm-settings-next"),
       settingsImport: $("tm-settings-import"), settingsClear: $("tm-settings-clear"),
+      settingsExport: $("tm-settings-export"), settingsExportMenu: $("tm-settings-export-menu"),
       themeToggle: $("tm-theme-toggle"),
       modal: $("tm-modal"), modalClose: $("tm-modal-close"), modalEvent: $("tm-modal-event"),
       statGrid: $("tm-stat-grid"), chartDaily: $("tm-chart-daily"),
       chartTrend: $("tm-chart-trend"), chartDist: $("tm-chart-dist"),
       inspectSeg: $("tm-inspect-seg"), inspectLabel: $("tm-inspect-label"),
+      settingsInspectWrap: $("tm-settings-inspect-wrap"),
+      settingsManualWrap: $("tm-settings-manual-wrap"),
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
@@ -2023,12 +2115,14 @@
     buildEvents();
     if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
     setManual(false, true);
-    els.manualSeg.addEventListener("click", function (e) {
-      var b = e.target.closest("[data-manual]");
-      if (!b) return;
-      if (b.dataset.manual === "1") { setManual(true); els.manualInput.focus(); }
-      else { setManual(false); }
-      b.blur();
+    manualSegs().forEach(function (seg) {
+      seg.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-manual]");
+        if (!b) return;
+        if (b.dataset.manual === "1") { setManual(true); els.manualInput.focus(); }
+        else { setManual(false); }
+        b.blur();
+      });
     });
     els.manualApply.addEventListener("click", function () {
       curScramble = els.manualInput.value.trim();
@@ -2083,20 +2177,30 @@
       if (!els.mapModal.hidden) { e.stopPropagation(); closeMapDialog(); }
     }, true);
 
+    /* 导出菜单项：主工具栏菜单与「设置 → 数据」里的菜单共用同一套动作 */
+    function runExp(kind) {
+      if (kind === "cstimer") exportCsTimerTxt();
+      else if (kind === "txt") exportPlainTxt();
+      else exportJson();
+    }
+    function bindExportMenu(menu) {
+      if (!menu) return;
+      menu.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-exp]");
+        if (!b) return;
+        if (menu === els.exportMenu) toggleExportMenu(false);
+        else menu.hidden = true;
+        runExp(b.dataset.exp);
+        b.blur();
+      });
+    }
     els.exportBtn.addEventListener("click", function (e) {
       e.stopPropagation();
       toggleExportMenu();
       els.exportBtn.blur();
     });
-    els.exportMenu.addEventListener("click", function (e) {
-      var b = e.target.closest("[data-exp]");
-      if (!b) return;
-      toggleExportMenu(false);
-      if (b.dataset.exp === "cstimer") exportCsTimerTxt();
-      else if (b.dataset.exp === "txt") exportPlainTxt();
-      else exportJson();
-      b.blur();
-    });
+    bindExportMenu(els.exportMenu);
+    bindExportMenu(els.settingsExportMenu);
     document.addEventListener("click", function (e) {
       if (els.exportMenu.hidden) return;
       if (e.target === els.exportBtn || els.exportMenu.contains(e.target)) return;
@@ -2147,6 +2251,15 @@
       if (els.settingsClear) {
         els.settingsClear.addEventListener("click", function () { clearGroup(els.settingsClear); });
       }
+      /* 「设置 → 数据 → 导出 ▾」：展开/收起内联菜单 */
+      if (els.settingsExport && els.settingsExportMenu) {
+        els.settingsExport.addEventListener("click", function (e) {
+          e.stopPropagation();
+          els.settingsExportMenu.hidden = !els.settingsExportMenu.hidden;
+          els.settingsExport.setAttribute("aria-expanded", String(!els.settingsExportMenu.hidden));
+          this.blur();
+        });
+      }
     }
     /* 主题变化：同步设置弹窗的选中态 + 工具栏按钮文案，
        并重绘三盲展开图（它的底板取的是当前主题的卡片底色，不重绘会留着旧底色） */
@@ -2163,6 +2276,14 @@
         this.blur();
       });
     }
+
+    /* 手机端底部图标栏（csTimer 式）：统计 / 设置 / 换打乱 / 主题 */
+    if (els.barStats) els.barStats.addEventListener("click", function () { openStats(); this.blur(); });
+    if (els.barSettings) els.barSettings.addEventListener("click", function () { openSettings(); this.blur(); });
+    if (els.barNext) els.barNext.addEventListener("click", function () { next(false); this.blur(); });
+    if (els.barTheme) els.barTheme.addEventListener("click", function () {
+      Theme.toggle(); refreshThemeActive(); this.blur();
+    });
 
     /* 防误操作：手机下拉刷新 / 误点返回会导致整页重载。
        若此时正停在「待确认」状态（成绩已测出但还没点记录），
