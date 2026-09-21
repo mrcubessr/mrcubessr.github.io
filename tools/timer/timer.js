@@ -732,6 +732,11 @@
     stopRaf();
     rawMs = performance.now() - runStart;
     state = "confirm";
+    /* 全屏计时下完成一把时退出全屏，确认栏才会露出来 */
+    if (document.body.classList.contains("tm-fullscreen")) {
+      document.body.classList.remove("tm-fullscreen");
+      if (els.fsBtn) { els.fsBtn.textContent = "⛶"; els.fsBtn.setAttribute("aria-pressed", "false"); }
+    }
     showConfirm();
     updateBldReveal();   /* 计时完成：按“显示时机”设置，此时解法面板出现 */
     paint();
@@ -2056,7 +2061,8 @@
       kAo5: $("k-ao5"), kAo12: $("k-ao12"), kAo100: $("k-ao100"),
       ao: $("tm-ao"), aoCmp: $("tm-ao-cmp"), ao5: $("tm-ao-5"), ao12: $("tm-ao-12"),
       barStats: $("tm-bar-stats"), barSettings: $("tm-bar-settings"),
-      barNext: $("tm-bar-next"), barTheme: $("tm-bar-theme"),
+      barList: $("tm-bar-list"), barTheme: $("tm-bar-theme"),
+      fsBtn: $("tm-fs-btn"),
       kCountK: $("k-count-k"), kBestK: $("k-best-k"),
       kAo5K: $("k-ao5-k"), kAo12K: $("k-ao12-k"), kAo100K: $("k-ao100-k"),
       list: $("tm-list"), listWrap: $("tm-list-wrap"), empty: $("tm-empty"),
@@ -2110,6 +2116,23 @@
     if (!els.stage) return;
 
     loadData(); loadOpt();
+
+    /* 列表显示开关（csTimer 式）：默认隐藏，让计时区占满屏幕；点底部「列表」切换。
+       偏好存 localStorage，刷新后保持。 */
+    function applyListHidden(hidden) {
+      document.body.classList.toggle("tm-list-hidden", hidden);
+      if (els.barList) {
+        els.barList.classList.toggle("is-on", !hidden);
+        els.barList.setAttribute("aria-pressed", String(!hidden));
+      }
+      try { localStorage.setItem("timer_list_hidden", hidden ? "1" : "0"); } catch (e) {}
+    }
+    var savedHidden = true;   /* 默认隐藏列表，计时区占满一屏 */
+    try {
+      var lv = localStorage.getItem("timer_list_hidden");
+      if (lv !== null) savedHidden = (lv === "1");
+    } catch (e) {}
+    applyListHidden(savedHidden);
 
     buildInspect();
     buildEvents();
@@ -2277,12 +2300,25 @@
       });
     }
 
-    /* 手机端底部图标栏（csTimer 式）：统计 / 设置 / 换打乱 / 主题 */
+    /* 手机端底部图标栏（csTimer 式）：统计 / 设置 / 列表 / 主题 */
     if (els.barStats) els.barStats.addEventListener("click", function () { openStats(); this.blur(); });
     if (els.barSettings) els.barSettings.addEventListener("click", function () { openSettings(); this.blur(); });
-    if (els.barNext) els.barNext.addEventListener("click", function () { next(false); this.blur(); });
+    if (els.barList) els.barList.addEventListener("click", function () {
+      applyListHidden(!document.body.classList.contains("tm-list-hidden"));
+      this.blur();
+    });
     if (els.barTheme) els.barTheme.addEventListener("click", function () {
       Theme.toggle(); refreshThemeActive(); this.blur();
+    });
+
+    /* 全屏计时按钮（位于计时区内右上角）：点击切换 body.tm-fullscreen。
+       stop() 进入确认态时会自动退出全屏，确保确认栏可点。 */
+    if (els.fsBtn) els.fsBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var on = document.body.classList.toggle("tm-fullscreen");
+      this.textContent = on ? "⤡" : "⛶";
+      this.setAttribute("aria-pressed", String(on));
+      this.blur();
     });
 
     /* 防误操作：手机下拉刷新 / 误点返回会导致整页重载。

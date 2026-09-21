@@ -184,8 +184,11 @@ body { margin: 0; }
 .tm-ao { display: none; }
 
 /* ---------- 底部图标工具栏（仅手机端） ----------
-   对应 csTimer 手机版底部那一排图标（统计 / 设置 / 换打乱 / 主题）。 */
+   对应 csTimer 手机版底部那一排图标（统计 / 设置 / 列表 / 主题）。 */
 .tm-bottom-bar { display: none; }
+
+/* 全屏计时按钮：仅手机端显示（见媒体查询内的 .tm-fs-btn 覆盖） */
+.tm-fs-btn { display: none; }
 
 /* 「设置 → 数据」里的导出菜单：跟着内容走，不做绝对定位 */
 .tm-menu--inline {
@@ -690,6 +693,49 @@ body { margin: 0; }
   .tm-list__a { font-size: 10px; }
   .tm-list__del { width: 22px; height: 22px; font-size: 11px; }
   .tm-empty { margin: 0 !important; padding: 7px 9px; font-size: 11px; line-height: 1.35; }
+
+  /* ---------- 全屏计时按钮（csTimer 式：计时区占满整屏） ---------- */
+  .tm-fs-btn {
+    display: block; position: absolute; top: 6px; right: 6px; z-index: 6;
+    width: 34px; height: 34px; padding: 0; border: 1px solid var(--line-2);
+    background: var(--surface); color: var(--fg-2);
+    font-size: 17px; line-height: 1; cursor: pointer; border-radius: 0;
+  }
+  .tm-fs-btn:active { background: var(--surface-2); }
+
+  /* 列表显示开关：默认隐藏，让计时区占满屏幕；点底部「列表」切换显示 */
+  body.tm-list-hidden .tm-list-wrap { display: none; }
+  #tm-bar-list.is-on { color: var(--brand); }
+
+  /* 全屏：计时区占满整屏，打乱公式浮在顶部一条；
+     计时完成后在 stop() 里自动退出全屏，确认栏即可点。 */
+  body.tm-fullscreen .tm-ao,
+  body.tm-fullscreen .tm-confirm,
+  body.tm-fullscreen .tm-strip,
+  body.tm-fullscreen .tm-list-wrap,
+  body.tm-fullscreen .tm-bottom-bar,
+  body.tm-fullscreen .tm-bld-params { display: none !important; }
+
+  body.tm-fullscreen .tm-stage {
+    position: fixed; inset: 0; z-index: 100;
+    border: 0; border-radius: 0; background: var(--bg);
+    padding: 60px 14px 18px; justify-content: center;
+  }
+  body.tm-fullscreen .tm-time { font-size: clamp(92px, 40vw, 210px); }
+  body.tm-fullscreen .tm-state { font-size: 12px; }
+
+  /* 打乱公式 / 展开图浮在顶部一条 */
+  body.tm-fullscreen .tm-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 101;
+    display: flex !important; flex-direction: row; align-items: center;
+    padding: 7px 10px; gap: 8px; border: 0; border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  body.tm-fullscreen .tm-bar__row,
+  body.tm-fullscreen .tm-manual-box,
+  body.tm-fullscreen .tm-replay-bar { display: none !important; }
+  body.tm-fullscreen .tm-scramble-block { gap: 8px; }
+  body.tm-fullscreen .tm-fs-btn { position: fixed; bottom: 14px; right: 12px; top: auto; z-index: 102; }
 
   /* ---------- 弹窗适配 ---------- */
   .tm-modal { padding: 8px; }
