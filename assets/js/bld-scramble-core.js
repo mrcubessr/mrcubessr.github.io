@@ -2400,11 +2400,17 @@ function track2(track2Str) {
   }
 
   // 主入口：一次模拟同时读棱/角
+  // opts 两种写法都支持：
+  //   扁平 { orientFlag, skipCycleNum }             → 棱/角同一口径（旧调用方，行为不变）
+  //   分侧 { edge: {...}, corner: {...} }           → 棱/角分别设定编码方案
   function readMoves(movesStr, edgeBuf, cornerBuf, opts) {
+    opts = opts || {};
+    const eo = opts.edge || opts;
+    const co = opts.corner || opts;
     operatealg(movesStr);
     return {
-      edge: readEdge(edgeBuf, opts),
-      corner: readCorner(cornerBuf, opts)
+      edge: readEdge(edgeBuf, eo),
+      corner: readCorner(cornerBuf, co)
     };
   }
 
@@ -2854,7 +2860,9 @@ function randomConjPlan() {
   return plan;
 }
 
-// opts（可选）= { edgeBuf, cornerBuf, optimize }，默认 UF / UFR / 开启最优解压缩。
+// opts（可选）= { edgeBuf, cornerBuf, optimize,
+//                 eOrientFlag, eSkipCycleNum, cOrientFlag, cSkipCycleNum }
+// 默认 UF / UFR / 开启最优解压缩 / 保持色相借位 / 不用跳编法（= 通用彳亍口径）。
 // 本函数不读写 DOM，供 bldscramble 与 practice（练习题纸）共用。
 function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
   // 角编码要求恒为 0：角块必须完全复原，改用共轭/交换子构造，输出前统一压成最优六面解
@@ -2863,6 +2871,13 @@ function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
   const edgeBuf = SPOON.normEdgeBuf(o.edgeBuf || 'UF');
   const cornerBuf = SPOON.normCornerBuf(o.cornerBuf || 'UFR');
   const optimize = o.optimize !== false;
+  // 编码方案（棱/角分别可选）：色相借位是否修正 + 跳编法（固定借位法）。
+  // 只改「读码字母 / 借还标记 / 由编码判定的翻色数」，不改打乱本身。
+  // 不传时 readEdge/readCorner 落回默认值（orientFlag=1、skipCycleNum=0）。
+  const encOpts = {
+    edge: { orientFlag: o.eOrientFlag, skipCycleNum: o.eSkipCycleNum },
+    corner: { orientFlag: o.cOrientFlag, skipCycleNum: o.cSkipCycleNum }
+  };
   const limit = maxTries || MAX_TRIES;
   const P = pickers || {};
   const pk = function (k) { return P[k] ? P[k].pick() : null; };   // 未传 pickers 时视为「不限」
@@ -2878,8 +2893,8 @@ function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
     } else {
       moves = generateScramble(pickScrambleLen(te, tc));
     }
-    // spooncuber 读码引擎：任意棱/角缓冲 + H/L 高低色标记
-    const info = SPOON.readMoves(moves.join(' '), edgeBuf, cornerBuf);
+    // spooncuber 读码引擎：任意棱/角缓冲 + H/L 高低色标记 + 所选编码方案
+    const info = SPOON.readMoves(moves.join(' '), edgeBuf, cornerBuf, encOpts);
     // 逐维度判定：先把「该取值出现过」记下来（可达性证据），再看整体是否命中
     const eR = sideMatches(info.edge, ep, te);
     const cR = sideMatches(info.corner, cp, tc);
@@ -2926,7 +2941,8 @@ function bldNormSide(lenStr, flipStr, bigStr, smallStr, parity, orient, containS
 // cfg = {
 //   eLen/eFlip/eBig/eSmall/eParity/eOrient/eContain,
 //   cLen/cFlip/cBig/cSmall/cParity/cOrient/cContain,   参数（字符串，支持区间）
-//   edgeBuf, cornerBuf, optimize, maxTries
+//   edgeBuf, cornerBuf, optimize, maxTries,
+//   eOrientFlag/eSkipCycleNum/cOrientFlag/cSkipCycleNum  编码方案（可选，见 tryGenerate）
 // }
 function createTargeted(cfg) {
   cfg = cfg || {};
@@ -2946,7 +2962,12 @@ function createTargeted(cfg) {
   const opts = {
     edgeBuf: cfg.edgeBuf || 'UF',
     cornerBuf: cfg.cornerBuf || 'UFR',
-    optimize: cfg.optimize !== false
+    optimize: cfg.optimize !== false,
+    // 编码方案：页面可分别设定棱/角是否「保持色相借位」、是否用「跳编法（固定借位法）」
+    eOrientFlag: cfg.eOrientFlag,
+    eSkipCycleNum: cfg.eSkipCycleNum,
+    cOrientFlag: cfg.cOrientFlag,
+    cSkipCycleNum: cfg.cSkipCycleNum
   };
   const perItem = cfg.maxTries || MAX_TRIES;
   const seen = {};
