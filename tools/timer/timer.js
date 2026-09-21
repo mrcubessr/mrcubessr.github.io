@@ -1263,29 +1263,52 @@
   }
 
   /* ---------- 事件切换 / 打乱来源 ---------- */
-  function buildEvents() {
-    els.events.innerHTML = "";
+  function selectEvent(key) {
+    if (opt.event === key) return;
+    opt.event = key; saveOpt();
+    refreshEventActive();
+    applyEventUI();
+    applyBldCollapse();
+    if (opt.event === "bld") syncBldParamsUI();
+    next(false);
+    renderGroups();
+  }
+  function refreshEventActive() {
+    [els.events, els.settingsEvents].forEach(function (c) {
+      if (!c) return;
+      Array.prototype.forEach.call(c.children, function (ch) {
+        ch.classList.toggle("is-active", ch.dataset.event === opt.event);
+      });
+    });
+  }
+  function buildEventsInto(container, onPick) {
+    container.innerHTML = "";
     EVENTS.forEach(function (ev) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "seg__btn" + (ev.key === opt.event ? " is-active" : "");
       b.textContent = ev.label;
       b.dataset.event = ev.key;
-      b.addEventListener("click", function () {
-        if (opt.event === ev.key) return;
-        opt.event = ev.key; saveOpt();
-        Array.prototype.forEach.call(els.events.children, function (c) {
-          c.classList.toggle("is-active", c.dataset.event === opt.event);
-        });
-        applyEventUI();
-        applyBldCollapse();
-        if (opt.event === "bld") syncBldParamsUI();
-        next(false);
-        renderGroups();
-      });
-      els.events.appendChild(b);
+      b.addEventListener("click", function () { onPick(ev.key); b.blur(); });
+      container.appendChild(b);
     });
   }
+  function buildEvents() { buildEventsInto(els.events, selectEvent); }
+
+  /* ---------- 设置弹窗（手机端：主题 + 项目） ---------- */
+  function refreshThemeActive() {
+    if (!els.settingsTheme) return;
+    Array.prototype.forEach.call(els.settingsTheme.children, function (ch) {
+      ch.classList.toggle("is-active", ch.dataset.themePref === Theme.get());
+    });
+  }
+  function openSettings() {
+    if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
+    refreshThemeActive();
+    els.settingsModal.hidden = false;
+    if (els.settingsBtn) els.settingsBtn.blur();
+  }
+  function closeSettings() { els.settingsModal.hidden = true; }
 
   /* 「观察」开关：15 秒 WCA 观察 ↔ 不用观察（空格直接起停）。
      三盲时由 applyEventUI 强制设为 0，silent=true 跳过持久化以免覆盖用户的速拧偏好。 */
@@ -1946,6 +1969,9 @@
       statsBtn: $("tm-stats"), exportBtn: $("tm-export"), exportMenu: $("tm-export-menu"),
       importBtn: $("tm-import"),
       importFile: $("tm-import-file"), clearBtn: $("tm-clear"),
+      settingsBtn: $("tm-settings"), settingsModal: $("tm-settings-modal"),
+      settingsClose: $("tm-settings-close"),
+      settingsEvents: $("tm-settings-events"), settingsTheme: $("tm-settings-theme"),
       modal: $("tm-modal"), modalClose: $("tm-modal-close"), modalEvent: $("tm-modal-event"),
       statGrid: $("tm-stat-grid"), chartDaily: $("tm-chart-daily"),
       chartTrend: $("tm-chart-trend"), chartDist: $("tm-chart-dist"),
@@ -1983,6 +2009,7 @@
 
     buildInspect();
     buildEvents();
+    if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
     setManual(false, true);
     els.manualSeg.addEventListener("click", function (e) {
       var b = e.target.closest("[data-manual]");
@@ -2039,6 +2066,7 @@
     });
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape" && e.code !== "Escape") return;
+      if (!els.settingsModal.hidden) { e.stopPropagation(); closeSettings(); return; }
       if (!els.modal.hidden) { e.stopPropagation(); closeStats(); return; }
       if (!els.mapModal.hidden) { e.stopPropagation(); closeMapDialog(); }
     }, true);
@@ -2074,6 +2102,25 @@
       if (e.target.dataset && e.target.dataset.close) closeMapDialog();
     });
     els.clearBtn.addEventListener("click", clearGroup);
+
+    /* 设置弹窗：手机端把「主题」「项目」收进这里 */
+    if (els.settingsBtn) {
+      els.settingsBtn.addEventListener("click", openSettings);
+      els.settingsClose.addEventListener("click", closeSettings);
+      els.settingsModal.addEventListener("click", function (e) {
+        if (e.target.dataset && e.target.dataset.close) closeSettings();
+      });
+      if (els.settingsTheme) {
+        els.settingsTheme.addEventListener("click", function (e) {
+          var b = e.target.closest("[data-theme-pref]");
+          if (!b) return;
+          Theme.set(b.dataset.themePref);
+          refreshThemeActive();
+          b.blur();
+        });
+      }
+      Theme.onChange(refreshThemeActive);
+    }
 
     /* 三盲：参数面板 + 解法面板 */
     populateOrientation();
@@ -2143,6 +2190,7 @@
     get mapOpen() { return !!(els.mapModal && !els.mapModal.hidden); },
     get exportMenuOpen() { return !!(els.exportMenu && !els.exportMenu.hidden); },
     press: press, release: release,
+    openSettings: openSettings, closeSettings: closeSettings,
     setEvent: function (k) {
       opt.event = k; buildEvents(); applyEventUI();
       if (k === "bld") syncBldParamsUI();

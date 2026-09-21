@@ -259,6 +259,7 @@
     <!-- ⑤ 工具条 -->
     <div class="tm-tools">
       <button class="btn btn--sm btn--secondary" id="tm-stats" type="button">统计</button>
+      <button class="btn btn--sm btn--ghost tm-settings-btn" id="tm-settings" type="button">设置</button>
       <div class="tm-menu-wrap">
         <button class="btn btn--sm btn--ghost" id="tm-export" type="button"
                 aria-haspopup="true" aria-expanded="false">导出 ▾</button>
@@ -335,6 +336,27 @@
         <span class="tm-map__sum" id="tm-map-sum"></span>
         <button class="btn btn--sm btn--primary" id="tm-map-ok" type="button">确认导入</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 设置弹窗：手机端把「主题」「项目」收进这里（主界面不再显示项目选择器） -->
+<div class="tm-modal" id="tm-settings-modal" hidden>
+  <div class="tm-modal__mask" data-close="1"></div>
+  <div class="tm-modal__panel tm-modal__panel--sm" role="dialog" aria-modal="true" aria-labelledby="tm-settings-title">
+    <div class="tm-modal__head">
+      <h2 id="tm-settings-title">设置</h2>
+      <button class="btn btn--sm btn--ghost" id="tm-settings-close" type="button">关闭</button>
+    </div>
+    <div class="tm-modal__body">
+      <h3 class="tm-h3">主题</h3>
+      <div class="seg" id="tm-settings-theme" role="group" aria-label="主题">
+        <button type="button" class="seg__btn" data-theme-pref="light">浅色</button>
+        <button type="button" class="seg__btn" data-theme-pref="dark">深色</button>
+        <button type="button" class="seg__btn" data-theme-pref="auto">跟随系统</button>
+      </div>
+      <h3 class="tm-h3">项目</h3>
+      <div class="seg" id="tm-settings-events" role="group" aria-label="选择项目"></div>
     </div>
   </div>
 </div>
