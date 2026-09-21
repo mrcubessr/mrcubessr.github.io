@@ -158,6 +158,22 @@
     min-height: 18px;
   }
   .status.err { color: var(--red); }
+  .status.warn { color: var(--amber); }
+  /* 参数识别回显：填了什么写法、识别成什么，一眼可见 */
+  .range-echo {
+    margin-top: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+    background: var(--surface);
+    border-left: 3px solid var(--line);
+    border-radius: 0;
+    white-space: pre-wrap;
+  }
+  .range-echo.ok { border-left-color: var(--green); }
+  .range-echo.warn { border-left-color: var(--amber); color: var(--amber); }
+  .range-echo.err { border-left-color: var(--red); color: var(--red); }
   .seg {
     display: inline-flex;
     border: 1px solid var(--line);
@@ -217,6 +233,7 @@
     <div class="seg" id="genModeSeg">
       <button type="button" class="seg__btn is-active" id="genModeManual">手动输入公式</button>
       <button type="button" class="seg__btn" id="genModeAuto">自动生成打乱</button>
+      <button type="button" class="seg__btn" id="genModeBld">三盲定向打乱</button>
     </div>
     <div id="manualPanel">
       <textarea id="formulas" placeholder="U&#39; R&#39; U&#39; F2 U&#39; F2 U&#39; F U&#39; F&#39;&#10;R F&#39; R&#39; U F&#39; U&#39; F&#39; U R&#39; F&#39;&#10;每行一条公式，支持括号分组与数字重复"></textarea>
@@ -251,6 +268,42 @@
         </div>
       </div>
       <div class="hint">按所选阶数 / 难度 / 长度批量生成多条打乱公式，填入上方公式框并立即出卷（可手动微调个别条目）。WCA 标准采用比赛真实随机打乱（三阶 20 步 / 二阶 11 步）。</div>
+    </div>
+    <div id="bldPanel" class="is-hidden">
+      <div class="row">
+        <div class="field"><label>棱编码长度</label><input type="text" id="bldELen" placeholder="如 10-12"></div>
+        <div class="field"><label>棱翻色数</label><input type="text" id="bldEFlip" placeholder="如 2-4"></div>
+        <div class="field"><label>棱大循环长</label><input type="text" id="bldEBig" placeholder="不限"></div>
+        <div class="field"><label>棱小循环数</label><input type="text" id="bldESmall" placeholder="不限"></div>
+        <div class="field"><label>棱奇偶</label>
+          <select id="bldEParity"><option value="any">任意</option><option value="odd">奇</option><option value="even">偶</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>角编码长度</label><input type="text" id="bldCLen" placeholder="如 8-10"></div>
+        <div class="field"><label>角翻色数</label><input type="text" id="bldCFlip" placeholder="如 4-7"></div>
+        <div class="field"><label>角大循环长</label><input type="text" id="bldCBig" placeholder="不限"></div>
+        <div class="field"><label>角小循环数</label><input type="text" id="bldCSmall" placeholder="不限"></div>
+        <div class="field"><label>角奇偶</label>
+          <select id="bldCParity"><option value="any">任意</option><option value="odd">奇</option><option value="even">偶</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>生成条数</label><input type="number" id="bldCount" value="10" min="1" max="200"></div>
+        <div class="field"><label>棱缓冲</label><input type="text" id="bldEdgeBuf" value="UF" maxlength="2"></div>
+        <div class="field"><label>角缓冲</label><input type="text" id="bldCornerBuf" value="UFR" maxlength="3"></div>
+        <div class="field"><label>答案含读码</label>
+          <select id="bldShowCode"><option value="1" selected>显示读码/翻色</option><option value="0">只看展开图</option></select>
+        </div>
+        <div class="field"><label>输出步数</label>
+          <select id="bldOptimize"><option value="1" selected>最优解压缩</option><option value="0">保留原始随机步</option></select>
+        </div>
+        <div class="field"><label>&nbsp;</label><button class="btn" id="btnBldGen" type="button">批量生成并出卷</button></div>
+        <div class="field"><label>&nbsp;</label><button class="btn btn--secondary" id="btnBldCopy" type="button">复制公式+编码</button></div>
+      </div>
+      <div class="hint">按彳亍法编码结构定向生成打乱（三阶）：参数支持 <b>任意区间</b>——<b>10-12</b>、<b>6~20</b>、<b>6到20</b>、<b>8—14</b>（全角/中文符号都认，区间多宽都行），也可写 <b>10,12,15</b>（枚举）、<b>5-10,15</b>（混写）、<b>11</b>（定值）、留空（不限）；区间内自动摊匀随机分布，不可达取值自动跳过。编码长度/翻色数/循环结构按 bldscramble 同一套读码引擎判定（缓冲默认棱 UF、角 UFR，可在框内改）。生成结果会填入公式框并立即出卷。答案区「答案含读码」打开后，读码印在每条公式下方左侧：<b>棱块读码 / 棱块翻色 / 角块读码 / 角块翻色</b> 四行，每 2 个字母一组用 <b>-</b> 连接（如 <b>GM-AS-FD-GF</b>），<b>蓝色</b>=借位、<b>红色加下划线</b>=归还；角编码为 0 时角块两行不显示。参数过严时只出已生成的条数，可放宽后重试。</div>
+      <div class="range-echo" id="bldEcho"></div>
+      <div class="status" id="bldProgress"></div>
     </div>
     <div class="row">
       <div class="field">
@@ -322,7 +375,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/assets/js/scramble-gen.js"></script>
 <script src="/tools/timer/scramble.js"></script>
+<script src="/assets/js/bld-scramble-core.js"></script>
 <script>
+// ========== 三盲定向打乱（复用 bld-scramble-core.js，勿在本页重复实现读码） ==========
+let BLD_CODES = {};        // 题纸答案区编码表：key = normalizeFormulaText(公式文本)
+let BLD_SHOW_CODE = false; // 是否在答案区打印棱/角编码
 // ========== 公式解析 ==========
 const PRIME_CHARS = new Set(["'", "\u2019", "\u2018", "\u201B", "`", "\u02BC", "\u02C8", "\uFF07", "\u00B4", "\u2035", "\u2032"]);
 const FACES = { U: 0, D: 1, F: 2, B: 3, R: 4, L: 5, M: 6, E: 7, S: 8 };
@@ -1000,9 +1057,9 @@ function roundRect(ctx, x, y, w, h, r) {
 
 // 展开图：十字布局（U 上，L F R B 中排，D 下），参考 cube_scramble_viewer 的 drawCube/drawFace 风格
 // 贴纸 2x2（二阶）/ 3x3（三阶）、贴纸间 2px 间隙、圆角 radius=3；深色面底板；白色贴纸 0.5px #ccc 描边；无面字母标签
-function drawExpansion(ctx, cube, cx, cy, size) {
+function drawExpansion(ctx, cube, cx, cy, size, stickerOverride) {
   const s = size || 2;
-  const stickerSize = s === 3 ? 28 : 43;  // 二阶贴纸 43（较原 48 缩小 10%）；三阶 28 以适配行高
+  const stickerSize = stickerOverride || (s === 3 ? 28 : 43);  // 二阶 43；三阶 28
   const gap = 8;                          // 面间距
   const faceSize = stickerSize * s;
   const h = faceSize / 2;
@@ -1093,6 +1150,107 @@ function wrapText(text, maxW, ctx) {
   return lines;
 }
 
+// ========== 三盲读码区（答案卷左侧、公式下方） ==========
+// 四行：棱块读码 / 棱块翻色 / 角块读码 / 角块翻色；每 2 个字母一组用 - 连接（GM-AS-FD-GF）。
+// 借位=蓝色加粗，归还=红色加粗+下划线（黑白打印也能区分）；内容为空的行不画
+// （角编码为 0 时「角块读码 / 角块翻色」自动省略）。字号在可用空间内取最大。
+function drawBldReadout(ctx, info, x, top, maxW, maxH) {
+  if (typeof BldCore === 'undefined' || !BldCore.readLines) return 0;
+  const rows = BldCore.readLines(info);
+  if (!rows.length) return 0;
+  const SEP = '-';
+  const br = BldCore.borrowReturn(info);
+  const hasRole = !!(br.edgeBorrow.length || br.edgeReturn.length || br.cornerBorrow.length || br.cornerReturn.length);
+  const C_NORMAL = '#111111', C_BORROW = '#1565c0', C_RETURN = '#c62828', C_LABEL = '#333333';
+
+  const build = function (fs) {
+    const codeFont = '700 ' + fs + 'px Consolas, "Courier New", monospace';
+    const labelFont = '600 ' + Math.max(12, Math.round(fs * 0.76)) + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+    const lh = Math.round(fs * 1.5);
+    ctx.font = codeFont;
+    const adv = ctx.measureText('M').width;              // 等宽字体：字母与连字符同宽，逐字绘制不会错位
+    const out = [];
+    rows.forEach(function (row) {
+      ctx.font = labelFont;
+      const label = row.label + '：';
+      const lw = ctx.measureText(label).width;
+      let cur = { used: lw, items: [{ t: 'label', text: label, w: lw }] };
+      const lines = [cur];
+      BldCore.chunkCode(row.letters).forEach(function (g) {
+        const gw = g.length * adv;
+        // 只有「已经画过至少一个编码组」时 `-` 才是分隔符；标签后的第一组不画，
+        // 否则会出现「棱块读码：-GN-…」这种行首多余横线
+        const hasGroup = cur.items.length > 1;
+        if (hasGroup && cur.used + adv + gw > maxW) {
+          cur = { used: 0, items: [] };
+          lines.push(cur);
+        }
+        if (cur.items.length > 1) { cur.items.push({ t: 'sep', w: adv }); cur.used += adv; }
+        g.forEach(function (l) {
+          cur.items.push({ t: 'ch', ch: l.ch, role: l.role, w: adv });
+          cur.used += adv;
+        });
+      });
+      out.push.apply(out, lines);
+    });
+    const legendH = hasRole ? Math.round(lh * 0.8) : 0;
+    return { lines: out, lh: lh, legendH: legendH, adv: adv, h: out.length * lh + legendH };
+  };
+
+  // 字号从大到小试，取能塞进可用高度的最大值（塞不下就用最小号，宁可挤一点也不丢编码）
+  const SIZES = [32, 30, 28, 26, 24, 22, 20, 18, 16, 14];
+  let plan = null;
+  for (let i = 0; i < SIZES.length; i++) {
+    const p = build(SIZES[i]);
+    if (!plan || p.h <= maxH) { plan = p; }
+    if (p.h <= maxH) break;
+  }
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  let y = top;
+  plan.lines.forEach(function (ln) {
+    let cx = x;
+    const baseY = y + Math.round(plan.lh * 0.74);
+    ln.items.forEach(function (it) {
+      if (it.t === 'label') {
+        ctx.font = '600 ' + Math.max(12, Math.round(plan.lh / 1.5 * 0.76)) + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+        ctx.fillStyle = C_LABEL;
+        ctx.fillText(it.text, cx, baseY);
+      } else if (it.t === 'sep') {
+        ctx.font = '700 ' + Math.round(plan.lh / 1.5) + 'px Consolas, "Courier New", monospace';
+        ctx.fillStyle = '#9aa0a6';
+        ctx.fillText(SEP, cx, baseY);
+      } else {
+        ctx.font = '700 ' + Math.round(plan.lh / 1.5) + 'px Consolas, "Courier New", monospace';
+        ctx.fillStyle = it.role === 'borrow' ? C_BORROW : (it.role === 'return' ? C_RETURN : C_NORMAL);
+        ctx.fillText(it.ch, cx, baseY);
+        // 归还加下划线：即便黑白打印也能一眼区分借与还
+        if (it.role === 'return') ctx.fillRect(cx, baseY + 4, plan.adv - 1, 2);
+      }
+      cx += it.w;
+    });
+    y += plan.lh;
+  });
+
+  if (plan.legendH) {
+    const fs2 = Math.max(11, Math.round(plan.lh / 1.5 * 0.62));
+    ctx.font = '500 ' + fs2 + 'px "Microsoft YaHei", "PingFang SC", sans-serif';
+    const ly = y + Math.round(plan.legendH * 0.75);
+    let lx = x;
+    const put = function (text, color) {
+      ctx.fillStyle = color;
+      ctx.fillText(text, lx, ly);
+      lx += ctx.measureText(text).width;
+    };
+    put('蓝色', C_BORROW);
+    put('=借位　', '#777777');
+    put('红色+下划线', C_RETURN);
+    put('=归还', '#777777');
+  }
+  return plan.h;
+}
+
 function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo, cubeSize, mode) {
   const canvas = document.createElement('canvas');
   canvas.width = A4_W;
@@ -1130,36 +1288,49 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
   const formulaCol = margin + 30;          // 公式左对齐位置
   const isQ = mode === 'q';                // 仅题目：不画展开图
   const isA = mode === 'a';                // 仅答案：不画公式文字
-  const expandCX = isA ? A4_W / 2 : A4_W * 0.72;   // 答案卷居中
+  // 三盲答案卷要打印棱/角读码：读码占左侧一列（公式下方空白处），展开图因此靠右让出整列
+  const codeMode = !isQ && BLD_SHOW_CODE;
+  const expandCX = (isA && !codeMode) ? A4_W / 2 : A4_W * 0.72;
+  const stickerSize = cubeSize === 3 ? 28 : 43;
+  const expSize = stickerSize * cubeSize;
+  const expHalf = (3 * expSize + 2 * 8) / 2;       // 展开图半宽/半高（十字宽=高）
 
   for (let r = 0; r < rowsPerPage; r++) {
     const idx = pageIndex * rowsPerPage + r;
     const y = rowTop + r * rowH;
     if (idx < formulas.length) {
       const f = formulas[idx];
+      const textTop = y + rowH / 2 - expHalf;       // 公式顶部与展开图上沿对齐
+      let textLines = [];
       if (!isA) {
         // 公式文本（原样显示，保持输入大小写），靠左靠上对齐；过长时在展开图前自动折行
         ctx.fillStyle = '#000';
         ctx.font = '500 27px Consolas, "Courier New", monospace';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        const es = (cubeSize === 3 ? 28 : 43) * cubeSize;
-        const expHalf = (3 * es + 2 * 8) / 2;         // 展开图半宽/半高（十字宽=高）
         const maxTextWidth = A4_W / 2;                // 超过页面中央即换行（再提前三个字）
-        const textTop = y + rowH / 2 - expHalf;       // 公式顶部与展开图上沿对齐
         // 序号前缀（如 "1. "）单独绘制，折行后第二行与公式符号对齐、不对齐序号
         const numMatch = f.text.match(/^(\d+\.)\s*/);
         const numPrefix = numMatch ? numMatch[1] + ' ' : '';
         const bodyText = numMatch ? f.text.slice(numMatch[0].length) : f.text;
         const numWidth = ctx.measureText(numPrefix).width;
-        const textLines = wrapText(bodyText, maxTextWidth, ctx);
+        textLines = wrapText(bodyText, maxTextWidth, ctx);
         if (numPrefix) ctx.fillText(numPrefix, formulaCol, textTop);
         textLines.forEach((ln, li) => ctx.fillText(ln, formulaCol + numWidth, textTop + li * 34));
       }
       if (!isQ) {
         // 展开图（答案）
         const state = f.state;
-        drawExpansion(ctx, state, expandCX, y + rowH / 2, cubeSize);
+        drawExpansion(ctx, state, expandCX, y + rowH / 2, cubeSize, stickerSize);
+        // 三盲：棱/角读码印在左侧（公式下方空白区），四行大字 + 借位/归还配色
+        const codeInfo = codeMode ? BLD_CODES[f.text] : null;
+        if (codeInfo) {
+          const blockTop = isA ? (textTop + 6) : (textTop + textLines.length * 34 + 16);
+          const leftX = formulaCol;
+          const leftMaxW = (expandCX - expHalf) - 22 - leftX;
+          const leftMaxH = (y + rowH - 14) - blockTop;
+          drawBldReadout(ctx, codeInfo, leftX, blockTop, leftMaxW, leftMaxH);
+        }
       }
     }
     // 行分隔线
@@ -1184,11 +1355,205 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
 }
 
 function setGenMode(m) {
-  const manual = m === 'manual';
-  document.getElementById('genModeManual').classList.toggle('is-active', manual);
-  document.getElementById('genModeAuto').classList.toggle('is-active', !manual);
-  document.getElementById('manualPanel').classList.toggle('is-hidden', !manual);
-  document.getElementById('autoPanel').classList.toggle('is-hidden', manual);
+  const map = { manual: 'genModeManual', auto: 'genModeAuto', bld: 'genModeBld' };
+  Object.keys(map).forEach(function (k) {
+    document.getElementById(map[k]).classList.toggle('is-active', k === m);
+  });
+  document.getElementById('manualPanel').classList.toggle('is-hidden', m !== 'manual');
+  document.getElementById('autoPanel').classList.toggle('is-hidden', m !== 'auto');
+  document.getElementById('bldPanel').classList.toggle('is-hidden', m !== 'bld');
+  // 三盲读码基于三阶彳亍法，自动切到三阶，避免题纸按二阶画展开图
+  if (m === 'bld') {
+    document.getElementById('cubeSize').value = '3';
+    document.getElementById('genSize').value = '3';
+    updateBldEcho();
+  }
+}
+
+// ========== 三盲参数识别：实时回显 + 体检 ==========
+// 参数键 → 输入框 id（practice 侧带 bld 前缀）
+const BLD_INPUT = {
+  eLen: 'bldELen', eFlip: 'bldEFlip', eBig: 'bldEBig', eSmall: 'bldESmall',
+  cLen: 'bldCLen', cFlip: 'bldCFlip', cBig: 'bldCBig', cSmall: 'bldCSmall'
+};
+
+function bldVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function bldCfgFromInputs() {
+  const cfg = {};
+  BldCore.PICK_FIELDS.forEach(function (f) { cfg[f.key] = bldVal(BLD_INPUT[f.key]); });
+  return cfg;
+}
+
+function updateBldEcho() {
+  const echo = document.getElementById('bldEcho');
+  if (!echo || typeof BldCore === 'undefined') return;
+  const cfg = bldCfgFromInputs();
+  const parts = [], bad = [], warns = [];
+  BldCore.PICK_FIELDS.forEach(function (f) {
+    const raw = cfg[f.key];
+    if (!raw) return;
+    const r = BldCore.parseRange(raw);
+    if (r && r.invalid) bad.push(f.label + '「' + raw + '」' + r.reason);
+    else parts.push(f.label + ' = ' + BldCore.describeRange(r));
+  });
+  BldCore.validateBldCfg(cfg).forEach(function (i) { if (i.level === 'warn') warns.push(i.message); });
+  const warnTxt = warns.length ? (parts.length || bad.length ? '\n' : '') + warns.join('\n') : '';
+  if (bad.length) {
+    echo.className = 'range-echo err';
+    echo.textContent = '✕ 写法识别失败：\n' + bad.join('\n') + warnTxt;
+    return;
+  }
+  if (!parts.length) {
+    echo.className = 'range-echo' + (warns.length ? ' warn' : '');
+    echo.textContent = '未填数量类参数 = 不限制' + warnTxt;
+    return;
+  }
+  echo.className = 'range-echo' + (warns.length ? ' warn' : ' ok');
+  echo.textContent = '已识别 ' + parts.length + ' 项：' + parts.join('｜') + warnTxt;
+}
+
+// 批量复制：公式 + 对应棱/角编码（方便直接发题给学生）
+function copyBldText() {
+  const status = document.getElementById('status');
+  const lines = document.getElementById('formulas').value.split('\n').map(function (t) { return t.trim(); }).filter(Boolean);
+  if (!lines.length) {
+    status.textContent = '请先生成公式';
+    status.className = 'status err';
+    return;
+  }
+  const out = [];
+  let withCode = 0;
+  lines.forEach(function (t, i) {
+    out.push((i + 1) + '. ' + t);
+    const c = BLD_CODES[normalizeFormulaText(t)];
+    if (c && typeof BldCore !== 'undefined' && BldCore.formatReadLines) {
+      withCode++;
+      BldCore.formatReadLines(c).forEach(function (l) { out.push(l); });
+    }
+  });
+  const text = out.join('\n');
+  const ok = function () {
+    status.textContent = '已复制 ' + lines.length + ' 条公式' + (withCode ? '（含读码/翻色，借还字母见末尾说明）' : '');
+    status.className = 'status';
+  };
+  const fallback = function () {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); ok(); }
+    catch (e) { status.textContent = '复制失败，请手动选择公式框内容复制'; status.className = 'status err'; }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok, fallback);
+  } else fallback();
+}
+
+// ========== 三盲定向打乱：生成 → 出卷 ==========
+function doBldGenerate() {
+  const status = document.getElementById('status');
+  const prog = document.getElementById('bldProgress');
+  if (typeof BldCore === 'undefined') {
+    status.textContent = '三盲引擎未加载（assets/js/bld-scramble-core.js），请刷新页面重试';
+    status.className = 'status err';
+    return;
+  }
+  const val = bldVal;
+  // 先体检写法：识别不了当场说清楚，不静默当成「不限」
+  const badCfg = BldCore.validateBldCfg(bldCfgFromInputs()).filter(function (i) { return i.level === 'error'; });
+  if (badCfg.length) {
+    updateBldEcho();
+    status.textContent = '参数无法识别：' + badCfg.map(function (i) { return i.message; }).join('；')
+      + '。支持的写法：10-12 / 6~20 / 6到20 / 8—14 / 10,12,15 / 5-10,15 / 留空不限';
+    status.className = 'status err';
+    return;
+  }
+  const count = Math.max(1, Math.min(200, parseInt(val('bldCount'), 10) || 10));
+  const cfg = {
+    count: count,
+    eLen: val('bldELen'), eFlip: val('bldEFlip'), eBig: val('bldEBig'), eSmall: val('bldESmall'),
+    eParity: val('bldEParity'), eOrient: 'any', eContain: '',
+    cLen: val('bldCLen'), cFlip: val('bldCFlip'), cBig: val('bldCBig'), cSmall: val('bldCSmall'),
+    cParity: val('bldCParity'), cOrient: 'any', cContain: '',
+    edgeBuf: val('bldEdgeBuf') || 'UF',
+    cornerBuf: val('bldCornerBuf') || 'UFR',
+    optimize: val('bldOptimize') !== '0'
+  };
+  if (!cfg.eLen && !cfg.eFlip && !cfg.eBig && !cfg.eSmall && !cfg.cLen && !cfg.cFlip && !cfg.cBig && !cfg.cSmall) {
+    status.textContent = '请至少填写一项三盲参数（如棱编码长度 10-12）';
+    status.className = 'status err';
+    return;
+  }
+  document.getElementById('cubeSize').value = '3';
+
+  let gen, items = [], done = false;
+  try {
+    gen = BldCore.createTargeted(cfg);
+  } catch (e) {
+    status.textContent = '参数解析失败：' + (e && e.message ? e.message : e);
+    status.className = 'status err';
+    return;
+  }
+  const t0 = Date.now();
+  const budget = 6000 * count * 3;   // 总尝试预算，防止过严参数无限空转
+  status.textContent = '三盲定向生成中…';
+  status.className = 'status';
+  prog.textContent = '生成中… 0/' + count;
+  prog.className = 'status';
+
+  function finish(note) {
+    if (done) return;
+    done = true;
+    prog.className = 'status';
+    // 区间里试了很多次仍没命中的取值（多半超出可达范围），如实告诉用户
+    const nh = BldCore.formatNeverHit(gen.stats().neverHit);
+    if (!items.length) {
+      prog.textContent = '';
+      status.textContent = '参数过严：' + gen.stats().tries + ' 次尝试未命中，请放宽编码长度 / 翻色数后重试'
+        + (nh ? '。区间内未命中：' + nh : '');
+      status.className = 'status err';
+      return;
+    }
+    document.getElementById('formulas').value = items.map(function (i) { return i.text; }).join('\n');
+    BLD_CODES = {};
+    BLD_SHOW_CODE = val('bldShowCode') === '1';
+    items.forEach(function (i) {
+      const s = BldCore.summarize(i);
+      BLD_CODES[normalizeFormulaText(i.text)] = s;
+      i._sum = s;
+    });
+    prog.textContent = '已生成 ' + items.length + '/' + count + ' 条（' + (Date.now() - t0) + 'ms）'
+      + ' · 棱码长 ' + items.map(function (i) { return i._sum.edge.length; }).join('/')
+      + ' · 角码长 ' + items.map(function (i) { return i._sum.corner.length; }).join('/')
+      + (nh ? ' · 区间内未命中：' + nh : '');
+    generate();
+    const pages = document.querySelectorAll('#pages .page-wrap').length;
+    status.textContent = '已出卷 ' + pages + ' 页 · ' + items.length + ' 条三盲定向打乱'
+      + (note ? '（' + note + '）' : '')
+      + (BLD_SHOW_CODE ? ' · 答案区含编码' : '');
+    status.className = items.length < count ? 'status warn' : 'status';
+  }
+
+  function pump() {
+    const frameEnd = Date.now() + 60;
+    while (items.length < count && Date.now() < frameEnd) {
+      if (gen.stats().tries > budget) { finish('已达尝试上限'); return; }
+      const it = gen.next();
+      if (!it) { finish('部分参数无解'); return; }
+      if (it.dup) continue;
+      items.push(it);
+    }
+    if (items.length >= count) { finish(); return; }
+    prog.textContent = '生成中… ' + items.length + '/' + count + '（已尝试 ' + gen.stats().tries + ' 次）';
+    requestAnimationFrame(pump);
+  }
+  requestAnimationFrame(pump);
 }
 
 function doAutoGenerate() {
@@ -1235,6 +1600,9 @@ function generate() {
   const date = document.getElementById('date').value;
   const title = document.getElementById('title').value;
   const layout = (document.getElementById('layoutSel') || {}).value || 'both';
+
+  // 手动输入/自动打乱模式下不做三盲编码标注，避免编码张冠李戴
+  if (!Object.keys(BLD_CODES).length) BLD_SHOW_CODE = false;
 
   const formulas = [];
   let bad = 0;
@@ -1333,7 +1701,17 @@ loadSample();
 // 题目来源切换 / 自动生成 / 阶数联动
 document.getElementById('genModeManual').addEventListener('click', function () { setGenMode('manual'); });
 document.getElementById('genModeAuto').addEventListener('click', function () { setGenMode('auto'); });
+document.getElementById('genModeBld').addEventListener('click', function () { setGenMode('bld'); });
 document.getElementById('btnAutoGen').addEventListener('click', doAutoGenerate);
+document.getElementById('btnBldGen').addEventListener('click', doBldGenerate);
+document.getElementById('btnBldCopy').addEventListener('click', copyBldText);
+// 三盲参数框实时回显识别结果：填了区间却识别不出来时当场可见，不用等生成
+Object.keys(BLD_INPUT).forEach(function (k) {
+  const el = document.getElementById(BLD_INPUT[k]);
+  if (!el) return;
+  el.addEventListener('input', updateBldEcho);
+  el.addEventListener('change', updateBldEcho);
+});
 document.getElementById('genSize').addEventListener('change', function () {
   document.getElementById('cubeSize').value = this.value;
 });
@@ -1343,6 +1721,7 @@ document.getElementById('genMode').addEventListener('change', function () {
   }
 });
 setGenMode('manual');
+updateBldEcho();
 </script>
 <script src="/assets/js/site-nav.js"></script>
 <footer class="site-footer">
