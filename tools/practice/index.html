@@ -315,6 +315,20 @@
         </div>
       </div>
       <div class="row">
+        <div class="field"><label>棱 · 消翻色</label>
+          <select id="bldEFlipMode">
+            <option value="separate" selected>不用（翻色公式单独解决）</option>
+            <option value="merge">用（翻色并入读码）</option>
+          </select>
+        </div>
+        <div class="field"><label>角 · 消翻色</label>
+          <select id="bldCFlipMode">
+            <option value="separate" selected>不用（翻色公式单独解决）</option>
+            <option value="merge">用（翻色并入读码）</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
         <div class="field"><label>生成条数</label><input type="number" id="bldCount" value="10" min="1" max="200"></div>
         <div class="field"><label>棱缓冲</label><input type="text" id="bldEdgeBuf" value="UF" maxlength="2"></div>
         <div class="field"><label>角缓冲</label><input type="text" id="bldCornerBuf" value="UFR" maxlength="3"></div>
@@ -327,7 +341,7 @@
         <div class="field"><label>&nbsp;</label><button class="btn" id="btnBldGen" type="button">批量生成并出卷</button></div>
         <div class="field"><label>&nbsp;</label><button class="btn btn--secondary" id="btnBldCopy" type="button">复制公式+编码</button></div>
       </div>
-      <div class="hint">按彳亍法编码结构定向生成打乱（三阶）：参数支持 <b>任意区间</b>——<b>10-12</b>、<b>6~20</b>、<b>6到20</b>、<b>8—14</b>（全角/中文符号都认，区间多宽都行），也可写 <b>10,12,15</b>（枚举）、<b>5-10,15</b>（混写）、<b>11</b>（定值）、留空（不限）；区间内自动摊匀随机分布，不可达取值自动跳过。编码长度/翻色数/循环结构按 bldscramble 同一套读码引擎判定（缓冲默认棱 UF、角 UFR，可在框内改）。<b>编码方案</b>（棱/角可分别设定）决定读出来的是哪一套编码：<b>保持色相借位</b>＝标准彳亍，小循环编码按累计色相偏移修正（默认）；<b>不保持</b>＝小循环字母不做修正。<b>跳编法</b>（即「固定借位法」）＝把各小循环的收尾字母统一挪到编码末尾，新手不用选。两者只改字母与借/还标记（编码长度不变），翻色数按所选口径重新判定——要给学生印哪套口径，先选好再生成。生成结果会填入公式框并立即出卷。答案区「答案含读码」打开后，读码印在每条公式下方左侧：<b>棱块读码 / 棱块翻色 / 角块读码 / 角块翻色</b> 四行，每 2 个字母一组用 <b>-</b> 连接（如 <b>GM-AS-FD-GF</b>）；角编码为 0 时角块两行不显示。参数过严时只出已生成的条数，可放宽后重试。</div>
+      <div class="hint">按彳亍法编码结构定向生成打乱（三阶）：参数支持 <b>任意区间</b>——<b>10-12</b>、<b>6~20</b>、<b>6到20</b>、<b>8—14</b>（全角/中文符号都认，区间多宽都行），也可写 <b>10,12,15</b>（枚举）、<b>5-10,15</b>（混写）、<b>11</b>（定值）、留空（不限）；区间内自动摊匀随机分布，不可达取值自动跳过。编码长度/翻色数/循环结构按 bldscramble 同一套读码引擎判定（缓冲默认棱 UF、角 UFR，可在框内改）。<b>编码方案</b>（棱/角可分别设定）决定读出来的是哪一套编码：<b>保持色相借位</b>＝标准彳亍，小循环编码按累计色相偏移修正（默认）；<b>不保持</b>＝小循环字母不做修正。<b>跳编法</b>（即「固定借位法」）＝把各小循环的收尾字母统一挪到编码末尾，新手不用选。<b>消翻色</b>（棱/角可分别设定）决定原地翻棱/扭角要不要「加编码」并进读码：<b>用</b>＝翻色写进读码字母里，做完读码就顺带翻正、<u>不用再做翻色公式</u>（答案卷不再印「翻色」行）；<b>不用</b>＝读码只描述位置置换，翻色由答案卷「翻色」行单独给出、用翻色公式解决（传统彳亍口径，默认）。色相借位/跳编法只改字母与借/还标记（编码长度不变），<b>消翻色会改编码字母个数</b>——要给学生印哪套口径，先选好再生成。生成结果会填入公式框并立即出卷。答案区「答案含读码」打开后，读码印在每条公式下方左侧：<b>棱块读码 / 棱块翻色 / 角块读码 / 角块翻色</b> 四行，每 2 个字母一组用 <b>-</b> 连接（如 <b>GM-AS-FD-GF</b>）；角编码为 0 时角块两行不显示。参数过严时只出已生成的条数，可放宽后重试。</div>
       <div class="range-echo" id="bldEcho"></div>
       <div class="status" id="bldProgress"></div>
     </div>
@@ -1498,7 +1512,10 @@ function doBldGenerate() {
     eOrientFlag: Number(val('bldEOrientFlag')),
     eSkipCycleNum: Number(val('bldESkipCycle')),
     cOrientFlag: Number(val('bldCOrientFlag')),
-    cSkipCycleNum: Number(val('bldCSkipCycle'))
+    cSkipCycleNum: Number(val('bldCSkipCycle')),
+    // 加编码消翻色：'separate' = 翻色不进读码（翻色行单独给，默认）；'merge' = 翻色并入读码
+    eFlipMode: val('bldEFlipMode') || 'separate',
+    cFlipMode: val('bldCFlipMode') || 'separate'
   };
   if (!cfg.eLen && !cfg.eFlip && !cfg.eBig && !cfg.eSmall && !cfg.cLen && !cfg.cFlip && !cfg.cBig && !cfg.cSmall) {
     status.textContent = '请至少填写一项三盲参数（如棱编码长度 10-12）';
