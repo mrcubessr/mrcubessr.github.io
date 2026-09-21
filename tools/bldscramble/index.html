@@ -210,7 +210,7 @@
 
         <div class="range-echo" id="rangeEcho"></div>
 
-        <p class="hint">编码方案：彳亍法（spooncuber 读码引擎，物理贴纸字母，A=UF / G=UR 等）。<br>棱/角缓冲、颜色方案与<b>编码口径</b>（色相借位 / 跳编法 / 消翻色，棱角可分别设定）可在「设置」中调整（默认棱 UF、角 UFR、保持色相借位、不跳编、消翻色用＝翻色并入读码）。<br><b>数量类参数支持任意区间</b>：<code>10-12</code>、<code>6~20</code>、<code>6到20</code>、<code>8—14</code>（全角/中文符号都认），区间多宽都行，生成器会在区间内随机均匀取数；也可写 <code>10,12,15</code> 只取这几个值，或 <code>5-10,15</code> 混写；留空 = 不限制。填好后上方会实时回显识别结果。<br>角编码填 0 时自动采用角块复原的共轭公式（X·A·X'），输出仍为纯六面 WCA 打乱。</p>
+        
       </div>
 
       <div id="twoParams" style="display:none">
@@ -238,7 +238,7 @@
             <option value="6">6 个</option>
           </select>
         </div>
-        <p class="hint">「编码数量」选具体数字（3–8）后，生成器会精确产出对应错位角块数的二阶打乱（求解器逆推、步数最优）；选「不限」则退回普通随机打乱。<br>「翻色数量」选具体数字后，额外精确控制扭曲角块数（单角翻色物理上不可能，选 1 自动按 2）；选「不限」则扭曲角块数随机，但编码数量仍受上方控制。<br>求解器可能用到任意面转动，但保证打乱后恰好满足所选的错位 / 翻色角块数。</p>
+        
       </div>
     </section>
 
@@ -264,8 +264,14 @@
       </div>
       <div class="field"><label for="setEOrient">棱 · 色相借位</label>
         <select id="setEOrient">
-          <option value="1" selected>保持（彳亍标准）</option>
+          <option value="1" selected>按色相借位</option>
           <option value="0">不保持</option>
+        </select>
+      </div>
+      <div class="field"><label for="setEBorrow">棱 · 借位顺序</label>
+        <select id="setEBorrow">
+          <option value="0" selected>标准（按色相）</option>
+          <option value="1">反向（不按色相）</option>
         </select>
       </div>
       <div class="field"><label for="setESkip">棱 · 跳编法</label>
@@ -282,8 +288,15 @@
       </div>
       <div class="field"><label for="setCOrient">角 · 色相借位</label>
         <select id="setCOrient">
-          <option value="1" selected>保持（彳亍标准）</option>
+          <option value="1" selected>按色相借位</option>
           <option value="0">不保持</option>
+        </select>
+      </div>
+      <div class="field"><label for="setCBorrow">角 · 借位顺序</label>
+        <select id="setCBorrow">
+          <option value="0" selected>标准（按色相）</option>
+          <option value="1">顺时针下1</option>
+          <option value="2">顺时针下2</option>
         </select>
       </div>
       <div class="field"><label for="setCSkip">角 · 跳编法</label>
@@ -308,7 +321,7 @@
         </select>
       </div>
       <div class="field"><label for="setWide">结尾双层</label><input type="text" id="setWide" placeholder="留空不追加，如 Rw' Uw2"></div>
-      <p class="hint">「棱缓冲/角缓冲」决定彳亍法读码起点（默认棱 UF、角 UFR，与 spooncuber 一致）。<br>「输出步数」：命中参数后统一用求解器取最优解再逆序输出，步数更短且每条形态差异更大；选「保留原始随机步」则直接输出随机游走序列。<br>「高低色标记」将高色贴纸字母加粗着色，便于记忆区分。<br><b>编码方案</b>（棱/角可分别设定）决定读出来的是哪一套编码，只改读码字母/借还标记/翻色数判定，<b>不影响打乱本身</b>：<b>保持色相借位</b>＝标准彳亍，小循环编码按累计色相偏移修正（默认）；<b>不保持</b>＝小循环字母不做修正。<b>跳编法</b>（即「固定借位法」）＝把各小循环的收尾字母统一挪到编码末尾，新手不用选。<b>消翻色</b>决定原地翻棱/扭角要不要「加编码」并进读码：<b>用</b>＝翻色写进读码字母里，做完读码就顺带翻正、<u>不用再做翻色公式</u>（本页默认，输出与历史版本一致）；<b>不用</b>＝读码只描述位置置换（传统彳亍口径），此时下方会额外给出「翻色」行，必须配翻色公式一起做。<br>「结尾双层转动」为练习工具可选功能，非 WCA 官方打乱规范；填写后每条打乱末尾会追加该步骤。</p>
+      
     </section>
 
     <div class="action-bar">
@@ -528,9 +541,11 @@ function render() {
         eOrientFlag: Number($('setEOrient').value),
         eSkipCycleNum: Number($('setESkip').value),
         eFlipMode: $('setEFlipMode').value,
+        eBorrowOrder: Number($('setEBorrow').value),
         cOrientFlag: Number($('setCOrient').value),
         cSkipCycleNum: Number($('setCSkip').value),
-        cFlipMode: $('setCFlipMode').value
+        cFlipMode: $('setCFlipMode').value,
+        cBorrowOrder: Number($('setCBorrow').value)
       });
       used += r.tries;
       if (r.ok) {
@@ -550,13 +565,10 @@ function render() {
             const cFlipN = cSep ? r.cornerInfo.flipCount : r.cornerInfo.colors.filter(c => c === 'L').length;
             lines.push('  棱(' + r.edgeInfo.code.length + '码/翻' + eFlipN + '): ' + fmtCode(r.edgeInfo.code, r.edgeInfo.colors, colorMode)
               + '  角(' + r.cornerInfo.code.length + '码/翻' + cFlipN + '): ' + fmtCode(r.cornerInfo.code, r.cornerInfo.colors, colorMode));
-            // 消翻色=不用：读码里没有翻色，不给出「要翻哪些块」这条编码就做不完
-            if (eSep || cSep) {
-              const seg = [];
-              if (eSep) seg.push('棱 ' + ((r.edgeInfo.flipPairs || []).join('-') || '无'));
-              if (cSep) seg.push('角 ' + ((r.cornerInfo.flipPairs || []).join('-') || '无'));
-              lines.push('  翻色: ' + seg.join('　'));
-            }
+            // 翻色行两种口径都显示：separate = 需单独翻色公式；merge = 翻色已并入读码（标注提醒，避免重复解）
+            const ePairs = (r.edgeInfo.flipPairs || []).join('-') || '无';
+            const cPairs = (r.cornerInfo.flipPairs || []).join('-') || '无';
+            lines.push('  翻色: 棱 ' + ePairs + (eSep ? '' : '（已并入读码）') + '　角 ' + cPairs + (cSep ? '' : '（已并入读码）'));
           }
           // 用块级卡片包裹（旧版是裸 span，white-space:normal 会把换行折掉，所有条目挤成一长串）
           results.push('<div class="scramble-item"><span class="scramble">' + lines[0] + '</span>'

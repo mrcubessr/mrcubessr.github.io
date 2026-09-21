@@ -238,8 +238,7 @@
   <div class="card">
     <h2>练习题设置</h2>
     <div class="seg" id="genModeSeg">
-      <button type="button" class="seg__btn is-active" id="genModeManual">手动输入公式</button>
-      <button type="button" class="seg__btn" id="genModeAuto">自动生成打乱</button>
+      <button type="button" class="seg__btn is-active" id="genModeManual">出题（手动/自动）</button>
       <button type="button" class="seg__btn" id="genModeBld">三盲定向打乱</button>
     </div>
     <div id="manualPanel">
@@ -271,10 +270,10 @@
           <input type="number" id="genCount" value="10" min="1" max="200">
         </div>
         <div class="field">
-          <button class="btn" id="btnAutoGen" type="button">批量生成打乱</button>
+          <button class="btn" id="btnAutoGen" type="button">批量生成并出卷</button>
         </div>
       </div>
-      <div class="hint">按所选阶数 / 难度 / 长度批量生成多条打乱公式，填入上方公式框并立即出卷（可手动微调个别条目）。WCA 标准采用比赛真实随机打乱（三阶 20 步 / 二阶 11 步）。</div>
+      
     </div>
     <div id="bldPanel" class="is-hidden">
       <div class="row">
@@ -298,8 +297,14 @@
       <div class="row">
         <div class="field"><label>棱 · 色相借位</label>
           <select id="bldEOrientFlag">
-            <option value="1" selected>保持（彳亍标准）</option>
+            <option value="1" selected>按色相借位</option>
             <option value="0">不保持</option>
+          </select>
+        </div>
+        <div class="field"><label>棱 · 借位顺序</label>
+          <select id="bldEBorrow">
+            <option value="0" selected>标准（按色相）</option>
+            <option value="1">反向（不按色相）</option>
           </select>
         </div>
         <div class="field"><label>棱 · 跳编法</label>
@@ -310,8 +315,15 @@
         </div>
         <div class="field"><label>角 · 色相借位</label>
           <select id="bldCOrientFlag">
-            <option value="1" selected>保持（彳亍标准）</option>
+            <option value="1" selected>按色相借位</option>
             <option value="0">不保持</option>
+          </select>
+        </div>
+        <div class="field"><label>角 · 借位顺序</label>
+          <select id="bldCBorrow">
+            <option value="0" selected>标准（按色相）</option>
+            <option value="1">顺时针下1</option>
+            <option value="2">顺时针下2</option>
           </select>
         </div>
         <div class="field"><label>角 · 跳编法</label>
@@ -348,7 +360,7 @@
         <div class="field"><label>&nbsp;</label><button class="btn" id="btnBldGen" type="button">批量生成并出卷</button></div>
         <div class="field"><label>&nbsp;</label><button class="btn btn--secondary" id="btnBldCopy" type="button">复制公式+编码</button></div>
       </div>
-      <div class="hint">按彳亍法编码结构定向生成打乱（三阶）：参数支持 <b>任意区间</b>——<b>10-12</b>、<b>6~20</b>、<b>6到20</b>、<b>8—14</b>（全角/中文符号都认，区间多宽都行），也可写 <b>10,12,15</b>（枚举）、<b>5-10,15</b>（混写）、<b>11</b>（定值）、留空（不限）；区间内自动摊匀随机分布，不可达取值自动跳过。编码长度/翻色数/循环结构按 bldscramble 同一套读码引擎判定（缓冲默认棱 UF、角 UFR，可在框内改）。<b>编码方案</b>（棱/角可分别设定）决定读出来的是哪一套编码：<b>保持色相借位</b>＝标准彳亍，小循环编码按累计色相偏移修正（默认）；<b>不保持</b>＝小循环字母不做修正。<b>跳编法</b>（即「固定借位法」）＝把各小循环的收尾字母统一挪到编码末尾，新手不用选。<b>消翻色</b>（棱/角可分别设定）决定原地翻棱/扭角要不要「加编码」并进读码：<b>用</b>＝翻色写进读码字母里，做完读码就顺带翻正、<u>不用再做翻色公式</u>（答案卷不再印「翻色」行）；<b>不用</b>＝读码只描述位置置换，翻色由答案卷「翻色」行单独给出、用翻色公式解决（传统彳亍口径，默认）。色相借位/跳编法只改字母与借/还标记（编码长度不变），<b>消翻色会改编码字母个数</b>——要给学生印哪套口径，先选好再生成。生成结果会填入公式框并立即出卷。答案区「答案含读码」打开后，读码印在每条公式下方左侧：<b>棱块读码 / 棱块翻色 / 角块读码 / 角块翻色</b> 四行，每 2 个字母一组用 <b>-</b> 连接（如 <b>GM-AS-FD-GF</b>）；角编码为 0 时角块两行不显示。参数过严时只出已生成的条数，可放宽后重试。</div>
+      
       <div class="range-echo" id="bldEcho"></div>
       <div class="status" id="bldProgress"></div>
     </div>
@@ -406,9 +418,7 @@
       <button class="btn btn--ghost no-print" onclick="loadSample()">填入示例</button>
     </div>
     <div class="status" id="status"></div>
-    <div class="hint">
-      支持转动：U D F B R L（大写为单层）、<b>r l u d f b</b>（小写为宽层，即对应面 + 邻接中层）、<b>M E S</b>（中轴切片）、<b>x y z</b>（整体转动）。后缀撇号 '（含多种变体字符）表示逆时针，数字 2 表示转两次，括号分组如 (R U R' U')3 会展开。展开图按公式模拟出的魔方六面状态绘制，可选二阶/三阶与白顶绿前/黄顶红前拿法（黄顶红前对宽层/整体转的映射暂未实现），公式过长自动折行，自动分页并支持导出 PNG / PDF。
-    </div>
+    
   </div>
 
   <div class="card no-print">
@@ -1386,12 +1396,14 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
 }
 
 function setGenMode(m) {
-  const map = { manual: 'genModeManual', auto: 'genModeAuto', bld: 'genModeBld' };
+  // 手动输入与自动生成已合并为同一面板：'manual' 同时显示两者（旧的 'auto' 入参归一为 manual）
+  if (m === 'auto') m = 'manual';
+  const map = { manual: 'genModeManual', bld: 'genModeBld' };
   Object.keys(map).forEach(function (k) {
     document.getElementById(map[k]).classList.toggle('is-active', k === m);
   });
   document.getElementById('manualPanel').classList.toggle('is-hidden', m !== 'manual');
-  document.getElementById('autoPanel').classList.toggle('is-hidden', m !== 'auto');
+  document.getElementById('autoPanel').classList.toggle('is-hidden', m !== 'manual');
   document.getElementById('bldPanel').classList.toggle('is-hidden', m !== 'bld');
   // 三盲读码基于三阶彳亍法，自动切到三阶，避免题纸按二阶画展开图
   if (m === 'bld') {
@@ -1522,7 +1534,10 @@ function doBldGenerate() {
     cSkipCycleNum: Number(val('bldCSkipCycle')),
     // 加编码消翻色：'separate' = 翻色不进读码（翻色行单独给，默认）；'merge' = 翻色并入读码
     eFlipMode: val('bldEFlipMode') || 'separate',
-    cFlipMode: val('bldCFlipMode') || 'separate'
+    cFlipMode: val('bldCFlipMode') || 'separate',
+    // 借位顺序：棱 2 向（标准/反向）、角 3 位（标准/顺时针下1/下2），默认 0 = 历史口径
+    eBorrowOrder: Number(val('bldEBorrow')) || 0,
+    cBorrowOrder: Number(val('bldCBorrow')) || 0
   };
   if (!cfg.eLen && !cfg.eFlip && !cfg.eBig && !cfg.eSmall && !cfg.cLen && !cfg.cFlip && !cfg.cBig && !cfg.cSmall) {
     status.textContent = '请至少填写一项三盲参数（如棱编码长度 10-12）';
@@ -1739,7 +1754,7 @@ loadSample();
 
 // 题目来源切换 / 自动生成 / 阶数联动
 document.getElementById('genModeManual').addEventListener('click', function () { setGenMode('manual'); });
-document.getElementById('genModeAuto').addEventListener('click', function () { setGenMode('auto'); });
+
 document.getElementById('genModeBld').addEventListener('click', function () { setGenMode('bld'); });
 document.getElementById('btnAutoGen').addEventListener('click', doAutoGenerate);
 document.getElementById('btnBldGen').addEventListener('click', doBldGenerate);

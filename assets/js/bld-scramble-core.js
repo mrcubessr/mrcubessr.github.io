@@ -2174,6 +2174,14 @@ function track2(track2Str) {
   const CORNER_BLOCKS = {UFR:['J','K','L'],UBR:['G','H','I'],UFL:['A','B','C'],UBL:['D','E','F'],DFR:['X','Y','Z'],DFL:['W','M','N'],DBR:['R','S','T'],DBL:['O','P','Q']};
   const EDGE_ORDER = ['UR','UF','UL','UB','DR','DL','FR','FL','BL','DF','BR','DB'];
   const CORNER_ORDER = ['UFR','UBR','UFL','UBL','DFR','DFL','DBR','DBL'];
+  // 借位顺序（borrowOrder）：决定读码轴中各块的先后，从而决定「起新循环时优先借哪个块」。
+  //   棱：2 向 —— 0=标准（按色相）/ 1=反向（不按色相）
+  //   角：3 位 —— 0=标准（按色相）/ 1=顺时针下 1 / 2=顺时针下 2
+  // 默认（0）与站点历史口径逐字符一致。与「色相借位(orientFlag)」是两个维度：
+  //   orientFlag 改的是小循环字母是否做累计色相偏移修正；borrowOrder 改的是借位的块次序。
+  const EDGE_ORDER_PRESETS = [EDGE_ORDER, EDGE_ORDER.slice().reverse()];
+  // 角：对「非缓冲块」序列按顺时针位移 0/1/2 位（缓冲块先剔除，否则位移 1 恰好只挪走缓冲=无效）
+  const rotArr = function (a, n) { const L = a.length; n = ((n % L) + L) % L; return a.slice(n).concat(a.slice(0, n)); };
 
   // 高级色贴纸集合（组首字母，即 U/D 面贴纸）
   const ADV_EDGE = new Set(['G','A','C','E','O','K','Q','S','Y','I','W','M']);
@@ -2223,22 +2231,25 @@ function track2(track2Str) {
   }
 
   // 构建缓冲对应的字母表（缓冲组置首，其余按固定序）
-  function edgeChOf(buf) {
+  function edgeChOf(buf, order) {
     const k = normEdgeBuf(buf);
     const p = EDGE_BLOCKS[k];
+    const ord = order || EDGE_ORDER;
     let ch = ' ' + p[0] + p[1];
-    for (const b of EDGE_ORDER) {
+    for (const b of ord) {
       if (b === k) continue;
       ch += EDGE_BLOCKS[b][0] + EDGE_BLOCKS[b][1];
     }
     return ch;
   }
-  function cornerChOf(buf) {
+  function cornerChOf(buf, order, shift) {
     const k = normCornerBuf(buf);
     const p = CORNER_BLOCKS[k];
+    // 先剔除缓冲块，再按 shift 顺时针位移，保证位移量对输出真实有效
+    const ord = (order || CORNER_ORDER).filter(function (b) { return b !== k; });
+    const rot = rotArr(ord, Number(shift) || 0);
     let ch = ' ' + p[0] + p[1] + p[2];
-    for (const b of CORNER_ORDER) {
-      if (b === k) continue;
+    for (const b of rot) {
       ch += CORNER_BLOCKS[b][0] + CORNER_BLOCKS[b][1] + CORNER_BLOCKS[b][2];
     }
     return ch;
@@ -2258,7 +2269,9 @@ function track2(track2Str) {
     //                 学员不需要再做翻色公式）
     //         | 'separate'（读码只描述位置置换，「翻色」行单独给要翻的块，用翻色公式解决）
     const flipMode = opts.flipMode === 'separate' ? 'separate' : 'merge';
-    const ch = edgeChOf(buf);
+    // 借位顺序：0=标准（按色相）1=反向（不按色相）；缺省 0 → 与历史口径一致
+    const bo = opts.borrowOrder === undefined ? 0 : (Number(opts.borrowOrder) || 0);
+    const ch = edgeChOf(buf, EDGE_ORDER_PRESETS[bo] || EDGE_ORDER);
     // separate：先把原地翻转的棱在位置上摆正再读码，读码里自然就不含翻色信息
     const tk = flipMode === 'separate'
       ? wrapOrientFix(track1, EDGE_ORDER.map(function (b) { return EDGE_BLOCKS[b]; }), 2)
@@ -2359,7 +2372,9 @@ function track2(track2Str) {
     const skipCycleNum = opts.skipCycleNum === undefined ? 0 : Number(opts.skipCycleNum);
     // flipMode: 'merge'（默认 = 消翻色，扭角并入读码）| 'separate'（扭角交给翻色公式）
     const flipMode = opts.flipMode === 'separate' ? 'separate' : 'merge';
-    const ch = cornerChOf(buf);
+    // 借位顺序：0=标准（按色相）1=顺时针下 1 2=顺时针下 2；缺省 0 → 与历史口径一致
+    const bo = opts.borrowOrder === undefined ? 0 : (Number(opts.borrowOrder) || 0);
+    const ch = cornerChOf(buf, CORNER_ORDER, bo);
     // separate：先把原地扭转的角在位置上摆正再读码
     const tk = flipMode === 'separate'
       ? wrapOrientFix(track2, CORNER_ORDER.map(function (b) { return CORNER_BLOCKS[b]; }), 3)
@@ -2915,8 +2930,8 @@ function randomConjPlan() {
 }
 
 // opts（可选）= { edgeBuf, cornerBuf, optimize,
-//                 eOrientFlag, eSkipCycleNum, eFlipMode,
-//                 cOrientFlag, cSkipCycleNum, cFlipMode }
+//                 eOrientFlag, eSkipCycleNum, eFlipMode, eBorrowOrder,
+//                 cOrientFlag, cSkipCycleNum, cFlipMode, cBorrowOrder }
 // 默认 UF / UFR / 开启最优解压缩 / 保持色相借位 / 不用跳编法（= 通用彳亍口径）。
 // 本函数不读写 DOM，供 bldscramble 与 practice（练习题纸）共用。
 function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
@@ -2930,8 +2945,8 @@ function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
   // 只改「读码字母 / 借还标记 / 由编码判定的翻色数」，不改打乱本身。
   // 不传时 readEdge/readCorner 落回默认值（orientFlag=1、skipCycleNum=0）。
   const encOpts = {
-    edge: { orientFlag: o.eOrientFlag, skipCycleNum: o.eSkipCycleNum, flipMode: o.eFlipMode },
-    corner: { orientFlag: o.cOrientFlag, skipCycleNum: o.cSkipCycleNum, flipMode: o.cFlipMode }
+    edge: { orientFlag: o.eOrientFlag, skipCycleNum: o.eSkipCycleNum, flipMode: o.eFlipMode, borrowOrder: o.eBorrowOrder },
+    corner: { orientFlag: o.cOrientFlag, skipCycleNum: o.cSkipCycleNum, flipMode: o.cFlipMode, borrowOrder: o.cBorrowOrder }
   };
   const limit = maxTries || MAX_TRIES;
   const P = pickers || {};
@@ -3028,9 +3043,11 @@ function createTargeted(cfg) {
     eOrientFlag: cfg.eOrientFlag,
     eSkipCycleNum: cfg.eSkipCycleNum,
     eFlipMode: cfg.eFlipMode,
+    eBorrowOrder: cfg.eBorrowOrder,
     cOrientFlag: cfg.cOrientFlag,
     cSkipCycleNum: cfg.cSkipCycleNum,
-    cFlipMode: cfg.cFlipMode
+    cFlipMode: cfg.cFlipMode,
+    cBorrowOrder: cfg.cBorrowOrder
   };
   const perItem = cfg.maxTries || MAX_TRIES;
   const seen = {};
@@ -3148,14 +3165,14 @@ function readLines(s) {
   // 消翻色（merge）口径下翻色已写进读码字母里，再印翻色行会让学生重复解 ⇒ 该行不显示
   const eMerge = s.edgeFlipMode !== 'separate';
   const cMerge = s.cornerFlipMode !== 'separate';
-  // 区块内有任何内容（主读码，或需要单独给的翻色）就成对显示；两者皆空才整块隐藏
-  if (edge.length || (!eMerge && edgeFlip.length)) {
+  // 翻色行两种口径都显示：separate = 需单独翻色公式；merge = 翻色已并入读码（标注提醒，避免重复解）
+  if (edge.length || edgeFlip.length) {
     out.push({ key: 'edgeRead', label: '棱块读码', letters: edge });
-    if (!eMerge) out.push({ key: 'edgeFlip', label: '棱块翻色', letters: edgeFlip });
+    if (edgeFlip.length) out.push({ key: 'edgeFlip', label: '棱块翻色' + (eMerge ? '（已并入读码）' : ''), letters: edgeFlip });
   }
-  if (corner.length || (!cMerge && cornerFlip.length)) {
+  if (corner.length || cornerFlip.length) {
     out.push({ key: 'cornerRead', label: '角块读码', letters: corner });
-    if (!cMerge) out.push({ key: 'cornerFlip', label: '角块翻色', letters: cornerFlip });
+    if (cornerFlip.length) out.push({ key: 'cornerFlip', label: '角块翻色' + (cMerge ? '（已并入读码）' : ''), letters: cornerFlip });
   }
   return out;
 }
