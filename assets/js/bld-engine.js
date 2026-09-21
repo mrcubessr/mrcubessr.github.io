@@ -484,6 +484,20 @@
      借位次数 = 循环数 - 1（第一个循环无需借位），作为记忆难度参考指标 */
   function formulasOfLetters(n) { return Math.ceil((n || 0) / 2); }
 
+  /* 三盲难度等级（按记忆分由易到难），复盘页分组 / 趋势图共用，保证口径一致。
+     边界按真实打乱统计校准：20 步 WCA 打乱记忆分约 7–19（多数集中在 10–15），
+     故把七档压进该区间，避免高难档永远空置、低难档挤满。 */
+  const BLD_LEVELS = ["入门", "初级", "中级", "中高级", "高级", "专家", "大师"];
+  function levelOfMem(mem) {
+    if (mem < 10) return "入门";
+    if (mem < 11.5) return "初级";
+    if (mem < 13) return "中级";
+    if (mem < 14.5) return "中高级";
+    if (mem < 16.5) return "高级";
+    if (mem < 18.5) return "专家";
+    return "大师";
+  }
+
   function buildDifficulty(edge, flip, corner, twist, parity, eCycles, cCycles) {
     const eL = letterCount(edge), fL = letterCount(flip);
     const cL = letterCount(corner), tL = letterCount(twist);
@@ -501,18 +515,24 @@
     const borrowEdge = Math.max(0, (eCycles || 1) - 1);
     const borrowCorner = Math.max(0, (cCycles || 1) - 1);
     const borrow = borrowEdge + borrowCorner;
+    /* 总公式条数（翻色 / 扭角 / 奇偶都算一条公式，口径不变） */
     const total = edgeF + flipF + cornerF + twistF + parityF;
-    const score = Math.round((total + borrow * 0.5) * 10) / 10;
-    let level = "简单";
-    if (total >= 13) level = "很难";
-    else if (total >= 11) level = "偏难";
-    else if (total >= 9) level = "中等";
+    /* 记忆分：在总条数基础上叠加记忆负担权重 ——
+         · 翻色 / 扭角每条 +0.6（除公式本身外，还需 setup 与额外记忆点）
+         · 奇偶 +1.5（单独奇偶算法 + 判断奇偶的负担）
+         · 每个循环 +0.5（循环越多，记忆切换越频繁）
+       比单纯「条数」更贴近真实难度，且不同难度明显拉开层次。 */
+    const mem = Math.round((total
+      + 0.6 * (flipF + twistF)
+      + 1.5 * parityF
+      + 0.5 * borrow) * 10) / 10;
+    const level = levelOfMem(mem);
     return {
       edgeLetters: eL, flipLetters: fL, cornerLetters: cL, twistLetters: tL,
       edgeF: edgeF, flipF: flipF, cornerF: cornerF, twistF: twistF, parityF: parityF,
       borrowEdge: borrowEdge, borrowCorner: borrowCorner, borrow: borrow,
       edgeCycles: eCycles || 0, cornerCycles: cCycles || 0,
-      total: total, score: score, level: level,
+      total: total, mem: mem, score: mem, level: level,
       notation: "棱" + edgeF + "+角" + cornerF + (parityF ? "+1" : "")
     };
   }
@@ -615,6 +635,8 @@
     fixorientation: fixorientation,
     validate: validate,
     buildDifficulty: buildDifficulty,
+    BLD_LEVELS: BLD_LEVELS,
+    levelOfMem: levelOfMem,
     estimateSteps: estimateSteps,
     bldMetrics: bldMetrics,
     CUBE_ORIENTATIONS: CUBE_ORIENTATIONS,

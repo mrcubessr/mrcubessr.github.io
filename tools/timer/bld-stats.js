@@ -138,18 +138,22 @@
       }
     });
 
-    /* ⑤ 按难度（总公式条数）分组 —— 同难度互相比较才有意义（含 TPS） */
+    /* ⑤ 按难度等级分组 —— 同等级打乱记忆负担相近，可直接互比（含 TPS）。
+       等级按「记忆分」分档（条数 + 翻色/奇偶/循环数权重），比单纯条数更贴近真实难度。 */
+    var KNOWN = (window.BLDEngine && window.BLDEngine.BLD_LEVELS) || ["入门", "初级", "中级", "中高级", "高级", "专家", "大师"];
     var diffMap = {};
     arr.forEach(function (r) {
       var d = r.bld.difficulty;
       if (!d) return;
-      var key = d.total;
+      var key = d.level || "未分级";
       var s = diffMap[key] || (diffMap[key] = {
-        total: key, level: d.level, notation: d.notation,
+        level: key, totalMin: Infinity, totalMax: 0, memSum: 0, memValid: 0,
         count: 0, sum: 0, valid: 0, best: Infinity, vals: [],
         tpsExecSum: 0, tpsExecValid: 0, tpsAllSum: 0, tpsAllValid: 0
       });
       s.count++;
+      if (isFinite(d.total)) { if (d.total < s.totalMin) s.totalMin = d.total; if (d.total > s.totalMax) s.totalMax = d.total; }
+      if (isFinite(d.score)) { s.memSum += d.score; s.memValid++; }
       var ms = effectiveMs(r);
       if (isFinite(ms)) { s.sum += ms; s.valid++; s.vals.push(ms); if (ms < s.best) s.best = ms; }
       var m = r.bld.metrics;
@@ -161,10 +165,15 @@
       s.mean = s.valid ? s.sum / s.valid : null;
       var v = s.vals.slice().sort(function (a, c) { return a - c; });
       s.median = v.length ? v[Math.floor(v.length / 2)] : null;
+      s.mem = s.memValid ? s.memSum / s.memValid : null;
       s.tpsExec = s.tpsExecValid ? s.tpsExecSum / s.tpsExecValid : null;
       s.tpsAll = s.tpsAllValid ? s.tpsAllSum / s.tpsAllValid : null;
       return s;
-    }).sort(function (x, y) { return x.total - y.total; });
+    }).sort(function (x, y) {
+      var ix = KNOWN.indexOf(x.level), iy = KNOWN.indexOf(y.level);
+      ix = ix < 0 ? 999 : ix; iy = iy < 0 ? 999 : iy;
+      return ix - iy;
+    });
 
     var allVals = arr.map(effectiveMs).filter(isFinite).sort(function (a, c) { return a - c; });
     out.overallMean = allVals.length ? allVals.reduce(function (a, c) { return a + c; }, 0) / allVals.length : null;
@@ -209,7 +218,14 @@
     /* ⑥ 近期趋势：按时间均分 3 段 × 难度等级，看不同难度打乱的成绩变化 */
     var withDiff = arr.filter(function (r) { return r.bld.difficulty; })
       .slice().sort(function (x, y) { return (x.date || 0) - (y.date || 0); });
-    var LEVELS = ["简单", "中等", "偏难", "很难"];
+    var KNOWN_T = (window.BLDEngine && window.BLDEngine.BLD_LEVELS) || ["入门", "初级", "中级", "中高级", "高级", "专家", "大师"];
+    var seenT = {}, presentT = [];
+    withDiff.forEach(function (r) {
+      var lv = r.bld.difficulty && r.bld.difficulty.level;
+      if (lv && !seenT[lv]) { seenT[lv] = 1; presentT.push(lv); }
+    });
+    presentT.sort(function (a, b) { var ia = KNOWN_T.indexOf(a), ib = KNOWN_T.indexOf(b); ia = ia < 0 ? 999 : ia; ib = ib < 0 ? 999 : ib; return ia - ib; });
+    var LEVELS = presentT;
     var NB = 3, segs = [[], [], []];
     if (withDiff.length) {
       var per = Math.ceil(withDiff.length / NB);
@@ -314,15 +330,16 @@
     }
 
     /* ⑤ 按难度分组（同类对比） */
-    h += '<h3 class="tm-h3">⑤ 按难度分组（同类难度互比）</h3>';
+    h += '<h3 class="tm-h3">⑤ 按难度等级分组（同等级互比）</h3>';
     if (!a.difficultyBuckets.length) {
       h += '<div class="tm-ba-note">暂无难度数据（旧成绩不含难度指标，新记录的成绩会自动带上）。</div>';
     } else {
-      h += '<div class="tm-ba-table"><table><thead><tr><th>难度(总公式)</th><th>等级</th><th>次数</th><th>平均</th><th>中位</th><th>最好</th><th>执行TPS</th><th>整体TPS</th><th>对比整体</th></tr></thead><tbody>';
+      h += '<div class="tm-ba-table"><table><thead><tr><th>难度等级</th><th>公式条数</th><th>次数</th><th>平均</th><th>中位</th><th>最好</th><th>执行TPS</th><th>整体TPS</th><th>对比整体</th></tr></thead><tbody>';
       a.difficultyBuckets.forEach(function (s) {
         var delta = (s.mean != null && a.overallMean) ? Math.round((s.mean - a.overallMean) / a.overallMean * 100) : null;
         var dtxt = delta == null ? "—" : (delta > 0 ? "+" + delta + "% 偏慢" : (delta < 0 ? delta + "% 偏快" : "持平"));
-        h += "<tr><td>" + s.total + " 条</td><td>" + esc(s.level) + "</td><td>" + s.count + "</td><td>" +
+        var tRange = (s.totalMin !== Infinity) ? (s.totalMin === s.totalMax ? s.totalMin + " 条" : s.totalMin + "–" + s.totalMax + " 条") : "—";
+        h += '<tr><td><span class="tm-bld__diff-lv" data-lv="' + esc(s.level) + '">' + esc(s.level) + "</span></td><td>" + tRange + "</td><td>" + s.count + "</td><td>" +
           (s.mean != null ? fmt(s.mean) : "—") + "</td><td>" +
           (s.median != null ? fmt(s.median) : "—") + "</td><td>" +
           (s.best !== Infinity ? fmt(s.best) : "—") + "</td><td>" +
@@ -330,7 +347,7 @@
           (s.tpsAll != null ? s.tpsAll.toFixed(2) : "—") + "</td><td>" + dtxt + "</td></tr>";
       });
       h += "</tbody></table></div>";
-      h += '<p class="tm-ba-note">总公式条数相同的打乱难度相当，可直接互比 —— 这就是你的「同类难度基准线」。TPS 取该难度所有分段成绩的执行/整体均值。</p>';
+      h += '<p class="tm-ba-note">同一难度等级的打乱记忆负担相近，可直接互比。「公式条数」为该等级内各次打乱的总公式条数范围（棱+角+翻色+扭角+奇偶）。TPS 取该等级所有分段成绩的执行/整体均值。</p>';
     }
 
     /* ⑥ 近期趋势：不同难度打乱的成绩变化 */
@@ -345,7 +362,7 @@
       a.trend.segLabels.forEach(function (l) { h += "<th>" + l + "</th>"; });
       h += "<th>早期→近期</th></tr></thead><tbody>";
       trendRows.forEach(function (r) {
-        h += "<tr><td>" + esc(r.level) + "</td>";
+        h += '<tr><td><span class="tm-bld__diff-lv" data-lv="' + esc(r.level) + '">' + esc(r.level) + "</span></td>";
         r.means.forEach(function (m) { h += "<td>" + (m != null ? fmt(m) : "—") + "</td>"; });
         var first = r.means[0], last = r.means[r.means.length - 1];
         var chg = (first != null && last != null && first > 0) ? Math.round((last - first) / first * 100) : null;

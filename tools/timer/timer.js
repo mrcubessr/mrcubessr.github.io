@@ -353,7 +353,7 @@
         '<span class="tm-bld__diff-notation">' + (d.notation || "") + "</span>" +
         '<span class="tm-bld__diff-lv" data-lv="' + d.level + '">' + d.level + "</span>" +
       "</div>" +
-      '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 难度分 <b>" + d.score +
+      '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 记忆分 <b>" + d.score +
         "</b>" + (complexity != null ? " · 编码 " + complexity + " 码" : "") + "</div>" +
       '<div class="tm-bld__chips">' + chips.join("") + "</div>";
   }
