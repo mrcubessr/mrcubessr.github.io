@@ -352,3 +352,32 @@
 @media (max-width: 480px){
   .site-nav .nav-theme-btn{ width: 34px; height: 34px; }
 }
+
+/* =========================================================
+   手机端抽屉里的「主题」项（由 site-nav.js 注入 .nav-theme-item）
+   桌面端已有右上角的图标按钮，这一项只在抽屉里出现，避免重复。
+   ========================================================= */
+.site-nav .nav-theme-item{
+  display: none;                 /* 桌面端隐藏；下面的媒体查询里打开 */
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--nav-accent, #64b4ff);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.site-nav .nav-theme-item:hover{
+  color: var(--nav-accent, #64b4ff);
+  background: var(--brand-soft, rgba(100,180,255,.12));
+}
+@media (max-width: 900px){
+  .site-nav .nav-theme-item{
+    display: block;
+    margin-top: 6px;
+    border-top: 1px solid var(--nav-line, rgba(100,180,255,.16));
+  }
+}

@@ -262,6 +262,7 @@
     <div class="tm-tools">
       <button class="btn btn--sm btn--secondary" id="tm-stats" type="button">统计</button>
       <button class="btn btn--sm btn--ghost tm-settings-btn" id="tm-settings" type="button">设置</button>
+      <button class="btn btn--sm btn--ghost tm-theme-toggle" id="tm-theme-toggle" type="button">浅色</button>
       <div class="tm-menu-wrap">
         <button class="btn btn--sm btn--ghost" id="tm-export" type="button"
                 aria-haspopup="true" aria-expanded="false">导出 ▾</button>
@@ -295,7 +296,7 @@
         <span></span>
       </div>
       <ol class="tm-list" id="tm-list"></ol>
-      <p class="tm-empty" id="tm-empty">当前分组还没有成绩：长按计时区开始计时，或点「导入」载入成绩文件。</p>
+      <p class="tm-empty" id="tm-empty">当前分组还没有成绩：长按计时区（或按空格）开始计时，也可导入已有的成绩文件。</p>
     </div>
 
   </div>
@@ -362,6 +363,12 @@
       <h3 class="tm-h3">打乱</h3>
       <button class="btn btn--sm btn--secondary" id="tm-settings-next" type="button">换一条打乱</button>
       <span class="tm-bld-params__hint">主界面不显示换打乱按钮：每次完成自动换题，需要跳过时点这里。</span>
+      <h3 class="tm-h3">数据</h3>
+      <div class="tm-settings-row">
+        <button class="btn btn--sm btn--secondary" id="tm-settings-import" type="button">导入成绩</button>
+        <button class="btn btn--sm btn--ghost" id="tm-settings-clear" type="button">清空当前分组</button>
+      </div>
+      <span class="tm-bld-params__hint">支持 csTimer 导出的 TXT 与本站导出的 JSON；清空前会二次确认。</span>
     </div>
   </div>
 </div>

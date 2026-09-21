@@ -174,8 +174,10 @@ body { margin: 0; }
 /* ---------- 工具条 ---------- */
 .tm-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .tm-tools__hint { margin-left: auto; font-size: 12px; color: var(--fg-3); }
-/* 设置按钮：桌面端主界面已含项目选择器，故默认隐藏；仅手机端出现 */
+/* 设置按钮 / 主题按钮：桌面端主界面已含项目选择器与主题按钮，故默认隐藏；仅手机端出现 */
 .tm-settings-btn { display: none; }
+.tm-theme-toggle { display: none; }
+.tm-settings-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ---------- 成绩列表 ---------- */
 .tm-list-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 0; }
@@ -496,9 +498,16 @@ body { margin: 0; }
   /* 页面级：去掉页头页脚 */
   .tm-hero, body > .site-footer { display: none !important; }
 
-  /* 手机端：隐藏顶部站点导航，顶部留把手；点按把手切换 body.tm-nav-visible */
-  .tm-wrap { display: flex; flex-direction: column; padding: 0; overflow: hidden; height: 100dvh; }
-  body.tm-nav-visible .tm-wrap { height: calc(100dvh - var(--nav-h, 60px)); }
+  /* 禁止「过度滚动」：手机上在页面顶部往下拉会触发浏览器刷新，
+     正在确认中的这把成绩就没了。overscroll-behavior 直接掐掉这个手势。 */
+  html, body { overscroll-behavior-y: none; }
+
+  /* 手机端：隐藏顶部站点导航，顶部留把手；点按把手切换 body.tm-nav-visible。
+     高度用 min-height（不再用固定 height + overflow:hidden）：
+     内容多时可以整页上下滑动，确认栏与成绩列表不会被裁到屏幕外。 */
+  .tm-wrap { display: flex; flex-direction: column; padding: 0; overflow: visible;
+    height: auto; min-height: 100dvh; }
+  body.tm-nav-visible .tm-wrap { min-height: calc(100dvh - var(--nav-h, 60px)); }
   body:not(.tm-nav-visible) [data-site-nav] { min-height: 0; }
   /* 隐藏导航时彻底脱离文档流，避免占用 60px 导致可滚动 */
   body:not(.tm-nav-visible) .site-nav { position: absolute; transform: translateY(-100%); transition: transform .22s ease; }
@@ -570,19 +579,31 @@ body { margin: 0; }
   .tm-bld-params:not(.is-collapsed) .tm-bld-params__body { max-height: none; }
 
   /* ---------- 计时舞台：吸收剩余空间并垂直居中，大字（csTimer 式大计时区） ---------- */
-  .tm-stage { flex: 1 1 auto; min-height: 220px; padding: 4px 6px; gap: 2px; border-width: 1px; }
+  .tm-stage { flex: 1 1 auto; min-height: 150px; padding: 4px 6px; gap: 2px; border-width: 1px; }
   .tm-time { font-size: clamp(72px, 32vw, 150px); letter-spacing: 1px; }
   .tm-state { font-size: 10px; }
   .tm-pen { top: 5px; right: 6px; font-size: 9px; padding: 2px 4px; }
   .tm-memo { font-size: 10px; margin-top: 2px; }
 
-  /* ---------- 成绩确认 ---------- */
-  .tm-confirm { flex: 0 0 auto; padding: 5px 7px; gap: 5px; }
+  /* 三盲「复盘」解法块：限高可滚。计时后会一次性展开，
+     不限高的话会把确认栏和下面的成绩列表整个顶出屏幕。 */
+  .tm-bld { max-height: 30vh; overflow-y: auto; }
+
+  /* ---------- 成绩确认：吸底常驻，保证「记录/+2/DNF/作废」永远点得到 ---------- */
+  .tm-confirm {
+    position: sticky; bottom: 0; z-index: 30;
+    flex: 0 0 auto; padding: 6px 7px 8px; gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--gold); border-left: 3px solid var(--gold);
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, .22);
+  }
   .tm-confirm__label { display: none; }
   .tm-confirm__time { font-size: 18px; }
-  .tm-confirm__btns { gap: 4px; margin-left: auto; width: auto; }
-  .tm-confirm__btns .btn { padding: 5px 10px; font-size: 12px; }
-  .tm-confirm__metrics-wrap { gap: 4px 8px; }
+  /* 四个按钮平分一行，手机上点得准 */
+  .tm-confirm__btns { gap: 4px; margin-left: 0; width: 100%; flex: 1 1 100%; flex-wrap: nowrap; }
+  .tm-confirm__btns .btn { padding: 9px 4px; font-size: 12px; flex: 1 1 0; min-width: 0; }
+  .tm-confirm__metrics { margin: 4px 0 2px; }
+  .tm-confirm__metrics-wrap { gap: 4px 10px; }
   .tm-metric__v { font-size: 12px; }
   .tm-dnf-reason { padding: 4px 6px; gap: 5px; margin: 2px 0; }
 
@@ -606,7 +627,10 @@ body { margin: 0; }
     padding: 7px 2px; font-size: 11px; white-space: nowrap; width: 100%;
   }
   .tm-tools > .tm-label { display: none; }
+  .tm-tools__hint { display: none; }                       /* 桌面键盘提示，手机上看不到也按不到 */
+  #tm-import, #tm-clear { display: none; }                 /* 收进「设置 → 数据」，给底部工具条腾位置 */
   .tm-settings-btn { display: inline-flex; }              /* 手机端显示「设置」入口 */
+  .tm-theme-toggle { display: inline-flex; }              /* 手机端显示「主题」开关（导航隐藏时也能切） */
   .tm-tools #tm-inspect-seg {
     flex: 1 1 0; display: flex; flex-direction: row; flex-wrap: nowrap;
     align-items: stretch; min-width: 0;
@@ -632,7 +656,7 @@ body { margin: 0; }
     padding: 4px 5px; gap: 3px; font-size: 11px;
   }
   .tm-list-head { padding: 3px 5px; }
-  .tm-list { max-height: 54px; overflow: hidden; }          /* 约 1~2 行 */
+  .tm-list { max-height: none; overflow: visible; }        /* 允许整页滑动，不再把成绩裁掉 */
   .tm-list__idx { font-size: 10px; }
   .tm-list__t { font-size: 14px; }
   .tm-list__a { font-size: 10px; }

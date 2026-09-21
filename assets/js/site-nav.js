@@ -85,6 +85,10 @@
       h += '</div></div>';
     }
 
+    /* 手机端抽屉里的「主题」项：桌面端由导航右上的图标按钮承担，此项在桌面隐藏。
+       文案由 theme.js 的 syncButtons() 写入，显示的是「点一下会切到哪个模式」。 */
+    h += '<button type="button" class="nav-link nav-theme-item" id="navThemeItem" data-theme-toggle></button>';
+
     h += '</div></div></nav>';
     return h;
   }
@@ -300,6 +304,24 @@
     var nav = document.getElementById('siteNav');
     if (!nav) return;
     bindNav(nav);
+
+    /* 手机端抽屉里的「主题」项：接上 theme.js 引擎（浅色 ↔ 深色），
+       点完顺手收起抽屉，好让用户立刻看到整页换了主题。
+       注意：主题按钮自身会 stopPropagation，所以收抽屉要单独绑。 */
+    var themeItem = document.getElementById('navThemeItem');
+    if (themeItem && window.Theme && window.Theme.attach) {
+      window.Theme.attach(themeItem);
+      themeItem.addEventListener('click', function () {
+        var linksBox = document.getElementById('navLinks');
+        var tgl = document.getElementById('navToggle');
+        if (linksBox) linksBox.classList.remove('open');
+        if (tgl) {
+          tgl.classList.remove('open');
+          tgl.setAttribute('aria-expanded', 'false');
+          tgl.setAttribute('aria-label', '打开菜单');
+        }
+      });
+    }
   }
 
   if (document.readyState === 'loading') {

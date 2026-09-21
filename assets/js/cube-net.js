@@ -328,11 +328,23 @@ function drawScrambleNet(alg, canvasId, orientation) {
     }
 }
 
+/* 展开图「底板」颜色：直接跟随当前主题的卡片底色。
+   历史写法是把底板固定填成 #1a1a2e，浅色主题下会变成一块突兀的黑框；
+   现在取 --surface（画布自身的 CSS 背景也是 var(--surface)），
+   底板与周围浑然一体，视觉上只留下贴纸与它们之间的空隙。 */
+function netPlateColor(){
+    try {
+        const v = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
+        if (v) return v;
+    } catch (e) { /* 某些环境拿不到计算样式，走兜底 */ }
+    return document.documentElement.getAttribute('data-theme') === 'light' ? '#FFFFFF' : '#141826';
+}
+
 function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
     const s = cube.size;
     const faceData = cube.getFace(face);
     const faceSize = stickerSize * s;
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = netPlateColor();
     ctx.fillRect(ox-2, oy-2, faceSize+4, faceSize+4);
     for(let r=0;r<s;r++){
         for(let c=0;c<s;c++){

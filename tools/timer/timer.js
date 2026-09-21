@@ -1115,14 +1115,16 @@
     saveData(); renderGroups(); renderStrip(); renderList();
   }
 
-  function clearGroup() {
+  function clearGroup(btn) {
     var g = curGroup(opt.event);
     if (!g.solves.length) return;
     if (!window.confirm("确定清空分组「" + g.name + "」的 " + g.solves.length +
                         " 条成绩吗？此操作不可撤销。")) return;
     g.solves = [];
     saveData(); renderGroups(); renderStrip(); renderList();
-    flashBtn(els.clearBtn, "已清空 ✓", "清空本组");
+    /* flashBtn 的回调只认「按钮元素」；事件对象 / 无参调用时回落到工具栏按钮 */
+    var target = (btn && btn.tagName) ? btn : els.clearBtn;
+    flashBtn(target, "已清空 ✓", target === els.clearBtn ? "清空本组" : "清空当前分组");
   }
 
   /* ---------- 成绩列表 ---------- */
@@ -1295,12 +1297,19 @@
   }
   function buildEvents() { buildEventsInto(els.events, selectEvent); }
 
-  /* ---------- 设置弹窗（手机端：主题 + 项目） ---------- */
+  /* ---------- 设置弹窗（手机端：主题 + 项目 + 打乱 + 数据） ---------- */
   function refreshThemeActive() {
-    if (!els.settingsTheme) return;
-    Array.prototype.forEach.call(els.settingsTheme.children, function (ch) {
-      ch.classList.toggle("is-active", ch.dataset.themePref === Theme.get());
-    });
+    if (els.settingsTheme) {
+      Array.prototype.forEach.call(els.settingsTheme.children, function (ch) {
+        ch.classList.toggle("is-active", ch.dataset.themePref === Theme.get());
+      });
+    }
+    /* 工具栏里的主题按钮：文案写「点一下会切到哪个模式」 */
+    if (els.themeToggle) {
+      var light = Theme.mode() === "light";
+      els.themeToggle.textContent = light ? "🌙 深色" : "☀ 浅色";
+      els.themeToggle.setAttribute("aria-label", light ? "切换到深色主题" : "切换到浅色主题");
+    }
   }
   function openSettings() {
     if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
@@ -1973,6 +1982,8 @@
       settingsClose: $("tm-settings-close"),
       settingsEvents: $("tm-settings-events"), settingsTheme: $("tm-settings-theme"),
       settingsNext: $("tm-settings-next"),
+      settingsImport: $("tm-settings-import"), settingsClear: $("tm-settings-clear"),
+      themeToggle: $("tm-theme-toggle"),
       modal: $("tm-modal"), modalClose: $("tm-modal-close"), modalEvent: $("tm-modal-event"),
       statGrid: $("tm-stat-grid"), chartDaily: $("tm-chart-daily"),
       chartTrend: $("tm-chart-trend"), chartDist: $("tm-chart-dist"),
@@ -2102,9 +2113,10 @@
     els.mapModal.addEventListener("click", function (e) {
       if (e.target.dataset && e.target.dataset.close) closeMapDialog();
     });
-    els.clearBtn.addEventListener("click", clearGroup);
+    els.clearBtn.addEventListener("click", function () { clearGroup(els.clearBtn); });
 
-    /* 设置弹窗：手机端把「主题」「项目」收进这里 */
+    /* 设置弹窗：手机端把「主题」「项目」「打乱」「数据」收进这里
+       （主界面只留最常用的几个按钮） */
     if (els.settingsBtn) {
       els.settingsBtn.addEventListener("click", openSettings);
       els.settingsClose.addEventListener("click", closeSettings);
@@ -2126,8 +2138,40 @@
           closeSettings();
         });
       }
-      Theme.onChange(refreshThemeActive);
+      if (els.settingsImport) {
+        els.settingsImport.addEventListener("click", function () {
+          closeSettings();
+          els.importFile.click();
+        });
+      }
+      if (els.settingsClear) {
+        els.settingsClear.addEventListener("click", function () { clearGroup(els.settingsClear); });
+      }
     }
+    /* 主题变化：同步设置弹窗的选中态 + 工具栏按钮文案，
+       并重绘三盲展开图（它的底板取的是当前主题的卡片底色，不重绘会留着旧底色） */
+    Theme.onChange(function () {
+      refreshThemeActive();
+      renderBldNet();
+    });
+    refreshThemeActive();
+    /* 手机端工具栏的主题开关：一键浅色 ↔ 深色（导航被收起时也能切） */
+    if (els.themeToggle) {
+      els.themeToggle.addEventListener("click", function () {
+        Theme.toggle();
+        refreshThemeActive();
+        this.blur();
+      });
+    }
+
+    /* 防误操作：手机下拉刷新 / 误点返回会导致整页重载。
+       若此时正停在「待确认」状态（成绩已测出但还没点记录），
+       就在页面离开前先把它记下来，别让刚做完的一把白做。 */
+    function rescuePendingSolve() {
+      if (state !== "confirm") return;
+      try { confirmOk(); } catch (e) { /* 尽力而为，失败不影响卸载 */ }
+    }
+    window.addEventListener("pagehide", rescuePendingSolve);
 
     /* 三盲：参数面板 + 解法面板 */
     populateOrientation();
