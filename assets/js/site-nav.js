@@ -318,6 +318,23 @@
   }
 
   /* ---------------------------------------------------------
+     宽屏横版铺满样式：运行时注入 assets/css/site-wide.css
+     侧栏占掉 240px 后，各页原有的容器限宽（900~1280 居中）会在宽屏上
+     留下大片空白、内容挤成一根竖条。本层只放开这些容器的 max-width，
+     页面内部的卡片网格本来就是自适应多列，放开后自动变"横版"。
+     必须排在 site-shell.css 之后加载（同特异性靠后覆盖）。
+     详见 assets/css/site-wide.css 文件头说明。
+     --------------------------------------------------------- */
+  function ensureWideCSS() {
+    if (document.querySelector('link[data-site-wide]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/assets/css/site-wide.css';
+    link.setAttribute('data-site-wide', '');
+    document.head.appendChild(link);
+  }
+
+  /* ---------------------------------------------------------
      交互控件 ARIA 状态同步（阶段四 · 可访问性收尾）
      分段按钮 / 选项卡原本只用 .active 类表达选中态，屏幕阅读器读不到。
      这里统一补 aria-pressed，并用 MutationObserver 跟随 .active 类变化自动同步，
@@ -365,6 +382,7 @@
 
   function initNav() {
     ensureShellCSS();
+    ensureWideCSS();
     ensureFavicon();
     initAriaState(document);
     var placeholder = document.querySelector('[data-site-nav]');
