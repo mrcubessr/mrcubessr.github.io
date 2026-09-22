@@ -320,12 +320,63 @@
     return s;
   }
 
+  /* 进步曲线：按时间顺序的「滚动窗口」走势
+     · 速拧：窗口 5 的去尾平均（秒），看成绩整体下行（进步）
+     · 三盲：窗口 5 的滚动成功率（%），看稳定性提升
+     用途：一句话看清「最近这段练习是在变好还是原地踏步」。 */
+  function progressChart(arr, isBld) {
+    var chrono = arr.slice().reverse();   /* 旧 → 新 */
+    if (chrono.length < 2) return emptyBox("至少需要 2 次成绩");
+    var WIN = 5;
+    var xs = [], ys = [], tips = [];
+    for (var i = 0; i < chrono.length; i++) {
+      var v, tip;
+      if (isBld) {
+        var r = succN(chrono, WIN, i);
+        if (r == null) continue;
+        v = r * 100; tip = "第 " + (i + 1) + " 次起近 5 次成功率 " + Math.round(v) + "%";
+      } else {
+        var a = avgN(chrono, WIN, i);
+        if (a == null || a === INF) continue;
+        v = a / 1000; tip = "第 " + (i + 1) + " 次起近 5 次平均 " + v.toFixed(2) + "s";
+      }
+      xs.push(i); ys.push(v); tips.push(tip);
+    }
+    if (ys.length < 2) return emptyBox("样本不足（窗口内有效成绩不够）");
+    var yMax = isBld ? 100 : Math.max.apply(null, ys);
+    var yMin = isBld ? 0 : Math.min.apply(null, ys);
+    if (yMax === yMin) { yMax = yMin + 1; }
+    var iw = W - PAD_L - PAD_R, ih = H - PAD_T - PAD_B;
+    function px(i) { return PAD_L + (xs.length === 1 ? 0 : iw * i / (xs.length - 1)); }
+    function py(v) { return PAD_T + ih - ih * (v - yMin) / (yMax - yMin); }
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" class="tm-svg" role="img" aria-label="' +
+            (isBld ? "成功率走势" : "滚动平均走势") + '">';
+    for (var t = 0; t <= 4; t++) {
+      var yv = yMin + (yMax - yMin) * t / 4;
+      var y = py(yv);
+      s += '<line x1="' + PAD_L + '" y1="' + y + '" x2="' + (W - PAD_R) + '" y2="' + y +
+           '" stroke="var(--line)" stroke-width="1"/>';
+      s += '<text x="' + (PAD_L - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="10" fill="var(--fg-3)">' +
+           (isBld ? Math.round(yv) + "%" : yv.toFixed(1)) + "</text>";
+    }
+    var ppts = ys.map(function (v, i) { return px(i) + "," + py(v); }).join(" ");
+    s += '<polyline points="' + ppts + '" fill="none" stroke="var(--violet)" stroke-width="1.6" opacity="0.9"/>';
+    ys.forEach(function (v, i) {
+      s += '<circle cx="' + px(i) + '" cy="' + py(v) + '" r="2.6" fill="var(--violet)"><title>' + tips[i] + "</title></circle>";
+    });
+    /* x 轴端点标注：最早 / 最新 */
+    s += '<text x="' + PAD_L + '" y="' + (H - PAD_B + 16) + '" font-size="10" fill="var(--fg-3)">最早</text>';
+    s += '<text x="' + (W - PAD_R) + '" y="' + (H - PAD_B + 16) + '" text-anchor="end" font-size="10" fill="var(--fg-3)">最新</text>';
+    s += "</svg>";
+    return s;
+  }
+
   root.TimerStats = {
     fmt: fmt, val: val, avgN: avgN, bestAvgN: bestAvgN,
     meaN: meaN, bestMeaN: bestMeaN, meaMinValid: meaMinValid,
     successRate: successRate, succN: succN,
     sessionStats: sessionStats, byDay: byDay,
     dailyChart: dailyChart, trendChart: trendChart, distChart: distChart,
-    escapeHtml: escapeHtml
+    progressChart: progressChart, escapeHtml: escapeHtml
   };
 })(typeof window !== "undefined" ? window : globalThis);

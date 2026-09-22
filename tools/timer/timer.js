@@ -154,6 +154,8 @@
       date: (typeof s.date === "number" && isFinite(s.date) && s.date > 0) ? s.date : Date.now()
     };
     if (typeof s.src === "string" && s.src) o.src = s.src;
+    /* 练习备注（可与成绩一并导出/导入，旧数据无此字段则留空） */
+    if (typeof s.note === "string" && s.note.trim()) o.note = s.note.trim();
     /* 三盲成绩携带解法（解法由 BLDEngine 计算，结构固定，原样保留） */
     if (s.bld && typeof s.bld === "object") {
       o.bld = {
@@ -775,7 +777,9 @@
 
   function confirmOk() {
     if (state !== "confirm") return;
+    var note = els.noteDraft ? els.noteDraft.value.trim() : "";
     var entry = { ms: Math.round(rawMs), pen: pendingPenalty || "", date: Date.now() };
+    if (note) entry.note = note;
     /* 三盲：把当前打乱对应的解法 + 指标一并存入成绩（分析用） */
     if (opt.event === "bld" && curBld && opt.bld) {
       var b = opt.bld;
@@ -803,6 +807,7 @@
     pendingPenalty = "";
     pendingDnfReason = "";
     if (els.confirm) els.confirm.hidden = true;
+    if (els.noteDraft) els.noteDraft.value = "";   /* 备注已附到本次成绩，清空草稿 */
     next(false);
   }
 
@@ -1318,20 +1323,27 @@
       del.title = "删除该次成绩";
       del.setAttribute("aria-label", "删除该次成绩");
       del.addEventListener("click", function (e) {
-        e.stopPropagation();   /* 点删除不触发“查看解法” */
+        e.stopPropagation();   /* 点删除不触发“打开详情” */
         var a = solves(); a.splice(i, 1);
         saveData(); renderGroups(); renderStrip(); renderList();
       });
       li.appendChild(del);
+      /* 备注标记放最后、整行跨度显示，避免挤乱上方 6 列网格对齐 */
+      if (rec.note) {
+        var nt = document.createElement("span");
+        nt.className = "tm-list__note";
+        nt.textContent = "备注：" + rec.note;
+        nt.title = "备注：" + rec.note;
+        li.appendChild(nt);
+      }
 
-      /* 点成绩行 → 回看这一把的解法（三盲带解法时）；无解法不响应 */
-      li.style.cursor = rec.bld ? "pointer" : "";
+      /* 点任意成绩行 → 打开详情/编辑面板（三盲含解法只读展示 + 主舞台回放入口） */
+      li.style.cursor = "pointer";
       li.addEventListener("click", function (e) {
         if (e.target.closest(".tm-list__del")) return;
-        if (!rec.bld) return;
         Array.prototype.forEach.call(list.children, function (c) { c.classList.remove("is-viewing"); });
         li.classList.add("is-viewing");
-        viewSolveBld(rec, num);
+        openSolveDetail(rec, num);
       });
 
       frag.appendChild(li);
@@ -1377,6 +1389,101 @@
     sp.textContent = S.fmt(v);
     sp.title = "最近连续 " + n + " 次剔除 DNF 后的平均（需成功 ≥ " + need + " 把；不作废、不显示 DNF）";
     return sp;
+  }
+
+  /* ---------- 成绩详情 / 编辑（复盘面板） ---------- */
+  var solvePen = "";   /* 编辑面板里当前选中的罚时（事件级变量，面板重开时重置） */
+  function fmtDateTime(ts) {
+    var d = new Date(ts || Date.now());
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " +
+           p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  /* 点任意成绩行打开：可改时间 / 罚时 / 备注；三盲含解法只读展示 + 主舞台回放入口 */
+  function openSolveDetail(rec, num) {
+    if (!els.solveModal) return;
+    solvePen = rec.pen || "";
+    els.solveNum.textContent = num;
+    var sec = (rec.pen === "DNF") ? "" : (rec.ms / 1000).toFixed(2);
+    var html = "";
+    html += '<div class="tm-solve__meta">' + fmtDateTime(rec.date) + (rec.note ? " · 含备注" : "") + "</div>";
+    html += '<div class="tm-field"><label class="tm-field__k">时间（秒）</label>' +
+            '<input class="input" id="tm-solve-ms" type="number" step="0.01" min="0" inputmode="decimal"' +
+            ' value="' + (sec != null ? sec : "") + '"' + (rec.pen === "DNF" ? ' disabled placeholder="DNF 不计时间"' : "") + "></div>";
+    html += '<div class="tm-field"><label class="tm-field__k">罚时</label>' +
+            '<div class="seg tm-solve__pen" id="tm-solve-pen" role="group" aria-label="罚时">' +
+            '<button type="button" class="seg__btn' + (solvePen === "" ? " is-active" : "") + '" data-pen="">无</button>' +
+            '<button type="button" class="seg__btn' + (solvePen === "+2" ? " is-active" : "") + '" data-pen="+2">+2</button>' +
+            '<button type="button" class="seg__btn' + (solvePen === "DNF" ? " is-active" : "") + '" data-pen="DNF">DNF</button>' +
+            "</div></div>";
+    html += '<div class="tm-field"><label class="tm-field__k">备注</label>' +
+            '<textarea class="input tm-solve__note" id="tm-solve-note" rows="2" placeholder="这把的练习笔记…">' +
+            S.escapeHtml(rec.note || "") + "</textarea></div>";
+    if (rec.bld) {
+      var b = rec.bld;
+      html += '<div class="tm-solve__bld"><div class="tm-h3">三盲解法（只读）</div>';
+      html += '<div class="tm-solve__bld-row"><span>坐标</span><b>' + S.escapeHtml(b.orientationLabel || "") + "</b></div>";
+      html += '<div class="tm-solve__bld-row"><span>棱</span><b>' + S.escapeHtml(b.edge || "") + "</b><span>翻色</span><b>" + S.escapeHtml(b.flip || "") + "</b></div>";
+      html += '<div class="tm-solve__bld-row"><span>角</span><b>' + S.escapeHtml(b.corner || "") + "</b><span>扭</span><b>" + S.escapeHtml(b.twist || "") + "</b></div>";
+      if (b.complexity != null) html += '<div class="tm-solve__bld-row"><span>复杂度</span><b>' + b.complexity + " 码</b></div>";
+      if (b.difficulty && b.difficulty.notation) html += '<div class="tm-solve__bld-row"><span>主记法</span><b>' + S.escapeHtml(b.difficulty.notation) + "</b></div>";
+      if (b.dnfReason) html += '<div class="tm-solve__bld-row"><span>DNF 归因</span><b>' + (b.dnfReason === "memo" ? "记忆错" : b.dnfReason === "exec" ? "执行错" : "其他") + "</b></div>";
+      if (b.metrics) {
+        var m = b.metrics;
+        if (m.split) {
+          html += '<div class="tm-solve__bld-row"><span>记忆</span><b>' + S.fmt(m.memoMs) + "</b><span>执行</span><b>" + S.fmt(m.execMs) + "</b></div>";
+          html += '<div class="tm-solve__bld-row"><span>记忆速度</span><b>' + (m.lettersPerMin || 0).toFixed(1) + " 字母/分</b><span>执行 TPS</span><b>" + (m.tpsExec || 0).toFixed(2) + "</b></div>";
+        } else if (m.tpsAll != null) {
+          html += '<div class="tm-solve__bld-row"><span>TPS</span><b>' + m.tpsAll.toFixed(2) + "</b></div>";
+        }
+      }
+      html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button></div>';
+    }
+    html += '<div class="tm-solve__btns">' +
+            '<button type="button" class="btn btn--sm btn--primary" id="tm-solve-save">保存</button>' +
+            '<button type="button" class="btn btn--sm btn--ghost" id="tm-solve-del">删除这把</button></div>';
+    els.solveBody.innerHTML = html;
+
+    var penSeg = els.solveBody.querySelector("#tm-solve-pen");
+    var msInput = els.solveBody.querySelector("#tm-solve-ms");
+    penSeg.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-pen]");
+      if (!b) return;
+      solvePen = b.dataset.pen || "";
+      Array.prototype.forEach.call(penSeg.children, function (c) { c.classList.remove("is-active"); });
+      b.classList.add("is-active");
+      msInput.disabled = (solvePen === "DNF");
+      if (solvePen === "DNF") msInput.value = ""; else if (!msInput.value) msInput.value = (rec.ms / 1000).toFixed(2);
+    });
+    els.solveBody.querySelector("#tm-solve-save").addEventListener("click", function () { saveSolveEdit(rec, msInput); });
+    els.solveBody.querySelector("#tm-solve-del").addEventListener("click", function () {
+      var a = solves();
+      for (var k = 0; k < a.length; k++) { if (a[k] === rec) { a.splice(k, 1); break; } }
+      saveData(); closeSolveModal(); renderGroups(); renderStrip(); renderList();
+      if (els.modal && !els.modal.hidden) openStats();
+    });
+    var replay = els.solveBody.querySelector("#tm-solve-replay");
+    if (replay) replay.addEventListener("click", function () { closeSolveModal(); if (rec.bld) viewSolveBld(rec, num); });
+
+    els.solveModal.hidden = false;
+    if (msInput) msInput.focus();
+  }
+  function saveSolveEdit(rec, msInput) {
+    var sec = parseFloat(msInput.value);
+    if (solvePen !== "DNF" && !(sec > 0)) { msInput.classList.add("is-err"); msInput.focus(); return; }
+    rec.ms = solvePen === "DNF" ? rec.ms : Math.round(sec * 1000);
+    rec.pen = solvePen;
+    var noteEl = els.solveBody.querySelector("#tm-solve-note");
+    var note = noteEl ? noteEl.value.trim() : "";
+    if (note) rec.note = note; else delete rec.note;
+    saveData();
+    closeSolveModal();
+    renderGroups(); renderStrip(); renderList();
+    if (els.modal && !els.modal.hidden) openStats();
+  }
+  function closeSolveModal() {
+    if (els.solveModal) els.solveModal.hidden = true;
+    if (els.list) Array.prototype.forEach.call(els.list.children, function (c) { c.classList.remove("is-viewing"); });
   }
 
   /* ---------- 事件切换 / 打乱来源 ---------- */
@@ -1519,9 +1626,20 @@
   }
 
   /* ---------- 统计弹窗 ---------- */
+  var statScope = "group";   /* 统计范围：group(本组) / event(全部分组) / all(全部项目) */
+  function getStatArr(scope) {
+    if (scope === "event") return allSolves(opt.event);
+    if (scope === "all") {
+      if (opt.event === "bld") return allSolves("bld");
+      return allSolves("3x3").concat(allSolves("2x2"));   /* 速拧项目合并对比，盲拧单列 */
+    }
+    return solves();
+  }
   function openStats() {
-    var arr = solves(), s = S.sessionStats(arr), g = curGroup(opt.event);
-    els.modalEvent.textContent = eventDef(opt.event).label + " · " + g.name;
+    var arr = getStatArr(statScope), s = S.sessionStats(arr), g = curGroup(opt.event);
+    if (statScope === "group") els.modalEvent.textContent = eventDef(opt.event).label + " · " + g.name;
+    else if (statScope === "event") els.modalEvent.textContent = eventDef(opt.event).label + " · 全部分组（" + arr.length + " 次）";
+    else els.modalEvent.textContent = (opt.event === "bld" ? "三盲" : "三阶 + 二阶") + " · 全部项目（" + arr.length + " 次）";
     var cells;
     if (opt.event === "bld") {
       /* 盲拧：aoN 会被 DNF 整片作废 → 换成成功率 / mea 口径 */
@@ -1564,6 +1682,7 @@
     els.chartDaily.innerHTML = S.dailyChart(arr);
     els.chartTrend.innerHTML = S.trendChart(arr);
     els.chartDist.innerHTML = S.distChart(arr);
+    if (els.chartProgress) els.chartProgress.innerHTML = S.progressChart(arr, opt.event === "bld");
     if (opt.event === "bld" && els.bldAnalysis && window.TimerBldStats) {
       els.bldAnalysis.hidden = false;
       els.bldAnalysis.innerHTML = window.TimerBldStats.renderReport(arr);
@@ -1619,7 +1738,7 @@
      单条：[ [penalty, timeMs], 打乱, 备注, 时间戳(秒) ]，csTimer 内部按「旧 → 新」排列。 */
   function csTimerSolve(rec) {
     var pen = rec.pen === "DNF" ? -1 : (rec.pen === "+2" ? 2000 : 0);
-    return [[pen, Math.round(rec.ms)], "", "", Math.round((rec.date || Date.now()) / 1000)];
+    return [[pen, Math.round(rec.ms)], rec.note || "", Math.round((rec.date || Date.now()) / 1000)];
   }
   function csTimerStat(list) {
     var total = list.length, dnf = 0, sum = 0, n = 0;
@@ -1702,10 +1821,10 @@
     if (!arr || !arr.length) return [];
     var out = [];
     for (var i = 0; i < arr.length; i++) {
-      var e = arr[i], inner = null, ts = null;
+      var e = arr[i], inner = null, ts = null, note = "";
       if (typeof e === "number") inner = [0, e];
       else if (Array.isArray(e)) {
-        if (Array.isArray(e[0])) { inner = e[0]; ts = e[3]; }
+        if (Array.isArray(e[0])) { inner = e[0]; ts = e[3]; if (typeof e[2] === "string") note = e[2]; }
         else if (typeof e[0] === "number") { inner = e; ts = (typeof e[2] === "number" ? e[2] : null); }
         else continue;
       } else if (e && typeof e === "object" && typeof e.ms === "number") {
@@ -1717,7 +1836,7 @@
       if (!inner || typeof inner[1] !== "number" || !isFinite(inner[1])) continue;
       var p = inner[0], t = inner[1];
       if (isPenCode(t) && isPlausibleMs(p)) { var tmp = p; p = t; t = tmp; }   /* 防御：两字段颠倒 */
-      var s = normSolve({ ms: t, pen: penOf(p), date: tsToMs(ts) });
+      var s = normSolve({ ms: t, pen: penOf(p), date: tsToMs(ts), note: note });
       if (s) out.push(s);
     }
     return out;
@@ -2176,7 +2295,14 @@
       /* 确认区：本次指标 + DNF 归因 */
       confirmMetrics: $("tm-confirm-metrics"),
       dnfReason: $("tm-dnf-reason"),
-      dnfMemo: $("tm-dnf-memo"), dnfExec: $("tm-dnf-exec"), dnfOther: $("tm-dnf-other")
+      dnfMemo: $("tm-dnf-memo"), dnfExec: $("tm-dnf-exec"), dnfOther: $("tm-dnf-other"),
+      /* 练习笔记（草稿，记录时附到本次成绩） */
+      noteDraft: $("tm-note-draft"),
+      /* 成绩详情 / 编辑弹窗 */
+      solveModal: $("tm-solve-modal"), solveClose: $("tm-solve-close"),
+      solveNum: $("tm-solve-num"), solveBody: $("tm-solve-body"),
+      /* 统计范围选择 */
+      statScope: $("tm-stat-scope"), chartProgress: $("tm-chart-progress")
     };
     if (!els.stage) return;
 
@@ -2258,8 +2384,23 @@
     els.modal.addEventListener("click", function (e) {
       if (e.target.dataset && e.target.dataset.close) closeStats();
     });
+    /* 成绩详情/编辑弹窗：关闭 + 范围切换 */
+    if (els.solveClose) els.solveClose.addEventListener("click", closeSolveModal);
+    if (els.solveModal) els.solveModal.addEventListener("click", function (e) {
+      if (e.target.dataset && e.target.dataset.close) closeSolveModal();
+    });
+    if (els.statScope) els.statScope.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-scope]");
+      if (!b) return;
+      statScope = b.dataset.scope || "group";
+      Array.prototype.forEach.call(els.statScope.children, function (c) { c.classList.remove("is-active"); });
+      b.classList.add("is-active");
+      openStats();
+      b.blur();
+    });
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape" && e.code !== "Escape") return;
+      if (!els.solveModal.hidden) { e.stopPropagation(); closeSolveModal(); return; }
       if (!els.settingsModal.hidden) { e.stopPropagation(); closeSettings(); return; }
       if (!els.modal.hidden) { e.stopPropagation(); closeStats(); return; }
       if (!els.mapModal.hidden) { e.stopPropagation(); closeMapDialog(); }

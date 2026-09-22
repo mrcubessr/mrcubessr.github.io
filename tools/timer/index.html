@@ -315,6 +315,11 @@
         <span id="tm-lh-1">ao5</span><span id="tm-lh-2">ao12</span><span id="tm-lh-3">ao100</span>
         <span></span>
       </div>
+      <div class="tm-note-box" id="tm-note-box">
+        <span class="tm-label">练习笔记</span>
+        <input class="input" id="tm-note-draft" type="text"
+               placeholder="随手记…记录后自动附到本次成绩；也可点任意成绩补备注" autocomplete="off" spellcheck="false">
+      </div>
       <ol class="tm-list" id="tm-list"></ol>
       <p class="tm-empty" id="tm-empty">当前分组还没有成绩：长按计时区（或按空格）开始计时，也可导入已有的成绩文件。</p>
     </div>
@@ -347,6 +352,11 @@
       <button class="btn btn--sm btn--ghost" id="tm-modal-close" type="button">关闭</button>
     </div>
     <div class="tm-modal__body">
+      <div class="tm-stat-scope seg" id="tm-stat-scope" role="group" aria-label="统计范围">
+        <button type="button" class="seg__btn is-active" data-scope="group">本组</button>
+        <button type="button" class="seg__btn" data-scope="event">全部分组</button>
+        <button type="button" class="seg__btn" data-scope="all">全部项目</button>
+      </div>
       <h3 class="tm-h3">本组概览</h3>
       <div class="tm-grid" id="tm-stat-grid"></div>
       <h3 class="tm-h3">逐日统计 · 每天做了多少次</h3>
@@ -355,8 +365,22 @@
       <div class="tm-chart" id="tm-chart-trend"></div>
       <h3 class="tm-h3">成绩分布</h3>
       <div class="tm-chart" id="tm-chart-dist"></div>
+      <h3 class="tm-h3">进步曲线 · 滚动平均 / 成功率走势</h3>
+      <div class="tm-chart" id="tm-chart-progress"></div>
       <div id="tm-bld-analysis" hidden></div>
     </div>
+  </div>
+</div>
+
+<!-- 成绩详情 / 编辑弹窗（点任意成绩行打开：可改时间、罚时、备注；三盲含解法只读展示） -->
+<div class="tm-modal" id="tm-solve-modal" hidden>
+  <div class="tm-modal__mask" data-close="1"></div>
+  <div class="tm-modal__panel tm-modal__panel--sm" role="dialog" aria-modal="true" aria-labelledby="tm-solve-title">
+    <div class="tm-modal__head">
+      <h2 id="tm-solve-title">成绩详情 · #<span id="tm-solve-num"></span></h2>
+      <button class="btn btn--sm btn--ghost" id="tm-solve-close" type="button">关闭</button>
+    </div>
+    <div class="tm-modal__body" id="tm-solve-body"></div>
   </div>
 </div>
 
