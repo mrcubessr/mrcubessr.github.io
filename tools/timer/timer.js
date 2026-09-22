@@ -498,6 +498,9 @@
     var isBld = opt.event === "bld";
     exitSolveView();   /* 切换项目时退出“查看历史解法”状态 */
     if (els.bldParams) els.bldParams.hidden = !isBld;
+    /* 桌面单屏：工具带上的「三盲参数」入口只在三盲项目下出现。
+       按钮本身另有一层「只在桌面单屏可显示」的 CSS，窄屏继续隐藏。 */
+    if (els.bldOpen) els.bldOpen.hidden = !isBld;
     if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
     manualSegs().forEach(function (seg) { seg.hidden = isBld; });
     if (els.bldNetSide) els.bldNetSide.hidden = !isBld;   /* 展开图与打乱公式同处显示 */
@@ -520,6 +523,7 @@
     els.bldParams.classList.toggle("is-collapsed", collapsed);
     if (els.bldBody) els.bldBody.hidden = collapsed;
     if (els.bldParamsToggle) els.bldParamsToggle.setAttribute("aria-expanded", String(!collapsed));
+    if (els.bldOpen) els.bldOpen.setAttribute("aria-expanded", String(!collapsed));
     renderBldSummary();
   }
   function toggleBldCollapse() {
@@ -1038,6 +1042,10 @@
       els.kAo5.classList.toggle("is-best", s.best != null);
       setAvgEl(els.kAo12, s.mean);          /* 平均：有效成绩平均（DNF 不计入、不作废） */
       setAvgEl(els.kAo100, s.bestMea12);    /* 最佳 mea12：稳定水准 */
+      /* 口径说明放到 title：门槛是「窗口内成功过半」，光看数字看不出来 */
+      if (els.kAo12) els.kAo12.title = "本组全部有效成绩的平均（DNF 不计入、不作废）";
+      if (els.kAo100) els.kAo100.title = "所有「连续 12 把」窗口里最好的一个 mea12；"
+        + "窗口内须成功 ≥ " + meaNeed(12) + " 把才计入（样本太少的窗口不算）";
     } else {
       if (els.kBestK) els.kBestK.textContent = "单次最好";
       if (els.kAo5K) els.kAo5K.textContent = "当前 ao5";
@@ -1052,6 +1060,10 @@
       setAvgEl(els.kAo5, s.ao5);
       setAvgEl(els.kAo12, s.ao12);
       setAvgEl(els.kAo100, s.ao100);
+      /* 切回速拧要把三盲那套 mea 口径的 title 清掉，否则鼠标悬停还在讲 mea */
+      if (els.kAo12) els.kAo12.title = "csTimer 口径 ao12：最近 12 次去掉 1 个最好、1 个最差";
+      if (els.kAo100) els.kAo100.title = "csTimer 口径 ao100：最近 100 次各去 5 个最好 / 最差";
+      if (els.kAo5) els.kAo5.title = "csTimer 口径 ao5：最近 5 次去掉 1 个最好、1 个最差";
     }
   }
   function setAvgEl(el, v) {
@@ -1078,8 +1090,14 @@
           (s.successRate == null ? "--" : Math.round(s.successRate * 100) + "%");
         els.aoCmp.classList.remove("is-better", "is-worse");
       }
-      if (els.ao5) els.ao5.textContent = "mea5 " + fmtOrDash(S.meaN(arr, 5, 0));
-      if (els.ao12) els.ao12.textContent = "mea12 " + fmtOrDash(S.meaN(arr, 12, 0));
+      if (els.ao5) {
+        els.ao5.textContent = "mea5 " + fmtOrDash(S.meaN(arr, 5, 0));
+        els.ao5.title = "最近连续 5 次剔除 DNF 后的平均（需成功 ≥ " + meaNeed(5) + " 把）";
+      }
+      if (els.ao12) {
+        els.ao12.textContent = "mea12 " + fmtOrDash(S.meaN(arr, 12, 0));
+        els.ao12.title = "最近连续 12 次剔除 DNF 后的平均（需成功 ≥ " + meaNeed(12) + " 把）";
+      }
       return;
     }
     /* 对比：最近一次（有效）与本组平均的差，快=绿 慢=红，中文习惯涨红跌绿 → 这里用「更快=绿」 */
@@ -1102,6 +1120,12 @@
     if (v == null) return "--";
     if (v === Infinity) return "DNF";
     return S.fmt(v);
+  }
+  /* mea 门槛：窗口内「有效（非 DNF）把数」的最小值，由 stats.js 统一定义。
+     这里只做一层兜底 —— 万一 stats.js 没加载到，仍按「过半」口径，
+     避免门槛判定整个失效（历史上这里漏过定义，导致 refreshAo 直接抛 ReferenceError）。 */
+  function meaNeed(n) {
+    return (S && S.meaMinValid) ? S.meaMinValid(n) : Math.ceil(n / 2);
   }
 
   /* ---------- 分组控件 ---------- */
@@ -1193,7 +1217,8 @@
     if (els.lh2) els.lh2.textContent = isBld ? "mea5" : "ao12";
     if (els.lh3) els.lh3.textContent = isBld ? "mea12" : "ao100";
     if (els.listHead) els.listHead.title = isBld
-      ? "成功率 = 最近 5 次里成功的比例；mea5 / mea12 = 最近 5 / 12 次剔除 DNF 后的平均（不会整列变 DNF）"
+      ? "成功率 = 最近 5 次里成功的比例；mea5 / mea12 = 最近连续 5 / 12 次剔除 DNF 后的平均。"
+        + "窗口内成功把数须达到过半（mea5 ≥ 3 把、mea12 ≥ 6 把），否则记 —（样本太少不参与统计）"
       : "ao5 / ao12 / ao100 = csTimer 口径的滚动去尾平均（窗口内 DNF 过多时该格为 DNF）";
 
     refreshAo();
@@ -1308,11 +1333,17 @@
   }
   /* 三盲列②③：mea（窗口内剔除 DNF 后取平均；窗口内无有效成绩记 —） */
   function meaCell(v, n) {
+    n = n || 5;
     var sp = document.createElement("span");
     sp.className = "tm-list__a";
-    if (v == null) { sp.textContent = "—"; return sp; }
+    var need = meaNeed(n);
+    if (v == null) {
+      sp.textContent = "—";
+      sp.title = "最近连续 " + n + " 次里成功不足 " + need + " 把，样本太少不计 mea" + n;
+      return sp;
+    }
     sp.textContent = S.fmt(v);
-    sp.title = "最近 " + (n || 5) + " 次剔除 DNF 后的平均（不作废、不显示 DNF）";
+    sp.title = "最近连续 " + n + " 次剔除 DNF 后的平均（需成功 ≥ " + need + " 把；不作废、不显示 DNF）";
     return sp;
   }
 
@@ -1470,10 +1501,10 @@
           s.successRate != null && s.successRate >= 0.5],
         ["单次最好", s.best == null ? "--" : S.fmt(s.best), s.best != null],
         ["平均", s.mean == null ? "--" : S.fmt(s.mean)],
-        ["当前 mea3", s.mea3 == null ? "--" : S.fmt(s.mea3)],
-        ["当前 mea12", s.mea12 == null ? "--" : S.fmt(s.mea12)],
-        ["最佳 mea3", s.bestMea3 == null ? "--" : S.fmt(s.bestMea3), s.bestMea3 != null],
-        ["最佳 mea12", s.bestMea12 == null ? "--" : S.fmt(s.bestMea12), s.bestMea12 != null],
+        ["当前 mea3（≥" + meaNeed(3) + " 把）", s.mea3 == null ? "--" : S.fmt(s.mea3)],
+        ["当前 mea12（≥" + meaNeed(12) + " 把）", s.mea12 == null ? "--" : S.fmt(s.mea12)],
+        ["最佳 mea3（≥" + meaNeed(3) + " 把）", s.bestMea3 == null ? "--" : S.fmt(s.bestMea3), s.bestMea3 != null],
+        ["最佳 mea12（≥" + meaNeed(12) + " 把）", s.bestMea12 == null ? "--" : S.fmt(s.bestMea12), s.bestMea12 != null],
         ["单次最差", s.worst == null ? "--" : (s.worst === Infinity ? "DNF" : S.fmt(s.worst))]
       ];
     } else {
@@ -2090,6 +2121,7 @@
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
       bldParamsToggle: $("tm-bld-collapse"), bldBody: $("tm-bld-body"), bldSummary: $("tm-bld-summary"),
+      bldOpen: $("tm-bld-open"),
       bldNetSide: $("tm-bld-net-side"),
       bldRows: $("tm-bld-rows"), bldCopy: $("tm-bld-copy"),
       bldNet: $("tm-bld-net"), bldNetCap: $("tm-bld-net-cap"), bldDiff: $("tm-bld-diff"),
@@ -2334,6 +2366,12 @@
     populateOrientation();
     syncBldParamsUI();
     if (els.bldParamsToggle) els.bldParamsToggle.addEventListener("click", toggleBldCollapse);
+    /* 桌面单屏：从工具带打开右侧参数抽屉（打开 = 取消收起态，复用同一份状态） */
+    if (els.bldOpen) els.bldOpen.addEventListener("click", function () {
+      opt.bldCollapsed = false;
+      saveOpt(); applyBldCollapse();
+      this.blur();
+    });
     if (els.bldParams) els.bldParams.addEventListener("click", function (e) {
       /* 点击摘要行（非交互控件）也能展开，方便快速查看 */
       if (els.bldBody && els.bldBody.hidden && (e.target === els.bldSummary || e.target.classList.contains("tm-bld-params__head"))) {

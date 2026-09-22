@@ -15,8 +15,18 @@
 
    盲拧专用口径（大量 DNF 时 aoN 会整片作废，故另设）：
      · meaN  → 窗口内 DNF 直接剔除，其余取平均（不因 DNF 作废）；
-               窗口内 1 次有效都没有时返回 null；跳过仍有 >0 有效成绩的窗口
+               但窗口内**有效（非 DNF）把数必须达到门槛 meaMinValid(n)**，
+               低于门槛返回 null（该窗口不足以代表水平）
+     · bestMeaN → 所有窗口里最小的那个合格 meaN（只扫合格窗口）
      · 成功率 → 完成次数 / 总次数（+2 计入完成，DNF 不计）
+
+   ⚠️ 门槛为什么必须有（2026-09-22 修）：
+     原实现只要窗口内有 1 把成功就返回那一把的时间。于是「最佳 mea12」
+     会挑中「12 把里只有 1–2 把成功」的窗口，显示一个不可能达到的成绩
+     （相当于「从全部成绩里取最好的 12 把」的效果）。加门槛后，
+     窗口必须有过半成功才参与统计，这个虚高消失。
+     门槛当前取「过半」= ceil(n/2)：mea3 → 2、mea5 → 3、mea12 → 6。
+     若要改成固定值（例如一律 5 把），只改 meaMinValid 一处即可。
    ========================================================= */
 (function (root) {
   "use strict";
@@ -71,11 +81,17 @@
     return best;
   }
 
+  /* 窗口内至少要有多少把「有效（非 DNF）」成绩，这个 meaN 才算数。
+     取「过半」：mea3 → 2、mea5 → 3、mea12 → 6。
+     没有门槛时，12 把里只成功 1 把也会返回那一把的时间，
+     「最佳 mea」就会被这种窗口刷出一个虚高值（见文件头注释）。 */
+  function meaMinValid(n) { return Math.ceil(n / 2); }
+
   /* ---------- 盲拧口径：meaN（DNF 剔除，不整片作废） ----------
      arr 为「最新在前」；取 arr[idx .. idx+n-1] 窗口，剔除 DNF 后取平均。
-     窗口内一次有效成绩都没有 → null（该窗口无参考价值）。
-     arr[idx]（最新一次）本身是 DNF 且窗口内无其它有效 → 仍返回平均，
-     因为盲拧正是要看「含 DNF 的这段练习」的平均水准。 */
+     · 窗口内有效把数 < meaMinValid(n) → null（样本太少，无参考价值）
+     · arr[idx]（最新一次）本身是 DNF 不影响结果 —— 只要窗口内
+       成功把数够门槛，就仍然返回平均，这正是与 aoN 的关键差别。 */
   function meaN(arr, n, idx) {
     idx = idx || 0;
     if (!arr || arr.length < idx + n) return null;
@@ -85,7 +101,8 @@
       if (v === INF) continue;      /* DNF 直接剔除，不作废整个窗口 */
       sum += v; cnt++;
     }
-    return cnt ? sum / cnt : null;
+    if (cnt < meaMinValid(n)) return null;   /* 成功把数不足门槛 */
+    return sum / cnt;
   }
 
   /* 全会话最好的 meaN（跳过 null） */
@@ -305,7 +322,8 @@
 
   root.TimerStats = {
     fmt: fmt, val: val, avgN: avgN, bestAvgN: bestAvgN,
-    meaN: meaN, bestMeaN: bestMeaN, successRate: successRate, succN: succN,
+    meaN: meaN, bestMeaN: bestMeaN, meaMinValid: meaMinValid,
+    successRate: successRate, succN: succN,
     sessionStats: sessionStats, byDay: byDay,
     dailyChart: dailyChart, trendChart: trendChart, distChart: distChart,
     escapeHtml: escapeHtml

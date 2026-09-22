@@ -744,3 +744,163 @@ body { margin: 0; }
   .tm-modal__body { padding: 10px 12px 14px; }
   .tm-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* =========================================================
+   桌面横版单屏（参考 csTimer）：一屏装下，不用上下滚动
+   ─ 断点同时要求「宽 ≥1025」与「高 ≥660」：
+     宽 1025 与站点侧栏模式对齐（240 侧栏 + ≥785 主体）；
+     高不足时（分屏、小笔记本）整块不生效，退回原来的纵向
+     滚动布局 —— 否则 body 的 overflow:hidden 会把内容藏死。
+   ─ 分区：左列 = 计时主区（工具带→打乱→舞台→确认→KPI），
+     右列 = 成绩列表，独占整屏高。全页唯一可滚的是成绩列表。
+   ========================================================= */
+
+/* .tm-main 是新增的无样式包裹层。默认（手机/平板/矮屏）让它
+   「消失」，子元素重新成为 .tm 的直接 flex 子项 —— 于是既有的
+   order:1~9 手机单屏规则与 ≤600px 那一大段完全不用改。 */
+.tm-main { display: contents; }
+
+/* 「三盲参数」触发按钮：只在桌面单屏下出现（见下面的媒体查询）；
+   手机端参数面板自带折叠标题，不需要这个入口。 */
+.tm-bld-open { display: none; }
+
+@media (min-width: 1025px) and (min-height: 660px) {
+
+  /* 整页锁高：body 不再产生滚动条 */
+  body { overflow: hidden; }
+
+  .tm-wrap {
+    height: 100dvh; min-height: 0;
+    padding: 12px 16px;
+    display: flex; flex-direction: column;
+    overflow-y: auto;                 /* 兜底：万一内容仍超高，内部滚，不裁掉 */
+    overscroll-behavior-y: contain;
+  }
+  .tm-wrap > .tm { flex: 1 1 auto; min-height: 0; }
+
+  /* 页脚在桌面让位：109px 纯浪费，计时器也没有需要它的内容 */
+  body > .site-footer { display: none !important; }
+
+  /* 两列分区。右列 30% 并夹在 300–400px：
+     1440 屏给 380、1920 屏给 400、1025 屏给 300，左列始终 ≥470。 */
+  .tm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 30%, 400px);
+    gap: 12px;
+  }
+  .tm-main {
+    display: flex; flex-direction: column; gap: 10px;
+    grid-column: 1; grid-row: 1;
+    min-height: 0; overflow: hidden;
+  }
+  .tm-list-wrap {
+    display: flex; flex-direction: column;
+    grid-column: 2; grid-row: 1;
+    min-height: 0; overflow: hidden;
+  }
+
+  /* 左列排布：工具带提到最上，计时舞台吃掉剩余高度 */
+  .tm-main > .tm-tools { order: -1; flex: 0 0 auto; }
+  .tm-main > .tm-bar { flex: 0 1 auto; min-height: 0; }
+  .tm-main > .tm-stage { flex: 1 1 auto; min-height: 180px; }
+  .tm-main > .tm-confirm { flex: 0 0 auto; }
+  .tm-main > .tm-strip { flex: 0 0 auto; }
+
+  /* 打乱区内部也要能收：三盲「解法/读码」块封顶并自滚，
+     否则它会把舞台、确认栏、KPI 一起挤出屏幕。
+     注意 .tm-bld 落在 .tm-bar 里的 .tm-scramble-main 中，不是左列直接子级。 */
+  .tm-scramble-block { min-height: 0; }
+  .tm-scramble-main { min-height: 0; }
+  .tm-bar .tm-bld { flex: 0 1 auto; min-height: 0; max-height: 40vh; overflow-y: auto; }
+
+  /* 右列：分组栏 / 表头固定，列表占满剩余并内部滚动 */
+  .tm-list-wrap > .tm-list-bar,
+  .tm-list-wrap > .tm-list-head,
+  .tm-list-wrap > .tm-empty { flex: 0 0 auto; }
+
+  /* 列表列宽：右列只有 300–400px，原来那套写死列宽合计约 516px
+     （62 + 90 + 92×3 + 34 + 40 gap）会横向溢出、数字被截。
+     改成「时间列吃剩余、其余按比例」，列宽随右列自动收放。
+     ⚠️ 表头与数据行是两套独立的选择器，必须同时改，否则列对不齐。 */
+  .tm-list-head,
+  .tm-list__item {
+    grid-template-columns: 42px minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 26px;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .tm-list {
+    flex: 1 1 auto; min-height: 0;
+    max-height: none; overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+  /* 空列表：让「还没有成绩」的提示贴在上面，别被 flex:1 推到最底 */
+  .tm-list:empty { display: none; }
+
+  /* 宽列里公式放宽、展开图收窄，给打乱留出行宽 */
+  .tm-scramble__text { max-width: none; }
+  .tm-bld-net-side { width: 250px; }
+
+  /* 计时数字的字号放大放在下面的「≥1280」独立媒体查询里。
+     不能写在这里：本块里任何 .tm-time 规则（哪怕选择器不同）都会因为
+     min-width:1025 与窄屏块同时命中、且特异性更高而把窄屏那条覆盖掉 ——
+     实测「12:34.56」在 1025px 宽下会超出舞台 30px。宽窄两块必须互斥。 */
+
+  /* ---------- 三盲参数：改成右侧抽屉（默认收起） ----------
+     面板 7 组表单全展开约 600px，留在文档流里会把计时区顶掉。
+     复用现有的 opt.bldCollapsed / .is-collapsed，不新增 JS 状态。
+     手机端仍是底部升起的 bottom sheet（见上面的 ≤600px 媒体查询）。 */
+  .tm-bld-params {
+    position: fixed; top: 0; right: 0; bottom: 0; left: auto;
+    width: min(440px, 92vw); max-height: none;
+    z-index: 70;                          /* 高于内容、低于导航 1000 与弹窗 80 */
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    border: 0; border-left: 1px solid var(--line-2);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, .22);
+  }
+  /* 头部吸顶：滚到哪儿都能一键收起 */
+  .tm-bld-params:not(.is-collapsed) > .tm-bld-params__head {
+    position: sticky; top: 0; z-index: 2;
+    margin: -14px -16px 10px; padding: 12px 16px;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .tm-bld-params.is-collapsed { display: none; }
+
+  /* 工具带上的「三盲参数」按钮：桌面单屏下可用 */
+  .tm-bld-open:not([hidden]) { display: inline-flex; }
+}
+
+/* =========================================================
+   1025–1279：右列只剩 300–312px，还要再收两处
+   ① 列表六列即使按比例也排不下 → 隐藏第 5 列（ao100 / mea12），
+      与手机端同一取舍。
+   ② 计时数字 13vw 在这里会到 132px，「1:23.45」这种 7–8 字符
+      （三盲常见）会超出舞台宽度 → 收到 8vw。
+      ≥1280 时舞台 ≥684px，原值反而合适，所以只在这个区间改。
+   ========================================================= */
+@media (min-width:1025px) and (max-width:1279px) and (min-height:660px){
+  /* 8vw：1025px 宽时舞台可用宽只有 401px，而「12:34.56」是 8 字符
+     × 0.605em ≈ 4.84em，故字号上限约 82px。取 7.6vw 留 6% 余量。 */
+  .tm-time { font-size: clamp(48px, 7.6vw, 104px); }
+
+  .tm-list-head,
+  .tm-list__item {
+    grid-template-columns: 42px minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) 26px;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .tm-list-head span:nth-child(5),
+  .tm-list__item > *:nth-child(5) { display: none; }
+}
+
+/* =========================================================
+   ≥1280：舞台宽裕（含 400px 右列后仍 ≥654px），计时数字放大
+   基础样式的 clamp(52px,13vw,132px) 在 450–800px 高的舞台里偏小。
+   10vw 且上限 168px：按「12:34.56」= 8 字符 × 0.605em ≈ 4.84em 计算，
+   1280px 宽时 128px×4.84 = 620 < 654，仍有余量；
+   1920px 宽时被 168px 上限截住（168×4.84 = 813 < 1196）。
+   ⚠️ 与上面的 1025–1279 块靠 min/max-width 互斥，别再往主断点里塞。
+   ========================================================= */
+@media (min-width:1280px) and (min-height:660px){
+  .tm-main > .tm-stage .tm-time { font-size: clamp(64px, 10vw, 168px); }
+}
