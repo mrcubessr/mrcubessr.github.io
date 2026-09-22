@@ -210,6 +210,20 @@
     .page-wrap { box-shadow: none; border-radius: 0; break-after: page; }
     .page-wrap canvas { width: 210mm; }
     .page-label { display: none; }
+    /* 出纸只留纸面本身。
+       ⚠️ 类名 .no-print 在本页原先**没有任何规则**（tools/2x2 与 tools/edge-printout
+       两页都写了），所以改造前「导出 PNG / 导出 PDF / 打印 / 填入示例」四个按钮
+       会被一起打进纸里。
+       ⚠️ 但不能简单地写 .no-print{display:none} —— 包着纸面的预览卡片本身就叫
+       .card.no-print，整块隐藏会连纸面一起藏掉（实测打印态纸面宽变成 0）。
+       正确做法：只藏按钮，预览卡片则去掉外壳与标题，让纸面直接落在纸上。
+       ⚠️ 另外，参数面板与页面标题区原先也会跟着进纸（实测第 1 页满屏都是
+       「练习题设置」和各个输入框，纸面被挤到第 2 页），这里一并挡在纸外。 */
+    .btns .no-print { display: none !important; }
+    .card.no-print { border: 0; padding: 0; margin: 0; background: none; box-shadow: none; }
+    .card.no-print > h2 { display: none; }
+    .page-head { display: none; }
+    .container > .card:first-child { display: none; }
   }
   @media (max-width: 640px) {
     .container { padding: 14px 10px 40px; }
@@ -222,6 +236,91 @@
     .field input[type="text"] { width: 100%; flex: 1; }
     .btns { flex-direction: column; }
     .btns .btn { width: 100%; text-align: center; }
+    .page-wrap { max-width: 100%; }
+  }
+
+  /* =========================================================
+     宽屏三栏工作台（≥1280）
+     ---------------------------------------------------------
+     左边第一列是站点一级导航（site-shell.css 注入的常驻侧栏，不在本页 DOM 里），
+     本页只负责第二、三列：
+       第二列 = 二级导航（出题方式，横向分段按钮改成竖排列表）
+                + 参数设置（原来挤成横排的 .row 改成一行一项、竖着往下排）
+       第三列 = 生成内容（练习纸预览，铺满剩余宽度）
+
+     为什么用 grid 而不是改 HTML 结构：本页 DOM 只有 .container 下两张卡片
+     （参数卡 → 预览卡），顺序天然就是「先参数后内容」，直接把容器换成两列网格
+     即可，零 DOM 改动、零 JS 改动，窄屏与打印完全不受影响。
+
+     ⚠️ 本层必须只写在 min-width:1280 里：
+       · 窄屏（<1280）保持原来的一列纵向流，手机端一行不改；
+       · 打印时媒体查询按纸张宽度（A4 约 794px）求值，因此本条不会命中，
+         出纸版式仍是 .container{padding:0;max-width:none} 的那一套。
+     ========================================================= */
+  @media (min-width: 1280px) {
+    /* 两列网格：参数栏固定 320~380，内容列吸收剩余宽度 */
+    .container {
+      display: grid;
+      grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      max-width: min(100%, 1800px);
+    }
+    /* 两张卡从「上下叠」变「左右并排」，卡间距改由 grid gap 承担 */
+    .container > .card { margin: 0; }
+
+    /* 参数栏在右列翻页时钉住不动，一屏之内改参数不用来回滚 */
+    .container > .card:first-child {
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    /* ---- 二级导航：横向分段按钮 → 竖排列表 ---- */
+    .seg {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin: 0 0 14px;
+    }
+    .seg__btn {
+      width: 100%;
+      text-align: left;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .seg__btn:last-child { border-bottom: 0; }
+    .seg__btn:hover { background: var(--surface-3); }
+
+    /* ---- 参数设置：一行一项，标签靠左、控件靠右，竖着往下排 ---- */
+    .row {
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .field {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .field label { flex: 1 1 auto; }
+    .field input, .field select { flex: 0 0 auto; }
+    .field input[type="text"] { width: 150px; }
+    .field input[type="number"] { width: 84px; }
+    .field select { max-width: 168px; }
+    /* 三盲参数里「按钮」也是用 .field 承载的（它上面那个 label 只放了 &nbsp; 占位），
+       让按钮独占一行铺满，避免和占位标签挤在同一行 */
+    .field > .btn { flex: 1 1 100%; text-align: center; }
+
+    /* ---- 操作按钮竖排，整列宽度一致 ---- */
+    .btns { flex-direction: column; gap: 8px; }
+    .btns .btn { width: 100%; text-align: center; }
+
+    /* ---- 第三列：纸面等比缩到列宽内，不撑破格子 ---- */
+    .pages { padding: 12px 0; }
     .page-wrap { max-width: 100%; }
   }
 </style>
