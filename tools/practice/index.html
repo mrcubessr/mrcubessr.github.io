@@ -302,16 +302,17 @@
       margin-top: 4px;
       align-items: center;
     }
-    /* 出卷信息（姓名/时间/标题/每页行数…）：label 都很短，3 列省掉 2 行 */
+    /* 出卷信息（标题/姓名/时间/版式/阶数/拿法/行数/编号）：8 项走 2 列，
+       刚好 4 行。
+       ⚠️ 别改成 3 列 —— 3 列时每格只有 ~138px、扣掉 label 后值区 ~74px，
+       「魔方拿法」的当前值被截成「白顶绿」、「版式」被截成「题目 +」，
+       用户看不出选的是哪个（线上实测截图确认）。2 列每格 ~210px、
+       值区 ~140px，全部能读全。 */
     .row--info {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 12px;
     }
-    .row--info .field label { flex: 0 0 56px; }
-    /* 「标题」跨两格：它是这组里唯一的长文本，占单格只能显示 4 个字
-       （「魔方记忆训练」被截成「魔方记忆」），跨格后不用点进去就能看全，
-       而且总格数 2+1×7=9 仍是整 3 行，不多占高度。 */
-    .row--info .field--span2 { grid-column: span 2; }
+    .row--info .field label { flex: 0 0 62px; }
     /* 单个按钮独占一行时跨满整行（自动出题面板的「批量生成并出卷」） */
     .field--full { grid-column: 1 / -1; }
     .field {
@@ -389,8 +390,11 @@
      日常填写的体验反而更差，不如让每项都还能读全。
      ========================================================= */
   @media (min-width: 1280px) and (max-height: 820px) {
-    .row { gap: 3px 12px; margin-top: 2px; }
-    .row--info { gap: 3px 10px; }
+    /* 行间距再收 1px：三盲模式有 6 个 .row、几十条间隙，1px 就是十几像素，
+       正好补上「生成中 + 完成」两行状态同时出现时的余量（1366×768 实测
+       原本差 9px）。 */
+    .row { gap: 2px 12px; margin-top: 1px; }
+    .row--info { gap: 2px 12px; }
     /* 3px 上下内边距 → 输入框 23px。看着小，但浏览器原生 input 也才 20~22px，
        而且这一档要留出「生成中」状态行出现的余量（1366×768 可视只有 730px）。 */
     .field input, .field select { padding: 3px 8px; }
@@ -446,20 +450,22 @@
       
     </div>
     <div id="bldPanel" class="is-hidden">
+      <!-- 棱 / 角 的数值参数「成对同行」：每行正好是「棱 · X ｜ 角 · X」对照。
+           ⚠️ 原来拆成「棱 5 项」「角 5 项」两个 .row，5 项在 2 列网格里要占 3 行，
+           每行末尾都空掉半格（实测 2 个空洞、白占 29px）；合并成 10 项后
+           正好 5 行 0 空洞，还顺带和 ⑶「编码口径」的棱/角对照写法统一了。 -->
       <div class="row">
         <div class="field"><label>棱编码长度</label><input type="text" id="bldELen" placeholder="如 10-12"></div>
+        <div class="field"><label>角编码长度</label><input type="text" id="bldCLen" placeholder="如 8-10"></div>
         <div class="field"><label>棱翻色数</label><input type="text" id="bldEFlip" placeholder="如 2-4"></div>
+        <div class="field"><label>角翻色数</label><input type="text" id="bldCFlip" placeholder="如 4-7"></div>
         <div class="field"><label>棱大循环长</label><input type="text" id="bldEBig" placeholder="不限"></div>
+        <div class="field"><label>角大循环长</label><input type="text" id="bldCBig" placeholder="不限"></div>
         <div class="field"><label>棱小循环数</label><input type="text" id="bldESmall" placeholder="不限"></div>
+        <div class="field"><label>角小循环数</label><input type="text" id="bldCSmall" placeholder="不限"></div>
         <div class="field"><label>棱奇偶</label>
           <select id="bldEParity"><option value="any">任意</option><option value="odd">奇</option><option value="even">偶</option></select>
         </div>
-      </div>
-      <div class="row">
-        <div class="field"><label>角编码长度</label><input type="text" id="bldCLen" placeholder="如 8-10"></div>
-        <div class="field"><label>角翻色数</label><input type="text" id="bldCFlip" placeholder="如 4-7"></div>
-        <div class="field"><label>角大循环长</label><input type="text" id="bldCBig" placeholder="不限"></div>
-        <div class="field"><label>角小循环数</label><input type="text" id="bldCSmall" placeholder="不限"></div>
         <div class="field"><label>角奇偶</label>
           <select id="bldCParity"><option value="any">任意</option><option value="odd">奇</option><option value="even">偶</option></select>
         </div>
@@ -482,42 +488,45 @@
           </select>
         </div>
         <div class="field"><label>棱 · 借位顺序</label>
-          <select id="bldEBorrow">
-            <option value="0" selected>标准（按色相）</option>
-            <option value="1">反向（不按色相）</option>
+          <!-- 选项文案必须短：半格下拉的内容盒只有 107px、扣掉原生箭头后
+               可用 91px，「反向（不按色相）」要 104px 会被裁掉尾巴。
+               完整含义挂在 select 的 title 上（悬停可见）。 -->
+          <select id="bldEBorrow" title="借位顺序（棱）：标准 = 按色相借位；反向 = 不按色相（按块序反向）">
+            <option value="0" selected>标准</option>
+            <option value="1">反向</option>
           </select>
         </div>
         <div class="field"><label>角 · 借位顺序</label>
-          <select id="bldCBorrow">
-            <option value="0" selected>标准（按色相）</option>
-            <option value="1">顺时针下1</option>
-            <option value="2">顺时针下2</option>
+          <select id="bldCBorrow" title="借位顺序（角）：标准 = 按色相；顺时针 1 / 2 = 对非缓冲块顺时针位移 1 / 2 位">
+            <option value="0" selected>标准</option>
+            <option value="1">顺时针 1</option>
+            <option value="2">顺时针 2</option>
           </select>
         </div>
         <div class="field"><label>棱 · 跳编法</label>
-          <select id="bldESkipCycle">
+          <select id="bldESkipCycle" title="跳编法（棱）：固定借位法 —— 起新循环时固定借 U 位所在的块">
             <option value="0" selected>不用</option>
-            <option value="1">用（固定借位法）</option>
+            <option value="1">固定借位法</option>
           </select>
         </div>
         <div class="field"><label>角 · 跳编法</label>
-          <select id="bldCSkipCycle">
+          <select id="bldCSkipCycle" title="跳编法（角）：固定借位法 —— 起新循环时固定借 U 位所在的块">
             <option value="0" selected>不用</option>
-            <option value="1">用（固定借位法）</option>
+            <option value="1">固定借位法</option>
           </select>
         </div>
       </div>
       <div class="row">
         <div class="field"><label>棱 · 消翻色</label>
-          <select id="bldEFlipMode">
-            <option value="separate" selected>不用（翻色公式单独解决）</option>
-            <option value="merge">用（翻色并入读码）</option>
+          <select id="bldEFlipMode" title="消翻色（棱）：翻色单独出 = 读码只描述位置置换，翻色交给翻色公式；并入读码 = 翻色直接并进读码">
+            <option value="separate" selected>翻色单独出</option>
+            <option value="merge">并入读码</option>
           </select>
         </div>
         <div class="field"><label>角 · 消翻色</label>
-          <select id="bldCFlipMode">
-            <option value="separate" selected>不用（翻色公式单独解决）</option>
-            <option value="merge">用（翻色并入读码）</option>
+          <select id="bldCFlipMode" title="消翻色（角）：翻色单独出 = 读码只描述位置置换，翻色交给翻色公式；并入读码 = 翻色直接并进读码">
+            <option value="separate" selected>翻色单独出</option>
+            <option value="merge">并入读码</option>
           </select>
         </div>
       </div>
@@ -525,11 +534,14 @@
         <div class="field"><label>生成条数</label><input type="number" id="bldCount" value="10" min="1" max="200"></div>
         <div class="field"><label>棱缓冲</label><input type="text" id="bldEdgeBuf" value="UF" maxlength="2"></div>
         <div class="field"><label>角缓冲</label><input type="text" id="bldCornerBuf" value="UFR" maxlength="3"></div>
-        <div class="field"><label>答案含读码</label>
-          <select id="bldShowCode"><option value="1" selected>显示读码/翻色</option><option value="0">只看展开图</option></select>
-        </div>
         <div class="field"><label>输出步数</label>
-          <select id="bldOptimize"><option value="1" selected>最优解压缩</option><option value="0">保留原始随机步</option></select>
+          <select id="bldOptimize"><option value="1" selected>最优解压缩</option><option value="0">保留随机步</option></select>
+        </div>
+        <!-- 「答案含读码」是这组的第 5 项，独占半格会在行尾留一个空洞（白占 29px）；
+             给它 span 2 正好补满第 6 格 → 3 行 0 空洞，而且跨格后
+             「显示读码/翻色」也能读全。 -->
+        <div class="field field--full"><label>答案含读码</label>
+          <select id="bldShowCode"><option value="1" selected>显示读码/翻色</option><option value="0">只看展开图</option></select>
         </div>
       </div>
       <!-- 动作按钮单独成行：双列网格下两个按钮正好并排、各占一格。
@@ -543,12 +555,12 @@
       <div class="range-echo" id="bldEcho"></div>
       <div class="status" id="bldProgress"></div>
     </div>
-    <!-- 出卷信息（跟在上面的三盲参数后面）。这类 label 都很短（姓名/时间/标题…），
-         桌面端单独走 3 列窄标签网格 .row--info：原来 9 项分两个 row、每行 2 列，
-         要占 5 行 ≈ 190px，改 3 列后压到 3 行 ≈ 105px。 -->
+    <!-- 出卷信息。8 项走 2 列网格（4 行），按语义两两配对：
+         标题|姓名 → 时间|版式 → 阶数|拿法 → 行数|编号。
+         曾试过 3 列（3 行，省 29px），但每格只有 138px，扣掉 label 后
+         「魔方拿法」「版式」的当前值都被截断，读不出选的是什么，已回退。 -->
     <div class="row row--info">
-      <!-- 标题排第一并跨两格：见 .row--info .field--span2 的注释 -->
-      <div class="field field--span2">
+      <div class="field">
         <label>标题</label>
         <input type="text" id="title" value="魔方记忆训练">
       </div>
@@ -561,12 +573,14 @@
         <input type="text" id="date" placeholder="（可留空）">
       </div>
       <div class="field">
-        <label>每页行数</label>
-        <input type="number" id="rowsPerPage" value="5" min="1" max="10">
-      </div>
-      <div class="field">
-        <label>起始编号</label>
-        <input type="number" id="startNo" value="1" min="0">
+        <label>版式</label>
+        <!-- 选项文案收短，与「仅题目」「分卷打印」同长，下拉里一眼能比。
+             JS 只读 value（见 layoutSel 的取值处），改文案不影响出卷。 -->
+        <select id="layoutSel">
+          <option value="both" selected>题目+答案</option>
+          <option value="q">仅题目</option>
+          <option value="split">分卷打印</option>
+        </select>
       </div>
       <div class="field">
         <label>魔方阶数</label>
@@ -583,15 +597,12 @@
         </select>
       </div>
       <div class="field">
-        <label>版式</label>
-        <!-- 选项文案收短：3 列布局下一格只有 74px 宽，「题目 + 答案（并排）」
-             会被截断成「题目 +」，看不出选的是哪种版式。
-             JS 只读 value（见 layoutSel 的取值处），改文案不影响出卷。 -->
-        <select id="layoutSel">
-          <option value="both" selected>题目+答案</option>
-          <option value="q">仅题目</option>
-          <option value="split">分卷打印</option>
-        </select>
+        <label>每页行数</label>
+        <input type="number" id="rowsPerPage" value="5" min="1" max="10">
+      </div>
+      <div class="field">
+        <label>起始编号</label>
+        <input type="number" id="startNo" value="1" min="0">
       </div>
     </div>
     <div class="btns">
