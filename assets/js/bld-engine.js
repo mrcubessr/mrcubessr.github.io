@@ -484,18 +484,89 @@
      借位次数 = 循环数 - 1（第一个循环无需借位），作为记忆难度参考指标 */
   function formulasOfLetters(n) { return Math.ceil((n || 0) / 2); }
 
-  /* 三盲难度等级（按记忆分由易到难），复盘页分组 / 趋势图共用，保证口径一致。
-     边界按真实打乱统计校准：20 步 WCA 打乱记忆分约 7–19（多数集中在 10–15），
-     故把七档压进该区间，避免高难档永远空置、低难档挤满。 */
-  const BLD_LEVELS = ["入门", "初级", "中级", "中高级", "高级", "专家", "大师"];
-  function levelOfMem(mem) {
-    if (mem < 10) return "入门";
-    if (mem < 11.5) return "初级";
-    if (mem < 13) return "中级";
-    if (mem < 14.5) return "中高级";
-    if (mem < 16.5) return "高级";
-    if (mem < 18.5) return "专家";
-    return "大师";
+  /* 三盲难度等级（由易到难，共五档）。复盘页分组 / 趋势图共用，保证口径一致。 */
+  const BLD_LEVELS = ["入门", "初级", "中级", "高级", "专家"];
+  const BLD_LEVEL_CODES = ["L1", "L2", "L3", "L4", "L5"];
+  /* 每档的难度分下界（含），与 BLD_LEVELS 一一对应 */
+  const BLD_LEVEL_MIN = [0, 20, 40, 60, 80];
+
+  function levelOfScore(score) {
+    var s = Number(score) || 0;
+    for (var i = BLD_LEVEL_MIN.length - 1; i >= 0; i--) if (s >= BLD_LEVEL_MIN[i]) return BLD_LEVELS[i];
+    return BLD_LEVELS[0];
+  }
+  function levelIndexOf(level) { return BLD_LEVELS.indexOf(String(level || "")); }
+  function levelCodeOf(level) {
+    var i = levelIndexOf(level);
+    return i < 0 ? "" : BLD_LEVEL_CODES[i];
+  }
+  /* 旧口径兼容：历史数据只有「记忆分」（等价于现在 mem 字段）时，
+     用同一套锚点把它映射成难度分再分档，保证新旧记录落在同一把尺子上。 */
+  function levelOfMem(mem) { return levelOfScore(scoreOfRaw(mem)); }
+
+  /* 难度权重（2026-09-23 重标定）
+     实测 3000 个 20 步 WCA 打乱发现：**公式条数本身几乎拉不开**——
+     total 的 p25~p95 全部落在 10~11（min 7 / max 13）。真正决定难度差异的是
+     翻色 / 扭角 / 奇偶 / 借位，故在「条数」这个第一权重之上叠加额外加权：
+       · 公式条数      每条 1.0（第一权重：要背多少条）
+       · 翻色 / 扭角   每条额外 +1.5（除公式本身，还要 setup 与额外记忆点）
+       · 奇偶          额外 +4.0（单独奇偶算法 + 判断奇偶的负担）
+       · 借位          每处 +0.5（循环切换带来的记忆负担）
+     例：10 条公式、无翻色无奇偶 → 加权分 11；同样 10 条但带 2 条翻色 + 奇偶 → 18。 */
+  var DIFF_WEIGHTS = { flip: 1.5, parity: 4.0, borrow: 0.5 };
+
+  /* 加权分 → 难度分（0~100）的分段线性映射锚点。
+     锚点取自实测分位（20/40/60/80 分位）并取整，使五档各占约 20%，
+     解决旧口径「分数全挤在 10~20、看不出层次」的问题。 */
+  var SCORE_ANCHORS = [
+    { raw: 7,  score: 0 },
+    { raw: 12, score: 20 },
+    { raw: 14, score: 40 },
+    { raw: 16, score: 60 },
+    { raw: 18, score: 80 },
+    { raw: 26, score: 100 }
+  ];
+
+  /* 由难度明细算「加权分」（量纲≈条数，范围约 7~26） */
+  function rawOfDiff(d) {
+    if (!d) return 0;
+    var total = Number(d.total);
+    if (!isFinite(total)) {
+      total = (+d.edgeF || 0) + (+d.flipF || 0) + (+d.cornerF || 0) +
+              (+d.twistF || 0) + (+d.parityF || 0);
+    }
+    var borrow = Number(d.borrow);
+    if (!isFinite(borrow)) borrow = (+d.borrowEdge || 0) + (+d.borrowCorner || 0);
+    return Math.round((total
+      + DIFF_WEIGHTS.flip * ((+d.flipF || 0) + (+d.twistF || 0))
+      + DIFF_WEIGHTS.parity * (+d.parityF || 0)
+      + DIFF_WEIGHTS.borrow * borrow) * 10) / 10;
+  }
+
+  /* 加权分 → 难度分 0~100（锚点间线性插值，端点截断） */
+  function scoreOfRaw(raw) {
+    var v = Number(raw) || 0;
+    if (v <= SCORE_ANCHORS[0].raw) return 0;
+    for (var i = 0; i < SCORE_ANCHORS.length - 1; i++) {
+      var a = SCORE_ANCHORS[i], b = SCORE_ANCHORS[i + 1];
+      if (v <= b.raw) {
+        var t = (v - a.raw) / (b.raw - a.raw);
+        return Math.round(a.score + t * (b.score - a.score));
+      }
+    }
+    return 100;
+  }
+
+  /* 旧数据（或外部导入）按同一口径重算难度分与等级：
+     只要还留着 edgeF/flipF/cornerF/twistF/parityF/borrow 这些分量，
+     就能换算成新尺子上的分数与档位，避免同一份历史成绩出现新旧两套等级名。 */
+  function recalcDifficulty(d) {
+    if (!d || typeof d !== "object") return null;
+    var raw = rawOfDiff(d);
+    var score = scoreOfRaw(raw);
+    return Object.assign({}, d, {
+      raw: raw, mem: raw, score: score, level: levelOfScore(score)
+    });
   }
 
   function buildDifficulty(edge, flip, corner, twist, parity, eCycles, cCycles) {
@@ -515,24 +586,23 @@
     const borrowEdge = Math.max(0, (eCycles || 1) - 1);
     const borrowCorner = Math.max(0, (cCycles || 1) - 1);
     const borrow = borrowEdge + borrowCorner;
-    /* 总公式条数（翻色 / 扭角 / 奇偶都算一条公式，口径不变） */
+    /* 总公式条数（翻色 / 扭角 / 奇偶都算一条公式，口径不变）—— 难度第一权重 */
     const total = edgeF + flipF + cornerF + twistF + parityF;
-    /* 记忆分：在总条数基础上叠加记忆负担权重 ——
-         · 翻色 / 扭角每条 +0.6（除公式本身外，还需 setup 与额外记忆点）
-         · 奇偶 +1.5（单独奇偶算法 + 判断奇偶的负担）
-         · 每个循环 +0.5（循环越多，记忆切换越频繁）
-       比单纯「条数」更贴近真实难度，且不同难度明显拉开层次。 */
-    const mem = Math.round((total
-      + 0.6 * (flipF + twistF)
-      + 1.5 * parityF
-      + 0.5 * borrow) * 10) / 10;
-    const level = levelOfMem(mem);
+    /* 加权分：在总条数基础上叠加记忆负担权重；再映射成 0~100 的难度分。
+       详见 DIFF_WEIGHTS / SCORE_ANCHORS 注释。 */
+    const raw = Math.round((total
+      + DIFF_WEIGHTS.flip * (flipF + twistF)
+      + DIFF_WEIGHTS.parity * parityF
+      + DIFF_WEIGHTS.borrow * borrow) * 10) / 10;
+    const score = scoreOfRaw(raw);
+    const level = levelOfScore(score);
     return {
       edgeLetters: eL, flipLetters: fL, cornerLetters: cL, twistLetters: tL,
       edgeF: edgeF, flipF: flipF, cornerF: cornerF, twistF: twistF, parityF: parityF,
       borrowEdge: borrowEdge, borrowCorner: borrowCorner, borrow: borrow,
       edgeCycles: eCycles || 0, cornerCycles: cCycles || 0,
-      total: total, mem: mem, score: mem, level: level,
+      total: total, raw: raw, mem: raw, score: score, level: level,
+      levelCode: levelCodeOf(level),
       notation: "棱" + edgeF + "+角" + cornerF + (parityF ? "+1" : "")
     };
   }
@@ -636,7 +706,17 @@
     validate: validate,
     buildDifficulty: buildDifficulty,
     BLD_LEVELS: BLD_LEVELS,
+    BLD_LEVEL_CODES: BLD_LEVEL_CODES,
+    BLD_LEVEL_MIN: BLD_LEVEL_MIN,
+    levelOfScore: levelOfScore,
+    levelCodeOf: levelCodeOf,
+    levelIndexOf: levelIndexOf,
     levelOfMem: levelOfMem,
+    DIFF_WEIGHTS: DIFF_WEIGHTS,
+    SCORE_ANCHORS: SCORE_ANCHORS,
+    rawOfDiff: rawOfDiff,
+    scoreOfRaw: scoreOfRaw,
+    recalcDifficulty: recalcDifficulty,
     estimateSteps: estimateSteps,
     bldMetrics: bldMetrics,
     CUBE_ORIENTATIONS: CUBE_ORIENTATIONS,

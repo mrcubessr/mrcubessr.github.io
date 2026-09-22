@@ -363,14 +363,18 @@ body { margin: 0; }
 .tm-bld__diff-lv[data-lv="偏难"] { color: var(--amber); border-color: var(--amber); }
 .tm-bld__diff-lv[data-lv="中等"] { color: var(--brand); border-color: var(--brand); }
 .tm-bld__diff-lv[data-lv="简单"] { color: var(--green); border-color: var(--green); }
-/* 新七档难度等级（记忆分分档，复盘页分组 / 趋势图共用） */
-.tm-bld__diff-lv[data-lv="入门"],
-.tm-bld__diff-lv[data-lv="初级"] { color: var(--green); border-color: var(--green); }
-.tm-bld__diff-lv[data-lv="中级"],
-.tm-bld__diff-lv[data-lv="中高级"] { color: var(--brand); border-color: var(--brand); }
-.tm-bld__diff-lv[data-lv="高级"],
-.tm-bld__diff-lv[data-lv="专家"] { color: var(--amber); border-color: var(--amber); }
-.tm-bld__diff-lv[data-lv="大师"] { color: var(--red); border-color: var(--red); font-weight: 700; }
+/* 五档难度等级（难度分 0~100 分档，复盘页分组 / 趋势图共用） */
+.tm-bld__diff-lv[data-lv="入门"] { color: var(--green); border-color: var(--green); }
+.tm-bld__diff-lv[data-lv="初级"] { color: var(--brand); border-color: var(--brand); }
+.tm-bld__diff-lv[data-lv="中级"] { color: var(--gold); border-color: var(--gold); }
+.tm-bld__diff-lv[data-lv="高级"] { color: var(--amber); border-color: var(--amber); }
+.tm-bld__diff-lv[data-lv="专家"] { color: var(--red); border-color: var(--red); font-weight: 700; }
+/* 难度分级标准说明入口 */
+.tm-bld__doc {
+  font-size: 11px; color: var(--fg-2); text-decoration: none;
+  border-bottom: 1px dashed var(--line); padding-bottom: 1px; margin-left: auto;
+}
+.tm-bld__doc:hover { color: var(--brand); border-bottom-color: var(--brand); }
 .tm-bld__diff-sub { font-size: 12px; color: var(--fg-2); margin-top: 5px; }
 .tm-bld__diff-sub b { font-family: var(--font-mono); color: var(--gold); }
 .tm-bld__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }

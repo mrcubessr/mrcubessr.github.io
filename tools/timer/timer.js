@@ -304,10 +304,14 @@
     renderBld();
   }
 
-  /* 难度字段归一化（导入旧数据/外部数据时容错） */
+  /* 难度字段归一化（导入旧数据/外部数据时容错）
+     重要：难度分与等级一律**按当前引擎口径重算**——历史成绩里存的是旧权重、
+     旧七档（入门/初级/中级/中高级/高级/专家/大师），若不重算，同一份数据里会
+     新旧等级名混排，统计分组也会多出几个永远为空的档。
+     重算只依赖 edgeF/flipF/cornerF/twistF/parityF/borrow 这些分量，旧数据全都带着。 */
   function normDiff(d) {
     if (!d || typeof d !== "object") return null;
-    return {
+    var o = {
       edgeLetters: +d.edgeLetters || 0, flipLetters: +d.flipLetters || 0,
       cornerLetters: +d.cornerLetters || 0, twistLetters: +d.twistLetters || 0,
       edgeF: +d.edgeF || 0, flipF: +d.flipF || 0,
@@ -319,6 +323,26 @@
       level: typeof d.level === "string" ? d.level : "",
       notation: typeof d.notation === "string" ? d.notation : ""
     };
+    var E = window.BLDEngine;
+    if (E && typeof E.recalcDifficulty === "function") {
+      try {
+        var r = E.recalcDifficulty(o);
+        if (r && isFinite(r.score)) {
+          o.raw = r.raw;
+          o.score = r.score;
+          o.level = r.level;
+          o.levelCode = (typeof E.levelCodeOf === "function") ? E.levelCodeOf(r.level) : "";
+        }
+      } catch (e) { /* 降级：保留原值 */ }
+    }
+    return o;
+  }
+
+  /* 难度分说明页（分级标准集中在这一处，各入口统一跳转） */
+  var LEVEL_DOC_URL = "/tools/3bld/level.html";
+  function levelDocLink(txt) {
+    return '<a class="tm-bld__doc" href="' + LEVEL_DOC_URL + '" target="_blank" rel="noopener" ' +
+           'title="查看难度分级标准（评分公式 / 五档划分）">' + (txt || "难度说明") + "</a>";
   }
 
   /* 展开图：用 cube-net.js 绘制。坐标朝向只影响展开图，不影响编码（编码已与朝向解耦） */
@@ -353,13 +377,17 @@
     if (d.borrowEdge) chips.push('<span class="tm-chip tm-chip--warn">棱借位 ' + d.borrowEdge + " 次</span>");
     if (d.borrowCorner) chips.push('<span class="tm-chip tm-chip--warn">角借位 ' + d.borrowCorner + " 次</span>");
     if (!d.borrowEdge && !d.borrowCorner) chips.push('<span class="tm-chip">无借位</span>');
+    var lvText = (d.levelCode ? d.levelCode + " " : "") + (d.level || "");
+    var lvTip = "难度分 " + d.score + (d.levelCode ? " · " + lvText : "") + "（点击查看分级标准）";
     els.bldDiff.innerHTML =
       '<div class="tm-bld__diff-top">' +
         '<span class="tm-bld__diff-notation">' + (d.notation || "") + "</span>" +
-        '<span class="tm-bld__diff-lv" data-lv="' + d.level + '">' + d.level + "</span>" +
+        '<span class="tm-bld__diff-lv" data-lv="' + (d.level || "") + '" title="' + lvTip + '">' + lvText + "</span>" +
+        '<a class="tm-bld__doc" href="' + LEVEL_DOC_URL + '" target="_blank" rel="noopener" ' +
+          'title="查看难度分级标准（评分公式 / 五档划分）">难度说明</a>' +
       "</div>" +
-      '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 记忆分 <b>" + d.score +
-        "</b>" + (complexity != null ? " · 编码 " + complexity + " 码" : "") + "</div>" +
+      '<div class="tm-bld__diff-sub">共 <b>' + d.total + "</b> 条公式 · 难度分 <b>" + d.score +
+        "</b> / 100" + (complexity != null ? " · 编码 " + complexity + " 码" : "") + "</div>" +
       '<div class="tm-bld__chips">' + chips.join("") + "</div>";
   }
 
@@ -401,8 +429,10 @@
     });
     els.bldRows.innerHTML = html;
     if (els.bldMeta) {
+      var dm = b.difficulty;
       els.bldMeta.textContent = (b.orientationLabel || "") + " · " +
-        (b.difficulty ? b.difficulty.total + " 条 / " + b.difficulty.level : "");
+        (dm ? dm.total + " 条 / " + ((dm.levelCode ? dm.levelCode + " " : "") + dm.level) +
+              " / 难度 " + dm.score : "");
     }
     renderBldNetFrom(b);
     renderBldDiff(b.difficulty, b.complexity);

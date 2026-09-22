@@ -25,6 +25,7 @@
     ]},
     { id: '3bld-tools', label: '三盲训练', children: [
       { id: '3bld',           label: '三盲总览',       href: '/tools/3bld/' },
+      { id: 'bld-level',      label: '难度分级标准',   href: '/tools/3bld/level.html' },
       { id: 'bldtrainer',     label: '读码还原',       href: '/tools/bldtrainer/' },
       { id: 'corner-trainer', label: '角块训练',       href: '/tools/corner-trainer/' },
       { id: 'edge-trainer',   label: '棱块训练',       href: '/tools/edge-trainer/' },
