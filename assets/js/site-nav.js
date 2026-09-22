@@ -12,7 +12,6 @@
       { id: '3x3', label: '三阶', href: '/tools/3x3/' },
       { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
-      { id: '3bld', label: '三盲', href: '/tools/3bld/' },
       { id: 'fto', label: 'FTO', href: '/fto' }
     ]},
     { id: 'cfop', label: 'CFOP公式库', href: '/tools/cfop/' },
@@ -24,28 +23,29 @@
       { id: '3x3teach',         label: '三阶魔方教学',     href: '/tools/3x3teach' },
       { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' }
     ]},
+    { id: '3bld-tools', label: '三盲训练', children: [
+      { id: '3bld',           label: '三盲总览',       href: '/tools/3bld/' },
+      { id: 'bldtrainer',     label: '读码还原',       href: '/tools/bldtrainer/' },
+      { id: 'corner-trainer', label: '角块训练',       href: '/tools/corner-trainer/' },
+      { id: 'edge-trainer',   label: '棱块训练',       href: '/tools/edge-trainer/' },
+      { id: 'edge-printout',  label: '棱块出题器',     href: '/tools/edge-printout/' },
+      { id: 'kmap',           label: 'KMap',           href: '/tools/kmap/' },
+      { id: 'practice',       label: '练习题生成器',   href: '/tools/practice/' },
+      { id: 'bldscramble',    label: '定向打乱',       href: '/tools/bldscramble/' },
+      { id: '2x2',            label: '二阶练习纸',     href: '/tools/2x2/' },
+      { id: 'scramble-uf',    label: 'UF 分组',        href: '/tools/scramble-uf/' },
+      { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' },
+      { id: 'bld-trainer',    label: 'bld-trainer',    href: '/tools/bld-trainer/' }
+    ]},
     { id: 'links', label: '外链', children: [
       { id: 'nav', label: '工具导航', href: '/tools/nav' }
     ]}
   ];
 
   /* 目录名与菜单 id 不一致时的别名表。
-     三盲相关工具页统一归属到「教程 → 三盲」，打开任一工具页时高亮三盲。 */
-  var NAV_ALIAS = {
-    'bld-trainer': '3bld',
-    '3bld-home': '3bld',
-    '3bld-assoc': '3bld',
-    'scramble-uf': '3bld',
-    'scramble-ur': '3bld',
-    'bldtrainer': '3bld',
-    'corner-trainer': '3bld',
-    'edge-trainer': '3bld',
-    'edge-printout': '3bld',
-    'kmap': '3bld',
-    'practice': '3bld',
-    'bldscramble': '3bld',
-    '2x2': '3bld'
-  };
+     现在三盲相关工具在侧栏里有独立的「三盲训练」分组，每个工具页直接高亮自己，
+     所以这里不再把三盲工具映射到 3bld。仅保留确实需要别名兜底的情况。 */
+  var NAV_ALIAS = {};
 
   /* ---------------------------------------------------------
      渲染导航 HTML

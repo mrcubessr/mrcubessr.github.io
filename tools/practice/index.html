@@ -23,23 +23,10 @@
     font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
     min-height: 100vh;
   }
-  .page-head {
-    text-align: center;
-    margin: 18px 0 20px;
-  }
-  .page-head h1 {
-    font-size: 26px;
-    color: var(--fg);
-  }
-  .page-head p {
-    color: var(--muted);
-    font-size: 14px;
-    margin-top: 6px;
-  }
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 24px 16px 60px;
+    padding: 16px 16px 60px;
   }
   .panel {
     background: var(--panel);
@@ -222,13 +209,10 @@
     .btns .no-print { display: none !important; }
     .card.no-print { border: 0; padding: 0; margin: 0; background: none; box-shadow: none; }
     .card.no-print > h2 { display: none; }
-    .page-head { display: none; }
     .container > .card:first-child { display: none; }
   }
   @media (max-width: 640px) {
     .container { padding: 14px 10px 40px; }
-    .page-head h1 { font-size: 20px; }
-    .page-head { margin: 12px 0 14px; }
     .panel { padding: 14px 12px; }
     .row { gap: 10px; }
     .field { flex-wrap: wrap; width: 100%; }
@@ -328,10 +312,6 @@
 <body>
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
-<div class="page-head">
-  <h1>魔方练习题生成器</h1>
-  <p>输入公式，一键生成可打印练习纸</p>
-</div>
 
 <div class="container">
   <div class="card">

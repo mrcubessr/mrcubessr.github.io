@@ -161,7 +161,9 @@ body{
   color:var(--nav-accent, #64b4ff);
 }
 
-/* ---------- ⑥ 二级菜单：常驻展开、缩进 + 左侧细线 ---------- */
+/* ---------- ⑥ 二级菜单：默认收起（兼容顶部条/抽屉），桌面侧栏下常驻展开 ----------
+   侧栏模式下二级导航直接可见，不需要再点一下展开；caret 也隐藏掉，
+   让一级项看起来是分组标题而不是可折叠按钮。 */
 .site-nav .nav-menu{
   position:static;
   top:auto;
@@ -182,9 +184,22 @@ body{
   z-index:auto;
 }
 
-.site-nav .nav-drop.open .nav-menu{
-  display:block;
-  transform:none;
+/* 桌面侧栏下强制常驻显示（覆盖 site-nav.css 的 display:none） */
+@media (min-width:1025px){
+  .site-nav .nav-menu,
+  .site-nav .nav-drop.open .nav-menu{
+    display:block !important;
+  }
+  .site-nav .nav-drop-toggle .caret{
+    display:none;
+  }
+  .site-nav .nav-drop-toggle{
+    cursor:default;
+  }
+  .site-nav .nav-drop-toggle:hover{
+    background:transparent;
+    color:var(--fg-3, #7C8798);
+  }
 }
 
 .site-nav .nav-menu a{
