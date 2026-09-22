@@ -84,7 +84,7 @@ body{
   max-width:none;
   margin:0;
   padding:0;
-  height:auto;
+  height:100%;
   flex:1 1 auto;
   min-height:0;
   display:flex;
@@ -161,20 +161,36 @@ body{
   color:var(--nav-accent, #64b4ff);
 }
 
-/* ---------- ⑥ 二级菜单：默认收起（兼容顶部条/抽屉），桌面侧栏下常驻展开 ----------
-   侧栏模式下二级导航直接可见，不需要再点一下展开；caret 也隐藏掉，
-   让一级项看起来是分组标题而不是可折叠按钮。 */
-.site-nav .nav-menu{
+/* ---------- ⑥ 二级菜单：所有宽度都「按需展开」（由 .nav-drop.open 控制） ----------
+   展开/收起状态由 site-nav.js 维护：当前页所在分组自动展开，点分组标题可切换。
+   ⚠️ 别再把所有 .nav-menu 强制 display:block —— 那会让全部分组同时撑开，
+   侧栏总高远超视口，表现为「导航一点就出屏幕」（用户实测反馈）。 */
+
+/* 定位重置必须写在**基础层**、且选择器到 0-4-0。
+   原因：上游 site-nav.css 的 `.site-nav .nav-drop.open .nav-menu`（0-4-0）
+   给出 `transform: translateX(-50%)`（那是顶部条下拉的居中写法）。
+   若只在 min-width:1025 里用 `.site-nav .nav-menu`（0-2-0）去压，
+   两个后果：① 展开的那个分组被左移半个菜单宽、子项只剩字尾
+   （实测 transform matrix(...,-105.5,0)）；② 901–1024px 的抽屉模式
+   完全没被覆盖（上游的 mobile 规则只到 max-width:900）→ 同样错位。
+   上游 max-width:900 分支自己也重置了 transform，这里只是把 901–1024 补上。 */
+.site-nav .nav-menu,
+.site-nav .nav-drop.open .nav-menu,
+.site-nav .nav-drop.open > .nav-menu{
   position:static;
   top:auto;
   left:auto;
+  right:auto;
   transform:none;
+  opacity:1;
+  visibility:visible;
   min-width:0;
+}
+
+.site-nav .nav-menu{
   margin:2px 0 6px 8px;
   padding:2px 0 2px 8px;
   display:none;
-  opacity:1;
-  visibility:visible;
   background:transparent;
   border:0;
   border-left:2px solid var(--brand-line, rgba(100,180,255,.2));
@@ -184,21 +200,18 @@ body{
   z-index:auto;
 }
 
-/* 桌面侧栏下强制常驻显示（覆盖 site-nav.css 的 display:none） */
+/* 展开的分组才放行子项 */
+.site-nav .nav-drop.open > .nav-menu{
+  display:block;
+}
+
+/* 桌面侧栏：caret 保留（提示可点开），光标改手型 */
 @media (min-width:1025px){
-  .site-nav .nav-menu,
-  .site-nav .nav-drop.open .nav-menu{
-    display:block !important;
-  }
   .site-nav .nav-drop-toggle .caret{
-    display:none;
+    display:inline-block;
   }
   .site-nav .nav-drop-toggle{
-    cursor:default;
-  }
-  .site-nav .nav-drop-toggle:hover{
-    background:transparent;
-    color:var(--fg-3, #7C8798);
+    cursor:pointer;
   }
 }
 
@@ -281,16 +294,23 @@ body{
   transform:rotate(180deg);
 }
 
-/* 菜单过长时可滚动，滚动条收细并跟主题走 */
+/* 菜单过长时可滚动，滚动条用品牌色加粗，确保长菜单时用户能发现可滚动 */
 .site-nav .nav-links{
   scrollbar-width:thin;
-  scrollbar-color:var(--line-2, rgba(127,127,127,.45)) transparent;
+  scrollbar-color:var(--fg-3, rgba(174,184,202,.55)) transparent;
 }
-.site-nav .nav-links::-webkit-scrollbar{ width:8px; }
+.site-nav .nav-links::-webkit-scrollbar{ width:10px; }
 .site-nav .nav-links::-webkit-scrollbar-track{ background:transparent; }
 .site-nav .nav-links::-webkit-scrollbar-thumb{
-  background:var(--line-2, rgba(127,127,127,.45));
+  background:var(--fg-3, rgba(174,184,202,.55));
+  border:2px solid transparent;
+  background-clip:padding-box;
   border-radius:0;                     /* 全站直角风格 */
+}
+.site-nav .nav-links::-webkit-scrollbar-thumb:hover{
+  background:var(--nav-accent, #64b4ff);
+  border:2px solid transparent;
+  background-clip:padding-box;
 }
 
 /* =========================================================
@@ -412,6 +432,62 @@ body{
   .site-nav .nav-links{
     width:86vw;
   }
+}
+
+/* =========================================================
+   ⑩ 全站统一：工具页顶部大标题退场，内容区直接顶满
+   与工作台布局配合：桌面端侧栏 logo / 窄屏顶部条面包屑已经在
+   顶部标出「你在哪」，各页再挂一条大标题横幅就是重复信息。
+   做法：用 sr-only 把标题移出视觉流（保留给屏幕阅读器），
+   并把各页内容容器顶部间距统一收到 16px。
+   ⚠️ 两点必须守住：
+   1. 不加 min-width 断点 —— 窄屏同样要去掉，否则同一页在手机/桌面
+      两副面孔，用户反馈的「排版不统一」正是这么来的。
+   2. 整块关进 @media screen —— tools/2x2 的 `.container.print-area`
+      里也有一颗 <h1>（「二阶魔方盲拧练习」），那是**A4 纸面标题**，
+      出纸时必须保留；`.container` 的顶距同样属于纸面版式。
+      所以 ① 排除 .print-area，② 打印媒体一律不生效。
+   ========================================================= */
+@media screen{
+  .page-head,
+  .cfop-hero,
+  .tm-hero,
+  .srs-pagehead,
+  .bld-hero,
+  .map-header .title-group,
+  .header h1,
+  .g-head,
+  .toolbar > h1,
+  .toolbar > .h1-sub,
+  .container:not(.print-area) > h1:first-child,
+  .container:not(.print-area) > header:first-child,
+  .wrap > h1:first-child{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  body .cfop-wrap,
+  body .tm-wrap,
+  body .srs-wrap,
+  body .container:not(.print-area),
+  body .wrap,
+  body #wrapper,
+  body .map,
+  body .ep-workbench,
+  body .pages-container,
+  body .g-wrap{
+    padding-top:16px;
+    margin-top:0;
+  }
+
+  body:has(.map),
+  body:has(.ep-workbench),
+  body:has(.container > h1:first-child){
+    padding-top:16px;
+  }
+
+  body .map-header{ padding:14px 20px; align-items:center; }
+  body .header{ padding-top:8px; padding-bottom:8px; height:auto; min-height:48px; }
 }
 
 /* =========================================================

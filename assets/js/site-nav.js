@@ -176,6 +176,15 @@
     nav.querySelectorAll('.nav-drop').forEach(function (d) { setDropOpen(d, false); });
   }
 
+  function isDesktop() {
+    return window.innerWidth > 1024;
+  }
+
+  /* 判断某个下拉分组是否包含当前页（用于桌面侧栏常驻展开） */
+  function dropHasActive(drop) {
+    return !!drop.querySelector('.nav-menu a.active, .nav-menu .active');
+  }
+
   /* ---------------------------------------------------------
      绑定交互（注入完成后调用）
      --------------------------------------------------------- */
@@ -186,13 +195,19 @@
 
     navOpenMemo = readOpenState();
 
-    /* 先套用记住的分组展开状态 */
-    drops.forEach(function (drop) {
-      var toggle = drop.querySelector(':scope > .nav-drop-toggle');
-      if (!toggle) return;
-      var key = toggle.getAttribute('data-nav');
-      if (key && typeof navOpenMemo[key] === 'boolean') setDropOpen(drop, navOpenMemo[key]);
-    });
+    /* 桌面侧栏模式下：默认只展开当前页所在分组，避免所有分组同时撑开导致侧栏溢出屏幕。
+       用户点击仍可临时展开其他分组；跳转到新页面后再次仅保留当前分组展开。 */
+    if (isDesktop()) {
+      drops.forEach(function (drop) { setDropOpen(drop, false); });
+    } else {
+      /* 窄屏/抽屉模式：应用记住的分组展开状态 */
+      drops.forEach(function (drop) {
+        var toggle = drop.querySelector(':scope > .nav-drop-toggle');
+        if (!toggle) return;
+        var key = toggle.getAttribute('data-nav');
+        if (key && typeof navOpenMemo[key] === 'boolean') setDropOpen(drop, navOpenMemo[key]);
+      });
+    }
 
     /* 汉堡菜单 */
     if (toggleBtn && linksBox) {
@@ -209,13 +224,24 @@
 
       function toggleDrop() {
         var isOpen = drop.classList.contains('open');
-        /* 关闭父级作用域下的同级下拉 */
-        var scope = drop.parentElement.closest('.nav-drop') || nav;
-        scope.querySelectorAll(':scope > .nav-drop').forEach(function (d) { setDropOpen(d, false); });
-        /* 同样关闭 .nav-menu 容器下的同级下拉 */
-        var menu = drop.parentElement;
-        if (menu && menu.classList && menu.classList.contains('nav-menu')) {
-          menu.querySelectorAll(':scope > .nav-drop').forEach(function (d) { setDropOpen(d, false); });
+
+        /* 桌面侧栏：当前页所在分组「展开状态下」不允许被点关，避免用户把导航点没。
+           ⚠️ 必须同时判断 drop.classList.contains('open')：
+           当它已被别的分组挤关（accordion）时点它，应该是「重新展开」而不是无响应。 */
+        if (isDesktop() && isOpen && dropHasActive(drop)) {
+          return;
+        }
+
+        /* accordion：同容器内只保留一个分组展开，避免多个分组同时撑开侧栏。
+           ⚠️ 必须用 drop.parentElement 作为作用域 —— 顶层分组的父节点是
+           .nav-links（不是 .nav-drop），旧写法 `closest('.nav-drop') || nav`
+           会让 scope 落到 nav 上，而 nav 的直接子级里没有 .nav-drop，
+           于是「同级互斥」静默失效、多个分组一起展开。 */
+        var container = drop.parentElement;
+        if (container) {
+          container.querySelectorAll(':scope > .nav-drop').forEach(function (d) {
+            if (d !== drop) setDropOpen(d, false);
+          });
         }
         if (!isOpen) setDropOpen(drop, true);
 
@@ -271,13 +297,10 @@
 
       var drop = el.closest('.nav-drop');
       while (drop) {
-        /* 侧栏模式下二级菜单默认收起；当前页所在的分组自动展开，
-           否则用户看不到自己处在哪一节。
-           例外：用户手动收起过该分组（存储里有显式 false）→ 尊重用户选择。 */
+        /* 当前页所在分组强制展开（桌面侧栏下保持常驻可见），
+           用户手动收起状态在这里被覆盖：当前分组必须让用户看得见。 */
+        setDropOpen(drop, true);
         var dt = drop.querySelector(':scope > .nav-drop-toggle');
-        var dkey = dt ? dt.getAttribute('data-nav') : null;
-        var explicit = (dkey && typeof navOpenMemo[dkey] === 'boolean');
-        if (!explicit) drop.classList.add('open');
         if (dt) dt.classList.add('active');
         drop = drop.parentElement.closest('.nav-drop');
       }
