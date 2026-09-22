@@ -340,10 +340,113 @@ body {
 /* 阶段二：导航通栏适配 */
 body{ display:block; padding:0 16px 20px; }
 .toolbar{ margin:20px auto 0; }
-/* 阶段二：打印时隐藏导航 */
+/* 阶段二：打印时隐藏导航
+   注：出纸版式（隐藏 .toolbar、去纸面投影、纸宽 210mm）已由文件上半部分那个
+   @media print（第一个 <style> 块里）负责，这里不重复。 */
 @media print{
   [data-site-nav], .site-nav, .no-print{ display:none !important; }
   body{ padding:0 !important; }
+}
+
+/* =========================================================
+   宽屏三栏工作台（≥1280）
+   ---------------------------------------------------------
+   第一列 = 站点一级导航（site-shell.css 注入的常驻侧栏，不在本页 DOM 里）
+   第二列 = 二级导航（难度预设 L1~L4，横排按钮改竖排列表）
+            + 参数设置（.ctrl-row 里各组一行一项、竖着往下排；组内单选按钮也竖排）
+   第三列 = 生成内容（A4 题目页，1:1 居中）
+
+   ⚠️ 必须靠外面那层 .ep-workbench 才能做 grid：原来 .toolbar 与 .pages-container
+   是 body 的两个平级子元素、各自 max-width + auto margin 居中，没法左右并排。
+   包裹层本身不带任何样式，窄屏与打印完全不受影响。
+
+   ⚠️ 全部关在 min-width:1280 里：窄屏仍是一列纵向流；本页的打印版式由文件上半部分
+   那个 @media print 负责（隐藏 .toolbar、纸宽 210mm），打印视口按纸张宽度求值，
+   天然不命中本段。
+   ========================================================= */
+@media (min-width: 1280px) {
+  .ep-workbench{
+    display:grid;
+    grid-template-columns:minmax(320px, 380px) minmax(0, 1fr);
+    gap:16px;
+    align-items:start;
+    /* 纸面是固定宽的 A4（210mm≈794px），列再宽也不会被拉伸，
+       给整块工作台留个上限，免得纸面飘在大片空白正中间 */
+    max-width:min(100%, 1500px);
+    margin-inline:auto;
+  }
+
+  /* ---- 第二列：参数面板（含二级导航）钉住，右栏翻页时不用来回滚 ---- */
+  .toolbar{
+    width:auto;
+    max-width:none;
+    margin:20px 0 0;
+    padding:16px 18px;
+    position:sticky;
+    top:16px;
+    max-height:calc(100vh - 32px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    box-shadow:none;
+  }
+
+  /* ---- 第三列：纸面 ---- */
+  .pages-container{
+    max-width:100%;
+    margin-top:20px;
+  }
+  /* 纸面固定 210mm，列宽不足时按列宽等比收窄（1440 视口下只差 22px，
+     不收就会把整页顶出横向滚动条）。打印时容器本就 794，等于不生效。 */
+  .a4-page{ max-width:100%; }
+
+  /* ---- 二级导航：难度预设由横排改竖排列表 ---- */
+  .preset-row{
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    gap:6px;
+    padding:10px;
+  }
+  .preset-label{ margin:0 0 2px; }
+  .preset-row .seg__btn{
+    width:100%;
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .preset-row .seg__btn:last-of-type{ border-bottom:0; }
+  .preset-info{ margin:6px 0 0; text-align:left; }
+
+  /* ---- 参数设置：一行一项、竖着往下排 ---- */
+  .ctrl-row{
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    gap:12px;
+  }
+  .ctrl-group{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
+  }
+  .ctrl-group > label{ flex:1 1 auto; }
+  /* 组内单选（每页题数 / 模式）一起竖排，窄列里不会被压扁 */
+  .toggle-group{ flex-direction:column; }
+  .toggle-group .seg__btn{
+    width:100%;
+    text-align:left;
+    border-bottom:1px solid var(--line);
+  }
+  .toggle-group .seg__btn:last-child{ border-bottom:0; }
+  /* 颜色筛选与棱块形态是成片的小块，单独占一行 */
+  .color-pick{ flex:1 1 100%; }
+  .orient-pick{ flex:1 1 100%; flex-wrap:wrap; }
+  /* 两个操作按钮铺满整列 */
+  .ctrl-row > .btn{ width:100%; text-align:center; }
 }
 </style>
 </head>
@@ -351,6 +454,13 @@ body{ display:block; padding:0 16px 20px; }
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
+
+<!-- ========== 工作台：左参数栏 + 右纸面 ==========
+     外面这层 .ep-workbench 只为宽屏三栏版式服务（见文末 @media min-width:1280）：
+     原来 .toolbar 与 .pages-container 是 body 的两个平级子元素、各自居中，
+     宽屏下没法让它们左右并排。加一层包裹即可用 grid 一行两列，窄屏与打印
+     完全不受影响（包裹层不带任何样式）。 -->
+<div class="ep-workbench">
 
 <!-- ========== 顶部控制栏 ========== -->
 <div class="toolbar">
@@ -431,6 +541,8 @@ body{ display:block; padding:0 16px 20px; }
 <div class="pages-container" id="pagesContainer">
   <!-- 页面由 JS 动态生成 -->
 </div>
+
+</div><!-- /.ep-workbench -->
 
 <script>
 // ============ 棱块数据 ============
@@ -518,8 +630,8 @@ function renderColorChips() {
       } else {
         selectedColors.add(key);
       }
-      // 取消预设高亮
-      document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+      // 取消预设高亮（同「预设按钮」处的类名修正）
+      document.querySelectorAll(".preset-row .seg__btn[data-preset]").forEach(b => b.classList.remove("active"));
       renderColorChips();
       updatePresetInfo();
     });
@@ -541,9 +653,14 @@ function getFilteredEdges() {
 }
 
 // ============ 预设按钮 ============
-document.querySelectorAll(".preset-btn").forEach(btn => {
+/* ⚠️ 选择器必须跟当前 HTML 对齐：按钮的类名早已从历史写法 .preset-btn 迁到设计系统的
+   .seg__btn（选中态用 .active，由 site-nav.js 镜像成 aria-pressed 供组件库着色）。
+   原先这里查的是 .preset-btn —— 页面里已经一个都不存在，querySelectorAll 返回空，
+   forEach 直接空转，于是「难度预设 L1~L4、棱块形态、模式、每页题数」四组控件
+   全部点不动（点了画面毫无反应）。同类错误本次一并修掉下面两处。 */
+document.querySelectorAll(".preset-row .seg__btn[data-preset]").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".preset-row .seg__btn[data-preset]").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     const preset = PRESETS[btn.dataset.preset];
     selectedColors = new Set(preset.colors);
@@ -555,7 +672,8 @@ document.querySelectorAll(".preset-btn").forEach(btn => {
 // ============ 形态勾选 ============
 let selectedOrients = new Set(["standard","flipped","rot"]);
 
-document.querySelectorAll(".orient-chip").forEach(chip => {
+// 同上：HTML 里是 <span class="badge checked" data-orient="...">，没有 .orient-chip
+document.querySelectorAll("#orientPick [data-orient]").forEach(chip => {
   chip.addEventListener("click", () => {
     const orient = chip.dataset.orient;
     if (selectedOrients.has(orient)) {
@@ -574,10 +692,12 @@ let currentMode = "write";   // "write" 或 "read"
 let currentPerPage = 12;     // 每页题目数量
 let currentCols = 3;         // 每页列数
 
+// 同上：组内按钮是 .seg__btn（带 data-mode / data-perpage），没有 .toggle-btn
 document.querySelectorAll(".toggle-group").forEach(group => {
-  group.querySelectorAll(".toggle-btn").forEach(btn => {
+  const btns = group.querySelectorAll("[data-mode], [data-perpage]");
+  btns.forEach(btn => {
     btn.addEventListener("click", function() {
-      group.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+      btns.forEach(b => b.classList.remove("active"));
       this.classList.add("active");
       if (this.dataset.mode) currentMode = this.dataset.mode;
       if (this.dataset.perpage) {
