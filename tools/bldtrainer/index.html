@@ -30,7 +30,13 @@ button:hover{background:var(--brand);}
 #solvelist li{background:var(--surface);border:1px solid var(--surface-3);border-radius:0;padding:0.45em 0.7em;margin-bottom:0.5em;cursor:grab;}
 #solvelist li:hover{border-color:var(--brand);}
 #solvelist li input{width:10em;}
-#player{width:100%;height:340px;background:var(--bg);border-radius:0;display:block;cursor:grab;touch-action:none;}
+/* ⚠️ max-width 不能省：drawScrambleNet() 会把 canvas.width 设成「展开图总宽×dpr」
+   作为绘图缓冲区尺寸，但它只设属性、不设 style.width，浏览器便可能拿这个
+   属性值当布局宽度用 —— 实测画布比父级 .flexitem 的内容盒宽 83px，直接顶出
+   整页横向滚动条（1600 视口 docW=1642，手机 390 视口也溢出 9px）。
+   width:100% 不足以压住它（同一轮布局里父宽本身就由这个属性值反推），
+   必须再补一条 max-width:100% 做硬性夹取。 */
+#player{width:100%;max-width:100%;height:340px;background:var(--bg);border-radius:0;display:block;cursor:grab;touch-action:none;}
 .help{position:relative;cursor:help;}
 .help-content{display:none;position:absolute;background:var(--surface);border:1px solid var(--brand);border-radius:0;padding:0.5em 0.8em;z-index:10;font-size:0.85em;color:var(--fg-2);width:15em;font-weight:400;}
 .help:hover .help-content{display:block;}

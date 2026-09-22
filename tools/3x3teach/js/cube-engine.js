@@ -372,6 +372,18 @@
       self.zoom(e.deltaY);
     }, { passive: false });
     window.addEventListener('resize', function () { self._resize(); });
+
+    /* 容器尺寸变化也要重排渲染 —— 只靠 window 的 resize 事件是不够的：
+       站点骨架（site-shell.css）由 site-nav.js 在运行时注入，侧栏占掉 240px 后
+       **不会**触发 resize 事件。本引擎在构造时按当时的 clientWidth 调过 setSize()，
+       于是画布长期停在「没有侧栏」时的宽度上（实测 1280 视口：容器 756px、
+       画布却写死 996px，正好多出 240px，直接把整页顶出横向滚动条）。
+       ResizeObserver 能在容器真被改窄时补一次重排，顺带覆盖字体加载、
+       面板开合等其它会在加载后改变布局的情况。 */
+    if (typeof ResizeObserver === 'function') {
+      this._ro = new ResizeObserver(function () { self._resize(); });
+      this._ro.observe(this.container);
+    }
   };
 
   // 屏幕坐标 -> 世界拾取，返回 {point, normal(世界单位向量), idx, p(网格位置)}

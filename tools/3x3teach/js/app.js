@@ -628,7 +628,13 @@
     });
   });
   // 随机打乱：每课都能用，带动画演示，课堂观察更直观
-  document.getElementById('btnScramble').addEventListener('click', function () {
+  /* ⚠️ 必须判空：HTML 里已经没有 id="btnScramble" 这个按钮了（旧版控制坞残留），
+     直接 addEventListener 会抛 TypeError，而这里是**同步初始化链**上的一步 ——
+     一抛，后面所有绑定全部作废：整体转体工具栏 .turn-btn、图例弹窗关闭、
+     投影模式 #btnPresent、上一课/下一课 #btnPrev/#btnNext、方向键翻课，
+     一整段功能都点不动（实测页面加载即报 1 条错）。 */
+  const btnScramble = document.getElementById('btnScramble');
+  if (btnScramble) btnScramble.addEventListener('click', function () {
     finishAnim();                 // 先终止其它动作并清空引擎队列（避免残留序列）
     engine.clearHighlight();      // 显示整颗魔方真色，便于观察
     Player.reset();

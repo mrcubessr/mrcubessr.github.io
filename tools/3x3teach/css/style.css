@@ -262,8 +262,13 @@ body.present .primary-btn, body.present .sec-btn { font-size: 22px; padding: 16p
 .loop-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
 .loop-btn.active { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
 
-/* ---------- 响应式 ---------- */
-@media (max-width: 1180px) {
+/* ---------- 响应式 ----------
+   ⚠️ 断点已按「左侧 240px 常驻导航」下移：
+   三栏布局 250 + minmax(420,1fr) + 400 + 2×18(gap) + 2×18(padding) = 至少 1142px。
+   侧栏吃掉 240px 后，窗口宽度要 ≥ 1382 才放得下。若仍按 1180 断点，窗口在
+   1025~1382 区间会横向溢出（实测 1280 视口下 aside 右边超出 84px）。
+   故把「三栏 → 两栏」的断点从 1180 下移到 1420（= 1382 再留一点余量）。 */
+@media (max-width: 1420px) {
   .layout { grid-template-columns: 210px minmax(360px, 1fr); }
   .content { grid-column: 1 / -1; position: static; max-height: none; }
 }
