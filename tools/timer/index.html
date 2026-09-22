@@ -168,7 +168,7 @@
         <div class="tm-bld-row">
           <span class="tm-bld-row__k">分段计时</span>
           <div class="tm-bld-row__v tm-bld-row__v--checks">
-            <label class="tm-check"><input type="checkbox" id="tm-bld-split" checked><span>记忆/执行分段（按 M 标记记忆结束）</span></label>
+            <label class="tm-check"><input type="checkbox" id="tm-bld-split" checked><span>记忆/执行分段（三盲下：空格标记记忆结束，再按空格停表）</span></label>
           </div>
         </div>
         <div class="tm-bld-row">
@@ -294,7 +294,7 @@
               aria-expanded="false" aria-controls="tm-bld-params" hidden>三盲参数</button>
       <span class="tm-label" id="tm-inspect-label">观察</span>
       <div class="seg" id="tm-inspect-seg" data-inspect-seg role="group" aria-label="是否启用 15 秒观察"></div>
-      <span class="tm-tools__hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
+      <span class="tm-tools__hint" id="tm-tools-hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
     </div>
 
     </div><!-- /tm-main（左列结束） -->

@@ -398,7 +398,7 @@
     h += '<h3 class="tm-h3">⑧ 记忆 / 执行构成（瓶颈诊断）</h3>';
     var me = a.memoExec;
     if (me.splitCount === 0) {
-      h += '<div class="tm-ba-note">当前成绩未启用「记忆/执行分段计时」（或均为旧数据），无法拆解。开启分段后，按 M 标记记忆结束即可看到构成。</div>';
+      h += '<div class="tm-ba-note">当前成绩未启用「记忆/执行分段计时」（或均为旧数据），无法拆解。开启分段后，计时中用空格标记记忆结束即可看到构成。</div>';
     } else {
       h += '<div class="tm-ba-ov">' +
         cell("分段成绩", me.splitCount) +

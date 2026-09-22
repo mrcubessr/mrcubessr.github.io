@@ -7,7 +7,9 @@
      inspect 15 秒倒计时（8s 黄 / 12s 红 / 超 15s +2 / 超 17s DNF）
              长按空格 ≥300ms → ready（变绿）
      ready   松开空格 → running
-     running 按空格 → confirm（停止并等待确认）
+     running 按空格 → 停表进入 confirm（等待确认）
+              三盲 + 开「记忆/执行分段」时：第一下空格 = 标记记忆结束（进入执行段），
+              第二下空格才停表 —— 全程只用空格，不用 M 键
      confirm 空格/回车 = 记录并下一把；Esc = 作废
 
    分组 = csTimer 的「会话 / Session」：
@@ -55,6 +57,7 @@
   var inspectStart = 0, runStart = 0;
   var pendingPenalty = "";
   var memoMs = 0, memoMarked = false;     /* 三盲分段计时：记忆用时 / 是否已标记 */
+  var uiTouch = false;                    /* 是否手机端布局：提示文案说「空格」还是「计时区」（由 bindInput 初始化并随 resize 更新） */
   var pendingDnfReason = "";              /* DNF 归因：memo 记忆错 / exec 执行错 / other 其他 */
   var rawMs = 0;                      /* 未加罚时的原始用时 */
   var curScramble = "";
@@ -493,6 +496,16 @@
     return moves.map(function (m) { return '<span class="tm-mv">' + m + "</span>"; }).join("");
   }
 
+  /* 工具带提示文案：三盲 + 分段开时必须写明「第一下空格 = 标记记忆结束」，
+     否则与速拧的「空格 = 开始 / 停止」口径对不上。 */
+  function updateToolsHint() {
+    if (!els.toolsHint) return;
+    var split = opt.event === "bld" && !!opt.bld && opt.bld.split !== false;
+    els.toolsHint.textContent = split
+      ? "空格 = 开始 / 标记记忆结束 / 停止 · N = 换打乱 · Esc = 重置"
+      : "空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置";
+  }
+
   /* 事件切换时显隐三盲专属 UI（参数面板 / 解法面板 / 统计弹窗分析段 / 隐藏「手动输入」） */
   function applyEventUI() {
     var isBld = opt.event === "bld";
@@ -511,6 +524,9 @@
     if (els.inspectSeg) els.inspectSeg.hidden = isBld;
     if (els.settingsInspectWrap) els.settingsInspectWrap.hidden = isBld;
     if (els.settingsManualWrap) els.settingsManualWrap.hidden = isBld;
+    /* 工具带提示：三盲下要把「第一下空格 = 标记记忆结束」写出来，
+       否则与速拧的「空格 = 开始 / 停止」对不上（分段关闭时仍是简单口径）。 */
+    updateToolsHint();
     setInspect(isBld ? 0 : speedInspect, true);
     if (isBld) applyBldCollapse();                        /* 恢复上次收起/展开状态 */
     updateBldReveal();                                    /* 解法面板按显示时机显隐 */
@@ -612,6 +628,7 @@
       els.bldWarn.hidden = !warn;
       if (warn) els.bldWarn.textContent = warn;
     }
+    updateToolsHint();   /* 参数（尤其是「分段」）一变，工具带提示口径跟着变 */
     saveOpt();
   }
 
@@ -707,7 +724,8 @@
     return opt.event === "bld" && !!opt.bld && opt.bld.split !== false;
   }
 
-  /* 三盲：标记「记忆结束」，之后的时间计入执行段。M 键或屏幕按钮触发 */
+  /* 三盲：标记「记忆结束」，之后的时间计入执行段。
+     触发 = 计时中再按一次空格（或手机端点按计时区），不占用 M 键。 */
   function markMemo() {
     if (state !== "running" || !bldSplitOn() || memoMarked) return;
     memoMs = performance.now() - runStart;
@@ -726,7 +744,7 @@
     if (bldSplitOn() && els.memo) {
       els.memo.textContent = memoMarked
         ? "记忆 " + S.fmt(memoMs) + " · 执行 " + S.fmt(elapsed - memoMs)
-        : "记忆 " + S.fmt(elapsed) + " · 按 M 标记记忆结束";
+        : "记忆 " + S.fmt(elapsed) + (uiTouch ? " · 点按计时区标记记忆结束" : " · 按空格标记记忆结束");
     }
     raf = requestAnimationFrame(runTick);
   }
@@ -876,7 +894,12 @@
       return;
     }
     if (state === "inspect") { holdTimer = setTimeout(toReady, HOLD_MS); return; }
-    if (state === "running") { stop(); return; }
+    if (state === "running") {
+      /* 三盲分段计时：全程只用空格 —— 第一下标记「记忆结束」，第二下才停表。
+         非三盲或关闭分段时维持原样：一下停表。 */
+      if (bldSplitOn() && !memoMarked) { markMemo(); return; }
+      stop(); return;
+    }
     if (state === "confirm") { confirmOk(); return; }
   }
   function release(cancel) {
@@ -931,7 +954,7 @@
         return;
       }
       if (code === "Escape" || k === "Escape" || k === "Esc") { e.preventDefault(); abortKey(); return; }
-      if ((k === "m" || k === "M") && state === "running") { e.preventDefault(); markMemo(); return; }
+      /* M 键不再参与分段（用户要求全用空格）；旧键位彻底移除，避免误触 */
       if ((k === "n" || k === "N") && (state === "idle" || state === "confirm")) {
         e.preventDefault();
         if (state === "confirm") discard(); else next(false);
@@ -967,10 +990,12 @@
     /* 视口变化（横竖屏切换 / 缩放）时刷新提示文案与观察按钮标签，
        让「空格 / 计时区」「15 秒观察 / 15s」随移动端断点正确切换。 */
     var lastTouchUI = isTouchUI();
+    uiTouch = lastTouchUI;   /* 计时中的提示文案也按同一判据，避免桌面/手机两套口径不一致 */
     window.addEventListener("resize", function () {
       if (els.state) els.state.innerHTML = stateText();
       if (isTouchUI() !== lastTouchUI) {
         lastTouchUI = isTouchUI();
+        uiTouch = lastTouchUI;
         if (els.inspectSeg) buildInspect();
       }
     });
@@ -1015,7 +1040,14 @@
     }
     if (state === "inspect") return touch ? "观察中 · 继续按住计时区预备" : "观察中 · 继续按住 <b>空格</b> 预备";
     if (state === "ready") return touch ? "松开计时区开始计时" : "松开 <b>空格</b> 开始计时";
-    if (state === "running") return touch ? "计时中 · 点按计时区停止" : "计时中 · 按 <b>空格</b> 停止";
+    if (state === "running") {
+      /* 三盲分段：提示随「记忆段 / 执行段」变化，且强调是一路按空格 */
+      if (bldSplitOn() && !memoMarked) {
+        return touch ? "记忆段 · 点按计时区标记记忆结束" : "记忆中 · 按 <b>空格</b> 标记记忆结束";
+      }
+      if (bldSplitOn()) return touch ? "执行段 · 点按计时区停止" : "执行中 · 按 <b>空格</b> 停止";
+      return touch ? "计时中 · 点按计时区停止" : "计时中 · 按 <b>空格</b> 停止";
+    }
     return touch ? "待确认 · 点记录 / 点作废" : "待确认 · 空格记录 / Esc 作废";
   }
 
@@ -2134,6 +2166,7 @@
       bldAnalysis: $("tm-bld-analysis"),
       /* 分段计时与步数配置 */
       bldSplit: $("tm-bld-split"), bldStepsBtn: $("tm-bld-steps-toggle"),
+      toolsHint: $("tm-tools-hint"),
       revealSeg: $("tm-bld-reveal-seg"),
       stepEdge: $("tm-step-edge"), stepCorner: $("tm-step-corner"),
       stepFlip: $("tm-step-flip"), stepTwist: $("tm-step-twist"), stepParity: $("tm-step-parity"),
@@ -2441,6 +2474,9 @@
     get solves() { return solves().slice(); },
     get scramble() { return curScramble; },
     get inspect() { return opt.inspect; },
+    /* 三盲分段计时状态（验证脚本 / 调试用）：memoMarked = 是否已按空格标记记忆结束 */
+    get memoMs() { return memoMs; },
+    get memoMarked() { return memoMarked; },
     get mapOpen() { return !!(els.mapModal && !els.mapModal.hidden); },
     get exportMenuOpen() { return !!(els.exportMenu && !els.exportMenu.hidden); },
     press: press, release: release,
