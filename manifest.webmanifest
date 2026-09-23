@@ -1,0 +1,32 @@
+{
+  "name": "魔方先生计时器",
+  "short_name": "魔方计时",
+  "description": "二阶 / 三阶 / 三盲 WCA 风格打乱计时器，成绩本地存储，支持离线使用。",
+  "lang": "zh-CN",
+  "start_url": "/tools/timer/",
+  "scope": "/tools/timer/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1118",
+  "theme_color": "#0d1118",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

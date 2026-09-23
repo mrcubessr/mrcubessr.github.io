@@ -6,6 +6,13 @@
 <script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>计时器 · Timer · 魔方先生SSR训练中心</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0d1118">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="魔方计时">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
@@ -468,5 +475,14 @@
 <script>CFOP.bindTheme("themeBtn");</script>
 <script src="/assets/js/sync-boot.js"></script>
 <script>SyncBoot.ready(function(){LSProvider.register({id:'timer',label:'计时成绩',path:'timer.json',keys:['timer_data_v2','timer_options_v1']});});</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function (err) {
+        console.warn('SW 注册失败:', err);
+      });
+    });
+  }
+</script>
 </body>
 </html>
