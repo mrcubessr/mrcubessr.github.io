@@ -17,7 +17,14 @@
 (function (global) {
   'use strict';
 
-  var DEFAULT_SDK = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  /* 兜底 SDK：仅在 cb-config 既没配 sdkUrl 也没配 sdkFallbackUrl 时使用。
+     仍然写死具体版本号，绝不使用 `@2` 这类浮动标签（上游一发新版就会换掉用户手里的代码）。 */
+  var DEFAULT_SDK = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js';
+
+  /* 超时：单次登录/验证码请求到点就中断并给出可操作提示，避免"一直转圈、用户不知道发生了什么" */
+  var REQ_TIMEOUT_MS = 20000;
+  var SDK_TIMEOUT_MS = 15000;
+  var TIMEOUT_MARK = '__wb_timeout__';
 
   var state = {
     sdkReady: false,
@@ -58,18 +65,120 @@
     return '';
   }
 
-  function loadSdk(url) {
+  /* ---------- 错误汉化：把英文/原始报错翻成"看得懂 + 知道怎么办"的中文 ----------
+     匹配优先看结构特征（name / status / code），其次才看文案：
+     网络层失败在浏览器里文案各不相同（Chrome "Failed to fetch"、Safari "Load failed"、
+     Firefox "NetworkError..."），但 supabase-js 一律包成 AuthRetryableFetchError + status 0。 */
+  function friendly(e) {
+    var raw = (e && e.message) ? String(e.message) : String(e || '');
+    var name = (e && e.name) ? String(e.name) : '';
+    var code = (e && e.code) ? String(e.code) : '';
+    var status = (e && typeof e.status === 'number') ? e.status : null;
+    var m = raw.toLowerCase();
+    var isNet = (name === 'AuthRetryableFetchError') || status === 0 ||
+      m.indexOf('failed to fetch') >= 0 || m.indexOf('load failed') >= 0 ||
+      m.indexOf('networkerror') >= 0 || m.indexOf('network request failed') >= 0 ||
+      m.indexOf('fetch failed') >= 0;
+    var head = '';
+    if (m.indexOf(TIMEOUT_MARK) >= 0 || m.indexOf('aborted') >= 0) {
+      head = '连接登录服务超时（' + (REQ_TIMEOUT_MS / 1000) + " 秒无响应）。请检查网络后重试。";
+    } else if (isNet) {
+      head = "连不上登录服务（网络层失败）。请换一个网络重试（Wi-Fi ↔ 移动数据）；若开着代理 / VPN / 广告拦截，请先关掉。";
+    } else if (code === 'email_address_not_authorized' || m.indexOf('email address not authorized') >= 0 ||
+               code === 'unexpected_failure' || m.indexOf('error sending magic link') >= 0 ||
+               m.indexOf('error sending confirmation') >= 0 || m.indexOf('error sending recovery') >= 0) {
+      head = "验证码邮件发不出去。Supabase 默认邮件服务只允许发给项目团队成员、且每小时限 2 封 —— " +
+             "请改用「使用密码登录」，或先在 Supabase 配置自定义 SMTP。";
+    } else if (code === 'over_email_send_rate_limit' || m.indexOf('for security purposes') >= 0 ||
+               m.indexOf('email rate limit') >= 0) {
+      head = "验证码发送太频繁（免费邮件服务每小时限 2 封）。请稍后再试，或改用「使用密码登录」。";
+    } else if (code === 'over_request_rate_limit' || status === 429) {
+      head = "请求过于频繁，请稍等一会儿再试。";
+    } else if (code === 'invalid_credentials' || m.indexOf('invalid login credentials') >= 0) {
+      head = "邮箱或密码不正确。若这个号当初是用验证码注册、还没设过密码，请先用验证码登录一次并在面板里设置密码。";
+    } else if (code === 'email_not_confirmed' || m.indexOf('email not confirmed') >= 0) {
+      head = "该邮箱还没通过验证。请先用验证码登录一次完成验证，或去 Supabase 后台手动确认该用户。";
+    } else if (code === 'user_already_exists' || m.indexOf('already registered') >= 0) {
+      head = "该账号已存在，请直接登录。";
+    } else if (code === 'otp_expired' || m.indexOf('token has expired') >= 0 ||
+               m.indexOf('invalid token') >= 0 || m.indexOf('token is invalid') >= 0) {
+      head = "验证码不正确或已过期，请重新获取。";
+    }
+    if (!head) return raw || '未知错误';   /* 已是中文可读的（配置/加载类）原样透出 */
+    return head + "（原始提示：" + raw + "）";
+  }
+
+  /* ---------- 带超时的 fetch：交给 supabase-js 当底层请求实现 ---------- */
+  function timedFetch(input, init) {
+    var base = global.fetch;
+    if (!base) return Promise.reject(new Error('当前浏览器不支持 fetch，无法登录'));
+    if (typeof AbortController === 'undefined') return base(input, init);
+
+    var ctl = new AbortController();
+    var init2 = Object.assign({}, init || {}, { signal: ctl.signal });
+    /* 尊重上层（supabase-js）已有的取消信号，转发到我们自己的 controller */
+    if (init && init.signal) {
+      if (init.signal.aborted) { try { ctl.abort(); } catch (e) {} }
+      else {
+        try { init.signal.addEventListener('abort', function () { try { ctl.abort(); } catch (e) {} }); } catch (e) {}
+      }
+    }
+    var timer = setTimeout(function () { try { ctl.abort(); } catch (e) {} }, REQ_TIMEOUT_MS);
+
+    return base(input, init2).then(function (r) { clearTimeout(timer); return r; },
+      function (e) {
+        clearTimeout(timer);
+        if (ctl.signal.aborted && !(init && init.signal && init.signal.aborted)) {
+          throw new Error(TIMEOUT_MARK + " 请求 " + (REQ_TIMEOUT_MS / 1000) + " 秒无响应");
+        }
+        throw e;
+      });
+  }
+
+  function loadSdk(urls) {
     if (global.supabase && global.supabase.createClient) return Promise.resolve(global.supabase);
     if (sdkPromise) return sdkPromise;
-    sdkPromise = new Promise(function (res, rej) {
-      var s = document.createElement('script');
-      s.src = url || DEFAULT_SDK;
-      s.async = true;
-      s.onload = function () { res(global.supabase || null); };
-      s.onerror = function () { rej(new Error('Supabase SDK 加载失败（检查网络或 SDK 地址）')); };
-      document.head.appendChild(s);
-    });
+    var list = (urls && urls.length) ? urls : sdkSources();
+
+    function loadOne(url) {
+      return new Promise(function (res, rej) {
+        var s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        var done = false;
+        var t = setTimeout(function () {
+          if (done) return; done = true;
+          rej(new Error('登录组件加载超时：' + url));
+        }, SDK_TIMEOUT_MS);
+        s.onload = function () { if (done) return; done = true; clearTimeout(t); res(global.supabase || null); };
+        s.onerror = function () { if (done) return; done = true; clearTimeout(t); rej(new Error('资源加载失败：' + url)); };
+        document.head.appendChild(s);
+      });
+    }
+
+    /* 逐个源尝试：自托管 → 固定版本 CDN 兜底 */
+    sdkPromise = list.reduce(function (p, url) {
+      return p.catch(function () { return loadOne(url); });
+    }, Promise.reject(new Error('start')))
+      .then(function (sb) {
+        if (!sb || !sb.createClient) throw new Error('Supabase SDK 未加载（资源加载了但不是预期的库）');
+        return sb;
+      })
+      .catch(function () {
+        sdkPromise = null;   /* 允许"重试"再次尝试，而不是永久失败 */
+        throw new Error('登录组件（Supabase SDK）加载失败：请刷新页面重试；若反复失败，可能是该资源被网络或浏览器插件拦截。');
+      });
     return sdkPromise;
+  }
+
+  /* 可用的 SDK 源：优先站点自托管，其次固定版本 CDN */
+  function sdkSources() {
+    var c = cfg();
+    var list = [];
+    if (c.sdkUrl) list.push(c.sdkUrl);
+    if (c.sdkFallbackUrl && c.sdkFallbackUrl !== c.sdkUrl) list.push(c.sdkFallbackUrl);
+    if (!list.length) list.push(DEFAULT_SDK);
+    return list;
   }
 
   /** 初始化并拿到 client（幂等） */
@@ -81,9 +190,9 @@
     if (!c.enabled) return Promise.reject(new Error('账号登录未启用'));
     if (state.client) return Promise.resolve(state.client);
 
-    return loadSdk(c.sdkUrl).then(function (sb) {
-      if (!sb || !sb.createClient) throw new Error('Supabase SDK 未加载');
-      var client = sb.createClient(c.supabaseUrl, c.anonKey);
+    return loadSdk().then(function (sb) {
+      /* global.fetch：给所有 Supabase 请求套上超时，避免网络抽风时无限转圈 */
+      var client = sb.createClient(c.supabaseUrl, c.anonKey, { global: { fetch: timedFetch } });
       state.client = client;
       state.sdkReady = true;
       state.error = '';
@@ -172,12 +281,12 @@
           [ch === 'email' ? 'email' : 'phone']: acc,
           options: { shouldCreateUser: true }
         }).then(function (r) {
-          if (r && r.error) throw new Error(r.error.message || '验证码发送失败');
+          if (r && r.error) throw r.error;          /* 原样抛出，交给外层 friendly() 翻译 */
           state.pending = { channel: ch, account: acc };
           return r && r.data;
         });
       }).catch(function (e) {
-        throw new Error(e && e.message ? e.message : e);
+        throw new Error(friendly(e));
       });
     },
 
@@ -220,7 +329,7 @@
         state.pending = null;
         return refresh().then(function () { emit(); return state.user; });
       }).catch(function (e) {
-        throw new Error(e && e.message ? e.message : e);
+        throw new Error(friendly(e));
       });
     },
 
@@ -235,11 +344,11 @@
       if (!password || password.length < 6) return Promise.reject(new Error('密码至少 6 位'));
       return ensure().then(function (client) {
         return client.auth.signInWithPassword({ email: acc, password: password }).then(function (r) {
-          if (r && r.error) throw new Error(r.error.message || '登录失败');
+          if (r && r.error) throw r.error;
           return refresh().then(function () { emit(); return state.user; });
         });
       }).catch(function (e) {
-        throw new Error(e && e.message ? e.message : e);
+        throw new Error(friendly(e));
       });
     },
 
@@ -254,12 +363,31 @@
       var client = state.client;
       if (!client || !client.auth) return Promise.reject(new Error('账号未初始化'));
       return client.auth.updateUser({ password: newPassword }).then(function (r) {
-        if (r && r.error) throw new Error(r.error.message || '设置失败');
+        if (r && r.error) throw r.error;
         return true;
       }).catch(function (e) {
-        throw new Error(e && e.message ? e.message : e);
+        throw new Error(friendly(e));
       });
     },
+
+    /** 连通性自检：短超时探一次 /auth/v1/health，只用于提示"网络是否通"，不阻塞登录。
+        返回 Promise<boolean>（true = 能连上登录服务）。 */
+    probe: function (timeoutMs) {
+      var c = cfg();
+      if (!c.supabaseUrl || !global.fetch) return Promise.resolve(false);
+      var tmo = timeoutMs || 6000;
+      var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctl) { try { ctl.abort(); } catch (e) {} } }, tmo);
+      var url = String(c.supabaseUrl).replace(/\/+$/, '') + '/auth/v1/health';
+      return global.fetch(url, {
+        method: 'GET',
+        headers: { apikey: c.anonKey || '' },        /* 不带 apikey 会得到 401，会被误判为"不通" */
+        signal: ctl ? ctl.signal : undefined
+      }).then(function (r) { clearTimeout(timer); return !!(r && r.ok); },
+        function () { clearTimeout(timer); return false; });
+    },
+    /** 把原始报错翻译成可读中文（面板/其它调用方都可复用） */
+    friendlyError: friendly,
 
     signOut: function () {
       var client = state.client;

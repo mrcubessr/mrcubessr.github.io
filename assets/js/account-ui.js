@@ -57,6 +57,10 @@
     '.acct-btn:disabled{opacity:.5;cursor:default;filter:none}',
     '.acct-msg{margin-top:10px;font-size:12.5px;color:var(--fg-3);line-height:1.6}',
     '.acct-msg.err{color:var(--red)}.acct-msg.ok{color:var(--green)}',
+    '.acct-net{display:flex;align-items:flex-start;gap:8px;margin:10px 0 2px;padding:9px 11px;',
+    'font-size:12.5px;line-height:1.6;color:var(--amber);background:var(--surface-2);border-left:3px solid var(--amber)}',
+    '.acct-net span{flex:1 1 auto}',
+    '.acct-net[hidden]{display:none}',   /* 显式 display 会盖掉 [hidden]，必须补这一条 */
     '.acct-code{font-size:26px;font-weight:700;letter-spacing:3px;text-align:center;padding:12px;',
     'background:var(--surface-2);border:1px dashed var(--line-2);margin:8px 0}',
     '.acct-scope{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px;border-bottom:1px solid var(--line)}',
@@ -326,6 +330,9 @@
 
     var errBox = '<div class="acct-sec"><div class="acct-msg err">账号登录尚未开通：需要在 assets/js/cb-config.js 填入 Supabase 的 supabaseUrl 与 anonKey。</div></div>';
 
+    /* 连通性提示条：登录前先探一次登录服务，连不上就提前讲清楚（只是提示，不阻塞登录） */
+    var netStrip = cbOk ? '<div class="acct-net" id="acNet" hidden></div>' : '';
+
     var otpBody = cbOk
       ? '<label class="acct-f">手机号或邮箱' +
         '<input id="acAccount" type="text" inputmode="email" autocomplete="username" placeholder="请输入手机号或邮箱"></label>' +
@@ -358,10 +365,33 @@
       '<div class="acct-msg">仓库需先在 GitHub 建好，令牌权限选 Contents: Read and write。</div>' +
       '</div></details>';
 
-    m.innerHTML = head + (loginMode === 'pwd' ? pwdBody : otpBody) + bottomLinks + ghFold +
+    m.innerHTML = head + netStrip + (loginMode === 'pwd' ? pwdBody : otpBody) + bottomLinks + ghFold +
       '<div class="acct-msg" id="acMsg"></div>';
-    if (cbOk) { if (loginMode === 'pwd') wirePwd(m); else wireOtp(m); wireMode(m); }
+    if (cbOk) { if (loginMode === 'pwd') wirePwd(m); else wireOtp(m); wireMode(m); runNetProbe(m); }
     wireGithub(m);
+  }
+
+  /* 登录前连通性自检：不通就提前提示，并给"重新检测"。
+     只提示不拦截 —— 探测本身也可能因网络抖动误报，不能让提示挡住登录。 */
+  function runNetProbe(m) {
+    var C = CB();
+    var box = m.querySelector('#acNet');
+    if (!box || !C || typeof C.probe !== 'function') return;
+
+    function paint(txt, retryLabel) {
+      box.hidden = false;
+      box.innerHTML = '<span>' + esc(txt) + '</span>' +
+        (retryLabel ? '<button class="acct-link" id="acNetRetry" type="button">' + esc(retryLabel) + '</button>' : '');
+      var b = box.querySelector('#acNetRetry');
+      if (b) b.onclick = function () { box.hidden = true; runNetProbe(m); };
+    }
+
+    box.hidden = true;
+    C.probe().then(function (ok) {
+      if (!mask || !box.parentNode) return;              /* 面板已关闭 */
+      if (ok) { box.hidden = true; return; }
+      paint('检测到与登录服务的连接异常（网络不通，或该网络屏蔽了登录服务）。若登录失败，请先换网络再试。', '重新检测');
+    });
   }
 
   /* ---------------- 手机号 / 邮箱验证码登录 ---------------- */
