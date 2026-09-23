@@ -340,12 +340,22 @@ function netPlateColor(){
     return document.documentElement.getAttribute('data-theme') === 'light' ? '#FFFFFF' : '#141826';
 }
 
+/* 展开图「贴纸描边」颜色：跟随主题，避免深色模式下出现刺眼的白边。
+   浅色（白底）下用深灰描边，让白色贴纸与白底板能分开；
+   深色（深底）下用更深的灰描边，白色贴纸本就与深底板高对比，不会再冒出白边。
+   不再只对白色贴纸单独描边，所有贴纸统一描边，整体更干净。 */
+function netStickerBorder(){
+    const theme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase();
+    return theme === 'light' ? 'rgba(16,24,40,0.30)' : 'rgba(0,0,0,0.45)';
+}
+
 function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
     const s = cube.size;
     const faceData = cube.getFace(face);
     const faceSize = stickerSize * s;
     ctx.fillStyle = netPlateColor();
     ctx.fillRect(ox-2, oy-2, faceSize+4, faceSize+4);
+    const border = netStickerBorder();
     for(let r=0;r<s;r++){
         for(let c=0;c<s;c++){
             const colorKey = faceData[r][c];
@@ -355,11 +365,9 @@ function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
             const ss = stickerSize - 2;
             ctx.fillStyle = stickerColor;
             ctx.fillRect(x, y, ss, ss);
-            if(stickerColor === '#FFFFFF'){
-                ctx.strokeStyle = '#ccc';
-                ctx.lineWidth = 0.5;
-                ctx.strokeRect(x, y, ss, ss);
-            }
+            ctx.strokeStyle = border;
+            ctx.lineWidth = 0.6;
+            ctx.strokeRect(x + 0.3, y + 0.3, ss - 0.6, ss - 0.6);
         }
     }
 }

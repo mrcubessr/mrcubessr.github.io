@@ -562,6 +562,38 @@
     setInspect(isBld ? 0 : speedInspect, true);
     if (isBld) applyBldCollapse();                        /* 恢复上次收起/展开状态 */
     updateBldReveal();                                    /* 解法面板按显示时机显隐 */
+    relocateBldParams();                                  /* 手机端把三盲参数搬进设置，桌面端还原到主流程 */
+  }
+
+  /* 手机端：把「三盲参数」面板整体搬进设置弹窗，主流程底部只留计时区（更干净）。
+     桌面端保持原有右侧抽屉，节点留在页面主流程。节点移动不丢失任何事件绑定。 */
+  var bldParamsHome = null;   /* 首次移出时记住原位，桌面 / 切项目时还原 */
+  function relocateBldParams() {
+    if (!els.bldParams || !els.settingsBldHost) return;
+    var mobile = window.matchMedia('(max-width: 600px)').matches;
+    var isBld = opt.event === 'bld';
+    var inHost = els.bldParams.parentElement === els.settingsBldHost;
+    /* 仅在「手机端 + 三盲」时把它放进设置；其余情况还原到主流程 */
+    if (els.settingsBldH) els.settingsBldH.hidden = !(mobile && isBld);
+    if (els.settingsBldHost) els.settingsBldHost.hidden = !(mobile && isBld);
+    if (mobile && isBld) {
+      if (!inHost) {
+        if (!bldParamsHome) {
+          bldParamsHome = { parent: els.bldParams.parentElement, next: els.bldParams.nextElementSibling };
+        }
+        els.settingsBldHost.appendChild(els.bldParams);
+      }
+      els.bldParams.hidden = false;   /* 显示与否由设置弹窗（父级）控制 */
+    } else {
+      if (inHost && bldParamsHome) {
+        if (bldParamsHome.next && bldParamsHome.next.parentElement === bldParamsHome.parent) {
+          bldParamsHome.parent.insertBefore(els.bldParams, bldParamsHome.next);
+        } else {
+          bldParamsHome.parent.appendChild(els.bldParams);
+        }
+      }
+      els.bldParams.hidden = !isBld;  /* 桌面端回到主流程，按项目显隐 */
+    }
   }
 
   /* 三盲参数面板：收起后只留一行摘要，点标题展开 */
@@ -2298,6 +2330,7 @@
       inspectSeg: $("tm-inspect-seg"), inspectLabel: $("tm-inspect-label"),
       settingsInspectWrap: $("tm-settings-inspect-wrap"),
       settingsManualWrap: $("tm-settings-manual-wrap"),
+      settingsBldHost: $("tm-settings-bld-host"), settingsBldH: $("tm-settings-bld-h"),
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
@@ -2565,6 +2598,13 @@
       try { confirmOk(); } catch (e) { /* 尽力而为，失败不影响卸载 */ }
     }
     window.addEventListener("pagehide", rescuePendingSolve);
+
+    /* 跨越手机/桌面断点时，重新决定三盲参数面板该在「设置弹窗」还是「主流程抽屉」 */
+    var _rpTimer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(_rpTimer);
+      _rpTimer = setTimeout(relocateBldParams, 150);
+    });
 
     /* 三盲：参数面板 + 解法面板 */
     populateOrientation();
