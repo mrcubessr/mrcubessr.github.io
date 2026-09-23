@@ -82,7 +82,7 @@
       success: { solve: 0, dnf: 0, plus2: 0 },
       dnfReasons: { memo: 0, exec: 0, other: 0 }, dnfTotal: 0,
       memoExec: {
-        splitCount: 0, memoMean: null, execMean: null, ratioMean: null, lpmMean: null,
+        splitCount: 0,
         tpsExecMean: null, tpsAllMean: null, secPerAlgMean: null
       }
     };
@@ -186,8 +186,12 @@
       var ms = effectiveMs(r);
       if (isFinite(ms)) { s.sum += ms; s.valid++; s.vals.push(ms); if (ms < s.best) s.best = ms; }
       var m = r.bld.metrics;
-      if (m && isFinite(m.tpsExec)) { s.tpsExecSum += m.tpsExec; s.tpsExecValid++; }
-      if (m && isFinite(m.tpsAll)) { s.tpsAllSum += m.tpsAll; s.tpsAllValid++; }
+      /* TPS 只统计「已完成」的成绩：DNF 常在中途放弃，时长被截短 → TPS 虚高。
+         与 ⑧ 分段成绩统计保持同一口径，避免同一个指标出现两套数。 */
+      if (m && r.pen !== "DNF") {
+        if (isFinite(m.tpsExec)) { s.tpsExecSum += m.tpsExec; s.tpsExecValid++; }
+        if (isFinite(m.tpsAll)) { s.tpsAllSum += m.tpsAll; s.tpsAllValid++; }
+      }
     });
     out.difficultyBuckets = Object.keys(diffMap).map(function (k) {
       var s = diffMap[k];
@@ -207,41 +211,33 @@
     var allVals = arr.map(effectiveMs).filter(isFinite).sort(function (a, c) { return a - c; });
     out.overallMean = allVals.length ? allVals.reduce(function (a, c) { return a + c; }, 0) / allVals.length : null;
 
-    /* ⑦ 成功率 + DNF 归因；⑧ 记忆/执行构成与 TPS 汇总 */
+    /* ⑦ 成功率 + DNF 归因；⑨ 整体 TPS / 每公式秒数汇总。
+       记忆 / 复原 / 占比 / 速度 的展示口径已归 ⑧（TimerStats.splitStats，排除 DNF），
+       这里只保留 ⑨ 需要的整体效率指标，且同样排除 DNF，全报告一个口径。 */
     out.success = { solve: 0, dnf: 0, plus2: 0 };
     out.dnfReasons = { memo: 0, exec: 0, other: 0 };
     out.memoExec = {
-      splitCount: 0, memoSum: 0, memoValid: 0, execSum: 0, execValid: 0,
-      ratioSum: 0, ratioValid: 0, lettersPerMinSum: 0, lpmValid: 0,
+      splitCount: 0, doneCount: 0,
       tpsExecSum: 0, tpsExecValid: 0, tpsAllSum: 0, tpsAllValid: 0,
       secPerAlgSum: 0, secPerAlgValid: 0
     };
+    var me = out.memoExec;
     arr.forEach(function (r) {
       if (r.pen === "DNF") { out.success.dnf++; if (r.bld && r.bld.dnfReason) out.dnfReasons[r.bld.dnfReason] = (out.dnfReasons[r.bld.dnfReason] || 0) + 1; }
       else if (r.pen === "+2") out.success.plus2++;
       else out.success.solve++;
       var m = r.bld && r.bld.metrics;
       if (!m) return;
-      var me = out.memoExec;
-      if (m.split) {
-        me.splitCount++;
-        if (isFinite(m.memoMs)) { me.memoSum += m.memoMs; me.memoValid++; }
-        if (isFinite(m.execMs)) { me.execSum += m.execMs; me.execValid++; }
-        if (isFinite(m.memoRatio)) { me.ratioSum += m.memoRatio; me.ratioValid++; }
-        if (isFinite(m.lettersPerMin)) { me.lettersPerMinSum += m.lettersPerMin; me.lpmValid++; }
-      }
+      if (m.split) me.splitCount++;
+      if (r.pen === "DNF") return;        /* DNF 时长被截短 → TPS / 每公式秒数会虚高，整段剔除 */
+      me.doneCount++;
       if (isFinite(m.tpsExec)) { me.tpsExecSum += m.tpsExec; me.tpsExecValid++; }
       if (isFinite(m.tpsAll)) { me.tpsAllSum += m.tpsAll; me.tpsAllValid++; }
       if (isFinite(m.secPerAlg)) { me.secPerAlgSum += m.secPerAlg; me.secPerAlgValid++; }
     });
-    var me2 = out.memoExec;
-    me2.memoMean = me2.memoValid ? me2.memoSum / me2.memoValid : null;
-    me2.execMean = me2.execValid ? me2.execSum / me2.execValid : null;
-    me2.ratioMean = me2.ratioValid ? me2.ratioSum / me2.ratioValid : null;
-    me2.lpmMean = me2.lpmValid ? me2.lettersPerMinSum / me2.lpmValid : null;
-    me2.tpsExecMean = me2.tpsExecValid ? me2.tpsExecSum / me2.tpsExecValid : null;
-    me2.tpsAllMean = me2.tpsAllValid ? me2.tpsAllSum / me2.tpsAllValid : null;
-    me2.secPerAlgMean = me2.secPerAlgValid ? me2.secPerAlgSum / me2.secPerAlgValid : null;
+    me.tpsExecMean = me.tpsExecValid ? me.tpsExecSum / me.tpsExecValid : null;
+    me.tpsAllMean = me.tpsAllValid ? me.tpsAllSum / me.tpsAllValid : null;
+    me.secPerAlgMean = me.secPerAlgValid ? me.secPerAlgSum / me.secPerAlgValid : null;
     out.dnfTotal = out.success.dnf;
 
     /* ⑥ 近期趋势：按时间均分 3 段 × 难度等级，看不同难度打乱的成绩变化 */
@@ -284,6 +280,12 @@
     return '<div class="tm-ba-bar"><span class="tm-ba-bar__k">' + esc(label) + "</span>" +
       '<span class="tm-ba-bar__track"><span class="tm-ba-bar__fill" style="width:' + Math.max(4, pct) + '%"></span></span>' +
       '<span class="tm-ba-bar__v">' + count + " 次 · " + pct + "%</span></div>";
+  }
+  /* 难度桶只带 totalMin / totalMax，没有单值 total —— 早期版本在 ⑨ 表里直接用了
+     s.total，渲染成「undefined 条」。统一从这里取「条数范围」文案。 */
+  function algRange(s) {
+    if (!s || s.totalMin === Infinity) return "—";
+    return s.totalMin === s.totalMax ? s.totalMin + " 条" : s.totalMin + "–" + s.totalMax + " 条";
   }
 
   function renderReport(solves) {
@@ -363,11 +365,11 @@
       if (!a.difficultyBuckets.length) {
         h += '<div class="tm-ba-note">暂无难度数据（旧成绩不含难度指标，新记录的成绩会自动带上）。</div>';
       } else {
-        h += '<div class="tm-ba-table"><table><thead><tr><th>难度等级</th><th>难度分</th><th>公式条数</th><th>次数</th><th>平均</th><th>中位</th><th>最好</th><th>执行TPS</th><th>整体TPS</th><th>对比整体</th></tr></thead><tbody>';
+        h += '<div class="tm-ba-table"><table><thead><tr><th>难度等级</th><th>难度分</th><th>公式条数</th><th>次数</th><th>平均</th><th>中位</th><th>最好</th><th>复原TPS</th><th>整体TPS</th><th>对比整体</th></tr></thead><tbody>';
         a.difficultyBuckets.forEach(function (s) {
           var delta = (s.mean != null && a.overallMean) ? Math.round((s.mean - a.overallMean) / a.overallMean * 100) : null;
           var dtxt = delta == null ? "—" : (delta > 0 ? "+" + delta + "% 偏慢" : (delta < 0 ? delta + "% 偏快" : "持平"));
-          var tRange = (s.totalMin !== Infinity) ? (s.totalMin === s.totalMax ? s.totalMin + " 条" : s.totalMin + "–" + s.totalMax + " 条") : "—";
+          var tRange = algRange(s);
           h += "<tr><td>" + lvBadge(s.level) + "</td><td>" +
             (s.mem != null ? Math.round(s.mem) : "—") + "</td><td>" + tRange + "</td><td>" + s.count + "</td><td>" +
           (s.mean != null ? fmt(s.mean) : "—") + "</td><td>" +
@@ -377,7 +379,7 @@
           (s.tpsAll != null ? s.tpsAll.toFixed(2) : "—") + "</td><td>" + dtxt + "</td></tr>";
       });
       h += "</tbody></table></div>";
-      h += '<p class="tm-ba-note">同一难度等级的打乱记忆负担相近，可直接互比。「公式条数」为该等级内各次打乱的总公式条数范围（棱+角+翻色+扭角+奇偶），「难度分」为该等级的平均难度分（0~100）。TPS 取该等级所有分段成绩的执行/整体均值。</p>';
+      h += '<p class="tm-ba-note">同一难度等级的打乱记忆负担相近，可直接互比。「公式条数」为该等级内各次打乱的总公式条数范围（棱+角+翻色+扭角+奇偶），「难度分」为该等级的平均难度分（0~100）。「复原 TPS」取该等级已完成（含 +2）成绩的均值，DNF 不计入（与 ⑧ 表同口径）。</p>';
     }
 
     /* ⑥ 近期趋势：不同难度打乱的成绩变化 */
@@ -424,47 +426,58 @@
       h += '<p class="tm-ba-note">暂无 DNF 记录。</p>';
     }
 
-    /* ⑧ 记忆 / 执行构成（瓶颈在哪） */
-    h += '<h3 class="tm-h3">⑧ 记忆 / 执行构成（瓶颈诊断）</h3>';
+    /* ⑧ 分段成绩统计：记忆 / 复原 / 复原 TPS —— 三行同源样本，可直接对账 */
+    var sp = (root.TimerStats && root.TimerStats.splitStats) ? root.TimerStats.splitStats(solves) : null;
     var me = a.memoExec;
-    if (me.splitCount === 0) {
-      h += '<div class="tm-ba-note">当前成绩未启用「记忆/执行分段计时」（或均为旧数据），无法拆解。开启分段后，计时中用空格标记记忆结束即可看到构成。</div>';
+    h += '<h3 class="tm-h3">⑧ 分段成绩统计（记忆 / 复原 / 复原 TPS）</h3>';
+    if (!sp) {
+      h += '<div class="tm-ba-note">当前成绩未启用「记忆 / 执行分段计时」（或均为旧数据），无法拆解。开启分段后，计时中用空格标记「记忆结束」即可看到这三项统计。</div>';
     } else {
+      var tm3 = function (ms) { return ms == null ? "—" : fmt(ms); };
+      var tp3 = function (v) { return v == null ? "—" : v.toFixed(2); };
       h += '<div class="tm-ba-ov">' +
-        cell("分段成绩", me.splitCount) +
-        cell("平均记忆", me.memoMean != null ? fmt(me.memoMean) : "—") +
-        cell("平均执行", me.execMean != null ? fmt(me.execMean) : "—") +
-        cell("记忆占比", me.ratioMean != null ? Math.round(me.ratioMean * 100) + "%" : "—") +
-        cell("记忆速度", me.lpmMean != null ? me.lpmMean.toFixed(1) + " 字母/分" : "—") +
+        cell("分段样本", sp.count + " 把") +
+        cell("记忆占比", sp.ratioMean != null ? Math.round(sp.ratioMean * 100) + "%" : "—") +
+        cell("记忆速度", sp.lpmMean != null ? sp.lpmMean.toFixed(1) + " 字母/分" : "—") +
         "</div>";
+      h += '<div class="tm-ba-table tm-ba-table--x"><table><thead><tr>' +
+        "<th>指标</th><th>最好</th><th>平均</th><th>中位</th><th>最差</th><th>最近 " + sp.recentN + " 把</th></tr></thead><tbody>";
+      h += "<tr><td>记忆时间</td><td>" + tm3(sp.memo.best) + "</td><td>" + tm3(sp.memo.mean) + "</td><td>" +
+        tm3(sp.memo.median) + "</td><td>" + tm3(sp.memo.worst) + "</td><td>" + tm3(sp.memoRecent) + "</td></tr>";
+      h += "<tr><td>复原时间</td><td>" + tm3(sp.exec && sp.exec.best) + "</td><td>" + tm3(sp.exec && sp.exec.mean) + "</td><td>" +
+        tm3(sp.exec && sp.exec.median) + "</td><td>" + tm3(sp.exec && sp.exec.worst) + "</td><td>" + tm3(sp.execRecent) + "</td></tr>";
+      h += "<tr><td>复原 TPS</td><td>" + tp3(sp.tps && sp.tps.best) + "</td><td>" + tp3(sp.tps && sp.tps.mean) + "</td><td>" +
+        tp3(sp.tps && sp.tps.median) + "</td><td>" + tp3(sp.tps && sp.tps.worst) + "</td><td>" + tp3(sp.tpsRecent) + "</td></tr>";
+      h += "</tbody></table></div>";
+      h += '<p class="tm-ba-note">「复原」= 分段计时里的执行段（计时提示条写作「执行中」）。三行取同一批样本：已启用分段、且非 DNF 的成绩（+2 计入），本组已排除 ' + sp.dnfExcluded + ' 把 DNF —— DNF 常在中途放弃，会把复原时间与 TPS 截短成虚高值。记忆时间 + 复原时间 ≈ 总时间，可直接对账。复原 TPS 越大越好（每秒还原转动次数），是排除记忆时长干扰后的真手速。</p>';
       var bottleneck = "";
-      if (me.ratioMean != null) {
-        bottleneck = me.ratioMean >= 0.5 ? "记忆是主要耗时环节，提升空间在记忆速度。" :
-          "执行占比偏低，瓶颈可能在记忆；若记忆已快，则执行手速是主要提升空间。";
+      if (sp.ratioMean != null) {
+        bottleneck = sp.ratioMean >= 0.5
+          ? "记忆占了总时间一半以上 —— 记忆是主要耗时环节，优先练编码熟练度与记忆速度。"
+          : "记忆占比不到一半 —— 若记忆已足够快，提升空间就在复原手速（看复原 TPS 是否随难度骤降）。";
       }
-      h += '<p class="tm-ba-note">' + bottleneck + "（占比越高，说明计时里越大部分花在背记上。）</p>";
+      if (bottleneck) h += '<p class="tm-ba-note">' + bottleneck + "（占比越高，说明计时里越大部分花在背记上。）</p>";
     }
 
-    /* ⑨ TPS 汇总与按难度 */
-    h += '<h3 class="tm-h3">⑨ TPS（每秒转动次数）</h3>';
+    /* ⑨ 整体 TPS（含记忆的总效率）+ 按难度 */
+    h += '<h3 class="tm-h3">⑨ 整体 TPS（含记忆的总效率）</h3>';
     if (me.tpsAllMean == null && me.tpsExecMean == null) {
       h += '<div class="tm-ba-note">暂无 TPS 数据（需带分段/步数配置的成绩）。开启分段计时后自动计算。</div>';
     } else {
-      h += '<div class="tm-ba-ov">' +
-        cell("执行 TPS", me.tpsExecMean != null ? me.tpsExecMean.toFixed(2) : "—") +
+      h += '<div class="tm-ba-ov tm-ba-ov--2">' +
         cell("整体 TPS", me.tpsAllMean != null ? me.tpsAllMean.toFixed(2) : "—") +
         cell("每公式秒数", me.secPerAlgMean != null ? me.secPerAlgMean.toFixed(1) + "s" : "—") +
         "</div>";
-      h += '<p class="tm-ba-note">执行 TPS = 估算步数 ÷ 执行时间（真手速）；整体 TPS = 估算步数 ÷ 总时间（含记忆）。盲拧总时间里有大量记忆静止期，所以整体 TPS 会显著低于执行 TPS——这是正常现象，比较时请优先看执行 TPS。</p>';
+      h += '<p class="tm-ba-note">整体 TPS = 估算步数 ÷ 总时间（含记忆静止期），所以它天然偏低，只适合跟自己纵向比；要比手速请看 ⑧ 表的复原 TPS。每公式秒数 = 复原时间 ÷ 公式条数，越小说明公式越熟。</p>';
       var tpsDiff = a.difficultyBuckets.filter(function (s) { return s.tpsExec != null; });
       if (tpsDiff.length) {
-        h += '<div class="tm-ba-table"><table><thead><tr><th>难度(总公式)</th><th>次数</th><th>执行TPS</th><th>整体TPS</th></tr></thead><tbody>';
+        h += '<div class="tm-ba-table"><table><thead><tr><th>难度(总公式)</th><th>次数</th><th>复原TPS</th><th>整体TPS</th></tr></thead><tbody>';
         tpsDiff.forEach(function (s) {
-          h += "<tr><td>" + s.total + " 条</td><td>" + s.count + "</td><td>" +
+          h += "<tr><td>" + algRange(s) + "</td><td>" + s.count + "</td><td>" +
             s.tpsExec.toFixed(2) + "</td><td>" + (s.tpsAll != null ? s.tpsAll.toFixed(2) : "—") + "</td></tr>";
         });
         h += "</tbody></table></div>";
-        h += '<p class="tm-ba-note">同难度下执行 TPS 越高、手速越好；若难度升高时 TPS 骤降，说明高难公式库执行不熟。</p>';
+        h += '<p class="tm-ba-note">同难度下复原 TPS 越高、手速越好；若难度升高时 TPS 骤降，说明高难公式库执行不熟。本表与 ⑧ 表同口径（均已排除 DNF）。</p>';
       }
     }
 

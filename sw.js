@@ -4,7 +4,7 @@
  * （/assets/*、/tools/cfop/* 等 GitHub Pages 无法用 Service-Worker-Allowed 头放宽作用域）。
  * 控制范围刻意只覆盖「计时器应用壳 + 其声明的依赖」，不接管全站其他页面。
  */
-const CACHE = 'fto-timer-v1';
+const CACHE = 'fto-timer-v2';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [

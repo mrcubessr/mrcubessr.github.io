@@ -63,7 +63,7 @@
   var curScramble = "";
   var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
 
-  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true };
+  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true, scrambleScale: 1, timeScale: 1 };
   /* 速拧的「观察」偏好：三盲会临时把 opt.inspect 压成 0，切回速拧时用它还原 */
   var speedInspect = 15;
 
@@ -250,6 +250,9 @@
       }
       /* 参数面板默认收起（设定一次即可，不必一直显示） */
       opt.bldCollapsed = (typeof o.bldCollapsed === "boolean") ? o.bldCollapsed : true;
+      /* 字体缩放：打乱公式 / 计时数字，取值范围 0.8~2.5（默认 1） */
+      if (typeof o.scrambleScale === "number" && isFinite(o.scrambleScale)) opt.scrambleScale = clamp(o.scrambleScale, 0.8, 2.5);
+      if (typeof o.timeScale === "number" && isFinite(o.timeScale)) opt.timeScale = clamp(o.timeScale, 0.8, 2.5);
     } catch (e) {
       opt.bld = defaultBld();
     }
@@ -904,15 +907,15 @@
         var parts = [];
         parts.push(metric("估算步数", m.steps + " 步"));
         if (m.split) {
-          parts.push(metric("记忆", S.fmt(m.memoMs)));
-          parts.push(metric("执行", S.fmt(m.execMs)));
-          parts.push(metric("记忆占比", Math.round(m.memoRatio * 100) + "%"));
-          parts.push(metric("记忆速度", m.lettersPerMin.toFixed(1) + " 字母/分"));
-          parts.push(metric("执行 TPS", m.tpsExec.toFixed(2)));
+          parts.push(metric("记忆", fmt3(m.memoMs)));
+          parts.push(metric("执行", fmt3(m.execMs)));
+          parts.push(metric("记忆占比", (m.memoRatio * 100).toFixed(3) + "%"));
+          parts.push(metric("记忆速度", m.lettersPerMin.toFixed(3) + " 字母/分"));
+          parts.push(metric("执行 TPS", m.tpsExec.toFixed(3)));
         } else {
-          parts.push(metric("TPS", m.tpsAll.toFixed(2), "未分段"));
+          parts.push(metric("TPS", m.tpsAll.toFixed(3), "未分段"));
         }
-        parts.push(metric("每公式秒数", m.secPerAlg.toFixed(2) + "s"));
+        parts.push(metric("每公式秒数", m.secPerAlg.toFixed(3) + "s"));
         els.confirmMetrics.innerHTML = '<div class="tm-confirm__metrics">' + parts.join("") + "</div>";
       }
     }
@@ -926,6 +929,18 @@
       }
     }
   }
+  /* 确认区指标统一 3 位小数：秒表式格式（<60s → "28.975"，≥60s → "1:05.234"） */
+  function fmt3(ms) {
+    if (ms == null || !isFinite(ms) || ms < 0) return "--";
+    var s = ms / 1000;
+    if (s >= 60) {
+      var m2 = Math.floor(s / 60);
+      var r = s - m2 * 60;
+      return m2 + ":" + (r < 10 ? "0" : "") + r.toFixed(3);
+    }
+    return s.toFixed(3);
+  }
+
   function metric(label, val, note) {
     return '<div class="tm-metric"><span class="tm-metric__k">' + label + "</span>" +
            '<span class="tm-metric__v">' + val + (note ? ' <i class="tm-metric__note">' + note + "</i>" : "") + "</span></div>";
@@ -1493,10 +1508,10 @@
       if (b.metrics) {
         var m = b.metrics;
         if (m.split) {
-          html += '<div class="tm-solve__bld-row"><span>记忆</span><b>' + S.fmt(m.memoMs) + "</b><span>执行</span><b>" + S.fmt(m.execMs) + "</b></div>";
-          html += '<div class="tm-solve__bld-row"><span>记忆速度</span><b>' + (m.lettersPerMin || 0).toFixed(1) + " 字母/分</b><span>执行 TPS</span><b>" + (m.tpsExec || 0).toFixed(2) + "</b></div>";
+          html += '<div class="tm-solve__bld-row"><span>记忆</span><b>' + fmt3(m.memoMs) + "</b><span>执行</span><b>" + fmt3(m.execMs) + "</b></div>";
+          html += '<div class="tm-solve__bld-row"><span>记忆速度</span><b>' + (m.lettersPerMin || 0).toFixed(3) + " 字母/分</b><span>执行 TPS</span><b>" + (m.tpsExec || 0).toFixed(3) + "</b></div>";
         } else if (m.tpsAll != null) {
-          html += '<div class="tm-solve__bld-row"><span>TPS</span><b>' + m.tpsAll.toFixed(2) + "</b></div>";
+          html += '<div class="tm-solve__bld-row"><span>TPS</span><b>' + m.tpsAll.toFixed(3) + "</b></div>";
         }
       }
       html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button></div>';
@@ -1603,9 +1618,22 @@
       els.barTheme.setAttribute("aria-label", light ? "切换到深色主题" : "切换到浅色主题");
     }
   }
+  /* 字体缩放：把两个比例写到 :root 的 CSS 变量上，所有断点的 font-size 都包了
+     calc(... * var(--tm-scramble-scale) / var(--tm-time-scale))，改一处即整体生效。 */
+  function applyFontScale() {
+    var r = document.documentElement;
+    r.style.setProperty("--tm-scramble-scale", String(opt.scrambleScale));
+    r.style.setProperty("--tm-time-scale", String(opt.timeScale));
+    if (els.fontScrambleVal) els.fontScrambleVal.textContent = Math.round(opt.scrambleScale * 100) + "%";
+    if (els.fontTimeVal) els.fontTimeVal.textContent = Math.round(opt.timeScale * 100) + "%";
+  }
   function openSettings() {
     if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
     refreshThemeActive();
+    /* 打开设置时把滑块与百分比标签同步成当前值（首次加载或换设备后保持一致） */
+    if (els.fontScramble) els.fontScramble.value = String(opt.scrambleScale);
+    if (els.fontTime) els.fontTime.value = String(opt.timeScale);
+    applyFontScale();
     els.settingsModal.hidden = false;
     if (els.settingsBtn) els.settingsBtn.blur();
   }
@@ -1733,6 +1761,17 @@
         ["最好 ao12", s.bestAo12 == null ? "--" : S.fmt(s.bestAo12), s.bestAo12 != null],
         ["最好 ao100", s.bestAo100 == null ? "--" : S.fmt(s.bestAo100), s.bestAo100 != null]
       ];
+    }
+    /* 三盲 + 分段计时：概览直接给出三行均值（记忆 / 复原 / 复原 TPS），
+       口径与三盲专项分析 ⑧ 表完全一致（TimerStats.splitStats：仅分段且非 DNF）。
+       无分段样本时不追加，避免出现一排「--」。 */
+    if (opt.event === "bld" && S.splitStats) {
+      var sp = S.splitStats(arr);
+      if (sp) {
+        cells.push(["平均记忆", sp.memo ? S.fmt(sp.memo.mean) : "--"]);
+        cells.push(["平均复原", sp.exec ? S.fmt(sp.exec.mean) : "--"]);
+        cells.push(["复原 TPS", sp.tps ? sp.tps.mean.toFixed(2) : "--"]);
+      }
     }
     var html = "";
     cells.forEach(function (c) {
@@ -2331,6 +2370,8 @@
       settingsInspectWrap: $("tm-settings-inspect-wrap"),
       settingsManualWrap: $("tm-settings-manual-wrap"),
       settingsBldHost: $("tm-settings-bld-host"), settingsBldH: $("tm-settings-bld-h"),
+      fontScramble: $("tm-font-scramble"), fontScrambleVal: $("tm-font-scramble-val"),
+      fontTime: $("tm-font-time"), fontTimeVal: $("tm-font-time-val"),
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
@@ -2369,7 +2410,7 @@
     };
     if (!els.stage) return;
 
-    loadData(); loadOpt();
+    loadData(); loadOpt(); applyFontScale();
 
     /* 列表显示开关（csTimer 式）：默认隐藏，让计时区占满屏幕；点底部「列表」切换。
        偏好存 localStorage，刷新后保持。 */
@@ -2542,6 +2583,19 @@
       }
       if (els.settingsClear) {
         els.settingsClear.addEventListener("click", function () { clearGroup(els.settingsClear); });
+      }
+      /* 字体大小：打乱公式 / 计时数字，拖动即实时预览并自动保存 */
+      if (els.fontScramble) {
+        els.fontScramble.addEventListener("input", function () {
+          opt.scrambleScale = parseFloat(this.value) || 1;
+          applyFontScale(); saveOpt();
+        });
+      }
+      if (els.fontTime) {
+        els.fontTime.addEventListener("input", function () {
+          opt.timeScale = parseFloat(this.value) || 1;
+          applyFontScale(); saveOpt();
+        });
       }
       /* 「设置 → 数据 → 导出 ▾」：展开/收起内联菜单 */
       if (els.settingsExport && els.settingsExportMenu) {

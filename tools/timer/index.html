@@ -443,6 +443,20 @@
         <button class="btn btn--sm btn--secondary" id="tm-settings-next" type="button">换一条打乱</button>
       </div>
       <span class="tm-bld-params__hint">主界面不显示换打乱按钮：每次完成自动换题，需要跳过时点这里。手动输入后请在主界面输入框里填写并「应用」。</span>
+      <h3 class="tm-h3">字体大小</h3>
+      <div class="tm-font-row">
+        <div class="tm-font-field">
+          <label class="tm-font-field__k" for="tm-font-scramble">打乱公式</label>
+          <input class="tm-font-field__range" type="range" id="tm-font-scramble" min="0.8" max="2.5" step="0.1" value="1">
+          <span class="tm-font-field__v" id="tm-font-scramble-val">100%</span>
+        </div>
+        <div class="tm-font-field">
+          <label class="tm-font-field__k" for="tm-font-time">计时数字</label>
+          <input class="tm-font-field__range" type="range" id="tm-font-time" min="0.8" max="2.5" step="0.1" value="1">
+          <span class="tm-font-field__v" id="tm-font-time-val">100%</span>
+        </div>
+      </div>
+      <span class="tm-bld-params__hint">拖动滑块调整大小，实时预览，自动保存到本机。</span>
       <h3 class="tm-h3">数据</h3>
       <div class="tm-settings-row">
         <button class="btn btn--sm btn--secondary" id="tm-settings-import" type="button">导入成绩</button>

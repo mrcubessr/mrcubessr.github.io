@@ -135,6 +135,73 @@
     return ok / n;
   }
 
+  /* ---------- 三盲分段成绩：记忆时间 / 复原时间 / 复原 TPS ----------
+     「复原」= 分段计时里的执行段（计时中提示条写作「执行中」）。
+     样本口径（三行严格同源，保证「记忆 + 复原 ≈ 总时间」能直接对账）：
+       · 只取真的标记过分段的成绩（bld.metrics.split === true）；
+       · 排除 DNF —— DNF 常在中途放弃，复原时间 / TPS 会被截短成虚高值，
+         混进来会把「最好」刷成假成绩；记忆时间同理（半途而废的把不参与均值）；
+       · +2 计入（罚时是外部判定，不影响分段本身）。
+     返回 null = 无可用样本，调用方据此整块隐藏。 */
+  /* higherBetter=true 用于 TPS 这类「越大越好」的指标：
+     否则 best 会取到最小值，把最差当成最好。 */
+  function metricSet(vals, higherBetter) {
+    if (!vals.length) return null;
+    var sorted = vals.slice().sort(function (a, b) { return a - b; });
+    var sum = 0;
+    for (var i = 0; i < vals.length; i++) sum += vals[i];
+    var lo = sorted[0], hi = sorted[sorted.length - 1];
+    return {
+      n: vals.length,
+      best: higherBetter ? hi : lo,
+      worst: higherBetter ? lo : hi,
+      median: sorted[Math.floor((sorted.length - 1) / 2)],
+      mean: sum / vals.length
+    };
+  }
+  function meanOf(a) {
+    if (!a.length) return null;
+    var s = 0;
+    for (var i = 0; i < a.length; i++) s += a[i];
+    return s / a.length;
+  }
+  function splitStats(arr) {
+    arr = arr || [];
+    var memo = [], exec = [], tps = [], ratio = [], lpm = [];
+    var rMemo = [], rExec = [], rTps = [], RECENT = 5, dnf = 0;
+    for (var i = 0; i < arr.length; i++) {
+      var r = arr[i], m = r && r.bld && r.bld.metrics;
+      if (!m || !m.split) continue;
+      if (r.pen === "DNF") { dnf++; continue; }
+      if (isFinite(m.memoMs)) memo.push(m.memoMs);
+      if (isFinite(m.execMs)) exec.push(m.execMs);
+      if (isFinite(m.tpsExec) && m.tpsExec > 0) tps.push(m.tpsExec);
+      if (isFinite(m.memoRatio)) ratio.push(m.memoRatio);
+      if (isFinite(m.lettersPerMin) && m.lettersPerMin > 0) lpm.push(m.lettersPerMin);
+      /* arr 最新在前 → 开头几个就是最近几把 */
+      if (rMemo.length < RECENT) {
+        if (isFinite(m.memoMs)) rMemo.push(m.memoMs);
+        if (isFinite(m.execMs)) rExec.push(m.execMs);
+        if (isFinite(m.tpsExec) && m.tpsExec > 0) rTps.push(m.tpsExec);
+      }
+    }
+    var memoSample = metricSet(memo);
+    if (!memoSample) return null;
+    return {
+      count: memo.length,
+      dnfExcluded: dnf,
+      memo: memoSample,
+      exec: metricSet(exec),
+      tps: metricSet(tps, true),                    /* TPS 越大越好 */
+      memoRecent: meanOf(rMemo),
+      execRecent: meanOf(rExec),
+      tpsRecent: meanOf(rTps),
+      recentN: rMemo.length,
+      ratioMean: meanOf(ratio),
+      lpmMean: meanOf(lpm)
+    };
+  }
+
   /* ---------- 本组概览 ---------- */
   function sessionStats(arr) {
     arr = arr || [];
@@ -375,6 +442,7 @@
     fmt: fmt, val: val, avgN: avgN, bestAvgN: bestAvgN,
     meaN: meaN, bestMeaN: bestMeaN, meaMinValid: meaMinValid,
     successRate: successRate, succN: succN,
+    splitStats: splitStats,
     sessionStats: sessionStats, byDay: byDay,
     dailyChart: dailyChart, trendChart: trendChart, distChart: distChart,
     progressChart: progressChart, escapeHtml: escapeHtml

@@ -3,6 +3,10 @@
    约定：直角风格（border-radius: 0）· 只使用设计令牌 var(--token)
    ========================================================= */
 
+/* 字体缩放：打乱公式 / 计时数字的比例变量（默认 1，由 JS 按设置覆盖）。
+   各断点的 font-size 都包了 calc(... * var(...))，改这里或 JS 即整体生效。 */
+:root { --tm-scramble-scale: 1; --tm-time-scale: 1; }
+
 .tm-wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 28px 16px 64px; }
 
 /* 作者样式（.tm-confirm{display:flex} 等）优先级高于 UA 的 [hidden]{display:none}，
@@ -88,7 +92,7 @@ body { margin: 0; }
 .tm-scramble { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .tm-scramble__text {
   flex: 1 1 300px; min-width: 0; max-width: 460px;
-  font-family: var(--font-mono); font-size: 17px; font-weight: 600; letter-spacing: 1px;
+  font-family: var(--font-mono); font-size: calc(17px * var(--tm-scramble-scale)); font-weight: 600; letter-spacing: 1px;
   line-height: 1.6; color: var(--gold);
   display: flex; flex-wrap: wrap; gap: 3px 9px;
   user-select: all;
@@ -129,7 +133,7 @@ body { margin: 0; }
 
 .tm-time {
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
-  font-weight: 800; font-size: clamp(52px, 13vw, 132px); line-height: 1;
+  font-weight: 800; font-size: calc(clamp(52px, 13vw, 132px) * var(--tm-time-scale)); line-height: 1;
   letter-spacing: 2px; color: var(--fg);
 }
 .tm-stage.is-ready .tm-time { color: var(--green); }
@@ -178,6 +182,13 @@ body { margin: 0; }
 .tm-settings-btn { display: none; }
 .tm-theme-toggle { display: none; }
 .tm-settings-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- 字体大小设置：打乱公式 / 计时数字 滑块 ---------- */
+.tm-font-row { display: flex; flex-direction: column; gap: 14px; margin: 4px 0 6px; }
+.tm-font-field { display: grid; grid-template-columns: 64px 1fr 48px; align-items: center; gap: 10px; }
+.tm-font-field__k { font-size: 13px; color: var(--fg-2); }
+.tm-font-field__range { width: 100%; accent-color: var(--brand); cursor: pointer; }
+.tm-font-field__v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--brand); text-align: right; }
 
 /* ---------- 当前平均 / 对比（csTimer 在计时数字下方显示的小行） ----------
    桌面端默认隐藏（桌面有统计条），手机端显示。 */
@@ -421,6 +432,13 @@ body { margin: 0; }
 .tm-ba-table th { background: var(--surface-2); color: var(--fg-3); font-weight: 700; }
 .tm-ba-table td { font-family: var(--font-mono); color: var(--fg-2); }
 .tm-ba-table tr:last-child td { border-bottom: 0; }
+/* 列数多的表（如分段成绩统计，6 列）：窄屏改为横向可滑，避免挤成看不清；
+   桌面端面板够宽，不会出现滚动条。 */
+.tm-ba-table--x { overflow-x: auto; }
+.tm-ba-table--x table { min-width: 520px; }
+.tm-ba-table--x td, .tm-ba-table--x th { white-space: nowrap; }
+/* 两格版概览（不足三格时不留空洞） */
+.tm-ba-ov--2 { grid-template-columns: repeat(2, 1fr); }
 .tm-ba-note { font-size: 13px; color: var(--fg-3); padding: 4px 0 12px; }
 .tm-ba-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .tm-ba-bar { display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
@@ -438,14 +456,20 @@ body { margin: 0; }
 .tm-memo.is-done { color: var(--green); }
 
 /* ---------- 确认区：本次盲拧指标 ---------- */
-.tm-confirm__metrics { flex: 1 1 auto; width: 100%; margin: 8px 0 4px; }
+/* 等宽网格列：label 在上、数值在下，各列列宽一致 → 上下严格对齐；
+   数值统一 3 位小数（timer.js fmt3），配合等宽字体，小数点在列内也对齐。 */
+.tm-confirm__metrics {
+  flex: 1 1 auto; width: 100%; margin: 8px 0 4px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 6px 14px; align-items: start;
+}
 .tm-confirm__metrics:empty { display: none; }
 .tm-confirm__metrics .tm-confirm__metrics { margin: 0; }
 .tm-confirm__metrics > .tm-confirm__metrics { display: contents; }
 .tm-confirm__metrics-wrap { display: flex; flex-wrap: wrap; gap: 6px 14px; }
-.tm-metric { display: inline-flex; flex-direction: column; line-height: 1.2; padding: 2px 0; }
-.tm-metric__k { font-size: 10px; color: var(--fg-3); letter-spacing: .5px; }
-.tm-metric__v { font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--fg); }
+.tm-metric { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.2; padding: 2px 0; }
+.tm-metric__k { font-size: 10px; color: var(--fg-3); letter-spacing: .5px; white-space: nowrap; }
+.tm-metric__v { font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tm-metric__note { font-size: 10px; font-style: normal; color: var(--amber); font-family: var(--font-sans); }
 
 /* ---------- 确认区：DNF 归因 ---------- */
@@ -477,10 +501,10 @@ body { margin: 0; }
   .tm-label { font-size: 11px; letter-spacing: .5px; }
   .tm-scramble-block { gap: 12px; }
   .tm-scramble { gap: 8px; }
-  .tm-scramble__text { font-size: 15px; max-width: 100%; gap: 2px 7px; }
+  .tm-scramble__text { font-size: calc(15px * var(--tm-scramble-scale)); max-width: 100%; gap: 2px 7px; }
   /* 计时舞台压低，首屏能同时看到打乱与计时 */
   .tm-stage { min-height: 160px; padding: 16px 14px; }
-  .tm-time { font-size: clamp(46px, 17vw, 88px); }
+  .tm-time { font-size: calc(clamp(46px, 17vw, 88px) * var(--tm-time-scale)); }
   .tm-confirm { padding: 10px 12px; gap: 8px; }
   .tm-confirm__btns { width: 100%; }
   .tm-confirm__btns .btn { flex: 1 1 auto; }
@@ -577,7 +601,7 @@ body { margin: 0; }
     justify-content: flex-start; flex-wrap: nowrap; }
   .tm-scramble__text {
     flex: 1 1 auto; min-width: 0; text-align: left; justify-content: flex-start;
-    font-size: 15px; font-weight: 600; line-height: 1.4; gap: 2px 6px; max-width: none;
+    font-size: calc(15px * var(--tm-scramble-scale)); font-weight: 600; line-height: 1.4; gap: 2px 6px; max-width: none;
   }
   .tm-scramble__btns { display: none; }                    /* 主界面不再出现换打乱/复制 */
   /* 展开图：固定小方块贴在右侧（有图时才有内容） */
@@ -614,7 +638,7 @@ body { margin: 0; }
   /* ---------- 计时舞台：占据屏幕主体，大字（csTimer 式大计时区） ---------- */
   .tm-stage { flex: 1 1 auto; min-height: 132px; padding: 4px 8px; gap: 2px;
     border-width: 0; border-bottom: 1px solid var(--line); background: transparent; }
-  .tm-time { font-size: clamp(74px, 30vw, 148px); letter-spacing: 1px; }
+  .tm-time { font-size: calc(clamp(74px, 30vw, 148px) * var(--tm-time-scale)); letter-spacing: 1px; }
   .tm-state { font-size: 10px; }
   .tm-pen { top: 5px; right: 6px; font-size: 9px; padding: 2px 4px; }
   .tm-memo { font-size: 10px; margin-top: 2px; }
@@ -652,7 +676,7 @@ body { margin: 0; }
   /* 四个按钮平分一行，手机上点得准 */
   .tm-confirm__btns { gap: 4px; margin-left: 0; width: 100%; flex: 1 1 100%; flex-wrap: nowrap; }
   .tm-confirm__btns .btn { padding: 9px 4px; font-size: 12px; flex: 1 1 0; min-width: 0; }
-  .tm-confirm__metrics { margin: 4px 0 2px; }
+  .tm-confirm__metrics { margin: 4px 0 2px; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 4px 10px; }
   .tm-confirm__metrics-wrap { gap: 4px 10px; }
   .tm-metric__v { font-size: 12px; }
   .tm-dnf-reason { padding: 4px 6px; gap: 5px; margin: 2px 0; }
@@ -735,7 +759,7 @@ body { margin: 0; }
     border: 0; border-radius: 0; background: var(--bg);
     padding: 60px 14px 18px; justify-content: center;
   }
-  body.tm-fullscreen .tm-time { font-size: clamp(92px, 40vw, 210px); }
+  body.tm-fullscreen .tm-time { font-size: calc(clamp(92px, 40vw, 210px) * var(--tm-time-scale)); }
   body.tm-fullscreen .tm-state { font-size: 12px; }
 
   /* 打乱公式 / 展开图浮在顶部一条 */
@@ -895,7 +919,7 @@ body { margin: 0; }
 @media (min-width:1025px) and (max-width:1279px) and (min-height:660px){
   /* 8vw：1025px 宽时舞台可用宽只有 401px，而「12:34.56」是 8 字符
      × 0.605em ≈ 4.84em，故字号上限约 82px。取 7.6vw 留 6% 余量。 */
-  .tm-time { font-size: clamp(48px, 7.6vw, 104px); }
+  .tm-time { font-size: calc(clamp(48px, 7.6vw, 104px) * var(--tm-time-scale)); }
 
   .tm-list-head,
   .tm-list__item {
@@ -916,7 +940,7 @@ body { margin: 0; }
    ⚠️ 与上面的 1025–1279 块靠 min/max-width 互斥，别再往主断点里塞。
    ========================================================= */
 @media (min-width:1280px) and (min-height:660px){
-  .tm-main > .tm-stage .tm-time { font-size: clamp(64px, 10vw, 168px); }
+  .tm-main > .tm-stage .tm-time { font-size: calc(clamp(64px, 10vw, 168px) * var(--tm-time-scale)); }
 }
 
 /* =========================================================
