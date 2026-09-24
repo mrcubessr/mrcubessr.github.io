@@ -183,15 +183,15 @@
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:0;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
   /* ===== 课堂宠物体系 ===== */
-  .pet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
-  .pet-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.15s;min-height:196px;text-align:center}
+  .pet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,15vw,200px),1fr));gap:clamp(10px,1.2vw,16px)}
+  .pet-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.15s;min-height:clamp(190px,19vw,238px);text-align:center}
   .pet-card:hover{border-color:var(--brand);transform:translateY(-2px)}
   .pet-card--empty{cursor:default}
   .pet-card--empty:hover{transform:none;border-color:var(--line)}
-  .pet-emoji{font-size:44px;line-height:1.1}
+  .pet-emoji{font-size:clamp(46px,5.5vw,62px);line-height:1.1}
   /* 宠物 3D 形象（Microsoft Fluent Emoji · MIT）；图片加载失败自动回退 emoji */
   .pet-img{display:inline-block;vertical-align:middle;object-fit:contain}
-  .pet-emoji .pet-img{width:46px;height:46px}
+  .pet-emoji .pet-img{width:clamp(58px,7vw,86px);height:clamp(58px,7vw,86px)}
   .pet-sp .e .pet-img{width:32px;height:32px}
   .pet-stu-e .pet-img{width:52px;height:52px}
   .pet-rank-img{width:15px;height:15px;vertical-align:-2px;margin-right:3px}
@@ -212,7 +212,26 @@
   /* 学生主页宠物卡 */
   .pet-stu{display:flex;align-items:center;gap:16px}
   .pet-stu-e{font-size:48px;line-height:1}
-  @media(max-width:640px){.pet-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
+  @media(max-width:640px){.pet-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}}
+  /* 宠物大图查看弹窗 */
+  .pet-view-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  #petViewBody{text-align:center}
+  .pet-view-img{display:inline-block;width:clamp(140px,42vw,220px);height:clamp(140px,42vw,220px);object-fit:contain;margin:6px 0 12px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18))}
+  .pet-pop{animation:petPop .5s ease}
+  .pet-view-lv{font-size:15px;font-weight:600;color:var(--brand);margin:2px 0}
+  .pet-view-bar{width:100%;max-width:320px;height:8px;margin:8px auto;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+  .pet-view-bar>i{display:block;height:100%;background:var(--brand)}
+  .pet-view-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  /* 手动喂养 1~20 档位 */
+  .feed-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+  .feed-grid button{font-size:15px;font-weight:700;padding:10px 0}
+  /* 加分飘字 + 撒花（挂在持久 fxLayer，不受列表重渲染影响） */
+  #fxLayer{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
+  .score-float{position:fixed;left:50%;top:38%;transform:translateX(-50%);font-size:30px;font-weight:800;color:var(--brand);text-shadow:0 2px 6px rgba(255,255,255,.7);animation:floatUp 1.1s ease forwards}
+  .confetti{position:fixed;top:-14px;width:9px;height:14px;border-radius:1px;animation:fall 1.3s ease-in forwards}
+  @keyframes petPop{0%{transform:scale(1)}30%{transform:scale(1.22) rotate(-4deg)}60%{transform:scale(.94) rotate(3deg)}100%{transform:scale(1)}}
+  @keyframes floatUp{0%{opacity:0;transform:translate(-50%,12px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-42px) scale(1.1)}}
+  @keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(82vh) rotate(360deg)}}
 </style>
 </head>
 <body data-nav="class-teach" style="padding-top:60px">
@@ -353,7 +372,7 @@
         <h2 style="margin:0">🐾 班级宠物园</h2>
         <span class="meta" id="petsMeta">—</span>
       </div>
-      <p class="muted" style="margin:8px 0 0">宠物等级由每位小朋友的<b>累计课堂积分</b>自动成长，不需要额外喂养；积分越高，宠物越强大。</p>
+      <p class="muted" style="margin:8px 0 0">宠物等级由<b>累计课堂积分</b>自动成长——课堂计分、老师手动喂养、掌握知识点都会加分，让宠物越来越强。点开宠物可看大图并手动喂养。</p>
     </div>
     <div class="card">
       <h3 style="margin:0 0 10px">🏆 本班宠物榜</h3>
@@ -428,6 +447,18 @@
   </div>
 </div>
 
+<!-- 宠物大图查看 / 手动喂养弹窗 -->
+<div class="modalbg" id="petViewModal">
+  <div class="modal" style="max-width:min(94vw,560px)">
+    <div class="pet-view-head">
+      <h3 id="petViewName" style="margin:0">宠物</h3>
+      <button class="btn btn--ghost btn--sm" id="petViewClose">关闭</button>
+    </div>
+    <div id="petViewBody"></div>
+  </div>
+</div>
+<div id="fxLayer"></div>
+
 <div class="modalbg" id="settleModal">
   <div class="modal" style="max-width:640px">
     <h3>本节课结算 · 表扬榜</h3>
@@ -452,8 +483,8 @@ const STATE_ARR=[STATE[0],STATE[1],STATE[2],STATE[3]];
 const RADAR_DIMS=[{key:'tech',name:'手法准确'},{key:'cognition',name:'基础认知'},{key:'formula',name:'公式熟练'},{key:'speed',name:'复原速度'},{key:'interest',name:'学习兴趣'},{key:'efficiency',name:'练习效率'}];
 
 /* ===== 课堂宠物体系 =====
-   双轨制：① 累计积分（totalScore）→ 宠物等级，只读派生，永不落库，杜绝双真值源不一致；
-          ② 可用余额（student.balance）→ 后续商店/喂食消费，消费写 pointLogs 流水可审计。 */
+   双轨制：① 累计积分（student.totalScore）= 课堂计分 + 手动喂养 + 知识点奖励 三通道累加，宠物等级由其派生；
+          ② 可用余额（student.balance）= 与①同步累加，供后续商店/喂食消费，消费写 pointLogs 流水可审计。 */
 /* img = 3D 形象（Microsoft Fluent Emoji, MIT, 自托管）；emoji 保留作加载失败降级。
    注意 key 已存在于 DB.pets.species，改名会丢领养记录。 */
 const PET_SPECIES=[
@@ -637,7 +668,13 @@ function progOf(studentId,skillId){ return DB.progress.find(p=>sameId(p.studentI
 function radarOf(stuId,cId){ let r=DB.radar.find(x=>sameId(x.studentId,stuId)&&sameId(x.courseId,cId)); if(!r){r={id:uid(),studentId:toId(stuId),courseId:toId(cId),tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0,stage:0,stageNote:''};DB.radar.push(r);save();} return r; }
 function radarVal(r,key){ return r&&r[key]!=null?r[key]:0; }
 function scoreOf(t){return t?(t.score!=null?t.score:t.count*DB.rate):0;}
-function totalScoreOf(stuId){return DB.sessions.filter(s=>s.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,stuId)),0);}
+function totalScoreOf(stuId){
+  /* 累计积分以 student.totalScore 为权威（含课堂计分 + 手动喂养 + 知识点奖励），
+     缺失时回退到已结算课次求和，保证旧数据不丢失显示 */
+  const s=DB.students.find(x=>sameId(x.id,stuId));
+  if(s&&s.totalScore!=null)return s.totalScore;
+  return DB.sessions.filter(se=>se.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,stuId)),0);
+}
 function classAvgOthers(stuId,sessionId){const others=students(DB.students.find(x=>x.id===stuId).classId).filter(o=>o.id!==stuId);if(!others.length)return 0;let sum=0;others.forEach(o=>sum+=scoreOf(getTally(sessionId,o.id)));return Math.round(sum/others.length*10)/10;}
 
 /* ============ 导航 ============ */
@@ -802,7 +839,10 @@ document.getElementById('settleConfirm').onclick=()=>{
   const ups=[];
   ss.forEach(s=>{
     const t=getTally(sess.id,s.id);if(!t)return;
-    const sc=t.count*DB.rate;t.score=sc;s.totalScore=(s.totalScore||0)+sc;
+    const sc=t.count*DB.rate;t.score=sc;
+    /* 旧数据可能无累计字段：先用已结算课次求和补齐，避免覆盖历史分（totalScoreOf 权威口径一致） */
+    if(s.totalScore==null)s.totalScore=DB.sessions.filter(se=>se.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,s.id)),0);
+    s.totalScore=(s.totalScore||0)+sc;
     /* 双轨②：本次得分同时进「可用余额」，供后续商店/喂食消费 */
     s.balance=(s.balance||0)+sc;
     DB.pointLogs.push({id:uid(),studentId:s.id,ts:nowStr(),delta:sc,reason:'课堂计分 · '+sess.date,sessionId:sess.id});
@@ -819,6 +859,53 @@ document.getElementById('settleConfirm').onclick=()=>{
   alert('已归档！积分已累加到每位小朋友。可开始下一节课。'+(ups.length?'\n\n🎉 宠物升级：\n'+ups.join('\n'):''));
   renderScore();
 };
+
+/* 统一加分入口（双轨：累计积分 + 可用余额都加，与课堂计分一致）。
+   只更新数据并落库 + 重算等级，不负责渲染/动画——渲染与反馈交由调用方，
+   以便调用方能在重渲染出新 DOM 后再播放动画。返回 {before,after,leveledUp}。 */
+function awardScore(stuId,delta,reason){
+  const s=DB.students.find(x=>sameId(x.id,stuId)); if(!s)return null;
+  const d=parseInt(delta,10)||0; if(d===0)return null;
+  /* 旧数据可能无累计字段：先用已结算课次求和补齐，避免覆盖历史分（totalScoreOf 权威口径一致） */
+  if(s.totalScore==null)s.totalScore=DB.sessions.filter(se=>se.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,s.id)),0);
+  s.totalScore=(s.totalScore||0)+d;
+  s.balance=(s.balance||0)+d;
+  DB.pointLogs.push({id:uid(),studentId:s.id,ts:nowStr(),delta:d,reason:reason||'课堂加分'});
+  const before=s.petLv||0, after=petLvOf(s.totalScore||0); s.petLv=after;
+  save();
+  return {before:before,after:after,leveledUp:after>before};
+}
+/* 加分可视化：宠物弹跳 + 飘分 + 升级撒花。动画挂在持久 #fxLayer，不受列表重渲染影响 */
+function playAwardFx(stuId,delta,leveledUp){
+  let img=null;
+  if(document.getElementById('petViewModal').classList.contains('show')&&petViewStuId===toId(stuId)){
+    img=document.getElementById('petViewImg');
+  }else{
+    const card=document.querySelector('[data-pet-card="'+stuId+'"]')||document.querySelector('[data-pet-stu="'+stuId+'"]');
+    img=card?card.querySelector('img'):null;
+  }
+  if(img){img.classList.remove('pet-pop');void img.offsetWidth;img.classList.add('pet-pop');}
+  floatScore(delta);
+  if(leveledUp)setTimeout(celebrate,200);
+}
+function floatScore(delta){
+  const layer=document.getElementById('fxLayer');if(!layer)return;
+  const f=document.createElement('div');f.className='score-float';
+  f.textContent=(delta>0?'+':'')+delta+' 分';
+  layer.appendChild(f);setTimeout(()=>f.remove(),1100);
+}
+function celebrate(){
+  const layer=document.getElementById('fxLayer');if(!layer)return;
+  const colors=['#4f6ef7','#ffd166','#06d6a0','#ef476f','#ff9f1c'];
+  for(let i=0;i<16;i++){
+    const c=document.createElement('span');c.className='confetti';
+    c.style.left=(Math.random()*100)+'%';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDelay=(Math.random()*0.35)+'s';
+    layer.appendChild(c);setTimeout(()=>c.remove(),1500);
+  }
+  toast('🎉 宠物升级啦！');
+}
 
 /* ============ 宠物园 ============ */
 let adoptStuId=null, adoptSpecies='cubie';
@@ -842,7 +929,7 @@ function renderPets(){
   ctn.innerHTML='<div class="pet-grid">'+rows.map(r=>{
     if(r.p){
       const sp=speciesOf(r.p.species);
-      return `<div class="pet-card" onclick="openStu(${r.s.id})">
+      return `<div class="pet-card" data-pet-card="${r.s.id}" onclick="openPetView(${r.s.id},event)">
         <div class="pet-emoji">${petAvatar(sp,null,r.pg.lv)}</div>
         <div class="pet-name">${esc(r.p.name||sp.name)}</div>
         <div class="pet-owner">${esc(r.s.name)} · ${esc(r.s.sid||'—')}</div>
@@ -860,6 +947,50 @@ function renderPets(){
     </div>`;
   }).join('')+'</div>';
 }
+/* 点击宠物卡 → 大图查看（不再直接进学生页），含手动喂养 */
+let petViewStuId=null, petFeedPanelOpen=false;
+window.openPetView=function(stuId,ev){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  petViewStuId=toId(stuId);
+  renderPetView();
+  document.getElementById('petViewModal').classList.add('show');
+};
+window.closePetView=function(){
+  petFeedPanelOpen=false;
+  document.getElementById('petViewModal').classList.remove('show');
+  if(document.getElementById('view-pets').classList.contains('active'))renderPets();
+};
+function renderPetView(){
+  if(petViewStuId==null)return;
+  const s=DB.students.find(x=>sameId(x.id,petViewStuId)), p=petOf(petViewStuId);
+  const box=document.getElementById('petViewBody');
+  if(!s||!p){box.innerHTML='<div class="empty">未找到该宠物。</div>';return;}
+  const sp=speciesOf(p.species), sc=totalScoreOf(petViewStuId), pg=petProgressOf(sc), lv=pg.lv;
+  document.getElementById('petViewName').textContent=(p.name||sp.name)+' · '+s.name;
+  box.innerHTML=`
+    <div id="petViewImgWrap"><img id="petViewImg" class="pet-view-img" src="/assets/pets/ref/${sp.key}_${petStageOf(lv)}.webp" alt="${esc(sp.name)}" data-fb="${sp.img||''}" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb');}else{this.replaceWith(document.createTextNode('${sp.emoji}'))}"></div>
+    <div style="font-size:17px;font-weight:700">${esc(p.name||sp.name)}</div>
+    <div class="pet-view-lv">Lv${lv} · ${petTitleOf(lv)} · ${esc(s.name)}</div>
+    <div class="pet-view-bar"><i style="width:${pg.pct}%"></i></div>
+    <div class="muted" style="font-size:12px">${pg.cur} / ${pg.need} 分升到 Lv${Math.min(PET_LV_MAX,lv+1)} · 可用余额 ${s.balance||0}</div>
+    <div class="pet-view-actions">
+      <button class="btn" onclick="petFeedOpen()">🍖 手动喂养</button>
+      <button class="btn btn--ghost" onclick="closePetView();openStu(${s.id})">查看学生详情 →</button>
+    </div>
+    <div id="feedPanel" style="display:none">
+      <p class="muted" style="margin:14px 0 0">选 1~20 档，给 ${esc(s.name)} 即时加分（同时计入宠物成长与可用余额）。</p>
+      <div class="feed-grid">${Array.from({length:20},(_,i)=>`<button onclick="petFeed(${i+1})">+${i+1}</button>`).join('')}</div>
+    </div>`;
+  if(petFeedPanelOpen){const fp=document.getElementById('feedPanel');if(fp)fp.style.display='block';}
+}
+window.petFeedOpen=function(){petFeedPanelOpen=true;const fp=document.getElementById('feedPanel');if(fp)fp.style.display='block';};
+window.petFeed=function(n){
+  if(petViewStuId==null)return;
+  const r=awardScore(petViewStuId,n,'手动喂养 +'+n+'分');
+  if(!r)return;
+  renderPetView();                       // 先重渲染出新 DOM（等级/进度/余额更新）
+  playAwardFx(petViewStuId,n,!!r.leveledUp);  // 再播放弹跳+飘分+升级撒花
+};
 function renderAdoptSpecies(){
   document.getElementById('petSpecies').innerHTML=PET_SPECIES.filter(s=>!s.hidden).map(sp=>
     `<div class="pet-sp ${adoptSpecies===sp.key?'active':''}" onclick="pickSpecies('${sp.key}')"><div class="e">${petAvatar(sp,null,1)}</div><div class="n">${sp.name}</div><div class="d">${sp.desc}</div></div>`
@@ -888,6 +1019,8 @@ document.getElementById('petOk').onclick=()=>{
   if(document.getElementById('view-pets').classList.contains('active'))renderPets();
   else if(document.getElementById('view-stuPage').classList.contains('active'))renderStuPage();
 };
+document.getElementById('petViewClose').onclick=()=>closePetView();
+document.getElementById('petViewModal').addEventListener('click',e=>{if(e.target.id==='petViewModal')closePetView();});
 
 /* ============ 学习进度 ============ */
 function fillProgCourse(){
@@ -1163,7 +1296,7 @@ function renderStuPage(){
   const _pet=petOf(s.id);
   if(_pet){
     const _sp=speciesOf(_pet.species), _pg=petProgressOf(total);
-    html+=`<div class="card pet-stu"><div class="pet-stu-e">${petAvatar(_sp,null,_pg.lv)}</div><div style="flex:1;min-width:0">
+    html+=`<div class="card pet-stu" data-pet-stu="${s.id}"><div class="pet-stu-e">${petAvatar(_sp,null,_pg.lv)}</div><div style="flex:1;min-width:0">
       <div style="font-size:16px;font-weight:700">${esc(_pet.name||_sp.name)} <span class="muted" style="font-size:13px">Lv${_pg.lv} · ${petTitleOf(_pg.lv)}</span></div>
       <div class="pet-bar" style="margin:8px 0 4px"><i style="width:${_pg.pct}%"></i></div>
       <div class="muted" style="font-size:12px">${_pg.cur} / ${_pg.need} 分升到 Lv${Math.min(PET_LV_MAX,_pg.lv+1)} · 可用余额 ${s.balance||0}</div>
@@ -1320,6 +1453,9 @@ window.setSt=function(stuId,skId,st){
       let filled=0;
       before.forEach(bs=>{let q=progOf(stuId,bs.id);if((q?.state||0)!==2){if(!q){q={studentId:toId(stuId),skillId:bs.id,state:0};DB.progress.push(q);}q.state=2;q.updatedAt=nowStr();filled++;}});
       if(filled>0)setTimeout(()=>toast(`已自动把前面 ${filled} 个未掌握知识点标为「已掌握」`),50);
+      /* 通道C：主动掌握一个知识点，宠物 +5 成长分（自动补齐的不另加分） */
+      const _aw=awardScore(stuId,5,'掌握知识点：'+sk.name);
+      setTimeout(()=>playAwardFx(stuId,5,!!(_aw&&_aw.leveledUp)),60);
     }
   }
   afterProgChange();
