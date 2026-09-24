@@ -189,6 +189,12 @@
   .pet-card--empty{cursor:default}
   .pet-card--empty:hover{transform:none;border-color:var(--line)}
   .pet-emoji{font-size:44px;line-height:1.1}
+  /* 宠物 3D 形象（Microsoft Fluent Emoji · MIT）；图片加载失败自动回退 emoji */
+  .pet-img{display:inline-block;vertical-align:middle;object-fit:contain}
+  .pet-emoji .pet-img{width:46px;height:46px}
+  .pet-sp .e .pet-img{width:32px;height:32px}
+  .pet-stu-e .pet-img{width:52px;height:52px}
+  .pet-rank-img{width:15px;height:15px;vertical-align:-2px;margin-right:3px}
   .pet-name{font-size:15px;font-weight:700;color:var(--fg)}
   .pet-owner{font-size:12px;color:var(--fg-2)}
   .pet-lv{margin-top:2px;font-size:13px;font-weight:600;color:var(--brand)}
@@ -448,13 +454,62 @@ const RADAR_DIMS=[{key:'tech',name:'手法准确'},{key:'cognition',name:'基础
 /* ===== 课堂宠物体系 =====
    双轨制：① 累计积分（totalScore）→ 宠物等级，只读派生，永不落库，杜绝双真值源不一致；
           ② 可用余额（student.balance）→ 后续商店/喂食消费，消费写 pointLogs 流水可审计。 */
+/* img = 3D 形象（Microsoft Fluent Emoji, MIT, 自托管）；emoji 保留作加载失败降级。
+   注意 key 已存在于 DB.pets.species，改名会丢领养记录。 */
 const PET_SPECIES=[
-  {key:'cubie', name:'小方块', emoji:'🧊', desc:'稳重可靠，转得动'},
-  {key:'bear',  name:'魔方熊', emoji:'🐻', desc:'力气大，最爱转圈圈'},
-  {key:'fox',   name:'灵狐',   emoji:'🦊', desc:'手速快，公式记得牢'},
-  {key:'owl',   name:'智慧鸮', emoji:'🦉', desc:'观察力强，擅长十字'},
-  {key:'panda', name:'滚滚',   emoji:'🐼', desc:'慢悠悠，但很扎实'},
-  {key:'dragon',name:'小龙',   emoji:'🐉', desc:'稀有伙伴，高手专属'}
+  {key:'angora-rabbit', name:'安哥拉兔', emoji:'🐰', desc:'毛茸茸的治愈系', img:'/assets/pets/ref/angora-rabbit_1.webp'},
+  {key:'azure-dragon', name:'青龙', emoji:'🐉', desc:'东方神兽，沉稳有灵', img:'/assets/pets/ref/azure-dragon_1.webp'},
+  {key:'bichon', name:'比熊', emoji:'🐶', desc:'棉花糖般的小可爱', img:'/assets/pets/ref/bichon_1.webp'},
+  {key:'black-cat', name:'黑猫', emoji:'🐱', desc:'神秘又机敏', img:'/assets/pets/ref/black-cat_1.webp'},
+  {key:'blue-cat', name:'蓝猫', emoji:'🐱', desc:'慵懒的英短绅士', img:'/assets/pets/ref/blue-cat_1.webp'},
+  {key:'border-collie', name:'边境牧羊犬', emoji:'🐕', desc:'智商担当，最爱动脑', img:'/assets/pets/ref/border-collie_1.webp'},
+  {key:'calico-cat', name:'三花猫', emoji:'🐱', desc:'花斑好运，温顺亲人', img:'/assets/pets/ref/calico-cat_1.webp'},
+  {key:'capybara', name:'水豚', emoji:'🦫', desc:'情绪稳定，佛系之王', img:'/assets/pets/ref/capybara_1.webp'},
+  {key:'chick', name:'小鸡', emoji:'🐤', desc:'毛茸茸的元气宝宝', img:'/assets/pets/ref/chick_1.webp'},
+  {key:'corgi', name:'柯基', emoji:'🐶', desc:'小短腿，大快乐', img:'/assets/pets/ref/corgi_1.webp'},
+  {key:'curl-ear-rabbit', name:'垂耳兔', emoji:'🐰', desc:'软萌垂耳，温温柔柔', img:'/assets/pets/ref/curl-ear-rabbit_1.webp'},
+  {key:'french-bulldog', name:'法斗', emoji:'🐶', desc:'皱脸憨憨，反差萌', img:'/assets/pets/ref/french-bulldog_1.webp'},
+  {key:'garfield', name:'加菲猫', emoji:'🐱', desc:'傲娇橘胖，快乐至上', img:'/assets/pets/ref/garfield_1.webp'},
+  {key:'golden-cat', name:'金猫', emoji:'🐱', desc:'暖金色，贵气十足', img:'/assets/pets/ref/golden-cat_1.webp'},
+  {key:'golden-retriever', name:'金毛', emoji:'🐕', desc:'阳光暖男，人见人爱', img:'/assets/pets/ref/golden-retriever_1.webp'},
+  {key:'horse', name:'小马', emoji:'🐴', desc:'奔腾洒脱，自由奔放', img:'/assets/pets/ref/horse_1.webp'},
+  {key:'husky', name:'哈士奇', emoji:'🐺', desc:'精力无限，戏精本精', img:'/assets/pets/ref/husky_1.webp'},
+  {key:'koel-duck', name:'柯尔鸭', emoji:'🦆', desc:'圆头圆脑的小黄鸭', img:'/assets/pets/ref/koel-duck_1.webp'},
+  {key:'labrador', name:'拉布拉多', emoji:'🐕', desc:'可靠伙伴，聪明听话', img:'/assets/pets/ref/labrador_1.webp'},
+  {key:'lamb', name:'小羊', emoji:'🐑', desc:'软乎乎的云朵宝宝', img:'/assets/pets/ref/lamb_1.webp'},
+  {key:'leopard', name:'豹', emoji:'🐆', desc:'敏捷矫健，速度与美', img:'/assets/pets/ref/leopard_1.webp'},
+  {key:'llama', name:'羊驼', emoji:'🦙', desc:'呆萌界天花板', img:'/assets/pets/ref/llama_1.webp'},
+  {key:'monkey', name:'小猴', emoji:'🐵', desc:'机灵好动的小淘气', img:'/assets/pets/ref/monkey_1.webp'},
+  {key:'nine-tail-fox', name:'九尾狐', emoji:'🦊', desc:'灵秀神秘，通人心', img:'/assets/pets/ref/nine-tail-fox_1.webp'},
+  {key:'orange-cat', name:'橘猫', emoji:'🐱', desc:'十橘九胖，招财本猫', img:'/assets/pets/ref/orange-cat_1.webp'},
+  {key:'panda', name:'熊猫', emoji:'🐼', desc:'国宝级，慢生活大师', img:'/assets/pets/ref/panda_1.webp'},
+  {key:'parrot', name:'鹦鹉', emoji:'🦜', desc:'色彩斑斓，能说会道', img:'/assets/pets/ref/parrot_1.webp'},
+  {key:'pig', name:'小猪', emoji:'🐷', desc:'圆滚滚的开心果', img:'/assets/pets/ref/pig_1.webp'},
+  {key:'pixiu', name:'貔貅', emoji:'🐲', desc:'招财纳福的瑞兽', img:'/assets/pets/ref/pixiu_1.webp'},
+  {key:'polar-bear', name:'北极熊', emoji:'🐻‍❄️', desc:'冰雪王者，沉稳有力', img:'/assets/pets/ref/polar-bear_1.webp'},
+  {key:'poodle', name:'贵宾犬', emoji:'🐩', desc:'卷毛精致，优雅聪明', img:'/assets/pets/ref/poodle_1.webp'},
+  {key:'rabbit', name:'兔子', emoji:'🐰', desc:'长耳灵动，蹦蹦跳跳', img:'/assets/pets/ref/rabbit_1.webp'},
+  {key:'ragdoll-cat', name:'布偶猫', emoji:'😺', desc:'软萌仙女，黏人精', img:'/assets/pets/ref/ragdoll-cat_1.webp'},
+  {key:'red-panda', name:'小熊猫', emoji:'🦊', desc:'红棕蓬尾，呆萌担当', img:'/assets/pets/ref/red-panda_1.webp'},
+  {key:'samoyed', name:'萨摩耶', emoji:'🐕', desc:'微笑天使，雪白棉花糖', img:'/assets/pets/ref/samoyed_1.webp'},
+  {key:'schnauzer', name:'雪纳瑞', emoji:'🐶', desc:'小胡子绅士，机警忠诚', img:'/assets/pets/ref/schnauzer_1.webp'},
+  {key:'shiba', name:'柴犬', emoji:'🐕', desc:'倔强又治愈的表情包', img:'/assets/pets/ref/shiba_1.webp'},
+  {key:'silver-cat', name:'银渐层', emoji:'🐱', desc:'清冷高级，安静优雅', img:'/assets/pets/ref/silver-cat_1.webp'},
+  {key:'suanni', name:'狻猊', emoji:'🐲', desc:'喜静好坐的瑞兽', img:'/assets/pets/ref/suanni_1.webp'},
+  {key:'succulent-spirit', name:'多肉精灵', emoji:'🪴', desc:'治愈系小绿植成精', img:'/assets/pets/ref/succulent-spirit_1.webp'},
+  {key:'tabby-cat', name:'狸花猫', emoji:'🐱', desc:'中华田园，矫健独立', img:'/assets/pets/ref/tabby-cat_1.webp'},
+  {key:'tiger', name:'老虎', emoji:'🐯', desc:'百兽之王，威风凛凛', img:'/assets/pets/ref/tiger_1.webp'},
+  {key:'tiger-striped-cat', name:'虎斑猫', emoji:'🐯', desc:'斑纹帅气，野性小霸王', img:'/assets/pets/ref/tiger-striped-cat_1.webp'},
+  {key:'unicorn', name:'独角兽', emoji:'🦄', desc:'梦幻治愈，纯真象征', img:'/assets/pets/ref/unicorn_1.webp'},
+  {key:'vermilion-bird', name:'朱雀', emoji:'🐦', desc:'浴火神鸟，热烈灵动', img:'/assets/pets/ref/vermilion-bird_1.webp'},
+  {key:'westie', name:'西高地', emoji:'🐶', desc:'白绒绒的小勇士', img:'/assets/pets/ref/westie_1.webp'},
+  {key:'white-tiger', name:'白虎', emoji:'🐯', desc:'稀有圣洁，气场全开', img:'/assets/pets/ref/white-tiger_1.webp'},
+  {key:'cubie', name:'小方块', emoji:'🧊', desc:'稳重可靠，转得动', img:'', hidden:true},
+  {key:'bear', name:'魔方熊', emoji:'🐻', desc:'力气大，最爱转圈圈', img:'', hidden:true},
+  {key:'fox', name:'灵狐', emoji:'🦊', desc:'手速快，公式记得牢', img:'', hidden:true},
+  {key:'owl', name:'智慧鸮', emoji:'🦉', desc:'观察力强，擅长十字', img:'', hidden:true},
+  {key:'panda', name:'滚滚', emoji:'🐼', desc:'慢悠悠，但很扎实', img:'', hidden:true},
+  {key:'dragon', name:'小龙', emoji:'🐉', desc:'稀有伙伴，高手专属', img:'', hidden:true}
 ];
 const PET_LV_MAX=30;
 const PET_TITLES=[[1,'新手'],[4,'学徒'],[7,'熟练'],[10,'高手'],[14,'大师'],[18,'宗师'],[21,'传说']];
@@ -462,6 +517,9 @@ const PET_TITLES=[[1,'新手'],[4,'学徒'],[7,'熟练'],[10,'高手'],[14,'大�
 const PET_LV_GATE=(function(){var t=[0];for(var i=2;i<=PET_LV_MAX;i++){t.push(t[t.length-1]+(10+(i-2)*5));}return t;})();
 function petLvOf(score){var lv=1;for(var i=0;i<PET_LV_GATE.length;i++){if(score>=PET_LV_GATE[i])lv=i+1;else break;}return lv;}
 function petTitleOf(lv){var t=PET_TITLES[0][1];PET_TITLES.forEach(function(x){if(lv>=x[0])t=x[1];});return t;}
+/* 成长阶段：直接挂在现有 30 级体系上（6 段数字 1-6），素材在 /assets/pets/ref/{key}_{stage}.webp */
+const PET_STAGES=[[1,'1'],[6,'2'],[11,'3'],[16,'4'],[21,'5'],[26,'6']];
+function petStageOf(lv){var s='baby';PET_STAGES.forEach(function(x){if(lv>=x[0])s=x[1];});return s;}
 function petProgressOf(score){
   var lv=petLvOf(score);
   if(lv>=PET_LV_MAX)return{lv:lv,cur:0,need:0,pct:100};
@@ -501,6 +559,23 @@ function migrateIds(){
 }
 function petOf(stuId){return DB.pets.find(p=>sameId(p.studentId,stuId));}
 function speciesOf(key){return PET_SPECIES.find(s=>s.key===key)||PET_SPECIES[0];}
+/* 宠物形象：传入 lv 时用 AI 成长阶段图（幼年→觉醒），加载失败先回退静态图、
+   再回退 emoji，页面永不破图；不传 lv 时保持原静态图逻辑 */
+function petAvatar(sp,extraCls,lv){
+  if(!sp) return '';
+  if(!lv) {
+    if(!sp.img) return sp.emoji;
+    var cls='pet-img'+(extraCls?' '+extraCls:'');
+    return '<img class="'+cls+'" src="'+sp.img+'" alt="'+esc(sp.name)+'"'
+      +' loading="lazy" onerror="this.replaceWith(document.createTextNode(\''+sp.emoji+'\'))">';
+  }
+  var cls2='pet-img'+(extraCls?' '+extraCls:'');
+  var stageSrc='/assets/pets/ref/'+sp.key+'_'+petStageOf(lv)+'.webp';
+  return '<img class="'+cls2+'" src="'+stageSrc+'" alt="'+esc(sp.name)+'"'
+    +' loading="lazy" data-fb="'+(sp.img||'')+'"'
+    +' onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute(\'data-fb\');}'
+    +'else{this.replaceWith(document.createTextNode(\''+sp.emoji+'\'))}">';
+}
 /* HTML 转义：姓名/宠物名会进内联 onclick 与 innerHTML，必须转义 */
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
@@ -760,7 +835,7 @@ function renderPets(){
   if(!ranked.length)rankBox.innerHTML='<div class="empty">还没有积分，先去"课堂计分"给小朋友加加分吧。</div>';
   else rankBox.innerHTML=ranked.map((r,i)=>{
     const sp=r.p?speciesOf(r.p.species):null;
-    const sub=sp?`${sp.emoji} ${esc(r.p.name||sp.name)} · Lv${r.pg.lv}`:'未领养 · Lv'+r.pg.lv;
+    const sub=sp?`${petAvatar(sp,'pet-rank-img',r.pg.lv)}${esc(r.p.name||sp.name)} · Lv${r.pg.lv}`:'未领养 · Lv'+r.pg.lv;
     return `<div class="rrow ${['top1','top2','top3'][i]}"><div class="rk">${i+1}</div><div class="rname">${esc(r.s.name)}<span class="n">${sub}</span></div><div class="rcnt">${petTitleOf(r.pg.lv)}</div><div class="rsc">${r.sc} 分</div></div>`;
   }).join('');
   /* 宠物卡片网格 */
@@ -768,7 +843,7 @@ function renderPets(){
     if(r.p){
       const sp=speciesOf(r.p.species);
       return `<div class="pet-card" onclick="openStu(${r.s.id})">
-        <div class="pet-emoji">${sp.emoji}</div>
+        <div class="pet-emoji">${petAvatar(sp,null,r.pg.lv)}</div>
         <div class="pet-name">${esc(r.p.name||sp.name)}</div>
         <div class="pet-owner">${esc(r.s.name)} · ${esc(r.s.sid||'—')}</div>
         <div class="pet-lv">Lv${r.pg.lv} · ${petTitleOf(r.pg.lv)}</div>
@@ -786,8 +861,8 @@ function renderPets(){
   }).join('')+'</div>';
 }
 function renderAdoptSpecies(){
-  document.getElementById('petSpecies').innerHTML=PET_SPECIES.map(sp=>
-    `<div class="pet-sp ${adoptSpecies===sp.key?'active':''}" onclick="pickSpecies('${sp.key}')"><div class="e">${sp.emoji}</div><div class="n">${sp.name}</div><div class="d">${sp.desc}</div></div>`
+  document.getElementById('petSpecies').innerHTML=PET_SPECIES.filter(s=>!s.hidden).map(sp=>
+    `<div class="pet-sp ${adoptSpecies===sp.key?'active':''}" onclick="pickSpecies('${sp.key}')"><div class="e">${petAvatar(sp,null,1)}</div><div class="n">${sp.name}</div><div class="d">${sp.desc}</div></div>`
   ).join('');
 }
 window.pickSpecies=function(k){adoptSpecies=k;renderAdoptSpecies();};
@@ -1088,7 +1163,7 @@ function renderStuPage(){
   const _pet=petOf(s.id);
   if(_pet){
     const _sp=speciesOf(_pet.species), _pg=petProgressOf(total);
-    html+=`<div class="card pet-stu"><div class="pet-stu-e">${_sp.emoji}</div><div style="flex:1;min-width:0">
+    html+=`<div class="card pet-stu"><div class="pet-stu-e">${petAvatar(_sp,null,_pg.lv)}</div><div style="flex:1;min-width:0">
       <div style="font-size:16px;font-weight:700">${esc(_pet.name||_sp.name)} <span class="muted" style="font-size:13px">Lv${_pg.lv} · ${petTitleOf(_pg.lv)}</span></div>
       <div class="pet-bar" style="margin:8px 0 4px"><i style="width:${_pg.pct}%"></i></div>
       <div class="muted" style="font-size:12px">${_pg.cur} / ${_pg.need} 分升到 Lv${Math.min(PET_LV_MAX,_pg.lv+1)} · 可用余额 ${s.balance||0}</div>
