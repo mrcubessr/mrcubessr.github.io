@@ -12,10 +12,14 @@
   var LS_KEY = "cfop-cross-trainer-v1";
   var MAX_LEN = 10;
   var BATCH = 10;
+  var XS_BTN = "计算 XCROSS";  /* 按钮常驻文案：选中态只换 .is-active，不换字，
+                                  避免出现「文案与面板可见性」两种状态源打架 */
+  var XS_TIME = 1500;          /* XCROSS 求解时间预算（ms），超时则回退常规十字解 */
 
   /* orient = 拿法朝向：top/front 为颜色 key，默认白顶绿前（标准朝向，恒等变换） */
-  var state = { color: "w", steps: 4, orient: { top: "w", front: "g" } };
+  var state = { color: "w", steps: 4, pair: "FR", orient: { top: "w", front: "g" } };
   var current = null;         /* 当前打乱结果（solution 为标准朝向解法） */
+  var xcross = null;          /* 当前 XCROSS 结果；打乱一换即作废 */
   var els = {};
 
   function $(id) { return document.getElementById(id); }
@@ -38,7 +42,7 @@
   function save() {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        color: state.color, steps: state.steps, orient: state.orient
+        color: state.color, steps: state.steps, pair: state.pair, orient: state.orient
       }));
     } catch (e) {}
   }
@@ -47,6 +51,7 @@
       var o = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
       if (window.CrossSolver && CrossSolver.COLORS_BY_KEY[o.color]) state.color = o.color;
       if (o.steps >= 1 && o.steps <= 8) state.steps = o.steps;
+      if (window.XCross && XCross.PAIR_BY_KEY[o.pair]) state.pair = o.pair;
       if (o.orient && window.Orient) {
         var t = o.orient.top, f = o.orient.front;
         if (Orient.COLOR_FACE[t] && Orient.COLOR_FACE[f] &&
@@ -66,12 +71,21 @@
   function isStdOrient() {
     return state.orient.top === "w" && state.orient.front === "g";
   }
+  /** 标准朝向解法 → 当前拿法解法（共轭变换 R·alg·R⁻¹）；恒等朝向直接返回。
+      ⚠ 恒定返回数组（含空解 → []）：调用方统一 .join(" ")，
+      否则「空解」会走成字符串分支，随后 .join 抛 TypeError。 */
+  function orientedAlg(alg) {
+    var arr = Array.isArray(alg) ? alg.slice()
+      : String(alg == null ? "" : alg).trim().split(/\s+/).filter(Boolean);
+    if (!arr.length) return [];
+    if (!window.Orient || isStdOrient()) return arr;
+    var map = Orient.mapFor(state.orient.top, state.orient.front);
+    return map ? Orient.transform(arr, map) : arr;
+  }
   /** 当前拿法下的解法（标准解法做共轭变换 R·alg·R⁻¹） */
   function orientedSolution() {
-    if (!current || !window.Orient) return current ? current.solution.slice() : [];
-    var map = Orient.mapFor(state.orient.top, state.orient.front);
-    if (!map || isStdOrient()) return current.solution.slice();
-    return Orient.transform(current.solution, map);
+    if (!current || !current.solution) return [];
+    return orientedAlg(current.solution);
   }
   /** 当前拿法下，目标十字所在的面（位置名） */
   function crossFaceAt() {
@@ -100,11 +114,11 @@
         state.orient.front = Orient.validFronts(k)[0];
       }
       state.orient.top = k;
-      fillFronts(); save(); paintOrient(); renderSolution();
+      fillFronts(); save(); paintOrient(); renderSolution(); renderXCross();
     });
     front.addEventListener("change", function () {
       state.orient.front = front.value;
-      save(); paintOrient(); renderSolution();
+      save(); paintOrient(); renderSolution(); renderXCross();
     });
   }
   function fillFronts() {
@@ -155,6 +169,112 @@
     fillFronts();
   }
 
+  /* ---------- XCROSS：十字 + 首对同时解掉 ---------- */
+  function buildPairs() {
+    if (!window.XCross || !els.pairs) return;
+    window.XCross.PAIRS.forEach(function (p) {
+      var b = el("button", "seg__btn ct__pair", p.key);
+      b.type = "button";
+      b.dataset.pair = p.key;
+      b.title = p.label;               /* 短标签 FL/FR… 完整含义挂 title */
+      markSeg(b, p.key === state.pair);
+      b.addEventListener("click", function () { selectPair(p.key); });
+      els.pairs.appendChild(b);
+    });
+  }
+
+  /** 换了首对 ⇒ 旧结果立刻作废（结果只对「当前打乱 + 当前首对」成立） */
+  function resetXCross(alsoMarkBtn) {
+    xcross = null;
+    if (els.xsSolution) els.xsSolution.hidden = true;
+    if (els.xsText) { els.xsText.textContent = ""; delete els.xsText.dataset.alg; }
+    if (els.xsAlt) els.xsAlt.hidden = true;
+    if (els.xsOri) els.xsOri.textContent = "";
+    if (els.xsBtn) {
+      if (alsoMarkBtn !== false) markSeg(els.xsBtn, false);
+      els.xsBtn.disabled = false;
+      els.xsBtn.textContent = XS_BTN;
+    }
+  }
+  function selectPair(k) {
+    if (!window.XCross || !XCross.PAIR_BY_KEY[k]) return;
+    state.pair = k;
+    save();
+    paintSegs();
+    resetXCross();
+  }
+
+  /* IDA* 是同步阻塞的（最坏约 1.5s），先让浏览器把「计算中」画出来再开算。 */
+  function requestXCross() {
+    if (!els.xsBtn || !window.XCross || !current) return;
+    if (!els.xsSolution || !els.xsSolution.hidden) { resetXCross(); return; }
+    els.xsBtn.disabled = true;
+    els.xsBtn.textContent = "计算中…";
+    setTimeout(runXCross, 20);
+  }
+
+  function runXCross() {
+    try { calcXCross(); }
+    /* 求解一旦抛错，按钮会永久卡在「计算中…」—— 兜底必须把 UI 状态还原。 */
+    catch (e) {
+      if (els.xsBtn) { els.xsBtn.disabled = false; els.xsBtn.textContent = XS_BTN; }
+      if (els.xsSolution) els.xsSolution.hidden = true;
+      xcross = null;
+      if (window.console) console.error("[cross-trainer] XCROSS 计算失败", e);
+    }
+  }
+
+  function calcXCross() {
+    if (!window.XCross || !current) { resetXCross(); return; }
+    var moves = current.moves;
+    if (!window.RubikCore) { resetXCross(); return; }
+    var cube = RubikCore.applyAlg(RubikCore.newCube(), moves.join(" "));
+    /* ⚠ 必须把打乱 original moves 一起交给求解器：十字起始编码由 moves
+       正向步进推出，只给 cube 会被当成「十字已还原」，末态十字根本没还原。 */
+    xcross = window.XCross.solveFromCube(cube, state.pair, {
+      color: state.color,
+      moves: moves,
+      plainCross: (window.CrossSolver && CrossSolver.solve(state.color, moves)) || [],
+      timeBudget: XS_TIME
+    });
+    renderXCross();
+    if (els.xsBtn) {
+      els.xsBtn.disabled = false;
+      els.xsBtn.textContent = XS_BTN;
+    }
+  }
+
+  function renderXCross() {
+    if (!els.xsSolution || !els.xsText) return;
+    if (!xcross) { els.xsSolution.hidden = true; return; }
+    var stdAlg = (xcross.moves || []).join(" ");
+    /* ⚠ 必须显式 join：非标准朝向下 orientedAlg 返回的是数组（Orient.transform
+       的输出），直接赋给 textContent / dataset.alg 会被 Array.prototype.toString
+       变成逗号分隔（"R,L',F"），页面上和复制出来的解法全带逗号。 */
+    var alg = orientedAlg(stdAlg).join(" ");
+    var note = xcross.note || "";
+
+    els.xsText.textContent = (xcross.ok && !alg.length) ? "（已完成，无需再动）" : alg;
+    els.xsText.dataset.alg = alg;
+    els.xsSolution.hidden = false;
+    markSeg(els.xsBtn, true);
+
+    if (els.xsOri) els.xsOri.textContent = isStdOrient() ? "" : "（" + orientText() + "）";
+    if (els.xsAlt) {
+      if (!isStdOrient() && xcross.ok && alg.length) {
+        /* 非标准拿法：给一句标准朝向原文，照抄时不用自己转 */
+        els.xsAlt.hidden = false;
+        els.xsAlt.innerHTML = "";
+        els.xsAlt.appendChild(el("b", null, "标准朝向（白顶 · 绿前）："));
+        els.xsAlt.appendChild(document.createTextNode(stdAlg));
+      } else {
+        els.xsAlt.hidden = false;
+        els.xsAlt.innerHTML = "";
+        els.xsAlt.appendChild(document.createTextNode(note));
+      }
+    }
+  }
+
   /* ---------- 计时器 ---------- */
   var timer = (function () {
     var start = 0, running = false, raf = 0;
@@ -196,6 +316,7 @@
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
 
+    resetXCross();      /* 新打乱 ⇒ 旧 XCROSS 结果不再对应当前局面 */
     renderSolution();
     /* 解法面板的显示/隐藏状态跨打乱沿用：正在「看解法」时不因换打乱被打断，
        按钮文案与选中态始终与面板可见性保持一致。 */
@@ -293,6 +414,11 @@
         markSeg(b, +b.dataset.step === state.steps);
       });
     }
+    if (els.pairs) {
+      Array.prototype.forEach.call(els.pairs.children, function (b) {
+        markSeg(b, b.dataset.pair === state.pair);
+      });
+    }
   }
   function selectColor(k) { state.color = k; save(); paintSegs(); gen(); }
   function selectSteps(n) { state.steps = n; save(); paintSegs(); gen(); }
@@ -313,6 +439,12 @@
     els.batchTitle = $("ct-batch-title");
     els.solOri = $("ct-sol-ori");
     els.solAlt = $("ct-sol-alt");
+    els.pairs = $("ct-pairs");
+    els.xsBtn = $("ct-xs");
+    els.xsSolution = $("ct-xsolution");
+    els.xsText = $("ct-xsol-text");
+    els.xsOri = $("ct-xsol-ori");
+    els.xsAlt = $("ct-xsol-alt");
     els.orientNote = $("ct-orient-note");
     els.orientPill = $("ct-orient-pill");
     if (!els.scramble) return;
@@ -324,10 +456,17 @@
     load();
     buildColors();
     buildSteps();
+    buildPairs();      /* XCROSS 首对（依赖 xcross-solver.js，缺失则整块功能缺席） */
     buildOrient();     /* 拿法朝向（依赖 orient.js，缺失则跳过，不影响原功能） */
     paintSegs();
 
     $("ct-new").addEventListener("click", gen);
+
+    if (els.xsBtn) els.xsBtn.addEventListener("click", requestXCross);
+    if (els.xsText) els.xsText.addEventListener("click", function () {
+      copy(els.xsText.dataset.alg || "");
+      flash(els.xsText, "已复制 ✓");
+    });
 
     els.solBtn.addEventListener("click", function () {
       var show = els.solution.hidden;
@@ -373,13 +512,16 @@
     scramble: function (n) { return RubikCore.scramble(n); },
     get current() { return current; },
     get state() { return state; },
+    get xcross() { return xcross; },
+    selectPair: function (k) { selectPair(k); },
+    requestXCross: requestXCross,
     selectColor: function (k) { selectColor(k); },
     selectSteps: function (n) { selectSteps(n); },
     gen: function () { gen(); },
     generateBatch: function () { generateBatch(); },
     setOrient: function (t, f) {
       state.orient = { top: t, front: f };
-      paintOrient(); save(); renderSolution();
+      paintOrient(); save(); renderSolution(); renderXCross();
     },
     orient: function () { return state.orient; },
     orientedSolution: function () { return orientedSolution(); }

@@ -199,6 +199,8 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
   #ct-colors{ gap:6px; }
   #ct-moves{ gap:6px; }
   .ct__seg.seg .seg__btn{ padding:10px 4px; }
+  /* 窄屏：首对选择独占一行，避免与「计算 XCROSS」按钮挤在一行被压扁 */
+  .ct__seg--x{ flex-basis:100%; max-width:none; }
 }
 /* 极窄屏（≤340）：颜色改为 3×2，避免被压到溢出 */
 @media(max-width:340px){
@@ -211,4 +213,55 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
   .ct__batch-formula{ white-space:normal; word-break:break-word; flex-basis:100%; order:2; }
   .ct__batch-no{ order:1; }
   .ct__batch-item .btn{ order:1; margin-left:auto; }
+  /* 窄屏下解法备注换到下一整行，避免被挤成竖排细条 */
+  .ct__solution{ flex-wrap:wrap; }
+  .ct__sol-text{ min-width:220px; }
+  .ct__sol-alt{ flex-basis:100%; }
+}
+
+/* =========================================================
+   桌面横版单屏：与 timer 保持一致（锁定视口、隐藏 footer、主区滚动）
+   断点 (min-width:1025px) 与侧栏折叠点一致，
+   (min-height:660px) 作安全阀，避免小高度把内容切死。
+   ========================================================= */
+@media(min-width:1025px) and (min-height:660px){
+  body.ct-page{ overflow:hidden; }
+  body.ct-page .site-footer{ display:none; }
+  .ct-page .cfop-wrap{
+    display:flex; flex-direction:column;
+    height:100dvh;
+    padding-bottom:0; margin-bottom:0;
+    max-width:100%;
+  }
+  .ct-page .cfop-hero{
+    flex:0 0 auto;
+    margin-top:0; padding-top:var(--s4,16px);
+    margin-bottom:var(--s3,12px);
+  }
+  .ct-page .cfop-hero__sub{ max-width:760px; } /* 防止副标题过长把 hero 顶高 */
+  .ct-page .ct{
+    flex:1 1 0; min-height:0;
+    padding-bottom:var(--s4,16px);
+  }
+  /* 左侧主区可滚动；右侧侧栏（拿法 / 计时器 / 展开图）固定吸附 */
+  .ct-page .ct__main{
+    overflow-y:auto;
+    padding-right:var(--s2,8px);
+    /* 滚动条不占位，避免横向抖动 */
+    scrollbar-gutter:stable;
+  }
+  .ct-page .ct__side{
+    top:0; position:sticky;
+    height:fit-content; max-height:100%;
+    overflow:hidden;
+  }
+  /* 适当压缩面板内的间距，让小高度也能基本装下 */
+  .ct-page .ct__panel{ gap:var(--s4,16px); padding:var(--s4,16px); }
+  .ct-page .ct__field{ gap:var(--s2,8px); }
+}
+/* 打印时：不强制锁屏、恢复 footer（打印不会命中 1025px/660px，因此只显式清掉
+   body 的 overflow 以防万一），与 site-layout 的打印规则保持语义一致 */
+@media print{
+  body.ct-page{ overflow:auto; }
+  body.ct-page .site-footer{ display:block; }
 }
