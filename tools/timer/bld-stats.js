@@ -320,7 +320,7 @@
 
     /* ② 复杂度 vs 时间 */
     h += '<h3 class="tm-h3">② 复杂度 vs 时间（同复杂度中位对比）</h3>';
-    h += '<div class="tm-ba-table"><table><thead><tr><th>复杂度</th><th>次数</th><th>中位用时</th><th>最快</th><th>最慢</th></tr></thead><tbody>';
+    h += '<div class="tm-ba-table tm-ba-table--x"><table><thead><tr><th>复杂度</th><th>次数</th><th>中位用时</th><th>最快</th><th>最慢</th></tr></thead><tbody>';
     BUCKET_ORDER.forEach(function (b) {
       var s = a.complexityBuckets[b]; if (!s) return;
       h += "<tr><td>" + b + "</td><td>" + s.count + "</td><td>" +
@@ -390,7 +390,7 @@
     if (!trendRows.length) {
       h += '<div class="tm-ba-note">暂无足够数据（需要带难度指标的成绩）。</div>';
     } else {
-      h += '<div class="tm-ba-table"><table><thead><tr><th>难度等级</th>';
+      h += '<div class="tm-ba-table tm-ba-table--x"><table><thead><tr><th>难度等级</th>';
       a.trend.segLabels.forEach(function (l) { h += "<th>" + l + "</th>"; });
       h += "<th>早期→近期</th></tr></thead><tbody>";
       trendRows.forEach(function (r) {
@@ -471,7 +471,7 @@
       h += '<p class="tm-ba-note">整体 TPS = 估算步数 ÷ 总时间（含记忆静止期），所以它天然偏低，只适合跟自己纵向比；要比手速请看 ⑧ 表的复原 TPS。每公式秒数 = 复原时间 ÷ 公式条数，越小说明公式越熟。</p>';
       var tpsDiff = a.difficultyBuckets.filter(function (s) { return s.tpsExec != null; });
       if (tpsDiff.length) {
-        h += '<div class="tm-ba-table"><table><thead><tr><th>难度(总公式)</th><th>次数</th><th>复原TPS</th><th>整体TPS</th></tr></thead><tbody>';
+        h += '<div class="tm-ba-table tm-ba-table--x"><table><thead><tr><th>难度(总公式)</th><th>次数</th><th>复原TPS</th><th>整体TPS</th></tr></thead><tbody>';
         tpsDiff.forEach(function (s) {
           h += "<tr><td>" + algRange(s) + "</td><td>" + s.count + "</td><td>" +
             s.tpsExec.toFixed(2) + "</td><td>" + (s.tpsAll != null ? s.tpsAll.toFixed(2) : "—") + "</td></tr>";

@@ -488,6 +488,7 @@ body { margin: 0; }
 
 /* ---------- 成绩列表：TPS 角标 ---------- */
 .tm-list__tps { display: block; font-size: 10px; font-weight: 600; color: var(--brand); margin-top: 2px; }
+.tm-list__split { display: block; font-size: 10px; font-weight: 600; color: var(--fg-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
 /* ---------- 响应式 ---------- */
 /* 手机端紧凑化：缩小展开图、压缩计时舞台与区块间距，减少上下滚动长度 */

@@ -1375,6 +1375,16 @@
         tp.textContent = "TPS " + rec.bld.metrics.tpsAll.toFixed(2);
         t.appendChild(tp);
       }
+      /* 三盲分段：在时间下方显示「记忆 / 复原」用时。仅对真正启用过分段计时的成绩
+         （metrics.split 为真）才显示；关分段后记录的旧成绩 memoMs=0 会误导，必须跳过。 */
+      if (rec.bld && rec.bld.metrics && rec.bld.metrics.split &&
+          isFinite(rec.bld.metrics.memoMs) && isFinite(rec.bld.metrics.execMs)) {
+        var me = document.createElement("span");
+        me.className = "tm-list__split";
+        me.textContent = "记 " + S.fmt(rec.bld.metrics.memoMs) + " · 复 " + S.fmt(rec.bld.metrics.execMs);
+        me.title = "记忆 " + S.fmt(rec.bld.metrics.memoMs) + " · 复原 " + S.fmt(rec.bld.metrics.execMs) + "（分段计时）";
+        t.appendChild(me);
+      }
       if (rec.bld) {
         li.title = "坐标 " + (rec.bld.orientationLabel || "") +
           " · 棱 " + (rec.bld.edge || "") + " · 翻 " + (rec.bld.flip || "") +
