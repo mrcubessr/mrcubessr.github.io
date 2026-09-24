@@ -3,8 +3,16 @@
    ---------------------------------------------------------
    功能：选择「十字颜色」+「目标步数」→ 生成十字最优解恰为该步数的打乱
         （打乱 ≤ 10 步）；配平面六面展开图、计时器、解法对照、批量 10 个。
+
+   拿法朝向（两套，互不干扰）：
+     · scrOrient = 打乱公式的书写拿法
+     · solOrient = 复原时的拿法，解法与「十字落在哪个面」都由它决定
+   求解器始终工作在标准坐标系（白顶绿前），展示时各自做共轭变换 R·alg·R⁻¹。
+   两套拿法只改公式的书写方式，不改变求解结果：
+   打乱后换手（整体旋转）不改变局面，只是换了个观察坐标系。
+
    依赖：rubik-core.js（贴纸模型）、cross-solver.js（求解 / 打乱生成）、
-        cube-art.js（flatNet 平面展开图）。
+        orient.js（拿法变换）、xcross-solver.js（XCROSS）、cube-art.js。
    ========================================================= */
 (function () {
   "use strict";
@@ -15,10 +23,14 @@
   var XS_BTN = "计算 XCROSS";  /* 按钮常驻文案：选中态只换 .is-active，不换字，
                                   避免出现「文案与面板可见性」两种状态源打架 */
   var XS_TIME = 1500;          /* XCROSS 求解时间预算（ms），超时则回退常规十字解 */
+  var ORI_KINDS = ["scr", "sol"];
 
-  /* orient = 拿法朝向：top/front 为颜色 key，默认白顶绿前（标准朝向，恒等变换） */
-  var state = { color: "w", steps: 4, pair: "FR", orient: { top: "w", front: "g" } };
-  var current = null;         /* 当前打乱结果（solution 为标准朝向解法） */
+  var state = {
+    color: "w", steps: 4, pair: "FR",
+    scrOrient: { top: "w", front: "g" },   /* 打乱公式的书写拿法 */
+    solOrient: { top: "w", front: "g" }    /* 复原时的拿法（决定解法与十字所在面） */
+  };
+  var current = null;         /* 当前打乱结果（moves / solution 均为标准朝向） */
   var xcross = null;          /* 当前 XCROSS 结果；打乱一换即作废 */
   var els = {};
 
@@ -42,9 +54,14 @@
   function save() {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        color: state.color, steps: state.steps, pair: state.pair, orient: state.orient
+        color: state.color, steps: state.steps, pair: state.pair,
+        scrOrient: state.scrOrient, solOrient: state.solOrient
       }));
     } catch (e) {}
+  }
+  function validOrient(o) {
+    return !!(o && window.Orient && Orient.COLOR_FACE[o.top] && Orient.COLOR_FACE[o.front] &&
+      Orient.validFronts(o.top).indexOf(o.front) >= 0);
   }
   function load() {
     try {
@@ -52,13 +69,10 @@
       if (window.CrossSolver && CrossSolver.COLORS_BY_KEY[o.color]) state.color = o.color;
       if (o.steps >= 1 && o.steps <= 8) state.steps = o.steps;
       if (window.XCross && XCross.PAIR_BY_KEY[o.pair]) state.pair = o.pair;
-      if (o.orient && window.Orient) {
-        var t = o.orient.top, f = o.orient.front;
-        if (Orient.COLOR_FACE[t] && Orient.COLOR_FACE[f] &&
-            Orient.validFronts(t).indexOf(f) >= 0) {
-          state.orient = { top: t, front: f };
-        }
-      }
+      if (validOrient(o.scrOrient)) state.scrOrient = { top: o.scrOrient.top, front: o.scrOrient.front };
+      if (validOrient(o.solOrient)) state.solOrient = { top: o.solOrient.top, front: o.solOrient.front };
+      /* 旧版本只存一个 orient，语义是「复原拿法」（打乱恒为标准朝向）→ 迁到 solOrient */
+      else if (validOrient(o.orient)) state.solOrient = { top: o.orient.top, front: o.orient.front };
     } catch (e) {}
   }
 
@@ -68,105 +82,171 @@
     return c ? c.label : k;
   }
 
-  function isStdOrient() {
-    return state.orient.top === "w" && state.orient.front === "g";
+  function isStd(o) { return o.top === "w" && o.front === "g"; }
+  function orientOf(kind) { return kind === "scr" ? state.scrOrient : state.solOrient; }
+  function sameOrient() {
+    return state.scrOrient.top === state.solOrient.top &&
+           state.scrOrient.front === state.solOrient.front;
   }
-  /** 标准朝向解法 → 当前拿法解法（共轭变换 R·alg·R⁻¹）；恒等朝向直接返回。
+  function orientText(o) { return cname(o.top) + "顶 · " + cname(o.front) + "前"; }
+
+  /** 标准朝向公式 → 指定拿法下的公式（共轭变换 R·alg·R⁻¹）；恒等朝向直接返回。
       ⚠ 恒定返回数组（含空解 → []）：调用方统一 .join(" ")，
       否则「空解」会走成字符串分支，随后 .join 抛 TypeError。 */
-  function orientedAlg(alg) {
+  function algFor(alg, o) {
     var arr = Array.isArray(alg) ? alg.slice()
       : String(alg == null ? "" : alg).trim().split(/\s+/).filter(Boolean);
     if (!arr.length) return [];
-    if (!window.Orient || isStdOrient()) return arr;
-    var map = Orient.mapFor(state.orient.top, state.orient.front);
+    if (!window.Orient || isStd(o)) return arr;
+    var map = Orient.mapFor(o.top, o.front);
     return map ? Orient.transform(arr, map) : arr;
   }
-  /** 当前拿法下的解法（标准解法做共轭变换 R·alg·R⁻¹） */
-  function orientedSolution() {
-    if (!current || !current.solution) return [];
-    return orientedAlg(current.solution);
-  }
-  /** 当前拿法下，目标十字所在的面（位置名） */
+  /** 展示给用户的打乱（按「打乱拿法」书写） */
+  function scrambleAlg() { return current ? algFor(current.moves, state.scrOrient) : []; }
+  /** 展示给用户的十字解法（按「复原拿法」书写） */
+  function orientedSolution() { return current ? algFor(current.solution, state.solOrient) : []; }
+  /** 复原拿法下，目标十字所在的绝对面 */
   function crossFaceAt() {
     if (!window.Orient) return "U";
-    var map = Orient.mapFor(state.orient.top, state.orient.front);
+    var map = Orient.mapFor(state.solOrient.top, state.solOrient.front);
     var stdFace = Orient.COLOR_FACE[state.color] || "U";
     return (map && map[stdFace]) || stdFace;
   }
-  function orientText() {
-    return cname(state.orient.top) + "顶 · " + cname(state.orient.front) + "前";
+  /** 拿法 o 下的「还原态」立方：每面纯色，绝对面 p 贴标准面 state[p] 的颜色。
+      整体旋转只重排颜色、不动面内索引，因此纯色起始态可直接构造，
+      无需实现 x/y/z 整体转动（rubik-core 不支持整体转动）。 */
+  function pureCubeFor(o) {
+    var cube = RubikCore.newCube();
+    var st = window.Orient ? Orient.solve(o.top, o.front) : null;
+    if (!st) return cube;
+    Object.keys(cube).forEach(function (p) {
+      var col = Orient.FACE_COLOR[st.state[p]];
+      cube[p] = [col, col, col, col, col, col, col, col, col];
+    });
+    return cube;
   }
 
-  function buildOrient() {
-    var top = $("ct-top"), front = $("ct-front");
-    if (!top || !front || !window.Orient) return;
-    window.CrossSolver.COLORS.forEach(function (c) {
-      var o = document.createElement("option");
-      o.value = c.key; o.textContent = c.label + "顶";
-      top.appendChild(o);
-    });
-    top.value = state.orient.top;
-    fillFronts();
-    top.addEventListener("change", function () {
-      var k = top.value;
-      if (Orient.validFronts(k).indexOf(state.orient.front) < 0) {
-        state.orient.front = Orient.validFronts(k)[0];
-      }
-      state.orient.top = k;
-      fillFronts(); save(); paintOrient(); renderSolution(); renderXCross();
-    });
-    front.addEventListener("change", function () {
-      state.orient.front = front.value;
-      save(); paintOrient(); renderSolution(); renderXCross();
+  function buildOrients() {
+    if (!window.Orient) return;
+    ORI_KINDS.forEach(function (kind) {
+      var o = orientOf(kind);
+      var top = $("ct-" + kind + "-top"), front = $("ct-" + kind + "-front");
+      if (!top || !front) return;
+      window.CrossSolver.COLORS.forEach(function (c) {
+        var op = document.createElement("option");
+        op.value = c.key; op.textContent = c.label + "顶";
+        top.appendChild(op);
+      });
+      top.value = o.top;
+      fillFronts(kind);
+      top.addEventListener("change", function () {
+        var k = top.value;
+        if (Orient.validFronts(k).indexOf(o.front) < 0) o.front = Orient.validFronts(k)[0];
+        o.top = k;
+        fillFronts(kind); save(); paintOrients(); onOrientChange();
+      });
+      front.addEventListener("change", function () {
+        o.front = front.value;
+        save(); paintOrients(); onOrientChange();
+      });
     });
   }
-  function fillFronts() {
-    var front = $("ct-front");
+  function fillFronts(kind) {
+    var front = $("ct-" + kind + "-front");
     if (!front) return;
-    var valid = Orient.validFronts(state.orient.top);
+    var o = orientOf(kind);
     front.innerHTML = "";
-    valid.forEach(function (k) {
-      var o = document.createElement("option");
-      o.value = k; o.textContent = cname(k) + "前";
-      front.appendChild(o);
+    Orient.validFronts(o.top).forEach(function (k) {
+      var op = document.createElement("option");
+      op.value = k; op.textContent = cname(k) + "前";
+      front.appendChild(op);
     });
-    front.value = state.orient.front;
+    front.value = o.front;
+  }
+  function paintOrients() {
+    ORI_KINDS.forEach(function (kind) {
+      var o = orientOf(kind);
+      var t = $("ct-" + kind + "-top");
+      if (t) t.value = o.top;
+      fillFronts(kind);
+    });
+  }
+  /** 任一拿法变化：打乱区 / 展开图跟随打乱拿法，解法 / 提示跟随复原拿法 */
+  function onOrientChange() {
+    renderScramble();
+    renderSolution();
+    renderXCross();
+    renderNet();
+  }
+  function setOrient(kind, t, f) {
+    var o = orientOf(kind);
+    o.top = t; o.front = f;
+    paintOrients(); save(); onOrientChange();
   }
 
-  /** 刷新解法区（含变换后的解法、原解法对照、十字所在面提示） */
+  /** 打乱区：按打乱拿法书写，非标准时附标准朝向原文 */
+  function renderScramble() {
+    if (!els.scramble || !current) return;
+    var alg = scrambleAlg().join(" ");
+    els.scramble.textContent = alg;
+    els.scramble.dataset.alg = alg;
+    if (els.scrAlt) {
+      if (isStd(state.scrOrient)) { els.scrAlt.hidden = true; }
+      else {
+        els.scrAlt.hidden = false;
+        els.scrAlt.innerHTML = "";
+        els.scrAlt.appendChild(el("b", null, "标准朝向（白顶 · 绿前）："));
+        els.scrAlt.appendChild(document.createTextNode(current.moves.join(" ")));
+      }
+    }
+  }
+
+  /** 刷新解法区（含变换后的解法、原解法对照） */
   function renderSolution() {
     if (!els.solText || !current) return;
     var alg = orientedSolution().join(" ");
     els.solText.textContent = alg;
     els.solText.dataset.alg = alg;
 
-    if (els.solOri) els.solOri.textContent = isStdOrient() ? "" : "（" + orientText() + "）";
+    var stdSol = isStd(state.solOrient);
+    if (els.solOri) els.solOri.textContent = stdSol ? "" : "（" + orientText(state.solOrient) + "）";
     if (els.solAlt) {
-      if (isStdOrient()) els.solAlt.hidden = true;
+      if (stdSol) els.solAlt.hidden = true;
       else {
         els.solAlt.hidden = false;
         els.solAlt.innerHTML = "";
-        var b1 = el("b", null, "标准朝向（白顶 · 绿前）：");
-        els.solAlt.appendChild(b1);
+        els.solAlt.appendChild(el("b", null, "标准朝向（白顶 · 绿前）："));
         els.solAlt.appendChild(document.createTextNode(current.solution.join(" ")));
       }
     }
-    if (els.orientNote) {
-      var face = crossFaceAt();
-      var c = window.CrossSolver.COLORS_BY_KEY[state.color];
-      els.orientNote.textContent = isStdOrient()
-        ? "标准朝向：按下方打乱执行即可，解法为常规写法。"
-        : "按标准朝向（白顶绿前）打乱后，转到「" + orientText() + "」再做十字；"
-          + "此时" + (c ? c.label : "") + "十字做在 " + face + " 面（"
-          + (window.Orient.POS_NAME[face] || face) + "）。";
-    }
-    if (els.orientPill) els.orientPill.textContent = orientText();
+    renderOrientNote();
   }
 
-  function paintOrient() {
-    if ($("ct-top")) $("ct-top").value = state.orient.top;
-    fillFronts();
+  /** 拿法提示：一句话说清「打乱怎么拿、复原怎么拿、十字落在哪」 */
+  function renderOrientNote() {
+    if (!els.orientNote) return;
+    var c = window.CrossSolver.COLORS_BY_KEY[state.color];
+    var cLab = c ? c.label : "";
+    if (isStd(state.scrOrient) && isStd(state.solOrient)) {
+      els.orientNote.textContent = "打乱与解法都按标准朝向（白顶 · 绿前）书写。";
+    } else {
+      var face = crossFaceAt();
+      els.orientNote.textContent =
+        "打乱按「" + orientText(state.scrOrient) + "」书写" +
+          (isStd(state.scrOrient) ? "（标准）" : "") + "；" +
+        "复原" + (sameOrient() ? "沿用同一拿法" : "转到「" + orientText(state.solOrient) + "」") +
+          "，" + cLab + "十字做在 " + face + " 面（" +
+          (window.Orient.POS_NAME[face] || face) + "）。";
+    }
+    if (els.orientPill) {
+      var txt = sameOrient()
+        ? orientText(state.scrOrient)
+        : orientText(state.scrOrient) + " → " + orientText(state.solOrient);
+      els.orientPill.textContent = txt;
+      els.orientPill.title = sameOrient()
+        ? "打乱与复原同一拿法：" + txt
+        : "打乱 " + orientText(state.scrOrient) + "，复原 " + orientText(state.solOrient);
+    }
   }
 
   /* ---------- XCROSS：十字 + 首对同时解掉 ---------- */
@@ -230,7 +310,8 @@
     if (!window.RubikCore) { resetXCross(); return; }
     var cube = RubikCore.applyAlg(RubikCore.newCube(), moves.join(" "));
     /* ⚠ 必须把打乱 original moves 一起交给求解器：十字起始编码由 moves
-       正向步进推出，只给 cube 会被当成「十字已还原」，末态十字根本没还原。 */
+       正向步进推出，只给 cube 会被当成「十字已还原」，末态十字根本没还原。
+       求解器永远在标准坐标系里工作，拿法只影响展示，不参与求解。 */
     xcross = window.XCross.solveFromCube(cube, state.pair, {
       color: state.color,
       moves: moves,
@@ -248,28 +329,27 @@
     if (!els.xsSolution || !els.xsText) return;
     if (!xcross) { els.xsSolution.hidden = true; return; }
     var stdAlg = (xcross.moves || []).join(" ");
-    /* ⚠ 必须显式 join：非标准朝向下 orientedAlg 返回的是数组（Orient.transform
+    /* ⚠ 必须显式 join：非标准朝向下 algFor 返回的是数组（Orient.transform
        的输出），直接赋给 textContent / dataset.alg 会被 Array.prototype.toString
        变成逗号分隔（"R,L',F"），页面上和复制出来的解法全带逗号。 */
-    var alg = orientedAlg(stdAlg).join(" ");
+    var alg = algFor(xcross.moves || [], state.solOrient).join(" ");
     var note = xcross.note || "";
+    var stdSol = isStd(state.solOrient);
 
     els.xsText.textContent = (xcross.ok && !alg.length) ? "（已完成，无需再动）" : alg;
     els.xsText.dataset.alg = alg;
     els.xsSolution.hidden = false;
     markSeg(els.xsBtn, true);
 
-    if (els.xsOri) els.xsOri.textContent = isStdOrient() ? "" : "（" + orientText() + "）";
+    if (els.xsOri) els.xsOri.textContent = stdSol ? "" : "（" + orientText(state.solOrient) + "）";
     if (els.xsAlt) {
-      if (!isStdOrient() && xcross.ok && alg.length) {
+      els.xsAlt.hidden = false;
+      els.xsAlt.innerHTML = "";
+      if (!stdSol && xcross.ok && alg.length) {
         /* 非标准拿法：给一句标准朝向原文，照抄时不用自己转 */
-        els.xsAlt.hidden = false;
-        els.xsAlt.innerHTML = "";
         els.xsAlt.appendChild(el("b", null, "标准朝向（白顶 · 绿前）："));
         els.xsAlt.appendChild(document.createTextNode(stdAlg));
       } else {
-        els.xsAlt.hidden = false;
-        els.xsAlt.innerHTML = "";
         els.xsAlt.appendChild(document.createTextNode(note));
       }
     }
@@ -296,10 +376,12 @@
     };
   })();
 
-  /* ---------- 平面六面展开图（白顶绿前朝向） ---------- */
+  /* ---------- 平面六面展开图 ---------- */
   function renderNet() {
-    if (!els.net || !window.CubeArt) return;
-    var cube = RubikCore.applyAlg(RubikCore.newCube(), (current ? current.moves : []).join(" "));
+    if (!els.net || !window.CubeArt || !window.RubikCore) return;
+    /* 画的是「按打乱拿法执行打乱后」的真实局面：起点必须是该拿法下的还原态
+       （每面纯色、颜色随拿法重排），直接用 newCube() 会画成标准朝向的局面。 */
+    var cube = RubikCore.applyAlg(pureCubeFor(state.scrOrient), scrambleAlg().join(" "));
     els.net.innerHTML = "";
     els.net.appendChild(CubeArt.flatNet(cube));
   }
@@ -311,7 +393,7 @@
     if (!r) { els.scramble.textContent = "生成失败，请重试"; return; }
     current = r;
 
-    els.scramble.textContent = r.moves.join(" ");
+    renderScramble();
     els.scramble.classList.remove("is-pop");
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
@@ -337,7 +419,8 @@
     var items = [];
     for (var i = 0; i < BATCH; i++) {
       var r = CrossSolver.generate(state.color, state.steps, MAX_LEN);
-      if (r) items.push(r.moves.join(" "));
+      /* 批量同样按「打乱拿法」书写，直接拿去练不用自己转 */
+      if (r) items.push(algFor(r.moves, state.scrOrient).join(" "));
     }
     if (!items.length) { if (els.batchPanel) els.batchPanel.hidden = true; return; }
 
@@ -426,6 +509,7 @@
   /* ---------- 初始化 ---------- */
   function init() {
     els.scramble = $("ct-scramble");
+    els.scrAlt = $("ct-scr-alt");
     els.net = $("ct-net");
     els.timer = $("ct-timer");
     els.colors = $("ct-colors");
@@ -457,8 +541,9 @@
     buildColors();
     buildSteps();
     buildPairs();      /* XCROSS 首对（依赖 xcross-solver.js，缺失则整块功能缺席） */
-    buildOrient();     /* 拿法朝向（依赖 orient.js，缺失则跳过，不影响原功能） */
+    buildOrients();    /* 打乱 / 复原两套拿法（依赖 orient.js，缺失则跳过） */
     paintSegs();
+    paintOrients();
 
     $("ct-new").addEventListener("click", gen);
 
@@ -481,8 +566,7 @@
     });
 
     $("ct-copy").addEventListener("click", function () {
-      var txt = current ? current.moves.join(" ") : "";
-      copy(txt);
+      copy(scrambleAlg().join(" "));
       flash(this, "已复制 ✓", "复制");
     });
 
@@ -519,11 +603,15 @@
     selectSteps: function (n) { selectSteps(n); },
     gen: function () { gen(); },
     generateBatch: function () { generateBatch(); },
-    setOrient: function (t, f) {
-      state.orient = { top: t, front: f };
-      paintOrient(); save(); renderSolution(); renderXCross();
-    },
-    orient: function () { return state.orient; },
-    orientedSolution: function () { return orientedSolution(); }
+    /* 旧名 setOrient = 复原拿法；另提供 setScrOrient / setSolOrient */
+    setOrient: function (t, f) { setOrient("sol", t, f); },
+    setScrOrient: function (t, f) { setOrient("scr", t, f); },
+    setSolOrient: function (t, f) { setOrient("sol", t, f); },
+    orient: function () { return state.solOrient; },
+    scrambleAlg: function () { return scrambleAlg(); },
+    orientedSolution: function () { return orientedSolution(); },
+    pureCubeFor: function (o) { return pureCubeFor(o); },
+    algFor: function (alg, o) { return algFor(alg, o); },
+    crossFaceAt: function () { return crossFaceAt(); }
   };
 })();

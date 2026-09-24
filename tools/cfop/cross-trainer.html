@@ -11,9 +11,13 @@
 <link rel="stylesheet" href="/assets/css/site-layout.css">
 <link rel="stylesheet" href="/tools/cfop/css/cfop.css">
 <style>
-  /* 拿法朝向选择（页面私有，前缀 ct__） */
+  /* 拿法朝向选择（页面私有，前缀 ct__）：打乱 / 复原两套，同一行左右分栏 */
   .ct__orientpick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .ct__orientpick .select { min-width: 96px; }
+  .ct__orientgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; align-items: center; }
+  .ct__orientcell { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .ct__orientcap { flex: 0 0 auto; font-size: 12px; color: var(--fg-3); letter-spacing: .02em; }
+  .ct__orientcell .ct__orientpick { flex: 1 1 0; min-width: 0; }
+  .ct__orientcell .select { flex: 1 1 0; min-width: 0; }
   .ct__orient-note { display: block; margin-top: 6px; font-size: 12px; color: var(--fg-3); line-height: 1.5; }
   .ct__sol-ori { margin-left: 6px; font-size: 12px; color: var(--fg-3); }
   .ct__sol-alt {
@@ -21,15 +25,23 @@
     font-size: 12px; color: var(--fg-3); line-height: 1.7; word-break: break-word;
   }
   .ct__sol-alt b { color: var(--fg-2); font-weight: 600; }
+  /* 打乱的标准朝向原文对照（仅非标准打乱拿法时出现） */
+  .ct__scr-alt { font-size: 12px; color: var(--fg-3); line-height: 1.7; word-break: break-word; }
+  .ct__scr-alt[hidden] { display: none; }
+  .ct__scr-alt b { color: var(--fg-2); font-weight: 600; }
   /* XCROSS：按钮 + 首对选择同行，省掉控制面板一行 */
   .ct__rowx { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
   .ct__rowx .btn { flex: 0 0 auto; min-height: 48px; }
   .ct__seg--x { flex: 1 1 260px; max-width: 340px; width: auto; }
   #ct-pairs { grid-template-columns: repeat(4, 1fr); }
   .ct__seg--x .seg__btn { font-family: var(--font-mono, monospace); }
+  /* 侧栏朝向提示：两套拿法会让 pill 变长，允许换行而不是被截断 */
+  .ct-page .ct__orient { flex-wrap: wrap; row-gap: 6px; }
+  .ct-page .ct__orient-pill { font-size: var(--fs-base, 1rem); letter-spacing: .04em; text-align: center; }
   @media (max-width: 640px) {
-    .ct__orientpick { width: 100%; }
-    .ct__orientpick .select { flex: 1 1 0; min-width: 0; }
+    /* 窄屏：两套拿法上下堆叠，各占整行，避免四个下拉被压成细条 */
+    .ct__orientgrid { grid-template-columns: 1fr; }
+    .ct__orientcell .select { min-width: 88px; }
   }
 </style>
 </head>
@@ -61,15 +73,28 @@
         </div>
         <div class="ct__field">
           <span class="ct__label">拿法朝向</span>
-          <div class="ct__orientpick">
-            <select class="select" id="ct-top" aria-label="顶面颜色"></select>
-            <select class="select" id="ct-front" aria-label="前面颜色"></select>
+          <div class="ct__orientgrid">
+            <div class="ct__orientcell">
+              <span class="ct__orientcap">打乱</span>
+              <div class="ct__orientpick">
+                <select class="select" id="ct-scr-top" aria-label="打乱时顶面颜色"></select>
+                <select class="select" id="ct-scr-front" aria-label="打乱时前面颜色"></select>
+              </div>
+            </div>
+            <div class="ct__orientcell">
+              <span class="ct__orientcap">复原</span>
+              <div class="ct__orientpick">
+                <select class="select" id="ct-sol-top" aria-label="复原时顶面颜色"></select>
+                <select class="select" id="ct-sol-front" aria-label="复原时前面颜色"></select>
+              </div>
+            </div>
           </div>
           <span class="ct__orient-note" id="ct-orient-note"></span>
         </div>
       </div>
 
       <div class="ct__scramble" id="ct-scramble">…</div>
+      <div class="ct__scr-alt" id="ct-scr-alt" hidden></div>
 
       <div class="ct__solution" id="ct-solution" hidden>
         <span class="ct__sol-label">十字解法<span class="ct__sol-ori" id="ct-sol-ori"></span></span>
@@ -118,7 +143,7 @@
 </div>
 <footer class="site-footer">
   <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
-  <p class="site-footer__meta">打乱与求解在本地完成（十字最优步数表实时计算）· 按「白顶绿前」标准朝向打乱</p>
+  <p class="site-footer__meta">打乱与求解在本地完成（十字最优步数表实时计算）· 支持分别设定「打乱拿法」与「复原拿法」，解法按复原拿法给出</p>
 </footer>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
