@@ -409,6 +409,27 @@
     updateBldReveal();
   }
 
+  /* 单个解法行：标签 + 等宽编码值 */
+  function bldRow(k, v) {
+    return '<div class="tm-bld__row"><span class="tm-bld__k">' + k + "</span>" +
+           '<span class="tm-bld__v tm-bld__v--mono">' + v + "</span></div>";
+  }
+  /* 编码串上色：借位字母标蓝、归还字母标红下划线（与题纸答案区同口径）。
+     roles 缺省或长度对不上时按纯文本渲染，绝不因此丢字。 */
+  function codeHtml(str, roles) {
+    var s = String(str == null ? "" : str), out = "", i, ch, r, ri = 0;
+    for (i = 0; i < s.length; i++) {
+      /* 读码串每 2 字母夹一个空格供阅读，roles 只按编码字母依次排 → 跳过空格再取 */
+      if (s[i] === " " || s[i] === "　" || s[i] === "\t") { out += s[i]; continue; }
+      r = roles ? roles[ri++] : "";
+      ch = S.escapeHtml ? S.escapeHtml(s[i]) : s[i];
+      out += r === "borrow" ? '<span class="tm-bld__borrow">' + ch + "</span>"
+           : r === "return" ? '<span class="tm-bld__return">' + ch + "</span>"
+           : ch;
+    }
+    return out || "—";
+  }
+
   /* 渲染任意一份解法数据（当前打乱的 curBld，或历史成绩里存下来的 rec.bld）。
      历史查看时只改这里的数据源，不影响当前打乱与计时。 */
   function renderBldFrom(b) {
@@ -418,18 +439,17 @@
     if (b.parity === 1) {
       _parityTxt = _pf === "edge" ? "奇偶带翻棱" : _pf === "corner" ? "奇偶带翻角" : "奇";
     }
-    var rows = [
-      ["棱读码", b.edge || "—"],
-      ["棱翻色", b.flip || "—"],
-      ["角读码", b.corner || "—"],
-      ["角翻色", b.twist || "—"],
-      ["奇偶", _parityTxt]
-    ];
-    var html = "";
-    rows.forEach(function (r) {
-      html += '<div class="tm-bld__row"><span class="tm-bld__k">' + r[0] + "</span>" +
-              '<span class="tm-bld__v tm-bld__v--mono">' + (typeof r[1] === "string" ? r[1] : String(r[1])) + "</span></div>";
-    });
+    /* 解法左右分列：棱一组在左、角一组在右，读码里的借位/归还上色（口径同题纸生成器）。 */
+    /* 四行固定显示（翻色为空时留「—」，与题纸一致：空也是「无翻色」的明确信号），
+       左右两列严格对称：棱一组在左、角一组在右。 */
+    var left = bldRow("棱读码", codeHtml(b.edge, b.edgeRoles)) +
+               bldRow("棱翻色", codeHtml(b.flip, null));
+    var right = bldRow("角读码", codeHtml(b.corner, b.cornerRoles)) +
+                bldRow("角翻色", codeHtml(b.twist, null));
+    var html = (left || right)
+      ? '<div class="tm-bld__side">' + left + '</div><div class="tm-bld__side">' + right + "</div>"
+      : "";
+    html += bldRow("奇偶", typeof _parityTxt === "string" ? S.escapeHtml(_parityTxt) : String(_parityTxt));
     els.bldRows.innerHTML = html;
     if (els.bldMeta) {
       var dm = b.difficulty;
@@ -606,7 +626,11 @@
     els.bldParams.classList.toggle("is-collapsed", collapsed);
     if (els.bldBody) els.bldBody.hidden = collapsed;
     if (els.bldParamsToggle) els.bldParamsToggle.setAttribute("aria-expanded", String(!collapsed));
-    if (els.bldOpen) els.bldOpen.setAttribute("aria-expanded", String(!collapsed));
+    /* 工具带按钮自报状态：折叠时提示可展开，展开时提示可收起 */
+    if (els.bldOpen) {
+      els.bldOpen.setAttribute("aria-expanded", String(!collapsed));
+      els.bldOpen.textContent = collapsed ? "三盲参数 ▸" : "三盲参数 ▾ 收起";
+    }
     renderBldSummary();
   }
   function toggleBldCollapse() {
@@ -912,9 +936,9 @@
           parts.push(metric("记忆占比", (m.memoRatio * 100).toFixed(3) + "%"));
           parts.push(metric("记忆速度", m.lettersPerMin.toFixed(3) + " 字母/分"));
           parts.push(metric("执行 TPS", m.tpsExec.toFixed(3)));
-        } else {
-          parts.push(metric("TPS", m.tpsAll.toFixed(3), "未分段"));
         }
+        /* 未分段（没标记记忆结束）时不给 TPS：那是用总时间除出来的混合值，
+           当成手速会误导，直接不显示。 */
         parts.push(metric("每公式秒数", m.secPerAlg.toFixed(3) + "s"));
         els.confirmMetrics.innerHTML = '<div class="tm-confirm__metrics">' + parts.join("") + "</div>";
       }
@@ -1369,10 +1393,12 @@
         cm.textContent = "C" + rec.bld.complexity;
         t.appendChild(cm);
       }
-      if (rec.bld && rec.bld.metrics && rec.bld.metrics.tpsAll != null) {
+      /* 只有分段计时（记忆/执行分开）的成绩才展示 TPS：未分段的那是用总时间
+         混算出来的，不代表手速，历史上存下来的也一并隐藏。 */
+      if (rec.bld && rec.bld.metrics && rec.bld.metrics.split && rec.bld.metrics.tpsExec != null) {
         var tp = document.createElement("span");
         tp.className = "tm-list__tps";
-        tp.textContent = "TPS " + rec.bld.metrics.tpsAll.toFixed(2);
+        tp.textContent = "TPS " + (rec.bld.metrics.tpsExec || rec.bld.metrics.tpsAll || 0).toFixed(2);
         t.appendChild(tp);
       }
       /* 三盲分段：在时间下方显示「记忆 / 复原」用时。仅对真正启用过分段计时的成绩
@@ -1520,8 +1546,6 @@
         if (m.split) {
           html += '<div class="tm-solve__bld-row"><span>记忆</span><b>' + fmt3(m.memoMs) + "</b><span>执行</span><b>" + fmt3(m.execMs) + "</b></div>";
           html += '<div class="tm-solve__bld-row"><span>记忆速度</span><b>' + (m.lettersPerMin || 0).toFixed(3) + " 字母/分</b><span>执行 TPS</span><b>" + (m.tpsExec || 0).toFixed(3) + "</b></div>";
-        } else if (m.tpsAll != null) {
-          html += '<div class="tm-solve__bld-row"><span>TPS</span><b>' + m.tpsAll.toFixed(3) + "</b></div>";
         }
       }
       html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button></div>';
@@ -2674,17 +2698,11 @@
     populateOrientation();
     syncBldParamsUI();
     if (els.bldParamsToggle) els.bldParamsToggle.addEventListener("click", toggleBldCollapse);
-    /* 桌面单屏：从工具带打开右侧参数抽屉（打开 = 取消收起态，复用同一份状态） */
+    /* 桌面单屏：工具带「三盲参数」是唯一的开/关按钮——点开抽屉，再点即收起。
+       面板标题栏里的折叠按钮在桌面隐藏（见 timer.css），两端共用同一份 collapsed 状态。 */
     if (els.bldOpen) els.bldOpen.addEventListener("click", function () {
-      opt.bldCollapsed = false;
-      saveOpt(); applyBldCollapse();
+      toggleBldCollapse();
       this.blur();
-    });
-    if (els.bldParams) els.bldParams.addEventListener("click", function (e) {
-      /* 点击摘要行（非交互控件）也能展开，方便快速查看 */
-      if (els.bldBody && els.bldBody.hidden && (e.target === els.bldSummary || e.target.classList.contains("tm-bld-params__head"))) {
-        toggleBldCollapse();
-      }
     });
     [els.orientSel, els.lenInput, els.ebuf, els.eorder, els.eorient, els.eskip,
      els.cbuf, els.corder, els.cororient, els.corskip].forEach(function (el) {

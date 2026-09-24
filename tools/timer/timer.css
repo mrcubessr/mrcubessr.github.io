@@ -160,7 +160,9 @@ body { margin: 0; }
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-size: 22px; font-weight: 800; color: var(--fg);
 }
-.tm-confirm__btns { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+/* 按钮与 DNF 归因都贴右：选完归因、点记录只需在右侧一块区域内移动鼠标 */
+.tm-confirm__btns { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap;
+  align-items: center; justify-content: flex-end; }
 .tm-confirm .is-on { border-color: var(--gold); color: var(--gold); }
 
 /* ---------- 统计条 ---------- */
@@ -405,8 +407,16 @@ body { margin: 0; }
 .tm-bld__head { display: flex; align-items: center; gap: 10px; }
 .tm-bld__meta { font-size: 12px; color: var(--fg-2); font-family: var(--font-mono); }
 .tm-bld__copy { margin-left: auto; }
-.tm-bld__rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 16px; }
+/* 解法左右分列：棱一组在左、角一组在右，宽窄屏都不塌成一竖列（窄屏见下方媒体查询） */
+.tm-bld__rows { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; align-items: start; }
+.tm-bld__rows > .tm-bld__row { grid-column: 1 / -1; }   /* 奇偶：跨两列独占一行 */
+.tm-bld__side { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .tm-bld__row { display: flex; gap: 8px; align-items: baseline; }
+/* 借位 = 蓝；归还 = 红 + 下划线（黑白打印也能分清，与题纸答案区一致） */
+.tm-bld__borrow { color: #1565c0; font-weight: 800; }
+.tm-bld__return { color: #c62828; font-weight: 800; text-decoration: underline; }
+[data-theme="dark"] .tm-bld__borrow { color: #6ab7ff; }
+[data-theme="dark"] .tm-bld__return { color: #ff8a80; }
 .tm-bld__k { font-size: 12px; color: var(--fg-3); flex: 0 0 52px; }
 .tm-bld__v { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--fg); word-break: break-word; }
 .tm-bld__v--mono { color: var(--fg); }
@@ -472,10 +482,10 @@ body { margin: 0; }
 .tm-metric__v { font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tm-metric__note { font-size: 10px; font-style: normal; color: var(--amber); font-family: var(--font-sans); }
 
-/* ---------- 确认区：DNF 归因 ---------- */
+/* ---------- 确认区：DNF 归因（与操作按钮同一行、一并靠右） ---------- */
 .tm-dnf-reason {
-  flex: 1 1 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  margin: 4px 0 6px; padding: 6px 8px; border: 1px dashed var(--line-2);
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-left: 10px; padding-left: 10px; border-left: 1px dashed var(--line-2);
 }
 .tm-dnf-reason__k { font-size: 12px; color: var(--fg-2); }
 
@@ -526,6 +536,11 @@ body { margin: 0; }
   .tm-list { max-height: 52vh; }
   .tm-list-bar__meta { margin-left: 0; flex: 1 1 100%; }
   .tm-confirm__btns { margin-left: 0; width: 100%; }
+  /* 窄屏按钮行独占两行：归因整行右对齐，仍与「DNF / 记录」同侧 */
+  .tm-dnf-reason {
+    flex: 1 1 100%; justify-content: flex-end; margin-left: 0; padding-left: 0;
+    border-left: 0; border-top: 1px dashed var(--line-2); padding-top: 6px;
+  }
   .tm-map__row { grid-template-columns: minmax(0, 1fr) auto 118px; gap: 8px; }
   .tm-map__n { display: none; }
 }
@@ -541,6 +556,8 @@ body { margin: 0; }
   .tm-scramble { flex-basis: auto; }
   .tm-bld-net-side { width: auto; max-width: 180px; margin: 0 auto; }
   .tm-bld-net-side canvas { width: 170px; max-width: 100%; height: auto; }
+  /* 窄屏解法改回一竖列：两列会挤掉编码 */
+  .tm-bld__rows { grid-template-columns: 1fr; }
 }
 
 /* =========================================================
@@ -674,13 +691,16 @@ body { margin: 0; }
   }
   .tm-confirm__label { display: none; }
   .tm-confirm__time { font-size: 18px; }
-  /* 四个按钮平分一行，手机上点得准 */
-  .tm-confirm__btns { gap: 4px; margin-left: 0; width: 100%; flex: 1 1 100%; flex-wrap: nowrap; }
-  .tm-confirm__btns .btn { padding: 9px 4px; font-size: 12px; flex: 1 1 0; min-width: 0; }
+  /* 四个按钮平分一行，手机上点得准；归因展开后独占一行并夹回右侧，不再挤占按钮宽度 */
+  .tm-confirm__btns { gap: 4px; margin-left: 0; width: 100%; flex: 1 1 100%; flex-wrap: wrap; }
+  .tm-confirm__btns .btn { padding: 9px 4px; font-size: 12px; flex: 1 1 auto; white-space: nowrap; }
   .tm-confirm__metrics { margin: 4px 0 2px; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 4px 10px; }
   .tm-confirm__metrics-wrap { gap: 4px 10px; }
   .tm-metric__v { font-size: 12px; }
-  .tm-dnf-reason { padding: 4px 6px; gap: 5px; margin: 2px 0; }
+  .tm-confirm__btns > .tm-dnf-reason {
+    flex: 1 1 100%; justify-content: flex-end; padding: 4px 0 0; gap: 5px; margin: 2px 0 0;
+    border-top: 0;
+  }
 
   /* ---------- 统计条：压缩成一行小字 ---------- */
   .tm-strip { flex: 0 0 auto; grid-template-columns: repeat(4, 1fr); }
@@ -905,8 +925,10 @@ body { margin: 0; }
   }
   .tm-bld-params.is-collapsed { display: none; }
 
-  /* 工具带上的「三盲参数」按钮：桌面单屏下可用 */
+  /* 工具带上的「三盲参数」按钮：桌面单屏下可用，且是唯一的开/关入口
+     （点开抽屉、再点收起）。面板标题栏里的折叠按钮在这里让位，避免两个开关。 */
   .tm-bld-open:not([hidden]) { display: inline-flex; }
+  .tm-bld-params__toggle { display: none !important; }
 }
 
 /* =========================================================

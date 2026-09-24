@@ -186,9 +186,10 @@
       var ms = effectiveMs(r);
       if (isFinite(ms)) { s.sum += ms; s.valid++; s.vals.push(ms); if (ms < s.best) s.best = ms; }
       var m = r.bld.metrics;
-      /* TPS 只统计「已完成」的成绩：DNF 常在中途放弃，时长被截短 → TPS 虚高。
-         与 ⑧ 分段成绩统计保持同一口径，避免同一个指标出现两套数。 */
-      if (m && r.pen !== "DNF") {
+      /* TPS 只在分段计时下统计：未分段（没标记记忆结束）的 tpsAll/tpsExec
+         是用总时间混算出来的，混进均值会让 TPS 曲线失真。
+         同时排除 DNF —— 中途放弃会把时长截短，TPS 虚高，与 ⑧ 表同口径。 */
+      if (m && m.split && r.pen !== "DNF") {
         if (isFinite(m.tpsExec)) { s.tpsExecSum += m.tpsExec; s.tpsExecValid++; }
         if (isFinite(m.tpsAll)) { s.tpsAllSum += m.tpsAll; s.tpsAllValid++; }
       }
@@ -228,11 +229,20 @@
       else out.success.solve++;
       var m = r.bld && r.bld.metrics;
       if (!m) return;
-      if (m.split) me.splitCount++;
+      var me = out.memoExec;
+      if (m.split) {
+        me.splitCount++;
+        if (isFinite(m.memoMs)) { me.memoSum += m.memoMs; me.memoValid++; }
+        if (isFinite(m.execMs)) { me.execSum += m.execMs; me.execValid++; }
+        if (isFinite(m.memoRatio)) { me.ratioSum += m.memoRatio; me.ratioValid++; }
+        if (isFinite(m.lettersPerMin)) { me.lettersPerMinSum += m.lettersPerMin; me.lpmValid++; }
+      }
       if (r.pen === "DNF") return;        /* DNF 时长被截短 → TPS / 每公式秒数会虚高，整段剔除 */
       me.doneCount++;
-      if (isFinite(m.tpsExec)) { me.tpsExecSum += m.tpsExec; me.tpsExecValid++; }
-      if (isFinite(m.tpsAll)) { me.tpsAllSum += m.tpsAll; me.tpsAllValid++; }
+      if (m.split) {
+        if (isFinite(m.tpsExec)) { me.tpsExecSum += m.tpsExec; me.tpsExecValid++; }
+        if (isFinite(m.tpsAll)) { me.tpsAllSum += m.tpsAll; me.tpsAllValid++; }
+      }
       if (isFinite(m.secPerAlg)) { me.secPerAlgSum += m.secPerAlg; me.secPerAlgValid++; }
     });
     me.tpsExecMean = me.tpsExecValid ? me.tpsExecSum / me.tpsExecValid : null;
@@ -459,10 +469,10 @@
       if (bottleneck) h += '<p class="tm-ba-note">' + bottleneck + "（占比越高，说明计时里越大部分花在背记上。）</p>";
     }
 
-    /* ⑨ 整体 TPS（含记忆的总效率）+ 按难度 */
-    h += '<h3 class="tm-h3">⑨ 整体 TPS（含记忆的总效率）</h3>';
+    /* ⑨ 整体 TPS（含记忆的总效率）+ 按难度（只统计分段且非 DNF 的成绩） */
+    h += '<h3 class="tm-h3">⑨ 整体 TPS（含记忆的总效率 · 仅分段成绩）</h3>';
     if (me.tpsAllMean == null && me.tpsExecMean == null) {
-      h += '<div class="tm-ba-note">暂无 TPS 数据（需带分段/步数配置的成绩）。开启分段计时后自动计算。</div>';
+      h += '<div class="tm-ba-note">暂无 TPS 数据。TPS 只在「分段计时」的成绩上计算：开启分段计时并标记记忆结束，再记录一次即可。</div>';
     } else {
       h += '<div class="tm-ba-ov tm-ba-ov--2">' +
         cell("整体 TPS", me.tpsAllMean != null ? me.tpsAllMean.toFixed(2) : "—") +

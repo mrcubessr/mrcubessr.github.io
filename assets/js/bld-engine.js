@@ -269,6 +269,29 @@
   /* ---------- 读码四件套（纯文本输出） ---------- */
   function stripHtml(s) { return s.replace(/<[^>]+>/g, ""); }
 
+  /* 借位（borrow=蓝）/ 归还（return=绿）角色：直接从已渲染的 span 标记反推，
+     与题纸答案区用的是同一份标记，读码串与角色天然逐字对齐、不会错位。 */
+  function rolesFromMarkup(html) {
+    const s = String(html == null ? "" : html);
+    const roles = [];
+    let color = "", i = 0;
+    while (i < s.length) {
+      if (s.slice(i, i + 6) === "<span ") {
+        const end = s.indexOf(">", i);
+        if (end < 0) break;
+        const tag = s.slice(i, end + 1);
+        color = tag.indexOf("color:blue") >= 0 ? "blue"
+              : tag.indexOf("color:green") >= 0 ? "green" : "";
+        i = end + 1;
+        continue;
+      }
+      if (s.slice(i, i + 7) === "</span>") { i += 7; continue; }
+      if (!/\s/.test(s[i])) roles.push(color === "blue" ? "borrow" : color === "green" ? "return" : "");
+      i++;
+    }
+    return roles;
+  }
+
   function edgeRead(s1, opts, meta) {
     operatealg(s1);
     const orientFlag = opts.edgeOrientFlag ? 1 : 0;
@@ -297,6 +320,8 @@
     }
     if (meta) meta.cycles = cycleList.length;
     let orientLast = 0, edgereadOut = "", endList = "", codenum = 0;
+    // 借位 / 归还角色：与 edgereadOut 一一对应（slice(1) 去掉的首字符角色为 ''，正好不编码）
+    const edgeRoles = [];
     for (let i = 0; i < cycleList.length; i++) {
       if (i > 0) orientLast += edgeCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - edgeCh.indexOf(cycleList[i - 1][0]);
       for (let j = 0; j < cycleList[i].length; j++) {
@@ -310,16 +335,23 @@
           for (let k = 0; k < sumorient % 2; k++) lastcode = nearedge(lastcode);
           endList += lastcode;
         } else {
+          // 小循环首字母 = 借位；小循环收尾字母 = 归还
           if (i > 0 && j === 0) edgereadOut += `<span style='color:blue'>${code}</span>`;
           else if (i > 0 && j === cycleList[i].length - 1) edgereadOut += `<span style='color:green'>${code}</span>`;
           else edgereadOut += code;
+          edgeRoles.push(i > 0 ? (j === 0 ? 'borrow' : (j === cycleList[i].length - 1 ? 'return' : '')) : '');
           codenum += 1;
           if (codenum > 1 && codenum % 2 === 1) edgereadOut += " ";
         }
       }
     }
-    if (skipCycleNum > 0) edgereadOut += `<span style='color:green'>${endList.split("").reverse().join("")}</span>`;
+    if (skipCycleNum > 0) {
+      const tail = endList.split("").reverse().join("");
+      edgereadOut += `<span style='color:green'>${tail}</span>`;
+      for (let k = 0; k < tail.length; k++) edgeRoles.push('return');
+    }
     edgereadOut = edgereadOut.slice(1, edgereadOut.length);
+    if (meta) { meta.cycles = cycleList.length; meta.edgeRoles = rolesFromMarkup(edgereadOut); }
     return stripHtml(edgereadOut);
   }
 
@@ -367,6 +399,8 @@
     }
     if (meta) meta.cycles = cycleList.length;
     let orientLast = 0, cornerreadOut = "", endList = "", codenum = 0;
+    // 借位 / 归还角色：与 cornerreadOut 一一对应（同上，slice(1) 的首字符角色为 ''）
+    const cornerRoles = [];
     for (let i = 0; i < cycleList.length; i++) {
       if (i > 0) orientLast += cornerCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - cornerCh.indexOf(cycleList[i - 1][0]);
       for (let j = 0; j < cycleList[i].length; j++) {
@@ -383,13 +417,19 @@
           if (i > 0 && j === 0) cornerreadOut += `<span style='color:blue'>${code}</span>`;
           else if (i > 0 && j === cycleList[i].length - 1) cornerreadOut += `<span style='color:green'>${code}</span>`;
           else cornerreadOut += code;
+          cornerRoles.push(i > 0 ? (j === 0 ? 'borrow' : (j === cycleList[i].length - 1 ? 'return' : '')) : '');
           codenum += 1;
           if (codenum > 1 && codenum % 2 === 1) cornerreadOut += " ";
         }
       }
     }
-    if (skipCycleNum > 0) cornerreadOut += `<span style='color:green'>${endList.split("").reverse().join("")}</span>`;
+    if (skipCycleNum > 0) {
+      const tail = endList.split("").reverse().join("");
+      cornerreadOut += `<span style='color:green'>${tail}</span>`;
+      for (let k = 0; k < tail.length; k++) cornerRoles.push('return');
+    }
     cornerreadOut = cornerreadOut.slice(1, cornerreadOut.length);
+    if (meta) { meta.cycles = cycleList.length; meta.cornerRoles = rolesFromMarkup(cornerreadOut); }
     return stripHtml(cornerreadOut);
   }
 
@@ -684,6 +724,10 @@
       orientationLabel: orient.label,
       orientationIndex: o.orientation,
       edge: edge, flip: flip, corner: corner, twist: twist,
+      /* 读码的借位 / 归还角色（长度与 edge / corner 一致）：
+         供界面给「起新循环借的那个字母」上色、「还回去的那个字母」标红下划线，
+         口径与题纸生成器一致。 */
+      edgeRoles: eMeta.edgeRoles || null, cornerRoles: cMeta.cornerRoles || null,
       parity: parity,
       complexity: complexity,
       difficulty: difficulty
