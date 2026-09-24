@@ -190,6 +190,23 @@
   .seg__btn.is-active { background: var(--brand); color: var(--on-brand); }
   .is-hidden { display: none !important; }
   #autoPanel { margin-top: 4px; }
+  /* 分组小标题：把「手写公式 / 自动生成 / 出卷信息」三段分开。
+     审计反馈：公式输入框下方紧接自动生成参数与「批量生成并出卷」按钮，
+     中间没有分组标题或分隔线，看不出两块功能的边界（P3）。 */
+  .grp__hd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin: 14px 0 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+  .grp__hd:first-child { margin-top: 4px; }
+  .grp__hint { font-weight: 400; font-size: 12px; color: var(--muted); }
   @media print {
     body { background: var(--on-brand); }
     .container { padding: 0; max-width: none; }
@@ -371,6 +388,10 @@
     /* ---- 参数识别回显 / 状态行：收紧内边距 ---- */
     .range-echo { margin-top: 5px; padding: 4px 8px; }
     .status { margin-top: 6px; }
+    /* 分组标题同样收紧：左列是 sticky + 限高滚动的，14px 上下外边距 × 3 段
+       会吃掉 80 多像素的可用高度。 */
+    .grp__hd { margin: 8px 0 6px; padding-bottom: 4px; }
+    .grp__hd:first-child { margin-top: 2px; }
 
     /* ---- 桌面端不需要页脚：它白占 111px 高 + 64px 上外边距，
             是「整页恒定多滚 219px」的绝大部分（见文件顶部 ⑩ 段注释） ---- */
@@ -379,6 +400,27 @@
     /* ---- 第三列：纸面等比缩到列宽内，不撑破格子 ---- */
     .pages { padding: 12px 0; }
     .page-wrap { max-width: 100%; }
+  }
+
+  /* =========================================================
+     超宽屏（≥1600）：参数列再放宽一档
+     ---------------------------------------------------------
+     审计反馈：1920px 下参数列偏窄、字段挤在一起，而预览区大片留白（P3）。
+     1280 档给的是 360~460（双列网格每格约 210px，扣掉 78px 标签后控件
+     只剩 130px，长一点的当前值容易看不全）；这里把上限提到 560，格子约
+     265px、控件约 185px，字段不再挤。
+     ⚠️ 只放宽列宽、不碰列数：参数区仍是双列网格（3 列会让每格只有
+     138px，「魔方拿法」「版式」的当前值被截断，已实测回退过一次）。
+     ⚠️ 打印按纸张宽度（A4 ≈ 794px）求值，不会命中本条。
+     ========================================================= */
+  @media (min-width: 1600px) {
+    .container {
+      grid-template-columns: minmax(420px, 560px) minmax(0, 1fr);
+      gap: 20px;
+    }
+    /* 纸面别被拉到满屏：A4 竖版 1:1.414，1100px 宽会长到 1550px 高，
+       翻一页要滚两次。给个上限居中，两侧留白由 .pages 的 align-items 处理。 */
+    .page-wrap { max-width: 900px; }
   }
 
   /* =========================================================
@@ -416,13 +458,15 @@
       <button type="button" class="seg__btn" id="genModeBld">三盲定向打乱</button>
     </div>
     <div id="manualPanel">
+      <div class="grp__hd">手写公式<span class="grp__hint">每行一条，支持括号分组与数字重复</span></div>
       <textarea id="formulas" placeholder="U&#39; R&#39; U&#39; F2 U&#39; F2 U&#39; F U&#39; F&#39;&#10;R F&#39; R&#39; U F&#39; U&#39; F&#39; U R&#39; F&#39;&#10;每行一条公式，支持括号分组与数字重复"></textarea>
     </div>
     <div id="autoPanel" class="is-hidden">
+      <div class="grp__hd">自动生成<span class="grp__hint">生成结果会填入上方公式框</span></div>
       <div class="row">
         <div class="field">
           <label>魔方阶数</label>
-          <select id="genSize">
+          <select id="genSize" title="出题阶数：决定自动生成的打乱按几阶生成（与下方「出卷信息」里的阶数联动）">
             <option value="3" selected>三阶</option>
             <option value="2">二阶</option>
           </select>
@@ -559,6 +603,7 @@
          标题|姓名 → 时间|版式 → 阶数|拿法 → 行数|编号。
          曾试过 3 列（3 行，省 29px），但每格只有 138px，扣掉 label 后
          「魔方拿法」「版式」的当前值都被截断，读不出选的是什么，已回退。 -->
+    <div class="grp__hd">出卷信息<span class="grp__hint">决定题纸抬头与展开图画法</span></div>
     <div class="row row--info">
       <div class="field">
         <label>标题</label>
@@ -584,9 +629,12 @@
       </div>
       <div class="field">
         <label>魔方阶数</label>
-        <select id="cubeSize">
-          <option value="2" selected>二阶</option>
-          <option value="3">三阶</option>
+        <!-- ⚠️ 默认值必须是三阶：首屏公式框预填的是三阶示例公式，这里留二阶的话
+             用户不改设置直接点「生成练习纸」就会用二阶展开图画三阶公式（P2）。
+             两处阶数由 syncCubeSize() 双向联动，不会再出现同屏两个取值。 -->
+        <select id="cubeSize" title="出卷阶数：决定题纸展开图按几阶绘制（与上方出题阶数联动）">
+          <option value="2">二阶</option>
+          <option value="3" selected>三阶</option>
         </select>
       </div>
       <div class="field">
@@ -1590,6 +1638,17 @@ function renderPage(formulas, pageIndex, rowsPerPage, name, date, title, startNo
   return canvas;
 }
 
+// 两处「魔方阶数」双向联动：出题阶数（#genSize）↔ 出卷阶数（#cubeSize）。
+// 两者必须同值 —— 出题阶数决定公式怎么生成，出卷阶数决定展开图按几阶画，
+// 一旦不一致就会「三阶公式配二阶展开图」（P2）。
+// 注意：给 select 直接赋 .value 不会触发 change，所以两个监听器不会互相回环。
+function syncCubeSize(v) {
+  const g = document.getElementById('genSize');
+  const c = document.getElementById('cubeSize');
+  if (g && g.value !== v) g.value = v;
+  if (c && c.value !== v) c.value = v;
+}
+
 function setGenMode(m) {
   // 手动输入与自动生成已合并为同一面板：'manual' 同时显示两者（旧的 'auto' 入参归一为 manual）
   if (m === 'auto') m = 'manual';
@@ -1602,8 +1661,7 @@ function setGenMode(m) {
   document.getElementById('bldPanel').classList.toggle('is-hidden', m !== 'bld');
   // 三盲读码基于三阶彳亍法，自动切到三阶，避免题纸按二阶画展开图
   if (m === 'bld') {
-    document.getElementById('cubeSize').value = '3';
-    document.getElementById('genSize').value = '3';
+    syncCubeSize('3');
     updateBldEcho();
   }
 }
@@ -1739,7 +1797,8 @@ function doBldGenerate() {
     status.className = 'status err';
     return;
   }
-  document.getElementById('cubeSize').value = '3';
+  // 三盲打乱一定是三阶，展开图同步成三阶
+  syncCubeSize('3');
 
   let gen, items = [], done = false;
   try {
@@ -1811,7 +1870,7 @@ function doAutoGenerate() {
   const len = parseInt(document.getElementById('genLen').value, 10) || (size === '2' ? 10 : 6);
   const count = parseInt(document.getElementById('genCount').value, 10) || 10;
   // 生成的阶数同步给渲染层（展开图按此阶数绘制）
-  document.getElementById('cubeSize').value = size;
+  syncCubeSize(size);
   let list;
   try {
     if (mode === 'wca') list = ScrambleGen.wca({ size: size, length: len, count: count });
@@ -1936,6 +1995,9 @@ function exportPDF() {
 }
 
 function loadSample() {
+  // 示例是三阶公式，出卷阶数必须跟着走三阶，否则一点「生成练习纸」
+  // 就是三阶公式配二阶展开图（P2）。
+  syncCubeSize('3');
   document.getElementById('formulas').value =
     "U' R' U' F2 U' F2 U' F U' F'\n" +
     "R F' R' U F' U' F' U R' F'\n" +
@@ -1961,8 +2023,12 @@ Object.keys(BLD_INPUT).forEach(function (k) {
   el.addEventListener('input', updateBldEcho);
   el.addEventListener('change', updateBldEcho);
 });
+// 两处阶数双向联动：改任一个，另一个跟着走，保证「出题阶数 == 出卷阶数」
 document.getElementById('genSize').addEventListener('change', function () {
-  document.getElementById('cubeSize').value = this.value;
+  syncCubeSize(this.value);
+});
+document.getElementById('cubeSize').addEventListener('change', function () {
+  syncCubeSize(this.value);
 });
 document.getElementById('genMode').addEventListener('change', function () {
   if (this.value === 'wca') {
