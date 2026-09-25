@@ -384,7 +384,7 @@
     var lvTip = "难度分 " + d.score + (d.levelCode ? " · " + lvText : "") + "（点击查看分级标准）";
     els.bldDiff.innerHTML =
       '<div class="tm-bld__diff-top">' +
-        '<span class="tm-bld__diff-notation">' + (d.notation || "") + "</span>" +
+        '<span class="tm-bld__diff-notation">' + ((window.BLDEngine && window.BLDEngine.notationOf) ? window.BLDEngine.notationOf(d) : (d.notation || "")) + "</span>" +
         '<span class="tm-bld__diff-lv" data-lv="' + (d.level || "") + '" title="' + lvTip + '">' + lvText + "</span>" +
         '<a class="tm-bld__doc" href="' + LEVEL_DOC_URL + '" target="_blank" rel="noopener" ' +
           'title="查看难度分级标准（评分公式 / 五档划分）">难度说明</a>' +
@@ -1539,7 +1539,7 @@
       html += '<div class="tm-solve__bld-row"><span>棱</span><b>' + S.escapeHtml(b.edge || "") + "</b><span>翻色</span><b>" + S.escapeHtml(b.flip || "") + "</b></div>";
       html += '<div class="tm-solve__bld-row"><span>角</span><b>' + S.escapeHtml(b.corner || "") + "</b><span>扭</span><b>" + S.escapeHtml(b.twist || "") + "</b></div>";
       if (b.complexity != null) html += '<div class="tm-solve__bld-row"><span>复杂度</span><b>' + b.complexity + " 码</b></div>";
-      if (b.difficulty && b.difficulty.notation) html += '<div class="tm-solve__bld-row"><span>主记法</span><b>' + S.escapeHtml(b.difficulty.notation) + "</b></div>";
+      if (b.difficulty && (b.difficulty.notation || isFinite(+b.difficulty.edgeF))) html += '<div class="tm-solve__bld-row"><span>主记法</span><b>' + S.escapeHtml((window.BLDEngine && window.BLDEngine.notationOf) ? window.BLDEngine.notationOf(b.difficulty) : (b.difficulty.notation || "")) + "</b></div>";
       if (b.dnfReason) html += '<div class="tm-solve__bld-row"><span>DNF 归因</span><b>' + (b.dnfReason === "memo" ? "记忆错" : b.dnfReason === "exec" ? "执行错" : "其他") + "</b></div>";
       if (b.metrics) {
         var m = b.metrics;

@@ -609,6 +609,18 @@
     });
   }
 
+  /* 主记法（2026-09-25 口径统一）：翻色并入棱、角翻并入角 —— 大字分解 = 总条数分解。
+     例：棱5 + 翻色1 + 角2 + 两角翻1 + 奇偶1 → 「棱6+角3+1」，与 total=10 对得上；
+     旧口径「棱5+角2+1」把翻色 / 角翻藏在外面，看起来像只有 8 条，容易误读。
+     分量缺失（旧数据只存了字符串）时退回存储的 notation 原文。 */
+  function notationOf(d) {
+    if (!d || typeof d !== "object") return String((d && d.notation) || "");
+    if (!isFinite(+d.edgeF) || !isFinite(+d.cornerF)) return String(d.notation || "");
+    return "棱" + ((+d.edgeF || 0) + (+d.flipF || 0)) +
+           "+角" + ((+d.cornerF || 0) + (+d.twistF || 0)) +
+           (+d.parityF ? "+1" : "");
+  }
+
   function buildDifficulty(edge, flip, corner, twist, parity, eCycles, cCycles) {
     const eL = letterCount(edge), fL = letterCount(flip);
     const cL = letterCount(corner), tL = letterCount(twist);
@@ -643,7 +655,7 @@
       edgeCycles: eCycles || 0, cornerCycles: cCycles || 0,
       total: total, raw: raw, mem: raw, score: score, level: level,
       levelCode: levelCodeOf(level),
-      notation: "棱" + edgeF + "+角" + cornerF + (parityF ? "+1" : "")
+      notation: "棱" + (edgeF + flipF) + "+角" + (cornerF + twistF) + (parityF ? "+1" : "")
     };
   }
 
@@ -749,6 +761,7 @@
     fixorientation: fixorientation,
     validate: validate,
     buildDifficulty: buildDifficulty,
+    notationOf: notationOf,
     BLD_LEVELS: BLD_LEVELS,
     BLD_LEVEL_CODES: BLD_LEVEL_CODES,
     BLD_LEVEL_MIN: BLD_LEVEL_MIN,
