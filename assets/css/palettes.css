@@ -1,0 +1,300 @@
+/* =========================================================
+   配色方案层 · palettes.css
+   ---------------------------------------------------------
+   本站共 6 套「配色方案」，与「明度」(data-theme=light|dark) 正交：
+     html[data-palette="inknight"]                      → 浅色底座下的「暖夜墨」
+     html[data-palette="inknight"][data-theme="dark"]   → 深色底座下的「暖夜墨」
+   未写 data-palette 时 = 默认配色（曜石蓝 / 课堂白，即 tokens.css 的原值）。
+
+   加载顺序：tokens.css（含 [data-theme] 中性层）→ 本文件。
+   本文件只覆盖「方案调性色」，中性底 / 文字 / 描边继续由 tokens.css
+   的 [data-theme="light"] / 根级深色值提供 —— 所以任意配色都能再自由切浅深。
+
+   场景分工：
+     默认（曜石蓝）  深色 · 日常夜间训练
+     课堂白          浅色 · 白天 / 教室电脑
+     暖夜墨          深色 · 低蓝光护眼（孩子晚上练）
+     投屏高对比      浅色 · 投影仪 / 电视 / 教室大屏
+     纸感米黄        浅色 · 出卷打印 / 学员纸质资料
+     经典六色        深色 · 品牌宣传 / 招生页（呼应标准魔方六面色）
+   ========================================================= */
+
+/* ---------- 暖夜墨 inknight：深色，低蓝光暖调 ---------- */
+html[data-palette="inknight"]{
+  --bg:#131009; --bg-soft:#1B1710;
+  --surface:#221D16; --surface-2:#2C261D; --surface-3:#3B3327;
+
+  --line:rgba(255,232,200,.11); --line-2:rgba(255,232,200,.20); --line-3:rgba(255,232,200,.32);
+  --glass:rgba(34,29,22,.76);
+
+  --fg:#F7F0E4; --fg-2:#C8BAA4; --fg-3:#9A8974; --fg-inverse:#1A140C;
+
+  --brand:#E09A52; --brand-strong:#C57F35;
+  --brand-soft:rgba(224,154,82,.15); --brand-line:rgba(224,154,82,.34);
+  --on-brand:#1A1206;
+  --violet:#C9AEFF; --violet-soft:rgba(201,174,255,.15);
+  --gold:#F6CE86; --gold-soft:rgba(246,206,134,.15); --gold-ink:#FFDEA0;
+  --green:#7FD3A6; --green-soft:rgba(127,211,166,.15);
+  --amber:#F2B65F; --amber-soft:rgba(242,182,95,.15);
+  --red:#F09282;  --red-soft:rgba(240,146,130,.15);
+
+  --nav-bg:rgba(19,16,9,.88); --nav-bg-solid:rgba(19,16,9,.97);
+  --nav-line:rgba(224,154,82,.22); --nav-accent:#EFAB68;
+  --menu-bg:rgba(34,29,22,.97);
+  --menu-shadow:0 12px 40px rgba(0,0,0,.55);
+
+  --glow:0 6px 22px rgba(224,154,82,.24);
+  --cat-teach:#8AD9C0;
+}
+html[data-palette="inknight"][data-theme="light"]{
+  --bg:#FBF5EA; --bg-soft:#F4EBDA;
+  --surface:#FFFCF6; --surface-2:#F0E6D2; --surface-3:#E5D8BF;
+
+  --line:rgba(58,42,18,.13); --line-2:rgba(58,42,18,.22); --line-3:rgba(58,42,18,.34);
+  --glass:rgba(255,252,246,.86);
+
+  --fg:#2A2114; --fg-2:#5C4E3B; --fg-3:#75664F; --fg-inverse:#FFFFFF;
+
+  --brand:#BE7028; --brand-strong:#9C5A1B;
+  --brand-soft:rgba(190,112,40,.12); --brand-line:rgba(190,112,40,.34);
+  /* #FFFFFF 落到 #BE7028 上只有 3.79:1，按钮字不够；
+     换成墨底近黑字 → 4.89:1，暖橙底压黑字也更清楚。 */
+  --on-brand:#1A1206;
+  --violet:#7B52D8; --violet-soft:rgba(123,82,216,.12);
+  --gold:#9A6410; --gold-soft:rgba(154,100,16,.14); --gold-ink:#8A5A08;
+  --green:#1B7A4B; --green-soft:rgba(27,122,75,.12);
+  --amber:#8F5A0C; --amber-soft:rgba(143,90,12,.12);
+  --red:#AC3520;   --red-soft:rgba(172,53,32,.12);
+
+  --nav-bg:rgba(255,252,246,.90); --nav-bg-solid:rgba(255,252,246,.98);
+  --nav-line:rgba(190,112,40,.24); --nav-accent:#B3651F;
+  --menu-bg:rgba(255,252,246,.98);
+  --menu-shadow:0 12px 32px rgba(58,42,18,.16);
+  --glow:0 6px 22px rgba(190,112,40,.18);
+  --cat-teach:#0E7A63;
+}
+
+/* ---------- 投屏高对比 projector：白底纯黑字，投影/电视专用 ---------- */
+html[data-palette="projector"]{
+  --bg:#000000; --bg-soft:#0A0A0A;
+  --surface:#141414; --surface-2:#1D1D1D; --surface-3:#2C2C2C;
+
+  --line:rgba(255,255,255,.22); --line-2:rgba(255,255,255,.36); --line-3:rgba(255,255,255,.52);
+  --glass:rgba(0,0,0,.80);
+
+  --fg:#FFFFFF; --fg-2:#E2E2E2; --fg-3:#B4B4B4; --fg-inverse:#000000;
+
+  --brand:#4DA3FF; --brand-strong:#1E7FE0;
+  --brand-soft:rgba(77,163,255,.16); --brand-line:rgba(77,163,255,.46);
+  --on-brand:#00122E;
+  --violet:#B98CFF; --violet-soft:rgba(185,140,255,.16);
+  --gold:#FFD24A; --gold-soft:rgba(255,210,74,.16); --gold-ink:#FFE383;
+  --green:#3BF07F; --green-soft:rgba(59,240,127,.16);
+  --amber:#FFC24A; --amber-soft:rgba(255,194,74,.16);
+  --red:#FF6B5E;  --red-soft:rgba(255,107,94,.16);
+
+  --nav-bg:rgba(0,0,0,.90); --nav-bg-solid:rgba(0,0,0,.98);
+  --nav-line:rgba(255,255,255,.30); --nav-accent:#6CB4FF;
+  --menu-bg:rgba(0,0,0,.98);
+  --menu-shadow:0 12px 40px rgba(0,0,0,.7);
+
+  --sh-sm:0 1px 0 rgba(0,0,0,.5); --sh-md:0 6px 0 rgba(0,0,0,.5); --sh-lg:0 16px 0 rgba(0,0,0,.6);
+  --glow:0 6px 0 rgba(77,163,255,.30);
+  --cat-teach:#0B6E66;
+}
+html[data-palette="projector"][data-theme="light"]{
+  --bg:#FFFFFF; --bg-soft:#F4F4F5;
+  --surface:#FFFFFF; --surface-2:#E9EAED; --surface-3:#D4D6DB;
+
+  /* 投影下描边要够粗，细灰线会「糊没」 */
+  --line:rgba(0,0,0,.26); --line-2:rgba(0,0,0,.42); --line-3:rgba(0,0,0,.58);
+  --glass:rgba(255,255,255,.92);
+
+  --fg:#000000; --fg-2:#232329; --fg-3:#454550; --fg-inverse:#FFFFFF;
+
+  --brand:#0032A0; --brand-strong:#00217A;
+  --brand-soft:rgba(0,50,160,.09); --brand-line:rgba(0,50,160,.44);
+  --on-brand:#FFFFFF;
+  --violet:#5A1FB8; --violet-soft:rgba(90,31,184,.10);
+  --gold:#8A5600; --gold-soft:rgba(138,86,0,.14); --gold-ink:#7A4A00;
+  --green:#0D6B2C; --green-soft:rgba(13,107,44,.12);
+  --amber:#8A5A00; --amber-soft:rgba(138,90,0,.12);
+  --red:#B0001F;  --red-soft:rgba(176,0,31,.12);
+
+  --nav-bg:#FFFFFF; --nav-bg-solid:#FFFFFF;
+  --nav-line:rgba(0,0,0,.28); --nav-accent:#0032A0;
+  --menu-bg:#FFFFFF;
+  --menu-shadow:0 12px 32px rgba(0,0,0,.24);
+  --sh-sm:0 1px 0 rgba(0,0,0,.28); --sh-md:0 6px 0 rgba(0,0,0,.20); --sh-lg:0 16px 0 rgba(0,0,0,.22);
+  --glow:0 6px 0 rgba(0,50,160,.26);
+  --cat-teach:#0B6E66;
+}
+
+/* ---------- 纸感米黄 paper：出卷 / 打印 / 学员资料 ---------- */
+html[data-palette="paper"]{
+  --bg:#14120F; --bg-soft:#1C1915;
+  --surface:#1E1B17; --surface-2:#272320; --surface-3:#383229;
+
+  --line:rgba(238,226,204,.13); --line-2:rgba(238,226,204,.23); --line-3:rgba(238,226,204,.36);
+  --glass:rgba(30,27,23,.78);
+
+  --fg:#F2EADB; --fg-2:#C6BAA6; --fg-3:#938877; --fg-inverse:#16130F;
+
+  --brand:#79C0A0; --brand-strong:#5CA585;
+  --brand-soft:rgba(121,192,160,.15); --brand-line:rgba(121,192,160,.36);
+  --on-brand:#102018;
+  --violet:#BFA8E8; --violet-soft:rgba(191,168,232,.15);
+  --gold:#E8C46A; --gold-soft:rgba(232,196,106,.15); --gold-ink:#F5D48C;
+  --green:#7FCBA0; --green-soft:rgba(127,203,160,.15);
+  --amber:#DCBE74; --amber-soft:rgba(220,190,116,.15);
+  --red:#E5907E;  --red-soft:rgba(229,144,126,.15);
+
+  --nav-bg:rgba(20,18,15,.88); --nav-bg-solid:rgba(20,18,15,.97);
+  --nav-line:rgba(121,192,160,.22); --nav-accent:#8FCFB0;
+  --menu-bg:rgba(30,27,23,.97);
+  --menu-shadow:0 12px 40px rgba(0,0,0,.55);
+  --glow:0 6px 22px rgba(121,192,160,.22);
+  --cat-teach:#8FCFB0;
+}
+html[data-palette="paper"][data-theme="light"]{
+  --bg:#F7F3E9; --bg-soft:#EEE8D9;
+  --surface:#FFFCF5; --surface-2:#F1E9D8; --surface-3:#E3D8C2;
+
+  --line:rgba(60,45,25,.15); --line-2:rgba(60,45,25,.24); --line-3:rgba(60,45,25,.36);
+  --glass:rgba(255,252,245,.88);
+
+  --fg:#2B2318; --fg-2:#5B4E3C; --fg-3:#75664F; --fg-inverse:#FFFFFF;
+
+  --brand:#1F6B4F; --brand-strong:#14503A;
+  --brand-soft:rgba(31,107,79,.11); --brand-line:rgba(31,107,79,.33);
+  --on-brand:#FFFFFF;
+  --violet:#5B3FA0; --violet-soft:rgba(91,63,160,.11);
+  --gold:#8A6100; --gold-soft:rgba(138,97,0,.14); --gold-ink:#7A5400;
+  --green:#17734A; --green-soft:rgba(23,115,74,.12);
+  --amber:#8A5A12; --amber-soft:rgba(138,90,18,.12);
+  --red:#A32D1E;  --red-soft:rgba(163,45,30,.12);
+
+  --nav-bg:rgba(255,252,245,.92); --nav-bg-solid:rgba(255,252,245,.98);
+  --nav-line:rgba(31,107,79,.24); --nav-accent:#1F6B4F;
+  --menu-bg:rgba(255,252,245,.98);
+  --menu-shadow:0 12px 32px rgba(60,45,25,.16);
+  --glow:0 6px 22px rgba(31,107,79,.18);
+  --cat-teach:#0E7A63;
+}
+
+/* ---------- 经典六色 classic：呼应标准魔方六面色，品牌 / 招生页 ---------- */
+html[data-palette="classic"]{
+  --bg:#0D1014; --bg-soft:#14181E;
+  --surface:#171C24; --surface-2:#20262F; --surface-3:#2C343F;
+
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18); --line-3:rgba(255,255,255,.28);
+  --glass:rgba(23,28,36,.76);
+
+  --fg:#F6F8FB; --fg-2:#BEC6D2; --fg-3:#8B95A3; --fg-inverse:#0D1014;
+
+  /* 主色＝标准蓝面；黄/绿/橙/红直接取标准六面色，公式高亮与面色语义统一 */
+  --brand:#3B8CE8; --brand-strong:#2A72CC;
+  --brand-soft:rgba(59,140,232,.15); --brand-line:rgba(59,140,232,.36);
+  --on-brand:#06121F;
+  --violet:#9A7BE0; --violet-soft:rgba(154,123,224,.15);
+  --gold:#FFD500; --gold-soft:rgba(255,213,0,.15); --gold-ink:#FFE066;
+  --green:#3FA95E; --green-soft:rgba(63,169,94,.15);
+  --amber:#FF8A00; --amber-soft:rgba(255,138,0,.15);
+  --red:#E4572E;  --red-soft:rgba(228,87,46,.15);
+
+  --nav-bg:rgba(13,16,20,.88); --nav-bg-solid:rgba(13,16,20,.97);
+  --nav-line:rgba(59,140,232,.20); --nav-accent:#4FA8FF;
+  --menu-bg:rgba(23,28,36,.97);
+  --menu-shadow:0 12px 40px rgba(0,0,0,.55);
+  --glow:0 6px 22px rgba(59,140,232,.26);
+  --cat-teach:#3FD0C9;
+}
+html[data-palette="classic"][data-theme="light"]{
+  --bg:#F5F8FC; --bg-soft:#ECF2F9;
+  --surface:#FFFFFF; --surface-2:#E7EEF7; --surface-3:#D6E1EF;
+
+  --line:rgba(15,23,36,.11); --line-2:rgba(15,23,36,.20); --line-3:rgba(15,23,36,.30);
+  --glass:rgba(255,255,255,.86);
+
+  --fg:#0F1724; --fg-2:#4A5566; --fg-3:#67727F; --fg-inverse:#FFFFFF;
+
+  --brand:#1565C0; --brand-strong:#0E4E9C;
+  --brand-soft:rgba(21,101,192,.10); --brand-line:rgba(21,101,192,.30);
+  --on-brand:#FFFFFF;
+  --violet:#6D4AE0; --violet-soft:rgba(109,74,224,.10);
+  --gold:#A3700A; --gold-soft:rgba(163,112,10,.14); --gold-ink:#8A5C05;
+  --green:#1E8E4A; --green-soft:rgba(30,142,74,.12);
+  --amber:#A85B00; --amber-soft:rgba(168,91,0,.12);
+  --red:#C0392B;  --red-soft:rgba(192,57,43,.12);
+
+  --nav-bg:rgba(255,255,255,.88); --nav-bg-solid:rgba(255,255,255,.98);
+  --nav-line:rgba(21,101,192,.20); --nav-accent:#1565C0;
+  --menu-bg:rgba(255,255,255,.98);
+  --menu-shadow:0 12px 32px rgba(15,23,36,.14);
+  --glow:0 6px 22px rgba(21,101,192,.20);
+  --cat-teach:#0E8F87;
+}
+
+/* ---------- 课堂白 classroom：白天 / 教室电脑，浅色专用微调 ---------- */
+/* 默认浅色已接近目标，这里只把品牌色往「教室投影可读」再推深一档 */
+html[data-palette="classroom"]{
+  --bg:#F2F5FA; --bg-soft:#EAEFF6;
+  --surface:#FFFFFF; --surface-2:#E4EAF3; --surface-3:#D2DBE9;
+  --nav-bg:rgba(255,255,255,.88);
+  --nav-bg-solid:rgba(255,255,255,.98);
+  --nav-line:rgba(47,87,174,.20);
+  --nav-accent:#2F57AE;
+  --brand:#2F57AE; --brand-strong:#1F3F8A;
+  --brand-soft:rgba(47,87,174,.10); --brand-line:rgba(47,87,174,.32);
+
+  /* tokens.css 浅色档的 --gold 是 #FFB020，对浅底只有 1.7:1（只够当深色底的高亮），
+     浅底下会被投影/教室屏幕吃成一道浅黄影。这里统一压深到 5.5:1 以上。 */
+  --gold:#8A5600; --gold-soft:rgba(138,86,0,.14); --gold-ink:#7A4A00;
+  --green:#0F7A38; --green-soft:rgba(15,122,56,.12);
+  --amber:#8A5A00; --amber-soft:rgba(138,90,0,.12);
+  --red:#B3261E;  --red-soft:rgba(179,38,30,.12);
+}
+html[data-palette="classroom"][data-theme="dark"]{
+  --bg:#0A0D16; --bg-soft:#0E1220;
+  --surface:#141A29; --surface-2:#1B2334; --surface-3:#252F45;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.16); --line-3:rgba(255,255,255,.26);
+  --fg:#EDF1F8; --fg-2:#B0BACB; --fg-3:#7E8A9C;
+  --brand:#6E9BFF; --brand-strong:#4F7FE8;
+  --brand-soft:rgba(110,155,255,.15); --brand-line:rgba(110,155,255,.32);
+  --on-brand:#0A1226;
+  --violet:#B79CFF; --gold:#FFD06A; --gold-ink:#FFDF92;
+  --green:#5FDDA4; --amber:#FFC861; --red:#FF8B80;
+  --nav-bg:rgba(10,13,22,.86); --nav-bg-solid:rgba(10,13,22,.97);
+  --nav-line:rgba(110,155,255,.18); --nav-accent:#7FA9FF;
+  --menu-bg:rgba(20,26,41,.97);
+  --glow:0 6px 22px rgba(110,155,255,.26);
+  --cat-teach:#4FD8CE;
+}
+
+/* ---------- 默认（未选配色）的两处兜底 ----------
+   未写 data-palette 时配色 = tokens.css 原值，而 tokens.css 的两个默认值
+   是「只对着自己的底色调」的，切到对面明度就不达标了。这里用
+   :not([data-palette]) 只补这两个坑，既不碰上游 tokens.css，
+   也不会盖掉上面 6 套配色各自的取值（它们都带 data-palette，特异性更高）。
+
+   ① 浅色档 --gold #FFB020 对 #F4F6FA 只有 1.69:1（--gold 会拿去做
+      3px 描边与分类色，浅底上发虚），压深到 5.6:1。只改浅色：深色档
+      的 #FFC857 本来就是照着深底定的，没这个问题。
+   ② 深色档 --on-brand #FFFFFF 落在 #5B8DEF 上只有 3.23:1，按钮字不够 AA；
+      换 #0B0D14 → 6.0:1。主色本身不动，只换「压在其上的字色」。 */
+html[data-theme="light"]:not([data-palette]){ --gold:#8A5600; }
+html[data-theme="dark"]:not([data-palette]){ --on-brand:#0B0D14; }
+
+/* ---------- 方案切换时的底色过渡（只渐变背景与文字，不动布局/画布）---------- */
+html.pal-anim body,
+html.pal-anim .site-nav,
+html.pal-anim .site-nav .nav-inner{
+  transition:background-color .22s ease, color .22s ease, border-color .22s ease;
+}
+@media (prefers-reduced-motion: reduce){
+  html.pal-anim body,
+  html.pal-anim .site-nav,
+  html.pal-anim .site-nav .nav-inner{
+    transition:none;
+  }
+}

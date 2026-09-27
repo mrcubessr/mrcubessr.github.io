@@ -1,0 +1,237 @@
+/* =========================================================
+   配色选择面板 · palette-ui.css
+   ---------------------------------------------------------
+   桌面(≥1025)：主题按钮下方下拉面板
+   平板 / 手机(≤1024)：底部弹出面板（sheet）
+   全部样式走 token，随当前配色 / 明度自动换肤。
+   ========================================================= */
+
+.pal-mask{
+  position:fixed;
+  inset:0;
+  z-index:var(--z-nav,1000);
+  background:rgba(0,0,0,.42);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .18s ease, visibility .18s ease;
+}
+.pal-mask.is-open{ opacity:1; visibility:visible; }
+
+.pal-panel{
+  position:fixed;
+  top:calc(var(--nav-h, 60px) + 8px);
+  right:16px;
+  z-index:var(--z-menu,1001);
+  width:340px;
+  max-width:calc(100vw - 32px);
+  max-height:calc(100dvh - var(--nav-h, 60px) - 24px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  background:var(--surface, #141826);
+  color:var(--fg, #EEF2F8);
+  border:1px solid var(--line-2, rgba(255,255,255,.14));
+  box-shadow:var(--sh-lg, 0 16px 44px rgba(0,0,0,.5));
+  /* 站点直角：与全站 --r-* 一致，这里不用圆角 */
+}
+/* [hidden] 会被显式 display 覆盖，必须再兜一次 */
+.pal-panel[hidden]{ display:none; }
+
+.pal-panel__hd{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--line, rgba(255,255,255,.08));
+  position:sticky;
+  top:0;
+  background:var(--surface, #141826);
+  z-index:1;
+}
+.pal-panel__title{
+  flex:1 1 auto;
+  font-size:.95rem;
+  font-weight:600;
+  color:var(--fg, #EEF2F8);
+}
+.pal-panel__x{
+  flex:0 0 auto;
+  width:28px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  line-height:1;
+  color:var(--fg-2, #AEB8CA);
+  background:transparent;
+  border:1px solid var(--line, rgba(255,255,255,.08));
+  cursor:pointer;
+}
+.pal-panel__x:hover{ color:var(--fg, #EEF2F8); background:var(--surface-3, rgba(255,255,255,.06)); }
+
+.pal-panel__bd{ padding:12px 14px 14px; }
+
+.pal-sec + .pal-sec{ margin-top:14px; }
+.pal-sec__lab{
+  font-size:.78rem;
+  color:var(--fg-3, #7C8798);
+  margin-bottom:8px;
+  letter-spacing:.02em;
+}
+
+.pal-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:8px;
+}
+
+.pal-card{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:0;
+  background:var(--surface-2, rgba(255,255,255,.04));
+  border:1px solid var(--line, rgba(255,255,255,.08));
+  color:var(--fg, #EEF2F8);
+  cursor:pointer;
+  font:inherit;
+}
+.pal-card:hover{ background:var(--surface-3, rgba(255,255,255,.08)); }
+
+.pal-card.is-active{
+  border-color:var(--brand, #5B8DEF);
+  box-shadow:inset 0 0 0 1px var(--brand, #5B8DEF);
+}
+
+.pal-card__sw{
+  display:flex;
+  height:26px;
+  width:100%;
+}
+.pal-card__sw i{
+  flex:1 1 0;
+  min-width:0;
+}
+/* 三色条取自该方案的实际主色 / 辅色 / 底色 */
+.pal-card__sw i:nth-child(1){ background:var(--pa, #5B8DEF); }
+.pal-card__sw i:nth-child(2){ background:var(--pb, #A78BFA); }
+.pal-card__sw i:nth-child(3){ background:var(--pc, #0B0D14); }
+/* 浅色方案的第 3 条是 #FFFFFF / #F7F3E9 这种近白，落在浅色面板上会「看不见」。
+   给每条之间压一道极细分隔，靠边界而不是靠颜色差来读出三段。 */
+.pal-card__sw i + i{ box-shadow:inset 1px 0 0 var(--line-2, rgba(0,0,0,.16)); }
+
+.pal-card__nm{
+  display:block;
+  padding:6px 8px 0;
+  font-size:.85rem;
+  font-weight:600;
+  color:var(--fg, #EEF2F8);
+}
+.pal-card__ds{
+  display:block;
+  padding:0 8px 7px;
+  font-size:.72rem;
+  line-height:1.35;
+  color:var(--fg-3, #7C8798);
+}
+
+.pal-seg{
+  display:flex;
+  border:1px solid var(--line, rgba(255,255,255,.08));
+}
+.pal-seg__b{
+  flex:1 1 0;
+  min-width:0;
+  padding:7px 4px;
+  font-size:.8rem;
+  font:inherit;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:var(--fg-2, #AEB8CA);
+  background:transparent;
+  border:0;
+  border-right:1px solid var(--line, rgba(255,255,255,.08));
+  cursor:pointer;
+}
+.pal-seg__b:last-child{ border-right:0; }
+.pal-seg__b:hover{ color:var(--fg, #EEF2F8); background:var(--surface-3, rgba(255,255,255,.06)); }
+.pal-seg__b.is-active{
+  color:var(--on-brand, #FFFFFF);
+  background:var(--brand, #5B8DEF);
+  font-weight:600;
+}
+
+.pal-tip{
+  margin:12px 0 0;
+  padding-top:10px;
+  border-top:1px solid var(--line, rgba(255,255,255,.08));
+  font-size:.72rem;
+  line-height:1.5;
+  color:var(--fg-3, #7C8798);
+}
+
+/* ---------- 桌面侧栏里的主题按钮 ----------
+   该按钮由 theme.js 注入到 .nav-inner 末尾，被顶到侧栏最底部：
+   1440×900 下它的底边正好等于视口高（零间距，鼠标点不到、触屏易误触），
+   矮屏（如 1440×768）还会被 flex 压扁。这里只给它外边距并禁止压缩，
+   不碰 site-shell.css 的骨架布局。 */
+@media (min-width: 1025px){
+  /* 用 body 前缀抬到 (0,2,1)，压过 site-shell.css 里同选择器的 margin:0 */
+  body .site-nav .nav-theme-btn{
+    flex:0 0 auto;
+    margin-bottom:12px;
+  }
+  /* 桌面下触发按钮在左侧栏最底部，而面板默认贴在右上角 —— 相隔一千多像素，
+     眼睛和鼠标都得横跨整个屏幕。这里改到按钮右侧、贴视口底，和触发点同侧。
+     --sidebar-w 由 site-shell.css 提供；自定义属性在计算值阶段才解析，
+     与两个文件谁先注入无关，所以这里可以安全地跨文件引用。 */
+  .pal-panel{
+    top:auto;
+    right:auto;
+    left:calc(var(--sidebar-w, 240px) + 12px);
+    bottom:12px;
+    max-height:calc(100dvh - 24px);
+  }
+}
+
+/* ---------- 窄屏 / 平板：底部 sheet ---------- */
+@media (max-width: 1024px){
+  .pal-mask{
+    top:var(--nav-h, 60px);
+  }
+  .pal-panel{
+    top:auto;
+    right:0;
+    left:0;
+    bottom:0;
+    width:auto;
+    max-width:none;
+    max-height:78dvh;
+    border-right:0;
+    border-bottom:0;
+    border-left:0;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .pal-panel::before{
+    content:'';
+    display:block;
+    width:44px;
+    height:4px;
+    margin:6px auto 0;
+    border-radius:var(--r-full, 999px);
+    background:var(--line-3, rgba(255,255,255,.22));
+  }
+  .pal-panel[hidden]{ display:none; }
+  .pal-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 360px){
+  .pal-grid{ grid-template-columns:minmax(0, 1fr); }
+  .pal-card__ds{ font-size:.7rem; }
+}
+
+@media print{
+  .pal-panel, .pal-mask{ display:none !important; }
+}

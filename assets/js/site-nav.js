@@ -327,6 +327,23 @@
   }
 
   /* ---------------------------------------------------------
+     配色方案层：运行时注入 assets/css/palettes.css
+     6 套配色（data-palette ↔ localStorage['mf_palette']）由主题按钮旁的
+     「配色方案」面板切换，与明度（data-theme）正交。
+     排在 site-shell.css 之前：palettes 只覆盖 tokens，后面各层都引用变量。
+     面板自身的外观样式在 assets/css/palette-ui.css，由 palette.js 注入
+     （键名同为 data-palette-ui，两处注入互斥、不会重复加载）。
+     --------------------------------------------------------- */
+  function ensurePaletteCSS() {
+    if (document.querySelector('link[data-palette-tokens]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/assets/css/palettes.css';
+    link.setAttribute('data-palette-tokens', '');
+    document.head.appendChild(link);
+  }
+
+  /* ---------------------------------------------------------
      工作台骨架样式：运行时注入 assets/css/site-shell.css
      把顶部导航条改造成「左侧常驻导航 + 右侧主体」的工作台布局。
      在这里注入而不是逐页加 <link>，是为了让全站 80 个页面零改动。
@@ -405,6 +422,7 @@
   }
 
   function initNav() {
+    ensurePaletteCSS();
     ensureShellCSS();
     ensureWideCSS();
     ensureFavicon();
