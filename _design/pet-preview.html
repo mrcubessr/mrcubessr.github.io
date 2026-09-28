@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宠物素材预览 · 魔方先生SSR</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<style>
+  body{ margin:0; font-family:var(--font-sans); color:var(--fg); background:var(--bg);
+         padding:var(--s5) var(--s4) var(--s8); line-height:var(--lh-base); }
+  .wrap{ max-width:1180px; margin-inline:auto; }
+  .topbar{ position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:var(--s3);
+            justify-content:space-between; flex-wrap:wrap; padding:var(--s3) var(--s4);
+            margin:calc(-1 * var(--s5)) calc(-1 * var(--s4)) var(--s6);
+            background:var(--nav-bg); backdrop-filter:blur(14px); border-bottom:1px solid var(--nav-line); }
+  .topbar h1{ font-size:var(--fs-lg); margin:0; color:var(--fg); }
+  .topbar__sub{ font-size:var(--fs-xs); color:var(--fg-3); }
+  .lede{ padding:var(--s5); background:var(--surface); border:1px solid var(--line);
+          border-left:4px solid var(--brand); margin-bottom:var(--s7); }
+  .lede p{ margin:0 0 var(--s2); font-size:var(--fs-sm); color:var(--fg-2); }
+  .lede p:last-child{ margin-bottom:0; }
+  .lede b{ color:var(--fg); }
+  section{ margin-bottom:var(--s8); }
+  .sec-title{ font-size:var(--fs-2xl); color:var(--fg); margin:0 0 var(--s2);
+               padding-left:var(--s3); position:relative; }
+  .sec-title::before{ content:''; position:absolute; left:0; top:.18em; bottom:.18em; width:4px;
+                       background:linear-gradient(180deg,var(--brand),var(--violet)); }
+  .cnt{ font-size:var(--fs-xs); font-weight:var(--fw-normal); color:var(--fg-3);
+         margin-left:var(--s2); }
+  .sec-desc{ margin:0 0 var(--s4); color:var(--fg-3); font-size:var(--fs-sm); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:var(--s3); }
+  .pet{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:var(--s1);
+         padding:var(--s4) var(--s3); background:var(--surface); border:1px solid var(--line);
+         transition:.15s; }
+  .pet:hover{ border-color:var(--brand); transform:translateY(-2px); }
+  .pet img{ width:64px; height:64px; object-fit:contain; }
+  .pet__n{ font-size:var(--fs-sm); font-weight:var(--fw-bold); color:var(--fg); }
+  .pet__d{ font-size:var(--fs-xs); color:var(--fg-3); min-height:2.6em; }
+  .pet__k{ font-family:var(--font-mono,monospace); font-size:10px; color:var(--fg-3);
+            background:var(--surface-2); border:1px solid var(--line); padding:1px 6px; }
+  .size-row{ display:flex; align-items:center; gap:var(--s5); padding:var(--s4) var(--s5);
+              background:var(--surface); border:1px solid var(--line); margin-bottom:var(--s2);
+              flex-wrap:wrap; }
+  .size-lbl{ width:170px; flex:none; font-size:var(--fs-xs); color:var(--fg-3); }
+  .size-imgs{ display:flex; align-items:center; gap:var(--s3); }
+  .size-imgs img{ object-fit:contain; }
+  .foot{ margin-top:var(--s8); padding-top:var(--s4); border-top:1px solid var(--line);
+          font-size:var(--fs-xs); color:var(--fg-3); line-height:1.9; }
+  .foot code{ background:var(--surface-2); border:1px solid var(--line); padding:1px 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <h1>🐾 宠物素材预览</h1>
+    <div class="topbar__sub">魔方课堂教学系统 · class-teach</div>
+  </div>
+
+  <div class="lede">
+    <p><b>素材来源：</b>Microsoft Fluent Emoji（3D 版），MIT 协议，可商用、可修改、无需署名。</p>
+    <p><b>规格：</b>PNG 256×256 透明底，单张 24–49 KB，本页共 40 张、合计 1408 KB。</p>
+    <p><b>落地位置：</b><code>assets/pets/&lt;slug&gt;.png</code>，语义化文件名，可直接被 <code>PET_SPECIES</code> 引用。</p>
+    <p><b>说明：</b>前 6 只是页面里已经在用的宠物（升级为 3D 版本）；其余 34 只为新增候选，请从中挑选。</p>
+  </div>
+
+  <section>
+    <h2 class="sec-title">尺寸对照 <span class="cnt">真实页面中宠物图的三种展示尺寸</span></h2>
+    <p class="sec-desc">三处用图位置分别是宠物卡片、学员详情头图、领养选择器。以下按实际像素渲染，用于确认 256px 原图缩到该尺寸后是否清晰。</p>
+  <div class="size-row">
+    <div class="size-lbl">pet-emoji 卡片 44px</div>
+    <div class="size-imgs"><img src="/assets/pets/cubie.png" alt="小方块" style="width:44px;height:44px"><img src="/assets/pets/bear.png" alt="魔方熊" style="width:44px;height:44px"><img src="/assets/pets/fox.png" alt="灵狐" style="width:44px;height:44px"><img src="/assets/pets/owl.png" alt="智慧鸮" style="width:44px;height:44px"><img src="/assets/pets/panda.png" alt="滚滚" style="width:44px;height:44px"><img src="/assets/pets/dragon.png" alt="小龙" style="width:44px;height:44px"><img src="/assets/pets/dog.png" alt="小狗" style="width:44px;height:44px"><img src="/assets/pets/cat.png" alt="小猫" style="width:44px;height:44px"></div>
+  </div>
+  <div class="size-row">
+    <div class="size-lbl">pet-stu-e 详情 48px</div>
+    <div class="size-imgs"><img src="/assets/pets/cubie.png" alt="小方块" style="width:48px;height:48px"><img src="/assets/pets/bear.png" alt="魔方熊" style="width:48px;height:48px"><img src="/assets/pets/fox.png" alt="灵狐" style="width:48px;height:48px"><img src="/assets/pets/owl.png" alt="智慧鸮" style="width:48px;height:48px"><img src="/assets/pets/panda.png" alt="滚滚" style="width:48px;height:48px"><img src="/assets/pets/dragon.png" alt="小龙" style="width:48px;height:48px"><img src="/assets/pets/dog.png" alt="小狗" style="width:48px;height:48px"><img src="/assets/pets/cat.png" alt="小猫" style="width:48px;height:48px"></div>
+  </div>
+  <div class="size-row">
+    <div class="size-lbl">pet-sp .e 选择器 30px</div>
+    <div class="size-imgs"><img src="/assets/pets/cubie.png" alt="小方块" style="width:30px;height:30px"><img src="/assets/pets/bear.png" alt="魔方熊" style="width:30px;height:30px"><img src="/assets/pets/fox.png" alt="灵狐" style="width:30px;height:30px"><img src="/assets/pets/owl.png" alt="智慧鸮" style="width:30px;height:30px"><img src="/assets/pets/panda.png" alt="滚滚" style="width:30px;height:30px"><img src="/assets/pets/dragon.png" alt="小龙" style="width:30px;height:30px"><img src="/assets/pets/dog.png" alt="小狗" style="width:30px;height:30px"><img src="/assets/pets/cat.png" alt="小猫" style="width:30px;height:30px"></div>
+  </div>
+  </section>
+
+<section>
+  <h2 class="sec-title">现有宠物 · 建议升级 <span class="cnt">6 只</span></h2>
+  <p class="sec-desc">页面里已经在用的 6 只，换成 3D 版本后档次立刻不同</p>
+  <div class="grid">
+      <div class="pet">
+        <img src="/assets/pets/cubie.png" alt="小方块" loading="lazy">
+        <div class="pet__n">小方块</div>
+        <div class="pet__d">稳重可靠，转得动</div>
+        <code class="pet__k">cubie</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/bear.png" alt="魔方熊" loading="lazy">
+        <div class="pet__n">魔方熊</div>
+        <div class="pet__d">力气大，最爱转圈圈</div>
+        <code class="pet__k">bear</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/fox.png" alt="灵狐" loading="lazy">
+        <div class="pet__n">灵狐</div>
+        <div class="pet__d">手速快，公式记得牢</div>
+        <code class="pet__k">fox</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/owl.png" alt="智慧鸮" loading="lazy">
+        <div class="pet__n">智慧鸮</div>
+        <div class="pet__d">观察力强，擅长十字</div>
+        <code class="pet__k">owl</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/panda.png" alt="滚滚" loading="lazy">
+        <div class="pet__n">滚滚</div>
+        <div class="pet__d">慢悠悠，但很扎实</div>
+        <code class="pet__k">panda</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/dragon.png" alt="小龙" loading="lazy">
+        <div class="pet__n">小龙</div>
+        <div class="pet__d">稀有伙伴，高手专属</div>
+        <code class="pet__k">dragon</code>
+      </div>
+  </div>
+</section>
+<section>
+  <h2 class="sec-title">新增 · 陆地动物 <span class="cnt">18 只</span></h2>
+  <p class="sec-desc">小朋友最想领养的一类，选择面大</p>
+  <div class="grid">
+      <div class="pet">
+        <img src="/assets/pets/dog.png" alt="小狗" loading="lazy">
+        <div class="pet__n">小狗</div>
+        <div class="pet__d">最忠诚的伙伴</div>
+        <code class="pet__k">dog</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/cat.png" alt="小猫" loading="lazy">
+        <div class="pet__n">小猫</div>
+        <div class="pet__d">独立又机敏</div>
+        <code class="pet__k">cat</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/hamster.png" alt="仓鼠" loading="lazy">
+        <div class="pet__n">仓鼠</div>
+        <div class="pet__d">腮帮子藏满能量</div>
+        <code class="pet__k">hamster</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/rabbit.png" alt="兔子" loading="lazy">
+        <div class="pet__n">兔子</div>
+        <div class="pet__d">蹦蹦跳跳手速快</div>
+        <code class="pet__k">rabbit</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/koala.png" alt="考拉" loading="lazy">
+        <div class="pet__n">考拉</div>
+        <div class="pet__d">抱着柱子不撒手</div>
+        <code class="pet__k">koala</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/tiger.png" alt="老虎" loading="lazy">
+        <div class="pet__n">老虎</div>
+        <div class="pet__d">爆发力惊人</div>
+        <code class="pet__k">tiger</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/lion.png" alt="狮子" loading="lazy">
+        <div class="pet__n">狮子</div>
+        <div class="pet__d">天生的领袖</div>
+        <code class="pet__k">lion</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/monkey.png" alt="猴子" loading="lazy">
+        <div class="pet__n">猴子</div>
+        <div class="pet__d">手指灵活第一</div>
+        <code class="pet__k">monkey</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/hedgehog.png" alt="刺猬" loading="lazy">
+        <div class="pet__n">刺猬</div>
+        <div class="pet__d">小小只但很倔强</div>
+        <code class="pet__k">hedgehog</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/chipmunk.png" alt="花栗鼠" loading="lazy">
+        <div class="pet__n">花栗鼠</div>
+        <div class="pet__d">囤积公式小能手</div>
+        <code class="pet__k">chipmunk</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/raccoon.png" alt="浣熊" loading="lazy">
+        <div class="pet__n">浣熊</div>
+        <div class="pet__d">什么都想试试</div>
+        <code class="pet__k">raccoon</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/otter.png" alt="水獭" loading="lazy">
+        <div class="pet__n">水獭</div>
+        <div class="pet__d">浮在水面转魔方</div>
+        <code class="pet__k">otter</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/sloth.png" alt="树懒" loading="lazy">
+        <div class="pet__n">树懒</div>
+        <div class="pet__d">慢慢来，比较快</div>
+        <code class="pet__k">sloth</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/mouse.png" alt="老鼠" loading="lazy">
+        <div class="pet__n">老鼠</div>
+        <div class="pet__d">体积小能量大</div>
+        <code class="pet__k">mouse</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/wolf.png" alt="狼" loading="lazy">
+        <div class="pet__n">狼</div>
+        <div class="pet__d">专注力极强</div>
+        <code class="pet__k">wolf</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/pig.png" alt="小猪" loading="lazy">
+        <div class="pet__n">小猪</div>
+        <div class="pet__d">憨憨的幸运星</div>
+        <code class="pet__k">pig</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/cow.png" alt="奶牛" loading="lazy">
+        <div class="pet__n">奶牛</div>
+        <div class="pet__d">踏实肯练</div>
+        <code class="pet__k">cow</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/unicorn.png" alt="独角兽" loading="lazy">
+        <div class="pet__n">独角兽</div>
+        <div class="pet__d">传说级稀有伙伴</div>
+        <code class="pet__k">unicorn</code>
+      </div>
+  </div>
+</section>
+<section>
+  <h2 class="sec-title">新增 · 鸟类 <span class="cnt">6 只</span></h2>
+  <p class="sec-desc">轻盈灵动，适合做「手速型」宠物</p>
+  <div class="grid">
+      <div class="pet">
+        <img src="/assets/pets/penguin.png" alt="企鹅" loading="lazy">
+        <div class="pet__n">企鹅</div>
+        <div class="pet__d">站得稳，转得准</div>
+        <code class="pet__k">penguin</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/duck.png" alt="鸭子" loading="lazy">
+        <div class="pet__n">鸭子</div>
+        <div class="pet__d">摇摇摆摆也很快</div>
+        <code class="pet__k">duck</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/parrot.png" alt="鹦鹉" loading="lazy">
+        <div class="pet__n">鹦鹉</div>
+        <div class="pet__d">听一遍就记住</div>
+        <code class="pet__k">parrot</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/chick.png" alt="小鸡" loading="lazy">
+        <div class="pet__n">小鸡</div>
+        <div class="pet__d">新手村的好朋友</div>
+        <code class="pet__k">chick</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/flamingo.png" alt="火烈鸟" loading="lazy">
+        <div class="pet__n">火烈鸟</div>
+        <div class="pet__d">优雅的姿态</div>
+        <code class="pet__k">flamingo</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/peacock.png" alt="孔雀" loading="lazy">
+        <div class="pet__n">孔雀</div>
+        <div class="pet__d">开屏就是全场焦点</div>
+        <code class="pet__k">peacock</code>
+      </div>
+  </div>
+</section>
+<section>
+  <h2 class="sec-title">新增 · 幻想生物 <span class="cnt">3 只</span></h2>
+  <p class="sec-desc">稀有度高的奖励型宠物，适合给高分学员</p>
+  <div class="grid">
+      <div class="pet">
+        <img src="/assets/pets/dragonface.png" alt="龙宝宝" loading="lazy">
+        <div class="pet__n">龙宝宝</div>
+        <div class="pet__d">会喷火的小家伙</div>
+        <code class="pet__k">dragonface</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/trex.png" alt="霸王龙" loading="lazy">
+        <div class="pet__n">霸王龙</div>
+        <div class="pet__d">气势拉满</div>
+        <code class="pet__k">trex</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/sauropod.png" alt="长颈龙" loading="lazy">
+        <div class="pet__n">长颈龙</div>
+        <div class="pet__d">视野最高最远</div>
+        <code class="pet__k">sauropod</code>
+      </div>
+  </div>
+</section>
+<section>
+  <h2 class="sec-title">新增 · 水生 / 昆虫 <span class="cnt">7 只</span></h2>
+  <p class="sec-desc">颜色鲜艳，卡面辨识度高</p>
+  <div class="grid">
+      <div class="pet">
+        <img src="/assets/pets/turtle.png" alt="乌龟" loading="lazy">
+        <div class="pet__n">乌龟</div>
+        <div class="pet__d">沉稳，从不慌乱</div>
+        <code class="pet__k">turtle</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/octopus.png" alt="章鱼" loading="lazy">
+        <div class="pet__n">章鱼</div>
+        <div class="pet__d">八只手同时复原</div>
+        <code class="pet__k">octopus</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/whale.png" alt="鲸鱼" loading="lazy">
+        <div class="pet__n">鲸鱼</div>
+        <div class="pet__d">海底的巨无霸</div>
+        <code class="pet__k">whale</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/dolphin.png" alt="海豚" loading="lazy">
+        <div class="pet__n">海豚</div>
+        <div class="pet__d">聪明又爱玩</div>
+        <code class="pet__k">dolphin</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/frog.png" alt="青蛙" loading="lazy">
+        <div class="pet__n">青蛙</div>
+        <div class="pet__d">弹跳力满分</div>
+        <code class="pet__k">frog</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/bee.png" alt="蜜蜂" loading="lazy">
+        <div class="pet__n">蜜蜂</div>
+        <div class="pet__d">勤快的小劳模</div>
+        <code class="pet__k">bee</code>
+      </div>
+      <div class="pet">
+        <img src="/assets/pets/seal.png" alt="海豹" loading="lazy">
+        <div class="pet__n">海豹</div>
+        <div class="pet__d">圆滚滚的掌声担当</div>
+        <code class="pet__k">seal</code>
+      </div>
+  </div>
+</section>
+
+  <div class="foot">
+    <div>许可：MIT License · Copyright (c) Microsoft Corporation</div>
+    <div>仓库：<code>github.com/microsoft/fluentui-emoji</code></div>
+    <div>取图镜像：<code>cdn.jsdelivr.net/gh/shuding/fluentui-emoji-unicode/assets/&lt;codepoint&gt;_3d.png</code></div>
+    <div>本页为设计预览页，仅供挑选，不影响线上页面。</div>
+  </div>
+
+</div>
+</body>
+</html>
