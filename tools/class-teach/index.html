@@ -181,6 +181,23 @@
 .stage-btn{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:0;padding:4px 14px;font-size:13px;cursor:pointer}
 .stage-btn.active{background:var(--brand-soft);color:var(--primary);border-color:var(--primary)}
 .dim-auto{color:var(--text-3);font-size:12px;margin-left:6px}
+/* 二维雷达手动设置面板 */
+.rd-panel{border:1px solid var(--line);background:var(--surface);padding:12px 14px;margin:12px 0;max-width:560px}
+.rd-panel__hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.rd-panel__hd .muted{flex:1;min-width:160px}
+.rd-panel__btn{background:var(--on-brand);color:var(--text-2);border:1px solid var(--line);border-radius:0;padding:3px 10px;font-size:12px;cursor:pointer}
+.rd-panel__btn:hover{color:var(--primary);border-color:var(--primary)}
+.rd-row-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 20px}
+.rd-row{display:flex;flex-direction:column;gap:4px}
+.rd-row__hd{display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.rd-row__v{min-width:26px;text-align:right;font-weight:700;color:var(--primary)}
+.rd-row input[type=range]{width:100%;accent-color:var(--primary)}
+.rd-row__ft{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--text-3)}
+.rd-sw{display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none}
+.rd-sw input{accent-color:var(--primary);cursor:pointer}
+.rd-row.is-follow .rd-row__v{color:var(--text-3);font-weight:600}
+.rd-tip{color:var(--text-3);font-variant-numeric:tabular-nums}
+@media (max-width:600px){ .rd-row-grid{grid-template-columns:1fr} .rd-panel{max-width:100%} }
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:0;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
   /* ===== 课堂宠物体系 ===== */
@@ -481,7 +498,8 @@ const KEY='mf_data_v1';
 const PALETTE=['#6366f1','#f59e0b','#10b981','#ec4899','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#f97316','#3b82f6','#d946ef','#84cc16','#06b6d4','#e11d48','#a855f7','#22c55e'];
 const STATE={0:{n:'未开始',c:'s0'},1:{n:'学习中',c:'s1'},2:{n:'已掌握',c:'s2'},3:{n:'需复习',c:'s3'}};
 const STATE_ARR=[STATE[0],STATE[1],STATE[2],STATE[3]];
-const RADAR_DIMS=[{key:'tech',name:'手法准确'},{key:'cognition',name:'基础认知'},{key:'formula',name:'公式熟练'},{key:'speed',name:'复原速度'},{key:'interest',name:'学习兴趣'},{key:'efficiency',name:'练习效率'}];
+/* manual:true = 老师手动设定，noSug:true = 主观项，无系统建议（永远跟随手动） */
+const RADAR_DIMS=[{key:'tech',name:'手法准确',manual:true},{key:'cognition',name:'基础认知',manual:true},{key:'formula',name:'公式熟练',manual:true},{key:'speed',name:'复原速度',manual:true},{key:'interest',name:'学习兴趣',manual:true,noSug:true},{key:'efficiency',name:'练习效率',manual:true,noSug:true}];
 
 /* ===== 课堂宠物体系 =====
    双轨制：① 累计积分（student.totalScore）= 课堂计分 + 手动喂养 + 知识点奖励 三通道累加，宠物等级由其派生；
@@ -666,7 +684,27 @@ function students(cId){ return DB.students.filter(s=>sameId(s.classId,cId)).sort
 function activeSession(cId){ return DB.sessions.find(s=>sameId(s.classId,cId)&&!s.settled); }
 function getTally(sessionId,studentId){ return DB.tallies.find(t=>sameId(t.sessionId,sessionId)&&sameId(t.studentId,studentId)); }
 function progOf(studentId,skillId){ return DB.progress.find(p=>sameId(p.studentId,studentId)&&sameId(p.skillId,skillId)); }
-function radarOf(stuId,cId){ let r=DB.radar.find(x=>sameId(x.studentId,stuId)&&sameId(x.courseId,cId)); if(!r){r={id:uid(),studentId:toId(stuId),courseId:toId(cId),tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0,stage:0,stageNote:''};DB.radar.push(r);save();} return r; }
+function radarFind(stuId,cId){ return DB.radar.find(x=>sameId(x.studentId,stuId)&&sameId(x.courseId,cId))||null; }
+function radarVal(r,key){ return r&&r[key]!=null?r[key]:0; }
+/* auto[key]=true → 跟随系统建议（不可手动）；false/undefined → 老师手动设定；主观项恒手动 */
+function radarAutoOf(r){ const a=(r&&r.auto)||{}; const out={}; RADAR_DIMS.forEach(d=>{out[d.key]=d.noSug?false:(a[d.key]!=null?!!a[d.key]:!d.manual);}); return out; }
+/* 只读：拿到记录就返回，拿不到返回一个不会写库的临时对照对象（绝不当场写库，避免循环中安全调用） */
+function radarPeek(stuId,cId){
+  const r=radarFind(stuId,cId);
+  if(r)return r;
+  const seed={id:null,studentId:toId(stuId),courseId:toId(cId),tech:0,cognition:0,formula:0,speed:0,interest:0,efficiency:0,stage:0,stageNote:'',auto:{}};
+  RADAR_DIMS.forEach(d=>{seed.auto[d.key]=!d.manual;seed[d.key]=0;});
+  const av=radarAutoRaw(stuId,cId);                 // 种子用系统建议值打底，老师直接微调即可
+  RADAR_DIMS.forEach(d=>{
+    /* 学习兴趣/练习效率没有公式推荐（主观项），初值统一给中间档 5，避免雷达图形缩成一个点 */
+    seed[d.key]=((d.key==='interest'||d.key==='efficiency')?5:(av[d.key]||0));
+  });
+  return seed;
+}
+function radarOf(stuId,cId){
+  const cur=radarFind(stuId,cId); if(cur)return cur;
+  const p=radarPeek(stuId,cId); p.id=uid(); DB.radar.push(p); save(); return p;
+}
 function radarVal(r,key){ return r&&r[key]!=null?r[key]:0; }
 function scoreOf(t){return t?(t.score!=null?t.score:t.count*DB.rate):0;}
 function totalScoreOf(stuId){
@@ -737,10 +775,12 @@ function renderHome(){
 function countSkills(cid){return DB.skills.filter(s=>s.courseId===cid).length;}
 
 /* ============ 计分页 ============ */
+/* 分数卡片最小边长与网格间距 */
+const SCORE_MIN_CELL=86, SCORE_GAP=10;
 function scoreCellSize(n){
   // 根据班级人数和可用空间，计算方块边长，保证一屏全部显示
-  const cols=7, gap=10;
-  const rows=Math.max(1,Math.ceil(n/cols));
+  const gap=SCORE_GAP;
+  const rows=scoreLayout(n).rows;
   // 可用宽度从「计分卡」实测，不再拿 window.innerWidth 减魔法值（旧值 72 =
   // .wrap 左右各 20 + .card 左右各 16）。工作台骨架给主体加了左侧导航偏移后，
   // 视口宽度已不等于内容宽度，硬编码会在侧栏存在时算出过大的方块导致横向溢出。
@@ -754,7 +794,29 @@ function scoreCellSize(n){
   if(!(availW>0))availW=window.innerWidth-72;   // 兜底：卡片不可见时退回旧口径
   const availH=window.innerHeight-180;   // 减去顶栏+scorebar+padding
   let size=Math.floor(Math.min((availW-(cols-1)*gap)/cols,(availH-(rows-1)*gap)/rows));
-  return Math.max(size,86);              // 最小 86px 保证可读
+  return Math.max(size,SCORE_MIN_CELL);  // 最小 86px 保证可读
+}
+/* 列数 / 行数推导：先按可用宽算出一行最多几个 86px 方块定列数上限，
+   再保证行数不超过可用高能放下的行数，避免竖向滚动。 */
+function scoreLayout(n){
+  const gap=SCORE_GAP;
+  let availW=0;
+  const gridEl=document.getElementById('scoreGrid');
+  const cardEl=gridEl&&gridEl.parentElement;
+  if(cardEl&&cardEl.clientWidth){
+    const cs=getComputedStyle(cardEl);
+    availW=cardEl.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0);
+  }
+  if(!(availW>0))availW=window.innerWidth-72;
+  const availH=window.innerHeight-180;
+  let colsFit=Math.floor((availW+gap)/(SCORE_MIN_CELL+gap));   // 一行最多几列
+  let rowsFit=Math.max(1,Math.floor((availH+gap)/(SCORE_MIN_CELL+gap))); // 一屏最多几行
+  if(!(colsFit>0))colsFit=1;
+  colsFit=Math.min(colsFit,7);            // 最多 7 列，宽屏保持原观感
+  let cols=Math.max(1,Math.min(7,colsFit));
+  let rows=Math.ceil(n/cols);
+  while(cols>2&&rows>rowsFit){cols--;rows=Math.ceil(n/cols);}  // 装不下就减列，最少 2 列
+  return {cols:cols,rows:rows,gap:gap};
 }
 function renderScore(){
   const cId=curClassId();
@@ -767,14 +829,25 @@ function renderScore(){
   curSessionId=sess.id;
   meta.textContent=`${curClass.name} · ${sess.date}（点方块+1，点 −1 或右键减分）`;
   // 排列：按学号 / 按积分(本节计数降序，并列时学号升序)
+  /* 学号可能是数字串也可能是自定义串（如 "1班-03"）：数值优先比较，
+     非数值按拼音排在后面。避免 comparator 返回 NaN 导致顺序随机
+     （曾出现 1,10,11,2 的假字符排序）。 */
+  const sidCmp=(a,b)=>{
+    const na=parseFloat(a.sid), nb=parseFloat(b.sid);
+    const xa=isNaN(na), xb=isNaN(nb);
+    if(xa&&xb)return String(a.sid||'').localeCompare(String(b.sid||''),'zh');
+    if(xa)return 1; if(xb)return -1;
+    return na-nb||String(a.sid||'').localeCompare(String(b.sid||''),'zh');
+  };
   const sortMode=document.getElementById('scoreSort')?.value||'sid';
   const sorted=[...ss];
   if(sortMode==='score'){
-    sorted.sort((a,b)=>((getTally(sess.id,b.id)?.count||0)-(getTally(sess.id,a.id)?.count||0))||((a.sid||0)-(b.sid||0)));
+    sorted.sort((a,b)=>((getTally(sess.id,b.id)?.count||0)-(getTally(sess.id,a.id)?.count||0))||sidCmp(a,b));
   }else{
-    sorted.sort((a,b)=>(a.sid||0)-(b.sid||0));
+    sorted.sort(sidCmp);
   }
-  const cols=7, gap=10;
+  const lay=scoreLayout(sorted.length);
+  const cols=lay.cols, gap=lay.gap;
   const size=scoreCellSize(sorted.length);
   grid.style.gridTemplateColumns=`repeat(${cols},${size}px)`;
   grid.style.gridAutoRows=`${size}px`;
@@ -1208,7 +1281,7 @@ function renderProgCharts(ss,skills,courses){
       const csk=skills.filter(sk=>sk.courseId===co.id);
       const avgData=RADAR_DIMS.map(d=>{
         let sum=0,cnt=0;
-        ss.forEach(s=>{const r=radarOf(s.id,co.id);sum+=radarVal(r,d.key);cnt++;});
+        ss.forEach(s=>{const v=stuRadar6(s.id,co.id);sum+=v[d.key];cnt++;});
         return cnt?Math.round(sum/cnt*10)/10:0;
       });
       progCharts.push(new Chart(cv,{type:'radar',
@@ -1242,15 +1315,26 @@ window.stuBack=function(){
   setView(prevView);
 };
 /* ============ 学生主页 Tab / 总览 / 阶段 / 六维联动（DEEPSEEK 实现，验收方修正 renderStuPage） ============ */
-function stuRadar6(stuId,cId){
+/* 系统建设值（只读，不建记录）：四维由知识点掌握情况推导，
+   interest/efficiency 取记录里手动值 */
+function radarAutoRaw(stuId,cId){
   const skills=DB.skills.filter(sk=>sk.courseId===cId).sort((a,b)=>a.order-b.order);
   const n=skills.length;let exposed=0,mastered=0;
   skills.forEach(sk=>{const st=progOf(stuId,sk.id)?.state||0;if(st>0)exposed++;if(st===2)mastered++;});
   const expose=n?exposed/n:0,master=n?mastered/n:0;
   let wSum=0,wCount=0;skills.forEach((sk,idx)=>{if((progOf(stuId,sk.id)?.state||0)===2){wSum+=(idx+1)/n;wCount++;}});
   const wMaster=wCount?wSum/wCount:0;
-  const r=radarOf(stuId,cId);
+  const r=radarFind(stuId,cId);
   return {tech:Math.round(master*10),cognition:Math.round(expose*10),formula:Math.round(wMaster*10),speed:Math.round((master*0.5+wMaster*0.5)*10),interest:radarVal(r,'interest'),efficiency:radarVal(r,'efficiency')};
+}
+/* 二维有效值：auto=true → 系统建议；auto=false → 老师手设 */
+function stuRadar6(stuId,cId){
+  const r=radarPeek(stuId,cId);
+  const a=radarAutoOf(r);
+  const av=radarAutoRaw(stuId,cId);
+  const out={};
+  RADAR_DIMS.forEach(d=>{const k=d.key;out[k]=a[k]?(av[k]||0):radarVal(r,k);});
+  return out;
 }
 function stuRadarOverview(stuId){
   const dims=RADAR_DIMS.map(d=>d.key);const acc={};dims.forEach(k=>acc[k]=0);
@@ -1371,18 +1455,26 @@ function renderStuPage(){
       html+=`</div>`;
       /* 六维雷达 */
       html+=`<div style="max-width:400px;margin:12px 0;"><canvas id="radar-${co.id}" style="width:100%;height:280px;"></canvas></div>`;
-      /* 六维数值 + 手动滑块（仅 interest/efficiency） */
-      html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:500px;margin:12px 0;">`;
+      /* 六维指标：全部可手动设定（滑块）；可勾选「跟随系统建议」回到系统推导值 */
+      const _rd=radarOf(s.id,co.id), _fl=radarAutoOf(_rd), _sg=radarAutoRaw(s.id,co.id);
+      const _followCnt=RADAR_DIMS.filter(d=>_fl[d.key]).length;
+      html+=`<div class="rd-panel"><div class="rd-panel__hd"><strong>六维能力雷达</strong>
+        <span class="muted" style="font-size:13px;font-weight:400">拖滑块即手动设定；勾选「跟随系统建议」改回系统推导值</span>
+        <button type="button" class="rd-panel__btn" onclick="setAllRadarAuto(${s.id},${co.id},false)">全部手动</button>
+        <button type="button" class="rd-panel__btn" onclick="setAllRadarAuto(${s.id},${co.id},true)">全部跟随建议</button>
+        </div><div class="rd-row-grid">`;
       RADAR_DIMS.forEach(d=>{
-        const key=d.key,val=v[key],label=d.name;
-        const isManual=(key==='interest'||key==='efficiency');
-        html+=`<div style="display:flex;flex-direction:column;gap:2px;">`;
-        html+=`<div style="display:flex;justify-content:space-between;font-size:14px;"><span><strong>${label}</strong> ${isManual?'':'<span class="dim-auto">(自动)</span>'}</span><span id="rv-${co.id}-${key}">${val}</span></div>`;
-        if(isManual){html+=`<input type="range" min="0" max="10" step="1" value="${val}" oninput="updateRadar(${s.id},${co.id},'${key}',this.value)">`;}
-        else{html+=`<div style="height:6px;background:#e0e0e0;border-radius:0;width:100%;"><div style="height:100%;width:${val*10}%;background:#4f6ef7;border-radius:0;"></div></div>`;}
+        const key=d.key,label=d.name,val=v[key],follow=!!_fl[key],sug=_sg[key]||0,noSug=!!d.noSug;
+        html+=`<div class="rd-row${follow?' is-follow':''}">`;
+        html+=`<div class="rd-row__hd"><span><strong>${label}</strong>${noSug?'<span class="dim-auto">主观项</span>':(follow?'<span class="dim-auto">建议值</span>':'<span class="dim-auto">手动</span>')}</span><span class="rd-row__v" id="rv-${co.id}-${key}">${val}</span></div>`;
+        html+=`<input type="range" min="0" max="10" step="1" value="${val}" oninput="updateRadar(${s.id},${co.id},'${key}',this.value)">`;
+        html+=`<div class="rd-row__ft">`+(noSug
+          ?`<span class="rd-tip">无系统建议 · 滑块直接打分</span>`
+          :`<label class="rd-sw"><input type="checkbox"${follow?' checked':''} onchange="setRadarAuto(${s.id},${co.id},'${key}',this.checked)">跟随系统建议</label><span class="rd-tip" id="rh-${co.id}-${key}">建议 ${sug}</span>`)
+          +`</div>`;
         html+=`</div>`;
       });
-      html+=`</div>`;
+      html+=`</div></div>`;
       /* 掌握率进度条 */
       html+=`<div style="margin:12px 0;display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;">掌握率</span><div style="flex:1;height:8px;background:#e0e0e0;border-radius:0;overflow:hidden;"><div style="height:100%;width:${rate}%;background:#4caf50;border-radius:0;"></div></div><span>${rate}% (${m}/${total2})</span></div>`;
       /* 知识点进度：四个状态块直接点选，点哪个亮哪个；备注就地输入，不再弹窗要求手打 */
@@ -1436,9 +1528,43 @@ function drawStuRadar(stuId,cId){
       plugins:{legend:{display:false}}}
   });
 }
+/* 雷达全部手动：拖滑块 → 该维度转手动并落库；只刷新数值与建议文案，
+   不整页重刷（避免滑块失焦） */
 window.updateRadar=function(stuId,cId,metric,val){
-  if(metric!=='interest'&&metric!=='efficiency')return;
-  const r=radarOf(stuId,cId);r[metric]=parseInt(val);save();drawStuRadar(stuId,cId);
+  if(!RADAR_DIMS.some(d=>d.key===metric))return;
+  const r=radarOf(stuId,cId);
+  r[metric]=parseInt(val,10)||0;
+  if(!r.auto)r.auto={};
+  r.auto[metric]=false;                 // 一拖即转手动
+  save();
+  const vEl=document.getElementById('rv-'+cId+'-'+metric);
+  if(vEl)vEl.textContent=r[metric];
+  const hEl=document.getElementById('rh-'+cId+'-'+metric);
+  const sug=radarAutoRaw(stuId,cId)[metric]||0;
+  if(hEl)hEl.textContent='建议 '+sug;
+  drawStuRadar(stuId,cId);
+};
+/* 勾选 / 取消「跟随系统建议」（主观项无建议，不可跟随） */
+window.setRadarAuto=function(stuId,cId,metric,on){
+  const dd=RADAR_DIMS.find(x=>x.key===metric);
+  if(!dd||dd.noSug)return;
+  const r=radarOf(stuId,cId);
+  if(!r.auto)r.auto={};
+  r.auto[metric]=!!on;
+  if(on){r[metric]=radarAutoRaw(stuId,cId)[metric]||0;}
+  save();renderStuPage();
+};
+/* 一键全部手动 / 全部跟随建议（主观项保持手动不跟随） */
+window.setAllRadarAuto=function(stuId,cId,on){
+  const r=radarOf(stuId,cId);
+  if(!r.auto)r.auto={};
+  const av=radarAutoRaw(stuId,cId);
+  RADAR_DIMS.forEach(d=>{
+    if(d.noSug){r.auto[d.key]=false;return;}
+    r.auto[d.key]=!!on;
+    if(on)r[d.key]=av[d.key]||0;
+  });
+  save();renderStuPage();
 };
 function afterProgChange(){save();renderStuPage();if(document.getElementById('view-progress')?.classList.contains('active'))renderProgress();}
 /* 直接设定掌握状态：0未开始 1学习中 2已掌握 3需复习（旧版是循环切换，一点一档更直观） */
