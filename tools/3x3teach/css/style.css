@@ -298,8 +298,14 @@ body.present .primary-btn, body.present .sec-btn { font-size: 22px; padding: 16p
 .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
 .g-card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-md); overflow: hidden; cursor: pointer; transition: transform .12s, box-shadow .15s; display: flex; flex-direction: column; }
 .g-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(31,60,120,.16); }
-.g-thumb { width: 100%; aspect-ratio: 4/3; background: var(--teach-ui-f3f7fd); display: grid; place-items: center; padding: 10px; }
-.g-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.g-thumb { width: 100%; aspect-ratio: 4/3; background: var(--teach-ui-f3f7fd); display: grid; place-items: center; padding: 10px; position: relative; }
+.g-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; position: relative; z-index: 1; }
+/* 缩略图占位骨架：图片未加载 / 加载失败时替代空白框 */
+.g-ph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #8a97ad; background: repeating-linear-gradient(45deg, var(--teach-ui-f3f7fd) 0 10px, var(--teach-ui-eef4ff) 10px 20px); z-index: 0; }
+.g-ph.is-err { color: #c0392b; background: var(--teach-ui-f3f7fd); }
+/* 卡片右上角的「大图」按钮：上课投影时一键全屏看原图 */
+.g-zoom { position: absolute; top: 6px; right: 6px; z-index: 2; border: 1px solid var(--line); background: rgba(255,255,255,.92); color: var(--brand); font: inherit; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 0; cursor: pointer; opacity: .75; }
+.g-card:hover .g-zoom, .g-zoom:focus { opacity: 1; border-color: var(--brand); }
 .g-cap { padding: 10px 12px; font-size: 13px; font-weight: 700; line-height: 1.4; min-height: 40px; }
 .g-slide { display: inline-block; margin: 0 12px 12px; align-self: flex-start; background: var(--teach-ui-eef4ff); color: var(--brand); border-radius: 0; padding: 2px 10px; font-size: 12px; font-weight: 700; }
 
@@ -317,8 +323,12 @@ body.present .primary-btn, body.present .sec-btn { font-size: 22px; padding: 16p
 .g-lb-count { position: absolute; top: 20px; left: 22px; color: var(--teach-ui-fff); font-size: 14px; background: rgba(0,0,0,.4); padding: 4px 12px; border-radius: 0; }
 
 body.g-present .g-toolbar, body.g-present .g-filters { display: none; }
-body.g-present .g-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
-body.g-present .g-cap { font-size: 15px; }
+/* 投影模式：缩略图放大一档（原 260px 只放大 27%，后排学生看不清），
+   并留出「大图」按钮方便老师一键点开全屏原图。 */
+body.g-present .g-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+body.g-present .g-thumb { padding: 6px; }
+body.g-present .g-cap { font-size: 14px; }
+body.g-present .g-zoom { opacity: 1; font-size: 13px; padding: 3px 10px; }
 
 /* ---------- 每课「原课件」模式 ---------- */
 .mode-toggle { display: inline-flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 4px; box-shadow: var(--sh-md); }

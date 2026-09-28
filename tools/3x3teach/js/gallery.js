@@ -51,7 +51,9 @@
         list.push({
           src: im.src,
           caption: im.caption || "",
-          slide: im.page,
+          // 必须保留原始 page 字段：渲染与灯箱都读它。
+          // 曾误映射成 slide，导致页面上出现「原第 undefined 页」。
+          page: im.page,
           lessonId: les.id,
           lessonTitle: les.title || "",
         });
@@ -71,6 +73,12 @@
     return list;
   }
 
+  // 「原第 N 页」文案：数据缺 page 时留空，绝不输出 undefined
+  function pageLabel(im) {
+    if (im.page === "" || im.page == null) return "（无页码）";
+    return "原第 " + im.page + " 页";
+  }
+
   function renderGrid() {
     currentList = buildList();
     gridEl.innerHTML = "";
@@ -83,20 +91,45 @@
       var card = document.createElement("div");
       card.className = "g-card";
       card.innerHTML =
-        '<div class="g-thumb"><img loading="lazy" src="' +
+        '<div class="g-thumb">' +
+        '<div class="g-ph">课件图片加载中…</div>' +
+        '<img loading="lazy" decoding="async" src="' +
         im.src +
         '" alt="' +
         escapeHtml(im.caption) +
-        '"></div>' +
+        '">' +
+        '<button type="button" class="g-zoom" title="全屏查看这张原图">大图</button>' +
+        "</div>" +
         '<div class="g-cap">' +
         escapeHtml(im.caption || "（无说明）") +
         "</div>" +
         '<span class="g-slide">第' +
         im.lessonId +
-        "课 · 原第 " +
-        im.page +
-        " 页</span>";
+        "课 · " +
+        pageLabel(im) +
+        "</span>";
+      // 占位骨架：图片完成加载后移除，失败则改成错误态（避免首屏一整屏空白框）
+      var ph = card.querySelector(".g-ph");
+      var img = card.querySelector("img");
+      var settle = function () {
+        if (img.complete) {
+          if (img.naturalWidth > 0) ph.parentNode.removeChild(ph);
+          else {
+            ph.textContent = "图片加载失败";
+            ph.className = "g-ph is-err";
+          }
+        }
+      };
+      img.addEventListener("load", settle);
+      img.addEventListener("error", function () {
+        ph.textContent = "图片加载失败";
+        ph.className = "g-ph is-err";
+      });
       card.addEventListener("click", function () {
+        openLightbox(i);
+      });
+      card.querySelector(".g-zoom").addEventListener("click", function (e) {
+        e.stopPropagation();
         openLightbox(i);
       });
       gridEl.appendChild(card);
@@ -113,8 +146,9 @@
     if (!im) return;
     lbImg.src = im.src;
     lbImg.alt = im.caption || "";
+    // caption 本身已含「原第 N 页」，不再重复拼一遍页码
     lbCap.textContent =
-      "第" + im.lessonId + "课 · 原第 " + im.page + " 页 · " + (im.caption || "");
+      "第" + im.lessonId + "课 · " + ((im.caption || "").trim() || pageLabel(im));
     lbCount.textContent = currentIndex + 1 + " / " + currentList.length;
   }
   function closeLb() {
