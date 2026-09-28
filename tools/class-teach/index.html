@@ -494,6 +494,16 @@
 <script src="/assets/js/sync-boot.js"></script>
 <script>
 /* ============ 数据层 ============ */
+/* 学号排序（全局，供列表/计分页共用）：数值优先，非数值自定义串（如 "1班-03"）
+   按拼音排在后面 —— 原先把 a.sid 直接喂给 localeCompare，而库里 sid 常是数字，
+   数字没有 localeCompare → 一排序就 TypeError 整页崩（1,10,11,2 的假字符排序也源于此）。 */
+function sidCmp(a,b){
+  const na=parseFloat(a.sid), nb=parseFloat(b.sid);
+  const xa=isNaN(na), xb=isNaN(nb);
+  if(xa&&xb)return String(a.sid||'').localeCompare(String(b.sid||''),'zh');
+  if(xa)return 1; if(xb)return -1;
+  return na-nb||String(a.sid||'').localeCompare(String(b.sid||''),'zh');
+}
 const KEY='mf_data_v1';
 const PALETTE=['#6366f1','#f59e0b','#10b981','#ec4899','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#f97316','#3b82f6','#d946ef','#84cc16','#06b6d4','#e11d48','#a855f7','#22c55e'];
 const STATE={0:{n:'未开始',c:'s0'},1:{n:'学习中',c:'s1'},2:{n:'已掌握',c:'s2'},3:{n:'需复习',c:'s3'}};
@@ -680,7 +690,7 @@ window.addEventListener('beforeunload',flushSave);
 document.addEventListener('visibilitychange',function(){ if(document.hidden)flushSave(); });
 function uid(){ return DB.nextId++; }
 function curClassId(){ return curClass?curClass.id:DB.classes[0].id; }
-function students(cId){ return DB.students.filter(s=>sameId(s.classId,cId)).sort((a,b)=>(a.sid||'').localeCompare(b.sid||'')); }
+function students(cId){ return DB.students.filter(s=>sameId(s.classId,cId)).sort(sidCmp); }
 function activeSession(cId){ return DB.sessions.find(s=>sameId(s.classId,cId)&&!s.settled); }
 function getTally(sessionId,studentId){ return DB.tallies.find(t=>sameId(t.sessionId,sessionId)&&sameId(t.studentId,studentId)); }
 function progOf(studentId,skillId){ return DB.progress.find(p=>sameId(p.studentId,studentId)&&sameId(p.skillId,skillId)); }
@@ -780,7 +790,8 @@ const SCORE_MIN_CELL=86, SCORE_GAP=10;
 function scoreCellSize(n){
   // 根据班级人数和可用空间，计算方块边长，保证一屏全部显示
   const gap=SCORE_GAP;
-  const rows=scoreLayout(n).rows;
+  const _lay=scoreLayout(n);
+  const cols=_lay.cols, rows=_lay.rows;
   // 可用宽度从「计分卡」实测，不再拿 window.innerWidth 减魔法值（旧值 72 =
   // .wrap 左右各 20 + .card 左右各 16）。工作台骨架给主体加了左侧导航偏移后，
   // 视口宽度已不等于内容宽度，硬编码会在侧栏存在时算出过大的方块导致横向溢出。
@@ -829,16 +840,6 @@ function renderScore(){
   curSessionId=sess.id;
   meta.textContent=`${curClass.name} · ${sess.date}（点方块+1，点 −1 或右键减分）`;
   // 排列：按学号 / 按积分(本节计数降序，并列时学号升序)
-  /* 学号可能是数字串也可能是自定义串（如 "1班-03"）：数值优先比较，
-     非数值按拼音排在后面。避免 comparator 返回 NaN 导致顺序随机
-     （曾出现 1,10,11,2 的假字符排序）。 */
-  const sidCmp=(a,b)=>{
-    const na=parseFloat(a.sid), nb=parseFloat(b.sid);
-    const xa=isNaN(na), xb=isNaN(nb);
-    if(xa&&xb)return String(a.sid||'').localeCompare(String(b.sid||''),'zh');
-    if(xa)return 1; if(xb)return -1;
-    return na-nb||String(a.sid||'').localeCompare(String(b.sid||''),'zh');
-  };
   const sortMode=document.getElementById('scoreSort')?.value||'sid';
   const sorted=[...ss];
   if(sortMode==='score'){
@@ -1601,9 +1602,9 @@ window.editNote=function(stuId,skId){ /* 已改为就地输入，不再弹窗 */
 function renderStudents(){
   let ss=students(curClassId());
   if(stuSort==='score'){
-    ss=ss.slice().sort((a,b)=>totalScoreOf(b.id)-totalScoreOf(a.id)||(a.sid||'').localeCompare(b.sid||''));
+    ss=ss.slice().sort((a,b)=>totalScoreOf(b.id)-totalScoreOf(a.id)||sidCmp(a,b));
   }else{
-    ss=ss.slice().sort((a,b)=>(a.sid||'').localeCompare(b.sid||''));
+    ss=ss.slice().sort(sidCmp);
   }
   document.getElementById('stuMeta').textContent=`${curClass.name} · ${ss.length}人`;
   document.getElementById('stuBody').innerHTML=ss.length?ss.map(s=>`<tr>
