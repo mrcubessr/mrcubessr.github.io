@@ -69,7 +69,7 @@
 
   /* 结算/表扬榜 */
   .rank{display:flex;flex-direction:column;gap:8px}
-  .rrow{display:flex;align-items:center;gap:12px;background:var(--bg-soft);border:1px solid var(--line);border-radius:0;padding:10px 14px}
+  .rrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--bg-soft);border:1px solid var(--line);border-radius:0;padding:10px 14px}
   .rrow .rk{width:30px;text-align:center;font-weight:700;color:var(--text-3)}
   .rrow.top1{background:var(--amber-soft);border-color:var(--amber-soft)}
   .rrow.top1 .rk{color:var(--amber);font-size:18px}
@@ -234,16 +234,24 @@
   /* 宠物大图查看弹窗 */
   .pet-view-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
   #petViewBody{text-align:center}
-  .pet-view-img{display:inline-block;width:clamp(140px,42vw,220px);height:clamp(140px,42vw,220px);object-fit:contain;margin:6px 0 12px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18))}
+  .pet-view-img{display:inline-block;width:clamp(200px,46vw,300px);height:clamp(200px,46vw,300px);object-fit:contain;margin:6px 0 12px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18))}
   .pet-pop{animation:petPop .5s ease}
   .pet-view-lv{font-size:15px;font-weight:600;color:var(--brand);margin:2px 0}
   .pet-view-bar{width:100%;max-width:320px;height:8px;margin:8px auto;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
   .pet-view-bar>i{display:block;height:100%;background:var(--brand)}
   .pet-view-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
   .pet-view-actions .btn--danger{color:var(--red);border-color:var(--red)}
-  /* 手动喂养 1~20 档位 */
-  .feed-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+  /* 手动喂养 1~20 档位（auto-fill：浏览器缩放/窄屏自动减列） */
+  .feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;margin-top:12px}
   .feed-grid button{font-size:15px;font-weight:700;padding:10px 0}
+  .feed-grid--minus button{color:var(--red);border-color:var(--red)}
+  /* 批量调分：勾选模式 */
+  .pet-batch-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:var(--bg-soft);border:1px solid var(--line);margin-bottom:10px}
+  .pet-batch-bar input[type=number]{padding:6px 8px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+  .pet-batch-minus{color:var(--red);border-color:var(--red)}
+  .pet-card{position:relative}
+  .pet-check{position:absolute;top:8px;right:8px;width:24px;height:24px;border:2px solid var(--line);background:var(--on-brand);color:transparent;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border-radius:50%;pointer-events:none}
+  .pet-check.on{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
   /* 加分飘字 + 撒花（挂在持久 fxLayer，不受列表重渲染影响） */
   #fxLayer{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
   .score-float{position:fixed;left:50%;top:38%;transform:translateX(-50%);font-size:30px;font-weight:800;color:var(--brand);text-shadow:0 2px 6px rgba(255,255,255,.7);animation:floatUp 1.1s ease forwards}
@@ -398,7 +406,22 @@
       <div id="petRank"></div>
     </div>
     <div class="card">
-      <h3 style="margin:0 0 10px">全部宠物</h3>
+      <div class="scorebar" style="margin-bottom:10px">
+        <h3 style="margin:0">全部宠物</h3>
+        <div style="flex:1"></div>
+        <button class="btn btn--ghost btn--sm" onclick="togglePetBatch()">⚖ 批量调分</button>
+      </div>
+      <div id="petBatchBar" class="pet-batch-bar" style="display:none">
+        <button class="btn btn--ghost btn--sm" onclick="petBatchAll(true)">全选</button>
+        <button class="btn btn--ghost btn--sm" onclick="petBatchAll(false)">反选</button>
+        <span class="muted" id="petBatchCount">已选 0 人</span>
+        <div style="flex:1"></div>
+        <input id="petBatchN" type="number" min="1" max="999" value="5" style="width:76px">
+        <span class="muted">分</span>
+        <button class="btn btn--sm" onclick="petBatchApply(1)">+N 分</button>
+        <button class="btn btn--ghost btn--sm pet-batch-minus" onclick="petBatchApply(-1)">−N 分</button>
+        <button class="btn btn--ghost btn--sm" onclick="togglePetBatch()">退出</button>
+      </div>
       <div id="petsBox"></div>
     </div>
   </div>
@@ -468,7 +491,7 @@
 
 <!-- 宠物大图查看 / 手动喂养弹窗 -->
 <div class="modalbg" id="petViewModal">
-  <div class="modal" style="max-width:min(94vw,560px)">
+  <div class="modal" style="max-width:min(94vw,640px)">
     <div class="pet-view-head">
       <h3 id="petViewName" style="margin:0">宠物</h3>
       <button class="btn btn--ghost btn--sm" id="petViewClose">关闭</button>
@@ -985,6 +1008,48 @@ function celebrate(){
 
 /* ============ 宠物园 ============ */
 let adoptStuId=null, adoptSpecies='cubie', adoptReplacing=false;
+/* 显示名：大名(小名)，小名缺省只显示大名 */
+function stuDispName(s){if(!s)return'';return (s.name||'')+((s.nick&&String(s.nick).trim())?'('+String(s.nick).trim()+')':'');}
+/* ---- 批量调分：勾选模式 ---- */
+let petBatchMode=false, petBatchSel=new Set();
+window.togglePetBatch=function(){
+  petBatchMode=!petBatchMode;
+  petBatchSel.clear();
+  const bar=document.getElementById('petBatchBar');
+  if(bar)bar.style.display=petBatchMode?'flex':'none';
+  renderPets();
+};
+window.petBatchAll=function(all){
+  const ss=students(curClassId());
+  if(all){ss.forEach(s=>petBatchSel.add(String(s.id)));}
+  else{ /* 反选：当前已选的去掉，未选的加上 */
+    const ids=ss.map(s=>String(s.id));
+    const next=new Set();
+    ids.forEach(id=>{if(!petBatchSel.has(id))next.add(id);});
+    petBatchSel=next;
+  }
+  renderPets();
+};
+window.togglePetSel=function(stuId,ev){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  const key=String(toId(stuId));
+  if(petBatchSel.has(key))petBatchSel.delete(key);else petBatchSel.add(key);
+  renderPets();
+};
+window.petBatchApply=function(sign){
+  if(!petBatchMode)return;
+  const n=parseInt(document.getElementById('petBatchN').value,10);
+  if(!n||n<=0){alert('请先在输入框填写调分数量（正整数）。');return;}
+  if(!petBatchSel.size){alert('请先勾选要调分的小朋友。');return;}
+  const delta=sign*n;
+  const ss=students(curClassId()).filter(s=>petBatchSel.has(String(s.id)));
+  if(!ss.length){alert('勾选的学生不在本班，请重新选择。');return;}
+  if(!confirm('批量'+(delta>0?'+':'')+delta+' 分，共 '+ss.length+' 人：\n'+ss.map(stuDispName).join('、')+'\n\n确定执行？（写入积分流水，可用余额同步增减）'))return;
+  ss.forEach(s=>awardScore(s.id,delta,'批量调分 '+(delta>0?'+':'')+delta+' 分'));
+  petBatchSel.clear();
+  renderPets();
+  toast('批量调分完成：'+ss.length+' 人 '+(delta>0?'+':'')+delta+' 分');
+};
 function renderPets(){
   const ss=students(curClassId());
   const rankBox=document.getElementById('petRank');
@@ -999,29 +1064,35 @@ function renderPets(){
   else rankBox.innerHTML=ranked.map((r,i)=>{
     const sp=r.p?speciesOf(r.p.species):null;
     const sub=sp?`${petAvatar(sp,'pet-rank-img',r.pg.lv)}${esc(r.p.name||sp.name)} · Lv${r.pg.lv}`:'未领养 · Lv'+r.pg.lv;
-    return `<div class="rrow ${['top1','top2','top3'][i]}"><div class="rk">${i+1}</div><div class="rname">${esc(r.s.name)}<span class="n">${sub}</span></div><div class="rcnt">${petTitleOf(r.pg.lv)}</div><div class="rsc">${r.sc} 分</div></div>`;
+    return `<div class="rrow ${['top1','top2','top3'][i]}"><div class="rk">${i+1}</div><div class="rname">${esc(stuDispName(r.s))}<span class="n">${sub}</span></div><div class="rcnt">${petTitleOf(r.pg.lv)}</div><div class="rsc">${r.sc} 分</div></div>`;
   }).join('');
-  /* 宠物卡片网格 */
+  /* 宠物卡片网格（批量勾选模式下：点卡片=勾选/取消） */
+  const selKey=id=>petBatchSel.has(String(id));
   ctn.innerHTML='<div class="pet-grid">'+rows.map(r=>{
     if(r.p){
       const sp=speciesOf(r.p.species);
-      return `<div class="pet-card" data-pet-card="${r.s.id}" onclick="openPetView(${r.s.id},event)">
+      return `<div class="pet-card" data-pet-card="${r.s.id}" onclick="${petBatchMode?`togglePetSel(${r.s.id},event)`:`openPetView(${r.s.id},event)`}">
+        ${petBatchMode?`<div class="pet-check ${selKey(r.s.id)?'on':''}">✓</div>`:''}
         <div class="pet-emoji">${petAvatar(sp,null,r.pg.lv)}</div>
         <div class="pet-name">${esc(r.p.name||sp.name)}</div>
-        <div class="pet-owner">${esc(r.s.name)} · ${esc(r.s.sid||'—')}</div>
+        <div class="pet-owner">${esc(stuDispName(r.s))} · ${esc(r.s.sid||'—')}</div>
         <div class="pet-lv">Lv${r.pg.lv} · ${petTitleOf(r.pg.lv)}</div>
         <div class="pet-bar"><i style="width:${r.pg.pct}%"></i></div>
         <div class="pet-sub">${r.pg.cur} / ${r.pg.need} 分升到 Lv${Math.min(PET_LV_MAX,r.pg.lv+1)}</div>
       </div>`;
     }
-    return `<div class="pet-card pet-card--empty">
+    return `<div class="pet-card pet-card--empty" onclick="${petBatchMode?`togglePetSel(${r.s.id},event)`:''}">
+      ${petBatchMode?`<div class="pet-check ${selKey(r.s.id)?'on':''}">✓</div>`:''}
       <div class="pet-emoji" style="opacity:.35">🥚</div>
       <div class="pet-name">未领养</div>
-      <div class="pet-owner">${esc(r.s.name)} · ${esc(r.s.sid||'—')}</div>
+      <div class="pet-owner">${esc(stuDispName(r.s))} · ${esc(r.s.sid||'—')}</div>
       <div class="pet-lv">已有 ${r.sc} 分</div>
-      <button class="btn btn--sm" style="margin-top:auto" onclick="openAdopt(${r.s.id},event)">+ 领养宠物</button>
+      ${petBatchMode?'':`<button class="btn btn--sm" style="margin-top:auto" onclick="openAdopt(${r.s.id},event)">+ 领养宠物</button>`}
     </div>`;
   }).join('')+'</div>';
+  /* 批量计数 */
+  const bc=document.getElementById('petBatchCount');
+  if(bc)bc.textContent='已选 '+petBatchSel.size+' 人';
 }
 /* 点击宠物卡 → 大图查看（不再直接进学生页），含手动喂养 */
 let petViewStuId=null, petFeedPanelOpen=false;
@@ -1042,11 +1113,11 @@ function renderPetView(){
   const box=document.getElementById('petViewBody');
   if(!s||!p){box.innerHTML='<div class="empty">未找到该宠物。</div>';return;}
   const sp=speciesOf(p.species), sc=totalScoreOf(petViewStuId), pg=petProgressOf(sc), lv=pg.lv;
-  document.getElementById('petViewName').textContent=(p.name||sp.name)+' · '+s.name;
+  document.getElementById('petViewName').textContent=(p.name||sp.name)+' · '+stuDispName(s);
   box.innerHTML=`
     <div id="petViewImgWrap"><img id="petViewImg" class="pet-view-img" src="/assets/pets/ref/${sp.key}_${petStageOf(lv)}.webp" alt="${esc(sp.name)}" data-fb="${sp.img||''}" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.removeAttribute('data-fb');}else{this.replaceWith(document.createTextNode('${sp.emoji}'))}"></div>
     <div style="font-size:17px;font-weight:700">${esc(p.name||sp.name)}</div>
-    <div class="pet-view-lv">Lv${lv} · ${petTitleOf(lv)} · ${esc(s.name)}</div>
+    <div class="pet-view-lv">Lv${lv} · ${petTitleOf(lv)} · ${esc(stuDispName(s))}</div>
     <div class="pet-view-bar"><i style="width:${pg.pct}%"></i></div>
     <div class="muted" style="font-size:12px">${pg.cur} / ${pg.need} 分升到 Lv${Math.min(PET_LV_MAX,lv+1)} · 可用余额 ${s.balance||0}</div>
     <div class="pet-view-actions">
@@ -1056,18 +1127,25 @@ function renderPetView(){
       <button class="btn btn--ghost" onclick="closePetView();openStu(${s.id})">查看学生详情 →</button>
     </div>
     <div id="feedPanel" style="display:none">
-      <p class="muted" style="margin:14px 0 0">选 1~20 档，给 ${esc(s.name)} 即时加分（同时计入宠物成长与可用余额）。</p>
+      <p class="muted" style="margin:14px 0 0">给 ${esc(stuDispName(s))} 即时调分（同时计入宠物成长与可用余额）。</p>
       <div class="feed-grid">${Array.from({length:20},(_,i)=>`<button onclick="petFeed(${i+1})">+${i+1}</button>`).join('')}</div>
+      <p class="muted" style="margin:12px 0 0">扣分档（用于纠错或调平，需确认）：</p>
+      <div class="feed-grid feed-grid--minus">${Array.from({length:20},(_,i)=>`<button onclick="petFeed(${-(i+1)})">−${i+1}</button>`).join('')}</div>
     </div>`;
   if(petFeedPanelOpen){const fp=document.getElementById('feedPanel');if(fp)fp.style.display='block';}
 }
 window.petFeedOpen=function(){petFeedPanelOpen=true;const fp=document.getElementById('feedPanel');if(fp)fp.style.display='block';};
-window.petFeed=function(n){
+window.petFeed=function(d){
   if(petViewStuId==null)return;
-  const r=awardScore(petViewStuId,n,'手动喂养 +'+n+'分');
+  if(d<0){ /* 扣分：二次确认，预览扣后分数（积分不足将变负数） */
+    const s0=DB.students.find(x=>sameId(x.id,petViewStuId));
+    const cur=totalScoreOf(petViewStuId)||0;
+    if(!confirm('给 '+(s0?stuDispName(s0):'')+' 扣 '+(-d)+' 分？\n当前累计 '+cur+' 分 → 扣后 '+(cur+d)+' 分（不足将变负数）。\n宠物等级与可用余额会同步下降。'))return;
+  }
+  const r=awardScore(petViewStuId,d,d>0?('手动喂养 +'+d+'分'):('手动扣分 '+d+'分'));
   if(!r)return;
   renderPetView();                       // 先重渲染出新 DOM（等级/进度/余额更新）
-  playAwardFx(petViewStuId,n,!!r.leveledUp);  // 再播放弹跳+飘分+升级撒花
+  playAwardFx(petViewStuId,d,!!r.leveledUp);  // 再播放弹跳+飘分+升级撒花
 };
 /* 删除宠物：仅移除 DB.pets 中的领养记录，学生累计积分/等级不受影响，可随时重新领养 */
 window.petDelete=function(){
@@ -1090,7 +1168,7 @@ window.petReAdopt=function(){
   if(!confirm('为 '+(s?s.name:'')+' 重新领养？\n将替换当前宠物「'+(p.name||'')+'」（等级由积分决定，保持不变；需重新选择物种并起名）。'))return;
   openAdopt(petViewStuId,null);          // openAdopt 会重置 adoptReplacing，故其后置 true
   adoptReplacing=true;
-  document.getElementById('petModalTitle').textContent='重新领养 · '+(s?s.name:'');
+  document.getElementById('petModalTitle').textContent='重新领养 · '+(s?stuDispName(s):'');
 };
 function renderAdoptSpecies(){
   document.getElementById('petSpecies').innerHTML=PET_SPECIES.filter(s=>!s.hidden).map(sp=>
@@ -1102,7 +1180,7 @@ window.openAdopt=function(stuId,ev){
   if(ev&&ev.stopPropagation)ev.stopPropagation();
   adoptStuId=stuId;adoptSpecies='cubie';
   const s=DB.students.find(x=>x.id===stuId);
-  document.getElementById('petModalTitle').textContent='为 '+(s?s.name:'')+' 领养宠物';
+  document.getElementById('petModalTitle').textContent='为 '+(s?stuDispName(s):'')+' 领养宠物';
   document.getElementById('petName').value='';
   renderAdoptSpecies();
   document.getElementById('petModal').classList.add('show');
