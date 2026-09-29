@@ -240,6 +240,7 @@
   .pet-view-bar{width:100%;max-width:320px;height:8px;margin:8px auto;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
   .pet-view-bar>i{display:block;height:100%;background:var(--brand)}
   .pet-view-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  .pet-view-actions .btn--danger{color:var(--red);border-color:var(--red)}
   /* 手动喂养 1~20 档位 */
   .feed-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
   .feed-grid button{font-size:15px;font-weight:700;padding:10px 0}
@@ -983,7 +984,7 @@ function celebrate(){
 }
 
 /* ============ 宠物园 ============ */
-let adoptStuId=null, adoptSpecies='cubie';
+let adoptStuId=null, adoptSpecies='cubie', adoptReplacing=false;
 function renderPets(){
   const ss=students(curClassId());
   const rankBox=document.getElementById('petRank');
@@ -1050,6 +1051,8 @@ function renderPetView(){
     <div class="muted" style="font-size:12px">${pg.cur} / ${pg.need} 分升到 Lv${Math.min(PET_LV_MAX,lv+1)} · 可用余额 ${s.balance||0}</div>
     <div class="pet-view-actions">
       <button class="btn" onclick="petFeedOpen()">🍖 手动喂养</button>
+      <button class="btn btn--ghost" onclick="petReAdopt()">🔄 重新领养</button>
+      <button class="btn btn--ghost btn--danger" onclick="petDelete()">🗑 删除宠物</button>
       <button class="btn btn--ghost" onclick="closePetView();openStu(${s.id})">查看学生详情 →</button>
     </div>
     <div id="feedPanel" style="display:none">
@@ -1066,6 +1069,29 @@ window.petFeed=function(n){
   renderPetView();                       // 先重渲染出新 DOM（等级/进度/余额更新）
   playAwardFx(petViewStuId,n,!!r.leveledUp);  // 再播放弹跳+飘分+升级撒花
 };
+/* 删除宠物：仅移除 DB.pets 中的领养记录，学生累计积分/等级不受影响，可随时重新领养 */
+window.petDelete=function(){
+  if(petViewStuId==null)return;
+  const p=petOf(petViewStuId); if(!p)return;
+  const s=DB.students.find(x=>sameId(x.id,petViewStuId));
+  if(!confirm('确定删除 '+(s?s.name:'')+' 的宠物「'+(p.name||'')+'」吗？\n删除后该学生将变为未领养状态（课堂积分不受影响，可随时重新领养）。'))return;
+  DB.pets=DB.pets.filter(x=>x.id!==p.id);
+  save();
+  closePetView();
+  toast('已删除宠物');
+  if(document.getElementById('view-pets').classList.contains('active'))renderPets();
+  else if(document.getElementById('view-stuPage').classList.contains('active'))renderStuPage();
+};
+/* 重新领养：替换当前宠物（等级由积分决定保持不变），需重新选物种与名字 */
+window.petReAdopt=function(){
+  if(petViewStuId==null)return;
+  const p=petOf(petViewStuId); if(!p)return;
+  const s=DB.students.find(x=>sameId(x.id,petViewStuId));
+  if(!confirm('为 '+(s?s.name:'')+' 重新领养？\n将替换当前宠物「'+(p.name||'')+'」（等级由积分决定，保持不变；需重新选择物种并起名）。'))return;
+  openAdopt(petViewStuId,null);          // openAdopt 会重置 adoptReplacing，故其后置 true
+  adoptReplacing=true;
+  document.getElementById('petModalTitle').textContent='重新领养 · '+(s?s.name:'');
+};
 function renderAdoptSpecies(){
   document.getElementById('petSpecies').innerHTML=PET_SPECIES.filter(s=>!s.hidden).map(sp=>
     `<div class="pet-sp ${adoptSpecies===sp.key?'active':''}" onclick="pickSpecies('${sp.key}')"><div class="e">${petAvatar(sp,null,1)}</div><div class="n">${sp.name}</div><div class="d">${sp.desc}</div></div>`
@@ -1081,16 +1107,23 @@ window.openAdopt=function(stuId,ev){
   renderAdoptSpecies();
   document.getElementById('petModal').classList.add('show');
 };
-document.getElementById('petCancel').onclick=()=>document.getElementById('petModal').classList.remove('show');
+document.getElementById('petCancel').onclick=()=>{adoptReplacing=false;document.getElementById('petModal').classList.remove('show');};
 document.getElementById('petOk').onclick=()=>{
   if(adoptStuId==null)return;
-  if(petOf(adoptStuId)){alert('这位小朋友已经有宠物啦。');return;}
+  const existing=petOf(adoptStuId);
+  if(existing && !adoptReplacing){alert('这位小朋友已经有宠物啦。');return;}
   const sp=speciesOf(adoptSpecies);
   const nm=document.getElementById('petName').value.trim();
+  if(existing){                         // 重新领养：先移除旧宠物再写入新宠物
+    DB.pets=DB.pets.filter(x=>x.id!==existing.id);
+  }
   DB.pets.push({id:uid(),studentId:adoptStuId,species:adoptSpecies,name:nm||sp.name,adoptedAt:nowStr(),hunger:60,mood:60,clean:60});
   save();
+  const wasReplacing=adoptReplacing;
+  adoptReplacing=false;
   document.getElementById('petModal').classList.remove('show');
-  toast('领养成功！'+sp.emoji);
+  toast(wasReplacing?'重新领养成功！'+sp.emoji:'领养成功！'+sp.emoji);
+  if(wasReplacing && document.getElementById('petViewModal').classList.contains('show'))renderPetView();
   if(document.getElementById('view-pets').classList.contains('active'))renderPets();
   else if(document.getElementById('view-stuPage').classList.contains('active'))renderStuPage();
 };
