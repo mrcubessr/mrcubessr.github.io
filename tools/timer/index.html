@@ -299,6 +299,7 @@
       <button class="btn btn--sm btn--ghost" id="tm-import" type="button">导入</button>
       <input type="file" id="tm-import-file" accept=".txt,.json,text/plain,application/json" hidden>
       <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空本组</button>
+      <button class="btn btn--sm btn--ghost" id="tm-notes" type="button">笔记汇总</button>
       <!-- 桌面横版：三盲参数从右侧抽屉滑出，这是唯一的打开入口（仅三盲项目显示、仅桌面显示） -->
       <button class="btn btn--sm btn--ghost tm-bld-open" id="tm-bld-open" type="button"
               aria-expanded="false" aria-controls="tm-bld-params" hidden>三盲参数</button>
@@ -391,6 +392,18 @@
       <button class="btn btn--sm btn--ghost" id="tm-solve-close" type="button">关闭</button>
     </div>
     <div class="tm-modal__body" id="tm-solve-body"></div>
+  </div>
+</div>
+
+<!-- 练习笔记汇总（聚合所有项目/分组里带备注的成绩，导出文本供 AI 分析） -->
+<div class="tm-modal" id="tm-notes-modal" hidden>
+  <div class="tm-modal__mask" data-close="1"></div>
+  <div class="tm-modal__panel" role="dialog" aria-modal="true" aria-labelledby="tm-notes-title">
+    <div class="tm-modal__head">
+      <h2 id="tm-notes-title">练习笔记汇总</h2>
+      <button class="btn btn--sm btn--ghost" id="tm-notes-close" type="button">关闭</button>
+    </div>
+    <div class="tm-modal__body" id="tm-notes-body"></div>
   </div>
 </div>
 

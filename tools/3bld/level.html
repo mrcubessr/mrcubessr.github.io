@@ -105,16 +105,23 @@
       所以这版做了两件事：① 把翻色 / 奇偶的权重提上去；② 把分数重标定到 <b>0~100</b>，
       并按实测分布划成五档，让每档各占约两成，不再挤成一团。
     </p>
+    <div class="lv-note">
+      <b>2026-09-30 口径修正（翻色权重首次压过奇偶）</b>：复盘实测发现，
+      「<b>无奇偶但带翻色编码</b>」的打乱，实际负担高于「带奇偶」的那类 ——
+      奇偶只是末尾多一条固定公式，而翻色要 setup、要额外记忆点，还打断编码节奏。
+      因此权重由「翻色 1.5 / 奇偶 4.0」改为「<b>翻色 3.0 / 奇偶 2.5</b>」，
+      同条数下翻色多的那把分数会明显更高（见第四节样例）。
+    </div>
   </div>
 
   <!-- 二、评分公式 -->
   <div class="lv-section">
     <h2>二、难度分怎么算</h2>
-    <h3>第 1 步｜算「加权分」（量纲≈条数，范围约 7~27）</h3>
+    <h3>第 1 步｜算「加权分」（量纲≈条数，实测范围约 6.5~34.5，p99 ≈ 26.5）</h3>
     <div class="lv-formula">
       加权分 ＝ 公式条数 <span class="op">×</span> <span class="w">1.0</span><br>
-      <span class="op">＋</span> （翻色条数 ＋ 角翻条数）<span class="op">×</span> <span class="w">1.5</span><br>
-      <span class="op">＋</span> 奇偶 <span class="op">×</span> <span class="w">4.0</span><br>
+      <span class="op">＋</span> （翻色条数 ＋ 角翻条数）<span class="op">×</span> <span class="w">3.0</span><br>
+      <span class="op">＋</span> 奇偶 <span class="op">×</span> <span class="w">2.5</span><br>
       <span class="op">＋</span> 借位处数 <span class="op">×</span> <span class="w">0.5</span>
     </div>
     <div class="lv-scroll">
@@ -122,15 +129,16 @@
       <thead><tr><th>项目</th><th class="num">权重</th><th>说明</th></tr></thead>
       <tbody>
         <tr><td>公式条数</td><td class="num">1.0</td><td><b>第一权重</b>。棱 + 角 + 翻色 + 扭角 + 奇偶的公式总条数（翻色 / 扭角 / 奇偶本身也各算一条）</td></tr>
-        <tr><td>翻色 / 扭角</td><td class="num">+1.5 / 条</td><td>除公式本身，还要多记 setup 与额外记忆点，所以在条数之外再加成</td></tr>
-        <tr><td>奇偶</td><td class="num">+4.0</td><td>单独一套奇偶算法，外加「判断这一把有没有奇偶」的负担</td></tr>
+        <tr><td>翻色 / 扭角</td><td class="num">+3.0 / 条</td><td><b>目前最重的加成</b>。除公式本身，还要 setup 与额外记忆点，且会打断编码节奏</td></tr>
+        <tr><td>奇偶</td><td class="num">+2.5</td><td>单独一套奇偶算法，外加「判断这一把有没有奇偶」的负担；低于翻色（2026-09-30 起）</td></tr>
         <tr><td>借位</td><td class="num">+0.5 / 处</td><td>借位 = 循环数 − 1（第一个循环不用借）。循环越多，记忆切换越频繁</td></tr>
       </tbody>
     </table>
     </div>
     <p class="lv-note">
       注意：翻色、扭角、奇偶<b>已经各自算进「公式条数」里了</b>，上表的权重是<b>额外加成</b>。
-      所以一条翻色公式的实际分量是 1 + 1.5 = 2.5，一次奇偶是 1 + 4 = 5。
+      所以一条翻色公式的实际分量是 1 + 3.0 = 4.0，一次奇偶是 1 + 2.5 = 3.5 ——
+      <b>同样是「多一条」，翻色比奇偶更值钱</b>，这正是 09-30 口径修正的落点。
     </p>
 
     <h3>第 2 步｜加权分 → 难度分（0~100）</h3>
@@ -143,12 +151,13 @@
         <tr><td class="num">12</td><td class="num">20</td><td>L1 / L2 分界（实测 20% 分位）</td></tr>
         <tr><td class="num">14</td><td class="num">40</td><td>L2 / L3 分界</td></tr>
         <tr><td class="num">16</td><td class="num">60</td><td>L3 / L4 分界</td></tr>
-        <tr><td class="num">18</td><td class="num">80</td><td>L4 / L5 分界</td></tr>
-        <tr><td class="num">≥ 26</td><td class="num">100</td><td>理论最难的一把</td></tr>
+        <tr><td class="num">18.5</td><td class="num">80</td><td>L4 / L5 分界</td></tr>
+        <tr><td class="num">≥ 27</td><td class="num">100</td><td>理论最难的一把</td></tr>
       </tbody>
     </table>
     </div>
-    <p>这些锚点取自实测分布的分位点（20% / 40% / 60% / 80%），目的是让五档各占约两成，不会出现「高难档永远空着、低难档挤满」。</p>
+    <p>这些锚点取自实测分布的分位点（20% / 40% / 60% / 80%），目的是让五档各占约两成，不会出现「高难档永远空着、低难档挤满」。
+       换权重后已按 3000 个新样本重新取分位，因此锚点略有移动（如 L4 / L5 分界由 18 调到 18.5）。</p>
   </div>
 
   <!-- 三、五档标准 -->
@@ -162,30 +171,32 @@
       <tbody>
         <tr>
           <td><span class="lv-badge" data-lv="入门">L1 入门</span></td><td>0 ~ 19</td>
-          <td class="num">18%</td><td class="num">9.5</td><td class="num">0.2</td><td class="num">0%</td><td class="num">1.8</td>
+          <td class="num">18%</td><td class="num">9.4</td><td class="num">0.0</td><td class="num">13%</td><td class="num">1.7</td>
         </tr>
         <tr>
           <td><span class="lv-badge" data-lv="初级">L2 初级</span></td><td>20 ~ 39</td>
-          <td class="num">22%</td><td class="num">9.7</td><td class="num">0.8</td><td class="num">29%</td><td class="num">1.5</td>
+          <td class="num">19%</td><td class="num">9.7</td><td class="num">0.4</td><td class="num">46%</td><td class="num">1.6</td>
         </tr>
         <tr>
           <td><span class="lv-badge" data-lv="中级">L3 中级</span></td><td>40 ~ 59</td>
-          <td class="num">24%</td><td class="num">10.2</td><td class="num">1.0</td><td class="num">46%</td><td class="num">2.1</td>
+          <td class="num">18%</td><td class="num">10.1</td><td class="num">0.8</td><td class="num">41%</td><td class="num">2.5</td>
         </tr>
         <tr>
           <td><span class="lv-badge" data-lv="高级">L4 高级</span></td><td>60 ~ 79</td>
-          <td class="num">19%</td><td class="num">10.2</td><td class="num">1.2</td><td class="num">77%</td><td class="num">2.0</td>
+          <td class="num">24%</td><td class="num">10.4</td><td class="num">1.3</td><td class="num">69%</td><td class="num">2.1</td>
         </tr>
         <tr>
           <td><span class="lv-badge" data-lv="专家">L5 专家</span></td><td>80 ~ 100</td>
-          <td class="num">17%</td><td class="num">10.9</td><td class="num">1.9</td><td class="num">90%</td><td class="num">2.5</td>
+          <td class="num">21%</td><td class="num">11.0</td><td class="num">2.5</td><td class="num">68%</td><td class="num">2.2</td>
         </tr>
       </tbody>
     </table>
     </div>
     <p class="lv-note">
-      看这张表最直观的一点：<b>条数从 L1 到 L5 只多了 1.4 条，但奇偶率从 0% 涨到 90%、翻色从 0.2 条涨到 1.9 条</b>。
-      这就是「难度不是条数堆出来的」—— 也是这次把翻色和奇偶权重提上去的原因。
+      看这张表最直观的一点：<b>条数从 L1 到 L5 只多了 1.6 条，而翻色 / 扭角从 0.0 条涨到 2.5 条</b> ——
+      这就是「难度不是条数堆出来的」。<br>
+      另注意：新权重下<b>奇偶率不再单调上升</b>（单靠一次奇偶只到 L2 初级），
+      真正拉开档次的变成了<b>翻色 / 扭角</b>与借位 —— 这正是 09-30 口径修正后的预期结果。
     </p>
   </div>
 
@@ -198,14 +209,18 @@
       <tbody>
         <tr><td>最轻松的一把</td><td class="num">9</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">9</td><td class="num">8</td><td><span class="lv-badge" data-lv="入门">L1 入门</span></td></tr>
         <tr><td>普通打乱，无翻色无奇偶</td><td class="num">10</td><td class="num">0</td><td class="num">0</td><td class="num">2</td><td class="num">11</td><td class="num">16</td><td><span class="lv-badge" data-lv="入门">L1 入门</span></td></tr>
-        <tr><td>只多了一次奇偶</td><td class="num">10</td><td class="num">0</td><td class="num">1</td><td class="num">2</td><td class="num">15</td><td class="num">50</td><td><span class="lv-badge" data-lv="中级">L3 中级</span></td></tr>
-        <tr><td>只多了 2 条翻色</td><td class="num">10</td><td class="num">2</td><td class="num">0</td><td class="num">2</td><td class="num">14</td><td class="num">40</td><td><span class="lv-badge" data-lv="中级">L3 中级</span></td></tr>
-        <tr><td>翻色 + 奇偶一起来</td><td class="num">10</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">18</td><td class="num">80</td><td><span class="lv-badge" data-lv="专家">L5 专家</span></td></tr>
-        <tr><td>条数偏多 + 3 条翻色 + 奇偶</td><td class="num">12</td><td class="num">3</td><td class="num">1</td><td class="num">3</td><td class="num">22</td><td class="num">90</td><td><span class="lv-badge" data-lv="专家">L5 专家</span></td></tr>
-        <tr><td>地狱局</td><td class="num">13</td><td class="num">5</td><td class="num">1</td><td class="num">5</td><td class="num">27</td><td class="num">100</td><td><span class="lv-badge" data-lv="专家">L5 专家</span></td></tr>
+        <tr><td>只多了一次奇偶</td><td class="num">10</td><td class="num">0</td><td class="num">1</td><td class="num">2</td><td class="num">13.5</td><td class="num">35</td><td><span class="lv-badge" data-lv="初级">L2 初级</span></td></tr>
+        <tr><td>只多了 2 条翻色</td><td class="num">10</td><td class="num">2</td><td class="num">0</td><td class="num">2</td><td class="num">17</td><td class="num">68</td><td><span class="lv-badge" data-lv="高级">L4 高级</span></td></tr>
+        <tr><td>翻色 + 奇偶一起来</td><td class="num">10</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">19.5</td><td class="num">82</td><td><span class="lv-badge" data-lv="专家">L5 专家</span></td></tr>
+        <tr><td>条数偏多 + 3 条翻色 + 奇偶</td><td class="num">12</td><td class="num">3</td><td class="num">1</td><td class="num">3</td><td class="num">25</td><td class="num">95</td><td><span class="lv-badge" data-lv="专家">L5 专家</span></td></tr>
+        <tr><td>地狱局</td><td class="num">13</td><td class="num">5</td><td class="num">1</td><td class="num">5</td><td class="num">33</td><td class="num">100</td><td><span class="lv-badge" data-lv="专家">L5 专家</span></td></tr>
       </tbody>
     </table>
     </div>
+    <p class="lv-note">
+      看第 3、4 行：<b>同样 10 条公式，「一次奇偶」只有 35 分（L2），「2 条翻色」却有 68 分（L4）</b> ——
+      这就是「翻色比奇偶更难」这条口径的直接体现（09-30 修正前，这两行的关系正好相反）。
+    </p>
   </div>
 
   <!-- 五、常见问题 -->
@@ -223,6 +238,13 @@
       <dd>
         条数是<b>第一权重</b>，直接进分数；翻色、奇偶、借位是在条数之上的<b>加成</b>。
         两把条数相同的打乱，翻色 / 奇偶多的那把分数明显更高（见上面样例）。
+      </dd>
+      <dt>翻色和奇偶，哪个更难？</dt>
+      <dd>
+        按当前口径（2026-09-30 起）：<b>翻色 / 扭角更重</b>。每条加成 3.0（实际分量 4.0），
+        奇偶加成 2.5（实际分量 3.5）。理由：奇偶是末尾补一条固定公式，属于「多背一步」；
+        翻色要 setup、要另记一组编码，且会打断编码节奏，实战更费脑。
+        所以「无奇偶但带翻色编码」的打乱，分数会高于「带奇偶」的那类。
       </dd>
       <dt>为什么最高档叫「专家」而不是「大师」？</dt>
       <dd>

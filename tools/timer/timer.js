@@ -62,6 +62,8 @@
   var rawMs = 0;                      /* 未加罚时的原始用时 */
   var curScramble = "";
   var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
+  var lastBldView = null;             /* 最近一次渲染进解法面板的数据（当前或历史回放）；
+                                         resize/缩放后重绘展开图要用（canvas 宽是画死的） */
 
   var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true, scrambleScale: 1, timeScale: 1 };
   /* 速拧的「观察」偏好：三盲会临时把 opt.inspect 压成 0，切回速拧时用它还原 */
@@ -164,6 +166,7 @@
         orientationLabel: typeof s.bld.orientationLabel === "string" ? s.bld.orientationLabel : "",
         edgeBuffer: s.bld.edgeBuffer, edgeOrder: s.bld.edgeOrder,
         edgeOrientFlag: !!s.bld.edgeOrientFlag, edgeSkip: !!s.bld.edgeSkip,
+        floatBuffer: !!s.bld.floatBuffer,
         cornerBuffer: s.bld.cornerBuffer, cornerOrder: s.bld.cornerOrder,
         cornerOrientFlag: !!s.bld.cornerOrientFlag, cornerSkip: !!s.bld.cornerSkip,
         edge: s.bld.edge, flip: s.bld.flip, corner: s.bld.corner, twist: s.bld.twist,
@@ -434,6 +437,7 @@
      历史查看时只改这里的数据源，不影响当前打乱与计时。 */
   function renderBldFrom(b) {
     if (!els.bldRows) return;
+    lastBldView = b || null;   /* 记住最近渲染的数据，resize 重绘展开图时复用 */
     var _pf = (opt.bld && opt.bld.parityFlip) || "none";
     var _parityTxt = "偶";
     if (b.parity === 1) {
@@ -645,7 +649,7 @@
     var orient = (window.BLDEngine && window.BLDEngine.CUBE_ORIENTATIONS[b.orientation])
       ? window.BLDEngine.CUBE_ORIENTATIONS[b.orientation].label : ("#" + b.orientation);
     els.bldSummary.textContent = orient + " · 棱 " + b.edgeBuffer + "/" + b.edgeOrder +
-      " · 角 " + b.cornerBuffer + "/" + b.cornerOrder;
+      " · 角 " + b.cornerBuffer + "/" + b.cornerOrder + (b.floatBuffer ? " · 浮动" : "");
   }
 
   function populateOrientation() {
@@ -671,6 +675,7 @@
     if (els.corder) els.corder.value = opt.bld.cornerOrder;
     if (els.cororient) els.cororient.checked = !!opt.bld.cornerOrientFlag;
     if (els.corskip) els.corskip.checked = !!opt.bld.cornerSkip;
+    if (els.fbuf) els.fbuf.checked = !!opt.bld.floatBuffer;
     if (els.bldSplit) els.bldSplit.checked = opt.bld.split !== false;
     if (els.revealSeg) {
       var after = opt.bld.showAfter !== false;
@@ -699,6 +704,7 @@
     if (els.corder) b.cornerOrder = (els.corder.value || "").toUpperCase().replace(/[^A-Z]/g, "");
     if (els.cororient) b.cornerOrientFlag = els.cororient.checked;
     if (els.corskip) b.cornerSkip = els.corskip.checked;
+    if (els.fbuf) b.floatBuffer = els.fbuf.checked;
     if (els.bldSplit) b.split = els.bldSplit.checked;
     if (els.stepEdge || els.stepCorner || els.stepFlip || els.stepTwist || els.stepParity) {
       b.steps = normSteps({
@@ -828,10 +834,17 @@
     paint();
   }
 
+  /* 设置计时区时间文本：含冒号（M:SS.xx，即 ≥60s）时切到 .is-long 缩小字号，
+     避免手机端长格式把舞台撑破屏幕 */
+  function setTimeText(str) {
+    if (!els.time) return;
+    els.time.textContent = str;
+    els.time.classList.toggle("is-long", String(str).indexOf(":") >= 0);
+  }
   function runTick() {
     if (state !== "running") return;
     var elapsed = performance.now() - runStart;
-    els.time.textContent = S.fmt(elapsed);
+    setTimeText(S.fmt(elapsed));
     if (bldSplitOn() && els.memo) {
       els.memo.textContent = memoMarked
         ? "记忆 " + S.fmt(memoMs) + " · 执行 " + S.fmt(elapsed - memoMs)
@@ -878,6 +891,7 @@
         orientationLabel: curBld.orientationLabel,
         edgeBuffer: b.edgeBuffer, edgeOrder: b.edgeOrder,
         edgeOrientFlag: !!b.edgeOrientFlag, edgeSkip: !!b.edgeSkip,
+        floatBuffer: !!b.floatBuffer,
         cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
         cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
         edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
@@ -909,7 +923,7 @@
   function showConfirm() {
     var eff = pendingPenalty === "DNF" ? Infinity
             : rawMs + (pendingPenalty === "+2" ? 2000 : 0);
-    els.time.textContent = pendingPenalty === "DNF" ? "DNF" : S.fmt(eff);
+    setTimeText(pendingPenalty === "DNF" ? "DNF" : S.fmt(eff));
     els.confirm.hidden = false;
     els.confirmTime.textContent = pendingPenalty === "DNF" ? "DNF"
       : S.fmt(eff) + (pendingPenalty === "+2" ? "（含 +2）" : "");
@@ -1548,7 +1562,8 @@
           html += '<div class="tm-solve__bld-row"><span>记忆速度</span><b>' + (m.lettersPerMin || 0).toFixed(3) + " 字母/分</b><span>执行 TPS</span><b>" + (m.tpsExec || 0).toFixed(3) + "</b></div>";
         }
       }
-      html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button></div>';
+      html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button>';
+      html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__share" id="tm-solve-share">生成分享海报</button></div>';
     }
     html += '<div class="tm-solve__btns">' +
             '<button type="button" class="btn btn--sm btn--primary" id="tm-solve-save">保存</button>' +
@@ -1575,6 +1590,8 @@
     });
     var replay = els.solveBody.querySelector("#tm-solve-replay");
     if (replay) replay.addEventListener("click", function () { closeSolveModal(); if (rec.bld) viewSolveBld(rec, num); });
+    var shareBtn = els.solveBody.querySelector("#tm-solve-share");
+    if (shareBtn) shareBtn.addEventListener("click", function () { shareBldPoster(rec, num); });
 
     els.solveModal.hidden = false;
     if (msInput) msInput.focus();
@@ -1595,6 +1612,235 @@
   function closeSolveModal() {
     if (els.solveModal) els.solveModal.hidden = true;
     if (els.list) Array.prototype.forEach.call(els.list.children, function (c) { c.classList.remove("is-viewing"); });
+  }
+
+  /* ---------- 三盲复盘分享海报（一键生成 PNG，可保存 / 走系统分享） ----------
+     口径：海报是「对外分享物」，配色固定为深色（与 app 图标 / theme_color 一致），
+     不跟随站点主题 —— 同一条复盘无论谁在什么主题下生成，拿到的图观感一致。
+     内容：用时 + 难度档 + 打乱公式 + 解法编码（坐标/棱/翻色/角/扭/主记法）+ 分段指标 + 笔记。 */
+  var POSTER_PAL = {
+    bg: "#0B0D14", fg: "#EEF2F8", fg2: "#AEB8CA", fg3: "#7C8798",
+    brand: "#5B8DEF", brand2: "#8FB4F5", amber: "#FBBF24", red: "#F87171"
+  };
+  var POSTER_W = 1080;
+
+  function posterFont(ctx, size, weight) {
+    ctx.font = (weight || 400) + " " + size +
+      'px "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif';
+  }
+  /* 按像素宽度折行（中英混排逐字符测量）；支持手动换行 */
+  function posterWrap(ctx, text, maxW) {
+    var out = [], cur = "", s = String(text == null ? "" : text);
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i);
+      if (ch === "\n") { out.push(cur); cur = ""; continue; }
+      var t = cur + ch;
+      if (ctx.measureText(t).width > maxW && cur) { out.push(cur); cur = ch; } else cur = t;
+    }
+    out.push(cur);
+    return out;
+  }
+  /* 用时显示：≥60s 用 m:ss.cc，否则 ss.cc；DNF 直接显示 DNF
+     （+2 不写在时间尾巴上，改由旁边的琥珀色徽章表达，避免「1:01.20+」这种误读） */
+  function posterTime(ms, pen) {
+    if (pen === "DNF") return "DNF";
+    var s = Math.max(0, ms || 0) / 1000, m = Math.floor(s / 60), rest = s - m * 60;
+    return (m > 0 ? m + ":" + (rest < 10 ? "0" : "") : "") + rest.toFixed(2);
+  }
+  function posterDateTime(ts) {
+    var d = new Date(ts || Date.now());
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " +
+           p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function buildBldPosterCanvas(rec, num) {
+    var b = rec.bld || {}, diff = b.difficulty || null, P = POSTER_PAL;
+    var W = POSTER_W, PAD = 80, innerW = W - PAD * 2;
+    var canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = 2000;
+    var ctx = canvas.getContext("2d"), y = 0;
+
+    function line(color, yy, w) {
+      ctx.strokeStyle = color; ctx.lineWidth = w || 1;
+      ctx.beginPath(); ctx.moveTo(PAD, yy); ctx.lineTo(W - PAD, yy); ctx.stroke();
+    }
+    function label(txt) {
+      y += 74;
+      posterFont(ctx, 28, 600); ctx.fillStyle = P.fg3; ctx.fillText(txt, PAD, y);
+      y += 18; line("rgba(238,242,248,.08)", y, 1); y += 12;
+    }
+    function kv(key, value, color) {
+      if (!value) return;
+      y += 62;
+      posterFont(ctx, 32, 500); ctx.fillStyle = P.fg3; ctx.fillText(key, PAD, y);
+      posterFont(ctx, 36, 600); ctx.fillStyle = color || P.fg;
+      var vx = PAD + 138, lines = posterWrap(ctx, value, W - PAD - vx);
+      ctx.fillText(lines[0], vx, y);
+      for (var i = 1; i < lines.length; i++) { y += 48; ctx.fillText(lines[i], vx, y); }
+    }
+
+    /* 背景 + 顶部品牌条 */
+    ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, canvas.height);
+    var g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, P.brand); g.addColorStop(1, P.brand2);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 8);
+
+    /* 页眉 */
+    y = 118;
+    ctx.textAlign = "left";
+    posterFont(ctx, 32, 600); ctx.fillStyle = P.fg2; ctx.fillText("魔方先生 · 三盲复盘", PAD, y);
+    ctx.textAlign = "right";
+    posterFont(ctx, 30, 400); ctx.fillStyle = P.fg3;
+    ctx.fillText(posterDateTime(rec.date) + (num != null ? "  #" + num : ""), W - PAD, y);
+    ctx.textAlign = "left";
+    y += 44; line("rgba(238,242,248,.10)", y, 2);
+
+    /* 用时（主视觉） */
+    y = 336;
+    var tStr = posterTime(rec.ms, rec.pen);
+    posterFont(ctx, 164, 700);
+    ctx.fillStyle = rec.pen === "DNF" ? P.red : P.fg;
+    ctx.fillText(tStr, PAD - 6, y);
+    if (rec.pen === "+2") {
+      var tw = ctx.measureText(tStr).width, cwid = 82, cx = PAD + tw + 18;
+      ctx.fillStyle = "rgba(251,191,36,.15)"; ctx.fillRect(cx, y - 50, cwid, 54);
+      posterFont(ctx, 34, 700); ctx.fillStyle = P.amber; ctx.fillText("+2", cx + 20, y - 10);
+    }
+
+    /* 难度 / 编码 / 归因 chips */
+    y += 78;
+    var chips = [];
+    if (diff && isFinite(+diff.score)) {
+      chips.push("难度分 " + (+diff.score) + " · " + (diff.level || "") + (diff.levelCode ? " " + diff.levelCode : ""));
+    }
+    if (b.complexity != null) chips.push("编码 " + b.complexity + " 码");
+    if (b.dnfReason) chips.push("DNF " + (b.dnfReason === "memo" ? "记忆错" : b.dnfReason === "exec" ? "执行错" : "其他"));
+    posterFont(ctx, 32, 600);
+    var cx2 = PAD;
+    for (var ci = 0; ci < chips.length; ci++) {
+      var cwid2 = ctx.measureText(chips[ci]).width + 42;
+      if (cx2 + cwid2 > W - PAD) { cx2 = PAD; y += 66; }
+      ctx.fillStyle = "rgba(91,141,239,.14)"; ctx.fillRect(cx2, y - 42, cwid2, 56);
+      ctx.fillStyle = P.brand2; ctx.fillText(chips[ci], cx2 + 21, y);
+      cx2 += cwid2 + 16;
+    }
+
+    /* 打乱公式 */
+    label("打乱公式");
+    posterFont(ctx, 40, 600); ctx.fillStyle = P.fg;
+    var scrLines = posterWrap(ctx, b.scramble || "（未记录打乱）", innerW);
+    for (var si = 0; si < scrLines.length; si++) { y += 56; ctx.fillText(scrLines[si], PAD, y); }
+
+    /* 解法编码 */
+    if (b.edge || b.corner || b.flip || b.twist || diff) {
+      label("解法编码");
+      kv("坐标", b.orientationLabel);
+      kv("棱", b.edge);
+      kv("翻色", b.flip);
+      kv("角", b.corner);
+      kv("扭", b.twist);
+      if (diff) {
+        var nota = (window.BLDEngine && window.BLDEngine.notationOf)
+          ? window.BLDEngine.notationOf(diff) : (diff.notation || "");
+        kv("主记法", nota, P.brand2);
+      }
+    }
+
+    /* 分段指标 2×2 */
+    if (b.metrics && b.metrics.split) {
+      var m = b.metrics;
+      label("分段指标");
+      var cells = [
+        ["记忆", fmt3(m.memoMs)], ["执行", fmt3(m.execMs)],
+        ["记忆速度", (m.lettersPerMin || 0).toFixed(2) + " 字母/分"],
+        ["执行 TPS", (m.tpsExec || 0).toFixed(2)]
+      ];
+      for (var k = 0; k < cells.length; k += 2) {
+        y += 46;
+        for (var j = 0; j < 2 && k + j < cells.length; j++) {
+          var c = cells[k + j], cxx = PAD + j * (innerW / 2);
+          posterFont(ctx, 28, 500); ctx.fillStyle = P.fg3; ctx.fillText(c[0], cxx, y);
+          posterFont(ctx, 40, 700); ctx.fillStyle = P.fg; ctx.fillText(c[1], cxx, y + 48);
+        }
+        y += 48;
+      }
+    }
+
+    /* 练习笔记 */
+    if (rec.note) {
+      label("练习笔记");
+      posterFont(ctx, 34, 500); ctx.fillStyle = P.fg2;
+      var noteLines = posterWrap(ctx, rec.note, innerW);
+      noteLines = noteLines.slice(0, 4);
+      if (noteLines.length === 4 && posterWrap(ctx, rec.note, innerW).length > 4) {
+        noteLines[3] = noteLines[3].slice(0, Math.max(0, noteLines[3].length - 1)) + "…";
+      }
+      for (var ni = 0; ni < noteLines.length; ni++) { y += 50; ctx.fillText(noteLines[ni], PAD, y); }
+    }
+
+    /* 页脚 */
+    y += 84; line("rgba(238,242,248,.10)", y, 2);
+    y += 54;
+    ctx.fillStyle = P.brand;
+    ctx.beginPath(); ctx.arc(PAD + 8, y - 10, 8, 0, Math.PI * 2); ctx.fill();
+    posterFont(ctx, 30, 500); ctx.fillStyle = P.fg3;
+    ctx.fillText("魔方先生SSR魔方训练中心 · 三盲专项训练", PAD + 34, y);
+    y += 6;
+
+    /* 裁剪到实际内容高度（避免底部大片空白） */
+    var finalH = Math.max(600, Math.min(canvas.height, Math.round(y + 74)));
+    var out = document.createElement("canvas");
+    out.width = W; out.height = finalH;
+    var octx = out.getContext("2d");
+    octx.drawImage(canvas, 0, 0, W, finalH, 0, 0, W, finalH);
+    return out;
+  }
+
+  /* 兜底预览层：手机上系统分享不可用时，长按图片保存 / 点按钮下载 */
+  function posterFallback(blob, fname) {
+    var url = URL.createObjectURL(blob);
+    var wrap = document.createElement("div");
+    wrap.className = "tm-poster";
+    wrap.innerHTML = '<div class="tm-poster__box">' +
+      '<img class="tm-poster__img" alt="三盲复盘海报">' +
+      '<div class="tm-poster__bar">' +
+      '<span class="tm-poster__hint">手机上长按图片可保存 / 转发</span>' +
+      '<button type="button" class="btn btn--sm btn--primary" id="tm-poster-save">保存图片</button>' +
+      '<button type="button" class="btn btn--sm btn--ghost" id="tm-poster-close">关闭</button>' +
+      "</div></div>";
+    wrap.querySelector("img").src = url;
+    document.body.appendChild(wrap);
+    function close() {
+      URL.revokeObjectURL(url);
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    }
+    wrap.querySelector("#tm-poster-save").addEventListener("click", function () {
+      var a = document.createElement("a");
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+    wrap.querySelector("#tm-poster-close").addEventListener("click", close);
+    wrap.addEventListener("click", function (e) { if (e.target === wrap) close(); });
+  }
+
+  /* 入口：生成海报 → 优先走系统分享（手机），否则兜底预览 + 下载 */
+  function shareBldPoster(rec, num) {
+    var canvas;
+    try { canvas = buildBldPosterCanvas(rec, num); } catch (err) { canvas = null; }
+    if (!canvas) return;
+    var fname = "三盲复盘-" + posterDateTime(rec.date).replace(/[:.\s]/g, "") + ".png";
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var file = null;
+      try { file = new File([blob], fname, { type: "image/png" }); } catch (e) { file = null; }
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: "三盲复盘 " + posterTime(rec.ms, rec.pen) })
+          .catch(function () { posterFallback(blob, fname); });
+      } else {
+        posterFallback(blob, fname);
+      }
+    }, "image/png");
   }
 
   /* ---------- 事件切换 / 打乱来源 ---------- */
@@ -1832,6 +2078,115 @@
     if (v == null) return "--";
     return v === Infinity ? "DNF" : S.fmt(v);
   }
+  /* ---------- 练习笔记汇总（聚合所有项目/分组里带备注的成绩，导出文本供 AI 分析） ---------- */
+  var lastNotesMd = "";
+  function gatherNotes() {
+    var out = [];
+    ["3x3", "2x2", "bld"].forEach(function (k) {
+      var box = data[k];
+      if (!box || !box.groups) return;
+      var ev = (k === "3x3") ? "三阶" : (k === "2x2") ? "二阶" : "三盲";
+      box.groups.forEach(function (g) {
+        (g.solves || []).forEach(function (rec) {
+          if (rec && rec.note && String(rec.note).trim()) {
+            out.push({
+              event: ev, group: g.name || "默认分组",
+              date: rec.date, ms: rec.ms, pen: rec.pen || "",
+              note: String(rec.note).trim(), bld: rec.bld || null
+            });
+          }
+        });
+      });
+    });
+    out.sort(function (a, b) { return (a.date || 0) - (b.date || 0); });
+    return out;
+  }
+  function buildNotesMd(notes) {
+    if (!notes.length) return "";
+    var lines = ["# 魔方计时器 · 练习笔记汇总", "", "共 " + notes.length + " 条带备注的成绩。下面是每次练习的笔记，供复盘与 AI 分析。", ""];
+    var cur = "";
+    notes.forEach(function (n) {
+      var d = fmtDateTime(n.date);
+      var sec = (n.pen === "DNF") ? "DNF" : (n.ms != null ? (n.ms / 1000).toFixed(2) + "s" : "");
+      var head = "## [" + n.event + " · " + n.group + "] " + d + (sec ? " " + sec : "") + (n.pen ? " (" + n.pen + ")" : "");
+      if (head !== cur) { lines.push(""); lines.push(head); cur = head; }
+      lines.push("");
+      lines.push(n.note);
+      if (n.bld && n.bld.edge) lines.push("> 三盲解法：棱 " + n.bld.edge + "｜角 " + n.bld.corner + (n.bld.flip ? "｜翻色 " + n.bld.flip : "") + (n.bld.twist ? "｜扭 " + n.bld.twist : ""));
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+  function renderNotesSummary(filter) {
+    var notes = gatherNotes();
+    lastNotesMd = buildNotesMd(notes);
+    var evs = {}; notes.forEach(function (n) { evs[n.event] = 1; });
+    var evKeys = Object.keys(evs);
+    var filtered = (filter && filter !== "all") ? notes.filter(function (n) { return n.event === filter; }) : notes;
+    var html = '<div class="tm-notes-toolbar">';
+    html += '<label class="tm-field__k">项目</label>';
+    html += '<select class="select" id="tm-notes-filter">';
+    html += '<option value="all">全部（' + notes.length + '）</option>';
+    evKeys.forEach(function (k) {
+      html += '<option value="' + k + '">' + k + '（' + notes.filter(function (n) { return n.event === k; }).length + '）</option>';
+    });
+    html += '</select><span style="flex:1"></span>';
+    html += '<button class="btn btn--sm btn--secondary" id="tm-notes-copy" type="button">复制全部（供 AI 分析）</button>';
+    html += '<button class="btn btn--sm btn--ghost" id="tm-notes-dl" type="button">下载 .md</button>';
+    html += '</div>';
+    if (!notes.length) {
+      html += '<div class="tm-chart__empty" style="padding:24px 12px">还没有任何练习笔记。在成绩确认栏或点开任意成绩补备注，这里就会自动汇总。</div>';
+    } else {
+      html += '<div class="tm-notes-list" id="tm-notes-list">';
+      var cur = "";
+      filtered.forEach(function (n) {
+        var d = fmtDateTime(n.date);
+        var sec = (n.pen === "DNF") ? "DNF" : (n.ms != null ? (n.ms / 1000).toFixed(2) + "s" : "");
+        var head = n.event + " · " + n.group + " · " + d + (sec ? " · " + sec : "") + (n.pen ? " · " + n.pen : "");
+        if (head !== cur) { html += '<div class="tm-notes-grp">' + S.escapeHtml(head) + "</div>"; cur = head; }
+        html += '<div class="tm-notes-item">' + S.escapeHtml(n.note) + "</div>";
+      });
+      html += "</div>";
+    }
+    els.notesBody.innerHTML = html;
+    if (els.notesModal) els.notesModal.hidden = false;
+    var f = document.getElementById("tm-notes-filter");
+    if (f) f.addEventListener("change", function () { renderNotesSummary(f.value); });
+    var cp = document.getElementById("tm-notes-copy");
+    if (cp) cp.addEventListener("click", function () {
+      copyNotesMd();
+      cp.textContent = "已复制 ✓"; setTimeout(function () { cp.textContent = "复制全部（供 AI 分析）"; }, 1500);
+    });
+    var dl = document.getElementById("tm-notes-dl");
+    if (dl) dl.addEventListener("click", downloadNotesMd);
+  }
+  function openNotesSummary() { renderNotesSummary("all"); }
+  function closeNotesModal() { if (els.notesModal) els.notesModal.hidden = true; }
+  function copyNotesMd() {
+    if (!lastNotesMd) lastNotesMd = buildNotesMd(gatherNotes());
+    if (!lastNotesMd) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lastNotesMd).then(function () {}, function () { fallbackCopy(lastNotesMd); });
+    } else fallbackCopy(lastNotesMd);
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  function downloadNotesMd() {
+    if (!lastNotesMd) lastNotesMd = buildNotesMd(gatherNotes());
+    if (!lastNotesMd) return;
+    var blob = new Blob([lastNotesMd], { type: "text/markdown;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "练习笔记汇总_" + stamp() + ".md";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
   function closeStats() { els.modal.hidden = true; }
 
   /* ---------- 下载 ---------- */
@@ -2419,6 +2774,7 @@
       eorient: $("tm-bld-eorient"), eskip: $("tm-bld-eskip"),
       cbuf: $("tm-bld-cbuf"), corder: $("tm-bld-corder"),
       cororient: $("tm-bld-cororient"), corskip: $("tm-bld-corskip"),
+      fbuf: $("tm-bld-fbuf"),
       bldReset: $("tm-bld-reset"), bldWarn: $("tm-bld-warn"),
       bldAnalysis: $("tm-bld-analysis"),
       /* 分段计时与步数配置 */
@@ -2439,6 +2795,9 @@
       /* 成绩详情 / 编辑弹窗 */
       solveModal: $("tm-solve-modal"), solveClose: $("tm-solve-close"),
       solveNum: $("tm-solve-num"), solveBody: $("tm-solve-body"),
+      /* 练习笔记汇总弹窗 */
+      notesBtn: $("tm-notes"), notesModal: $("tm-notes-modal"), notesClose: $("tm-notes-close"),
+      notesBody: $("tm-notes-body"),
       /* 统计范围选择 */
       statScope: $("tm-stat-scope"), chartProgress: $("tm-chart-progress")
     };
@@ -2527,6 +2886,11 @@
     if (els.solveModal) els.solveModal.addEventListener("click", function (e) {
       if (e.target.dataset && e.target.dataset.close) closeSolveModal();
     });
+    if (els.notesBtn) els.notesBtn.addEventListener("click", openNotesSummary);
+    if (els.notesClose) els.notesClose.addEventListener("click", closeNotesModal);
+    if (els.notesModal) els.notesModal.addEventListener("click", function (e) {
+      if (e.target.dataset && e.target.dataset.close) closeNotesModal();
+    });
     if (els.statScope) els.statScope.addEventListener("click", function (e) {
       var b = e.target.closest("[data-scope]");
       if (!b) return;
@@ -2539,6 +2903,7 @@
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape" && e.code !== "Escape") return;
       if (!els.solveModal.hidden) { e.stopPropagation(); closeSolveModal(); return; }
+      if (els.notesModal && !els.notesModal.hidden) { e.stopPropagation(); closeNotesModal(); return; }
       if (!els.settingsModal.hidden) { e.stopPropagation(); closeSettings(); return; }
       if (!els.modal.hidden) { e.stopPropagation(); closeStats(); return; }
       if (!els.mapModal.hidden) { e.stopPropagation(); closeMapDialog(); }
@@ -2694,6 +3059,21 @@
       _rpTimer = setTimeout(relocateBldParams, 150);
     });
 
+    /* 网页放大 / 缩放（Ctrl+、系统缩放、窗口调整）后布局宽度变化：
+       展开图 canvas 的宽度是绘制时按旧容器宽算死的（drawScrambleNet 写死
+       style.width），不重绘就会错位 / 超出解法面板 —— 复盘信息显示不准确。
+       防抖 200ms 后按当前容器宽重绘最近一次渲染的展开图。 */
+    var _netTimer = 0;
+    window.addEventListener("resize", function () {
+      clearTimeout(_netTimer);
+      _netTimer = setTimeout(function () {
+        _netTimer = 0;
+        if (opt.event === "bld" && els.bld && !els.bld.hidden && lastBldView) {
+          renderBldNetFrom(lastBldView);
+        }
+      }, 200);
+    });
+
     /* 三盲：参数面板 + 解法面板 */
     populateOrientation();
     syncBldParamsUI();
@@ -2705,7 +3085,7 @@
       this.blur();
     });
     [els.orientSel, els.lenInput, els.ebuf, els.eorder, els.eorient, els.eskip,
-     els.cbuf, els.corder, els.cororient, els.corskip].forEach(function (el) {
+     els.cbuf, els.corder, els.cororient, els.corskip, els.fbuf].forEach(function (el) {
       if (!el) return;
       el.addEventListener("change", onBldParamChange);
       if (el.tagName === "INPUT" && el.type === "text") el.addEventListener("input", onBldParamChange);

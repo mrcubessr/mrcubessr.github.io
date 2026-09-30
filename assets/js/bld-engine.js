@@ -322,6 +322,12 @@
     let orientLast = 0, edgereadOut = "", endList = "", codenum = 0;
     // 借位 / 归还角色：与 edgereadOut 一一对应（slice(1) 去掉的首字符角色为 ''，正好不编码）
     const edgeRoles = [];
+    /* 浮动缓冲：启用时，最后一个非缓冲环（长度 ≥ 3）不再借用缓冲 ——
+       省去借位首字母与归还末字母，直接浮点收尾，比标准读法少 2 字母（= 省 1 条提示）。
+       为保证解法仍可解，仅当该环长度 ≥ 3（至少留 1 个内部字母）时才浮动；
+       长度不足则不作处理，行为退化成标准读法，绝不会产出空环。 */
+    const floatIdx = (opts.floatBuffer && cycleList.length > 1 && cycleList[cycleList.length - 1].length >= 3)
+      ? cycleList.length - 1 : -1;
     for (let i = 0; i < cycleList.length; i++) {
       if (i > 0) orientLast += edgeCh.indexOf(cycleList[i - 1][cycleList[i - 1].length - 1]) - edgeCh.indexOf(cycleList[i - 1][0]);
       for (let j = 0; j < cycleList[i].length; j++) {
@@ -329,6 +335,8 @@
         if (i > 0 && (orientFlag === 1 || (orientFlag === 0 && cycleOrders[i] <= skipCycleNum))) {
           for (let k = 0; k < orientLast; k++) code = nearedge(code);
         }
+        /* 浮动缓冲：跳过最后一个环的借位(首位)与归还(末位)字母 */
+        if (i === floatIdx && (j === 0 || j === cycleList[i].length - 1)) continue;
         if (j === cycleList[i].length - 1 && cycleOrders[i] === 0) continue;
         if (j === cycleList[i].length - 1 && cycleOrders[i] <= skipCycleNum) {
           let lastcode = eglobalState[~~posChichu(code.toLowerCase()) * 2].toUpperCase();
@@ -497,7 +505,8 @@
     edgeBuffer: "A", edgeOrder: "GECIKMOQSWY",
     edgeOrientFlag: false, edgeSkip: false,
     cornerBuffer: "J", cornerOrder: "GADXWRO",
-    cornerOrientFlag: false, cornerSkip: false
+    cornerOrientFlag: false, cornerSkip: false,
+    floatBuffer: false
   };
 
   function normalize(opts) {
@@ -507,6 +516,7 @@
     o.cornerBuffer = String(o.cornerBuffer || "").toUpperCase();
     o.cornerOrder = String(o.cornerOrder || "").toUpperCase();
     o.orientation = (typeof o.orientation === "number") ? o.orientation : 0;
+    o.floatBuffer = !!(opts && opts.floatBuffer);
     return o;
   }
 
@@ -544,27 +554,29 @@
      用同一套锚点把它映射成难度分再分档，保证新旧记录落在同一把尺子上。 */
   function levelOfMem(mem) { return levelOfScore(scoreOfRaw(mem)); }
 
-  /* 难度权重（2026-09-23 重标定）
-     实测 3000 个 20 步 WCA 打乱发现：**公式条数本身几乎拉不开**——
-     total 的 p25~p95 全部落在 10~11（min 7 / max 13）。真正决定难度差异的是
-     翻色 / 扭角 / 奇偶 / 借位，故在「条数」这个第一权重之上叠加额外加权：
+  /* 难度权重（2026-09-30 按用户实战口径重标定）
+     上一版（09-23）奇偶 4.0 远高于翻色 1.5；实测复盘发现：
+     「无奇偶但带翻色编码」的打乱实际执行负担高于「带奇偶」——
+     奇偶只是末尾多一条固定公式，翻色则要 setup + 额外记忆点且打断节奏。
+     故权重对调力度，翻色首次压过奇偶：
        · 公式条数      每条 1.0（第一权重：要背多少条）
-       · 翻色 / 扭角   每条额外 +1.5（除公式本身，还要 setup 与额外记忆点）
-       · 奇偶          额外 +4.0（单独奇偶算法 + 判断奇偶的负担）
+       · 翻色 / 扭角   每条额外 +3.0（setup 与额外记忆点，打断编码节奏）
+       · 奇偶          额外 +2.5（一条固定公式，判断负担为主）
        · 借位          每处 +0.5（循环切换带来的记忆负担）
-     例：10 条公式、无翻色无奇偶 → 加权分 11；同样 10 条但带 2 条翻色 + 奇偶 → 18。 */
-  var DIFF_WEIGHTS = { flip: 1.5, parity: 4.0, borrow: 0.5 };
+     例（3000 打乱重采样标定）：11 条 + 奇偶 + 1 翻 → raw 17.5（高级）；
+     11 条 + 无奇偶 + 2 翻 → raw 18（高级，略高于前者）——与实战体感一致。 */
+  var DIFF_WEIGHTS = { flip: 3.0, parity: 2.5, borrow: 0.5 };
 
   /* 加权分 → 难度分（0~100）的分段线性映射锚点。
-     锚点取自实测分位（20/40/60/80 分位）并取整，使五档各占约 20%，
-     解决旧口径「分数全挤在 10~20、看不出层次」的问题。 */
+     锚点取自实测分位（同权重下 3000 打乱重采样：p20/p40/p60/p80 取整），
+     使五档各占约 20%，实测占比 入门19/初级19/中级19/高级23/专家21。 */
   var SCORE_ANCHORS = [
-    { raw: 7,  score: 0 },
-    { raw: 12, score: 20 },
-    { raw: 14, score: 40 },
-    { raw: 16, score: 60 },
-    { raw: 18, score: 80 },
-    { raw: 26, score: 100 }
+    { raw: 7,   score: 0 },
+    { raw: 12,  score: 20 },
+    { raw: 14,  score: 40 },
+    { raw: 16,  score: 60 },
+    { raw: 18.5, score: 80 },
+    { raw: 27,  score: 100 }
   ];
 
   /* 由难度明细算「加权分」（量纲≈条数，范围约 7~26） */

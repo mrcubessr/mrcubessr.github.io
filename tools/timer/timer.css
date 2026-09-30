@@ -134,8 +134,10 @@ body { margin: 0; }
 .tm-time {
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-weight: 800; font-size: calc(clamp(52px, 13vw, 132px) * var(--tm-time-scale)); line-height: 1;
-  letter-spacing: 2px; color: var(--fg);
+  letter-spacing: 2px; color: var(--fg); max-width: 100%;
 }
+/* ≥60s（M:SS.xx）长格式：缩小字号并收紧字距，避免窄屏/放大时撑破舞台 */
+.tm-time.is-long { font-size: calc(clamp(38px, 11vw, 96px) * var(--tm-time-scale)); letter-spacing: 1px; }
 .tm-stage.is-ready .tm-time { color: var(--green); }
 .tm-stage.is-inspect.is-warn .tm-time { color: var(--amber); }
 .tm-stage.is-inspect.is-danger .tm-time { color: var(--red); }
@@ -516,6 +518,7 @@ body { margin: 0; }
   /* 计时舞台压低，首屏能同时看到打乱与计时 */
   .tm-stage { min-height: 160px; padding: 16px 14px; }
   .tm-time { font-size: calc(clamp(46px, 17vw, 88px) * var(--tm-time-scale)); }
+  .tm-time.is-long { font-size: calc(clamp(32px, 12vw, 60px) * var(--tm-time-scale)); letter-spacing: 0; }
   .tm-confirm { padding: 10px 12px; gap: 8px; }
   .tm-confirm__btns { width: 100%; }
   .tm-confirm__btns .btn { flex: 1 1 auto; }
@@ -1030,3 +1033,21 @@ body { margin: 0; }
 }
 #tm-settings-bld-host .tm-bld-params__body { max-height: none !important; overflow: visible; }
 .tm-solve__btns .btn { min-height: 40px; }
+
+/* ---------- 练习笔记汇总 ---------- */
+.tm-notes-list { margin: 12px 0 0; max-height: 56vh; overflow-y: auto; }
+.tm-notes-grp { font-size: 12px; font-weight: 700; color: var(--brand); margin: 14px 0 6px; letter-spacing: .5px; }
+.tm-notes-grp:first-child { margin-top: 4px; }
+.tm-notes-item { font-size: 14px; line-height: 1.6; color: var(--fg); background: var(--bg-soft);
+  border: 1px solid var(--line); border-left: 3px solid var(--brand); padding: 8px 12px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
+.tm-notes-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+.tm-notes-toolbar .tm-field__k { margin: 0; }
+
+/* ---------- 三盲复盘分享海报：兜底预览层（系统分享不可用时） ---------- */
+.tm-poster { position: fixed; inset: 0; z-index: 9999; background: rgba(4,6,12,.82);
+  display: flex; align-items: center; justify-content: center; padding: 16px; overflow: auto; }
+.tm-poster__box { display: flex; flex-direction: column; gap: 10px; max-width: min(92vw, 620px); }
+.tm-poster__img { display: block; width: 100%; height: auto; border: 1px solid var(--line);
+  background: #0B0D14; max-height: 74vh; object-fit: contain; }
+.tm-poster__bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tm-poster__hint { flex: 1; min-width: 140px; font-size: 13px; color: var(--fg-3); }
