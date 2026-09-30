@@ -1069,6 +1069,12 @@
       if (e.target === modal) close();
     });
     // 键盘：空格 = 标准魔方计时器 hold-to-start（按住 500ms 后松开才开始）
+    // ←/→ = 上一式/下一式（仅在 idle/done 时生效，避免与计时器冲突；表单元素聚焦时不抢）
+    function isFormFocus(t) {
+      if (!t) return false;
+      var tag = t.tagName;
+      return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || t.isContentEditable;
+    }
     document.addEventListener('keydown', function (e) {
       if (!modal.classList.contains('is-open')) return;
       if (e.key === 'Escape') { close(); e.preventDefault(); return; }
@@ -1076,7 +1082,12 @@
       if (isSpace && !e.repeat) {
         keydownHold();
         e.preventDefault();
+        return;
       }
+      if (isFormFocus(e.target)) return;
+      if (state === 'running' || state === 'prep' || state === 'green') return;
+      if (e.key === 'ArrowLeft') { step(-1); refreshRefIfOpen(); e.preventDefault(); }
+      else if (e.key === 'ArrowRight') { step(1); refreshRefIfOpen(); e.preventDefault(); }
     });
     document.addEventListener('keyup', function (e) {
       if (!modal.classList.contains('is-open')) return;
