@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>440 公式看板 - 单式训练</title>
@@ -387,6 +388,9 @@
 
   function load(key, fb) {
     try { return JSON.parse(localStorage.getItem(key)) || fb; } catch (e) { return fb; }
+  }
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
   }
   function fmt(ms) {
     if (!isFinite(ms) || ms < 0) return '--:--.---';
