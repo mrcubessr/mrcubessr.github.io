@@ -1,0 +1,229 @@
+/* =========================================================
+   魔方先生SSR魔方训练中心 · UF/UR 练习页工作台 practice.css
+   ---------------------------------------------------------
+   对齐 tools/timer 计时器页的视觉与横版布局：
+   - 桌面 ≥1025（与侧栏模式同断点）：两栏铺满
+     左栏 = 展开图 / 打乱公式 / 练习顺序链；右栏 = 大号计时舞台 / 参考公式
+   - ≤1024（含平板竖屏 / 手机）：单栏堆叠
+   - 只使用设计令牌 var(--token)，直角风格（border-radius:0）
+   - 仅由 UF/UR 的 group 练习页加载（index 看板页不加载，互不影响）
+   加载顺序：site-nav → components → site-layout → uf/ur-common → 本文件
+   （后加载覆盖 uf-common 里硬编码的 rgba 旧色，统一收口到令牌）
+   ========================================================= */
+@import url("/assets/css/tokens.css");
+
+/* ---------- 基础 ---------- */
+[hidden] { display: none !important; }
+*, *::before, *::after { box-sizing: border-box; }
+/* uf-common.css 给 body 留了 30px 旧版留白，练习页工作台自己管留白 */
+body { margin: 0; padding: 0; }
+
+/* 练习页容器：窄屏居中限宽；宽屏随侧栏模式铺满（对齐 site-wide 的分级） */
+.pc-wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 22px 16px 56px; }
+
+/* 直角风格（与计时器页一致；本站组件默认是圆角） */
+.pc-wrap .btn, .pc-wrap .seg, .pc-wrap .seg__btn,
+.pc-wrap .input, .pc-wrap .select, .pc-wrap .badge { border-radius: 0; }
+
+/* ---------- 页头 ---------- */
+.pc-hero { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.pc-hero__title { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: .5px; color: var(--fg); }
+.pc-hero__sub { margin: 0; font-size: 13px; line-height: 1.6; color: var(--fg-3); }
+.pc-hero__side { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex-shrink: 0; }
+.pc-hero__side .btn { text-decoration: none; }
+.pc-hero__badge { flex-shrink: 0; }
+
+/* ---------- 工具栏（拿法坐标系） ---------- */
+.pc-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  padding: 10px 14px; margin-bottom: 12px;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.pc-toolbar .select { width: auto; min-width: 160px; }
+.pc-toolbar__hint { font-size: 12px; color: var(--fg-3); }
+.pc-label { flex: 0 0 auto; font-size: 12px; letter-spacing: 1px; color: var(--fg-3); }
+
+/* ---------- 两栏工作区 ---------- */
+.pc { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pc-main, .pc-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* 兼容 uf-ref.js 的 btn.closest('.entry')：根节点带 entry 类，
+   这里中和 uf-common.css 的 .entry 旧卡片外观（渐变底/描边/投影） */
+.pc.entry { background: none; border: none; box-shadow: none; padding: 0; }
+
+/* ---------- 卡片 ---------- */
+.pc-card {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.pc-card--diagram { align-items: center; justify-content: center; padding: 16px; }
+.pc-card--diagram canvas.ur-cube { width: 100%; max-width: 360px; height: auto; display: block; }
+
+/* ---------- 打乱公式 ---------- */
+.pc-formula {
+  display: block;
+  font-family: var(--font-mono, Consolas, monospace);
+  font-size: 14px; letter-spacing: 1px; line-height: 1.8;
+  color: var(--fg); background: var(--bg-soft);
+  border: 1px solid var(--line); border-left: 3px solid var(--gold);
+  padding: 10px 14px; word-break: normal; overflow-wrap: anywhere;
+}
+
+/* ---------- 练习顺序链（令牌化，覆盖 uf-common 的硬编码蓝） ---------- */
+.order-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.order-tag {
+  font-family: var(--font-mono, Consolas, monospace);
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  color: var(--brand); background: var(--brand-soft);
+  border: 1px solid var(--brand-line); border-radius: 0;
+  padding: 4px 9px;
+}
+.order-tag.current { color: var(--gold-ink); background: var(--gold-soft); border-color: var(--gold); }
+.arrow { color: var(--fg-3); font-size: 11px; }
+
+/* ---------- 大号计时舞台（uf-timer.js / ur-timer.js 注入内容） ---------- */
+.timer-block {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  min-height: 240px; padding: 26px 20px;
+  background: var(--surface); border: 2px solid var(--line);
+  cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  transition: border-color .1s linear, background-color .1s linear;
+}
+.timer-display {
+  font-family: var(--font-mono, Consolas, monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800; font-size: clamp(40px, 8vw, 72px); line-height: 1;
+  letter-spacing: 1px; color: var(--fg); text-align: center; max-width: 100%;
+}
+.timer-display[data-state="running"] { color: var(--brand); }
+.timer-display[data-state="prep"]    { color: var(--red); }
+.timer-display[data-state="green"]   { color: var(--green); }
+/* 舞台随状态联动（不支持 :has() 时仅数字变色，优雅降级） */
+.timer-block:has(.timer-display[data-state="prep"])    { border-color: var(--red); }
+.timer-block:has(.timer-display[data-state="green"])   { border-color: var(--green); background: var(--green-soft); }
+.timer-block:has(.timer-display[data-state="running"]) { border-color: var(--brand); }
+
+.timer-stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--fg-2); }
+.timer-stats b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.timer-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }
+.timer-recent-label { color: var(--fg-3); }
+.timer-recent-item {
+  font-family: var(--font-mono, Consolas, monospace);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 0;
+  padding: 2px 7px; color: var(--fg-2);
+}
+.timer-empty { color: var(--fg-3); }
+.timer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.timer-btn {
+  padding: 6px 12px; font-size: 12px; font-family: inherit; border-radius: 0;
+  background: var(--surface-2); color: var(--fg-2); border: 1px solid var(--line-2);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.timer-btn:hover { background: var(--surface-3, var(--surface-2)); color: var(--fg); border-color: var(--brand-line); }
+
+/* ---------- 参考公式面板（令牌化，覆盖 uf-common 的硬编码蓝） ---------- */
+.ref-toggle {
+  display: inline-block; align-self: flex-start; border-radius: 0;
+  background: var(--brand-soft); color: var(--brand);
+  border: 1px solid var(--brand-line); padding: 6px 12px;
+  font-size: .85rem; font-weight: 600; font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.ref-toggle:hover { border-color: var(--brand); }
+.ref-loading, .ref-error { color: var(--fg-3); font-size: 13px; padding: 4px 0; }
+.ref-error { color: var(--amber); }
+.ref-table { display: grid; grid-template-columns: 76px 1fr; border: 1px solid var(--line); }
+.ref-row { display: contents; }
+.ref-code-col {
+  padding: 7px 12px; display: flex; align-items: center;
+  font-family: var(--font-mono, Consolas, monospace); font-weight: 700;
+  color: var(--brand); background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+}
+.ref-sel-col {
+  padding: 6px 10px; position: relative;
+  background: var(--bg-soft); border-bottom: 1px solid var(--line);
+}
+.ref-row:last-child .ref-code-col,
+.ref-row:last-child .ref-sel-col { border-bottom: none; }
+.ref-sel-box {
+  width: 100%; text-align: left; border-radius: 0;
+  background: var(--surface); color: var(--fg-2);
+  border: 1px solid var(--line-2); padding: 6px 10px;
+  font-size: 12.5px; font-family: var(--font-mono, Consolas, monospace);
+  cursor: pointer; line-height: 1.5; word-break: normal;
+  transition: border-color .15s, color .15s;
+}
+.ref-sel-box:hover { border-color: var(--brand-line); color: var(--fg); }
+.ref-sel-box.ref-selected { color: var(--fg); background: var(--brand-soft); border-color: var(--brand-line); }
+.ref-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 1000;
+  background: var(--surface); border: 1px solid var(--brand-line);
+  box-shadow: var(--menu-shadow, 0 8px 24px rgba(0, 0, 0, .5));
+  max-height: 220px; overflow-y: auto; display: none;
+}
+.ref-dropdown.open { display: block; }
+.ref-opt {
+  display: block; width: 100%; text-align: left;
+  background: transparent; border: none; border-bottom: 1px solid var(--line);
+  color: var(--fg-2); font-family: var(--font-mono, Consolas, monospace);
+  font-size: 12px; padding: 7px 10px; cursor: pointer; line-height: 1.5;
+}
+.ref-opt:last-child { border-bottom: none; }
+.ref-opt:hover { background: var(--brand-soft); color: var(--fg); }
+.ref-opt.ref-hidden { display: none; }
+.ref-more-btn {
+  display: block; width: 100%; text-align: center;
+  background: transparent; border: none; border-top: 1px dashed var(--line-2);
+  color: var(--brand); font-size: 12px; padding: 6px; cursor: pointer;
+}
+.ref-empty { color: var(--fg-3); padding: 6px 10px; font-size: 13px; }
+.ref-opt-marked { color: var(--gold-ink); background: var(--gold-soft); }
+.ref-opt-marked::after { content: '【噩梦】'; margin-left: 6px; color: var(--amber); font-size: 11px; }
+.ref-opt-src { color: var(--fg-3); font-size: 11px; margin-left: 4px; }
+.ref-manual-btn {
+  display: block; width: 100%; text-align: center;
+  background: transparent; border: none; border-top: 1px dashed var(--line-2);
+  color: var(--fg-2); font-size: 12px; padding: 6px; cursor: pointer;
+}
+.ref-style-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+.ref-style-label { font-size: 13px; color: var(--fg-3); }
+.ref-style-select {
+  background: var(--surface); color: var(--fg-2); border-radius: 0;
+  border: 1px solid var(--line-2); padding: 5px 10px;
+  font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.ref-style-hint { font-size: 12px; color: var(--fg-3); }
+
+/* ---------- 桌面横版：两栏铺满（与侧栏模式同断点 1025） ---------- */
+@media (min-width: 1025px) {
+  .pc-wrap { max-width: min(100%, 1800px); padding: 20px 24px 48px; }
+  .pc {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(320px, 32%, 430px);
+    gap: 12px; align-items: start;
+  }
+  /* 计时舞台吃满右栏首屏高度，操作区始终在拇指/视线可达处 */
+  .timer-block { min-height: 300px; }
+}
+
+/* ---------- 手机端 ---------- */
+@media (max-width: 640px) {
+  .pc-wrap { padding: 16px 12px 40px; }
+  .pc-hero__title { font-size: 22px; }
+  .pc-toolbar { gap: 8px; padding: 10px 12px; }
+  .timer-block { min-height: 200px; padding: 18px 14px; }
+  .timer-display { font-size: clamp(36px, 13vw, 56px); }
+}
+
+/* ---------- 打印：练习页按需打印顺序链与公式 ---------- */
+@media print {
+  body { padding: 10px; }
+  .pc-wrap { max-width: none; padding: 0; }
+  .timer-block, .pc-toolbar, .pc-hero__side { display: none; }
+  .pc { display: block; }
+}

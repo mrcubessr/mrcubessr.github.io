@@ -79,6 +79,9 @@ $head = @'
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -92,6 +95,7 @@ $head = @'
 
 $pageTemplate = @'
 __HEAD__
+<link rel="stylesheet" href="/assets/css/practice.css">
 <nav class="site-nav" id="siteNav">
   <div class="nav-inner">
     <a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>
@@ -132,51 +136,52 @@ __HEAD__
   </div>
 </nav>
 
-<div class="header">
-  <h1>UR缓冲公式连拧专项训练</h1>
-  <div class="sub">选择你的拿法坐标系进行打乱，按练习顺序做完UR缓冲复原公式，魔方恢复复原状态。</div>
-</div>
-<a class="back-link" href="index.html">← 返回训练组总览</a>
-<div class="orientation-selector">
-  <span class="orientation-label">打乱/复原拿法坐标系</span>
-  <select id="orientationSelect">
-    <option value="white-green">白顶绿前</option>
-    <option value="yellow-red" selected>黄顶红前（默认）</option>
-    <option value="yellow-blue">黄顶蓝前</option>
-    <option value="yellow-green">黄顶绿前</option>
-    <option value="yellow-orange">黄顶橘前</option>
-  </select>
-  <span class="orientation-hint">按所选拿法坐标系打乱，按练习顺序做完复原公式，魔方恢复复原状态。</span>
-</div>
-<div class="entries">
-  <div class="entry single">
-    <div class="entry-header">
-      <span class="index">__IDX__</span>
-      <h2>__NAME__</h2>
+<div class="pc-wrap">
+  <div class="pc-hero">
+    <div>
+      <h1 class="pc-hero__title">__NAME__</h1>
+      <p class="pc-hero__sub">UR缓冲公式连拧专项训练 · 按练习顺序做完复原公式，魔方恢复复原状态</p>
     </div>
-    <div class="entry-body">
-      <div class="diagram">
+    <div class="pc-hero__side">
+      <span class="badge badge--brand pc-hero__badge">第 __IDX__ 组</span>
+      <a class="btn btn--sm btn--secondary" href="index.html">← 返回总览</a>
+    </div>
+  </div>
+
+  <div class="pc-toolbar">
+    <span class="pc-label">拿法坐标系</span>
+    <select id="orientationSelect" class="select">
+      <option value="white-green">白顶绿前</option>
+      <option value="yellow-red" selected>黄顶红前（默认）</option>
+      <option value="yellow-blue">黄顶蓝前</option>
+      <option value="yellow-green">黄顶绿前</option>
+      <option value="yellow-orange">黄顶橘前</option>
+    </select>
+    <span class="pc-toolbar__hint">按所选拿法坐标系打乱，按练习顺序做完复原公式，魔方恢复复原状态。</span>
+  </div>
+
+  <div class="pc entry">
+    <div class="pc-main">
+      <div class="pc-card pc-card--diagram">
         <canvas class="ur-cube" data-formula="__FORMULA__" data-orientation="white-green"></canvas>
       </div>
-      <div class="info-panel">
-        <div class="formula-block">
-          <span class="label">打乱公式</span>
-          <code id="scramble-formula">__FORMULA__</code>
-        </div>
-        <div>
-          <span class="label">练习顺序</span>
-        </div>
+      <div class="pc-card">
+        <span class="pc-label">打乱公式</span>
+        <code id="scramble-formula" class="pc-formula">__FORMULA__</code>
+      </div>
+      <div class="pc-card">
+        <span class="pc-label">练习顺序</span>
         <div class="order-list">
           __ORDER__
         </div>
-        <div class="timer-block" id="timer-group" data-group="__LETTER__">
-          <span class="label">计时器</span>
-        </div>
       </div>
     </div>
-    <div class="ref-formula">
-      <button type="button" class="ref-toggle">参考公式</button>
-      <div class="ref-panel" style="display:none;"></div>
+    <div class="pc-side">
+      <div class="timer-block" id="timer-group" data-group="__LETTER__"></div>
+      <div class="pc-card pc-ref">
+        <button type="button" class="ref-toggle">参考公式</button>
+        <div class="ref-panel" style="display:none;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -299,6 +304,8 @@ __CARDS__
 __FOOTER__
 <script src="/assets/js/site-nav.js"></script>
 <script src="ur-stats.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<script>SyncBoot.ready(function(){LSProvider.register({id:'scramble-ur',label:'UR 打乱训练',path:'scramble-ur.json',keys:['ur_ref_style','ur_ref_selections','ur-orientation','ur_times','ur_stats_settings']});});</script>
 </body>
 </html>
 '@
