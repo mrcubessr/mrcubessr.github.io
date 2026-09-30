@@ -1044,10 +1044,13 @@ body { margin: 0; }
 .tm-notes-toolbar .tm-field__k { margin: 0; }
 
 /* ---------- 三盲复盘分享海报：生成后恒弹的预览层 ---------- */
+/* 海报很细长（竖版），预览按「宽」铺满、纵向滚动看全；操作条 sticky 吸底，始终可点。 */
 .tm-poster { position: fixed; inset: 0; z-index: 9999; background: rgba(4,6,12,.82);
-  display: flex; align-items: center; justify-content: center; padding: 16px; overflow: auto; }
-.tm-poster__box { display: flex; flex-direction: column; gap: 10px; width: min(92vw, 620px); }
-.tm-poster__img { display: block; margin: 0 auto; width: auto; max-width: 100%; height: auto;
-  max-height: 72vh; object-fit: contain; border: 1px solid var(--line); background: var(--surface); }
-.tm-poster__bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow: auto; }
+.tm-poster__box { display: flex; flex-direction: column; gap: 8px; width: min(94vw, 560px); }
+.tm-poster__img { display: block; width: 100%; height: auto;
+  border: 1px solid var(--line); background: var(--surface); }
+.tm-poster__bar { position: sticky; bottom: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 0 4px;
+  background: linear-gradient(to top, rgba(4,6,12,.94) 62%, rgba(4,6,12,0)); }
 .tm-poster__hint { flex: 1; min-width: 140px; font-size: 13px; color: var(--fg-3); }

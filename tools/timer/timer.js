@@ -170,6 +170,7 @@
         cornerBuffer: s.bld.cornerBuffer, cornerOrder: s.bld.cornerOrder,
         cornerOrientFlag: !!s.bld.cornerOrientFlag, cornerSkip: !!s.bld.cornerSkip,
         edge: s.bld.edge, flip: s.bld.flip, corner: s.bld.corner, twist: s.bld.twist,
+        edgeRoles: s.bld.edgeRoles || null, cornerRoles: s.bld.cornerRoles || null,
         parity: typeof s.bld.parity === "number" ? s.bld.parity : 0,
         complexity: typeof s.bld.complexity === "number" ? s.bld.complexity : 0,
         difficulty: normDiff(s.bld.difficulty),
@@ -895,6 +896,7 @@
         cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
         cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
         edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
+        edgeRoles: curBld.edgeRoles || null, cornerRoles: curBld.cornerRoles || null,
         parity: curBld.parity, complexity: curBld.complexity,
         difficulty: curBld.difficulty,
         dnfReason: pendingPenalty === "DNF" ? pendingDnfReason || "other" : ""
@@ -1622,7 +1624,7 @@
      颜色同时承担信息分类：顶部品牌渐变、难度档色阶（绿→红）、
      编码类别色（棱蓝 / 翻色金 / 角绿 / 扭紫）、指标四格四色。
      内容：用时 + 难度档 + 打乱公式 + 解法编码（坐标/棱/翻色/角/扭/主记法）+ 分段指标 + 笔记。 */
-  var POSTER_W = 1080;
+  var POSTER_W = 840;
 
   /* --- 颜色工具：把 CSS 变量解析成可混算的 rgba --- */
   function posterCssVar(name, fallback) {
@@ -1748,6 +1750,51 @@
     }
     return out;
   }
+  /* 解法编码逐字着色：把字符串拆成「字符 + 角色」列表（角色跳过空格，与 codeHtml 同口径） */
+  function posterCodeItems(value, roles) {
+    var s = String(value == null ? "" : value), ri = 0, items = [];
+    for (var i = 0; i < s.length; i++) {
+      var ch = s[i];
+      if (ch === " " || ch === "　" || ch === "	") { items.push({ ch: " ", role: "" }); continue; }
+      var role = roles ? roles[ri++] : "";
+      items.push({ ch: ch, role: role });
+    }
+    return items;
+  }
+  /* 按像素宽度把字符列表折成多行（贪婪打包，遇行满即换行） */
+  function posterWrapItems(ctx, items, maxW) {
+    var lines = [], cur = [], cw = 0;
+    for (var i = 0; i < items.length; i++) {
+      var w = ctx.measureText(items[i].ch).width;
+      if (cw + w > maxW && cur.length) { lines.push(cur); cur = []; cw = 0; }
+      cur.push(items[i]); cw += w;
+    }
+    if (cur.length) lines.push(cur);
+    return lines;
+  }
+  /* 绘制一行编码（口径与题纸一致）：
+     - 普通字母 = 中性前景色（不用类别色，否则借位蓝落在棱读码的蓝底上会「隐形」）
+     - 借位 = 品牌蓝 + 柔和蓝底药丸（起新循环借的那个字母，一眼可辨）
+     - 归还 = 红 + 下划线 */
+  function posterDrawCodeLine(ctx, items, x, y, colBrand, colRed, baseColor) {
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      if (it.ch === " ") { x += ctx.measureText(" ").width; continue; }
+      var w = ctx.measureText(it.ch).width;
+      if (it.role === "borrow") {
+        ctx.save(); ctx.globalAlpha = 0.22; ctx.fillStyle = colBrand;
+        ctx.fillRect(x - 3, y - 27, w + 6, 35); ctx.restore();
+      }
+      ctx.fillStyle = it.role === "borrow" ? colBrand : it.role === "return" ? colRed : baseColor;
+      ctx.fillText(it.ch, x, y);
+      if (it.role === "return") {
+        ctx.strokeStyle = colRed; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(x, y + 7); ctx.lineTo(x + w, y + 7); ctx.stroke();
+      }
+      x += w;
+    }
+    return x;
+  }
   /* 用时显示：≥60s 用 m:ss.cc，否则 ss.cc；DNF 直接显示 DNF
      （+2 不写在时间尾巴上，改由旁边的琥珀色徽章表达，避免「1:01.20+」这种误读） */
   function posterTime(ms, pen) {
@@ -1780,9 +1827,31 @@
 
   function buildBldPosterCanvas(rec, num) {
     var b = rec.bld || {}, diff = b.difficulty || null, P = posterPalette();
-    var W = POSTER_W, PAD = 80, innerW = W - PAD * 2;
+    /* 借位/归还角色：优先用成绩里存下来的；旧成绩没有就从存储的设置重算，
+       保证海报一定能为棱/角的借位位置标上颜色（与题纸同口径）。
+       ⚠️ 必须要求 edgeOrder/cornerOrder 齐全才重算：readCodes 在空顺序串下会长时间循环
+       （旧/异常记录缺这些字段），而且顺序缺失时重算出的角色与存储编码本就对不上。
+       另加「字母数一致」校验，避免角色与编码错位标色。 */
+    var eRoles = b.edgeRoles || null, cRoles = b.cornerRoles || null;
+    function lettersLen(s) { return String(s == null ? "" : s).replace(/[^A-Za-z]/g, "").length; }
+    if ((!eRoles || !cRoles) && b.scramble && b.edgeOrder && b.cornerOrder &&
+        window.BLDEngine && window.BLDEngine.readCodes) {
+      try {
+        var ro = window.BLDEngine.readCodes(b.scramble, {
+          orientation: b.orientation | 0,
+          edgeBuffer: b.edgeBuffer, edgeOrder: b.edgeOrder,
+          edgeOrientFlag: !!b.edgeOrientFlag, edgeSkip: !!b.edgeSkip,
+          floatBuffer: !!b.floatBuffer,
+          cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
+          cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip
+        });
+        if (!eRoles && ro.edgeRoles && ro.edgeRoles.length === lettersLen(b.edge)) eRoles = ro.edgeRoles;
+        if (!cRoles && ro.cornerRoles && ro.cornerRoles.length === lettersLen(b.corner)) cRoles = ro.cornerRoles;
+      } catch (e) {}
+    }
+    var W = POSTER_W, PAD = 64, innerW = W - PAD * 2;
     var canvas = document.createElement("canvas");
-    canvas.width = W; canvas.height = 2400;
+    canvas.width = W; canvas.height = 4200;
     var ctx = canvas.getContext("2d"), y = 0;
 
     function line(color, yy, w) {
@@ -1806,6 +1875,38 @@
       var vx = PAD + 150, lines = posterWrap(ctx, value, W - PAD - vx);
       ctx.fillText(lines[0], vx, y);
       for (var i = 1; i < lines.length; i++) { y += 48; ctx.fillText(lines[i], vx, y); }
+    }
+    /* 统计格 2×N：每格「标签 + 大数值」，四色区分；用于难度构成 / 分段指标 */
+    function posterStatGrid(cells) {
+      y += 14;
+      var chH = 92, cw = (innerW - 16) / 2;
+      for (var k = 0; k < cells.length; k += 2) {
+        for (var j = 0; j < 2 && k + j < cells.length; j++) {
+          var c = cells[k + j], cxx = PAD + j * (cw + 16);
+          ctx.fillStyle = P.soft(c[2], P.isDark ? 0.14 : 0.10); ctx.fillRect(cxx, y, cw, chH);
+          ctx.fillStyle = c[2]; ctx.fillRect(cxx, y, cw, 4);
+          posterFont(ctx, 26, 500); ctx.fillStyle = P.fg3; ctx.fillText(c[0], cxx + 24, y + 42);
+          posterFont(ctx, 38, 700); ctx.fillStyle = c[2]; ctx.fillText(c[1], cxx + 24, y + 84);
+        }
+        y += chH + 14;
+      }
+      y -= 14;
+    }
+    /* 解法编码行（带借位/归还着色）：逐字按角色上色，长串自动折行。
+       role=borrow → 品牌蓝；role=return → 红 + 下划线；其余用类别色。 */
+    function kvCode(key, value, roles, color) {
+      if (!value) return;
+      y += 62;
+      posterFont(ctx, 30, 500); ctx.fillStyle = P.fg3; ctx.fillText(key, PAD, y);
+      if (color) { ctx.fillStyle = color; ctx.fillRect(PAD + 118, y - 24, 13, 13); }
+      posterFont(ctx, 34, 600);
+      var vx = PAD + 168;
+      var items = posterCodeItems(value, roles);
+      var lines = posterWrapItems(ctx, items, W - PAD - vx);
+      for (var i = 0; i < lines.length; i++) {
+        posterDrawCodeLine(ctx, lines[i], vx, y + i * 48, P.brand, P.red, P.fg);
+      }
+      if (lines.length > 1) y += (lines.length - 1) * 48;
     }
 
     /* 背景：底色 + 两处极淡的品牌/紫光晕（增加层次，浅色主题下同样成立） */
@@ -1889,7 +1990,8 @@
 
     /* 打乱公式：金 = 站点「公式 / 重点」语义色，面板 + 等宽字
        （注意：折行测量必须与绘制同字体，即先 posterMono 再 posterWrap） */
-    label("打乱公式", P.gold);
+    var scN = (b.scramble || "").trim().split(/\s+/).filter(Boolean).length;
+    label("打乱公式 · " + scN + " 步", P.gold);
     posterMono(ctx, 42, 600);
     var scrLines = posterWrapTokens(ctx, b.scramble || "（未记录打乱）", innerW - 64);
     var scrLh = 58, scrTop = y + 16, scrH = 50 + (scrLines.length - 1) * scrLh + 26;
@@ -1901,14 +2003,20 @@
     }
     y = scrTop + scrH;
 
-    /* 解法编码：按类别着色（棱=品牌蓝 / 翻色=金 / 角=绿 / 扭=紫） */
+    /* 解法编码：按类别着色（棱=品牌蓝 / 翻色=金 / 角=绿 / 扭=紫）；
+       棱/角读码逐字上色——借位=品牌蓝、归还=红+下划线（与题纸同口径）。 */
     if (b.edge || b.corner || b.flip || b.twist || diff) {
       label("解法编码", P.brand);
       kv("坐标", b.orientationLabel, P.fg2);
-      kv("棱", b.edge, P.brand);
-      kv("翻色", b.flip, P.gold);
-      kv("角", b.corner, P.green);
-      kv("扭", b.twist, P.violet);
+      var pflip = b.parityFlip || (opt.bld && opt.bld.parityFlip) || "none";
+      var parityTxt = (b.parity === 1)
+        ? (pflip === "edge" ? "奇偶带翻棱" : pflip === "corner" ? "奇偶带翻角" : "奇")
+        : "偶";
+      kv("奇偶", parityTxt, diff && diff.parityF ? P.red : P.green);
+      kvCode("棱读码", b.edge, eRoles, P.brand);
+      kv("棱翻色", b.flip, P.gold);
+      kvCode("角读码", b.corner, cRoles, P.green);
+      kv("角翻色", b.twist, P.violet);
       if (diff) {
         var nota = (window.BLDEngine && window.BLDEngine.notationOf)
           ? window.BLDEngine.notationOf(diff) : (diff.notation || "");
@@ -1916,28 +2024,50 @@
       }
     }
 
-    /* 分段指标 2×2：四格四色（记忆蓝 / 执行绿 / 记忆速度紫 / TPS 金） */
-    if (b.metrics && b.metrics.split) {
+    /* 难度构成：把难度各分量拆开陈列（条数 / 翻色 / 奇偶 / 借位 / 环数 / 浮动） */
+    if (diff && isFinite(+diff.score)) {
+      label("难度构成", P.amber);
+      var borrowTxt = (diff.borrowEdge || diff.borrowCorner)
+        ? (diff.borrowEdge + "棱/" + diff.borrowCorner + "角") : "无";
+      posterStatGrid([
+        ["棱条数", (diff.edgeF || 0) + " 条", P.brand],
+        ["翻色条数", (diff.flipF || 0) + " 条", P.gold],
+        ["角条数", (diff.cornerF || 0) + " 条", P.green],
+        ["扭角条数", (diff.twistF || 0) + " 条", P.violet],
+        ["奇偶", diff.parityF ? "奇" : "偶", diff.parityF ? P.red : P.green],
+        ["借位", borrowTxt, P.amber],
+        ["棱环数", (diff.edgeCycles || 0) + " 环", P.brand],
+        ["角环数", (diff.cornerCycles || 0) + " 环", P.green],
+        ["总条数", (diff.total || 0) + " 条", P.fg2],
+        ["浮动缓冲", b.floatBuffer ? "是" : "否", b.floatBuffer ? P.brand : P.fg3]
+      ]);
+    }
+
+    /* 分段指标：执行分段计时才展示；扩到 8 格（记忆/执行/速度/TPS/占比/每字母/整体TPS/每条） */
+    if (b.metrics && (b.metrics.split || (b.metrics.memoMs && b.metrics.execMs))) {
       var m = b.metrics;
       label("分段指标", P.violet);
-      var cells = [
-        ["记忆", fmt3(m.memoMs), P.brand], ["执行", fmt3(m.execMs), P.green],
-        ["记忆速度", (m.lettersPerMin || 0).toFixed(2) + " 字母/分", P.violet],
-        ["执行 TPS", (m.tpsExec || 0).toFixed(2), P.gold]
-      ];
-      y += 18;
-      var chH = 106, cw = (innerW - 16) / 2;
-      for (var k = 0; k < cells.length; k += 2) {
-        for (var j = 0; j < 2 && k + j < cells.length; j++) {
-          var c = cells[k + j], cxx = PAD + j * (cw + 16);
-          ctx.fillStyle = P.soft(c[2], P.isDark ? 0.14 : 0.10); ctx.fillRect(cxx, y, cw, chH);
-          ctx.fillStyle = c[2]; ctx.fillRect(cxx, y, cw, 4);
-          posterFont(ctx, 28, 500); ctx.fillStyle = P.fg3; ctx.fillText(c[0], cxx + 26, y + 46);
-          posterFont(ctx, 40, 700); ctx.fillStyle = c[2]; ctx.fillText(c[1], cxx + 26, y + 90);
-        }
-        y += chH + 14;
-      }
-      y -= 14;
+      posterStatGrid([
+        ["记忆", fmt3(m.memoMs), P.brand],
+        ["执行", fmt3(m.execMs), P.green],
+        ["记忆速度", (m.lettersPerMin || 0).toFixed(1) + " 字母/分", P.violet],
+        ["执行 TPS", (m.tpsExec || 0).toFixed(2), P.gold],
+        ["记忆占比", Math.round((m.memoRatio || 0) * 100) + "%", P.violet],
+        ["每字母耗时", (m.secPerLetter || 0).toFixed(2) + "s", P.brand],
+        ["整体 TPS", (m.tpsAll || 0).toFixed(2), P.gold],
+        ["每条耗时", (m.secPerAlg || 0).toFixed(2) + "s", P.green]
+      ]);
+    }
+
+    /* 参数设置：缓冲 / 顺序（复盘时核对自己的记法体系） */
+    if (b.edgeBuffer || b.cornerBuffer) {
+      label("参数设置", P.fg2);
+      posterStatGrid([
+        ["棱缓冲", String(b.edgeBuffer || "?"), P.brand],
+        ["棱顺序", (b.edgeOrder || "").slice(0, 12), P.brand],
+        ["角缓冲", String(b.cornerBuffer || "?"), P.green],
+        ["角顺序", (b.cornerOrder || "").slice(0, 12), P.green]
+      ]);
     }
 
     /* 练习笔记：琥珀色边条（笔记 = 待复盘项） */
