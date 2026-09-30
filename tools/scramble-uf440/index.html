@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>440 公式看板 - 单式训练</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="uf-common.css">
+<link rel="stylesheet" href="uf-stats.css">
+<style>
+  :root {
+    /* 连续调色板锚点：r=0.65 极快 → r=1.30 极慢 */
+    --c-great-a: #16a34a;  /* 深绿 */
+    --c-great-b: #4ade80;  /* 亮绿 */
+    --c-good-a:  #84cc16;  /* 黄绿 */
+    --c-good-b:  #facc15;  /* 黄 */
+    --c-mid-a:   #fbbf24;  /* 黄 */
+    --c-mid-b:   #fb923c;  /* 橙 */
+    --c-bad-a:   #f97316;  /* 橙 */
+    --c-bad-b:   #dc2626;  /* 红 */
+    --c-bad-c:   #991b1b;  /* 深红 */
+  }
+  /* 整板 grid 平铺：列数由 JS fitBoard() 动态算出（基于视口宽高），保证一屏内全部显示，无需滚动 */
+  .a4-board-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; overflow: hidden; }
+  .a4-board {
+    display: grid;
+    grid-template-columns: repeat(22, var(--a4-cell, 80px));  /* JS 覆写 cols 数 + cellSize */
+    gap: 5px;
+    margin: 8px auto 16px;     /* 居中 */
+    max-width: 100%;           /* 防止 board 超出父容器 */
+    overflow: hidden;          /* 裁掉溢出的列，杜绝左右溢出 */
+    box-sizing: border-box;
+  }
+  .a4-cell {
+    position: relative;
+    width: var(--a4-cell, 80px);
+    height: var(--a4-cell, 80px);     /* 直接由变量控制，不靠 1fr + aspect-ratio（避免列宽溢出）*/
+    border-radius: 6px;
+    border: 1px solid transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 700;
+    padding: 2px;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  /* 方块大小由 --a4-cell 控制（JS 写入），字号随之缩放 */
+  .a4-cell { font-size: calc(var(--a4-cell, 80px) * 0.26); }
+  .a4-cell .c-code { font-size: 0.62em; line-height: 1; letter-spacing: 0.5px; font-weight: 800; }
+  .a4-cell .c-ms   { font-size: 0.42em; line-height: 1; opacity: 0.95; margin-top: 6%; font-weight: 700; }
+  .a4-cell .c-n    { position: absolute; top: 8%; right: 8%; font-size: 0.36em; opacity: 0.8; font-weight: 600; }
+  .a4-cell .c-avg  { position: absolute; bottom: 8%; left: 8%; font-size: 0.36em; opacity: 0.8; font-weight: 600; }
+
+  /* t-none（未练）—— 跟随主题：深色用深灰斜纹 + 浅灰字 */
+  .a4-cell.t-none {
+    background: repeating-linear-gradient(45deg,
+      var(--surface-2, #1A2130), var(--surface-2, #1A2130) 4px,
+      var(--surface-3, #232C3E) 4px, var(--surface-3, #232C3E) 8px);
+    color: var(--fg-3, #7C8798);
+    border-color: var(--line-2, rgba(255,255,255,.18));
+    opacity: 0.85;
+  }
+
+  /* 由内联样式动态设 background / color */
+  .a4-cell.has-data { border-color: rgba(0,0,0,0.18); }
+
+  .a4-cell.t-bad  { text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
+  .a4-cell.t-warn { text-shadow: 0 1px 2px rgba(0,0,0,0.30); }
+  .a4-cell.t-great{ text-shadow: 0 1px 2px rgba(0,0,0,0.30); }
+
+  /* 组标题：两列内独立显示，左列组 1-11，右列组 12-22 */
+  .a4-group__head {
+    display: flex; align-items: baseline; gap: 10px;
+    margin: 12px 0 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--line, #e2e8f0);
+  }
+  .a4-group__head:first-child { margin-top: 4px; }
+  .a4-group__head .g-letter { font-size: 14px; font-weight: 800; color: var(--fg); }
+  .a4-group__head .g-avg { color: var(--fg-3); font-size: 11px; }
+
+  /* 顶部 KPI + 图例 + 控件，沿用 uf-dash 风格 */
+  .a4-kpis { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .a4-kpi { flex: 1 1 150px; border: 1px solid var(--line, rgba(255,255,255,.08)); border-radius: 12px;
+    padding: 10px 14px; background: var(--surface, #141826); color: var(--fg, #EEF2F8); }
+  .a4-kpi .k-label { color: var(--fg-2, #AEB8CA); font-size: 12px; font-weight: 500; }
+  .a4-kpi .k-value { font-size: 22px; font-weight: 700; color: var(--fg, #EEF2F8); }
+  .a4-controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
+  .a4-controls label { color: var(--fg-2, #AEB8CA); font-size: 13px; margin-right: 6px; font-weight: 500; }
+  .a4-controls select {
+    padding: 5px 10px; border-radius: 8px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+  }
+  .a4-controls select:focus { outline: 2px solid var(--brand, #5B8DEF); outline-offset: 1px; }
+  .a4-controls select option { background: var(--surface, #141826); color: var(--fg, #EEF2F8); }
+
+  /* 顶部色带图例（连续渐变条） */
+  .a4-grad {
+    position: relative;
+    height: 18px;
+    border-radius: 9px;
+    margin: 10px 0 4px;
+    background: linear-gradient(to right,
+        var(--c-great-a) 0%,
+        var(--c-great-b) 18%,
+        var(--c-good-a)  40%,
+        var(--c-good-b)  58%,
+        var(--c-mid-b)   78%,
+        var(--c-bad-a)   90%,
+        var(--c-bad-c)   100%);
+  }
+  .a4-grad-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--fg-2, #AEB8CA); margin-top: 2px; font-weight: 500; }
+  .a4-grad-ticks { position: relative; height: 16px; margin-top: 4px; }
+  .a4-grad-ticks span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--fg-2, #AEB8CA); font-weight: 500; }
+
+  .a4-top { margin: 14px 0 20px; }
+  .a4-top__list { display: flex; gap: 10px; flex-wrap: wrap; }
+  .a4-top__item { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    border-radius: 10px; padding: 8px 12px; background: var(--surface, #141826); text-decoration: none; color: var(--fg, #EEF2F8); font-weight: 500; }
+  .a4-top__rank { font-weight: 800; color: var(--red, #F87171); }
+
+  /* 练习浮层：紧凑型，无展开图、无滚动；颜色全部取 token（兼容浅/深主题） */
+  .a4-modal {
+    position: fixed; inset: 0;
+    background: rgba(2, 6, 23, 0.65);
+    display: none; align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 18px;
+  }
+  .a4-modal.is-open { display: flex; }
+  .a4-modal__box {
+    width: min(720px, 96vw);
+    max-height: 92vh;
+    background: var(--surface, #141826);
+    color: var(--fg, #EEF2F8);
+    border: 1px solid var(--line-2, rgba(255,255,255,.14));
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .a4-modal__bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line, rgba(255,255,255,.08));
+    background: var(--surface-2, #1A2130);
+  }
+  .a4-modal__navbtn {
+    border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px;
+    font-weight: 600;
+  }
+  .a4-modal__navbtn:hover { background: var(--brand-soft, rgba(91,141,239,.22)); border-color: var(--brand-line, rgba(91,141,239,.5)); }
+  .a4-modal__select {
+    flex: 1; min-width: 0;
+    padding: 4px 8px; border-radius: 6px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+    font-size: 14px; font-weight: 700;
+  }
+  .a4-modal__select:focus { outline: 2px solid var(--brand, #5B8DEF); outline-offset: 1px; }
+  .a4-modal__select option { background: var(--surface, #141826); color: var(--fg, #EEF2F8); }
+  .a4-modal__spacer { flex: 0 0 8px; }
+  .a4-modal__hint { color: var(--fg-2, #AEB8CA); font-size: 12px; margin-right: 4px; font-weight: 500; }
+  .a4-modal__close {
+    border: 1px solid transparent; background: transparent; color: var(--fg, #EEF2F8);
+    font-size: 22px; line-height: 1; cursor: pointer; padding: 0 8px;
+    border-radius: 6px;
+  }
+  .a4-modal__close:hover { color: #fff; background: var(--red-soft, rgba(248,113,113,.18)); border-color: var(--red, #F87171); }
+
+  .a4-modal__body {
+    padding: 14px 18px 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    overflow: auto;
+  }
+  .a4-modal__code {
+    font-size: 24px; font-weight: 800; letter-spacing: 2px; color: var(--fg, #EEF2F8);
+  }
+  .a4-modal__alg {
+    width: 100%;
+    text-align: center;
+    font-family: var(--font-mono, monospace);
+    font-size: 18px; line-height: 1.5;
+    color: var(--fg, #EEF2F8); padding: 4px 0 8px;
+    word-break: break-word;
+    background: var(--surface-2, #1A2130);
+    border-radius: 8px;
+  }
+  .a4-modal__timer {
+    width: 100%;
+    text-align: center;
+    font-family: var(--font-mono, monospace);
+    font-size: 72px; font-weight: 900; line-height: 1;
+    padding: 22px 0;
+    border-radius: 12px;
+    background: #1e293b;        /* 深蓝灰底，对比度 12.5:1 */
+    color: #f8fafc;             /* 浅色文字 */
+    cursor: pointer;
+    user-select: none;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    transition: background 150ms ease, color 150ms ease;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+  }
+  .a4-modal__timer[data-state="prep"] {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(120, 0, 0, 0.55);
+    border-color: #991b1b;
+    animation: a4-prep-pulse 1s ease-in-out infinite;
+  }
+  .a4-modal__timer[data-state="green"] {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 60, 20, 0.55);
+    border-color: #15803d;
+  }
+  .a4-modal__timer[data-state="running"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(120, 40, 0, 0.55);
+    border-color: #ea580c;
+  }
+  .a4-modal__timer[data-state="done"] {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 60, 20, 0.55);
+    border-color: #15803d;
+  }
+  @keyframes a4-prep-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }
+    50%      { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+  }
+  .a4-modal__summary {
+    font-size: 13px; color: var(--fg-2, #AEB8CA);
+    text-align: center;
+  }
+  .a4-modal__summary b { color: var(--fg, #EEF2F8); font-size: 16px; }
+  .a4-modal__actions { display: flex; gap: 8px; margin-top: 4px; }
+  .a4-modal__actions button {
+    padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+    cursor: pointer; font-size: 12px; font-weight: 600;
+  }
+  .a4-modal__actions button:hover { background: var(--brand-soft, rgba(91,141,239,.22)); border-color: var(--brand-line, rgba(91,141,239,.5)); }
+  .a4-modal__history {
+    width: 100%;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    font-size: 12px; color: var(--fg-2, #AEB8CA);
+    max-height: 100px; overflow: auto;
+    padding-top: 6px; border-top: 1px dashed var(--line, rgba(255,255,255,.08));
+  }
+  .a4-modal__history .sh-item {
+    padding: 2px 8px; border-radius: 6px;
+    background: var(--brand-soft, rgba(91,141,239,.18));
+    color: var(--fg, #EEF2F8);
+    font-family: var(--font-mono, monospace);
+    font-weight: 600;
+  }
+  /* 参考公式块：与连拧页 uf-common.css 共享类，但 modal 内需要适配左右宽度 */
+  .a4-modal__body .a4-ref-block { margin: 0; padding: 0; width: 100%; border: none; }
+  .a4-modal__body .ref-toggle {
+    background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
+    border: 1px solid var(--line-2, rgba(255,255,255,.18)); border-radius: 6px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    width: 100%; text-align: center; font-family: inherit;
+  }
+  .a4-modal__body .ref-toggle:hover { background: var(--brand-soft, rgba(91,141,239,.22)); border-color: var(--brand-line, rgba(91,141,239,.5)); }
+  .a4-modal__body .ref-panel { margin-top: 8px; }
+  .a4-modal__body .ref-loading,
+  .a4-modal__body .ref-error { padding: 8px; text-align: center; }
+  .a4-modal__body .ref-table { font-size: 12px; }
+  .a4-modal__body .ref-style-select { font-size: 12px; }
+</style>
+</head>
+<body data-nav="scramble-uf440">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<div class="header">
+  <h1>440 公式看板 · 单式训练</h1>
+  <div class="sub">连拧拆成单式：每条公式独立计时（每次训练连做 3 次，取三连均速）。颜色越红越慢，优先练「不合格 / 需关注」。</div>
+</div>
+<a class="back-link" href="../scramble-uf/index.html">← 返回 UF 连拧训练组总览</a>
+
+<div class="uf-dash">
+  <div class="uf-dash__head">
+    <span class="uf-dash__title">训练总览</span>
+    <span class="uf-dash__std">浮动基准（已练公式 <span id="a4-bench-metric">三连均</span> 中位数）<b id="a4-bench">--</b></span>
+  </div>
+  <div class="a4-kpis" id="a4-kpis"></div>
+  <div class="a4-grad" aria-hidden="true"></div>
+  <div class="a4-grad-ticks" id="a4-grad-ticks">
+    <span style="left:0%">0.65×</span>
+    <span style="left:18%">0.85× 优秀</span>
+    <span style="left:40%">0.95× 良好</span>
+    <span style="left:58%">1.00× 基准</span>
+    <span style="left:78%">1.10×</span>
+    <span style="left:90%">1.15× 需关注</span>
+    <span style="left:100%">1.30×+ 不合格</span>
+  </div>
+  <div class="a4-controls">
+    <span><label for="a4-metric">指标口径</label>
+      <select id="a4-metric">
+        <option value="session">最近三连均</option>
+        <option value="allavg">全部平均</option>
+        <option value="best">最快单次</option>
+      </select>
+    </span>
+    <span><label for="a4-sort">排序</label>
+      <select id="a4-sort">
+        <option value="group">按组顺序</option>
+        <option value="slow">最慢优先</option>
+      </select>
+    </span>
+    <span><label for="a4-filter">筛选</label>
+      <select id="a4-filter">
+        <option value="all">全部公式</option>
+        <option value="todo">只看未练</option>
+        <option value="weak">只看需关注+不合格</option>
+      </select>
+    </span>
+  </div>
+</div>
+
+<div class="a4-top" id="a4-top" hidden>
+  <div class="uf-dash__head"><span class="uf-dash__title">🎯 最慢 TOP 10 · 建议重点练习</span></div>
+  <div class="a4-top__list" id="a4-top-list"></div>
+</div>
+
+<div id="a4-groups"></div>
+
+<!-- 练习浮层：紧凑型，仅显示计时器与公式（无展开图、无多余滚动） -->
+<div class="a4-modal" id="a4-modal" role="dialog" aria-modal="true" aria-label="单式练习">
+  <div class="a4-modal__box a4-modal__box--compact">
+    <div class="a4-modal__bar">
+      <button type="button" class="a4-modal__navbtn" id="a4-modal-prev" title="上一式">←</button>
+      <select id="a4-modal-select" class="a4-modal__select" aria-label="选择公式"></select>
+      <button type="button" class="a4-modal__navbtn" id="a4-modal-next" title="下一式">→</button>
+      <span class="a4-modal__spacer"></span>
+      <span class="a4-modal__hint">按住空格 0.5s 后松开开始</span>
+      <button type="button" class="a4-modal__close" id="a4-modal-close" aria-label="关闭">×</button>
+    </div>
+    <div class="a4-modal__body">
+      <div class="a4-modal__code" id="a4-modal-code">--</div>
+      <div class="a4-modal__alg" id="a4-modal-alg">加载中…</div>
+      <div class="a4-modal__timer" id="a4-modal-timer" data-state="idle">0.000</div>
+      <div class="a4-modal__summary" id="a4-modal-summary" hidden></div>
+      <div class="a4-modal__actions">
+        <button type="button" id="a4-modal-del">删除最近一次</button>
+        <button type="button" id="a4-modal-clear">清空该式</button>
+      </div>
+      <!-- 参考公式（与连拧页 uf-ref.js 一致的存储 / 风格 / 下拉 / 手动输入） -->
+      <div class="ref-formula a4-ref-block">
+        <button type="button" class="ref-toggle" id="a4-ref-toggle">📖 参考公式</button>
+        <div class="ref-panel" id="a4-ref-panel" style="display:none"></div>
+      </div>
+      <div class="a4-modal__history" id="a4-modal-history"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="alg440-data.js"></script>
+<script>
+(function () {
+  'use strict';
+  var TIMES_KEY = 'alg440_times';
+  var SESSIONS_KEY = 'alg440_sessions';
+
+  function load(key, fb) {
+    try { return JSON.parse(localStorage.getItem(key)) || fb; } catch (e) { return fb; }
+  }
+  function fmt(ms) {
+    if (!isFinite(ms) || ms < 0) return '--:--.---';
+    var total = Math.round(ms);
+    var min = Math.floor(total / 60000);
+    var sec = Math.floor((total % 60000) / 1000);
+    var mill = total % 1000;
+    return (min > 0 ? min + ':' : '') + (min > 0 ? String(sec).padStart(2, '0') : String(sec)) + '.' + String(mill).padStart(3, '0');
+  }
+  function avg(a) {
+    if (!a || !a.length) return NaN;
+    return a.reduce(function (x, y) { return x + y; }, 0) / a.length;
+  }
+  function median(a) {
+    if (!a.length) return NaN;
+    var s = a.slice().sort(function (x, y) { return x - y; });
+    var m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
+
+  var times = load(TIMES_KEY, {});
+  var sessions = load(SESSIONS_KEY, {});
+  var metricMode = 'session';
+  var sortMode = 'group';
+  var filterMode = 'all';
+
+  // 老数据每项是 [t1,t2,t3]，新数据每项是单值（三连均）
+  function normalizeSessions(arr) {
+    if (!arr || !arr.length) return [];
+    var out = [];
+    for (var i = 0; i < arr.length; i++) {
+      var it = arr[i];
+      if (Array.isArray(it)) {
+        if (!it.length) continue;
+        out.push(it.reduce(function (a, b) { return a + b; }, 0) / it.length);
+      } else if (typeof it === 'number' && isFinite(it)) {
+        out.push(it);
+      }
+    }
+    return out;
+  }
+
+  // 每条公式: {n, best, allavg, lastSession(三连均 or NaN), metric()}
+  function statsOf(code) {
+    var t = times[code] || [];
+    var s = normalizeSessions(sessions[code]);
+    var st = {
+      n: t.length,
+      best: t.length ? Math.min.apply(null, t) : NaN,
+      allavg: avg(t),
+      session: s.length ? s[s.length - 1] : NaN
+    };
+    st.metric = function () {
+      if (metricMode === 'allavg') return st.allavg;
+      if (metricMode === 'best') return st.best;
+      return st.session;
+    };
+    return st;
+  }
+
+  function tierOf(metric, bench) {
+    if (!isFinite(metric)) return 't-none';
+    if (!isFinite(bench) || bench <= 0) return 't-good';
+    var r = metric / bench;
+    if (r <= 0.85) return 't-great';
+    if (r <= 1.00) return 't-good';
+    if (r <= 1.15) return 't-warn';
+    return 't-bad';
+  }
+
+  // 根据当前 dataset 的 min/max 自适应映射区间；保证绿→黄→红覆盖完整
+  function colorByRatio(r, range) {
+    if (!isFinite(r)) return { bg: '#e2e8f0', fg: '#64748b', tier: 't-none' };
+    var lo = (range && isFinite(range.lo)) ? range.lo : 0.55;
+    var hi = (range && isFinite(range.hi)) ? range.hi : 1.45;
+    var t = Math.max(0, Math.min(1, (r - lo) / (hi - lo))); // 0..1
+    // 多段色锚点（按 t 升序）
+    var stops = [
+      { at: 0.00, c: [22, 163, 74] },   // 深绿 #16a34a
+      { at: 0.25, c: [74, 222, 128] },  // 亮绿 #4ade80
+      { at: 0.40, c: [132, 204, 22] },  // 黄绿 #84cc16
+      { at: 0.55, c: [250, 204, 21] },  // 黄   #facc15
+      { at: 0.70, c: [251, 146, 60] },  // 橙   #fb923c
+      { at: 0.85, c: [220, 38, 38] },   // 红   #dc2626
+      { at: 1.00, c: [127, 29, 29] }    // 深红 #7f1d1d
+    ];
+    var i = 0;
+    while (i < stops.length - 1 && t > stops[i + 1].at) i++;
+    var s0 = stops[i], s1 = stops[Math.min(i + 1, stops.length - 1)];
+    var local = s1.at === s0.at ? 0 : (t - s0.at) / (s1.at - s0.at);
+    var rgbv = [0, 1, 2].map(function(k){
+      return Math.round(s0.c[k] + (s1.c[k] - s0.c[k]) * local);
+    });
+    var bg = 'rgb(' + rgbv.join(',') + ')';
+    var lum = (0.299 * rgbv[0] + 0.587 * rgbv[1] + 0.114 * rgbv[2]) / 255;
+    var fg = lum > 0.62 ? '#1f2937' : '#ffffff';
+    var tier;
+    if (r <= 0.85) tier = 't-great';
+    else if (r <= 1.00) tier = 't-good';
+    else if (r <= 1.15) tier = 't-warn';
+    else tier = 't-bad';
+    return { bg: bg, fg: fg, tier: tier, r: r };
+  }
+
+  // 基于当前已练公式的 r 值，取 5%/95% 分位 → 让色彩铺满整个调色板
+  function colorRange(practicedStats, benchRef) {
+    var benchLocal = benchRef;
+    var rs = practicedStats
+      .map(function(c){ var m = c.metric(); return (isFinite(m) && isFinite(benchLocal) && benchLocal > 0) ? m / benchLocal : NaN; })
+      .filter(isFinite)
+      .sort(function(a,b){ return a-b; });
+    if (rs.length < 3) return { lo: 0.55, hi: 1.45 };
+    var lo = rs[Math.floor(rs.length * 0.05)];
+    var hi = rs[Math.floor(rs.length * 0.95)];
+    // 收紧一点，避免极端值拉太宽；保证区间宽 ≥ 0.4
+    var span = Math.max(0.4, hi - lo);
+    var mid = (lo + hi) / 2;
+    return { lo: Math.max(0.3, mid - span / 2), hi: Math.min(2.0, mid + span / 2) };
+  }
+
+  function render() {
+    var all = window.ALG440.all;
+    var groups = window.ALG440.groups;
+    var order = window.ALG440.groupOrder;
+
+    var stats = {};
+    all.forEach(function (c) { stats[c] = statsOf(c); });
+
+    // benchmark: 已练公式的当前口径中位数
+    var practiced = all.filter(function (c) { return stats[c].n > 0 && isFinite(stats[c].metric()); });
+    var bench = median(practiced.map(function (c) { return stats[c].metric(); }));
+    document.getElementById('a4-bench').textContent = fmt(bench);
+    document.getElementById('a4-bench-metric').textContent =
+      metricMode === 'session' ? '三连均' : (metricMode === 'best' ? '最快' : '全部均');
+
+    // KPI
+    var totalN = 0;
+    all.forEach(function (c) { totalN += stats[c].n; });
+    var weak = all.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-bad'; }).length;
+    var warn = all.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-warn'; }).length;
+    document.getElementById('a4-kpis').innerHTML =
+      '<div class="a4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + practiced.length + ' / ' + all.length + '</div></div>' +
+      '<div class="a4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
+      '<div class="a4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
+      '<div class="a4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
+
+    // TOP10 最慢
+    var ranked = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+    var top = ranked.slice(0, 10);
+    var topBox = document.getElementById('a4-top');
+    if (top.length) {
+      topBox.hidden = false;
+      document.getElementById('a4-top-list').innerHTML = top.map(function (c, i) {
+        return '<a class="a4-top__item" href="train.html?alg=' + c + '">' +
+          '<span class="a4-top__rank">#' + (i + 1) + '</span><b>' + c + '</b>' +
+          '<span style="color:var(--fg-3);font-size:12px">' + fmt(stats[c].metric()) + '</span></a>';
+      }).join('');
+    } else {
+      topBox.hidden = true;
+    }
+
+    // 组装显示列表
+    var list = [];
+    if (sortMode === 'slow') {
+      list = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+    } else {
+      list = all.slice();
+    }
+    if (filterMode === 'todo') list = list.filter(function (c) { return stats[c].n === 0; });
+    if (filterMode === 'weak') {
+      list = list.filter(function (c) {
+        var t = tierOf(stats[c].metric(), bench);
+        return stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
+      });
+    }
+
+    // 自适应映射区间（让色彩覆盖完整的绿→红调色板）
+    var practicedStats = all.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
+    var range = colorRange(practicedStats, bench);
+
+    // 平铺一列流（所有 440 块放进单个 grid，行列对齐等）
+    var cells;
+    if (sortMode === 'slow') {
+      cells = list.map(function (c) { return { c: c }; });
+    } else {
+      cells = [];
+      order.forEach(function (g) {
+        var codes = window.ALG440.groups[g].filter(function (c) { return list.indexOf(c) >= 0; });
+        if (!codes.length) return;
+        codes.forEach(function (c) { cells.push({ c: c }); });
+      });
+    }
+
+    var boardHtml = '<div class="a4-board-wrap"><div class="a4-board">' +
+      cells.map(function (it) { return cellHtml(it, range); }).join('') + '</div></div>';
+
+    document.getElementById('a4-groups').innerHTML =
+      boardHtml || '<div class="uf-empty">没有符合筛选条件的公式。</div>';
+
+    // 更新顶部色带刻度（用真实映射区间显示）
+    var ticks = document.getElementById('a4-grad-ticks');
+    if (ticks && range) {
+      ticks.innerHTML =
+        '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
+        '<span style="left:25%">' + (range.lo + (range.hi - range.lo) * 0.25).toFixed(2) + '×</span>' +
+        '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
+        '<span style="left:75%">' + (range.lo + (range.hi - range.lo) * 0.75).toFixed(2) + '×</span>' +
+        '<span style="left:100%">' + range.hi.toFixed(2) + '×</span>';
+    }
+
+    function cellHtml(it, range) {
+      if (it.gapBefore) {
+        return '';
+      }
+      var c = it.c;
+      var st = stats[c];
+      var m = st.metric();
+      var r = isFinite(m) && isFinite(bench) && bench > 0 ? m / bench : NaN;
+      var col = colorByRatio(r, range);
+      var title = st.n
+        ? (c + ' · ' + fmt(m) + ' · ' + st.n + ' 次 · r=' + (isFinite(r) ? r.toFixed(2) : '--') + '× 基准')
+        : (c + ' · 未练习');
+      var bg = col.bg;
+      var fg = col.fg;
+      var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
+      return '<a class="a4-cell ' + klass + '" data-alg="' + c + '" ' +
+        'style="background:' + bg + ';color:' + fg + '" title="' + title + '">' +
+        '<span class="c-code">' + c + '</span>' +
+        '<span class="c-ms">' + (st.n ? fmt(m) : '--') + '</span>' +
+        '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
+        '</a>';
+    }
+  }
+
+  document.getElementById('a4-metric').addEventListener('change', function () {
+    metricMode = this.value; render(); if (window.__uf440Fit) window.__uf440Fit();
+  });
+  document.getElementById('a4-sort').addEventListener('change', function () {
+    sortMode = this.value; render(); if (window.__uf440Fit) window.__uf440Fit();
+  });
+  document.getElementById('a4-filter').addEventListener('change', function () {
+    filterMode = this.value; render(); if (window.__uf440Fit) window.__uf440Fit();
+  });
+
+  render();
+  if (window.__uf440Fit) window.__uf440Fit();
+
+  // === 练习浮层：紧凑计时器 + 公式下拉，无展开图、无滚动 ===
+  (function () {
+    var ALL = window.ALG440.all;
+    var modal = document.getElementById('a4-modal');
+    var select = document.getElementById('a4-modal-select');
+    var prevBtn = document.getElementById('a4-modal-prev');
+    var nextBtn = document.getElementById('a4-modal-next');
+    var closeBtn = document.getElementById('a4-modal-close');
+    var codeEl = document.getElementById('a4-modal-code');
+    var algEl = document.getElementById('a4-modal-alg');
+    var timerEl = document.getElementById('a4-modal-timer');
+    var summaryEl = document.getElementById('a4-modal-summary');
+    var delBtn = document.getElementById('a4-modal-del');
+    var clearBtn = document.getElementById('a4-modal-clear');
+    var historyEl = document.getElementById('a4-modal-history');
+
+    var currentCode = '';
+    var variantAlg = '';   // 当前变体公式字符串
+    var state = 'idle';    // idle | prep | green | running | done
+    var startTs = 0;
+    var tickHandle = 0;
+    var prepTimer = 0;     // 500ms 内未到 green 就松开 = 取消
+    var variantMap = {};   // code -> [alg, alg, ...]
+
+    function fmt(ms) {
+      if (!isFinite(ms) || ms < 0) return '--.--';
+      var total = Math.round(ms);
+      var sec = Math.floor(total / 1000);
+      var mill = total % 1000;
+      return sec + '.' + String(mill).padStart(3, '0');
+    }
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 填充下拉
+    function fillSelect() {
+      var html = '';
+      window.ALG440.groupOrder.forEach(function (g) {
+        html += '<optgroup label="' + g + ' 组">';
+        window.ALG440.groups[g].forEach(function (c) {
+          html += '<option value="' + c + '">' + c + '</option>';
+        });
+        html += '</optgroup>';
+      });
+      select.innerHTML = html;
+    }
+
+    // 加载变体公式（与 train.html 共用同一 JSON）
+    function loadVariants() {
+      return fetch('../scramble-uf/edgeAlgToInfo.json')
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .catch(function () {
+          return fetch('https://blddb.net/assets/json/edgeAlgToInfo.json').then(function (r) { return r.json(); });
+        })
+        .then(function (data) {
+          ALL.forEach(function (code) {
+            variantMap[code] = data['A' + code] || [code];
+          });
+        });
+    }
+
+    function pushTimes(ms) {
+      var t = load(TIMES_KEY, {});
+      if (!t[currentCode]) t[currentCode] = [];
+      t[currentCode].push(ms);
+      save(TIMES_KEY, t);
+      var s = load(SESSIONS_KEY, {});
+      if (!s[currentCode]) s[currentCode] = [];
+      s[currentCode] = normalizeSessions(s[currentCode]);
+      s[currentCode].push(ms);
+      save(SESSIONS_KEY, s);
+    }
+
+    function renderTimer() {
+      if (state === 'running') {
+        timerEl.textContent = fmt(performance.now() - startTs);
+      }
+    }
+
+    function startTimer() {
+      if (state === 'running') return;
+      state = 'running';
+      startTs = performance.now();
+      timerEl.dataset.state = 'running';
+      summaryEl.hidden = true;
+      tickHandle = setInterval(renderTimer, 50);
+    }
+    function stopTimer() {
+      if (state !== 'running') return;
+      clearInterval(tickHandle);
+      var total = performance.now() - startTs;
+      var avg = total / 3;
+      pushTimes(avg);
+      state = 'done';
+      timerEl.dataset.state = 'done';
+      timerEl.textContent = fmt(avg);
+      summaryEl.hidden = false;
+      summaryEl.innerHTML =
+        '总时长 <b>' + fmt(total) + '</b>　÷ 3 = 单式均速 <b>' + fmt(avg) + '</b>';
+      refreshHistory();
+      // 通知父看板刷新
+      try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
+      render();
+      if (window.__uf440Fit) window.__uf440Fit();
+    }
+    function resetTimer() {
+      clearInterval(tickHandle);
+      clearTimeout(prepTimer);
+      state = 'idle';
+      timerEl.dataset.state = 'idle';
+      timerEl.textContent = '0.000';
+      summaryEl.hidden = true;
+    }
+
+    // === 标准魔方计时器 hold-to-start 机制（与 train.html 一致）===
+    // 按下空格 → 红色 prep 状态；按住 500ms 后变绿色 → 松开立即开始
+    // 不足 500ms 松开 → 取消；计时中再按空格 → 停止
+    function keydownHold() {
+      if (state === 'running') { stopTimer(); return; }
+      if (state === 'prep' || state === 'green') {
+        clearTimeout(prepTimer);
+        return; // 长按中保持
+      }
+      // idle / done → 进入 prep
+      clearTimeout(prepTimer);
+      state = 'prep';
+      timerEl.dataset.state = 'prep';
+      timerEl.textContent = '按住';
+      prepTimer = setTimeout(function () {
+        if (state === 'prep') {
+          state = 'green';
+          timerEl.dataset.state = 'green';
+          timerEl.textContent = '松开';
+        }
+      }, 500);
+    }
+    function keyupHold() {
+      clearTimeout(prepTimer);
+      if (state === 'green') { startTimer(); return; }
+      // prep（不足 500ms）→ 取消
+      if (state === 'prep') { resetTimer(); return; }
+    }
+
+    // ===== 参考公式（移植自 scramble-uf/uf-ref.js，按单 code 适配） =====
+    var refStyles = {
+      info:      { url: '../scramble-uf/edgeAlgToInfo.json',          backup: 'https://blddb.net/assets/json/edgeAlgToInfo.json' },
+      manmade:   { url: '../scramble-uf/edgeAlgToInfoManmade.json',   backup: 'https://blddb.net/assets/json/edgeAlgToInfoManmade.json' },
+      nightmare: { url: '../scramble-uf/edgeAlgToNightmare.json',     backup: 'https://blddb.net/assets/json/edgeAlgToNightmare.json' }
+    };
+    var REF_STYLE_KEY = 'uf_ref_style';
+    var REF_SEL_KEY = 'uf_ref_selections';
+    var refAlgCache = {};
+    var refDataPromises = {};
+    function refGetStyle() {
+      try { return localStorage.getItem(REF_STYLE_KEY) || 'info'; } catch (e) { return 'info'; }
+    }
+    function refSetStyle(s) { try { localStorage.setItem(REF_STYLE_KEY, s); } catch (e) {} }
+    function refLoadSelections() {
+      try { return JSON.parse(localStorage.getItem(REF_SEL_KEY)) || {}; } catch (e) { return {}; }
+    }
+    function refSaveSelections(s) { try { localStorage.setItem(REF_SEL_KEY, JSON.stringify(s)); } catch (e) {} }
+    function refEsc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function refGetGroup() {
+      // 从当前 code 推断所在组（如 CE → C 组）
+      var m = currentCode.match(/^[A-Za-z]/);
+      return m ? m[0].toUpperCase() : '';
+    }
+    function refLoadStyleData(style) {
+      if (refAlgCache[style]) return Promise.resolve(refAlgCache[style]);
+      if (!refDataPromises[style]) {
+        var src = refStyles[style];
+        if (!src) return Promise.reject(new Error('未知风格：' + style));
+        refDataPromises[style] = fetch(src.url)
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (json) { refAlgCache[style] = json; return json; })
+          .catch(function () {
+            refDataPromises[style] = null;
+            return fetch(src.backup).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+              .then(function (json) { refAlgCache[style] = json; return json; });
+          })
+          .catch(function (err) { refDataPromises[style] = null; throw err; });
+      }
+      return refDataPromises[style];
+    }
+    function refBuildItems(style, code, data) {
+      var items = [];
+      var key = 'A' + code;   // JSON key 是 'A' + code（如 'CE' → 'ACE'）
+      if (style === 'manmade') {
+        var man = data[key];
+        if (Array.isArray(man)) {
+          man.forEach(function (pair) {
+            var algList = (pair && pair[0]) ? pair[0] : [];
+            var srcList = (pair && pair[1]) ? pair[1] : [];
+            algList.forEach(function (alg, idx) {
+              items.push({ text: String(alg), source: srcList[idx] ? String(srcList[idx]) : '' });
+            });
+          });
+        }
+        return items;
+      }
+      if (style === 'nightmare') {
+        var nmMap = refAlgCache['nightmare'];
+        var nm = nmMap ? nmMap[key] : undefined;
+        var infoData = refAlgCache['info'];
+        var base = (infoData && Array.isArray(infoData[key])) ? infoData[key] : [];
+        base.forEach(function (alg) {
+          items.push({ text: String(alg), marked: typeof nm === 'string' && nm === alg });
+        });
+        return items;
+      }
+      var list = data[key];
+      if (Array.isArray(list)) list.forEach(function (alg) { items.push({ text: String(alg) }); });
+      return items;
+    }
+    function refRenderPanel() {
+      var panel = document.getElementById('a4-ref-panel');
+      if (!panel) return;
+      var style = refGetStyle();
+      panel.innerHTML = '<div class="ref-loading">加载中…</div>';
+      var code = currentCode;
+      var group = refGetGroup();
+      var dataPromise = (style === 'nightmare')
+        ? refLoadStyleData('nightmare').then(function () { return refLoadStyleData('info'); })
+        : refLoadStyleData(style);
+      dataPromise.then(function (data) {
+        var sels = refLoadSelections();
+        var gSel = sels[group] || {};
+        var saved = gSel[code] || '';
+        var items = refBuildItems(style, code, data);
+        var html = '';
+        html += '<div class="ref-style-bar">'
+          + '<span class="ref-style-label">公式风格</span>'
+          + '<select class="ref-style-select" id="a4-ref-style">'
+          + '<option value="info"' + (style === 'info' ? ' selected' : '') + '>标准</option>'
+          + '<option value="manmade"' + (style === 'manmade' ? ' selected' : '') + '>人造</option>'
+          + '<option value="nightmare"' + (style === 'nightmare' ? ' selected' : '') + '>噩梦</option>'
+          + '</select>'
+          + '<span class="ref-style-hint">切换风格后自动更新</span>'
+          + '</div>';
+        html += '<div class="ref-table">';
+        html += '<div class="ref-row">';
+        html += '<div class="ref-code-col">' + refEsc(code) + '</div>';
+        html += '<div class="ref-sel-col">';
+        html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + '" data-code="' + refEsc(code) + '">' + (saved ? refEsc(saved) : '点击选择公式') + '</button>';
+        html += '<div class="ref-dropdown" data-code="' + refEsc(code) + '">';
+        if (!items.length) {
+          html += '<div class="ref-empty">该编码暂无变体，可手动输入</div>';
+        } else {
+          items.forEach(function (item, idx) {
+            var cls = 'ref-opt' + (idx >= 5 ? ' ref-hidden' : '');
+            if (item.marked) cls += ' ref-opt-marked';
+            var label = refEsc(item.text);
+            if (item.source) label += '<span class="ref-opt-src">（' + refEsc(item.source) + '）</span>';
+            html += '<button type="button" class="' + cls + '" data-alg="' + refEsc(item.text) + '">' + label + '</button>';
+          });
+          if (items.length > 5) {
+            html += '<button type="button" class="ref-more-btn">展开更多（共 ' + items.length + ' 条）</button>';
+          }
+        }
+        html += '<button type="button" class="ref-manual-btn" data-code="' + refEsc(code) + '">✎ 手动输入公式…</button>';
+        html += '</div></div></div></div>';
+        panel.innerHTML = html;
+        refBindEvents();
+      }).catch(function (err) {
+        panel.innerHTML = '<div class="ref-error">公式数据加载失败：' + refEsc(err.message) + '</div>';
+      });
+    }
+    function refBindEvents() {
+      var styleSel = document.getElementById('a4-ref-style');
+      if (styleSel) styleSel.addEventListener('change', function () {
+        refSetStyle(styleSel.value);
+        refRenderPanel();
+      });
+      var panel = document.getElementById('a4-ref-panel');
+      var box = panel.querySelector('.ref-sel-box');
+      if (box) box.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var dd = panel.querySelector('.ref-dropdown');
+        if (dd) dd.classList.toggle('open');
+      });
+      var opts = panel.querySelectorAll('.ref-opt');
+      Array.prototype.forEach.call(opts, function (opt) {
+        opt.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var alg = opt.getAttribute('data-alg');
+          var group = refGetGroup();
+          var sels = refLoadSelections();
+          if (!sels[group]) sels[group] = {};
+          sels[group][currentCode] = alg;
+          refSaveSelections(sels);
+          // 同步更新 .a4-modal__alg 显示 + variantAlg
+          variantAlg = alg;
+          algEl.textContent = alg;
+          // 关闭 dropdown 并刷新按钮文本
+          refRenderPanel();
+        });
+      });
+      var manualBtn = panel.querySelector('.ref-manual-btn');
+      if (manualBtn) manualBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var sels = refLoadSelections();
+        var group = refGetGroup();
+        var gSel = sels[group] || {};
+        var current = gSel[currentCode] || '';
+        var input = prompt('输入该编码的参考公式（公式库没有时可手动填写）：', current);
+        if (input === null) return;
+        var alg = input.trim();
+        if (!alg) return;
+        if (!sels[group]) sels[group] = {};
+        sels[group][currentCode] = alg;
+        refSaveSelections(sels);
+        variantAlg = alg;
+        algEl.textContent = alg;
+        refRenderPanel();
+      });
+      var moreBtn = panel.querySelector('.ref-more-btn');
+      if (moreBtn) moreBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var hidden = panel.querySelectorAll('.ref-opt.ref-hidden');
+        Array.prototype.forEach.call(hidden, function (h) { h.classList.remove('ref-hidden'); });
+        moreBtn.style.display = 'none';
+      });
+    }
+    // 切换下一式/上一式时，若 panel 已打开则自动重渲染（指向新 code）
+    function refreshRefIfOpen() {
+      var panel = document.getElementById('a4-ref-panel');
+      if (panel && panel.style.display !== 'none') refRenderPanel();
+    }
+
+    function refreshHistory() {
+      var s = normalizeSessions(load(SESSIONS_KEY, {})[currentCode] || []);
+      if (!s.length) {
+        historyEl.innerHTML = '<span style="color:var(--fg-3)">尚无成绩</span>';
+        return;
+      }
+      var parts = [];
+      var start = Math.max(0, s.length - 20);
+      for (var i = start; i < s.length; i++) {
+        parts.push('<span class="sh-item">' + fmt(s[i]) + '</span>');
+      }
+      historyEl.innerHTML = parts.join('');
+    }
+
+    function loadCode(code) {
+      if (ALL.indexOf(code) < 0) code = ALL[0];
+      currentCode = code;
+      select.value = code;
+      codeEl.textContent = code;
+      var list = variantMap[code] || [code];
+      variantAlg = list[0];
+      algEl.textContent = variantAlg;
+      resetTimer();
+      refreshHistory();
+      // 若参考面板已打开，自动重渲染指向新 code
+      try { refreshRefIfOpen(); } catch (e) {}
+    }
+
+    function openFor(code) {
+      // 收起参考面板（避免上次打开的 panel 状态干扰）
+      var refPanel = document.getElementById('a4-ref-panel');
+      if (refPanel) refPanel.style.display = 'none';
+      modal.classList.add('is-open');
+      loadCode(code);
+    }
+    function close() {
+      clearTimeout(prepTimer);
+      if (state === 'running') stopTimer();
+      modal.classList.remove('is-open');
+    }
+    function step(delta) {
+      if (!currentCode) return;
+      var i = ALL.indexOf(currentCode);
+      var j = Math.max(0, Math.min(ALL.length - 1, i + delta));
+      loadCode(ALL[j]);
+    }
+
+    fillSelect();
+    loadVariants();
+
+    // 事件绑定
+    closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', function () { step(-1); refreshRefIfOpen(); });
+    nextBtn.addEventListener('click', function () { step(1); refreshRefIfOpen(); });
+    select.addEventListener('change', function () { loadCode(select.value); refreshRefIfOpen(); });
+    // 参考公式按钮：展开/收起 panel；首次打开时渲染
+    document.getElementById('a4-ref-toggle').addEventListener('click', function () {
+      var panel = document.getElementById('a4-ref-panel');
+      var isOpen = panel.style.display !== 'none';
+      if (isOpen) {
+        panel.style.display = 'none';
+        // 关闭时折叠所有打开的 dropdown
+        var openDds = panel.querySelectorAll('.ref-dropdown.open');
+        Array.prototype.forEach.call(openDds, function (d) { d.classList.remove('open'); });
+      } else {
+        panel.style.display = 'block';
+        refRenderPanel();
+      }
+    });
+    delBtn.addEventListener('click', function () {
+      var s = normalizeSessions(load(SESSIONS_KEY, {})[currentCode] || []);
+      if (!s.length) return;
+      s.pop();
+      save(SESSIONS_KEY, Object.assign({}, load(SESSIONS_KEY, {}), (function () {
+        var all = load(SESSIONS_KEY, {});
+        all[currentCode] = s;
+        return all;
+      })()));
+      try { sessions = load(SESSIONS_KEY, {}); } catch (e) {}
+      refreshHistory();
+      render();
+      if (window.__uf440Fit) window.__uf440Fit();
+    });
+    clearBtn.addEventListener('click', function () {
+      if (!confirm('确认清空「' + currentCode + '」的全部成绩？')) return;
+      var all = load(SESSIONS_KEY, {}); var all_t = load(TIMES_KEY, {});
+      delete all[currentCode]; delete all_t[currentCode];
+      save(SESSIONS_KEY, all); save(TIMES_KEY, all_t);
+      try { sessions = load(SESSIONS_KEY, {}); times = load(TIMES_KEY, {}); } catch (e) {}
+      refreshHistory();
+      render();
+      if (window.__uf440Fit) window.__uf440Fit();
+    });
+
+    // 点遮罩 / ESC 关闭
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) close();
+    });
+    // 键盘：空格 = 标准魔方计时器 hold-to-start（按住 500ms 后松开才开始）
+    document.addEventListener('keydown', function (e) {
+      if (!modal.classList.contains('is-open')) return;
+      if (e.key === 'Escape') { close(); e.preventDefault(); return; }
+      var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+      if (isSpace && !e.repeat) {
+        keydownHold();
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('keyup', function (e) {
+      if (!modal.classList.contains('is-open')) return;
+      var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+      if (isSpace) { keyupHold(); e.preventDefault(); }
+    });
+    // 鼠标单击计时器：直接切换开始/停止（保留单击便利性）
+    timerEl.addEventListener('click', function () {
+      if (state === 'running') stopTimer();
+      else if (state === 'done' || state === 'idle') startTimer();
+    });
+
+    // 看板点击方块 → 打开 modal
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('.a4-cell');
+      if (t && t.dataset && t.dataset.alg) {
+        e.preventDefault();
+        openFor(t.dataset.alg);
+      }
+    });
+  })();
+
+  if (window.SyncBoot) {
+    SyncBoot.ready(function () {
+      LSProvider.register({
+        id: 'scramble-uf440',
+        label: 'UF 单式训练',
+        path: 'scramble-uf440.json',
+        keys: ['alg440_times', 'alg440_sessions', 'alg440_variant']
+      });
+    });
+  }
+
+  // === 自适应铺满：让 440 个方块按 cols×rows 平铺，cell 大小随窗口线性缩放 ===
+  // 核心：col 数变化时 cell 必须随之单调变化，绝不出现「窗口缩小 cell 反而变大」
+  var fitRaf = 0;
+  function fitBoard() {
+    var board = document.querySelector('.a4-board');
+    if (!board) return;
+    var n = 440;
+    var GAP = 5;
+    var MIN_CELL = 32;
+    var MAX_CELL = 180;
+
+    // 视口尺寸：先读 board 自身 offsetParent 链上最宽的可见祖先，避开窄容器导致的低估；
+    // 再 fallback 到 documentElement / window.innerWidth，并用保守 buffer 防浮点溢出
+    var wrap = board.parentElement;
+    function pickW() {
+      var w = 0;
+      var el = board;
+      while (el && el !== document.body) {
+        var cw = el.clientWidth || 0;
+        if (cw > w) w = cw;
+        el = el.parentElement;
+      }
+      return w || document.documentElement.clientWidth || window.innerWidth;
+    }
+    var BUFFER = 4;  // 防浮点 + border 舍入
+    var availW = Math.max(320, pickW() - BUFFER);
+    // 顶部：导航 + 标题 + KPI + 控件 + 图例 ≈ 占视口高度 32%~45%；用实际 board.top 更准
+    var rect = board.getBoundingClientRect();
+    var topSpace = Math.max(180, rect.top);          // 顶部固定内容高度
+    var BOTTOM = 60;                                  // footer + 缓冲
+    var availH = Math.max(220, window.innerHeight - topSpace - BOTTOM);
+
+    // --- 1) 计算最大 cols（受 availW 约束）---
+    // cols 上限 = availW / (MIN_CELL + GAP)，下限 = 1
+    var maxColsByW = Math.floor((availW + GAP) / (MIN_CELL + GAP));
+    if (maxColsByW < 1) maxColsByW = 1;
+    if (maxColsByW > n) maxColsByW = n;
+
+    // --- 2) 找 (cols, cell) 让 cell 最大、且装进 availW × availH ---
+    var bestCell = 0, bestCols = 1;
+    for (var cols = 1; cols <= maxColsByW; cols++) {
+      // 横向 cell（受 availW 限制；同时不超 MAX_CELL）
+      var cellByW = (availW - (cols - 1) * GAP) / cols;
+      // 纵向 cell：rows = ceil(n / cols)
+      var rows = Math.ceil(n / cols);
+      var cellByH = (availH - (rows - 1) * GAP) / rows;
+      // 取较小者；同时 clamp 到 [MIN_CELL, MAX_CELL]
+      var cell = Math.min(cellByW, cellByH);
+      if (cell > MAX_CELL) cell = MAX_CELL;
+      if (cell < MIN_CELL) continue;            // 此 cols 装不下 → 跳过
+      if (cell > bestCell) {
+        bestCell = cell;
+        bestCols = cols;
+      }
+    }
+
+    // --- 3) 兜底：所有 cols 都装不下（窗口极小） → 用 MIN_CELL + 最大 cols，接受溢出 ---
+    if (bestCell === 0) {
+      bestCell = MIN_CELL;
+      bestCols = Math.max(1, Math.floor((availW + GAP) / (MIN_CELL + GAP)));
+    }
+
+    // --- 4) 应用 ---
+    board.style.gridTemplateColumns = 'repeat(' + bestCols + ', var(--a4-cell))';
+    board.style.setProperty('--a4-cell', bestCell + 'px');
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowY = 'hidden';     // 整体不出现竖向滚动
+  }
+
+  function scheduleFit() {
+    if (fitRaf) cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(fitBoard);
+  }
+
+  // 初始 + 窗口变化 + 字体加载后重新计算
+  window.addEventListener('resize', scheduleFit);
+  window.addEventListener('orientationchange', scheduleFit);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitBoard);
+  }
+  setTimeout(fitBoard, 0);
+  // 暴露给 render 末尾调用（每次筛/排序/数据刷新都重排）
+  window.__uf440Fit = scheduleFit;
+})();
+</script>
+</body>
+</html>

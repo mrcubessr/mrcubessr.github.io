@@ -7,7 +7,7 @@
 /* v6（2026-09-30）：三盲复盘海报大改——画布改为更细长的 840 宽、解法编码按字着色
    （借位=品牌蓝 / 归还=红+下划线）、补全难度构成 / 分段指标（8 格）/ 参数设置，
    打乱公式标注步数，并新增 edgeRoles/cornerRoles 持久化。timer.js 变更，故递增。
-   静态资源走的是 stale-while-revalidate（cache-first + 后台更新），不递增版本的话
+   静态资源走的是 stale-while-revalidate（cache-first + 后台更新），不递增版本号的话
    已安装的 PWA 首次打开会先拿到旧的 timer.js，第二次才更新；
    递增版本号可让 SW 重新 install + activate，一次性丢弃旧缓存。
    沿用 v3 的规矩：**凡是动到 APP_SHELL 里的文件，都要递增这个版本号。** */
