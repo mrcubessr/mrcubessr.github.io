@@ -4,12 +4,14 @@
  * （/assets/*、/tools/cfop/* 等 GitHub Pages 无法用 Service-Worker-Allowed 头放宽作用域）。
  * 控制范围刻意只覆盖「计时器应用壳 + 其声明的依赖」，不接管全站其他页面。
  */
-/* v4（2026-09-30）：计时器脚本与样式再次更新（三盲复盘海报配色改为跟随主题）。
+/* v5（2026-09-30）：三盲复盘海报——打乱公式改为按「词」折行（R2 / R' 不再被拆开），
+   且生成后一律先弹预览层（不再直接跳系统分享）。timer.js / timer.css 变更，故递增。
+   v4（2026-09-30）：计时器脚本与样式再次更新（三盲复盘海报配色改为跟随主题）。
    静态资源走的是 stale-while-revalidate（cache-first + 后台更新），不递增版本的话
    已安装的 PWA 首次打开会先拿到旧的 timer.js/timer.css，第二次才更新；
    递增版本号可让 SW 重新 install + activate，一次性丢弃旧缓存。
    沿用 v3 的规矩：**凡是动到 APP_SHELL 里的文件，都要递增这个版本号。** */
-const CACHE = 'fto-timer-v4';
+const CACHE = 'fto-timer-v5';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [

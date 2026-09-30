@@ -1722,6 +1722,32 @@
     out.push(cur);
     return out;
   }
+  /* 按「词」折行：以空白切分，保证 R2 / R' / M2 这类公式 token 不被拦腰拆开
+     （打乱公式一律走这里；单个 token 本身超宽时才退化为逐字符） */
+  function posterWrapTokens(ctx, text, maxW) {
+    var s = String(text == null ? "" : text), paras = s.split("\n"), out = [];
+    for (var pi = 0; pi < paras.length; pi++) {
+      var words = paras[pi].split(/\s+/).filter(function (w) { return w.length; });
+      if (!words.length) { out.push(""); continue; }
+      var cur = "";
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i], cand = cur ? cur + " " + w : w;
+        if (ctx.measureText(cand).width <= maxW) { cur = cand; continue; }
+        if (cur) { out.push(cur); cur = ""; }
+        /* 整行放不下单个 token（罕见）→ 逐字符兜底 */
+        if (ctx.measureText(w).width <= maxW) { cur = w; continue; }
+        var piece = "";
+        for (var c = 0; c < w.length; c++) {
+          var t = piece + w.charAt(c);
+          if (ctx.measureText(t).width > maxW && piece) { out.push(piece); piece = w.charAt(c); }
+          else piece = t;
+        }
+        cur = piece;
+      }
+      out.push(cur);
+    }
+    return out;
+  }
   /* 用时显示：≥60s 用 m:ss.cc，否则 ss.cc；DNF 直接显示 DNF
      （+2 不写在时间尾巴上，改由旁边的琥珀色徽章表达，避免「1:01.20+」这种误读） */
   function posterTime(ms, pen) {
@@ -1865,7 +1891,7 @@
        （注意：折行测量必须与绘制同字体，即先 posterMono 再 posterWrap） */
     label("打乱公式", P.gold);
     posterMono(ctx, 42, 600);
-    var scrLines = posterWrap(ctx, b.scramble || "（未记录打乱）", innerW - 64);
+    var scrLines = posterWrapTokens(ctx, b.scramble || "（未记录打乱）", innerW - 64);
     var scrLh = 58, scrTop = y + 16, scrH = 50 + (scrLines.length - 1) * scrLh + 26;
     ctx.fillStyle = P.panel; ctx.fillRect(PAD, scrTop, innerW, scrH);
     ctx.fillStyle = P.gold; ctx.fillRect(PAD, scrTop, 5, scrH);
@@ -1957,16 +1983,22 @@
     return out;
   }
 
-  /* 兜底预览层：手机上系统分享不可用时，长按图片保存 / 点按钮下载 */
-  function posterFallback(blob, fname) {
+  /* 预览层：生成后**立即**展示效果（不再直接弹系统分享）；
+     预览层内提供「分享」（系统分享可用时）/「保存图片」/「关闭」 */
+  function posterPreview(blob, fname, title) {
     var url = URL.createObjectURL(blob);
+    var file = null;
+    try { file = new File([blob], fname, { type: "image/png" }); } catch (e) { file = null; }
+    var canShare = !!(file && navigator.canShare && navigator.canShare({ files: [file] }));
     var wrap = document.createElement("div");
     wrap.className = "tm-poster";
     wrap.innerHTML = '<div class="tm-poster__box">' +
       '<img class="tm-poster__img" alt="三盲复盘海报">' +
       '<div class="tm-poster__bar">' +
-      '<span class="tm-poster__hint">手机上长按图片可保存 / 转发</span>' +
-      '<button type="button" class="btn btn--sm btn--primary" id="tm-poster-save">保存图片</button>' +
+      '<span class="tm-poster__hint">长按图片可保存 / 转发</span>' +
+      (canShare ? '<button type="button" class="btn btn--sm btn--primary" id="tm-poster-share">分享</button>' : "") +
+      '<button type="button" class="btn btn--sm ' + (canShare ? "btn--ghost" : "btn--primary") +
+        '" id="tm-poster-save">保存图片</button>' +
       '<button type="button" class="btn btn--sm btn--ghost" id="tm-poster-close">关闭</button>' +
       "</div></div>";
     wrap.querySelector("img").src = url;
@@ -1980,26 +2012,25 @@
       a.href = url; a.download = fname;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
     });
+    if (canShare) {
+      wrap.querySelector("#tm-poster-share").addEventListener("click", function () {
+        navigator.share({ files: [file], title: title || "三盲复盘海报" }).catch(function () {});
+      });
+    }
     wrap.querySelector("#tm-poster-close").addEventListener("click", close);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) close(); });
   }
 
-  /* 入口：生成海报 → 优先走系统分享（手机），否则兜底预览 + 下载 */
+  /* 入口：生成海报 → 一律先弹预览层（预览里再决定保存或分享） */
   function shareBldPoster(rec, num) {
     var canvas;
     try { canvas = buildBldPosterCanvas(rec, num); } catch (err) { canvas = null; }
     if (!canvas) return;
     var fname = "三盲复盘-" + posterDateTime(rec.date).replace(/[:.\s]/g, "") + ".png";
+    var title = "三盲复盘 " + posterTime(rec.ms, rec.pen);
     canvas.toBlob(function (blob) {
       if (!blob) return;
-      var file = null;
-      try { file = new File([blob], fname, { type: "image/png" }); } catch (e) { file = null; }
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], title: "三盲复盘 " + posterTime(rec.ms, rec.pen) })
-          .catch(function () { posterFallback(blob, fname); });
-      } else {
-        posterFallback(blob, fname);
-      }
+      posterPreview(blob, fname, title);
     }, "image/png");
   }
 
