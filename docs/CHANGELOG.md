@@ -27,6 +27,9 @@
 - 颜色承担信息分类：顶部品牌→紫→金三段渐变、用时品牌→紫渐变字、难度档色阶（L1 绿 → L5 红）、编码类别色（棱蓝 / 翻色金 / 角绿 / 扭紫）、分段指标四格四色、笔记琥珀边条
 - 打乱公式改等宽字体 + 金色语义（站点「公式 / 重点」色）；按内容自适应高度，底部不空
 
+### 计时器 PWA 缓存
+- `sw.js` 缓存版本 `fto-timer-v3` → `fto-timer-v4`：本版改动 `timer.js` / `timer.css`，而静态资源走 stale-while-revalidate（cache-first），不递增版本会让已安装的 PWA 首次打开仍用旧脚本/样式（旧海报配色），第二次才更新。约定：**凡是动到 `APP_SHELL` 清单里的文件都要递增该版本号。**
+
 ### PWA 图标（timer 手机桌面）
 - 新图标：等距魔方 + 计时环（环带缺口与表冠），矢量母版入库 `assets/icons/timer-app-icon.svg`
 - 输出 `icon-192 / icon-512 / icon-maskable-512 / apple-touch-icon(180)`；maskable 美术缩至 84% 落在安全圆内
