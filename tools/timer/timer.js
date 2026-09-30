@@ -1615,14 +1615,96 @@
   }
 
   /* ---------- 三盲复盘分享海报（一键生成 PNG，可保存 / 走系统分享） ----------
-     口径：海报是「对外分享物」，配色固定为深色（与 app 图标 / theme_color 一致），
-     不跟随站点主题 —— 同一条复盘无论谁在什么主题下生成，拿到的图观感一致。
+     配色口径：**跟随当前生效的站点主题与配色方案** —— 直接读 html 上生效的
+     CSS 变量（--bg / --fg / --brand / --gold / --green / --violet / --red …），
+     所以 6 套配色 × 明暗两态各得其所；浅色主题自动取到各 token 的深色取值，
+     可读性由设计令牌本身保证（palettes.css 已逐档校正过对比度）。
+     颜色同时承担信息分类：顶部品牌渐变、难度档色阶（绿→红）、
+     编码类别色（棱蓝 / 翻色金 / 角绿 / 扭紫）、指标四格四色。
      内容：用时 + 难度档 + 打乱公式 + 解法编码（坐标/棱/翻色/角/扭/主记法）+ 分段指标 + 笔记。 */
-  var POSTER_PAL = {
-    bg: "#0B0D14", fg: "#EEF2F8", fg2: "#AEB8CA", fg3: "#7C8798",
-    brand: "#5B8DEF", brand2: "#8FB4F5", amber: "#FBBF24", red: "#F87171"
-  };
   var POSTER_W = 1080;
+
+  /* --- 颜色工具：把 CSS 变量解析成可混算的 rgba --- */
+  function posterCssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name);
+      v = (v || "").trim();
+      return v || fallback || "";
+    } catch (e) { return fallback || ""; }
+  }
+  function posterParseColor(str) {
+    var s = String(str == null ? "" : str).trim(), m;
+    if ((m = /^#([0-9a-f]{3})$/i.exec(s))) {
+      var t = m[1];
+      return [parseInt(t[0] + t[0], 16), parseInt(t[1] + t[1], 16), parseInt(t[2] + t[2], 16), 1];
+    }
+    if ((m = /^#([0-9a-f]{6})$/i.exec(s))) {
+      var h = m[1];
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1];
+    }
+    if ((m = /^rgba?\(([^)]+)\)$/i.exec(s))) {
+      var p = m[1].split(/[,\s/]+/).filter(function (x) { return x !== ""; });
+      if (p.length >= 3) {
+        return [Math.round(parseFloat(p[0])), Math.round(parseFloat(p[1])), Math.round(parseFloat(p[2])),
+                p.length > 3 ? parseFloat(p[3]) : 1];
+      }
+    }
+    return null;
+  }
+  function posterRgba(c, a) {
+    if (!c) return "rgba(0,0,0,0)";
+    var al = (a == null ? (c[3] == null ? 1 : c[3]) : a);
+    return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (Math.round(al * 1000) / 1000) + ")";
+  }
+  function posterMix(a, b, t) {
+    if (!a) return b; if (!b) return a;
+    return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t),
+            Math.round(a[2] + (b[2] - a[2]) * t), 1];
+  }
+  function posterLin(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+  function posterLum(c) {
+    return c ? 0.2126 * posterLin(c[0]) + 0.7152 * posterLin(c[1]) + 0.0722 * posterLin(c[2]) : 0;
+  }
+
+  /* 当前主题调色板：色值全部取自生效的 CSS 变量（跟随 6 套配色 × 明暗） */
+  function posterPalette() {
+    var WHITE = [255, 255, 255, 1], BLACK = [0, 0, 0, 1];
+    var bg = posterParseColor(posterCssVar("--bg", "#0B0D14")) || [11, 13, 20, 1];
+    var isDark = posterLum(bg) < 0.34;
+    function C(name, fb) {
+      return posterParseColor(posterCssVar(name, "")) || posterParseColor(fb) || [128, 128, 128, 1];
+    }
+    var fg = C("--fg", isDark ? "#EEF2F8" : "#101828");
+    var brand = C("--brand", "#5B8DEF");
+    var violet = C("--violet", isDark ? "#A78BFA" : "#6D4AE0");
+    var gold = C("--gold", isDark ? "#FFC857" : "#8A5600");
+    var green = C("--green", isDark ? "#34D399" : "#15803D");
+    var amber = C("--amber", isDark ? "#FBBF24" : "#B45309");
+    var red = C("--red", isDark ? "#F87171" : "#C0392B");
+    var P = {
+      isDark: isDark,
+      bg: posterRgba(bg),
+      /* 面板底：以底色为基、向前景微混（深底抬亮一档 / 浅底压灰一档），比只画描边更有层次 */
+      panel: posterRgba(posterMix(bg, fg, isDark ? 0.06 : 0.045)),
+      line: posterRgba(fg, isDark ? 0.10 : 0.13),
+      lineStrong: posterRgba(fg, isDark ? 0.16 : 0.20),
+      fg: posterRgba(fg),
+      fg2: posterRgba(C("--fg-2", isDark ? "#AEB8CA" : "#475467")),
+      fg3: posterRgba(C("--fg-3", isDark ? "#7C8798" : "#667085")),
+      brand: posterRgba(brand),
+      /* 品牌色的「对比强化版」：深底提亮 / 浅底压深，用于小字与细线 */
+      brandPop: posterRgba(isDark ? posterMix(brand, WHITE, 0.36) : posterMix(brand, BLACK, 0.12)),
+      violet: posterRgba(violet), gold: posterRgba(gold), green: posterRgba(green),
+      amber: posterRgba(amber), red: posterRgba(red),
+      rgb: { bg: bg, fg: fg, brand: brand, violet: violet, gold: gold, green: green, amber: amber, red: red },
+      /* 彩色「柔和底」：把色相与当前底色相混（不透明），深浅主题下都不会糊成一团 */
+      soft: function (col, t) {
+        var c = posterParseColor(col) || brand;
+        return posterRgba(posterMix(bg, c, t == null ? (isDark ? 0.18 : 0.13) : t));
+      }
+    };
+    return P;
+  }
 
   function posterFont(ctx, size, weight) {
     ctx.font = (weight || 400) + " " + size +
@@ -1653,139 +1735,217 @@
     return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " +
            p(d.getHours()) + ":" + p(d.getMinutes());
   }
+  function posterMono(ctx, size, weight) {
+    ctx.font = (weight || 400) + " " + size +
+      'px "SF Mono","Cascadia Code","Fira Code",Consolas,monospace';
+  }
+  /* 难度档 → 色阶（难度越高色温越暖）：L1 绿 / L2 蓝 / L3 金 / L4 橙 / L5 红 */
+  function posterLevelColor(P, diff) {
+    var idx = -1;
+    if (window.BLDEngine && window.BLDEngine.levelIndexOf) {
+      idx = window.BLDEngine.levelIndexOf(diff && diff.level);
+    }
+    if (!(idx >= 0)) {
+      var m = /L(\d)/i.exec(String((diff && diff.levelCode) || ""));
+      idx = m ? (+m[1] - 1) : -1;
+    }
+    return [P.green, P.brand, P.gold, P.amber, P.red][idx] || P.brand;
+  }
 
   function buildBldPosterCanvas(rec, num) {
-    var b = rec.bld || {}, diff = b.difficulty || null, P = POSTER_PAL;
+    var b = rec.bld || {}, diff = b.difficulty || null, P = posterPalette();
     var W = POSTER_W, PAD = 80, innerW = W - PAD * 2;
     var canvas = document.createElement("canvas");
-    canvas.width = W; canvas.height = 2000;
+    canvas.width = W; canvas.height = 2400;
     var ctx = canvas.getContext("2d"), y = 0;
 
     function line(color, yy, w) {
       ctx.strokeStyle = color; ctx.lineWidth = w || 1;
       ctx.beginPath(); ctx.moveTo(PAD, yy); ctx.lineTo(W - PAD, yy); ctx.stroke();
     }
-    function label(txt) {
-      y += 74;
-      posterFont(ctx, 28, 600); ctx.fillStyle = P.fg3; ctx.fillText(txt, PAD, y);
-      y += 18; line("rgba(238,242,248,.08)", y, 1); y += 12;
+    /* 分区标题：左侧色条 + 名称（色条承担分区色彩） */
+    function label(txt, color) {
+      y += 80;
+      ctx.fillStyle = color || P.brand; ctx.fillRect(PAD, y - 26, 5, 30);
+      posterFont(ctx, 28, 600); ctx.fillStyle = P.fg2; ctx.fillText(txt, PAD + 20, y);
+      y += 16; line(P.line, y, 1); y += 14;
     }
+    /* 编码行：键 + 类别色点 + 值（值用类别色，一眼分辨棱/翻色/角/扭） */
     function kv(key, value, color) {
       if (!value) return;
       y += 62;
       posterFont(ctx, 32, 500); ctx.fillStyle = P.fg3; ctx.fillText(key, PAD, y);
+      if (color) { ctx.fillStyle = color; ctx.fillRect(PAD + 116, y - 24, 13, 13); }
       posterFont(ctx, 36, 600); ctx.fillStyle = color || P.fg;
-      var vx = PAD + 138, lines = posterWrap(ctx, value, W - PAD - vx);
+      var vx = PAD + 150, lines = posterWrap(ctx, value, W - PAD - vx);
       ctx.fillText(lines[0], vx, y);
       for (var i = 1; i < lines.length; i++) { y += 48; ctx.fillText(lines[i], vx, y); }
     }
 
-    /* 背景 + 顶部品牌条 */
+    /* 背景：底色 + 两处极淡的品牌/紫光晕（增加层次，浅色主题下同样成立） */
     ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, canvas.height);
-    var g = ctx.createLinearGradient(0, 0, W, 0);
-    g.addColorStop(0, P.brand); g.addColorStop(1, P.brand2);
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 8);
+    var glow = ctx.createRadialGradient(W - 60, -40, 0, W - 60, -40, 900);
+    glow.addColorStop(0, posterRgba(P.rgb.brand, P.isDark ? 0.22 : 0.13));
+    glow.addColorStop(1, posterRgba(P.rgb.brand, 0));
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, 900);
+    var glow2 = ctx.createRadialGradient(40, 1300, 0, 40, 1300, 900);
+    glow2.addColorStop(0, posterRgba(P.rgb.violet, P.isDark ? 0.16 : 0.10));
+    glow2.addColorStop(1, posterRgba(P.rgb.violet, 0));
+    ctx.fillStyle = glow2; ctx.fillRect(0, 400, W, 1600);
 
-    /* 页眉 */
-    y = 118;
+    /* 顶部品牌条：品牌 → 紫 → 金 三段渐变（海报的「色彩名片」） */
+    var g = ctx.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, P.brand); g.addColorStop(0.55, P.violet); g.addColorStop(1, P.gold);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 10);
+
+    /* 页眉：四色小色块（呼应魔方多面）+ 标题 + 时间 */
+    y = 124;
     ctx.textAlign = "left";
-    posterFont(ctx, 32, 600); ctx.fillStyle = P.fg2; ctx.fillText("魔方先生 · 三盲复盘", PAD, y);
+    var mosaic = [P.brand, P.violet, P.gold, P.green];
+    for (var mi = 0; mi < mosaic.length; mi++) {
+      ctx.fillStyle = mosaic[mi]; ctx.fillRect(PAD + mi * 22, y - 24, 16, 16);
+    }
+    posterFont(ctx, 32, 600); ctx.fillStyle = P.fg;
+    ctx.fillText("魔方先生 · 三盲复盘", PAD + 108, y);
     ctx.textAlign = "right";
     posterFont(ctx, 30, 400); ctx.fillStyle = P.fg3;
     ctx.fillText(posterDateTime(rec.date) + (num != null ? "  #" + num : ""), W - PAD, y);
     ctx.textAlign = "left";
-    y += 44; line("rgba(238,242,248,.10)", y, 2);
+    y += 42; line(P.lineStrong, y, 2);
 
-    /* 用时（主视觉） */
-    y = 336;
+    /* 用时（主视觉）：品牌 → 紫 渐变字；DNF 用红 */
+    y = 340;
     var tStr = posterTime(rec.ms, rec.pen);
     posterFont(ctx, 164, 700);
-    ctx.fillStyle = rec.pen === "DNF" ? P.red : P.fg;
+    if (rec.pen === "DNF") {
+      ctx.fillStyle = P.red;
+    } else {
+      var tg = ctx.createLinearGradient(0, y - 132, 0, y + 18);
+      tg.addColorStop(0, P.brandPop); tg.addColorStop(1, P.violet);
+      ctx.fillStyle = tg;
+    }
     ctx.fillText(tStr, PAD - 6, y);
     if (rec.pen === "+2") {
       var tw = ctx.measureText(tStr).width, cwid = 82, cx = PAD + tw + 18;
-      ctx.fillStyle = "rgba(251,191,36,.15)"; ctx.fillRect(cx, y - 50, cwid, 54);
+      ctx.fillStyle = P.soft(P.amber); ctx.fillRect(cx, y - 50, cwid, 54);
       posterFont(ctx, 34, 700); ctx.fillStyle = P.amber; ctx.fillText("+2", cx + 20, y - 10);
     }
 
-    /* 难度 / 编码 / 归因 chips */
+    /* 徽章行：难度档（绿→红色阶）+ 编码量（紫）+ DNF 归因（红） */
     y += 78;
-    var chips = [];
+    var badges = [];
     if (diff && isFinite(+diff.score)) {
-      chips.push("难度分 " + (+diff.score) + " · " + (diff.level || "") + (diff.levelCode ? " " + diff.levelCode : ""));
+      var lvCol = posterLevelColor(P, diff);
+      badges.push({
+        text: "难度 " + (+diff.score) + " · " + (diff.level || "") + (diff.levelCode ? " " + diff.levelCode : ""),
+        color: lvCol, soft: P.soft(lvCol, P.isDark ? 0.20 : 0.16)
+      });
     }
-    if (b.complexity != null) chips.push("编码 " + b.complexity + " 码");
-    if (b.dnfReason) chips.push("DNF " + (b.dnfReason === "memo" ? "记忆错" : b.dnfReason === "exec" ? "执行错" : "其他"));
+    if (b.complexity != null) {
+      badges.push({ text: "编码 " + b.complexity + " 码", color: P.violet, soft: P.soft(P.violet) });
+    }
+    if (b.dnfReason) {
+      badges.push({
+        text: "DNF " + (b.dnfReason === "memo" ? "记忆错" : b.dnfReason === "exec" ? "执行错" : "其他"),
+        color: P.red, soft: P.soft(P.red)
+      });
+    }
     posterFont(ctx, 32, 600);
-    var cx2 = PAD;
-    for (var ci = 0; ci < chips.length; ci++) {
-      var cwid2 = ctx.measureText(chips[ci]).width + 42;
-      if (cx2 + cwid2 > W - PAD) { cx2 = PAD; y += 66; }
-      ctx.fillStyle = "rgba(91,141,239,.14)"; ctx.fillRect(cx2, y - 42, cwid2, 56);
-      ctx.fillStyle = P.brand2; ctx.fillText(chips[ci], cx2 + 21, y);
-      cx2 += cwid2 + 16;
+    var bx = PAD;
+    for (var bi = 0; bi < badges.length; bi++) {
+      var bd = badges[bi], bw = ctx.measureText(bd.text).width + 60;
+      if (bx + bw > W - PAD) { bx = PAD; y += 68; }
+      ctx.fillStyle = bd.soft; ctx.fillRect(bx, y - 44, bw, 58);
+      ctx.fillStyle = bd.color; ctx.fillRect(bx, y - 44, 6, 58);
+      ctx.fillText(bd.text, bx + 28, y);
+      bx += bw + 16;
     }
 
-    /* 打乱公式 */
-    label("打乱公式");
-    posterFont(ctx, 40, 600); ctx.fillStyle = P.fg;
-    var scrLines = posterWrap(ctx, b.scramble || "（未记录打乱）", innerW);
-    for (var si = 0; si < scrLines.length; si++) { y += 56; ctx.fillText(scrLines[si], PAD, y); }
+    /* 打乱公式：金 = 站点「公式 / 重点」语义色，面板 + 等宽字
+       （注意：折行测量必须与绘制同字体，即先 posterMono 再 posterWrap） */
+    label("打乱公式", P.gold);
+    posterMono(ctx, 42, 600);
+    var scrLines = posterWrap(ctx, b.scramble || "（未记录打乱）", innerW - 64);
+    var scrLh = 58, scrTop = y + 16, scrH = 50 + (scrLines.length - 1) * scrLh + 26;
+    ctx.fillStyle = P.panel; ctx.fillRect(PAD, scrTop, innerW, scrH);
+    ctx.fillStyle = P.gold; ctx.fillRect(PAD, scrTop, 5, scrH);
+    ctx.fillStyle = P.gold;
+    for (var si = 0; si < scrLines.length; si++) {
+      ctx.fillText(scrLines[si], PAD + 28, scrTop + 50 + si * scrLh);
+    }
+    y = scrTop + scrH;
 
-    /* 解法编码 */
+    /* 解法编码：按类别着色（棱=品牌蓝 / 翻色=金 / 角=绿 / 扭=紫） */
     if (b.edge || b.corner || b.flip || b.twist || diff) {
-      label("解法编码");
-      kv("坐标", b.orientationLabel);
-      kv("棱", b.edge);
-      kv("翻色", b.flip);
-      kv("角", b.corner);
-      kv("扭", b.twist);
+      label("解法编码", P.brand);
+      kv("坐标", b.orientationLabel, P.fg2);
+      kv("棱", b.edge, P.brand);
+      kv("翻色", b.flip, P.gold);
+      kv("角", b.corner, P.green);
+      kv("扭", b.twist, P.violet);
       if (diff) {
         var nota = (window.BLDEngine && window.BLDEngine.notationOf)
           ? window.BLDEngine.notationOf(diff) : (diff.notation || "");
-        kv("主记法", nota, P.brand2);
+        kv("主记法", nota, P.brandPop);
       }
     }
 
-    /* 分段指标 2×2 */
+    /* 分段指标 2×2：四格四色（记忆蓝 / 执行绿 / 记忆速度紫 / TPS 金） */
     if (b.metrics && b.metrics.split) {
       var m = b.metrics;
-      label("分段指标");
+      label("分段指标", P.violet);
       var cells = [
-        ["记忆", fmt3(m.memoMs)], ["执行", fmt3(m.execMs)],
-        ["记忆速度", (m.lettersPerMin || 0).toFixed(2) + " 字母/分"],
-        ["执行 TPS", (m.tpsExec || 0).toFixed(2)]
+        ["记忆", fmt3(m.memoMs), P.brand], ["执行", fmt3(m.execMs), P.green],
+        ["记忆速度", (m.lettersPerMin || 0).toFixed(2) + " 字母/分", P.violet],
+        ["执行 TPS", (m.tpsExec || 0).toFixed(2), P.gold]
       ];
+      y += 18;
+      var chH = 106, cw = (innerW - 16) / 2;
       for (var k = 0; k < cells.length; k += 2) {
-        y += 46;
         for (var j = 0; j < 2 && k + j < cells.length; j++) {
-          var c = cells[k + j], cxx = PAD + j * (innerW / 2);
-          posterFont(ctx, 28, 500); ctx.fillStyle = P.fg3; ctx.fillText(c[0], cxx, y);
-          posterFont(ctx, 40, 700); ctx.fillStyle = P.fg; ctx.fillText(c[1], cxx, y + 48);
+          var c = cells[k + j], cxx = PAD + j * (cw + 16);
+          ctx.fillStyle = P.soft(c[2], P.isDark ? 0.14 : 0.10); ctx.fillRect(cxx, y, cw, chH);
+          ctx.fillStyle = c[2]; ctx.fillRect(cxx, y, cw, 4);
+          posterFont(ctx, 28, 500); ctx.fillStyle = P.fg3; ctx.fillText(c[0], cxx + 26, y + 46);
+          posterFont(ctx, 40, 700); ctx.fillStyle = c[2]; ctx.fillText(c[1], cxx + 26, y + 90);
         }
-        y += 48;
+        y += chH + 14;
       }
+      y -= 14;
     }
 
-    /* 练习笔记 */
+    /* 练习笔记：琥珀色边条（笔记 = 待复盘项） */
     if (rec.note) {
-      label("练习笔记");
-      posterFont(ctx, 34, 500); ctx.fillStyle = P.fg2;
-      var noteLines = posterWrap(ctx, rec.note, innerW);
-      noteLines = noteLines.slice(0, 4);
-      if (noteLines.length === 4 && posterWrap(ctx, rec.note, innerW).length > 4) {
+      label("练习笔记", P.amber);
+      posterFont(ctx, 34, 500);
+      var allNote = posterWrap(ctx, rec.note, innerW - 60);
+      var noteLines = allNote.slice(0, 4);
+      if (allNote.length > 4) {
         noteLines[3] = noteLines[3].slice(0, Math.max(0, noteLines[3].length - 1)) + "…";
       }
-      for (var ni = 0; ni < noteLines.length; ni++) { y += 50; ctx.fillText(noteLines[ni], PAD, y); }
+      var noteH = 56 + noteLines.length * 50;
+      ctx.fillStyle = P.panel; ctx.fillRect(PAD, y, innerW, noteH);
+      ctx.fillStyle = P.amber; ctx.fillRect(PAD, y, 5, noteH);
+      ctx.fillStyle = P.fg2;
+      for (var ni = 0; ni < noteLines.length; ni++) {
+        ctx.fillText(noteLines[ni], PAD + 28, y + 64 + ni * 50);
+      }
+      y += noteH;
     }
 
-    /* 页脚 */
-    y += 84; line("rgba(238,242,248,.10)", y, 2);
-    y += 54;
-    ctx.fillStyle = P.brand;
-    ctx.beginPath(); ctx.arc(PAD + 8, y - 10, 8, 0, Math.PI * 2); ctx.fill();
-    posterFont(ctx, 30, 500); ctx.fillStyle = P.fg3;
-    ctx.fillText("魔方先生SSR魔方训练中心 · 三盲专项训练", PAD + 34, y);
+    /* 页脚：四色色块 + 站点署名 */
+    y += 80; line(P.lineStrong, y, 2);
+    y += 56;
+    var fdots = [P.brand, P.violet, P.gold, P.green];
+    for (var di = 0; di < fdots.length; di++) {
+      ctx.fillStyle = fdots[di]; ctx.fillRect(PAD + di * 20, y - 20, 14, 14);
+    }
+    posterFont(ctx, 30, 500); ctx.fillStyle = P.fg2;
+    ctx.fillText("魔方先生SSR魔方训练中心 · 三盲专项训练", PAD + 100, y);
+    ctx.textAlign = "right";
+    posterFont(ctx, 26, 400); ctx.fillStyle = P.fg3;
+    ctx.fillText("由三盲复盘一键生成", W - PAD, y);
+    ctx.textAlign = "left";
     y += 6;
 
     /* 裁剪到实际内容高度（避免底部大片空白） */
