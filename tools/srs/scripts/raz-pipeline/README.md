@@ -23,6 +23,7 @@ tools/srs/
    ├─ build_raz_deck.py      # ② 读 catalog + 抽页图 + 压缩 + 回填 raz-aa.js
    ├─ render_book.py         # 辅助：把某本 PDF 渲染成拼图，人工核对/修正用
    ├─ raz_book_catalog.json  # ③ 对照表（可手工修正，OCR 产物）
+   ├─ verify_review.mjs      # ④ 真实浏览器端到端回归验证（无头 Chrome）
    └─ README.md              # 本文件
 ```
 
@@ -56,6 +57,26 @@ git commit -m "chore(raz): 配图更新 +N 本"
 HTTP_PROXY= HTTPS_PROXY= git push origin main   # 清代理直连
 ```
 GitHub Pages 约 1 分钟重建即生效。
+
+## 上线后自检（强烈建议）
+数据对 ≠ 界面对。**配图/交互类的问题只看数据或 curl 抓不到**，必须真跑浏览器：
+
+```bash
+cd tools/srs/scripts/raz-pipeline
+node verify_review.mjs            # 需要 Node >= 22，用系统 Chrome（可用 CHROME_PATH 指定）
+```
+
+它用无头 Chrome 真走一遍：建卡 → 进 RAZ 复习页 → 断言**配图高度 > 0 且图片真的加载成功**
+→ 空格翻面（断言答案区有英文、不重复图）→ 空格评分走完一轮
+→ 断言完成页把旧卡片/评分条都藏干净 → 点「全部重新学一遍」→ 断言回到题面。
+截图默认落在临时目录（`--out` 可指定）。
+
+> 已踩过的坑（都在这里被拦住）：
+> 1. `review.html` 漏引 `data/raz-aa.js` → 复习页所有卡都没有图；
+> 2. `el.style.display = ''` 会**清掉行内样式**、回落到 `srs.css` 的 `.srs-quiz__pic{display:none}` →
+>    图片和 emoji 全部不可见（换电脑/清缓存一样）；
+> 3. `.srs-quiz{display:flex}` 这类作者样式**会覆盖 `hidden` 属性** → 完成页旧卡片藏不掉。
+>    已在 srs.css 用全局 `[hidden]{display:none!important}` 兜底。
 
 ## 注意事项
 - RAZ 原图版权归 Learning A-Z，**仅供自家娃个人学习**；商用/教具产品须换自有或授权素材。
