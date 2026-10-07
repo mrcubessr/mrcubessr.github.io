@@ -11,3 +11,6 @@ output/
 
 # RAZ 配图管线的临时拼图（人工核对用，可重新生成）
 tools/srs/scripts/raz-pipeline/montages/
+
+# OCR 管线临时渲染文件
+tools/srs/scripts/raz-pipeline/_ocr_tmp.png
