@@ -1,0 +1,1681 @@
+{
+  "Big": [
+    {
+      "w": "house",
+      "p": 3
+    },
+    {
+      "w": "dog",
+      "p": 4
+    },
+    {
+      "w": "car",
+      "p": 5
+    },
+    {
+      "w": "bus",
+      "p": 6
+    },
+    {
+      "w": "plane",
+      "p": 7
+    },
+    {
+      "w": "tree",
+      "p": 8
+    },
+    {
+      "w": "elephant",
+      "p": 9
+    },
+    {
+      "w": "dinosaur",
+      "p": 10
+    }
+  ],
+  "Colorful Eggs": [
+    {
+      "w": "red",
+      "p": 2
+    },
+    {
+      "w": "purple",
+      "p": 3
+    },
+    {
+      "w": "green",
+      "p": 4
+    },
+    {
+      "w": "blue",
+      "p": 5
+    },
+    {
+      "w": "colorful",
+      "p": 6
+    }
+  ],
+  "Counting Bugs": [
+    {
+      "w": "bugs",
+      "p": 2
+    },
+    {
+      "w": "one",
+      "p": 3
+    },
+    {
+      "w": "two",
+      "p": 4
+    },
+    {
+      "w": "three",
+      "p": 5
+    },
+    {
+      "w": "four",
+      "p": 6
+    },
+    {
+      "w": "five",
+      "p": 7
+    },
+    {
+      "w": "six",
+      "p": 8
+    },
+    {
+      "w": "seven",
+      "p": 9
+    },
+    {
+      "w": "many",
+      "p": 10
+    }
+  ],
+  "Counting Letters": [
+    {
+      "w": "letters",
+      "p": 2
+    },
+    {
+      "w": "one",
+      "p": 3
+    },
+    {
+      "w": "two",
+      "p": 4
+    },
+    {
+      "w": "three",
+      "p": 5
+    },
+    {
+      "w": "four",
+      "p": 6
+    },
+    {
+      "w": "five",
+      "p": 7
+    },
+    {
+      "w": "six",
+      "p": 8
+    },
+    {
+      "w": "seven",
+      "p": 9
+    },
+    {
+      "w": "seven",
+      "p": 10
+    }
+  ],
+  "Farm Animals": [
+    {
+      "w": "dog",
+      "p": 3
+    },
+    {
+      "w": "pig",
+      "p": 4
+    },
+    {
+      "w": "chicken",
+      "p": 5
+    },
+    {
+      "w": "goat",
+      "p": 6
+    },
+    {
+      "w": "cow",
+      "p": 7
+    },
+    {
+      "w": "duck",
+      "p": 8
+    },
+    {
+      "w": "sheep",
+      "p": 9
+    },
+    {
+      "w": "animals",
+      "p": 10
+    }
+  ],
+  "Fido Gets Dressed": [
+    {
+      "w": "sweater",
+      "p": 3
+    },
+    {
+      "w": "boots",
+      "p": 4
+    },
+    {
+      "w": "hat",
+      "p": 5
+    },
+    {
+      "w": "scarf",
+      "p": 6
+    },
+    {
+      "w": "hat",
+      "p": 7
+    },
+    {
+      "w": "sunglasses",
+      "p": 8
+    },
+    {
+      "w": "hat",
+      "p": 9
+    },
+    {
+      "w": "cape",
+      "p": 10
+    },
+    {
+      "w": "mask",
+      "p": 11
+    },
+    {
+      "w": "hat",
+      "p": 12
+    }
+  ],
+  "Four": [
+    {
+      "w": "buses",
+      "p": 2
+    },
+    {
+      "w": "wagons",
+      "p": 3
+    },
+    {
+      "w": "cars",
+      "p": 4
+    },
+    {
+      "w": "carts",
+      "p": 5
+    },
+    {
+      "w": "airplanes",
+      "p": 6
+    },
+    {
+      "w": "boats",
+      "p": 7
+    },
+    {
+      "w": "trucks",
+      "p": 8
+    },
+    {
+      "w": "vans",
+      "p": 9
+    }
+  ],
+  "Go,Go,Go": [
+    {
+      "w": "dogs",
+      "p": 3
+    },
+    {
+      "w": "pigs",
+      "p": 4
+    },
+    {
+      "w": "birds",
+      "p": 5
+    },
+    {
+      "w": "cats",
+      "p": 6
+    },
+    {
+      "w": "goats",
+      "p": 7
+    },
+    {
+      "w": "go",
+      "p": 8
+    },
+    {
+      "w": "ducks",
+      "p": 9
+    },
+    {
+      "w": "animals",
+      "p": 10
+    }
+  ],
+  "In": [
+    {
+      "w": "car",
+      "p": 3
+    },
+    {
+      "w": "wagon",
+      "p": 4
+    },
+    {
+      "w": "boat",
+      "p": 5
+    },
+    {
+      "w": "house",
+      "p": 6
+    },
+    {
+      "w": "water",
+      "p": 7
+    },
+    {
+      "w": "grass",
+      "p": 8
+    },
+    {
+      "w": "mud",
+      "p": 9
+    },
+    {
+      "w": "bathtub",
+      "p": 10
+    }
+  ],
+  "It is Fall": [
+    {
+      "w": "leaf",
+      "p": 3
+    },
+    {
+      "w": "apple",
+      "p": 4
+    },
+    {
+      "w": "acorn",
+      "p": 5
+    },
+    {
+      "w": "corn",
+      "p": 6
+    },
+    {
+      "w": "pumpkin",
+      "p": 7
+    },
+    {
+      "w": "rake",
+      "p": 8
+    },
+    {
+      "w": "moon",
+      "p": 9
+    },
+    {
+      "w": "jacket",
+      "p": 10
+    }
+  ],
+  "Jump Over": [
+    {
+      "w": "cat",
+      "p": 3
+    },
+    {
+      "w": "jumps",
+      "p": 4
+    },
+    {
+      "w": "horse",
+      "p": 5
+    },
+    {
+      "w": "fox",
+      "p": 6
+    },
+    {
+      "w": "deer",
+      "p": 7
+    },
+    {
+      "w": "goat",
+      "p": 8
+    },
+    {
+      "w": "girl",
+      "p": 9
+    },
+    {
+      "w": "cow",
+      "p": 10
+    }
+  ],
+  "Little": [
+    {
+      "w": "house",
+      "p": 3
+    },
+    {
+      "w": "dog",
+      "p": 4
+    },
+    {
+      "w": "car",
+      "p": 5
+    },
+    {
+      "w": "plane",
+      "p": 6
+    },
+    {
+      "w": "tree",
+      "p": 7
+    },
+    {
+      "w": "bug",
+      "p": 8
+    },
+    {
+      "w": "mouse",
+      "p": 9
+    },
+    {
+      "w": "baby",
+      "p": 10
+    }
+  ],
+  "Lunch at School": [
+    {
+      "w": "friends",
+      "p": 2
+    },
+    {
+      "w": "bag",
+      "p": 3
+    },
+    {
+      "w": "milk",
+      "p": 4
+    },
+    {
+      "w": "noodles",
+      "p": 5
+    },
+    {
+      "w": "carrots",
+      "p": 6
+    },
+    {
+      "w": "cookie",
+      "p": 7
+    },
+    {
+      "w": "napkin",
+      "p": 8
+    },
+    {
+      "w": "lunch",
+      "p": 9
+    }
+  ],
+  "My Family": [
+    {
+      "w": "mother",
+      "p": 3
+    },
+    {
+      "w": "father",
+      "p": 4
+    },
+    {
+      "w": "brother",
+      "p": 5
+    },
+    {
+      "w": "sister",
+      "p": 6
+    },
+    {
+      "w": "grandfather",
+      "p": 7
+    },
+    {
+      "w": "grandmother",
+      "p": 8
+    },
+    {
+      "w": "me",
+      "p": 9
+    },
+    {
+      "w": "family",
+      "p": 10
+    }
+  ],
+  "My Gift for Mom": [
+    {
+      "w": "day",
+      "p": 2
+    },
+    {
+      "w": "bowl",
+      "p": 3
+    },
+    {
+      "w": "box",
+      "p": 4
+    },
+    {
+      "w": "paper",
+      "p": 5
+    },
+    {
+      "w": "bow",
+      "p": 6
+    },
+    {
+      "w": "gift",
+      "p": 7
+    },
+    {
+      "w": "smile",
+      "p": 8
+    },
+    {
+      "w": "hug",
+      "p": 9
+    }
+  ],
+  "My School Bus": [
+    {
+      "w": "walk",
+      "p": 2
+    },
+    {
+      "w": "bench",
+      "p": 3
+    },
+    {
+      "w": "schoolbus",
+      "p": 4
+    },
+    {
+      "w": "door",
+      "p": 5
+    },
+    {
+      "w": "steps",
+      "p": 6
+    },
+    {
+      "w": "seat",
+      "p": 7
+    },
+    {
+      "w": "window",
+      "p": 8
+    },
+    {
+      "w": "scho",
+      "p": 9
+    }
+  ],
+  "On": [
+    {
+      "w": "house",
+      "p": 3
+    },
+    {
+      "w": "bike",
+      "p": 4
+    },
+    {
+      "w": "swing",
+      "p": 5
+    },
+    {
+      "w": "bed",
+      "p": 6
+    },
+    {
+      "w": "airplane",
+      "p": 7
+    },
+    {
+      "w": "fence",
+      "p": 8
+    },
+    {
+      "w": "table",
+      "p": 9
+    },
+    {
+      "w": "skates",
+      "p": 10
+    }
+  ],
+  "One": [
+    {
+      "w": "bed",
+      "p": 2
+    },
+    {
+      "w": "pillow",
+      "p": 3
+    },
+    {
+      "w": "window",
+      "p": 4
+    },
+    {
+      "w": "toy",
+      "p": 6
+    },
+    {
+      "w": "rug",
+      "p": 7
+    },
+    {
+      "w": "blanket",
+      "p": 8
+    },
+    {
+      "w": "desk",
+      "p": 9
+    }
+  ],
+  "One Insect": [
+    {
+      "w": "head",
+      "p": 3
+    },
+    {
+      "w": "body",
+      "p": 4
+    },
+    {
+      "w": "leg",
+      "p": 5
+    },
+    {
+      "w": "legs",
+      "p": 6
+    },
+    {
+      "w": "legs",
+      "p": 7
+    },
+    {
+      "w": "legs",
+      "p": 8
+    },
+    {
+      "w": "legs",
+      "p": 9
+    },
+    {
+      "w": "legs",
+      "p": 10
+    }
+  ],
+  "Out": [
+    {
+      "w": "car",
+      "p": 3
+    },
+    {
+      "w": "wagon",
+      "p": 4
+    },
+    {
+      "w": "boat",
+      "p": 5
+    },
+    {
+      "w": "house",
+      "p": 6
+    },
+    {
+      "w": "water",
+      "p": 7
+    },
+    {
+      "w": "grass",
+      "p": 8
+    },
+    {
+      "w": "mud",
+      "p": 9
+    },
+    {
+      "w": "bathtub",
+      "p": 10
+    }
+  ],
+  "Over": [
+    {
+      "w": "log",
+      "p": 3
+    },
+    {
+      "w": "pot",
+      "p": 4
+    },
+    {
+      "w": "hole",
+      "p": 5
+    },
+    {
+      "w": "bike",
+      "p": 6
+    },
+    {
+      "w": "bat",
+      "p": 7
+    },
+    {
+      "w": "ball",
+      "p": 8
+    },
+    {
+      "w": "doll",
+      "p": 9
+    },
+    {
+      "w": "cat",
+      "p": 10
+    }
+  ],
+  "Pasta!": [
+    {
+      "w": "asta",
+      "p": 2
+    },
+    {
+      "w": "long",
+      "p": 3
+    },
+    {
+      "w": "short",
+      "p": 4
+    },
+    {
+      "w": "red",
+      "p": 5
+    },
+    {
+      "w": "green",
+      "p": 6
+    },
+    {
+      "w": "wide",
+      "p": 7
+    },
+    {
+      "w": "thin",
+      "p": 8
+    },
+    {
+      "w": "curly",
+      "p": 9
+    },
+    {
+      "w": "yummy",
+      "p": 10
+    }
+  ],
+  "Play Ball!": [
+    {
+      "w": "lay",
+      "p": 2
+    },
+    {
+      "w": "beach",
+      "p": 3
+    },
+    {
+      "w": "baseball",
+      "p": 4
+    },
+    {
+      "w": "basketball",
+      "p": 5
+    },
+    {
+      "w": "football",
+      "p": 6
+    },
+    {
+      "w": "tennis",
+      "p": 7
+    },
+    {
+      "w": "golf",
+      "p": 8
+    },
+    {
+      "w": "soccer",
+      "p": 9
+    },
+    {
+      "w": "volleyball",
+      "p": 10
+    }
+  ],
+  "Show Some Love": [
+    {
+      "w": "love",
+      "p": 2
+    },
+    {
+      "w": "smile",
+      "p": 3
+    },
+    {
+      "w": "hug",
+      "p": 4
+    },
+    {
+      "w": "pat",
+      "p": 5
+    },
+    {
+      "w": "card",
+      "p": 6
+    },
+    {
+      "w": "gift",
+      "p": 7
+    },
+    {
+      "w": "kiss",
+      "p": 8
+    },
+    {
+      "w": "wink",
+      "p": 9
+    },
+    {
+      "w": "lick",
+      "p": 10
+    }
+  ],
+  "Spring": [
+    {
+      "w": "ball",
+      "p": 3
+    },
+    {
+      "w": "bikes",
+      "p": 4
+    },
+    {
+      "w": "birds",
+      "p": 5
+    },
+    {
+      "w": "flowers",
+      "p": 6
+    },
+    {
+      "w": "rain",
+      "p": 7
+    },
+    {
+      "w": "rainbow",
+      "p": 8
+    },
+    {
+      "w": "bunny",
+      "p": 9
+    },
+    {
+      "w": "spring",
+      "p": 10
+    }
+  ],
+  "Summer": [
+    {
+      "w": "sunshine",
+      "p": 3
+    },
+    {
+      "w": "rain",
+      "p": 4
+    },
+    {
+      "w": "beach",
+      "p": 5
+    },
+    {
+      "w": "swimsuit",
+      "p": 6
+    },
+    {
+      "w": "ball",
+      "p": 7
+    },
+    {
+      "w": "flowers",
+      "p": 8
+    },
+    {
+      "w": "garden",
+      "p": 9
+    },
+    {
+      "w": "summer",
+      "p": 10
+    }
+  ],
+  "Summer Picnics": [
+    {
+      "w": "icnics",
+      "p": 2
+    },
+    {
+      "w": "hats",
+      "p": 3
+    },
+    {
+      "w": "shoes",
+      "p": 4
+    },
+    {
+      "w": "cups",
+      "p": 5
+    },
+    {
+      "w": "plates",
+      "p": 6
+    },
+    {
+      "w": "foods",
+      "p": 7
+    },
+    {
+      "w": "sun",
+      "p": 8
+    },
+    {
+      "w": "picnics",
+      "p": 9
+    },
+    {
+      "w": "fun",
+      "p": 10
+    }
+  ],
+  "The Backyard": [
+    {
+      "w": "fence",
+      "p": 3
+    },
+    {
+      "w": "dog",
+      "p": 4
+    },
+    {
+      "w": "swing",
+      "p": 5
+    },
+    {
+      "w": "ball",
+      "p": 6
+    },
+    {
+      "w": "flowers",
+      "p": 7
+    },
+    {
+      "w": "tree",
+      "p": 8
+    },
+    {
+      "w": "hose",
+      "p": 9
+    },
+    {
+      "w": "backyard",
+      "p": 10
+    }
+  ],
+  "The Book": [
+    {
+      "w": "word",
+      "p": 4
+    },
+    {
+      "w": "run",
+      "p": 6
+    },
+    {
+      "w": "words",
+      "p": 7
+    },
+    {
+      "w": "letters",
+      "p": 8
+    },
+    {
+      "w": "number",
+      "p": 9
+    }
+  ],
+  "The Classroom": [
+    {
+      "w": "classroom",
+      "p": 2
+    },
+    {
+      "w": "chair",
+      "p": 3
+    },
+    {
+      "w": "desk",
+      "p": 4
+    },
+    {
+      "w": "paper",
+      "p": 6
+    },
+    {
+      "w": "pencil",
+      "p": 7
+    },
+    {
+      "w": "eraser",
+      "p": 8
+    },
+    {
+      "w": "backpack",
+      "p": 9
+    },
+    {
+      "w": "classroom",
+      "p": 10
+    }
+  ],
+  "The Fort": [
+    {
+      "w": "friends",
+      "p": 2
+    },
+    {
+      "w": "chairs",
+      "p": 3
+    },
+    {
+      "w": "pillows",
+      "p": 4
+    },
+    {
+      "w": "blankets",
+      "p": 5
+    },
+    {
+      "w": "food",
+      "p": 6
+    },
+    {
+      "w": "games",
+      "p": 7
+    },
+    {
+      "w": "lights",
+      "p": 8
+    },
+    {
+      "w": "fort",
+      "p": 9
+    }
+  ],
+  "The Garden": [
+    {
+      "w": "peas",
+      "p": 3
+    },
+    {
+      "w": "beans",
+      "p": 4
+    },
+    {
+      "w": "melons",
+      "p": 5
+    },
+    {
+      "w": "onions",
+      "p": 6
+    },
+    {
+      "w": "potatoes",
+      "p": 7
+    },
+    {
+      "w": "tomatoes",
+      "p": 8
+    },
+    {
+      "w": "corn",
+      "p": 9
+    },
+    {
+      "w": "garden",
+      "p": 10
+    }
+  ],
+  "The Ocean": [
+    {
+      "w": "water",
+      "p": 3
+    },
+    {
+      "w": "sand",
+      "p": 4
+    },
+    {
+      "w": "coral",
+      "p": 5
+    },
+    {
+      "w": "seaweed",
+      "p": 6
+    },
+    {
+      "w": "fish",
+      "p": 7
+    },
+    {
+      "w": "crab",
+      "p": 8
+    },
+    {
+      "w": "starfish",
+      "p": 9
+    },
+    {
+      "w": "ocean",
+      "p": 10
+    }
+  ],
+  "The Plant": [
+    {
+      "w": "dirt",
+      "p": 3
+    },
+    {
+      "w": "shovel",
+      "p": 4
+    },
+    {
+      "w": "hole",
+      "p": 5
+    },
+    {
+      "w": "seed",
+      "p": 6
+    },
+    {
+      "w": "rain",
+      "p": 7
+    },
+    {
+      "w": "sunshine",
+      "p": 8
+    },
+    {
+      "w": "baby",
+      "p": 9
+    },
+    {
+      "w": "plant",
+      "p": 10
+    }
+  ],
+  "The School": [
+    {
+      "w": "ooups",
+      "p": 2
+    },
+    {
+      "w": "classroom",
+      "p": 3
+    },
+    {
+      "w": "room",
+      "p": 4
+    },
+    {
+      "w": "room",
+      "p": 5
+    },
+    {
+      "w": "lunchroom",
+      "p": 6
+    },
+    {
+      "w": "library",
+      "p": 7
+    },
+    {
+      "w": "gym",
+      "p": 8
+    },
+    {
+      "w": "playground",
+      "p": 9
+    },
+    {
+      "w": "aa",
+      "p": 10
+    }
+  ],
+  "The Street": [
+    {
+      "w": "gate",
+      "p": 2
+    },
+    {
+      "w": "mailbox",
+      "p": 3
+    },
+    {
+      "w": "sidewalk",
+      "p": 4
+    },
+    {
+      "w": "fence",
+      "p": 5
+    },
+    {
+      "w": "flowers",
+      "p": 6
+    },
+    {
+      "w": "bike",
+      "p": 7
+    },
+    {
+      "w": "friend",
+      "p": 8
+    },
+    {
+      "w": "street",
+      "p": 9
+    }
+  ],
+  "The Supermarket": [
+    {
+      "w": "carts",
+      "p": 3
+    },
+    {
+      "w": "fruits",
+      "p": 4
+    },
+    {
+      "w": "vegetables",
+      "p": 5
+    },
+    {
+      "w": "bread",
+      "p": 6
+    },
+    {
+      "w": "cereal",
+      "p": 7
+    },
+    {
+      "w": "meat",
+      "p": 8
+    },
+    {
+      "w": "eggs",
+      "p": 9
+    },
+    {
+      "w": "checkout",
+      "p": 10
+    }
+  ],
+  "The Trip": [
+    {
+      "w": "clothes",
+      "p": 3
+    },
+    {
+      "w": "suitcase",
+      "p": 4
+    },
+    {
+      "w": "map",
+      "p": 5
+    },
+    {
+      "w": "car",
+      "p": 6
+    },
+    {
+      "w": "belt",
+      "p": 7
+    },
+    {
+      "w": "dog",
+      "p": 8
+    },
+    {
+      "w": "grandparents",
+      "p": 10
+    }
+  ],
+  "Three": [
+    {
+      "w": "tigers",
+      "p": 2
+    },
+    {
+      "w": "lions",
+      "p": 3
+    },
+    {
+      "w": "bears",
+      "p": 4
+    },
+    {
+      "w": "monkeys",
+      "p": 5
+    },
+    {
+      "w": "elephants",
+      "p": 6
+    },
+    {
+      "w": "camels",
+      "p": 7
+    },
+    {
+      "w": "frogs",
+      "p": 8
+    },
+    {
+      "w": "pandas",
+      "p": 9
+    }
+  ],
+  "Too Many Sweets": [
+    {
+      "w": "cake",
+      "p": 3
+    },
+    {
+      "w": "cookie",
+      "p": 4
+    },
+    {
+      "w": "cupcake",
+      "p": 5
+    },
+    {
+      "w": "cream",
+      "p": 6
+    },
+    {
+      "w": "pie",
+      "p": 7
+    },
+    {
+      "w": "brownie",
+      "p": 8
+    },
+    {
+      "w": "candy",
+      "p": 9
+    },
+    {
+      "w": "belly",
+      "p": 10
+    }
+  ],
+  "Toys": [
+    {
+      "w": "blocks",
+      "p": 3
+    },
+    {
+      "w": "bear",
+      "p": 4
+    },
+    {
+      "w": "paint",
+      "p": 5
+    },
+    {
+      "w": "drum",
+      "p": 6
+    },
+    {
+      "w": "plane",
+      "p": 7
+    },
+    {
+      "w": "wagon",
+      "p": 8
+    },
+    {
+      "w": "kite",
+      "p": 9
+    },
+    {
+      "w": "robot",
+      "p": 10
+    }
+  ],
+  "Two": [
+    {
+      "w": "bees",
+      "p": 2
+    },
+    {
+      "w": "fish",
+      "p": 3
+    },
+    {
+      "w": "birds",
+      "p": 4
+    },
+    {
+      "w": "cats",
+      "p": 5
+    },
+    {
+      "w": "dogs",
+      "p": 6
+    },
+    {
+      "w": "cows",
+      "p": 7
+    },
+    {
+      "w": "horses",
+      "p": 8
+    },
+    {
+      "w": "kids",
+      "p": 9
+    }
+  ],
+  "Under": [
+    {
+      "w": "chair",
+      "p": 3
+    },
+    {
+      "w": "desk",
+      "p": 4
+    },
+    {
+      "w": "table",
+      "p": 5
+    },
+    {
+      "w": "bed",
+      "p": 6
+    },
+    {
+      "w": "pillow",
+      "p": 7
+    },
+    {
+      "w": "umbrella",
+      "p": 8
+    },
+    {
+      "w": "swing",
+      "p": 9
+    },
+    {
+      "w": "tree",
+      "p": 10
+    }
+  ],
+  "Water": [
+    {
+      "w": "water",
+      "p": 2
+    },
+    {
+      "w": "water",
+      "p": 3
+    },
+    {
+      "w": "ocean",
+      "p": 4
+    },
+    {
+      "w": "lake",
+      "p": 5
+    },
+    {
+      "w": "river",
+      "p": 6
+    },
+    {
+      "w": "rain",
+      "p": 7
+    },
+    {
+      "w": "snow",
+      "p": 8
+    },
+    {
+      "w": "ice",
+      "p": 9
+    },
+    {
+      "w": "water",
+      "p": 10
+    }
+  ],
+  "We Build": [
+    {
+      "w": "draw",
+      "p": 3
+    },
+    {
+      "w": "saw",
+      "p": 4
+    },
+    {
+      "w": "sand",
+      "p": 5
+    },
+    {
+      "w": "hammer",
+      "p": 6
+    },
+    {
+      "w": "drill",
+      "p": 7
+    },
+    {
+      "w": "paint",
+      "p": 8
+    },
+    {
+      "w": "glue",
+      "p": 9
+    },
+    {
+      "w": "hang",
+      "p": 10
+    }
+  ],
+  "Winter": [
+    {
+      "w": "snow",
+      "p": 3
+    },
+    {
+      "w": "skates",
+      "p": 4
+    },
+    {
+      "w": "sled",
+      "p": 5
+    },
+    {
+      "w": "snowman",
+      "p": 6
+    },
+    {
+      "w": "mittens",
+      "p": 7
+    },
+    {
+      "w": "coat",
+      "p": 8
+    },
+    {
+      "w": "fire",
+      "p": 9
+    },
+    {
+      "w": "winter",
+      "p": 10
+    }
+  ],
+  "pets": [
+    {
+      "w": "ets",
+      "p": 2
+    },
+    {
+      "w": "cat",
+      "p": 3
+    },
+    {
+      "w": "dog",
+      "p": 4
+    },
+    {
+      "w": "bunny",
+      "p": 5
+    },
+    {
+      "w": "bird",
+      "p": 6
+    },
+    {
+      "w": "goldfish",
+      "p": 7
+    },
+    {
+      "w": "mouse",
+      "p": 8
+    },
+    {
+      "w": "turtle",
+      "p": 9
+    },
+    {
+      "w": "hamster",
+      "p": 10
+    }
+  ],
+  "the Coast": [
+    {
+      "w": "ocean",
+      "p": 3
+    },
+    {
+      "w": "waves",
+      "p": 4
+    },
+    {
+      "w": "beach",
+      "p": 5
+    },
+    {
+      "w": "rocks",
+      "p": 6
+    },
+    {
+      "w": "cliff",
+      "p": 7
+    },
+    {
+      "w": "birds",
+      "p": 8
+    },
+    {
+      "w": "lighthouse",
+      "p": 9
+    },
+    {
+      "w": "coast",
+      "p": 10
+    }
+  ],
+  "the city": [
+    {
+      "w": "streets",
+      "p": 3
+    },
+    {
+      "w": "cars",
+      "p": 4
+    },
+    {
+      "w": "buses",
+      "p": 5
+    },
+    {
+      "w": "stores",
+      "p": 6
+    },
+    {
+      "w": "park",
+      "p": 7
+    },
+    {
+      "w": "big",
+      "p": 8
+    },
+    {
+      "w": "people",
+      "p": 9
+    },
+    {
+      "w": "noise",
+      "p": 10
+    }
+  ],
+  "_说明": "RAZ AA 书目->每页词对照表，由 ocr_build_catalog.py 自动生成。每项 {w:核心词, p:1-based页号}。可手工修正后重跑 build_raz_deck.py。"
+}

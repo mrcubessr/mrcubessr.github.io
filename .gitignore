@@ -8,3 +8,6 @@ output/
 
 # 损坏的 .git 备份目录（旧对象库，仅本地留档）
 .git.broken-*/
+
+# RAZ 配图管线的临时拼图（人工核对用，可重新生成）
+tools/srs/scripts/raz-pipeline/montages/
