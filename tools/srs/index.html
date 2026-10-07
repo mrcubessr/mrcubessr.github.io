@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
-<link rel="stylesheet" href="/tools/srs/srs.css?v=20261007d">
+<link rel="stylesheet" href="/tools/srs/srs.css?v=20261007e">
 </head>
 <body data-nav="srs">
 <div data-site-nav></div>
@@ -19,7 +19,7 @@
 <div class="srs-wrap">
   <div class="srs-pagehead">
     <h1 class="srs-pagehead__title">记忆卡片 · SRS</h1>
-    <p class="srs-pagehead__sub">基于 SM-2 间隔重复算法，用来记联想词和自建公式卡组。数据存在本机浏览器，不上传。</p>
+    <p class="srs-pagehead__sub">基于 SM-2 间隔重复算法，用来记<b>三盲联想词</b>、练<b>RAZ 英文词汇</b>，或自建公式卡组。数据存在本机浏览器，不上传。</p>
   </div>
 
   <div id="todayBox" class="srs-kv" style="margin-bottom:18px"></div>
@@ -32,32 +32,38 @@
     <button class="btn btn--sm btn--ghost" id="btnStats">总统计</button>
   </div>
 
-  <div class="srs-group" id="assocGroup">
-    <button type="button" class="srs-group__head" id="assocToggle" aria-expanded="true">
-      <span class="srs-group__title">三盲联想词 · 按字头分组</span>
-      <span class="srs-group__sub" id="assocSub"></span>
-      <span class="srs-group__chev" aria-hidden="true">▾</span>
+  <div class="srs-tabs" id="srsTabs" role="tablist">
+    <button type="button" class="srs-tab srs-tab--assoc is-on" data-tab="assoc" role="tab" aria-selected="true">
+      三盲联想词 <span class="srs-tab__cnt" id="assocCnt"></span>
     </button>
-    <div class="srs-decks srs-group__body" id="assocList"></div>
+    <button type="button" class="srs-tab srs-tab--raz" data-tab="raz" role="tab" aria-selected="false">
+      RAZ AA 英文词汇 <span class="srs-tab__cnt" id="razCnt"></span>
+    </button>
+    <button type="button" class="srs-tab" data-tab="custom" id="customTab" role="tab" aria-selected="false" hidden>
+      我的牌组 <span class="srs-tab__cnt" id="customCnt"></span>
+    </button>
   </div>
 
-  <div class="srs-group" id="razGroup">
-    <button type="button" class="srs-group__head" id="razToggle" aria-expanded="true">
-      <span class="srs-group__title">RAZ AA 词汇 · 按主题分组</span>
-      <span class="srs-group__sub" id="razSub"></span>
-      <span class="srs-group__chev" aria-hidden="true">▾</span>
-    </button>
-    <div class="srs-decks srs-group__body" id="razList"></div>
-  </div>
+  <section class="srs-tabpanel" data-panel="assoc">
+    <p class="srs-tabpanel__hint"><span class="badge badge--assoc">联想</span> 代码 → 联想词，单向记忆：看到字母代码，在脑中回忆联想词，翻面核对。</p>
+    <div class="srs-decks" id="assocList"></div>
+  </section>
 
-  <div class="srs-decks" id="deckList"></div>
+  <section class="srs-tabpanel" data-panel="raz" hidden>
+    <p class="srs-tabpanel__hint"><span class="badge badge--raz">英文</span> 英文 → 中文，看图认读：娃先看图说词，翻面看英文 + 中文。</p>
+    <div class="srs-decks" id="razList"></div>
+  </section>
+
+  <section class="srs-tabpanel" data-panel="custom" hidden>
+    <div class="srs-decks" id="deckList"></div>
+  </section>
 
   <div class="srs-panel" style="margin-top:20px">
     <h3 class="srs-panel__title">怎么用</h3>
     <p class="srs-panel__desc">
-      1. 「三盲联想词」预置牌组已按字头拆成 <b>A 组 / B 组 / C 组…</b> 等独立小组，每组单独计进度，点开「三盲联想词」分组挑一组练，不用再面对一大堆混在一起的卡。<br>
+      1. 顶部两个标签已把内容分开：<b><span class="badge badge--assoc">联想</span> 三盲联想词</b>（按字头拆成 A 组 / B 组 / C 组…独立小组）和 <b><span class="badge badge--raz">英文</span> RAZ AA 词汇</b>（按主题拆成动物 / 颜色 / 数字…独立小组）。点标签切换，一次只看一类，互不干扰。<br>
       2. 联想词为<b>单向考核</b>：看到字母代码 → 在脑子里<b>回忆联想词</b>（不做选择题，避免被提示）；翻面核对后给 4 档评分。<br>
-      3. 公式类卡组自己建：新建牌组 → 进入编辑页，用「范围生成」按棱块/角块 + 首字母批量建卡，或整段粘贴录入。<br>
+      3. 公式类卡组自己建：切到「我的牌组」标签 → 新建牌组 → 进入编辑页，用「范围生成」按棱块/角块 + 首字母批量建卡，或整段粘贴录入。<br>
       4. 全程键盘操作（鼠标可完全不用）：<span class="srs-kbd">空格</span>/<span class="srs-kbd">回车</span> 翻面看答案，看答案后 <span class="srs-kbd">空格</span> = 记住并下一张，<span class="srs-kbd">1</span> 重来 / <span class="srs-kbd">2</span> 困难 / <span class="srs-kbd">3</span> 良好 / <span class="srs-kbd">4</span> 简单，<span class="srs-kbd">Esc</span> 退出。
     </p>
   </div>
@@ -118,12 +124,14 @@
 
   function deckCard(d) {
     var s = d._stats;
-    var a = el('a', 'srs-deck');
+    var a = el('a', 'srs-deck srs-deck--' + (d.type || 'custom'));
     a.href = 'review.html?deck=' + encodeURIComponent(d.id);
 
     var top = el('div', 'srs-deck__top');
     top.appendChild(el('span', 'srs-deck__name', d.name));
-    if (d.type === 'assoc' || d.type === 'raz') top.appendChild(el('span', 'badge badge--brand', '预置'));
+    if (d.type === 'assoc') top.appendChild(el('span', 'badge badge--assoc', '联想'));
+    else if (d.type === 'raz') top.appendChild(el('span', 'badge badge--raz', '英文'));
+    else if (d.type === 'custom') top.appendChild(el('span', 'badge badge--custom', '自建'));
     a.appendChild(top);
     a.appendChild(el('p', 'srs-deck__desc', d.desc || '（无说明）'));
 
@@ -201,16 +209,19 @@
       var dl = $('deckList'); dl.innerHTML = '';
       customDecks.forEach(function (d) { dl.appendChild(deckCard(d)); });
 
-      // 分组汇总
+      // 标签计数
       var aNew = assocDecks.reduce(function (s, d) { return s + (d._stats.new || 0); }, 0);
       var aDue = assocDecks.reduce(function (s, d) { return s + (d._stats.due || 0); }, 0);
-      $('assocSub').textContent = assocDecks.length + ' 组 · 待复习 ' + aDue + ' · 未学 ' + aNew;
-      $('assocGroup').style.display = assocDecks.length ? '' : 'none';
+      $('assocCnt').textContent = assocDecks.length + ' 组 · 待复习 ' + aDue + ' · 未学 ' + aNew;
 
       var rNew = razDecks.reduce(function (s, d) { return s + (d._stats.new || 0); }, 0);
       var rDue = razDecks.reduce(function (s, d) { return s + (d._stats.due || 0); }, 0);
-      $('razSub').textContent = razDecks.length + ' 组 · 待复习 ' + rDue + ' · 未学 ' + rNew;
-      $('razGroup').style.display = razDecks.length ? '' : 'none';
+      $('razCnt').textContent = razDecks.length + ' 组 · 待复习 ' + rDue + ' · 未学 ' + rNew;
+
+      var cNew = customDecks.reduce(function (s, d) { return s + (d._stats.new || 0); }, 0);
+      var cDue = customDecks.reduce(function (s, d) { return s + (d._stats.due || 0); }, 0);
+      $('customCnt').textContent = customDecks.length + ' 组 · 待复习 ' + cDue + ' · 未学 ' + cNew;
+      $('customTab').hidden = customDecks.length === 0;
 
       renderToday(decks, reviews);
     });
@@ -255,15 +266,20 @@
 
   $('btnStats').addEventListener('click', function () { location.href = 'stats.html'; });
 
-  $('assocToggle').addEventListener('click', function () {
-    var g = $('assocGroup');
-    var collapsed = g.classList.toggle('is-collapsed');
-    $('assocToggle').setAttribute('aria-expanded', String(!collapsed));
-  });
-  $('razToggle').addEventListener('click', function () {
-    var g = $('razGroup');
-    var collapsed = g.classList.toggle('is-collapsed');
-    $('razToggle').setAttribute('aria-expanded', String(!collapsed));
+  // 顶部标签切换：同一时间只看一类牌组，避免两类内容混在一起
+  function switchTab(name) {
+    document.querySelectorAll('.srs-tab').forEach(function (t) {
+      var on = t.dataset.tab === name;
+      t.classList.toggle('is-on', on);
+      t.setAttribute('aria-selected', String(on));
+    });
+    document.querySelectorAll('.srs-tabpanel').forEach(function (p) {
+      p.hidden = p.dataset.panel !== name;
+    });
+  }
+  $('srsTabs').addEventListener('click', function (e) {
+    var b = e.target.closest('.srs-tab');
+    if (b) switchTab(b.dataset.tab);
   });
 
   load().catch(function (e) {

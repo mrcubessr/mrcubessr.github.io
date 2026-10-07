@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
-<link rel="stylesheet" href="/tools/srs/srs.css?v=20261007d">
+<link rel="stylesheet" href="/tools/srs/srs.css?v=20261007e">
 </head>
 <body data-nav="srs">
 <div data-site-nav></div>
@@ -20,6 +20,7 @@
   <div class="srs-progressline" id="prog">
     <span><a href="index.html" style="color:inherit;text-decoration:none">← 牌组</a></span>
     <span id="progText">加载中…</span>
+    <span id="deckType"></span>
     <span id="deckName"></span>
   </div>
 
@@ -92,6 +93,10 @@
       deck = r[0]; allCards = r[1];
       if (!deck) { location.href = 'index.html'; return; }
       $('deckName').textContent = deck.name;
+      var dt = $('deckType');
+      if (deck.type === 'assoc') dt.innerHTML = '<span class="badge badge--assoc">联想</span>';
+      else if (deck.type === 'raz') dt.innerHTML = '<span class="badge badge--raz">英文</span>';
+      else dt.innerHTML = '<span class="badge badge--custom">自建</span>';
       $('btnStat').href = 'stats.html?deck=' + encodeURIComponent(deck.id);
       return SRS.buildQueue(deck, allCards);
     }).then(function (res) {
