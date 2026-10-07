@@ -110,6 +110,76 @@
     }));
   }
 
+  /* ---------------- 预置牌组：RAZ AA 词汇，按主题拆成独立子牌组 ---------------- */
+  var RAZ_PREFIX = 'raz-aa';
+  var RAZ_TYPE = 'raz';
+  var RAZ_THEME_ORDER = [
+    '动物·农场', '动物·宠物', '动物·野生动物', '动物·海洋与水', '颜色', '数字', '衣服', '食物',
+    '身体', '人·家庭', '物品·玩具', '场所', '自然·天气', '动作动词', '形容词', '形状',
+    '方位·介词', '时间', '职业·社区', '高频功能词', '书的结构', '节日·活动'
+  ];
+  function razThemes() {
+    var set = {}, order = RAZ_THEME_ORDER.slice();
+    (root.RAZ_AA || []).forEach(function (w) { if (w.theme) set[w.theme] = 1; });
+    order = order.filter(function (t) { return set[t]; });
+    Object.keys(set).forEach(function (t) { if (order.indexOf(t) < 0) order.push(t); });
+    return order;
+  }
+  function razDeckId(T) { return RAZ_PREFIX + '-' + T; }
+  function buildRazDeck(T, now) {
+    var c = deckCfg();
+    c.dirMode = 'en2zh';   // 单向：英文 → 中文
+    c.heads = [T];
+    c.showHint = false;
+    c.dailyNew = 10;      // 适合幼儿：每天最多新学 10 张
+    c.dailyReview = 200;
+    return {
+      id: razDeckId(T),
+      name: 'RAZ AA · ' + T,
+      type: RAZ_TYPE,
+      desc: '英文 → 中文（' + T + '，单向认读）',
+      config: c,
+      created: now,
+      _theme: T
+    };
+  }
+  function buildRazCards(T, now) {
+    var out = [];
+    (root.RAZ_AA || []).forEach(function (w) {
+      if (w.theme !== T) return;
+      var s = SM2.newCard(razDeckId(T) + ':en2zh:' + w.en, razDeckId(T), now);
+      out.push(Object.assign(s, {
+        front: w.en, back: w.zh, hint: '', dir: 'en2zh', head: T, created: now
+      }));
+    });
+    return out;
+  }
+  function ensureRazPresets() {
+    var now = Date.now();
+    var themes = razThemes();
+    return Promise.all(themes.map(function (T) {
+      return DB.getDeck(razDeckId(T)).then(function (d) {
+        if (d) {
+          return DB.getCards(razDeckId(T)).then(function (cards) {
+            var have = {};
+            cards.forEach(function (c) { have[c.id] = 1; });
+            var add = buildRazCards(T, now).filter(function (c) { return !have[c.id]; });
+            return add.length ? DB.putCards(add) : null;
+          });
+        }
+        return DB.putDeck(buildRazDeck(T, now))
+          .then(function () { return DB.putCards(buildRazCards(T, now)); });
+      });
+    }));
+  }
+  function resetRazPreset() {
+    return Promise.all(razThemes().map(function (T) {
+      return DB.getDeck(razDeckId(T)).then(function (d) {
+        return d ? DB.delDeck(razDeckId(T)) : null;
+      });
+    }));
+  }
+
   /* ---------------- 队列 ---------------- */
   function matchDir(card, mode) {
     if (!mode || mode === 'mix') return true;
@@ -301,6 +371,8 @@
     DEFAULT_DECK_CFG: DEFAULT_DECK_CFG,
     deckCfg: deckCfg, uid: uid, todayStart: todayStart,
     ensurePresets: ensurePresets, resetPreset: resetPreset,
+    ensureRazPresets: ensureRazPresets, resetRazPreset: resetRazPreset,
+    razThemes: razThemes, razDeckId: razDeckId,
     buildQueue: buildQueue, answer: answer,
     todayNewCount: todayNewCount, todayReviewCount: todayReviewCount,
     deckStats: deckStats, dailyCounts: dailyCounts, forecast: forecast, accuracy: accuracy,

@@ -116,10 +116,12 @@
     if (cur.head) meta.push(cur.head + ' 字头');
     if (cur.dir === 'w2c') meta.push('词→码');
     else if (cur.dir === 'c2w') meta.push('码→词');
+    else if (cur.dir === 'en2zh') meta.push('英→中');
     $('qMeta').textContent = meta.join(' · ');
 
     $('qLabel').textContent = (deck && deck.type === 'assoc')
-      ? '看字母，回忆联想词' : '看这边';
+      ? '看字母，回忆联想词'
+      : (deck && deck.type === 'raz' ? '看英文，回忆中文' : '看这边');
 
     var t = String(cur.front || '');
     var qt = $('qText');

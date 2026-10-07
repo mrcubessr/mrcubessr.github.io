@@ -41,6 +41,15 @@
     <div class="srs-decks srs-group__body" id="assocList"></div>
   </div>
 
+  <div class="srs-group" id="razGroup">
+    <button type="button" class="srs-group__head" id="razToggle" aria-expanded="true">
+      <span class="srs-group__title">RAZ AA 词汇 · 按主题分组</span>
+      <span class="srs-group__sub" id="razSub"></span>
+      <span class="srs-group__chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="srs-decks srs-group__body" id="razList"></div>
+  </div>
+
   <div class="srs-decks" id="deckList"></div>
 
   <div class="srs-panel" style="margin-top:20px">
@@ -59,6 +68,7 @@
 <script src="js/sm2.js"></script>
 <script src="js/db.js"></script>
 <script src="data/assoc-words.js"></script>
+<script src="data/raz-aa.js"></script>
 <script src="js/app.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script src="js/sync-provider.js"></script>
@@ -113,7 +123,7 @@
 
     var top = el('div', 'srs-deck__top');
     top.appendChild(el('span', 'srs-deck__name', d.name));
-    if (d.type === 'assoc') top.appendChild(el('span', 'badge badge--brand', '预置'));
+    if (d.type === 'assoc' || d.type === 'raz') top.appendChild(el('span', 'badge badge--brand', '预置'));
     a.appendChild(top);
     a.appendChild(el('p', 'srs-deck__desc', d.desc || '（无说明）'));
 
@@ -163,6 +173,8 @@
 
   function load() {
     return SRS.ensurePresets().then(function () {
+      return SRS.ensureRazPresets();
+    }).then(function () {
       return Promise.all([DB.getDecks(), DB.getAllCards(), DB.getReviews()]);
     }).then(function (r) {
       var decks = r[0], cards = r[1], reviews = r[2];
@@ -171,14 +183,21 @@
       decks.forEach(function (d) {
         d._stats = SRS.deckStats(d, byDeck[d.id] || [], reviews);
       });
-      // 联想词按字头拆成子牌组 → 归入「三盲联想词」折叠分组；其余（自定义）平铺
+      // 联想词按字头拆成子牌组 → 归入「三盲联想词」折叠分组
       var assocDecks = decks.filter(function (d) { return d.type === 'assoc'; })
         .sort(function (a, b) { return (a._letter || '').localeCompare(b._letter || ''); });
-      var customDecks = decks.filter(function (d) { return d.type !== 'assoc'; })
+      // RAZ AA 按主题拆成子牌组 → 归入「RAZ AA 词汇」折叠分组
+      var razOrder = SRS.razThemes();
+      var razDecks = decks.filter(function (d) { return d.type === 'raz'; })
+        .sort(function (a, b) { return razOrder.indexOf(a._theme) - razOrder.indexOf(b._theme); });
+      // 其余（自定义）平铺
+      var customDecks = decks.filter(function (d) { return d.type !== 'assoc' && d.type !== 'raz'; })
         .sort(function (a, b) { return (a.created || 0) - (b.created || 0); });
 
       var al = $('assocList'); al.innerHTML = '';
       assocDecks.forEach(function (d) { al.appendChild(deckCard(d)); });
+      var rl = $('razList'); rl.innerHTML = '';
+      razDecks.forEach(function (d) { rl.appendChild(deckCard(d)); });
       var dl = $('deckList'); dl.innerHTML = '';
       customDecks.forEach(function (d) { dl.appendChild(deckCard(d)); });
 
@@ -187,6 +206,11 @@
       var aDue = assocDecks.reduce(function (s, d) { return s + (d._stats.due || 0); }, 0);
       $('assocSub').textContent = assocDecks.length + ' 组 · 待复习 ' + aDue + ' · 未学 ' + aNew;
       $('assocGroup').style.display = assocDecks.length ? '' : 'none';
+
+      var rNew = razDecks.reduce(function (s, d) { return s + (d._stats.new || 0); }, 0);
+      var rDue = razDecks.reduce(function (s, d) { return s + (d._stats.due || 0); }, 0);
+      $('razSub').textContent = razDecks.length + ' 组 · 待复习 ' + rDue + ' · 未学 ' + rNew;
+      $('razGroup').style.display = razDecks.length ? '' : 'none';
 
       renderToday(decks, reviews);
     });
@@ -235,6 +259,11 @@
     var g = $('assocGroup');
     var collapsed = g.classList.toggle('is-collapsed');
     $('assocToggle').setAttribute('aria-expanded', String(!collapsed));
+  });
+  $('razToggle').addEventListener('click', function () {
+    var g = $('razGroup');
+    var collapsed = g.classList.toggle('is-collapsed');
+    $('razToggle').setAttribute('aria-expanded', String(!collapsed));
   });
 
   load().catch(function (e) {
