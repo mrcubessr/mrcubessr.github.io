@@ -191,7 +191,8 @@
       aEn.textContent = '';
       aEn.hidden = true;
     }
-    renderPic($('aPic'), cur.img, cur.emoji);
+    // 答案区不再重复显示配图（题面的大图仍可见），避免一屏出现两张同样的图
+    renderPic($('aPic'), '', '');
 
     buildGrades();
     updateProg();
