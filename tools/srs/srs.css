@@ -77,6 +77,18 @@
 }
 .srs-quiz__a--sm { font-size: 18px; }
 .srs-quiz__hint { font-size: 13px; color: var(--fg-3); }
+.srs-quiz__pic {
+  display: none;
+  margin: 6px 0 2px;
+  font-size: 84px;
+  line-height: 1.1;
+}
+.srs-quiz__pic img {
+  display: block;
+  max-width: min(100%, 360px);
+  max-height: 220px;
+  object-fit: contain;
+}
 .srs-quiz__rule { width: 64px; height: 1px; background: var(--line-2); }
 
 .srs-grades {

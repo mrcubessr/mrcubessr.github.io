@@ -26,11 +26,13 @@
   <div id="quiz" class="srs-quiz" hidden>
     <div class="srs-quiz__meta" id="qMeta"></div>
     <div class="srs-quiz__label" id="qLabel">看这边</div>
+    <div class="srs-quiz__pic" id="qPic"></div>
     <div class="srs-quiz__q" id="qText"></div>
     <div class="srs-quiz__hint" id="qHint"></div>
     <div id="answerBox" hidden>
       <div class="srs-quiz__rule" style="margin:10px auto"></div>
       <div class="srs-quiz__label">答案</div>
+      <div class="srs-quiz__pic" id="aPic"></div>
       <div class="srs-quiz__a" id="aText"></div>
     </div>
   </div>
@@ -95,6 +97,21 @@
     $('progText').textContent = '剩余 ' + left + ' / ' + total;
   }
 
+  function renderPic(el, img, emoji) {
+    el.innerHTML = '';
+    el.style.display = 'none';
+    if (img) {
+      var i = document.createElement('img');
+      i.src = img;
+      i.alt = '';
+      el.appendChild(i);
+      el.style.display = '';
+    } else if (emoji) {
+      el.textContent = emoji;
+      el.style.display = '';
+    }
+  }
+
   function next() {
     if (!queue.length) return finish();
     cur = queue.shift();
@@ -123,6 +140,8 @@
       ? '看字母，回忆联想词'
       : (deck && deck.type === 'raz' ? '看英文，回忆中文' : '看这边');
 
+    renderPic($('qPic'), cur.img, cur.emoji);
+
     var t = String(cur.front || '');
     var qt = $('qText');
     qt.textContent = t;
@@ -134,6 +153,7 @@
     var a = String(cur.back || '');
     $('aText').textContent = a || '（空）';
     $('aText').className = 'srs-quiz__a' + (a.length > 12 ? ' srs-quiz__a--sm' : '');
+    renderPic($('aPic'), cur.img, cur.emoji);
 
     buildGrades();
     updateProg();

@@ -149,7 +149,8 @@
       if (w.theme !== T) return;
       var s = SM2.newCard(razDeckId(T) + ':en2zh:' + w.en, razDeckId(T), now);
       out.push(Object.assign(s, {
-        front: w.en, back: w.zh, hint: '', dir: 'en2zh', head: T, created: now
+        front: w.en, back: w.zh, hint: '', dir: 'en2zh', head: T, created: now,
+        emoji: w.emoji || '', img: w.img || ''
       }));
     });
     return out;
@@ -157,6 +158,11 @@
   function ensureRazPresets() {
     var now = Date.now();
     var themes = razThemes();
+    var emojiByEn = {}, imgByEn = {};
+    (root.RAZ_AA || []).forEach(function (w) {
+      emojiByEn[w.en] = w.emoji || '';
+      imgByEn[w.en] = w.img || '';
+    });
     return Promise.all(themes.map(function (T) {
       return DB.getDeck(razDeckId(T)).then(function (d) {
         if (d) {
@@ -164,7 +170,18 @@
             var have = {};
             cards.forEach(function (c) { have[c.id] = 1; });
             var add = buildRazCards(T, now).filter(function (c) { return !have[c.id]; });
-            return add.length ? DB.putCards(add) : null;
+            // 旧卡补图：把当前词表里对应的 emoji/img 写回
+            var upd = cards.filter(function (c) {
+              return c.emoji === undefined || c.img === undefined;
+            }).map(function (c) {
+              c.emoji = emojiByEn[c.front] || '';
+              c.img = imgByEn[c.front] || '';
+              return c;
+            });
+            return Promise.all([
+              add.length ? DB.putCards(add) : null,
+              upd.length ? DB.putCards(upd) : null
+            ]);
           });
         }
         return DB.putDeck(buildRazDeck(T, now))
