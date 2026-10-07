@@ -76,6 +76,13 @@
   word-break: break-word; line-height: 1.4;
 }
 .srs-quiz__a--sm { font-size: 18px; }
+/* RAZ 答案区的英文单词：醒目大字，孩子先看词再看中文 */
+.srs-quiz__en {
+  font-size: 40px; font-weight: 700; color: var(--fg-1);
+  word-break: break-word; line-height: 1.2; margin: 2px 0 6px;
+  letter-spacing: .5px;
+}
+.srs-quiz__en[hidden] { display: none; }
 .srs-quiz__hint { font-size: 13px; color: var(--fg-3); }
 .srs-quiz__pic {
   display: none;
@@ -85,9 +92,12 @@
 }
 .srs-quiz__pic img {
   display: block;
-  max-width: min(100%, 360px);
-  max-height: 220px;
+  max-width: min(100%, 420px);
+  max-height: 320px;
   object-fit: contain;
+  margin: 0 auto;
+  border-radius: 10px;
+  background: #fff;
 }
 .srs-quiz__rule { width: 64px; height: 1px; background: var(--line-2); }
 

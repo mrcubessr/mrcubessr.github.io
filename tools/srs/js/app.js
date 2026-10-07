@@ -171,10 +171,12 @@
             cards.forEach(function (c) { have[c.id] = 1; });
             var add = buildRazCards(T, now).filter(function (c) { return !have[c.id]; });
             // 旧卡补图：把当前词表里对应的 emoji/img 写回
+            // 注意：早期版本的卡 img 可能是空字符串（只有 emoji），
+            // 因此不能只判 undefined，必须同时判空，否则新配的图永远补不进去。
             var upd = cards.filter(function (c) {
-              return c.emoji === undefined || c.img === undefined;
+              return !c.img && imgByEn[c.front];
             }).map(function (c) {
-              c.emoji = emojiByEn[c.front] || '';
+              c.emoji = emojiByEn[c.front] || c.emoji || '';
               c.img = imgByEn[c.front] || '';
               return c;
             });

@@ -32,8 +32,9 @@
     <div id="answerBox" hidden>
       <div class="srs-quiz__rule" style="margin:10px auto"></div>
       <div class="srs-quiz__label">答案</div>
-      <div class="srs-quiz__pic" id="aPic"></div>
+      <div class="srs-quiz__en" id="aEn" hidden></div>
       <div class="srs-quiz__a" id="aText"></div>
+      <div class="srs-quiz__pic" id="aPic"></div>
     </div>
   </div>
 
@@ -50,6 +51,7 @@
     <p class="srs-panel__desc" id="doneDesc"></p>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       <button class="btn btn--primary" id="btnAgainQueue" hidden>再练一轮</button>
+      <button class="btn btn--ghost" id="btnRedoAll" hidden>全部重新学一遍</button>
       <a class="btn btn--ghost" href="index.html">返回牌组</a>
       <a class="btn btn--ghost" id="btnStat" href="#">查看统计</a>
     </div>
@@ -69,7 +71,7 @@
   var q = new URLSearchParams(location.search);
   var deckId = q.get('deck');
 
-  var deck = null, allCards = [], queue = [], relearn = [];
+  var deck = null, allCards = [], queue = [], relearn = [], sessionIds = [];
   var cur = null, shownAt = 0, answered = 0, correct = 0, sessionStart = Date.now();
   var revealed = false, total = 0;
 
@@ -115,6 +117,7 @@
   function next() {
     if (!queue.length) return finish();
     cur = queue.shift();
+    if (cur && cur.id && sessionIds.indexOf(cur.id) < 0) sessionIds.push(cur.id);
     revealed = false;
     shownAt = Date.now();
     $('answerBox').hidden = true;
@@ -138,21 +141,37 @@
 
     $('qLabel').textContent = (deck && deck.type === 'assoc')
       ? '看字母，回忆联想词'
-      : (deck && deck.type === 'raz' ? '看英文，回忆中文' : '看这边');
+      : (deck && deck.type === 'raz' ? '看图片，说出单词' : '看这边');
 
-    renderPic($('qPic'), cur.img, cur.emoji);
-
+    // RAZ 卡：正面只出图，不显示英文单词（看图说单词）；其他卡种照旧
+    var isRaz = deck && deck.type === 'raz';
     var t = String(cur.front || '');
     var qt = $('qText');
-    qt.textContent = t;
-    qt.className = 'srs-quiz__q' + (t.length > 6 ? ' srs-quiz__q--sm' : '');
+    if (isRaz) {
+      qt.textContent = '';
+      qt.className = 'srs-quiz__q';
+    } else {
+      qt.textContent = t;
+      qt.className = 'srs-quiz__q' + (t.length > 6 ? ' srs-quiz__q--sm' : '');
+    }
+
+    renderPic($('qPic'), cur.img, cur.emoji);
 
     var hint = cfg.showHint && cur.hint ? cur.hint : '';
     $('qHint').textContent = hint;
 
+    // 答案区：RAZ 卡先给英文，再给中文
     var a = String(cur.back || '');
     $('aText').textContent = a || '（空）';
     $('aText').className = 'srs-quiz__a' + (a.length > 12 ? ' srs-quiz__a--sm' : '');
+    var aEn = $('aEn');
+    if (isRaz) {
+      aEn.textContent = t;
+      aEn.hidden = false;
+    } else {
+      aEn.textContent = '';
+      aEn.hidden = true;
+    }
     renderPic($('aPic'), cur.img, cur.emoji);
 
     buildGrades();
@@ -221,7 +240,30 @@
       $('btnAgainQueue').hidden = false;
       $('btnAgainQueue').textContent = '再练一轮（' + relearn.length + ' 张答错的）';
     }
+    // 本轮练过的全部卡片，可一键重学
+    if (sessionIds.length) {
+      $('btnRedoAll').hidden = false;
+      $('btnRedoAll').textContent = '全部重新学一遍（本轮 ' + sessionIds.length + ' 张）';
+    }
   }
+
+  // 全部重新学一遍：不改 SM-2 评分，只把本轮出现过的卡再排一遍
+  $('btnRedoAll').addEventListener('click', function () {
+    var ids = sessionIds.slice();
+    DB.getCards(deckId).then(function (cards) {
+      var map = {};
+      cards.forEach(function (c) { map[c.id] = c; });
+      queue = ids.map(function (i) { return map[i]; }).filter(Boolean).reverse();
+      if (!queue.length) return;
+      total = queue.length; answered = 0; correct = 0;
+      sessionIds = []; relearn = [];
+      sessionStart = Date.now();
+      $('doneBox').hidden = true;
+      $('btnRedoAll').hidden = true;
+      $('btnAgainQueue').hidden = true;
+      next();
+    });
+  });
 
   $('btnShow').addEventListener('click', reveal);
   $('btnAgainQueue').addEventListener('click', function () {
