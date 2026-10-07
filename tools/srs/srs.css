@@ -5,6 +5,12 @@
  * 本文件只定义 SRS 私有结构，前缀 srs-
  * ============================================================= */
 
+/* 全局：hidden 属性必须真的隐藏。
+   本文件里 .srs-quiz{display:flex} / .srs-grades{display:grid} 等带 display 的类
+   会覆盖浏览器默认的 [hidden]{display:none}，导致"设了 hidden 却还显示"
+   （典型现象：复习完成后旧卡片和评分按钮仍留在屏幕上）。 */
+[hidden] { display: none !important; }
+
 .srs-wrap {
   width: 100%;
   max-width: 940px;
