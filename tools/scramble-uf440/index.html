@@ -126,7 +126,9 @@
   .a4-top { margin: 14px 0 20px; }
   .a4-top__list { display: flex; gap: 10px; flex-wrap: wrap; }
   .a4-top__item { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-2, rgba(255,255,255,.18));
-    border-radius: 10px; padding: 8px 12px; background: var(--surface, #141826); text-decoration: none; color: var(--fg, #EEF2F8); font-weight: 500; }
+    border-radius: 10px; padding: 8px 12px; background: var(--surface, #141826); text-decoration: none; color: var(--fg, #EEF2F8);
+    font: inherit; font-weight: 500; cursor: pointer; }
+  .a4-top__item:hover { border-color: var(--brand, #60A5FA); }
   .a4-top__rank { font-weight: 800; color: var(--red, #F87171); }
 
   /* 练习浮层：紧凑型，无展开图、无滚动；颜色全部取 token（兼容浅/深主题） */
@@ -543,10 +545,11 @@
     var topBox = document.getElementById('a4-top');
     if (top.length) {
       topBox.hidden = false;
+      // 与看板方块一致：点条目直接弹练习浮层（不再跳转独立的 train.html 页面）
       document.getElementById('a4-top-list').innerHTML = top.map(function (c, i) {
-        return '<a class="a4-top__item" href="train.html?alg=' + c + '">' +
+        return '<button type="button" class="a4-top__item" data-alg="' + c + '">' +
           '<span class="a4-top__rank">#' + (i + 1) + '</span><b>' + c + '</b>' +
-          '<span style="color:var(--fg-3);font-size:12px">' + fmt(stats[c].metric()) + '</span></a>';
+          '<span style="color:var(--fg-3);font-size:12px">' + fmt(stats[c].metric()) + '</span></button>';
       }).join('');
     } else {
       topBox.hidden = true;
@@ -1100,9 +1103,9 @@
       else if (state === 'done' || state === 'idle') startTimer();
     });
 
-    // 看板点击方块 → 打开 modal
+    // 看板方块 / TOP10 条目 → 打开练习浮层
     document.addEventListener('click', function (e) {
-      var t = e.target.closest && e.target.closest('.a4-cell');
+      var t = e.target.closest && e.target.closest('.a4-cell, .a4-top__item');
       if (t && t.dataset && t.dataset.alg) {
         e.preventDefault();
         openFor(t.dataset.alg);
