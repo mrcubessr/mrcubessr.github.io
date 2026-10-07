@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
-<link rel="stylesheet" href="/tools/srs/srs.css">
+<link rel="stylesheet" href="/tools/srs/srs.css?v=20261007c">
 </head>
 <body data-nav="srs">
 <div data-site-nav></div>
@@ -61,7 +61,8 @@
 <script src="js/sm2.js"></script>
 <script src="js/db.js"></script>
 <script src="data/assoc-words.js"></script>
-<script src="js/app.js"></script>
+<script src="data/raz-aa.js?v=20261007c"></script>
+<script src="js/app.js?v=20261007c"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script src="js/sync-provider.js"></script>
 <script>
@@ -77,6 +78,14 @@
 
   function start() {
     if (!deckId) { location.href = 'index.html'; return; }
+    // 自检：RAZ 词表是否加载成功（未加载会导致所有卡无图）
+    if (deckId.indexOf('raz-aa') === 0 && !(window.RAZ_AA && window.RAZ_AA.length)) {
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div style="padding:12px 16px;background:#fff3cd;color:#8a6d3b;border-bottom:1px solid #ffe69c">' +
+        '词表未加载（raz-aa.js），请强制刷新（Ctrl+F5）或清缓存重试。' +
+        '<a href="index.html">返回</a></div>');
+      return;
+    }
     SRS.ensurePresets().then(function () {
       return Promise.all([DB.getDeck(deckId), DB.getCards(deckId)]);
     }).then(function (r) {
@@ -104,8 +113,17 @@
     el.style.display = 'none';
     if (img) {
       var i = document.createElement('img');
-      i.src = img;
+      // 统一转绝对路径：避免在不同层级的页面（index.html / review.html）
+      // 解析相对路径时产生歧义，导致图片 404
+      i.src = img.charAt(0) === '/'
+        ? img
+        : new URL(img, location.href.replace(/[^/]*$/, '')).href;
       i.alt = '';
+      i.loading = 'eager';
+      i.onerror = function () {
+        // 图片加载失败时回退显示 emoji，避免整张卡空白
+        if (emoji) { el.textContent = emoji; el.style.display = ''; }
+      };
       el.appendChild(i);
       el.style.display = '';
     } else if (emoji) {
