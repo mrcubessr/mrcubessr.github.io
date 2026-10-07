@@ -42,17 +42,19 @@ def norm(w):
 
 
 def singular(w):
-    """英文单数化：wagons->wagon, dogs->dog, glasses->glass, boxes->box
-    用于把 catalog 里的复数词匹配到卡组的单数词条。"""
+    """英文单数化：wagons->wagon, dogs->dog, glasses->glass, boxes->box,
+    tomatoes->tomato, potatoes->potato（-oes 结尾）"""
     w = w.lower()
     if len(w) > 3 and w.endswith("ies"):
-        return w[:-3] + "y"
+        return w[:-3] + "y"                     # babies->baby
+    if len(w) > 4 and w.endswith("oes"):
+        return w[:-3] + "o"                     # tomatoes->tomato, potatoes->potato
     if len(w) > 3 and w.endswith("es") and w[-3] in "sxz":
-        return w[:-2]                    # boxes->box, dishes->dish
+        return w[:-2]                           # boxes->box, dishes->dish
     if len(w) > 3 and w.endswith("es") and w[-4:-2] in ("ch", "sh"):
-        return w[:-2]                    # brushes->brush
+        return w[:-2]                           # brushes->brush
     if len(w) > 2 and w.endswith("s") and not w.endswith("ss"):
-        return w[:-1]                    # dogs->dog, cars->car
+        return w[:-1]                           # dogs->dog, cars->car
     return w
 
 def parse_raz_aa(path):
