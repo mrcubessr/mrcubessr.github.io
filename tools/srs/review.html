@@ -108,28 +108,29 @@
     $('progText').textContent = '剩余 ' + left + ' / ' + total;
   }
 
+  // 显示配图。注意：容器默认 display:none（CSS），必须显式设为 block；
+  // 用 el.style.display = '' 只会清掉行内样式、回落到 CSS 的 none，导致图片永远看不见。
+  function showEmoji(el, emoji) {
+    el.innerHTML = '';
+    if (!emoji) { el.style.display = 'none'; return; }
+    el.textContent = emoji;
+    el.style.display = 'block';
+  }
   function renderPic(el, img, emoji) {
     el.innerHTML = '';
-    el.style.display = 'none';
-    if (img) {
-      var i = document.createElement('img');
-      // 统一转绝对路径：避免在不同层级的页面（index.html / review.html）
-      // 解析相对路径时产生歧义，导致图片 404
-      i.src = img.charAt(0) === '/'
-        ? img
-        : new URL(img, location.href.replace(/[^/]*$/, '')).href;
-      i.alt = '';
-      i.loading = 'eager';
-      i.onerror = function () {
-        // 图片加载失败时回退显示 emoji，避免整张卡空白
-        if (emoji) { el.textContent = emoji; el.style.display = ''; }
-      };
-      el.appendChild(i);
-      el.style.display = '';
-    } else if (emoji) {
-      el.textContent = emoji;
-      el.style.display = '';
-    }
+    el.textContent = '';
+    if (!img) { showEmoji(el, emoji); return; }
+    var i = document.createElement('img');
+    // 统一转绝对路径：避免在不同层级的页面（index.html / review.html）
+    // 解析相对路径时产生歧义，导致图片 404
+    i.src = img.charAt(0) === '/'
+      ? img
+      : new URL(img, location.href.replace(/[^/]*$/, '')).href;
+    i.alt = '';
+    i.loading = 'eager';
+    i.onerror = function () { showEmoji(el, emoji); };   // 图 404 时回退 emoji
+    el.appendChild(i);
+    el.style.display = 'block';
   }
 
   function next() {
