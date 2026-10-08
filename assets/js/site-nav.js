@@ -159,6 +159,24 @@
     if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
+  /* 菜单列较长时（例如「三盲训练」分组展开后多达 14 项），
+     把当前页项滚到容器可视区内，避免用户打开抽屉后还要自己找。
+     只滚动 .nav-links 自身（不用 scrollIntoView），不会带动页面滚动。 */
+  function scrollActiveIntoView() {
+    var linksBox = document.getElementById('navLinks');
+    if (!linksBox) return;
+    /* 取 DOM 里最后一个 .active —— 父分组标题也带 .active，子项在其后，
+       所以最后一个才是「当前页」本身，滚动目标必须用它。 */
+    var acts = linksBox.querySelectorAll('.active');
+    var act = acts.length ? acts[acts.length - 1] : null;
+    if (!act) return;
+    var box = linksBox.getBoundingClientRect();
+    var r = act.getBoundingClientRect();
+    if (r.top < box.top || r.bottom > box.bottom) {
+      linksBox.scrollTop += (r.top - box.top) - (box.height - r.height) / 2;
+    }
+  }
+
   /* 窄屏抽屉的统一开关：菜单面板 + 遮罩 + 汉堡按钮三处状态一起切。
      必须是模块级函数 —— initNav 里「点主题后收起抽屉」也要用到，
      否则只清了 .open 而漏掉 body.nav-drawer-open，遮罩会留在屏幕上。 */
@@ -171,6 +189,10 @@
       toggleBtn.classList.toggle('open', open);
       toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
       toggleBtn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    }
+    /* 打开后再滚，等一帧让 .open 引发的布局稳定下来 */
+    if (open) {
+      window.requestAnimationFrame(scrollActiveIntoView);
     }
   }
 

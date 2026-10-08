@@ -25,19 +25,22 @@
     --c-bad-b:   #dc2626;  /* 红 */
     --c-bad-c:   #991b1b;  /* 深红 */
   }
-  /* 整板 grid 平铺：列数由 JS fitBoard() 动态算出（基于视口宽高），保证一屏内全部显示，无需滚动 */
+  /* 整板平铺：列数与格宽由 JS fitBoard() 按容器「实际」宽高算出。
+     用 flex+wrap 而非 grid：末行除不尽时，末行方块能横向撑满（或整行居中），
+     不会像 grid 那样在末尾留下一排空洞。 */
   .a4-board-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; overflow: hidden; }
   .a4-board {
-    display: grid;
-    grid-template-columns: repeat(22, var(--a4-cell, 80px));  /* JS 覆写 cols 数 + cellSize */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;      /* 满行时无影响；末行不足时整行居中，不留单侧空洞 */
     gap: 5px;
-    margin: 8px auto 16px;     /* 居中 */
-    max-width: 100%;           /* 防止 board 超出父容器 */
-    overflow: hidden;          /* 裁掉溢出的列，杜绝左右溢出 */
+    margin: 8px auto 16px;        /* 居中 */
+    width: 100%;
     box-sizing: border-box;
   }
   .a4-cell {
     position: relative;
+    flex: 0 0 var(--a4-cell, 80px);   /* 不伸缩：每行格数 = JS 算出的 cols */
     width: var(--a4-cell, 80px);
     height: var(--a4-cell, 80px);     /* 直接由变量控制，不靠 1fr + aspect-ratio（避免列宽溢出）*/
     border-radius: 6px;
@@ -50,6 +53,11 @@
     transition: transform 120ms ease, box-shadow 120ms ease;
     overflow: hidden;
     box-sizing: border-box;
+  }
+  /* 末行兜底：格宽由 JS 按整行精确分配（--a4-tail），末行铺满且绝不换行 */
+  .a4-cell.is-tail {
+    flex-basis: var(--a4-tail, var(--a4-cell, 80px));
+    width: var(--a4-tail, var(--a4-cell, 80px));
   }
   /* 方块大小由 --a4-cell 控制（JS 写入），字号随之缩放 */
   .a4-cell { font-size: calc(var(--a4-cell, 80px) * 0.26); }
@@ -1127,70 +1135,158 @@
   // === 自适应铺满：让 440 个方块按 cols×rows 平铺，cell 大小随窗口线性缩放 ===
   // 核心：col 数变化时 cell 必须随之单调变化，绝不出现「窗口缩小 cell 反而变大」
   var fitRaf = 0;
+  var GAP = 5;
+  var MIN_CELL = 28;
+
+  function divisors(n) {
+    var out = [];
+    for (var i = 1; i * i <= n; i++) {
+      if (n % i === 0) { out.push(i); if (i !== n / i) out.push(n / i); }
+    }
+    return out.sort(function (a, b) { return a - b; });
+  }
+
   function fitBoard() {
     var board = document.querySelector('.a4-board');
     if (!board) return;
-    var n = 440;
-    var GAP = 5;
-    var MIN_CELL = 32;
-    var MAX_CELL = 180;
+    var cells = board.children;
+    var n = cells.length;
+    if (!n) return;
 
-    // 视口尺寸：先读 board 自身 offsetParent 链上最宽的可见祖先，避开窄容器导致的低估；
-    // 再 fallback 到 documentElement / window.innerWidth，并用保守 buffer 防浮点溢出
-    var wrap = board.parentElement;
-    function pickW() {
-      var w = 0;
-      var el = board;
-      while (el && el !== document.body) {
-        var cw = el.clientWidth || 0;
-        if (cw > w) w = cw;
-        el = el.parentElement;
-      }
-      return w || document.documentElement.clientWidth || window.innerWidth;
-    }
-    var BUFFER = 4;  // 防浮点 + border 舍入
-    var availW = Math.max(320, pickW() - BUFFER);
-    // 顶部：导航 + 标题 + KPI + 控件 + 图例 ≈ 占视口高度 32%~45%；用实际 board.top 更准
+    // --- 可用宽度：以 board 自身 clientWidth 为准（侧栏骨架注入完成后的真实值）---
+    var cs = getComputedStyle(board);
+    var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    var availW = board.clientWidth ? (board.clientWidth - padX - 2)
+                                   : (document.documentElement.clientWidth - 240 - 32);
+    availW = Math.max(240, availW);
+
+    // --- 可用高度：视口高 - board 顶部偏移 - 页脚实际高度 - 间距 ---
+    // 页脚（footer.site-footer）在 board 之后。实测页脚高达 173px，
+    // 440 格 + 页脚在 900px 高的窗口里物理上装不下一屏 ——
+    // 所以「必须一屏装下」不能当硬约束，否则格子会被压到不可读、甚至算不出任何方案。
+    // 高度只作软目标：装得下就装，装不下放开滚动（否则下方格子永远看不到）。
     var rect = board.getBoundingClientRect();
-    var topSpace = Math.max(180, rect.top);          // 顶部固定内容高度
-    var BOTTOM = 60;                                  // footer + 缓冲
-    var availH = Math.max(220, window.innerHeight - topSpace - BOTTOM);
+    var topSpace = Math.max(0, rect.top);
+    var footEl = document.querySelector('footer.site-footer');
+    var footH = 0;
+    if (footEl) {
+      var fr = footEl.getBoundingClientRect();
+      var fs = getComputedStyle(footEl);
+      footH = Math.ceil(fr.height) + (parseFloat(fs.marginTop) || 0);
+    }
+    var BOTTOM = footH + 16;
+    var availH = Math.max(200, window.innerHeight - topSpace - BOTTOM);
 
-    // --- 1) 计算最大 cols（受 availW 约束）---
-    // cols 上限 = availW / (MIN_CELL + GAP)，下限 = 1
-    var maxColsByW = Math.floor((availW + GAP) / (MIN_CELL + GAP));
-    if (maxColsByW < 1) maxColsByW = 1;
-    if (maxColsByW > n) maxColsByW = n;
+    var minCell = window.innerWidth < 640 ? 26 : MIN_CELL;   // 手机放宽下限，尽量多排列
+    // 格宽上限：格子过大就失去「看板」意义（实测 180px 会退化成 2~8 列超大块）。
+    // 窄屏放宽：手机上宽度本来就小，卡太死会退化成很少几列、页面被拉得很长。
+    // 390px 宽时整除列 11 → 约 30px/格，正好是最舒服的手机看板密度。
+    var maxCell = window.innerWidth < 640 ? 96 : (window.innerWidth < 900 ? 72 : 56);
 
-    // --- 2) 找 (cols, cell) 让 cell 最大、且装进 availW × availH ---
-    var bestCell = 0, bestCols = 1;
-    for (var cols = 1; cols <= maxColsByW; cols++) {
-      // 横向 cell（受 availW 限制；同时不超 MAX_CELL）
-      var cellByW = (availW - (cols - 1) * GAP) / cols;
-      // 纵向 cell：rows = ceil(n / cols)
+    // --- 1) 候选列数 ---
+    var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minCell + GAP))));
+    var divs = divisors(n);
+
+    // 关键：先定 cols，再由 cols 反推「精确填满可用宽」的 cell。
+    // 反过来（先定 cell 让 flex 自己排）会出错 —— cell 受高度限制变小时宽度有富余，
+    // flex 会多排一列（22→23），导致按 cols 算出的余数与实际末行不一致，末尾出现空洞。
+    // byHeight=false：只按宽度定 cell（宽度铺满是硬要求）；true：再受高度约束。
+    function planFor(cols, byHeight) {
       var rows = Math.ceil(n / cols);
-      var cellByH = (availH - (rows - 1) * GAP) / rows;
-      // 取较小者；同时 clamp 到 [MIN_CELL, MAX_CELL]
-      var cell = Math.min(cellByW, cellByH);
-      if (cell > MAX_CELL) cell = MAX_CELL;
-      if (cell < MIN_CELL) continue;            // 此 cols 装不下 → 跳过
-      if (cell > bestCell) {
-        bestCell = cell;
-        bestCols = cols;
+      var rem = n - cols * (rows - 1);              // 末行实际格数（1..cols）
+      var cellW = (availW - (cols - 1) * GAP) / cols;
+      var cellH = (availH - (rows - 1) * GAP) / rows;
+      var cell = byHeight ? Math.min(cellW, cellH) : cellW;
+      if (cell > maxCell) cell = maxCell;
+      var h = rows * cell + (rows - 1) * GAP;
+      var fitsH = cell >= minCell && h <= availH + 1;
+      var ratio = rem === 0 ? 1 : (availW - (rem - 1) * GAP) / rem / cell;  // 末行拉伸比
+      return { cols: cols, rows: rows, rem: rem, cell: cell, cellByH: cellH,
+               cellByW: cellW, needH: h, fitsH: fitsH, ratio: ratio };
+    }
+
+    var best = null;
+    // 选列的目标函数：在「格子尺寸合法」（minCell ≤ cell ≤ maxCell）的前提下，
+    // **列数越多越好** —— 列数越多格子越小、密度越高，末行也更容易整除。
+    // 注意：cell 随列数递减，所以千万不能「取 cell 最大」，那会退化成 4~5 列超大格。
+    // 第一轮（最理想）：整除 n（末行满格无空洞）且高度装得下 → 取列数最多
+    for (var i = 0; i < divs.length; i++) {
+      if (divs[i] > maxColsByW) break;
+      var p1 = planFor(divs[i], true);
+      if (p1.cell < minCell || p1.cell > maxCell || !p1.fitsH) continue;
+      if (!best || p1.cols > best.cols) best = p1;
+    }
+    // 第二轮：整除方案装不下 → 只按宽度，取列数最多的整除列
+    if (!best) {
+      for (var j = 0; j < divs.length; j++) {
+        if (divs[j] > maxColsByW) break;
+        var pd = planFor(divs[j], false);
+        if (pd.cell < minCell || pd.cell > maxCell) continue;
+        if (!best || pd.cols > best.cols) best = pd;
       }
     }
-
-    // --- 3) 兜底：所有 cols 都装不下（窗口极小） → 用 MIN_CELL + 最大 cols，接受溢出 ---
-    if (bestCell === 0) {
-      bestCell = MIN_CELL;
-      bestCols = Math.max(1, Math.floor((availW + GAP) / (MIN_CELL + GAP)));
+    // 第三轮：整除列在当前宽度下格子太大或太小 → 任意列数，取合法范围内列数最多的
+    if (!best) {
+      for (var cols = maxColsByW; cols >= 1; cols--) {
+        var p2 = planFor(cols, false);
+        if (p2.cell < minCell || p2.cell > maxCell) continue;
+        best = p2; break;
+      }
+    }
+    // 兜底：窗口极窄 → 最大列数 + 最小格宽，放开竖向滚动
+    if (!best) {
+      var p3 = planFor(maxColsByW, false);
+      best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cell: Math.max(minCell, Math.min(p3.cell, maxCell)),
+               cellByH: p3.cellByH, cellByW: p3.cellByW, needH: 0, fitsH: false, ratio: p3.ratio };
     }
 
-    // --- 4) 应用 ---
-    board.style.gridTemplateColumns = 'repeat(' + bestCols + ', var(--a4-cell))';
-    board.style.setProperty('--a4-cell', bestCell + 'px');
+    // --- 2) 末行处理 ---
+    // 目标：既让末行铺满整行（无空洞），又不要把末行拉成一条「面包」。
+    // 做法：在高度允许的前提下，优先选「末行余数最接近满格」的列数——
+    // 即先算出高度允许的最大 cell，再找能让末行拉伸比最小的 cols。
+    var bestPlan = best;
+    if (best.rem > 0) {
+      // 在「格子尺寸合理」的范围内，找末行拉伸比最小（空洞最不明显）的列数。
+      // 注意：不能只按 cell 最大来选 —— 那会选到列数极少、格子巨大的方案（实测会变成 5 列 × 180px）。
+      // cell 上限取 min(MAX_CELL, 正常格的 2.5 倍)，保证观感协调。
+      var cellCap = maxCell;
+      var bestScore = null;
+      for (var cc = 1; cc <= maxColsByW; cc++) {
+        var pc = planFor(cc, false);
+        if (pc.cell < minCell || pc.cell > cellCap) continue;
+        if (!bestScore
+            || pc.ratio < bestScore.ratio - 0.02
+            || (Math.abs(pc.ratio - bestScore.ratio) <= 0.02 && pc.cols > bestScore.cols)) {
+          bestScore = { ratio: pc.ratio, cell: pc.cell, cols: pc.cols, plan: pc };
+        }
+      }
+      // 只在「不牺牲太多格子大小」时才采纳；否则维持原方案 + 末行居中
+      if (bestScore && bestScore.cell >= best.cell * 0.75) bestPlan = bestScore.plan;
+    }
+    best = bestPlan;
+
+    // 末行拉伸：宽度不超过常规格 3 倍才铺，否则保持原宽居中
+    var tailW = 0;
+    if (best.rem > 0 && best.rem < best.cols) {
+      var t = (availW - (best.rem - 1) * GAP) / best.rem;
+      if (t <= best.cell * 3) tailW = t;
+    }
+
+    // --- 3) 应用 ---
+    board.style.setProperty('--a4-cell', best.cell + 'px');
+    if (tailW > 0) board.style.setProperty('--a4-tail', tailW + 'px');
+    else board.style.removeProperty('--a4-tail');
+    for (var k = 0; k < n; k++) {
+      var el = cells[k];
+      if (!el || !el.classList) continue;
+      if (tailW > 0 && k >= n - best.rem) el.classList.add('is-tail');
+      else el.classList.remove('is-tail');
+    }
+
+    // --- 4) 竖向：一屏装得下才锁滚动；装不下必须放开，否则下方格子永远看不到 ---
+    document.documentElement.style.overflowY = best.fitsH ? 'hidden' : '';
+    document.body.style.overflowY = best.fitsH ? 'hidden' : '';
     document.documentElement.style.overflowX = 'hidden';
-    document.body.style.overflowY = 'hidden';     // 整体不出现竖向滚动
   }
 
   function scheduleFit() {
@@ -1203,6 +1299,17 @@
   window.addEventListener('orientationchange', scheduleFit);
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(fitBoard);
+  }
+  // 侧栏/骨架是异步注入的，注入不触发 window.resize → 用 ResizeObserver 盯容器宽度
+  if (typeof ResizeObserver !== 'undefined') {
+    var roTimer = 0;
+    var ro = new ResizeObserver(function () {
+      clearTimeout(roTimer);
+      roTimer = setTimeout(fitBoard, 60);
+    });
+    ro.observe(document.documentElement);
+    var wrapEl = document.querySelector('.a4-board-wrap');
+    if (wrapEl) ro.observe(wrapEl);
   }
   setTimeout(fitBoard, 0);
   // 暴露给 render 末尾调用（每次筛/排序/数据刷新都重排）

@@ -112,6 +112,13 @@ body{
   padding:10px;
   display:flex;
   flex-direction:column;
+  /* ⚠️ 必须重置 flex-wrap：上游 site-nav.css 的 .nav-links 是「横向顶栏」
+     语境，写了 flex-wrap:wrap。本文件把方向改成 column 后，wrap 仍在生效，
+     于是「纵向 flex + 允许换行」会把超出容器高度的项**换行成第二列**，
+     而这一列落在侧栏/抽屉右侧的屏幕外 —— 表现为「第 4 项之后整段消失」
+     （手机抽屉展开某分组、或桌面窗口偏矮时必现，且连当前页分组一起消失）。
+     侧栏/抽屉靠 overflow-y:auto 滚动，绝不允许换行。 */
+  flex-wrap:nowrap;
   align-items:stretch;
   gap:2px;
   overflow-y:auto;
