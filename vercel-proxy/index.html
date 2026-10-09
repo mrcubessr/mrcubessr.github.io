@@ -34,31 +34,42 @@
   var AK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2tldnloaG5zd2tudndndmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjk2NTUsImV4cCI6MjEwNTIwNTY1NX0.68Qua_WLoA6dbSm2bZnrg8NYI1KmOIoqIoVW0-SG3dk';
   function set(id, cls, txt) { var el = document.getElementById(id); el.className = cls; el.textContent = txt; }
   function probe(url) {
-    return fetch(url, { headers: { apikey: AK } }).then(function (r) { return r.ok; }, function () { return false; });
+    return fetch(url, { headers: { apikey: AK } }).then(
+      function (r) { return { ok: r.status, err: '' }; },
+      function (e) { return { ok: 0, err: String((e && e.message) || e) }; }
+    );
+  }
+  function paint(id, res, pass) {
+    if (pass(res.ok)) set(id, 'ok', '✓ 通 (HTTP ' + res.ok + ')');
+    else if (res.ok) set(id, 'bad', '✗ HTTP ' + res.ok);
+    else set(id, 'bad', '✗ ' + res.err);
   }
   Promise.all([
-    probe('/api/sb/auth/v1/health').then(function (ok) {
-      set('r1', ok ? 'ok' : 'bad', ok ? '✓ 可达' : '✗ 不可达');
-      return ok;
+    probe('/api/sb/auth/v1/health').then(function (res) {
+      paint('r1', res, function (s) { return s > 0; });   // 只要有响应 = 接口已部署可达
+      return res;
     }),
     fetch('/api/sb/auth/v1/token?grant_type=refresh_token', {
       method: 'POST',
       headers: { apikey: AK, 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh_token: 'self-test' })
-    }).then(function (r) { return r.status >= 400 && r.status < 500; }, function () { return false; })
-      .then(function (ok) {
-        set('r2', ok ? 'ok' : 'bad', ok ? '✓ 通（经代理）' : '✗ 不通');
-        return ok;
-      }),
-    probe('https://pjgkevyhhnswknvwgvar.supabase.co/auth/v1/health').then(function (ok) {
-      set('r3', ok ? 'ok' : 'bad', ok ? '✓ 直连通' : '✗ 直连不通（正常现象）');
+    }).then(
+      function (r) { return { ok: r.status, err: '' }; },
+      function (e) { return { ok: 0, err: String((e && e.message) || e) }; }
+    ).then(function (res) {
+      paint('r2', res, function (s) { return s >= 200 && s < 500; });   // 上游有应答即通
+      return res;
+    }),
+    probe('https://pjgkevyhhnswknvwgvar.supabase.co/auth/v1/health').then(function (res) {
+      paint('r3', res, function (s) { return s >= 200 && s < 500; });
     })
   ]).then(function (rs) {
     var tip = document.getElementById('tip');
-    if (rs[0] && rs[1]) {
-      tip.innerHTML = '<b style="color:#4ade80">代理部署成功！</b>把这个页面的网址发给小助理，完成最后接线即可。';
+    var r1ok = rs[0].ok > 0, r2ok = rs[1].ok >= 200 && rs[1].ok < 500;
+    if (r1ok && r2ok) {
+      tip.innerHTML = '<b style="color:#4ade80">代理部署成功！</b>把这个页面的网址（浏览器地址栏）发给小助理，完成最后接线即可。';
     } else {
-      tip.innerHTML = '<b style="color:#f87171">代理接口未通</b>，请截图发给小助理排查。';
+      tip.innerHTML = '<b style="color:#f87171">代理接口未通</b>，请截图（含每行状态码）发给小助理排查。';
     }
   });
 })();
