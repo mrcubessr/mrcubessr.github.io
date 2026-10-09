@@ -7,69 +7,76 @@
 <style>
   body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0;
          display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-  .card { background: #1e293b; border-radius: 12px; padding: 32px 28px; max-width: 420px; width: 92%; }
+  .card { background: #1e293b; border-radius: 12px; padding: 32px 28px; max-width: 480px; width: 92%; }
   h1 { font-size: 20px; margin: 0 0 6px; }
-  .sub { color: #94a3b8; font-size: 13px; margin-bottom: 22px; }
+  .sub { color: #94a3b8; font-size: 13px; margin-bottom: 16px; }
+  .host { background: #0b1220; border: 1px solid #334155; border-radius: 8px; padding: 12px 14px;
+          font-size: 16px; font-weight: 700; color: #7dd3fc; word-break: break-all; margin-bottom: 20px; }
+  .host small { display: block; font-weight: 400; color: #64748b; font-size: 11px; margin-bottom: 4px; }
   .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
-         border-top: 1px solid #334155; font-size: 14px; }
+         border-top: 1px solid #334155; font-size: 14px; gap: 12px; }
   .row b { font-weight: 600; }
+  .row code { font-size: 12px; color: #94a3b8; }
   .ok { color: #4ade80; } .bad { color: #f87171; } .wait { color: #facc15; }
-  .note { margin-top: 18px; font-size: 12px; color: #64748b; line-height: 1.6; }
+  .note { margin-top: 18px; font-size: 13px; color: #64748b; line-height: 1.7; }
+  .note b.green { color: #4ade80; }
 </style>
 </head>
 <body>
 <div class="card">
   <h1>登录代理自检</h1>
-  <div class="sub">此页只用于验证反代部署是否成功，站点本身在 GitHub Pages。</div>
-  <div class="row"><b>反代接口 /api/sb/*</b><span id="r1" class="wait">测试中…</span></div>
-  <div class="row"><b>经代理访问登录服务</b><span id="r2" class="wait">测试中…</span></div>
-  <div class="row"><b>直连 Supabase（对照）</b><span id="r3" class="wait">测试中…</span></div>
-  <div class="note" id="tip">
-    前两项变绿 = 代理工作正常，把这个网址发给小助理接线即可。<br>
-    手机上看到前两项绿，说明手机网络也能走通这条登录通道。
-  </div>
+  <div class="sub">此页用于验证反代部署。下面第一格就是本页网址，小助理需要它来完成接线。</div>
+  <div class="host"><small>本页网址（把域名部分发给小助理）</small><span id="host">…</span></div>
+  <div class="row"><span><b>本站首页 /</b><br><code>诊断部署配置</code></span><span id="r0" class="wait">测试中…</span></div>
+  <div class="row"><span><b>代理接口</b><br><code>GET /api/sb/auth/v1/health</code></span><span id="r1" class="wait">测试中…</span></div>
+  <div class="row"><span><b>经代理访问登录服务</b><br><code>POST /api/sb/auth/v1/token</code></span><span id="r2" class="wait">测试中…</span></div>
+  <div class="row"><span><b>直连 Supabase（对照）</b><br><code>GET supabase.co/…/health</code></span><span id="r3" class="wait">测试中…</span></div>
+  <div class="note" id="tip">正在测试…</div>
 </div>
 <script>
 (function () {
+  document.getElementById('host').textContent = location.host;
   var AK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2tldnloaG5zd2tudndndmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjk2NTUsImV4cCI6MjEwNTIwNTY1NX0.68Qua_WLoA6dbSm2bZnrg8NYI1KmOIoqIoVW0-SG3dk';
   function set(id, cls, txt) { var el = document.getElementById(id); el.className = cls; el.textContent = txt; }
-  function probe(url) {
-    return fetch(url, { headers: { apikey: AK } }).then(
-      function (r) { return { ok: r.status, err: '' }; },
-      function (e) { return { ok: 0, err: String((e && e.message) || e) }; }
+  function probe(url, opts) {
+    return fetch(url, opts).then(
+      function (r) { return { s: r.status, err: '' }; },
+      function (e) { return { s: 0, err: String((e && e.message) || e) }; }
     );
   }
-  function paint(id, res, pass) {
-    if (pass(res.ok)) set(id, 'ok', '✓ 通 (HTTP ' + res.ok + ')');
-    else if (res.ok) set(id, 'bad', '✗ HTTP ' + res.ok);
+  function paint(id, res, pass, okTxt) {
+    if (res.s && pass(res.s)) set(id, 'ok', '✓ ' + (okTxt || 'HTTP ' + res.s));
+    else if (res.s) set(id, 'bad', '✗ HTTP ' + res.s);
     else set(id, 'bad', '✗ ' + res.err);
   }
   Promise.all([
-    probe('/api/sb/auth/v1/health').then(function (res) {
-      paint('r1', res, function (s) { return s > 0; });   // 只要有响应 = 接口已部署可达
-      return res;
-    }),
-    fetch('/api/sb/auth/v1/token?grant_type=refresh_token', {
+    probe('/'),
+    probe('/api/sb/auth/v1/health', { headers: { apikey: AK } }),
+    probe('/api/sb/auth/v1/token?grant_type=refresh_token', {
       method: 'POST',
       headers: { apikey: AK, 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh_token: 'self-test' })
-    }).then(
-      function (r) { return { ok: r.status, err: '' }; },
-      function (e) { return { ok: 0, err: String((e && e.message) || e) }; }
-    ).then(function (res) {
-      paint('r2', res, function (s) { return s >= 200 && s < 500; });   // 上游有应答即通
-      return res;
     }),
-    probe('https://pjgkevyhhnswknvwgvar.supabase.co/auth/v1/health').then(function (res) {
-      paint('r3', res, function (s) { return s >= 200 && s < 500; });
-    })
+    probe('https://pjgkevyhhnswknvwgvar.supabase.co/auth/v1/health', { headers: { apikey: AK } })
   ]).then(function (rs) {
+    paint('r0', rs[0], function (s) { return s === 200; });
+    paint('r1', rs[1], function (s) { return s >= 200 && s < 500; });
+    paint('r2', rs[2], function (s) { return s >= 200 && s < 500; });
+    paint('r3', rs[3], function (s) { return s >= 200 && s < 500; });
+
     var tip = document.getElementById('tip');
-    var r1ok = rs[0].ok > 0, r2ok = rs[1].ok >= 200 && rs[1].ok < 500;
-    if (r1ok && r2ok) {
-      tip.innerHTML = '<b style="color:#4ade80">代理部署成功！</b>把这个页面的网址（浏览器地址栏）发给小助理，完成最后接线即可。';
+    var homeOK = rs[0].s === 200, apiOK = rs[1].s >= 200 && rs[1].s < 500 && rs[1].s !== 404;
+    if (apiOK) {
+      tip.innerHTML = '<b class="green">✅ 代理工作正常！</b>把上面第一格「本页网址」发给小助理，完成最后接线即可。';
+    } else if (homeOK && rs[1].s === 404) {
+      tip.innerHTML = '自检页在线但 <code>/api/sb/*</code> 返回 404（HTTP ' + rs[1].s + '）——'
+        + '接口函数没有被匹配到。<b>请直接截图这页发给小助理</b>（含上面每行状态码），由小助理远程排查。';
+    } else if (!homeOK) {
+      tip.innerHTML = '首页返回 HTTP ' + rs[0].s + '：部署的「Root Directory」可能没有设置为 <code>vercel-proxy</code>。'
+        + '请截图这页发给小助理。';
     } else {
-      tip.innerHTML = '<b style="color:#f87171">代理接口未通</b>，请截图（含每行状态码）发给小助理排查。';
+      tip.innerHTML = '状态：首页 HTTP ' + rs[0].s + ' / 接口 HTTP ' + rs[1].s + ' / POST HTTP ' + rs[2].s
+        + '。请截图这页发给小助理。';
     }
   });
 })();
