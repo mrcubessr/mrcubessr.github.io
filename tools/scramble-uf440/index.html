@@ -40,9 +40,11 @@
   }
   .a4-cell {
     position: relative;
-    flex: 0 0 var(--a4-cell, 80px);   /* 不伸缩：每行格数 = JS 算出的 cols */
-    width: var(--a4-cell, 80px);
-    height: var(--a4-cell, 80px);     /* 直接由变量控制，不靠 1fr + aspect-ratio（避免列宽溢出）*/
+    /* 宽 / 高分开给变量：宽高各自精确填满可用区域（几乎正方，允许 ±1/3 内的矩形）。
+       --a4-cell 仍保留，只用于字号换算。不伸缩：每行格数 = JS 算出的 cols。 */
+    flex: 0 0 var(--a4-cell-w, 80px);
+    width: var(--a4-cell-w, 80px);
+    height: var(--a4-cell-h, var(--a4-cell-w, 80px));
     border-radius: 6px;
     border: 1px solid transparent;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -56,8 +58,8 @@
   }
   /* 末行兜底：格宽由 JS 按整行精确分配（--a4-tail），末行铺满且绝不换行 */
   .a4-cell.is-tail {
-    flex-basis: var(--a4-tail, var(--a4-cell, 80px));
-    width: var(--a4-tail, var(--a4-cell, 80px));
+    flex-basis: var(--a4-tail, var(--a4-cell-w, 80px));
+    width: var(--a4-tail, var(--a4-cell-w, 80px));
   }
   /* 方块大小由 --a4-cell 控制（JS 写入），字号随之缩放 */
   .a4-cell { font-size: calc(var(--a4-cell, 80px) * 0.26); }
@@ -65,6 +67,18 @@
   .a4-cell .c-ms   { font-size: 0.42em; line-height: 1; opacity: 0.95; margin-top: 6%; font-weight: 700; }
   .a4-cell .c-n    { position: absolute; top: 8%; right: 8%; font-size: 0.36em; opacity: 0.8; font-weight: 600; }
   .a4-cell .c-avg  { position: absolute; bottom: 8%; left: 8%; font-size: 0.36em; opacity: 0.8; font-weight: 600; }
+  /* 换过公式：金边 + 右下角「换」徽标，看板一眼可见（2026-10-09 新增） */
+  .a4-cell.is-swapped {
+    border-color: var(--gold, #f5c518);
+    border-width: 2px;
+    box-shadow: inset 0 0 0 1px rgba(245, 197, 24, 0.55), 0 0 8px rgba(245, 197, 24, 0.35);
+  }
+  .a4-cell .c-swap {
+    position: absolute; right: 6%; bottom: 6%;
+    font-size: 0.34em; line-height: 1.3; font-weight: 800;
+    color: #1a1400; background: var(--gold, #f5c518);
+    border-radius: 4px; padding: 0 3px;
+  }
 
   /* t-none（未练）—— 跟随主题：深色用深灰斜纹 + 浅灰字 */
   .a4-cell.t-none {
@@ -252,6 +266,35 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }
     50%      { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
   }
+
+  /* 手机端：练习浮层全屏，计时器成为主操作区（2026-10-09 修：原计时框太小，点不准） */
+  @media (max-width: 820px) {
+    .a4-modal { padding: 0; }
+    .a4-modal__box {
+      width: 100%; max-height: none;
+      height: 100vh; height: 100dvh;
+      border-radius: 0; border: 0;
+    }
+    .a4-modal__bar { padding: 12px 14px; gap: 10px; }
+    .a4-modal__navbtn { padding: 8px 16px; font-size: 20px; }
+    .a4-modal__close { font-size: 28px; padding: 0 12px; }
+    .a4-modal__hint { display: none; }
+    .a4-modal__body { flex: 1 1 auto; justify-content: center; gap: 16px; padding: 18px 16px; }
+    .a4-modal__code { font-size: 32px; }
+    .a4-modal__alg { font-size: 20px; padding: 8px 0 10px; }
+    .a4-modal__timer {
+      flex: 1 1 auto;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 42vh;
+      font-size: clamp(60px, 24vw, 168px);
+      padding: 0;
+      border-width: 2px;
+    }
+    .a4-modal__actions { width: 100%; }
+    .a4-modal__actions button { padding: 12px 18px; font-size: 15px; flex: 1 1 auto; }
+    .a4-ref-block { align-self: stretch; }
+    .a4-modal__history { max-height: 16vh; }
+  }
   .a4-modal__summary {
     font-size: 13px; color: var(--fg-2, #AEB8CA);
     text-align: center;
@@ -334,6 +377,7 @@
       <select id="a4-sort">
         <option value="group">按组顺序</option>
         <option value="slow">最慢优先</option>
+        <option value="practice">按练习次数（多练优先）</option>
       </select>
     </span>
     <span><label for="a4-filter">筛选</label>
@@ -341,6 +385,7 @@
         <option value="all">全部公式</option>
         <option value="todo">只看未练</option>
         <option value="weak">只看需关注+不合格</option>
+        <option value="swapped">只看换过公式（换新公式）</option>
       </select>
     </span>
   </div>
@@ -395,6 +440,32 @@
   'use strict';
   var TIMES_KEY = 'alg440_times';
   var SESSIONS_KEY = 'alg440_sessions';
+  var REF_SEL_KEY = 'uf_ref_selections';   // 与连拧页 uf-ref.js 共用：只存纯字符串 alg（保持兼容）
+  var REF_SWAP_KEY = 'uf_ref_swaps';       // 本页专用：只记「是否换过公式」标记（不影响其它页读取）
+
+  function readRefSelections() {
+    try { return JSON.parse(localStorage.getItem(REF_SEL_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function readRefSwaps() {
+    try { return JSON.parse(localStorage.getItem(REF_SWAP_KEY)) || {}; } catch (e) { return {}; }
+  }
+  // 汇总「换过公式」的公式集合（只算真正换了的：当前 alg ≠ 该编码默认公式）
+  function swappedMap() {
+    var out = {};
+    var swaps = readRefSwaps();
+    var sels = readRefSelections();
+    Object.keys(swaps).forEach(function (g) {
+      var gSwap = swaps[g] || {};
+      var gSel = sels[g] || {};
+      Object.keys(gSwap).forEach(function (c) {
+        var sel = gSwap[c];
+        if (sel && sel.swapped) {
+          out[c] = { changedAt: sel.changedAt, swapped: true, alg: (typeof gSel[c] === 'object' ? (gSel[c].alg || '') : (gSel[c] || '')) };
+        }
+      });
+    });
+    return out;
+  }
 
   function load(key, fb) {
     try { return JSON.parse(localStorage.getItem(key)) || fb; } catch (e) { return fb; }
@@ -529,6 +600,9 @@
     var stats = {};
     all.forEach(function (c) { stats[c] = statsOf(c); });
 
+    // 换过公式的集合（看板标金边 + 可按「只看换过公式」聚焦）
+    var swapped = swappedMap();
+
     // benchmark: 已练公式的当前口径中位数
     var practiced = all.filter(function (c) { return stats[c].n > 0 && isFinite(stats[c].metric()); });
     var bench = median(practiced.map(function (c) { return stats[c].metric(); }));
@@ -544,6 +618,7 @@
     document.getElementById('a4-kpis').innerHTML =
       '<div class="a4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + practiced.length + ' / ' + all.length + '</div></div>' +
       '<div class="a4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
+      '<div class="a4-kpi"><div class="k-label">换过公式</div><div class="k-value" style="color:#f5c518">' + Object.keys(swapped).length + '</div></div>' +
       '<div class="a4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
       '<div class="a4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
 
@@ -567,6 +642,15 @@
     var list = [];
     if (sortMode === 'slow') {
       list = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+    } else if (sortMode === 'practice') {
+      // 按练习次数降序：练得越多（新公式/不熟）排越前，方便优先练；同次数再比慢者
+      list = all.slice().sort(function (a, b) {
+        var na = stats[a].n, nb = stats[b].n;
+        if (na !== nb) return nb - na;
+        var ma = stats[a].metric(), mb = stats[b].metric();
+        if (isFinite(ma) && isFinite(mb)) return mb - ma;
+        return isFinite(ma) ? -1 : 1;
+      });
     } else {
       list = all.slice();
     }
@@ -577,6 +661,9 @@
         return stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
       });
     }
+    if (filterMode === 'swapped') {
+      list = list.filter(function (c) { return !!swapped[c]; });
+    }
 
     // 自适应映射区间（让色彩覆盖完整的绿→红调色板）
     var practicedStats = all.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
@@ -584,7 +671,7 @@
 
     // 平铺一列流（所有 440 块放进单个 grid，行列对齐等）
     var cells;
-    if (sortMode === 'slow') {
+    if (sortMode === 'slow' || sortMode === 'practice') {
       cells = list.map(function (c) { return { c: c }; });
     } else {
       cells = [];
@@ -621,15 +708,19 @@
       var m = st.metric();
       var r = isFinite(m) && isFinite(bench) && bench > 0 ? m / bench : NaN;
       var col = colorByRatio(r, range);
-      var title = st.n
+      var swap = swapped[c];
+      var title = (st.n
         ? (c + ' · ' + fmt(m) + ' · ' + st.n + ' 次 · r=' + (isFinite(r) ? r.toFixed(2) : '--') + '× 基准')
-        : (c + ' · 未练习');
+        : (c + ' · 未练习'))
+        + (swap ? ' · 已换新公式（' + (swap.alg || '') + '）' : '');
       var bg = col.bg;
       var fg = col.fg;
       var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
+      if (swap) klass += ' is-swapped';
       return '<a class="a4-cell ' + klass + '" data-alg="' + c + '" ' +
         'style="background:' + bg + ';color:' + fg + '" title="' + title + '">' +
         '<span class="c-code">' + c + '</span>' +
+        (swap ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
         '<span class="c-ms">' + (st.n ? fmt(m) : '--') + '</span>' +
         '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
         '</a>';
@@ -811,8 +902,29 @@
       try { return JSON.parse(localStorage.getItem(REF_SEL_KEY)) || {}; } catch (e) { return {}; }
     }
     function refSaveSelections(s) { try { localStorage.setItem(REF_SEL_KEY, JSON.stringify(s)); } catch (e) {} }
+    function refSaveSwaps(s) { try { localStorage.setItem(REF_SWAP_KEY, JSON.stringify(s)); } catch (e) {} }
+    function refLoadSwaps() { try { return JSON.parse(localStorage.getItem(REF_SWAP_KEY)) || {}; } catch (e) { return {}; } }
+    // 兼容旧数据：早期存的是纯字符串 alg，新数据存对象 {alg, swapped, ...}
+    function refAlgOf(sel) {
+      if (!sel) return '';
+      return (typeof sel === 'object') ? (sel.alg || '') : String(sel);
+    }
     function refEsc(s) {
       return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    // 写入一条选择：alg 仍按原格式存进 uf_ref_selections（纯字符串，其它页照常读），
+    // 另把「是否换过公式」标记写进专用 uf_ref_swaps，供看板金边 + 筛选使用（不影响其它页）
+    function refWriteSel(alg) {
+      var group = refGetGroup();
+      var sels = refLoadSelections();
+      if (!sels[group]) sels[group] = {};
+      sels[group][currentCode] = alg;            // 纯字符串，保持跨页兼容
+      refSaveSelections(sels);
+      var def = (variantMap[currentCode] && variantMap[currentCode][0]) || currentCode;
+      var swaps = refLoadSwaps();
+      if (!swaps[group]) swaps[group] = {};
+      swaps[group][currentCode] = { changedAt: Date.now(), swapped: (alg !== def) };
+      refSaveSwaps(swaps);
     }
     function refGetGroup() {
       // 从当前 code 推断所在组（如 CE → C 组）
@@ -879,7 +991,9 @@
       dataPromise.then(function (data) {
         var sels = refLoadSelections();
         var gSel = sels[group] || {};
-        var saved = gSel[code] || '';
+        var saved = refAlgOf(gSel[code]);
+        var swaps = refLoadSwaps();
+        var isSwapped = !!(swaps[group] && swaps[group][code] && swaps[group][code].swapped);
         var items = refBuildItems(style, code, data);
         var html = '';
         html += '<div class="ref-style-bar">'
@@ -895,7 +1009,7 @@
         html += '<div class="ref-row">';
         html += '<div class="ref-code-col">' + refEsc(code) + '</div>';
         html += '<div class="ref-sel-col">';
-        html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + '" data-code="' + refEsc(code) + '">' + (saved ? refEsc(saved) : '点击选择公式') + '</button>';
+        html += '<button type="button" class="ref-sel-box' + (saved ? ' ref-selected' : '') + (isSwapped ? ' ref-swapped' : '') + '" data-code="' + refEsc(code) + '">' + (saved ? refEsc(saved) : '点击选择公式') + (isSwapped ? ' <span class="ref-swap-tag">已换</span>' : '') + '</button>';
         html += '<div class="ref-dropdown" data-code="' + refEsc(code) + '">';
         if (!items.length) {
           html += '<div class="ref-empty">该编码暂无变体，可手动输入</div>';
@@ -937,11 +1051,7 @@
         opt.addEventListener('click', function (e) {
           e.stopPropagation();
           var alg = opt.getAttribute('data-alg');
-          var group = refGetGroup();
-          var sels = refLoadSelections();
-          if (!sels[group]) sels[group] = {};
-          sels[group][currentCode] = alg;
-          refSaveSelections(sels);
+          refWriteSel(alg);
           // 同步更新 .a4-modal__alg 显示 + variantAlg
           variantAlg = alg;
           algEl.textContent = alg;
@@ -955,14 +1065,12 @@
         var sels = refLoadSelections();
         var group = refGetGroup();
         var gSel = sels[group] || {};
-        var current = gSel[currentCode] || '';
+        var current = refAlgOf(gSel[currentCode]);
         var input = prompt('输入该编码的参考公式（公式库没有时可手动填写）：', current);
         if (input === null) return;
         var alg = input.trim();
         if (!alg) return;
-        if (!sels[group]) sels[group] = {};
-        sels[group][currentCode] = alg;
-        refSaveSelections(sels);
+        refWriteSel(alg);
         variantAlg = alg;
         algEl.textContent = alg;
         refRenderPanel();
@@ -1132,8 +1240,11 @@
     });
   }
 
-  // === 自适应铺满：让 440 个方块按 cols×rows 平铺，cell 大小随窗口线性缩放 ===
-  // 核心：col 数变化时 cell 必须随之单调变化，绝不出现「窗口缩小 cell 反而变大」
+  // === 自适应铺满：让 440 个方块按 cols×rows 平铺，格子「尽量大」且两轴都填满 ===
+  // 关键（2026-10-09 改）：以前的目标是「列数越多越好」，在宽屏上会退化成
+  // 44~55 列 × 8~10 行、格子只有 26~32px —— 横着拉成长条、屏幕下半截全空。
+  // 现在的目标是「可用面积利用率最高」，即让 min(cellW,cellH) 最大，天然收敛到
+  // 纵向也填满的那组列数；再卡死长宽比与末行拉伸比，避免排出细长条或一条「面包」末行。
   var fitRaf = 0;
   var GAP = 5;
   var MIN_CELL = 28;
@@ -1160,121 +1271,118 @@
                                    : (document.documentElement.clientWidth - 240 - 32);
     availW = Math.max(240, availW);
 
-    // --- 可用高度：视口高 - board 顶部偏移 - 页脚实际高度 - 间距 ---
-    // 页脚（footer.site-footer）在 board 之后。实测页脚高达 173px，
-    // 440 格 + 页脚在 900px 高的窗口里物理上装不下一屏 ——
-    // 所以「必须一屏装下」不能当硬约束，否则格子会被压到不可读、甚至算不出任何方案。
-    // 高度只作软目标：装得下就装，装不下放开滚动（否则下方格子永远看不到）。
+    // --- 可用高度：视口高 - board 顶部偏移 - 板下固定尾距 ---
+    // 尾距 = board 下边距 + 页脚上边距 + 页脚高 + body 的 padding-bottom（30px，实测不能漏）。
+    // ⚠️ 不能用 scrollHeight - boardBottom 量：body 有 min-height:100vh，
+    // 内容不足一屏时 scrollHeight 会被视口高托底，量出来的「尾距」会把页面空白也算进去，
+    // 于是越算越小 → 板越小 → 空白越多，收敛到一个格子很小、下方一大片空的坏结果。
+    // 逐项加起来才是真值。一屏铺满方案会把板高精确算到 availH，漏算一项就会超出视口；
+    // 若此时 overflow 被锁死（fitsH），超出部分直接被裁掉（页脚看不见）。
+    // 注意：窗口偏矮时（顶部控件 440px + 页脚 ~180px）一屏物理装不下 440 格，
+    // 此时退化为「按宽度铺满 + 舒适格子 + 竖向滚动」，绝不把格子压到不可读。
     var rect = board.getBoundingClientRect();
     var topSpace = Math.max(0, rect.top);
     var footEl = document.querySelector('footer.site-footer');
-    var footH = 0;
+    var footH = 0, footMT = 0;
     if (footEl) {
-      var fr = footEl.getBoundingClientRect();
-      var fs = getComputedStyle(footEl);
-      footH = Math.ceil(fr.height) + (parseFloat(fs.marginTop) || 0);
+      footH = Math.ceil(footEl.getBoundingClientRect().height);
+      footMT = parseFloat(getComputedStyle(footEl).marginTop) || 0;
     }
-    var BOTTOM = footH + 16;
-    var availH = Math.max(200, window.innerHeight - topSpace - BOTTOM);
+    var boardMB = parseFloat(cs.marginBottom) || 0;
+    var bodyPB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    var tailH = boardMB + footMT + footH + bodyPB;
+    var availH = Math.max(200, window.innerHeight - topSpace - Math.ceil(tailH) - 2);
 
-    var minCell = window.innerWidth < 640 ? 26 : MIN_CELL;   // 手机放宽下限，尽量多排列
-    // 格宽上限：格子过大就失去「看板」意义（实测 180px 会退化成 2~8 列超大块）。
-    // 窄屏放宽：手机上宽度本来就小，卡太死会退化成很少几列、页面被拉得很长。
-    // 390px 宽时整除列 11 → 约 30px/格，正好是最舒服的手机看板密度。
-    var maxCell = window.innerWidth < 640 ? 96 : (window.innerWidth < 900 ? 72 : 56);
+    // --- 1) 候选列数与尺寸 ---
+    var isNarrow = window.innerWidth < 640;
+    var minCell = isNarrow ? 26 : MIN_CELL;   // 手机放宽下限，尽量多排列
+    // 格宽上限只作安全阀：真正的上限由 min(cellW,cellH) 与长宽比共同决定，不会退化成长条。
+    var maxCell = isNarrow ? 96 : 112;
+    var MAX_ASPECT = 1.34;                    // 格子最大长宽比，超出视为「细长条」弃用
 
-    // --- 1) 候选列数 ---
     var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minCell + GAP))));
-    var divs = divisors(n);
 
-    // 关键：先定 cols，再由 cols 反推「精确填满可用宽」的 cell。
-    // 反过来（先定 cell 让 flex 自己排）会出错 —— cell 受高度限制变小时宽度有富余，
-    // flex 会多排一列（22→23），导致按 cols 算出的余数与实际末行不一致，末尾出现空洞。
-    // byHeight=false：只按宽度定 cell（宽度铺满是硬要求）；true：再受高度约束。
-    function planFor(cols, byHeight) {
+    // 一屏铺满方案：宽、高各按自己的轴精确分配。
+    // cell = min(cellW,cellH) 当作「方块尺寸」，取它最大 → 可用面积利用率最高，
+    // 天然收敛到「纵向也填满」的那组列数（宽屏不会再排出 44+ 列的长条）。
+    // 不要「先定 cell 让 flex 自己排」：cell 受高度限制变小时宽度有富余，
+    // flex 会多排一列（22→23），按 cols 算出的余数就与实际末行不符、末尾出现空洞。
+    function planFor(cols) {
       var rows = Math.ceil(n / cols);
       var rem = n - cols * (rows - 1);              // 末行实际格数（1..cols）
       var cellW = (availW - (cols - 1) * GAP) / cols;
       var cellH = (availH - (rows - 1) * GAP) / rows;
-      var cell = byHeight ? Math.min(cellW, cellH) : cellW;
-      if (cell > maxCell) cell = maxCell;
-      var h = rows * cell + (rows - 1) * GAP;
-      var fitsH = cell >= minCell && h <= availH + 1;
-      var ratio = rem === 0 ? 1 : (availW - (rem - 1) * GAP) / rem / cell;  // 末行拉伸比
-      return { cols: cols, rows: rows, rem: rem, cell: cell, cellByH: cellH,
-               cellByW: cellW, needH: h, fitsH: fitsH, ratio: ratio };
+      var lo = Math.min(cellW, cellH), hi = Math.max(cellW, cellH);
+      // 末行拉伸比 = 拉伸后末行格宽 / 常规格宽（≈ cols/rem）；> 3 就是一条「面包」
+      var tailRatio = rem === 0 ? 1 : ((availW - (rem - 1) * GAP) / rem) / cellW;
+      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellH,
+               cell: lo, aspect: hi / lo, tailRatio: tailRatio, fitsH: true };
+    }
+    // 退让方案：只按宽度铺满（竖向放开滚动），格子保持正方
+    function widthPlanFor(cols) {
+      var rows = Math.ceil(n / cols);
+      var rem = n - cols * (rows - 1);
+      var cellW = (availW - (cols - 1) * GAP) / cols;
+      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellW,
+               cell: cellW, aspect: 1, tailRatio: rem === 0 ? 1 : cols / rem, fitsH: false };
     }
 
     var best = null;
-    // 选列的目标函数：在「格子尺寸合法」（minCell ≤ cell ≤ maxCell）的前提下，
-    // **列数越多越好** —— 列数越多格子越小、密度越高，末行也更容易整除。
-    // 注意：cell 随列数递减，所以千万不能「取 cell 最大」，那会退化成 4~5 列超大格。
-    // 第一轮（最理想）：整除 n（末行满格无空洞）且高度装得下 → 取列数最多
-    for (var i = 0; i < divs.length; i++) {
-      if (divs[i] > maxColsByW) break;
-      var p1 = planFor(divs[i], true);
-      if (p1.cell < minCell || p1.cell > maxCell || !p1.fitsH) continue;
-      if (!best || p1.cols > best.cols) best = p1;
-    }
-    // 第二轮：整除方案装不下 → 只按宽度，取列数最多的整除列
-    if (!best) {
-      for (var j = 0; j < divs.length; j++) {
-        if (divs[j] > maxColsByW) break;
-        var pd = planFor(divs[j], false);
-        if (pd.cell < minCell || pd.cell > maxCell) continue;
-        if (!best || pd.cols > best.cols) best = pd;
+    // 第一轮（首选）：一屏铺满。合法条件 = 格子够大可读 + 够小不失控 + 不是细长条 + 末行拉不成面包
+    for (var c = 1; c <= maxColsByW; c++) {
+      var p = planFor(c);
+      if (p.cell < minCell || p.cell > maxCell) continue;
+      if (p.aspect > MAX_ASPECT) continue;
+      if (p.tailRatio > 3) continue;
+      if (!best || p.cell > best.cell * 1.02) { best = p; continue; }
+      if (p.cell >= best.cell * 0.98) {
+        // 尺寸接近时：优先整除（末行满格不用拉伸）→ 末行拉伸更小 → 更接近正方 → 格子略大
+        var better;
+        if ((p.rem === 0) !== (best.rem === 0)) better = (p.rem === 0);
+        else if (Math.abs(p.tailRatio - best.tailRatio) > 0.03) better = p.tailRatio < best.tailRatio;
+        else if (Math.abs(p.aspect - best.aspect) > 0.02) better = p.aspect < best.aspect;
+        else better = p.cell > best.cell;
+        if (better) best = p;
       }
     }
-    // 第三轮：整除列在当前宽度下格子太大或太小 → 任意列数，取合法范围内列数最多的
+    // 第二轮：一屏物理装不下（窗口偏矮）→ 按宽度铺满，整除列里取列数最多的
     if (!best) {
-      for (var cols = maxColsByW; cols >= 1; cols--) {
-        var p2 = planFor(cols, false);
-        if (p2.cell < minCell || p2.cell > maxCell) continue;
-        best = p2; break;
+      var divs = divisors(n);
+      for (var i = 0; i < divs.length; i++) {
+        if (divs[i] > maxColsByW) break;
+        var w1 = widthPlanFor(divs[i]);
+        if (w1.cell < minCell || w1.cell > maxCell) continue;
+        if (!best || w1.cols > best.cols) best = w1;
+      }
+    }
+    // 第三轮：任意列数里取「合法范围内列数最多」（格子最小但仍可读）
+    if (!best) {
+      for (var c2 = maxColsByW; c2 >= 1; c2--) {
+        var w2 = widthPlanFor(c2);
+        if (w2.cell < minCell || w2.cell > maxCell) continue;
+        best = w2; break;
       }
     }
     // 兜底：窗口极窄 → 最大列数 + 最小格宽，放开竖向滚动
     if (!best) {
-      var p3 = planFor(maxColsByW, false);
-      best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cell: Math.max(minCell, Math.min(p3.cell, maxCell)),
-               cellByH: p3.cellByH, cellByW: p3.cellByW, needH: 0, fitsH: false, ratio: p3.ratio };
+      var p3 = widthPlanFor(maxColsByW);
+      var cc = Math.max(minCell, Math.min(p3.cellW, maxCell));
+      best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cellW: cc, cellH: cc,
+               cell: cc, aspect: 1, tailRatio: 1, fitsH: false };
     }
 
-    // --- 2) 末行处理 ---
-    // 目标：既让末行铺满整行（无空洞），又不要把末行拉成一条「面包」。
-    // 做法：在高度允许的前提下，优先选「末行余数最接近满格」的列数——
-    // 即先算出高度允许的最大 cell，再找能让末行拉伸比最小的 cols。
-    var bestPlan = best;
-    if (best.rem > 0) {
-      // 在「格子尺寸合理」的范围内，找末行拉伸比最小（空洞最不明显）的列数。
-      // 注意：不能只按 cell 最大来选 —— 那会选到列数极少、格子巨大的方案（实测会变成 5 列 × 180px）。
-      // cell 上限取 min(MAX_CELL, 正常格的 2.5 倍)，保证观感协调。
-      var cellCap = maxCell;
-      var bestScore = null;
-      for (var cc = 1; cc <= maxColsByW; cc++) {
-        var pc = planFor(cc, false);
-        if (pc.cell < minCell || pc.cell > cellCap) continue;
-        if (!bestScore
-            || pc.ratio < bestScore.ratio - 0.02
-            || (Math.abs(pc.ratio - bestScore.ratio) <= 0.02 && pc.cols > bestScore.cols)) {
-          bestScore = { ratio: pc.ratio, cell: pc.cell, cols: pc.cols, plan: pc };
-        }
-      }
-      // 只在「不牺牲太多格子大小」时才采纳；否则维持原方案 + 末行居中
-      if (bestScore && bestScore.cell >= best.cell * 0.75) bestPlan = bestScore.plan;
-    }
-    best = bestPlan;
-
-    // 末行拉伸：宽度不超过常规格 3 倍才铺，否则保持原宽居中
+    // --- 2) 末行拉伸：宽度不超过常规格 3 倍才铺，否则保持原宽居中 ---
     var tailW = 0;
     if (best.rem > 0 && best.rem < best.cols) {
       var t = (availW - (best.rem - 1) * GAP) / best.rem;
-      if (t <= best.cell * 3) tailW = t;
+      if (t <= best.cellW * 3) tailW = t;
     }
 
-    // --- 3) 应用 ---
-    board.style.setProperty('--a4-cell', best.cell + 'px');
-    if (tailW > 0) board.style.setProperty('--a4-tail', tailW + 'px');
+    // --- 3) 应用（宽、高分开写；--a4-cell 只作字号换算基准）---
+    board.style.setProperty('--a4-cell-w', best.cellW.toFixed(2) + 'px');
+    board.style.setProperty('--a4-cell-h', best.cellH.toFixed(2) + 'px');
+    board.style.setProperty('--a4-cell', best.cell.toFixed(2) + 'px');
+    if (tailW > 0) board.style.setProperty('--a4-tail', tailW.toFixed(2) + 'px');
     else board.style.removeProperty('--a4-tail');
     for (var k = 0; k < n; k++) {
       var el = cells[k];
