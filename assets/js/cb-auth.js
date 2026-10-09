@@ -29,12 +29,79 @@
   var state = {
     sdkReady: false,
     client: null,          // supabase 客户端
+    clientBase: '',        // 该 client 创建时所用的入口地址（直连 or 代理）
+    base: '',              // 当前选定入口：'' = 还没探测
     user: null,            // { uid, phone, email, nickName }
     error: '',
     pending: null          // 待验证句柄：{ channel, account }
   };
   var subs = [];
   var sdkPromise = null;
+
+  /* 双通道（2026-10-09）：国内部分网络直连 *.supabase.co 不通（手机流量尤其常见）。
+     cb-config 配了 supabaseProxyUrl 时，启动先并行探测「直连 + 代理」谁能通，
+     通谁用谁（直连优先），并把结果记在 localStorage，下次直接用不重复探测。 */
+  var BASE_MEM_KEY = 'cb_auth_base';
+
+  function normBase(u) { return String(u || '').replace(/\/+$/, ''); }
+  function bases() {
+    var c = cfg();
+    var list = [];
+    if (c.supabaseUrl) list.push(normBase(c.supabaseUrl));
+    if (c.supabaseProxyUrl) list.push(normBase(c.supabaseProxyUrl));
+    return list;
+  }
+
+  /** 探测单个入口：GET <base>/auth/v1/health（带 apikey，否则 401 会误判为不通） */
+  function probeBase(base, timeoutMs) {
+    if (!base || !global.fetch) return Promise.resolve(false);
+    var tmo = timeoutMs || 5000;
+    var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) { try { ctl.abort(); } catch (e) {} } }, tmo);
+    return global.fetch(base + '/auth/v1/health', {
+      method: 'GET',
+      headers: { apikey: cfg().anonKey || '' },
+      signal: ctl ? ctl.signal : undefined
+    }).then(function (r) { clearTimeout(timer); return !!(r && r.ok); },
+      function () { clearTimeout(timer); return false; });
+  }
+
+  /** 并行探测所有入口，取第一个通的；全不通回退直连（让后续请求自然报网络错误） */
+  function raceBases(list) {
+    if (!list.length) return Promise.resolve('');
+    return new Promise(function (resolve) {
+      var pending = list.length, done = false;
+      list.forEach(function (base) {
+        probeBase(base, 5000).then(function (ok) {
+          if (done) return;
+          if (ok) {
+            done = true;
+            state.base = base;
+            try { global.localStorage.setItem(BASE_MEM_KEY, base); } catch (e) {}
+            return resolve(base);
+          }
+          if (--pending === 0 && !done) { done = true; resolve(list[0]); }
+        });
+      });
+    });
+  }
+
+  /** 选定入口（幂等）：有记忆先复查记忆通道（快），不通再全量并行探测 */
+  function resolveBase() {
+    if (state.base) return Promise.resolve(state.base);
+    var list = bases();
+    if (!list.length) return Promise.resolve('');
+    var mem = null;
+    try { mem = global.localStorage.getItem(BASE_MEM_KEY); } catch (e) {}
+    if (mem && list.indexOf(normBase(mem)) >= 0) {
+      mem = normBase(mem);
+      return probeBase(mem, 4000).then(function (ok) {
+        if (ok) { state.base = mem; return mem; }
+        return raceBases(list);
+      });
+    }
+    return raceBases(list);
+  }
 
   function cfg() { return global.CB_CONFIG || {}; }
 
@@ -181,22 +248,27 @@
     return list;
   }
 
-  /** 初始化并拿到 client（幂等） */
+  /** 初始化并拿到 client（幂等）；入口地址经 resolveBase 自动选直连/代理 */
   function ensure() {
     var c = cfg();
     if (!c.supabaseUrl || !c.anonKey) {
       return Promise.reject(new Error('尚未配置 Supabase：请在 assets/js/cb-config.js 填入 supabaseUrl 与 anonKey'));
     }
     if (!c.enabled) return Promise.reject(new Error('账号登录未启用'));
-    if (state.client) return Promise.resolve(state.client);
+    if (state.client && state.clientBase && state.clientBase === state.base) return Promise.resolve(state.client);
 
     return loadSdk().then(function (sb) {
-      /* global.fetch：给所有 Supabase 请求套上超时，避免网络抽风时无限转圈 */
-      var client = sb.createClient(c.supabaseUrl, c.anonKey, { global: { fetch: timedFetch } });
-      state.client = client;
-      state.sdkReady = true;
-      state.error = '';
-      return client;
+      return resolveBase().then(function (base) {
+        if (!base) base = normBase(c.supabaseUrl);
+        state.base = base;
+        if (state.client && state.clientBase === base) return state.client;
+        var client = sb.createClient(base, c.anonKey, { global: { fetch: timedFetch } });
+        state.client = client;
+        state.clientBase = base;
+        state.sdkReady = true;
+        state.error = '';
+        return client;
+      });
     });
   }
 
@@ -370,22 +442,17 @@
       });
     },
 
-    /** 连通性自检：短超时探一次 /auth/v1/health，只用于提示"网络是否通"，不阻塞登录。
-        返回 Promise<boolean>（true = 能连上登录服务）。 */
+    /** 连通性自检：先选定入口（直连/代理自动二选一），再探 /auth/v1/health。
+        只用于提示"网络是否通"，不阻塞登录。返回 Promise<boolean>（true = 能连上登录服务）。 */
     probe: function (timeoutMs) {
-      var c = cfg();
-      if (!c.supabaseUrl || !global.fetch) return Promise.resolve(false);
-      var tmo = timeoutMs || 6000;
-      var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-      var timer = setTimeout(function () { if (ctl) { try { ctl.abort(); } catch (e) {} } }, tmo);
-      var url = String(c.supabaseUrl).replace(/\/+$/, '') + '/auth/v1/health';
-      return global.fetch(url, {
-        method: 'GET',
-        headers: { apikey: c.anonKey || '' },        /* 不带 apikey 会得到 401，会被误判为"不通" */
-        signal: ctl ? ctl.signal : undefined
-      }).then(function (r) { clearTimeout(timer); return !!(r && r.ok); },
-        function () { clearTimeout(timer); return false; });
+      if (!global.fetch) return Promise.resolve(false);
+      return resolveBase().then(function (base) {
+        if (!base) return false;
+        return probeBase(base, timeoutMs || 6000);
+      });
     },
+    /** 当前生效的入口地址（调试用：直连 supabaseUrl 或代理 supabaseProxyUrl） */
+    activeBase: function () { return state.base; },
     /** 把原始报错翻译成可读中文（面板/其它调用方都可复用） */
     friendlyError: friendly,
 

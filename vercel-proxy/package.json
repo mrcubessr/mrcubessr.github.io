@@ -1,0 +1,7 @@
+{
+  "name": "supabase-proxy",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

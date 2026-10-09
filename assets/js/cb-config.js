@@ -11,7 +11,7 @@
 (function (global) {
   'use strict';
 
-  global.CB_CONFIG = {
+  var cfg = {
     /** 是否启用账号登录（填好 url 与 key 后自动生效） */
     get enabled() {
       return !!(this.supabaseUrl && this.anonKey);
@@ -19,6 +19,12 @@
 
     /** Supabase 项目 URL（必填） */
     supabaseUrl: 'https://pjgkevyhhnswknvwgvar.supabase.co',
+
+    /** 反向代理通道（可选，国内直连 supabase.co 不通时的备用入口）。
+     *  部署 vercel-proxy/ 到 Vercel 后，把地址填到这里，形如：
+     *  'https://xxxx.vercel.app/api/sb'
+     *  前端会自动探测：直连通→走直连；直连不通→自动改走代理。留空 = 不启用。 */
+    supabaseProxyUrl: '',
 
     /** 公开的 anon key（必填，可暴露在前端） */
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2tldnloaG5zd2tudndndmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjk2NTUsImV4cCI6MjEwNTIwNTY1NX0.68Qua_WLoA6dbSm2bZnrg8NYI1KmOIoqIoVW0-SG3dk',
@@ -40,4 +46,15 @@
      *  uid 获取方式：用该账号登录后，打开右上角账号面板，底部显示「UID：xxx」 */
     adminUids: []
   };
+
+  /* 自救开关（可选）：localStorage['cb_config_override'] = JSON 对象，
+     可临时覆盖上面任意配置项（例如手机上手动切通道，无需重新发版）。 */
+  try {
+    var ov = JSON.parse(global.localStorage.getItem('cb_config_override') || 'null');
+    if (ov && typeof ov === 'object') {
+      Object.keys(ov).forEach(function (k) { cfg[k] = ov[k]; });
+    }
+  } catch (e) {}
+
+  global.CB_CONFIG = cfg;
 })(typeof window !== 'undefined' ? window : this);
