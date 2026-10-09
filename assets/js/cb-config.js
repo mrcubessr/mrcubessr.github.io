@@ -24,7 +24,7 @@
      *  部署 vercel-proxy/ 到 Vercel 后，把地址填到这里，形如：
      *  'https://xxxx.vercel.app/api/sb'
      *  前端会自动探测：直连通→走直连；直连不通→自动改走代理。留空 = 不启用。 */
-    supabaseProxyUrl: '',
+    supabaseProxyUrl: 'https://mrcubessrgithubio-vercel-proxy.vercel.app/api/sb',
 
     /** 公开的 anon key（必填，可暴露在前端） */
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2tldnloaG5zd2tudndndmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjk2NTUsImV4cCI6MjEwNTIwNTY1NX0.68Qua_WLoA6dbSm2bZnrg8NYI1KmOIoqIoVW0-SG3dk',
