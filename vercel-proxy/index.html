@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录代理自检</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0;
+         display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+  .card { background: #1e293b; border-radius: 12px; padding: 32px 28px; max-width: 420px; width: 92%; }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  .sub { color: #94a3b8; font-size: 13px; margin-bottom: 22px; }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
+         border-top: 1px solid #334155; font-size: 14px; }
+  .row b { font-weight: 600; }
+  .ok { color: #4ade80; } .bad { color: #f87171; } .wait { color: #facc15; }
+  .note { margin-top: 18px; font-size: 12px; color: #64748b; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>登录代理自检</h1>
+  <div class="sub">此页只用于验证反代部署是否成功，站点本身在 GitHub Pages。</div>
+  <div class="row"><b>反代接口 /api/sb/*</b><span id="r1" class="wait">测试中…</span></div>
+  <div class="row"><b>经代理访问登录服务</b><span id="r2" class="wait">测试中…</span></div>
+  <div class="row"><b>直连 Supabase（对照）</b><span id="r3" class="wait">测试中…</span></div>
+  <div class="note" id="tip">
+    前两项变绿 = 代理工作正常，把这个网址发给小助理接线即可。<br>
+    手机上看到前两项绿，说明手机网络也能走通这条登录通道。
+  </div>
+</div>
+<script>
+(function () {
+  var AK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2tldnloaG5zd2tudndndmFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2Mjk2NTUsImV4cCI6MjEwNTIwNTY1NX0.68Qua_WLoA6dbSm2bZnrg8NYI1KmOIoqIoVW0-SG3dk';
+  function set(id, cls, txt) { var el = document.getElementById(id); el.className = cls; el.textContent = txt; }
+  function probe(url) {
+    return fetch(url, { headers: { apikey: AK } }).then(function (r) { return r.ok; }, function () { return false; });
+  }
+  Promise.all([
+    probe('/api/sb/auth/v1/health').then(function (ok) {
+      set('r1', ok ? 'ok' : 'bad', ok ? '✓ 可达' : '✗ 不可达');
+      return ok;
+    }),
+    fetch('/api/sb/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { apikey: AK, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: 'self-test' })
+    }).then(function (r) { return r.status >= 400 && r.status < 500; }, function () { return false; })
+      .then(function (ok) {
+        set('r2', ok ? 'ok' : 'bad', ok ? '✓ 通（经代理）' : '✗ 不通');
+        return ok;
+      }),
+    probe('https://pjgkevyhhnswknvwgvar.supabase.co/auth/v1/health').then(function (ok) {
+      set('r3', ok ? 'ok' : 'bad', ok ? '✓ 直连通' : '✗ 直连不通（正常现象）');
+    })
+  ]).then(function (rs) {
+    var tip = document.getElementById('tip');
+    if (rs[0] && rs[1]) {
+      tip.innerHTML = '<b style="color:#4ade80">代理部署成功！</b>把这个页面的网址发给小助理，完成最后接线即可。';
+    } else {
+      tip.innerHTML = '<b style="color:#f87171">代理接口未通</b>，请截图发给小助理排查。';
+    }
+  });
+})();
+</script>
+</body>
+</html>
