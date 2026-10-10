@@ -3126,6 +3126,23 @@
 
     loadData(); loadOpt(); applyFontScale();
 
+    /* 云端同步把数据写进 localStorage 后自动重读并重绘（下载/双向同步后无需手动刷新）。
+       引擎在应用远端快照后会派发 sync:status，detail 里带 result.kind。 */
+    var lastSyncRefresh = 0;
+    window.addEventListener("sync:status", function (e) {
+      var st = (e && e.detail) || {};
+      var hit = false;
+      Object.keys(st).forEach(function (id) {
+        var r = st[id] && st[id].result;
+        if (r && (r.kind === "downloaded" || r.kind === "remotekept")) hit = true;
+      });
+      if (!hit) return;
+      var now = Date.now();
+      if (now - lastSyncRefresh < 1500) return;   /* 防抖：1.5s 内只重读一次 */
+      lastSyncRefresh = now;
+      try { loadData(); renderGroups(); renderStrip(); renderList(); } catch (err) {}
+    });
+
     /* 列表显示开关（csTimer 式）：默认隐藏，让计时区占满屏幕；点底部「列表」切换。
        偏好存 localStorage，刷新后保持。 */
     function applyListHidden(hidden) {

@@ -71,6 +71,26 @@
   /** 本机数据版本戳：取「本机最后修改」与「已同步基线」的较大者 */
   function localStamp(id) { return Math.max(getTs(id), getMod(id)); }
 
+  /* ---- 空数据保护（2026-10-10 事故教训：本机/云端任一侧为空时，LWW 会把空数据
+          当「新版本」传播，抹掉有数据的一侧）----
+          铁律：空快照绝不覆盖非空数据，无论时间戳新旧。 ---- */
+  /** 快照是否为空：优先用 provider.isEmptySnap(snap)（可感知 JSON 内容级空，如 0 条成绩），否则退化为 null/'' 判断 */
+  function snapEmpty(p, snap) {
+    if (!snap) return true;
+    if (typeof p.isEmptySnap === 'function') {
+      try { return !!p.isEmptySnap(snap); } catch (e) { return false; }
+    }
+    var ks = Object.keys(snap);
+    if (!ks.length) return true;
+    for (var i = 0; i < ks.length; i++) {
+      var v = snap[ks[i]];
+      if (v != null && String(v) !== '') return false;
+    }
+    return true;
+  }
+  /** 云端数据是否为空（无文件 / 无负载 / 内容级为空） */
+  function remoteEmpty(p, r) { return !r || !r.data || snapEmpty(p, r.data.data); }
+
   function setStat(id, s) {
     stat[id] = Object.assign({ label: (providers[id] && providers[id].label) || id }, stat[id] || {}, s);
     emit();
@@ -95,10 +115,18 @@
     if (!ready()) return Promise.resolve({ id: p.id, kind: 'skipped', detail: '未就绪' });
     setStat(p.id, { state: 'syncing', error: '' });
     return CS().read(p.path).then(function (r) {
-      if (!r || !r.data) { // 云端还没有这个文件 → 把本地推上去
+      if (!r || !r.data) { // 云端还没有这个文件
         setTs(p.id, 0);
-        return pushScope(p, true).then(function () {
-          return { id: p.id, kind: 'uploaded-new', detail: '云端无数据，已上传本机' };
+        // 本机也是空数据 → 不上传、不建空云端文件（否则会占位并成为后续空覆盖的跳板）
+        return Promise.resolve(p.getSnapshot()).then(function (snap) {
+          if (!force && snapEmpty(p, snap)) {
+            setStat(p.id, { state: 'idle', lastTs: 0, error: '' });
+            setResult(p.id, 'uptodate', '本机与云端均为空');
+            return { id: p.id, kind: 'uptodate', detail: '本机与云端均为空' };
+          }
+          return pushScope(p, true).then(function () {
+            return { id: p.id, kind: 'uploaded-new', detail: '云端无数据，已上传本机' };
+          });
         });
       }
       var remoteTs = r.data._ts || 0;
@@ -107,6 +135,19 @@
         setStat(p.id, { state: 'idle', lastTs: getTs(p.id) });
         setResult(p.id, 'uptodate', '本机已是最新');
         return { id: p.id, kind: 'uptodate', detail: '本机已是最新' };
+      }
+      // 铁律：云端是空数据而本机有数据 → 绝不应用，不用空数据抹掉本机
+      if (!force && snapEmpty(p, r.data.data)) {
+        return Promise.resolve(p.getSnapshot()).then(function (snap) {
+          setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
+          if (!snapEmpty(p, snap)) {
+            setResult(p.id, 'emptykept', '云端为空，已保留本机数据');
+            return { id: p.id, kind: 'emptykept', detail: '云端为空，已保留本机数据' };
+          }
+          setTs(p.id, remoteTs);
+          setResult(p.id, 'uptodate', '本机与云端均为空');
+          return { id: p.id, kind: 'uptodate', detail: '本机与云端均为空' };
+        });
       }
       applying[p.id] = true;
       return Promise.resolve(p.applySnapshot(r.data.data))
@@ -141,14 +182,32 @@
         var localTs = localStamp(p.id);   // 本机数据的真实版本（含未同步的本地改动）
         // 云端比「本机数据」更新（不只是比上次同步新）→ 远端优先，先应用，绝不覆盖更新的云端
         if (!force && remoteTs > localTs) {
-          applying[p.id] = true;
-          return Promise.resolve(p.applySnapshot(r.data.data)).then(function () {
-            setTs(p.id, remoteTs);
-            setStat(p.id, { state: 'idle', lastTs: remoteTs, error: '' });
-            setResult(p.id, 'remotekept', '云端更新，已保留云端');
-            return { id: p.id, kind: 'remotekept', detail: '云端更新，已保留云端' };
-          }).then(function (v) { applying[p.id] = false; return v; },
-            function (e) { applying[p.id] = false; throw e; });
+          // 铁律：云端是空数据而本机有数据 → 不应用云端（否则空云端会抹掉本机）
+          if (snapEmpty(p, snap) || !snapEmpty(p, r.data.data)) {
+            applying[p.id] = true;
+            return Promise.resolve(p.applySnapshot(r.data.data)).then(function () {
+              setTs(p.id, remoteTs);
+              setStat(p.id, { state: 'idle', lastTs: remoteTs, error: '' });
+              setResult(p.id, 'remotekept', '云端更新，已保留云端');
+              return { id: p.id, kind: 'remotekept', detail: '云端更新，已保留云端' };
+            }).then(function (v) { applying[p.id] = false; return v; },
+              function (e) { applying[p.id] = false; throw e; });
+          }
+          setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
+          setResult(p.id, 'emptykept', '云端为空，已保留本机数据');
+          return { id: p.id, kind: 'emptykept', detail: '云端为空，已保留本机数据' };
+        }
+        // 铁律：本机是空数据而云端有数据 → 绝不上传，时间戳再新也不许空覆盖
+        if (!force && snapEmpty(p, snap) && !remoteEmpty(p, r)) {
+          setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
+          setResult(p.id, 'emptykept', '本机为空，已保留云端数据');
+          return { id: p.id, kind: 'emptykept', detail: '本机为空，已保留云端数据' };
+        }
+        // 两边都空：无需上传，避免空文件反复互刷
+        if (!force && snapEmpty(p, snap)) {
+          setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
+          setResult(p.id, 'uptodate', '本机与云端均为空');
+          return { id: p.id, kind: 'uptodate', detail: '本机与云端均为空' };
         }
         return writeWithRetry(p, payload, 0).then(function () {
           setResult(p.id, 'uploaded', '已备份到云端');

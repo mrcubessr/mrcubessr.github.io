@@ -217,7 +217,7 @@
   function statusRows() {
     var S = SE();
     var status = (S && S.status) ? S.status() : {};
-    var badgeMap = { downloaded: '已下载', uploaded: '已上传', 'uploaded-new': '已上传', remotekept: '保留云端', uptodate: '已是最新', error: '出错', skipped: '' };
+    var badgeMap = { downloaded: '已下载', uploaded: '已上传', 'uploaded-new': '已上传', remotekept: '保留云端', emptykept: '保留数据', uptodate: '已是最新', error: '出错', skipped: '' };
     return Object.keys(status).map(function (id) {
       var s = status[id] || {};
       var cls = s.state === 'syncing' ? 'is-sync' : s.state === 'error' ? 'is-err' : (s.lastTs ? 'is-ok' : '');
@@ -251,6 +251,7 @@
         uploaded: '已把本机备份到云端',
         'uploaded-new': '已把本机备份到云端（首次）',
         remotekept: '云端数据较新，已保留云端（本机未覆盖）',
+        emptykept: '检测到一侧数据为空，已保留有数据的一方',
         uptodate: '本机与云端均已是最新',
         error: '上次同步出错，请重试'
       };
@@ -294,6 +295,7 @@
         '</details>' +
         '<details class="acct-fold danger"><summary>高级 / 危险操作</summary>' +
           '<div class="acct-tip warn">仅当你确定要用本机数据替换云端时使用。此操作会丢失云端中比本机更新的数据，且无法恢复。</div>' +
+          '<div class="acct-row"><button class="acct-btn danger" id="acForceDown">用云端覆盖本机（丢失本机较新数据）</button></div>' +
           '<div class="acct-row"><button class="acct-btn danger" id="acForceUp">用本机覆盖云端（丢失云端较新数据）</button></div>' +
           '<div class="acct-uid">UID：' + esc(u.uid || '') + '　（管理员配置需要它）</div>' +
         '</details>' +
@@ -313,6 +315,7 @@
         syncBlock(overallStatus()) +
         '<details class="acct-fold danger"><summary>高级 / 危险操作</summary>' +
           '<div class="acct-tip warn">仅当你确定要用本机数据替换云端时使用。此操作会丢失云端中比本机更新的数据，且无法恢复。</div>' +
+          '<div class="acct-row"><button class="acct-btn danger" id="acForceDown">用云端覆盖本机（丢失本机较新数据）</button></div>' +
           '<div class="acct-row"><button class="acct-btn danger" id="acForceUp">用本机覆盖云端</button></div>' +
           '<div class="acct-tip">这是备用同步通道（GitHub 仓库）。推荐改用手机号 / 邮箱登录，更方便。</div>' +
         '</details>' +
@@ -526,7 +529,7 @@
         if (!r) return;
         if (r.kind === 'downloaded' || r.kind === 'uploaded-new') dl++;
         else if (r.kind === 'uploaded') up++;
-        else if (r.kind === 'remotekept') keep++;
+        else if (r.kind === 'remotekept' || r.kind === 'emptykept') keep++;
         else if (r.kind === 'error') err++;
         else if (r.kind === 'uptodate' || r.kind === 'skipped') same++;
       });
@@ -582,6 +585,19 @@
         setBusy(btn, false);
         var box = m.querySelector('#acResult');
         if (box) { box.hidden = false; box.className = 'acct-result err'; box.textContent = '❌ 备份失败：' + (e && e.message || e); }
+      });
+    };
+    var bForceDown = m.querySelector('#acForceDown');
+    if (bForceDown) bForceDown.onclick = function () {
+      var btn = this;
+      if (!confirm('确定要用云端数据覆盖本机吗？\n\n本机上比云端新的数据（例如刚记的、还没传云端的成绩）会丢失，且无法恢复。')) return;
+      setBusy(btn, true);
+      S.pullAll(true).then(function (r) {
+        setBusy(btn, false); showResult(r, '强制下载'); updateSyncArea(); refreshChip();
+      }).catch(function (e) {
+        setBusy(btn, false);
+        var box = m.querySelector('#acResult');
+        if (box) { box.hidden = false; box.className = 'acct-result err'; box.textContent = '❌ 强制下载失败：' + (e && e.message || e); }
       });
     };
     var bForce = m.querySelector('#acForceUp');

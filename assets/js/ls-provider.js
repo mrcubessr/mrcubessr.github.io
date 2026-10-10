@@ -56,6 +56,9 @@
         id: o.id,
         label: o.label || o.id,
         path: o.path || (o.id + '.json'),
+        /* 可选：内容级「空数据」判定（整个快照) → bool，供引擎空覆盖保护使用。
+           注意要只看数据键、忽略 options 类键（它们永远非空）。 */
+        isEmptySnap: typeof o.isEmptySnap === 'function' ? o.isEmptySnap : null,
         getSnapshot: function () {
           var snap = {};
           keys.forEach(function (k) {

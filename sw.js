@@ -4,14 +4,15 @@
  * （/assets/*、/tools/cfop/* 等 GitHub Pages 无法用 Service-Worker-Allowed 头放宽作用域）。
  * 控制范围刻意只覆盖「计时器应用壳 + 其声明的依赖」，不接管全站其他页面。
  */
-/* v6（2026-09-30）：三盲复盘海报大改——画布改为更细长的 840 宽、解法编码按字着色
-   （借位=品牌蓝 / 归还=红+下划线）、补全难度构成 / 分段指标（8 格）/ 参数设置，
-   打乱公式标注步数，并新增 edgeRoles/cornerRoles 持久化。timer.js 变更，故递增。
+/* v7（2026-10-10）：修复同步引擎「空数据覆盖非空」导致两端成绩互删的 bug——
+   新增空覆盖铁律（emptykept 分支）、同步面板「用本机/云端覆盖」强制按钮、
+   计时器同步后自动重读列表；同步相关 sync-engine.js / ls-provider.js / account-ui.js
+   及 timer.js 均变更，故递增。
    静态资源走的是 stale-while-revalidate（cache-first + 后台更新），不递增版本号的话
    已安装的 PWA 首次打开会先拿到旧的 timer.js，第二次才更新；
    递增版本号可让 SW 重新 install + activate，一次性丢弃旧缓存。
    沿用 v3 的规矩：**凡是动到 APP_SHELL 里的文件，都要递增这个版本号。** */
-const CACHE = 'fto-timer-v6';
+const CACHE = 'fto-timer-v7';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
