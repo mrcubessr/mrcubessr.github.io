@@ -40,6 +40,9 @@
     { key: "2x2", label: "二阶", len: 11 },
     { key: "bld", label: "三盲", len: 20 }
   ];
+  /* 项目键清单：导入/导出/统计等「遍历所有项目」的地方一律用它派生，
+     不要再写死 ["3x3","2x2"]——漏掉 bld 会让三盲成绩静默丢失（导入 JSON 时尤其致命）。 */
+  var EVENT_KEYS = EVENTS.map(function (e) { return e.key; });
   /* 各项目在 csTimer 中的打乱类型标识（TXT 导入导出映射用）；三盲无对应类型，不进 csTimer TXT */
   var SCR_TYPE = { "3x3": "333", "2x2": "222" };
   var LS_DATA = "timer_data_v2";      /* 分组模型 */
@@ -115,6 +118,12 @@
     };
   }
   function emptyBox() { var g = mkGroup("默认分组"); return { groups: [g], cur: g.id }; }
+  /* 各项目的空「分组数组」容器：{ "3x3": [], "2x2": [], "bld": [] } */
+  function emptyEventsObj() {
+    var o = {};
+    EVENT_KEYS.forEach(function (k) { o[k] = []; });
+    return o;
+  }
   function newestFirst(a, b) { return b.date - a.date; }
 
   function eventBox(k) { var b = data[k]; if (!b) { b = data[k] = emptyBox(); } return b; }
@@ -203,11 +212,11 @@
   }
   function migrateV1(old) {
     var out = {};
-    ["3x3", "2x2"].forEach(function (k) {
+    EVENT_KEYS.forEach(function (k) {
+      if (!Array.isArray(old[k]) || !old[k].length) return;   /* v1 无此项目就留空，不造空盒 */
       var box = emptyBox();
-      box.groups[0].solves = (Array.isArray(old[k]) ? old[k] : [])
-        .map(normSolve).filter(Boolean).sort(newestFirst);
-      out[k] = box;
+      box.groups[0].solves = old[k].map(normSolve).filter(Boolean).sort(newestFirst);
+      if (box.groups[0].solves.length) out[k] = box;
     });
     return out;
   }
@@ -216,7 +225,8 @@
     try {
       var raw = JSON.parse(localStorage.getItem(LS_DATA) || "null");
       if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-        data = { "3x3": normBox(raw["3x3"]), "2x2": normBox(raw["2x2"]), "bld": normBox(raw["bld"]) };
+        data = {};
+        EVENT_KEYS.forEach(function (k) { data[k] = normBox(raw[k]); });
         done = true;
       }
     } catch (e) { /* 忽略损坏数据 */ }
@@ -225,10 +235,11 @@
     try { old = JSON.parse(localStorage.getItem(LS_DATA_V1) || "null"); } catch (e) {}
     if (old && typeof old === "object" && !Array.isArray(old)) {
       data = migrateV1(old);
-      data["bld"] = emptyBox();
+      EVENT_KEYS.forEach(function (k) { if (!data[k]) data[k] = emptyBox(); });
       saveData();                     /* 迁移结果写入 v2；v1 原样保留作兜底 */
     } else {
-      data = { "3x3": emptyBox(), "2x2": emptyBox(), "bld": emptyBox() };
+      data = {};
+      EVENT_KEYS.forEach(function (k) { data[k] = emptyBox(); });
     }
   }
   function saveData() {
@@ -2549,7 +2560,11 @@
      单条：[ [penalty, timeMs], 打乱, 备注, 时间戳(秒) ]，csTimer 内部按「旧 → 新」排列。 */
   function csTimerSolve(rec) {
     var pen = rec.pen === "DNF" ? -1 : (rec.pen === "+2" ? 2000 : 0);
-    return [[pen, Math.round(rec.ms)], rec.note || "", Math.round((rec.date || Date.now()) / 1000)];
+    /* csTimer 官方会话条目是 4 元素：[ [penalty, timeMs], 打乱, 备注, 时间戳(秒) ]。
+       曾经少写「打乱」槽位只导出 3 元素，而本站解析器按官方格式读 e[3] → 时间戳丢失 →
+       normSolve 用 Date.now() 兜底 → 成绩签名每次都变 → 重复导入同一文件会翻倍。
+       务必保持 4 元素（打乱槽位用空串占位）。 */
+    return [[pen, Math.round(rec.ms)], rec.scramble || "", rec.note || "", Math.round((rec.date || Date.now()) / 1000)];
   }
   function csTimerStat(list) {
     var total = list.length, dnf = 0, sum = 0, n = 0;
@@ -2624,7 +2639,8 @@
     return 0;
   }
   /* 兼容三种单条成绩形态：
-       [ [penalty, timeMs], 打乱, 备注, 时间戳 ]  ← csTimer 会话条目
+       [ [penalty, timeMs], 打乱, 备注, 时间戳 ]  ← csTimer 官方会话条目（4 元素）
+       [ [penalty, timeMs], 备注, 时间戳 ]         ← 本站历史导出（3 元素，缺打乱槽位）
        [penalty, timeMs]                          ← 扁平条目 / 直接粘贴的会话数组
        { ms, pen, date }                          ← 本站 JSON 导出                     */
   function parseCsTimerSolves(raw) {
@@ -2635,7 +2651,16 @@
       var e = arr[i], inner = null, ts = null, note = "";
       if (typeof e === "number") inner = [0, e];
       else if (Array.isArray(e)) {
-        if (Array.isArray(e[0])) { inner = e[0]; ts = e[3]; if (typeof e[2] === "string") note = e[2]; }
+        if (Array.isArray(e[0])) {
+          inner = e[0];
+          if (typeof e[3] === "number") {                 /* 官方 4 元素：打乱/备注/时间戳 */
+            ts = e[3];
+            if (typeof e[2] === "string") note = e[2];
+          } else if (typeof e[2] === "number") {          /* 历史 3 元素：备注/时间戳 */
+            ts = e[2];
+            if (typeof e[1] === "string") note = e[1];
+          }
+        }
         else if (typeof e[0] === "number") { inner = e; ts = (typeof e[2] === "number" ? e[2] : null); }
         else continue;
       } else if (e && typeof e === "object" && typeof e.ms === "number") {
@@ -2734,15 +2759,15 @@
 
   /* 本站 JSON 备份：v2 还原分组、v1 并入当前分组 */
   function parseOwnJson(obj) {
-    var ev = obj.events, v2 = null, v1 = { "3x3": [], "2x2": [], "bld": [] }, hasV1 = false;
-    ["3x3", "2x2", "bld"].forEach(function (k) {
+    var ev = obj.events, v2 = null, v1 = emptyEventsObj(), hasV1 = false;
+    EVENT_KEYS.forEach(function (k) {
       var e = ev[k];
       if (!e) return;
       if (Array.isArray(e)) {
         v1[k] = e.map(normSolve).filter(Boolean);
         if (v1[k].length) hasV1 = true;
       } else if (e && typeof e === "object" && Array.isArray(e.groups)) {
-        v2 = v2 || { "3x3": [], "2x2": [] };
+        if (!v2) v2 = emptyEventsObj();
         e.groups.forEach(function (g) {
           if (!g || typeof g !== "object") return;
           var o = mkGroup(g.name, g.id);
@@ -2752,7 +2777,8 @@
       }
     });
     if (v2) {
-      var any = v2["3x3"].length + v2["2x2"].length;
+      var any = 0;
+      EVENT_KEYS.forEach(function (k) { any += v2[k].length; });
       return any ? { groups: v2 } : { empty: "json" };
     }
     return hasV1 ? { events: v1 } : { empty: "json" };
@@ -2795,20 +2821,20 @@
       /* ② 本站 JSON 备份 */
       if (obj.events && typeof obj.events === "object") return parseOwnJson(obj);
       if (Array.isArray(obj.solves)) {
-        var one = { "3x3": [], "2x2": [] };
+        var one = emptyEventsObj();
         one[opt.event] = obj.solves.map(normSolve).filter(Boolean);
         return one[opt.event].length ? { events: one } : { empty: "json" };
       }
       return null;   /* 合法 JSON 但不是已知结构：明确报错，避免把 JSON 文本当成绩解析 */
     }
     if (isJson && Array.isArray(obj)) {
-      var e2 = { "3x3": [], "2x2": [] };
+      var e2 = emptyEventsObj();
       e2[opt.event] = parseCsTimerSolves(obj);      /* 裸数组：可能是直接粘贴的会话数组 */
       return e2[opt.event].length ? { events: e2 } : null;
     }
     var plain = parsePlainText(txt);
     if (!plain.length) return null;
-    var out = { "3x3": [], "2x2": [] };
+    var out = emptyEventsObj();
     out[opt.event] = plain;
     return { events: out };
   }
@@ -2870,7 +2896,7 @@
   /* 扁平成绩 → 并入目标项目的「当前分组」 */
   function mergeEvents(incoming) {
     var added = 0, per = {};
-    ["3x3", "2x2"].forEach(function (k) {
+    EVENT_KEYS.forEach(function (k) {
       var inc = incoming[k];
       if (!inc || !inc.length) return;
       var g = curGroup(k), rem = sigIndex(k), evAdded = 0;
@@ -2891,7 +2917,7 @@
       return;
     }
     var parts = [];
-    ["3x3", "2x2"].forEach(function (k) {
+    EVENT_KEYS.forEach(function (k) {
       if (res.perEvent && res.perEvent[k]) parts.push(eventDef(k).label + " " + res.perEvent[k] + " 条");
     });
     window.alert("导入完成：新增 " + res.added + " 条成绩" +
@@ -2920,7 +2946,7 @@
       if (parsed.csTimer) { openMapDialog(parsed.csTimer); return; }
       if (parsed.groups) {
         var picks = [];
-        ["3x3", "2x2"].forEach(function (k) {
+        EVENT_KEYS.forEach(function (k) {
           (parsed.groups[k] || []).forEach(function (g) {
             picks.push({ event: k, name: g.name, solves: g.solves });
           });
@@ -3544,7 +3570,7 @@
       if (p.empty) return 0;
       if (p.groups) {
         var picks = [];
-        ["3x3", "2x2"].forEach(function (k) {
+        EVENT_KEYS.forEach(function (k) {
           (p.groups[k] || []).forEach(function (g) { picks.push({ event: k, name: g.name, solves: g.solves }); });
         });
         return importSessions(picks).added;

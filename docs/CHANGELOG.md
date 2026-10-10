@@ -9,6 +9,49 @@
 
 ---
 
+## [2.0.2] — 2026-10-10（补丁 · 修复备份导入整份失败 + 往返导入翻倍）
+
+> 数据找回过程中的连带修复。用户在恢复 23,895 条成绩的备份时导入报「无法解析文件内容」，
+> 顺藤摸出的两个既有 bug（均早于 2.0.1 存在，非本次同步改动引入）。
+
+### ① 备份导入整份失败（含三盲的备份 100% 导入不了）
+- **根因**：`parseOwnJson` 里分组容器初始化写死 `{ "3x3":[], "2x2":[] }`，**缺 `bld` 键**。
+  备份文件只要含三盲分组（`events.bld.groups` 非空），`v2["bld"].push(...)` 抛 TypeError
+  → `importFile` 的 `try/catch` 吞掉 → 弹「导入失败：无法解析文件内容」。
+  **不是只丢三盲，是整份文件全丢**。
+- **修复**：新增 `EVENT_KEYS = EVENTS.map(...)` 与 `emptyEventsObj()`，
+  导入/迁移/合并/结果提示一律由 `EVENTS` 派生，不再写死项目列表。
+- **顺带修掉同类隐患**：`importFile` 与测试钩子 `mergeTxt` 的 picks 只遍历 3x3/2x2
+  （三盲分组会被静默跳过）；`migrateV1` 也只迁 3x3/2x2。
+- 唯一保留的写死：`csTimerPayload` 仍只导出 3x3/2x2 —— 这是**故意的**，csTimer 无三盲类型。
+
+### ② csTimer 往返导入不幂等（同一文件导入两次成绩翻倍）
+- **根因**：`csTimerSolve` 导出时少写「打乱」槽位，只输出 3 元素
+  `[[pen,ms], note, ts]`，而解析器按 csTimer 官方 4 元素读 `e[3]` 取时间戳 →
+  取不到 → `normSolve` 用 `Date.now()` 兜底 → 每次导入成绩签名都不同
+  → `sigIndex` 去重失效 → 重复导入条数翻倍（17 → 34）。
+- **修复**：导出补齐 4 元素（`[[pen,ms], 打乱, 备注, 时间戳]`）与官方对齐；
+  解析器同时兼容 3 元素（历史文件）与 4 元素两种格式。
+- **附带好处**：往返导入的成绩保住真实时间戳，不再被 `Date.now()` 冲掉。
+
+### 验证
+| 脚本 | 结果 |
+|---|---|
+| `verify-timer-import-bld.py`（新增，用真实备份跑完整导入路径） | 22/22 |
+| `timer-groups-smoke.py` | 54/54（顺带修掉一条写死 17 的陈旧断言） |
+| `diag-import-idempotent.py`（新增） | 3/3 |
+| `verify-sync-refresh.py` | 5/5 |
+| `account-sync-ui-verify.py` | 36/36 |
+| `verify-timer-cstimer.py` / `verify-timer-notation.py` / `verify-timer-notes-edit-stats.py` | 全过 |
+| `test-empty-guard.js`（Node 单测，2.0.1 引入） | 10/10 |
+
+### 迁移说明
+- 无存储结构变更，用户数据不受影响。
+- 已按 PWA 规矩递增 `sw.js` 的 `CACHE`：`fto-timer-v7` → `fto-timer-v8`
+  （`timer.js` 在 `APP_SHELL` 内，不递增的话已装 PWA 首次打开仍是旧文件）。
+
+---
+
 ## [2.0.1] — 2026-10-10（补丁 · 同步防丢数据）
 
 > 紧急修复：同步引擎的 LWW（后写覆盖）逻辑会把「空数据」当成合法的较新版本，

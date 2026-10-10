@@ -4,15 +4,19 @@
  * （/assets/*、/tools/cfop/* 等 GitHub Pages 无法用 Service-Worker-Allowed 头放宽作用域）。
  * 控制范围刻意只覆盖「计时器应用壳 + 其声明的依赖」，不接管全站其他页面。
  */
-/* v7（2026-10-10）：修复同步引擎「空数据覆盖非空」导致两端成绩互删的 bug——
-   新增空覆盖铁律（emptykept 分支）、同步面板「用本机/云端覆盖」强制按钮、
-   计时器同步后自动重读列表；同步相关 sync-engine.js / ls-provider.js / account-ui.js
-   及 timer.js 均变更，故递增。
+/* v8（2026-10-10）：修复「导入本站 JSON 备份」整份失败 + csTimer 往返导入不幂等——
+   ① parseOwnJson 的分组容器写死 {"3x3":[],"2x2":[]} 缺 bld 键，备份里只要含三盲
+      分组就 v2["bld"].push() 抛 TypeError → 整份导入报「无法解析文件内容」（全丢）；
+      现改为按 EVENTS 派生 EVENT_KEYS，导入/迁移/合并/提示语一律不再写死项目列表。
+   ② csTimer 导出少写「打乱」槽位只导出 3 元素，解析器按官方 4 元素读 e[3] → 时间戳丢失
+      → normSolve 用 Date.now() 兜底 → 成绩签名每次都变 → 重复导入同一文件成绩翻倍。
+      现导出补齐 4 元素，解析器同时兼容 3/4 两种历史格式。
+   timer.js 变更，故递增。
    静态资源走的是 stale-while-revalidate（cache-first + 后台更新），不递增版本号的话
    已安装的 PWA 首次打开会先拿到旧的 timer.js，第二次才更新；
    递增版本号可让 SW 重新 install + activate，一次性丢弃旧缓存。
    沿用 v3 的规矩：**凡是动到 APP_SHELL 里的文件，都要递增这个版本号。** */
-const CACHE = 'fto-timer-v7';
+const CACHE = 'fto-timer-v8';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
