@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四阶盲拧·中心块公式 - 公式速查</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="center.css">
+</head>
+<body data-nav="4bld-center">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<div class="c4-wrap">
+
+  <div class="c4-head">
+    <h1>四阶盲拧 · 中心块公式</h1>
+    <div class="sub">
+      缓冲 <b>Ubl</b> · <b id="c4-count">—</b> 条公式 · 23 个次字母位 · 3-style commutator
+    </div>
+    <a class="c4-back" href="/tools/3bld/index.html">← 返回三盲总览</a>
+  </div>
+
+  <div class="c4-bar">
+    <div class="c4-seg" id="c4-view" role="tablist">
+      <button type="button" data-view="cards" class="is-active" role="tab">分组卡片</button>
+      <button type="button" data-view="matrix" role="tab">矩阵总览</button>
+    </div>
+    <label for="c4-q">搜索</label>
+    <input type="search" id="c4-q" placeholder="如 GB" autocomplete="off">
+    <label for="c4-filter">显示</label>
+    <select id="c4-filter">
+      <option value="all">全部（含空位）</option>
+      <option value="has">仅有公式</option>
+      <option value="gap">仅留空格</option>
+      <option value="cross">仅跨组公式</option>
+    </select>
+    <span class="c4-spacer"></span>
+    <div class="c4-zoom">
+      <button type="button" id="c4-zout" title="缩小">−</button>
+      <span id="c4-zval">100%</span>
+      <button type="button" id="c4-zin" title="放大">＋</button>
+    </div>
+  </div>
+
+  <div class="c4-legend">
+    <span><i class="lg-on"></i>有公式</span>
+    <span><i class="lg-intent"></i>原表留空（反向已含，共 5 处）</span>
+    <span><i class="lg-self"></i>同组内 / 自身，不生成公式</span>
+    <span>行 = 首字母，列 = 次字母；公式含义：Ubl → 首字母 → 次字母</span>
+  </div>
+
+  <div id="c4-cards"></div>
+
+  <div class="c4-matrix" id="c4-matrix" hidden></div>
+
+</div>
+
+<div class="c4-modal" id="c4-modal" role="dialog" aria-modal="true" aria-label="公式详情">
+  <div class="c4-modal__box">
+    <div class="c4-modal__bar">
+      <span class="c4-modal__title" id="c4-m-title">--</span>
+      <span class="c4-spacer"></span>
+      <div class="c4-modal__nav">
+        <button type="button" id="c4-m-prev">← 上一式</button>
+        <button type="button" id="c4-m-next">下一式 →</button>
+      </div>
+      <button type="button" class="c4-modal__close" id="c4-m-close" aria-label="关闭">×</button>
+    </div>
+    <div class="c4-modal__alg" id="c4-m-alg">--</div>
+    <div class="c4-modal__row"><span class="k">反向</span><span class="v" id="c4-m-rev">--</span></div>
+    <div class="c4-modal__row"><span class="k">位置组</span><span class="v" id="c4-m-grp">--</span></div>
+    <div class="c4-modal__row"><span class="k">口语读法</span><span class="v" id="c4-m-say">--</span></div>
+    <div class="c4-modal__acts">
+      <button type="button" id="c4-m-copy">复制公式</button>
+      <button type="button" id="c4-m-locate">在卡片中定位</button>
+    </div>
+  </div>
+</div>
+
+<div class="c4-toast" id="c4-toast"></div>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="center-data.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var D = window.CENTER4;
+  if (!D) { return; }
+
+  var ORDER = D.order;
+  var GROUPS = D.groups || [];
+  var N = ORDER.length;
+
+  var GIDX = {};
+  GROUPS.forEach(function (g, i) { g.forEach(function (c) { GIDX[c] = i; }); });
+
+  var INTENT = {};
+  (D.intentional || []).forEach(function (p) { INTENT[p[0] + p[1]] = true; });
+
+  function gclass(c) { return 'g' + (GIDX[c] >= 0 ? GIDX[c] : 0); }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* 公式语法着色：整体旋转/setup 前缀 → 琥珀；方括号体 → 蓝；[] 与 , → 弱色 */
+  function fmtAlg(alg) {
+    if (!alg) { return ''; }
+    var pre = '', body = alg;
+    var m = /^([^:]*?)\s*:\s*(\[.*)$/.exec(alg);
+    if (m) { pre = m[1] + ':'; body = m[2]; }
+    var out = '';
+    if (pre) { out += '<span class="a-pre">' + esc(pre) + '</span>'; }
+    body.split(/([\[\],])/).forEach(function (t) {
+      if (t === '[' || t === ']' || t === ',') {
+        out += '<span class="a-punct">' + esc(t) + '</span>';
+      } else if (t) {
+        out += '<span class="a-core">' + esc(t) + '</span>';
+      }
+    });
+    return out;
+  }
+
+  /* ---------- 分组卡片 ---------- */
+  function cardHtml(it) {
+    var cls = 'c4-card ' + gclass(it.col);
+    if (!it.alg) { cls += it.isIntent ? ' is-intent' : ' is-empty'; }
+    var body;
+    if (it.alg) {
+      body = '<div class="c4-card__alg">' + fmtAlg(it.alg) + '</div>';
+    } else {
+      var t = it.isSelf ? '自身' : (it.isIntent ? '反向已含' : '同组·不生成');
+      body = '<div class="c4-card__alg" style="color:var(--c4-empty)">' + t + '</div>';
+    }
+    if (!it.alg) {
+      return '<div class="' + cls + '">' +
+        '<div class="c4-card__top"><span class="c4-card__code">' + it.code + '</span></div>' +
+        body + '</div>';
+    }
+    return '<button type="button" class="' + cls + '" data-code="' + it.code + '">' +
+      '<div class="c4-card__top"><span class="c4-card__code">' + it.code + '</span></div>' +
+      body + '</button>';
+  }
+
+  function renderCards() {
+    var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
+    var filter = document.getElementById('c4-filter').value;
+    var html = '', shown = 0;
+
+    ORDER.forEach(function (row) {
+      var hasN = 0, items = [];
+      ORDER.forEach(function (col) {
+        var code = row + col;
+        var alg = D.algs[code] || '';
+        var isSelf = (row === col);
+        var isIntent = !alg && !!INTENT[code];
+        if (alg) { hasN++; }
+
+        if (q && code.indexOf(q) < 0 && alg.toUpperCase().indexOf(q) < 0) { return; }
+        if (filter === 'has' && !alg) { return; }
+        if (filter === 'gap' && !isIntent) { return; }
+        if (filter === 'cross' && (!alg || isSelf)) { return; }
+
+        items.push({ code: code, alg: alg, col: col, isSelf: isSelf, isIntent: isIntent });
+      });
+      if (!items.length) { return; }
+      shown += items.length;
+
+      html += '<section class="c4-grp">' +
+        '<div class="c4-grp__head ' + gclass(row) + '">' +
+          '<span class="g-letter">' + row + ' 组</span>' +
+          '<span class="g-meta">' + hasN + ' / ' + (N - 1) + ' 条公式</span>' +
+        '</div><div class="c4-grid">';
+      items.forEach(function (it) { html += cardHtml(it); });
+      html += '</div></section>';
+    });
+
+    document.getElementById('c4-cards').innerHTML =
+      html || '<p style="font-size:13px;color:var(--fg-3,#7C8798)">没有匹配的公式。</p>';
+  }
+
+  /* ---------- 矩阵总览 ---------- */
+  function renderMatrix() {
+    var h = '<table><thead><tr><th></th>';
+    ORDER.forEach(function (c) {
+      h += '<th class="' + gclass(c) + '">' + c + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+
+    ORDER.forEach(function (row) {
+      h += '<tr><th class="row-h ' + gclass(row) + '">' + row + '</th>';
+      ORDER.forEach(function (col) {
+        var code = row + col;
+        var alg = D.algs[code] || '';
+        var cls = 'mx', tip = '';
+        if (alg) {
+          cls += ' on ' + gclass(col); tip = code + '　' + alg;
+        } else if (row === col) {
+          cls += ' self'; tip = code + '　自身，无公式';
+        } else if (INTENT[code]) {
+          cls += ' intent'; tip = code + '　原表留空（反向已含）';
+        } else {
+          tip = code + '　同组内，不生成公式';
+        }
+        var attr = alg ? ' data-code="' + code + '"' : ' disabled';
+        h += '<td><button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '></button></td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+
+    document.getElementById('c4-matrix').innerHTML = h;
+  }
+
+  /* ---------- 视图切换 ---------- */
+  function setView(v) {
+    document.querySelectorAll('#c4-view button').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-view') === v);
+    });
+    document.getElementById('c4-cards').hidden = (v !== 'cards');
+    document.getElementById('c4-matrix').hidden = (v !== 'matrix');
+  }
+
+  /* ---------- 详情浮层 ---------- */
+  var listCache = null, curIdx = -1;
+
+  function allCodes() {
+    if (listCache) { return listCache; }
+    listCache = [];
+    ORDER.forEach(function (r) {
+      ORDER.forEach(function (c) { if (D.algs[r + c]) { listCache.push(r + c); } });
+    });
+    return listCache;
+  }
+
+  function fillModal(code) {
+    var alg = D.algs[code];
+    if (!alg) { return; }
+    var a = code.charAt(0), b = code.charAt(1);
+    var t = document.getElementById('c4-m-title');
+    t.className = 'c4-modal__title ' + gclass(a);
+    t.textContent = code + '　（首 ' + a + ' · 次 ' + b + '）';
+    document.getElementById('c4-m-alg').innerHTML = fmtAlg(alg);
+
+    var rev = D.algs[b + a] || '';
+    document.getElementById('c4-m-rev').innerHTML = rev
+      ? fmtAlg(rev)
+      : '<span style="color:var(--fg-3,#7C8798)">无（该方向未收录）</span>';
+
+    var ga = GIDX[a], gb = GIDX[b];
+    document.getElementById('c4-m-grp').textContent =
+      '第 ' + (ga + 1) + ' 组（' + GROUPS[ga].join(' ') + '） → 第 ' + (gb + 1) + ' 组（' + GROUPS[gb].join(' ') + '）';
+
+    document.getElementById('c4-m-say').textContent =
+      'Ubl 到 ' + a + ' 到 ' + b + '（' + a + ' → ' + b + '）';
+  }
+
+  function openModal(code) {
+    if (!D.algs[code]) { return; }
+    curIdx = allCodes().indexOf(code);
+    fillModal(code);
+    document.getElementById('c4-modal').classList.add('is-open');
+  }
+
+  function closeModal() {
+    document.getElementById('c4-modal').classList.remove('is-open');
+  }
+
+  function step(delta) {
+    var list = allCodes();
+    if (!list.length) { return; }
+    curIdx = (curIdx + delta + list.length) % list.length;
+    fillModal(list[curIdx]);
+  }
+
+  function currentCode() {
+    var list = allCodes();
+    return list[curIdx] || '';
+  }
+
+  /* ---------- toast ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    var el = document.getElementById('c4-toast');
+    el.textContent = msg;
+    el.classList.add('is-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('is-on'); }, 1500);
+  }
+
+  /* ---------- 定位到卡片 ---------- */
+  function locateCard(code) {
+    setView('cards');
+    var btn = document.querySelector('#c4-cards [data-code="' + code + '"]');
+    if (!btn) { toast('当前筛选下不可见'); return; }
+    btn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    btn.classList.add('is-flash');
+    setTimeout(function () { btn.classList.remove('is-flash'); }, 1600);
+  }
+
+  /* ---------- 字号 ---------- */
+  var zoom = 100;
+  function applyZoom() {
+    var s = document.documentElement.style;
+    s.setProperty('--c4-alg', (12.5 * zoom / 100).toFixed(2) + 'px');
+    s.setProperty('--c4-min', Math.round(176 * zoom / 100) + 'px');
+    document.getElementById('c4-zval').textContent = zoom + '%';
+  }
+
+  /* ---------- 事件 ---------- */
+  function bind() {
+    document.getElementById('c4-view').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-view]');
+      if (b) { setView(b.getAttribute('data-view')); }
+    });
+
+    document.getElementById('c4-q').addEventListener('input', renderCards);
+    document.getElementById('c4-filter').addEventListener('change', renderCards);
+
+    function onGridClick(e) {
+      var b = e.target.closest('[data-code]');
+      if (b) { openModal(b.getAttribute('data-code')); }
+    }
+    document.getElementById('c4-cards').addEventListener('click', onGridClick);
+    document.getElementById('c4-matrix').addEventListener('click', onGridClick);
+
+    document.getElementById('c4-m-close').addEventListener('click', closeModal);
+    document.getElementById('c4-m-prev').addEventListener('click', function () { step(-1); });
+    document.getElementById('c4-m-next').addEventListener('click', function () { step(1); });
+    document.getElementById('c4-modal').addEventListener('click', function (e) {
+      if (e.target === this) { closeModal(); }
+    });
+
+    document.getElementById('c4-m-copy').addEventListener('click', function () {
+      var code = currentCode();
+      var alg = D.algs[code] || '';
+      var txt = code + '  ' + alg;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () { toast('已复制：' + txt); },
+          function () { toast('复制失败，请手动选择'); });
+      } else {
+        toast('浏览器不支持自动复制');
+      }
+    });
+
+    document.getElementById('c4-m-locate').addEventListener('click', function () {
+      var code = currentCode();
+      closeModal();
+      setTimeout(function () { locateCard(code); }, 60);
+    });
+
+    document.getElementById('c4-zin').addEventListener('click', function () {
+      zoom = Math.min(160, zoom + 10); applyZoom();
+    });
+    document.getElementById('c4-zout').addEventListener('click', function () {
+      zoom = Math.max(80, zoom - 10); applyZoom();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      var open = document.getElementById('c4-modal').classList.contains('is-open');
+      if (!open) { return; }
+      if (e.key === 'Escape') { closeModal(); }
+      if (e.key === 'ArrowLeft') { step(-1); }
+      if (e.key === 'ArrowRight') { step(1); }
+    });
+  }
+
+  /* ---------- 启动 ---------- */
+  document.getElementById('c4-count').textContent = Object.keys(D.algs).length;
+  renderCards();
+  renderMatrix();
+  applyZoom();
+  bind();
+})();
+</script>
+
+</body>
+</html>

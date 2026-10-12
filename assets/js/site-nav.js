@@ -36,6 +36,7 @@
       { id: '2x2',            label: '二阶练习纸',     href: '/tools/2x2/' },
       { id: 'scramble-uf',    label: 'UF 分组',        href: '/tools/scramble-uf/' },
       { id: 'scramble-uf440', label: 'UF440公式训练',  href: '/tools/scramble-uf440/' },
+      { id: '4bld-center',    label: '四阶中心块公式', href: '/tools/4bld/' },
       { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' },
       { id: 'bld-trainer',    label: 'bld-trainer',    href: '/tools/bld-trainer/' }
     ]},
