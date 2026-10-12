@@ -16,7 +16,9 @@
    已安装的 PWA 首次打开会先拿到旧的 timer.js，第二次才更新；
    递增版本号可让 SW 重新 install + activate，一次性丢弃旧缓存。
    沿用 v3 的规矩：**凡是动到 APP_SHELL 里的文件，都要递增这个版本号。** */
-const CACHE = 'fto-timer-v8';
+/* v9（2026-10-12）：site-nav.js（在 APP_SHELL 清单内）新增「四阶盲拧中心块公式」导航项
+   （tools/4bld/），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
+const CACHE = 'fto-timer-v9';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
