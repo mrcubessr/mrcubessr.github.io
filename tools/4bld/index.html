@@ -160,41 +160,29 @@
   function renderCards() {
     var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
     var filter = document.getElementById('c4-filter').value;
-    var html = '', shown = 0;
+    var html = '';
 
     ORDER.forEach(function (row) {
-      var hasN = 0, items = [];
       ORDER.forEach(function (col) {
         var code = row + col;
         var alg = D.algs[code] || '';
         var isSelf = (row === col);
         var isIntent = !alg && !!INTENT[code];
-        if (alg) { hasN++; }
 
         if (q && code.indexOf(q) < 0 && alg.toUpperCase().indexOf(q) < 0) { return; }
         if (filter === 'has' && !alg) { return; }
         if (filter === 'gap' && !isIntent) { return; }
         if (filter === 'cross' && (!alg || isSelf)) { return; }
 
-        items.push({ code: code, alg: alg, col: col, isSelf: isSelf, isIntent: isIntent });
+        html += cardHtml({ code: code, alg: alg, col: col, isSelf: isSelf, isIntent: isIntent });
       });
-      if (!items.length) { return; }
-      shown += items.length;
-
-      html += '<section class="c4-grp">' +
-        '<div class="c4-grp__head ' + gclass(row) + '">' +
-          '<span class="g-letter">' + row + ' 组</span>' +
-          '<span class="g-meta">' + hasN + ' / ' + (N - 1) + ' 条公式</span>' +
-        '</div><div class="c4-grid">';
-      items.forEach(function (it) { html += cardHtml(it); });
-      html += '</div></section>';
     });
 
     document.getElementById('c4-cards').innerHTML =
       html || '<p style="font-size:13px;color:var(--fg-3,#7C8798)">没有匹配的公式。</p>';
   }
 
-  /* ---------- 矩阵总览 ---------- */
+  /* ---------- 矩阵总览（横向铺满，每块标注 行·列） ---------- */
   function renderMatrix() {
     var h = '<table><thead><tr><th></th>';
     ORDER.forEach(function (c) {
@@ -217,8 +205,12 @@
         } else {
           tip = code + '　同组内，不生成公式';
         }
+        // 每块顶部写「行·列」对应（A行B列），窄屏下 .mx-x 自动隐藏只留 AB
+        var coord = '<span class="mx-r">' + row + '</span><span class="mx-x">行</span>' +
+                    '<span class="mx-c">' + col + '</span><span class="mx-x">列</span>';
         var attr = alg ? ' data-code="' + code + '"' : ' disabled';
-        h += '<td><button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '></button></td>';
+        h += '<td><button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '>' +
+               '<span class="mx-coord">' + coord + '</span></button></td>';
       });
       h += '</tr>';
     });

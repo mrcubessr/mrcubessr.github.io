@@ -81,22 +81,15 @@ html[data-theme="light"] {
 .c4-legend .lg-intent { background: var(--c4-intent-bg, rgba(148,163,184,.16)); }
 .c4-legend .lg-self { background: transparent; border: 1px dashed var(--line-2, rgba(255,255,255,.4)); }
 
-/* ---------- 分组卡片 ---------- */
-.c4-grp { margin-bottom: 22px; }
-.c4-grp__head {
-  display: flex; align-items: baseline; gap: 10px;
-  padding-bottom: 6px; margin-bottom: 10px;
-  border-bottom: 1px dashed var(--line, rgba(255,255,255,.14));
+/* ---------- 分组卡片（扁平铺满，仿 440 看板） ---------- */
+#c4-cards {
+  display: grid;
+  /* auto-fit：每行列数随容器宽度自适应，末行方块也拉伸铺满整行（无右侧空洞） */
+  grid-template-columns: repeat(auto-fit, minmax(var(--c4-min, 180px), 1fr));
+  gap: 8px;
+  width: 100%;
+  align-items: stretch;
 }
-.c4-grp__head .g-letter { font-size: 15px; font-weight: 700; letter-spacing: 1px; color: var(--gc, var(--brand)); }
-.c4-grp__head .g-letter::before {
-  content: ''; display: inline-block; width: 4px; height: 14px;
-  background: var(--gc, var(--brand)); margin-right: 8px; vertical-align: -2px;
-}
-.c4-grp__head .g-meta { font-size: 12px; color: var(--fg-3, #7C8798); }
-.c4-grp__head .g-solo { margin-left: auto; font-size: 12px; color: var(--fg-3, #7C8798); }
-
-.c4-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--c4-min, 176px), 1fr)); gap: 8px; }
 .c4-card {
   position: relative; display: block; width: 100%; text-align: left;
   padding: 8px 10px 9px;
@@ -127,24 +120,31 @@ html[data-theme="light"] {
 .a-core  { color: var(--alg-core); }
 .a-punct { color: var(--alg-punct); }
 
-/* ---------- 矩阵总览 ---------- */
-.c4-matrix { overflow: auto; padding-bottom: 8px; border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 10px; background: var(--surface, #141826); }
-.c4-matrix table { border-collapse: separate; border-spacing: 3px; margin: 10px; }
+/* ---------- 矩阵总览（横向铺满，每块标注 行·列） ---------- */
+.c4-matrix { overflow: auto; padding: 10px; border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 10px; background: var(--surface, #141826); }
+.c4-matrix table { width: 100%; min-width: 520px; table-layout: fixed; border-collapse: separate; border-spacing: 4px 3px; }
 .c4-matrix th {
   font-size: 11px; font-weight: 700; color: var(--fg-3, #7C8798);
-  padding: 0; width: 30px; height: 24px; text-align: center;
+  padding: 0; height: 22px; text-align: center;
 }
 .c4-matrix th.row-h { color: var(--gc, var(--fg-2)); }
-.c4-matrix td { padding: 0; }
+.c4-matrix td { padding: 0; height: 34px; }
 .c4-matrix .mx {
-  display: block; width: 30px; height: 24px; border: 1px solid transparent;
-  border-radius: 4px; padding: 0; cursor: pointer;
-  background: var(--surface-3, #232C3E);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 100%; height: 100%; min-height: 30px;
+  border: 1px solid transparent; border-radius: 4px; padding: 2px;
+  cursor: pointer; background: var(--surface-3, #232C3E);
+  font: inherit; color: inherit;
 }
 .c4-matrix .mx.on { background: var(--gc, var(--brand)); }
+.c4-matrix .mx.on .mx-coord { color: #fff; }
 /* 原表刻意留空（反向已含）：中性底，不标“待补” */
 .c4-matrix .mx.intent { background: var(--c4-intent-bg, rgba(148,163,184,.16)); cursor: default; }
+.c4-matrix .mx.intent .mx-coord { color: var(--fg-3, #7C8798); }
 .c4-matrix .mx.self { background: transparent; border: 1px dashed var(--line-2, rgba(255,255,255,.28)); cursor: default; }
+.c4-matrix .mx.self .mx-coord { color: var(--fg-3, #7C8798); }
+.c4-matrix .mx-coord { font-size: 11px; font-weight: 700; letter-spacing: .5px; color: var(--fg-2, #AEB8CA); line-height: 1.15; text-align: center; }
+.c4-matrix .mx-x { font-size: 9px; opacity: .72; font-weight: 600; }
 .c4-matrix .mx:hover { outline: 2px solid var(--brand, #60a5fa); outline-offset: 1px; }
 .c4-matrix .mx.self:hover { outline: none; }
 
@@ -220,6 +220,10 @@ html[data-theme="light"] {
   .c4-head h1 { font-size: 20px; letter-spacing: 2px; }
   .c4-bar { padding: 10px; gap: 8px; }
   .c4-bar input[type="search"] { width: 96px; }
-  .c4-grid { grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); }
+  #c4-cards { grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); }
   .c4-modal__alg { font-size: 18px; }
+  /* 矩阵窄屏：隐藏「行/列」字，只留 AB，避免挤压 */
+  .c4-matrix td { height: 28px; }
+  .c4-matrix .mx-x { display: none; }
+  .c4-matrix .mx-coord { font-size: 10px; }
 }
