@@ -6,7 +6,7 @@
 <script src="/assets/js/palette.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>四阶盲拧·中心块公式 - 公式速查</title>
+<title>四阶盲拧·中心块公式 - 练习总览</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
@@ -29,39 +29,90 @@
 
   <div class="c4-bar">
     <div class="c4-seg" id="c4-view" role="tablist">
-      <button type="button" data-view="cards" class="is-active" role="tab">分组卡片</button>
+      <button type="button" data-view="board" class="is-active" role="tab">练习总览</button>
       <button type="button" data-view="matrix" role="tab">矩阵总览</button>
     </div>
+    <span class="c4-spacer"></span>
     <label for="c4-q">搜索</label>
     <input type="search" id="c4-q" placeholder="如 GB" autocomplete="off">
-    <label for="c4-filter">显示</label>
-    <select id="c4-filter">
-      <option value="all">全部（含空位）</option>
-      <option value="has">仅有公式</option>
-      <option value="gap">仅留空格</option>
-      <option value="cross">仅跨组公式</option>
+    <label for="c4-metric">指标</label>
+    <select id="c4-metric">
+      <option value="session">最近一次</option>
+      <option value="allavg">全部平均</option>
+      <option value="best">最快单次</option>
     </select>
-    <span class="c4-spacer"></span>
-    <div class="c4-zoom">
-      <button type="button" id="c4-zout" title="缩小">−</button>
-      <span id="c4-zval">100%</span>
-      <button type="button" id="c4-zin" title="放大">＋</button>
+    <label for="c4-sort">排序</label>
+    <select id="c4-sort">
+      <option value="group">按组顺序</option>
+      <option value="slow">最慢优先</option>
+      <option value="practice">按练习次数</option>
+    </select>
+    <label for="c4-filter">筛选</label>
+    <select id="c4-filter">
+      <option value="all">全部公式</option>
+      <option value="todo">只看未练</option>
+      <option value="weak">只看需关注+不合格</option>
+    </select>
+  </div>
+
+  <!-- 练习总览：KPI + 色带 + 彩色看板 -->
+  <section id="c4-dash" class="c4-dash">
+    <div class="c4-dash__head">
+      <span class="c4-dash__title">训练总览</span>
+      <span class="c4-dash__std">浮动基准（已练公式 <b id="c4-bench-metric">最近一次</b> 中位数）<b id="c4-bench">--</b></span>
     </div>
-  </div>
+    <div class="c4-kpis" id="c4-kpis"></div>
+    <div class="c4-grad" aria-hidden="true"></div>
+    <div class="c4-grad-ticks" id="c4-grad-ticks">
+      <span style="left:0%">0.65×</span>
+      <span style="left:18%">0.85× 优秀</span>
+      <span style="left:40%">0.95× 良好</span>
+      <span style="left:58%">1.00× 基准</span>
+      <span style="left:78%">1.10×</span>
+      <span style="left:90%">1.15× 需关注</span>
+      <span style="left:100%">1.30×+ 不合格</span>
+    </div>
 
-  <div class="c4-legend">
-    <span><i class="lg-on"></i>有公式</span>
-    <span><i class="lg-intent"></i>原表留空（反向已含，共 5 处）</span>
-    <span><i class="lg-self"></i>同组内 / 自身，不生成公式</span>
-    <span>行 = 首字母，列 = 次字母；公式含义：Ubl → 首字母 → 次字母</span>
-  </div>
+    <div class="c4-top" id="c4-top" hidden>
+      <div class="c4-dash__head"><span class="c4-dash__title">🎯 最慢 TOP 10 · 建议重点练习</span></div>
+      <div class="c4-top__list" id="c4-top-list"></div>
+    </div>
+  </section>
 
-  <div id="c4-cards"></div>
+  <div id="c4-board" class="c4-board-wrap"><div class="c4-board"></div></div>
 
+  <!-- 矩阵总览：横向铺满，每块标注 行·列（参考索引，点击看公式） -->
   <div class="c4-matrix" id="c4-matrix" hidden></div>
 
 </div>
 
+<!-- 练习浮层：紧凑计时器 + 公式（仿 440） -->
+<div class="c4-pmodal" id="c4-pmodal" role="dialog" aria-modal="true" aria-label="单式练习">
+  <div class="c4-pmodal__box">
+    <div class="c4-pmodal__bar">
+      <button type="button" class="c4-pmodal__navbtn" id="c4-p-prev" title="上一式">←</button>
+      <select id="c4-p-select" class="c4-pmodal__select" aria-label="选择公式"></select>
+      <button type="button" class="c4-pmodal__navbtn" id="c4-p-next" title="下一式">→</button>
+      <span class="c4-spacer"></span>
+      <span class="c4-pmodal__hint">按住空格 0.5s 后松开开始</span>
+      <button type="button" class="c4-pmodal__close" id="c4-p-close" aria-label="关闭">×</button>
+    </div>
+    <div class="c4-pmodal__body">
+      <div class="c4-pmodal__code" id="c4-p-code">--</div>
+      <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>
+      <div class="c4-pmodal__timer" id="c4-p-timer" data-state="idle">0.000</div>
+      <div class="c4-pmodal__summary" id="c4-p-summary" hidden></div>
+      <div class="c4-pmodal__acts">
+        <button type="button" id="c4-p-copy">复制公式</button>
+        <button type="button" id="c4-p-del">删除最近一次</button>
+        <button type="button" id="c4-p-clear">清空该式</button>
+      </div>
+      <div class="c4-pmodal__history" id="c4-p-history"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 矩阵详情浮层（参考，只读） -->
 <div class="c4-modal" id="c4-modal" role="dialog" aria-modal="true" aria-label="公式详情">
   <div class="c4-modal__box">
     <div class="c4-modal__bar">
@@ -79,7 +130,7 @@
     <div class="c4-modal__row"><span class="k">口语读法</span><span class="v" id="c4-m-say">--</span></div>
     <div class="c4-modal__acts">
       <button type="button" id="c4-m-copy">复制公式</button>
-      <button type="button" id="c4-m-locate">在卡片中定位</button>
+      <button type="button" id="c4-m-locate">去练习</button>
     </div>
   </div>
 </div>
@@ -118,7 +169,7 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  /* 公式语法着色：整体旋转/setup 前缀 → 琥珀；方括号体 → 蓝；[] 与 , → 弱色 */
+  /* 公式语法着色 */
   function fmtAlg(alg) {
     if (!alg) { return ''; }
     var pre = '', body = alg;
@@ -136,53 +187,228 @@
     return out;
   }
 
-  /* ---------- 分组卡片 ---------- */
-  function cardHtml(it) {
-    var cls = 'c4-card ' + gclass(it.col);
-    if (!it.alg) { cls += it.isIntent ? ' is-intent' : ' is-empty'; }
-    var body;
-    if (it.alg) {
-      body = '<div class="c4-card__alg">' + fmtAlg(it.alg) + '</div>';
-    } else {
-      var t = it.isSelf ? '自身' : (it.isIntent ? '反向已含' : '同组·不生成');
-      body = '<div class="c4-card__alg" style="color:var(--c4-empty)">' + t + '</div>';
-    }
-    if (!it.alg) {
-      return '<div class="' + cls + '">' +
-        '<div class="c4-card__top"><span class="c4-card__code">' + it.code + '</span></div>' +
-        body + '</div>';
-    }
-    return '<button type="button" class="' + cls + '" data-code="' + it.code + '">' +
-      '<div class="c4-card__top"><span class="c4-card__code">' + it.code + '</span></div>' +
-      body + '</button>';
+  /* ============ 数据存储（仿 440） ============ */
+  var TIMES_KEY = 'c4_center_times';
+  var SESSIONS_KEY = 'c4_center_sessions';
+
+  function load(key, fb) {
+    try { return JSON.parse(localStorage.getItem(key)) || fb; } catch (e) { return fb; }
+  }
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
   }
 
-  function renderCards() {
-    var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
-    var filter = document.getElementById('c4-filter').value;
-    var html = '';
+  function fmtTime(ms) {
+    if (!isFinite(ms) || ms < 0) return '--:--.---';
+    var total = Math.round(ms);
+    var min = Math.floor(total / 60000);
+    var sec = Math.floor((total % 60000) / 1000);
+    var mill = total % 1000;
+    return (min > 0 ? min + ':' : '') + (min > 0 ? String(sec).padStart(2, '0') : String(sec)) + '.' + String(mill).padStart(3, '0');
+  }
+  function avg(a) {
+    if (!a || !a.length) return NaN;
+    return a.reduce(function (x, y) { return x + y; }, 0) / a.length;
+  }
+  function median(a) {
+    if (!a.length) return NaN;
+    var s = a.slice().sort(function (x, y) { return x - y; });
+    var m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
 
-    ORDER.forEach(function (row) {
-      ORDER.forEach(function (col) {
-        var code = row + col;
-        var alg = D.algs[code] || '';
-        var isSelf = (row === col);
-        var isIntent = !alg && !!INTENT[code];
+  var times = load(TIMES_KEY, {});
+  var sessions = load(SESSIONS_KEY, {});
+  var metricMode = 'session';
+  var sortMode = 'group';
+  var filterMode = 'all';
 
-        if (q && code.indexOf(q) < 0 && alg.toUpperCase().indexOf(q) < 0) { return; }
-        if (filter === 'has' && !alg) { return; }
-        if (filter === 'gap' && !isIntent) { return; }
-        if (filter === 'cross' && (!alg || isSelf)) { return; }
+  /* 全部 435 条公式（按组顺序），看板只渲这些，不占位空格 */
+  var ALL = [];
+  ORDER.forEach(function (r) {
+    ORDER.forEach(function (c) { if (D.algs[r + c]) { ALL.push(r + c); } });
+  });
 
-        html += cardHtml({ code: code, alg: alg, col: col, isSelf: isSelf, isIntent: isIntent });
-      });
+  function statsOf(code) {
+    var t = times[code] || [];
+    var s = sessions[code] || [];
+    var st = {
+      n: t.length,
+      best: t.length ? Math.min.apply(null, t) : NaN,
+      allavg: avg(t),
+      session: s.length ? s[s.length - 1] : NaN
+    };
+    st.metric = function () {
+      if (metricMode === 'allavg') return st.allavg;
+      if (metricMode === 'best') return st.best;
+      return st.session;
+    };
+    return st;
+  }
+
+  function tierOf(metric, bench) {
+    if (!isFinite(metric)) return 't-none';
+    if (!isFinite(bench) || bench <= 0) return 't-good';
+    var r = metric / bench;
+    if (r <= 0.85) return 't-great';
+    if (r <= 1.00) return 't-good';
+    if (r <= 1.15) return 't-warn';
+    return 't-bad';
+  }
+
+  /* 连续调色板：r=0.65 极快 → r=1.30 极慢（与 440 一致） */
+  function colorByRatio(r, range) {
+    if (!isFinite(r)) return { bg: '#e2e8f0', fg: '#475569', tier: 't-none' };
+    var lo = (range && isFinite(range.lo)) ? range.lo : 0.55;
+    var hi = (range && isFinite(range.hi)) ? range.hi : 1.45;
+    var t = Math.max(0, Math.min(1, (r - lo) / (hi - lo)));
+    var stops = [
+      { at: 0.00, c: [22, 163, 74] },
+      { at: 0.25, c: [74, 222, 128] },
+      { at: 0.40, c: [132, 204, 22] },
+      { at: 0.55, c: [250, 204, 21] },
+      { at: 0.70, c: [251, 146, 60] },
+      { at: 0.85, c: [220, 38, 38] },
+      { at: 1.00, c: [127, 29, 29] }
+    ];
+    var i = 0;
+    while (i < stops.length - 1 && t > stops[i + 1].at) i++;
+    var s0 = stops[i], s1 = stops[Math.min(i + 1, stops.length - 1)];
+    var local = s1.at === s0.at ? 0 : (t - s0.at) / (s1.at - s0.at);
+    var rgbv = [0, 1, 2].map(function (k) {
+      return Math.round(s0.c[k] + (s1.c[k] - s0.c[k]) * local);
     });
-
-    document.getElementById('c4-cards').innerHTML =
-      html || '<p style="font-size:13px;color:var(--fg-3,#7C8798)">没有匹配的公式。</p>';
+    var bg = 'rgb(' + rgbv.join(',') + ')';
+    var lum = (0.299 * rgbv[0] + 0.587 * rgbv[1] + 0.114 * rgbv[2]) / 255;
+    var fg = lum > 0.62 ? '#1f2937' : '#ffffff';
+    var tier;
+    if (r <= 0.85) tier = 't-great';
+    else if (r <= 1.00) tier = 't-good';
+    else if (r <= 1.15) tier = 't-warn';
+    else tier = 't-bad';
+    return { bg: bg, fg: fg, tier: tier, r: r };
   }
 
-  /* ---------- 矩阵总览（横向铺满，每块标注 行·列） ---------- */
+  /* 基于已练公式的 r 值，取 5%/95% 分位 → 让色彩铺满整个调色板 */
+  function colorRange(practicedStats, benchRef) {
+    var benchLocal = benchRef;
+    var rs = practicedStats
+      .map(function (c) { var m = c.metric(); return (isFinite(m) && isFinite(benchLocal) && benchLocal > 0) ? m / benchLocal : NaN; })
+      .filter(isFinite)
+      .sort(function (a, b) { return a - b; });
+    if (rs.length < 3) return { lo: 0.55, hi: 1.45 };
+    var lo = rs[Math.floor(rs.length * 0.05)];
+    var hi = rs[Math.floor(rs.length * 0.95)];
+    var span = Math.max(0.4, hi - lo);
+    var mid = (lo + hi) / 2;
+    return { lo: Math.max(0.3, mid - span / 2), hi: Math.min(2.0, mid + span / 2) };
+  }
+
+  /* ============ 看板（练习总览） ============ */
+  function renderBoard() {
+    var stats = {};
+    ALL.forEach(function (c) { stats[c] = statsOf(c); });
+
+    var practiced = ALL.filter(function (c) { return stats[c].n > 0 && isFinite(stats[c].metric()); });
+    var bench = median(practiced.map(function (c) { return stats[c].metric(); }));
+    document.getElementById('c4-bench').textContent = fmtTime(bench);
+    document.getElementById('c4-bench-metric').textContent =
+      metricMode === 'session' ? '最近一次' : (metricMode === 'best' ? '最快' : '全部均');
+
+    // KPI
+    var totalN = 0;
+    ALL.forEach(function (c) { totalN += stats[c].n; });
+    var weak = ALL.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-bad'; }).length;
+    var warn = ALL.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-warn'; }).length;
+    document.getElementById('c4-kpis').innerHTML =
+      '<div class="c4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + practiced.length + ' / ' + ALL.length + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
+
+    // TOP10 最慢
+    var ranked = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+    var top = ranked.slice(0, 10);
+    var topBox = document.getElementById('c4-top');
+    if (top.length) {
+      topBox.hidden = false;
+      document.getElementById('c4-top-list').innerHTML = top.map(function (c, i) {
+        return '<button type="button" class="c4-top__item" data-code="' + c + '">' +
+          '<span class="c4-top__rank">#' + (i + 1) + '</span><b>' + c + '</b>' +
+          '<span style="color:var(--fg-3);font-size:12px">' + fmtTime(stats[c].metric()) + '</span></button>';
+      }).join('');
+    } else {
+      topBox.hidden = true;
+    }
+
+    // 组装显示列表
+    var list = ALL.slice();
+    if (filterMode === 'todo') list = list.filter(function (c) { return stats[c].n === 0; });
+    if (filterMode === 'weak') {
+      list = list.filter(function (c) {
+        var t = tierOf(stats[c].metric(), bench);
+        return stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
+      });
+    }
+    if (sortMode === 'slow') {
+      list = list.slice().sort(function (a, b) { return statsB(b) - statsB(a); });
+    } else if (sortMode === 'practice') {
+      list = list.slice().sort(function (a, b) {
+        var na = stats[a].n, nb = stats[b].n;
+        if (na !== nb) return nb - na;
+        var ma = stats[a].metric(), mb = stats[b].metric();
+        if (isFinite(ma) && isFinite(mb)) return mb - ma;
+        return isFinite(ma) ? -1 : 1;
+      });
+    }
+    function statsB(c) { var m = stats[c].metric(); return isFinite(m) ? m : -1; }
+
+    // 搜索（按 code / 公式文本）
+    var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
+    if (q) {
+      list = list.filter(function (c) {
+        return c.indexOf(q) >= 0 || (D.algs[c] || '').toUpperCase().indexOf(q) >= 0;
+      });
+    }
+
+    var practicedStats = ALL.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
+    var range = colorRange(practicedStats, bench);
+
+    var cellsHtml = list.map(function (c) {
+      var st = stats[c];
+      var m = st.metric();
+      var r = isFinite(m) && isFinite(bench) && bench > 0 ? m / bench : NaN;
+      var col = colorByRatio(r, range);
+      var title = (st.n
+        ? (c + ' · ' + fmtTime(m) + ' · ' + st.n + ' 次 · r=' + (isFinite(r) ? r.toFixed(2) : '--') + '× 基准')
+        : (c + ' · 未练习'));
+      var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
+      return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
+        'style="background:' + col.bg + ';color:' + col.fg + '" title="' + esc(title) + '">' +
+        '<span class="c-code">' + c + '</span>' +
+        '<span class="c-ms">' + (st.n ? fmtTime(m) : '--') + '</span>' +
+        '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
+        '</a>';
+    }).join('');
+
+    document.querySelector('.c4-board').innerHTML =
+      cellsHtml || '<div class="c4-empty">没有符合筛选条件的公式。</div>';
+
+    // 色带刻度
+    var ticks = document.getElementById('c4-grad-ticks');
+    if (ticks && range) {
+      ticks.innerHTML =
+        '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
+        '<span style="left:25%">' + (range.lo + (range.hi - range.lo) * 0.25).toFixed(2) + '×</span>' +
+        '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
+        '<span style="left:75%">' + (range.lo + (range.hi - range.lo) * 0.75).toFixed(2) + '×</span>' +
+        '<span style="left:100%">' + range.hi.toFixed(2) + '×</span>';
+    }
+
+    scheduleFit();
+  }
+
+  /* ============ 矩阵总览（参考索引） ============ */
   function renderMatrix() {
     var h = '<table><thead><tr><th></th>';
     ORDER.forEach(function (c) {
@@ -205,12 +431,11 @@
         } else {
           tip = code + '　同组内，不生成公式';
         }
-        // 每块顶部写「行·列」对应（A行B列），窄屏下 .mx-x 自动隐藏只留 AB
         var coord = '<span class="mx-r">' + row + '</span><span class="mx-x">行</span>' +
                     '<span class="mx-c">' + col + '</span><span class="mx-x">列</span>';
         var attr = alg ? ' data-code="' + code + '"' : ' disabled';
         h += '<td><button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '>' +
-               '<span class="mx-coord">' + coord + '</span></button></td>';
+             '<span class="mx-coord">' + coord + '</span></button></td>';
       });
       h += '</tr>';
     });
@@ -219,18 +444,20 @@
     document.getElementById('c4-matrix').innerHTML = h;
   }
 
-  /* ---------- 视图切换 ---------- */
+  /* ============ 视图切换 ============ */
   function setView(v) {
     document.querySelectorAll('#c4-view button').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-view') === v);
     });
-    document.getElementById('c4-cards').hidden = (v !== 'cards');
-    document.getElementById('c4-matrix').hidden = (v !== 'matrix');
+    var board = (v === 'board');
+    document.getElementById('c4-dash').hidden = !board;
+    document.getElementById('c4-board').hidden = !board;
+    document.getElementById('c4-matrix').hidden = board;
+    if (board) { scheduleFit(); }
   }
 
-  /* ---------- 详情浮层 ---------- */
+  /* ============ 详情浮层（矩阵参考） ============ */
   var listCache = null, curIdx = -1;
-
   function allCodes() {
     if (listCache) { return listCache; }
     listCache = [];
@@ -239,7 +466,6 @@
     });
     return listCache;
   }
-
   function fillModal(code) {
     var alg = D.algs[code];
     if (!alg) { return; }
@@ -248,44 +474,31 @@
     t.className = 'c4-modal__title ' + gclass(a);
     t.textContent = code + '　（首 ' + a + ' · 次 ' + b + '）';
     document.getElementById('c4-m-alg').innerHTML = fmtAlg(alg);
-
     var rev = D.algs[b + a] || '';
     document.getElementById('c4-m-rev').innerHTML = rev
       ? fmtAlg(rev)
       : '<span style="color:var(--fg-3,#7C8798)">无（该方向未收录）</span>';
-
     var ga = GIDX[a], gb = GIDX[b];
     document.getElementById('c4-m-grp').textContent =
       '第 ' + (ga + 1) + ' 组（' + GROUPS[ga].join(' ') + '） → 第 ' + (gb + 1) + ' 组（' + GROUPS[gb].join(' ') + '）';
-
     document.getElementById('c4-m-say').textContent =
       'Ubl 到 ' + a + ' 到 ' + b + '（' + a + ' → ' + b + '）';
   }
-
   function openModal(code) {
     if (!D.algs[code]) { return; }
     curIdx = allCodes().indexOf(code);
     fillModal(code);
     document.getElementById('c4-modal').classList.add('is-open');
   }
-
-  function closeModal() {
-    document.getElementById('c4-modal').classList.remove('is-open');
-  }
-
-  function step(delta) {
+  function closeModal() { document.getElementById('c4-modal').classList.remove('is-open'); }
+  function stepModal(delta) {
     var list = allCodes();
     if (!list.length) { return; }
     curIdx = (curIdx + delta + list.length) % list.length;
     fillModal(list[curIdx]);
   }
 
-  function currentCode() {
-    var list = allCodes();
-    return list[curIdx] || '';
-  }
-
-  /* ---------- toast ---------- */
+  /* ============ toast ============ */
   var toastTimer = null;
   function toast(msg) {
     var el = document.getElementById('c4-toast');
@@ -295,89 +508,289 @@
     toastTimer = setTimeout(function () { el.classList.remove('is-on'); }, 1500);
   }
 
-  /* ---------- 定位到卡片 ---------- */
-  function locateCard(code) {
-    setView('cards');
-    var btn = document.querySelector('#c4-cards [data-code="' + code + '"]');
-    if (!btn) { toast('当前筛选下不可见'); return; }
-    btn.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    btn.classList.add('is-flash');
-    setTimeout(function () { btn.classList.remove('is-flash'); }, 1600);
+  /* ============ 练习浮层（计时器，仿 440） ============ */
+  var pmodal = document.getElementById('c4-pmodal');
+  var pSelect = document.getElementById('c4-p-select');
+  var pCodeEl = document.getElementById('c4-p-code');
+  var pAlgEl = document.getElementById('c4-p-alg');
+  var pTimerEl = document.getElementById('c4-p-timer');
+  var pSummaryEl = document.getElementById('c4-p-summary');
+  var pHistoryEl = document.getElementById('c4-p-history');
+  var pCurrent = '';
+  var pState = 'idle';
+  var pStart = 0, pTick = 0, pPrep = 0;
+
+  function pFmt(ms) {
+    if (!isFinite(ms) || ms < 0) return '--.--';
+    var total = Math.round(ms);
+    var sec = Math.floor(total / 1000);
+    var mill = total % 1000;
+    return sec + '.' + String(mill).padStart(3, '0');
+  }
+  function fillPSelect() {
+    var html = '';
+    GROUPS.forEach(function (g, gi) {
+      html += '<optgroup label="第 ' + (gi + 1) + ' 组（' + g.join(' ') + '）">';
+      g.forEach(function (letter) {
+        ORDER.forEach(function (col) {
+          var code = letter + col;
+          if (D.algs[code]) html += '<option value="' + code + '">' + code + '</option>';
+        });
+      });
+      html += '</optgroup>';
+    });
+    pSelect.innerHTML = html;
+  }
+  function pushTimes(ms) {
+    var t = load(TIMES_KEY, {});
+    if (!t[pCurrent]) t[pCurrent] = [];
+    t[pCurrent].push(ms);
+    save(TIMES_KEY, t);
+    var s = load(SESSIONS_KEY, {});
+    if (!s[pCurrent]) s[pCurrent] = [];
+    s[pCurrent].push(ms);
+    save(SESSIONS_KEY, s);
+  }
+  function pRenderTimer() {
+    if (pState === 'running') pTimerEl.textContent = pFmt(performance.now() - pStart);
+  }
+  function pStartTimer() {
+    if (pState === 'running') return;
+    pState = 'running';
+    pStart = performance.now();
+    pTimerEl.dataset.state = 'running';
+    pSummaryEl.hidden = true;
+    pTick = setInterval(pRenderTimer, 50);
+  }
+  function pStopTimer() {
+    if (pState !== 'running') return;
+    clearInterval(pTick);
+    var total = performance.now() - pStart;
+    pushTimes(total);
+    pState = 'done';
+    pTimerEl.dataset.state = 'done';
+    pTimerEl.textContent = pFmt(total);
+    pSummaryEl.hidden = false;
+    pSummaryEl.innerHTML = '本次用时 <b>' + fmtTime(total) + '</b>';
+    pRefreshHistory();
+    try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
+    renderBoard();
+  }
+  function pResetTimer() {
+    clearInterval(pTick); clearTimeout(pPrep);
+    pState = 'idle';
+    pTimerEl.dataset.state = 'idle';
+    pTimerEl.textContent = '0.000';
+    pSummaryEl.hidden = true;
+  }
+  function pKeydownHold() {
+    if (pState === 'running') { pStopTimer(); return; }
+    if (pState === 'prep' || pState === 'green') { clearTimeout(pPrep); return; }
+    clearTimeout(pPrep);
+    pState = 'prep';
+    pTimerEl.dataset.state = 'prep';
+    pTimerEl.textContent = '按住';
+    pPrep = setTimeout(function () {
+      if (pState === 'prep') { pState = 'green'; pTimerEl.dataset.state = 'green'; pTimerEl.textContent = '松开'; }
+    }, 500);
+  }
+  function pKeyupHold() {
+    clearTimeout(pPrep);
+    if (pState === 'green') { pStartTimer(); return; }
+    if (pState === 'prep') { pResetTimer(); return; }
+  }
+  function pRefreshHistory() {
+    var s = sessions[pCurrent] || [];
+    if (!s.length) { pHistoryEl.innerHTML = '<span style="color:var(--fg-3)">尚无成绩</span>'; return; }
+    var parts = [];
+    var start = Math.max(0, s.length - 20);
+    for (var i = start; i < s.length; i++) parts.push('<span class="sh-item">' + fmtTime(s[i]) + '</span>');
+    pHistoryEl.innerHTML = parts.join('');
+  }
+  function pLoadCode(code) {
+    if (ALL.indexOf(code) < 0) code = ALL[0];
+    pCurrent = code;
+    pSelect.value = code;
+    pCodeEl.textContent = code;
+    pAlgEl.innerHTML = fmtAlg(D.algs[code] || '');
+    pResetTimer();
+    pRefreshHistory();
+  }
+  function pOpenFor(code) {
+    pmodal.classList.add('is-open');
+    pLoadCode(code);
+  }
+  function pClose() {
+    clearTimeout(pPrep);
+    if (pState === 'running') pStopTimer();
+    pmodal.classList.remove('is-open');
+  }
+  function pStep(delta) {
+    if (!pCurrent) return;
+    var i = ALL.indexOf(pCurrent);
+    var j = Math.max(0, Math.min(ALL.length - 1, i + delta));
+    pLoadCode(ALL[j]);
   }
 
-  /* ---------- 字号 ---------- */
-  var zoom = 100;
-  function applyZoom() {
-    var s = document.documentElement.style;
-    s.setProperty('--c4-alg', (12.5 * zoom / 100).toFixed(2) + 'px');
-    s.setProperty('--c4-min', Math.round(176 * zoom / 100) + 'px');
-    document.getElementById('c4-zval').textContent = zoom + '%';
-  }
-
-  /* ---------- 事件 ---------- */
+  /* ============ 事件 ============ */
   function bind() {
     document.getElementById('c4-view').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-view]');
       if (b) { setView(b.getAttribute('data-view')); }
     });
+    document.getElementById('c4-q').addEventListener('input', renderBoard);
+    document.getElementById('c4-metric').addEventListener('change', function () { metricMode = this.value; renderBoard(); });
+    document.getElementById('c4-sort').addEventListener('change', function () { sortMode = this.value; renderBoard(); });
+    document.getElementById('c4-filter').addEventListener('change', function () { filterMode = this.value; renderBoard(); });
 
-    document.getElementById('c4-q').addEventListener('input', renderCards);
-    document.getElementById('c4-filter').addEventListener('change', renderCards);
-
-    function onGridClick(e) {
-      var b = e.target.closest('[data-code]');
+    // 看板方块 → 练习浮层
+    document.getElementById('c4-board').addEventListener('click', function (e) {
+      var b = e.target.closest('.c4-bcell');
+      if (b) { pOpenFor(b.getAttribute('data-code')); }
+    });
+    // 矩阵方块 → 详情浮层（参考）
+    document.getElementById('c4-matrix').addEventListener('click', function (e) {
+      var b = e.target.closest('.mx[data-code]');
       if (b) { openModal(b.getAttribute('data-code')); }
-    }
-    document.getElementById('c4-cards').addEventListener('click', onGridClick);
-    document.getElementById('c4-matrix').addEventListener('click', onGridClick);
-
-    document.getElementById('c4-m-close').addEventListener('click', closeModal);
-    document.getElementById('c4-m-prev').addEventListener('click', function () { step(-1); });
-    document.getElementById('c4-m-next').addEventListener('click', function () { step(1); });
-    document.getElementById('c4-modal').addEventListener('click', function (e) {
-      if (e.target === this) { closeModal(); }
+    });
+    // TOP10 → 练习浮层
+    document.getElementById('c4-top-list').addEventListener('click', function (e) {
+      var b = e.target.closest('.c4-top__item');
+      if (b) { pOpenFor(b.getAttribute('data-code')); }
     });
 
+    // 详情浮层
+    document.getElementById('c4-m-close').addEventListener('click', closeModal);
+    document.getElementById('c4-m-prev').addEventListener('click', function () { stepModal(-1); });
+    document.getElementById('c4-m-next').addEventListener('click', function () { stepModal(1); });
+    document.getElementById('c4-modal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
     document.getElementById('c4-m-copy').addEventListener('click', function () {
-      var code = currentCode();
-      var alg = D.algs[code] || '';
-      var txt = code + '  ' + alg;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(function () { toast('已复制：' + txt); },
-          function () { toast('复制失败，请手动选择'); });
-      } else {
-        toast('浏览器不支持自动复制');
+      var code = currentModalCode();
+      copyText(code + '  ' + (D.algs[code] || ''));
+    });
+    document.getElementById('c4-m-locate').addEventListener('click', function () {
+      var code = currentModalCode();
+      closeModal();
+      setTimeout(function () { pOpenFor(code); }, 60);
+    });
+
+    // 练习浮层
+    document.getElementById('c4-p-close').addEventListener('click', pClose);
+    document.getElementById('c4-p-prev').addEventListener('click', function () { pStep(-1); });
+    document.getElementById('c4-p-next').addEventListener('click', function () { pStep(1); });
+    pSelect.addEventListener('change', function () { pLoadCode(pSelect.value); });
+    document.getElementById('c4-p-copy').addEventListener('click', function () {
+      copyText(pCurrent + '  ' + (D.algs[pCurrent] || ''));
+    });
+    document.getElementById('c4-p-del').addEventListener('click', function () {
+      var s = (sessions[pCurrent] || []).slice();
+      if (!s.length) return;
+      s.pop();
+      var allS = load(SESSIONS_KEY, {}); allS[pCurrent] = s; save(SESSIONS_KEY, allS);
+      var allT = load(TIMES_KEY, {}); allT[pCurrent] = (times[pCurrent] || []).slice(0, s.length); save(TIMES_KEY, allT);
+      try { sessions = load(SESSIONS_KEY, {}); times = load(TIMES_KEY, {}); } catch (e) {}
+      pRefreshHistory(); renderBoard();
+    });
+    document.getElementById('c4-p-clear').addEventListener('click', function () {
+      if (!confirm('确认清空「' + pCurrent + '」的全部成绩？')) return;
+      var allS = load(SESSIONS_KEY, {}), allT = load(TIMES_KEY, {});
+      delete allS[pCurrent]; delete allT[pCurrent];
+      save(SESSIONS_KEY, allS); save(TIMES_KEY, allT);
+      try { sessions = load(SESSIONS_KEY, {}); times = load(TIMES_KEY, {}); } catch (e) {}
+      pRefreshHistory(); renderBoard();
+    });
+    pmodal.addEventListener('click', function (e) { if (e.target === pmodal) pClose(); });
+    pTimerEl.addEventListener('click', function () {
+      if (pState === 'running') pStopTimer();
+      else if (pState === 'done' || pState === 'idle') pStartTimer();
+    });
+
+    // 键盘：练习浮层内
+    document.addEventListener('keydown', function (e) {
+      if (pmodal.classList.contains('is-open')) {
+        if (e.key === 'Escape') { pClose(); e.preventDefault(); return; }
+        var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+        if (isSpace && !e.repeat) { pKeydownHold(); e.preventDefault(); return; }
+        if (isFormFocus(e.target)) return;
+        if (pState === 'running' || pState === 'prep' || pState === 'green') return;
+        if (e.key === 'ArrowLeft') { pStep(-1); e.preventDefault(); }
+        else if (e.key === 'ArrowRight') { pStep(1); e.preventDefault(); }
+      } else if (document.getElementById('c4-modal').classList.contains('is-open')) {
+        if (e.key === 'Escape') { closeModal(); }
+        if (e.key === 'ArrowLeft') { stepModal(-1); }
+        if (e.key === 'ArrowRight') { stepModal(1); }
       }
     });
-
-    document.getElementById('c4-m-locate').addEventListener('click', function () {
-      var code = currentCode();
-      closeModal();
-      setTimeout(function () { locateCard(code); }, 60);
-    });
-
-    document.getElementById('c4-zin').addEventListener('click', function () {
-      zoom = Math.min(160, zoom + 10); applyZoom();
-    });
-    document.getElementById('c4-zout').addEventListener('click', function () {
-      zoom = Math.max(80, zoom - 10); applyZoom();
-    });
-
-    document.addEventListener('keydown', function (e) {
-      var open = document.getElementById('c4-modal').classList.contains('is-open');
-      if (!open) { return; }
-      if (e.key === 'Escape') { closeModal(); }
-      if (e.key === 'ArrowLeft') { step(-1); }
-      if (e.key === 'ArrowRight') { step(1); }
+    document.addEventListener('keyup', function (e) {
+      if (!pmodal.classList.contains('is-open')) return;
+      var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+      if (isSpace) { pKeyupHold(); e.preventDefault(); }
     });
   }
+  function isFormFocus(t) {
+    if (!t) return false;
+    var tag = t.tagName;
+    return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || t.isContentEditable;
+  }
+  function currentModalCode() {
+    var list = allCodes();
+    return list[curIdx] || '';
+  }
+  function copyText(txt) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () { toast('已复制：' + txt); },
+        function () { toast('复制失败，请手动选择'); });
+    } else { toast('浏览器不支持自动复制'); }
+  }
 
-  /* ---------- 启动 ---------- */
-  document.getElementById('c4-count').textContent = Object.keys(D.algs).length;
-  renderCards();
+  /* ============ 自适应铺满（仿 440 fitBoard，按宽度铺满 + 舒适格高） ============ */
+  var fitRaf = 0, GAP = 6, TARGET = 82;
+  function scheduleFit() {
+    if (fitRaf) cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(fitBoard);
+  }
+  function fitBoard() {
+    var board = document.querySelector('.c4-board');
+    if (!board) return;
+    var n = board.children.length;
+    if (!n) return;
+    var cs = getComputedStyle(board);
+    var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    var availW = board.clientWidth ? (board.clientWidth - padX - 2) : (document.documentElement.clientWidth - 240 - 32);
+    availW = Math.max(240, availW);
+    var cols = Math.max(1, Math.floor((availW + GAP) / (TARGET + GAP)));
+    cols = Math.min(cols, 30);
+    var cellW = (availW - (cols - 1) * GAP) / cols;
+    if (cellW < 48) { cols = Math.max(1, Math.floor((availW + GAP) / (48 + GAP))); cellW = (availW - (cols - 1) * GAP) / cols; }
+    var cellH = Math.round(cellW * 0.78);
+    board.style.setProperty('--c4-cell-w', cellW.toFixed(2) + 'px');
+    board.style.setProperty('--c4-cell-h', cellH.toFixed(2) + 'px');
+    for (var k = 0; k < n; k++) {
+      var el = board.children[k];
+      if (el && el.classList && el.classList.contains('c4-bcell')) {
+        el.style.width = cellW.toFixed(2) + 'px';
+        el.style.height = cellH.toFixed(2) + 'px';
+      }
+    }
+  }
+
+  /* ============ 启动 ============ */
+  document.getElementById('c4-count').textContent = ALL.length;
+  renderBoard();
   renderMatrix();
-  applyZoom();
+  fillPSelect();
+  setView('board');
   bind();
+
+  window.addEventListener('resize', scheduleFit);
+  if (typeof ResizeObserver !== 'undefined') {
+    var roTimer = 0;
+    var ro = new ResizeObserver(function () { clearTimeout(roTimer); roTimer = setTimeout(fitBoard, 60); });
+    ro.observe(document.documentElement);
+    var wrapEl = document.querySelector('.c4-board-wrap');
+    if (wrapEl) ro.observe(wrapEl);
+  }
+  setTimeout(fitBoard, 0);
 })();
 </script>
 
