@@ -113,6 +113,39 @@
     font-size: 13px; font-weight: 500; cursor: pointer;
   }
 
+  /* ===== 弹层导航栏（移植自 UF440：← → 切换 + 公式下拉 + 方向旋转） ===== */
+  .pll-modal__bar { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .pll-navbtn {
+    width: 34px; height: 34px; flex: 0 0 auto; border-radius: 8px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+    font-size: 16px; line-height: 1; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color 120ms ease, color 120ms ease;
+  }
+  .pll-navbtn:hover { border-color: var(--brand, #5B8DEF); color: var(--fg, #EEF2F8); }
+  .pll-modal__select {
+    flex: 1 1 120px; min-width: 0; padding: 7px 10px; border-radius: 8px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .pll-modal__select:focus { outline: 2px solid var(--brand, #5B8DEF); outline-offset: 1px; }
+  .pll-modal__select optgroup { background: var(--surface, #141826); color: var(--fg-2, #AEB8CA); }
+  .pll-modal__select option { background: var(--surface, #141826); color: var(--fg, #EEF2F8); }
+  .pll-modal__spacer { flex: 1 1 auto; }
+  .pll-rot { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+  .pll-rot__label {
+    min-width: 40px; text-align: center; font-size: 12px; font-weight: 800;
+    color: var(--fg-2, #AEB8CA); font-variant-numeric: tabular-nums;
+  }
+  .pll-modal__hint { font-size: 11px; color: var(--fg-3, #7d8899); white-space: nowrap; }
+  .pll-modal__auf { font-size: 12px; font-weight: 700; }
+  @media (max-width: 640px) {
+    .pll-modal__hint { display: none; }
+    .pll-modal__net .cfop-net { width: 150px; height: 150px; }
+  }
+
   /* ===== 练习弹层 ===== */
   .pll-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
   .pll-modal[hidden] { display: none; }
@@ -228,6 +261,18 @@
     <div class="pll-modal__top">
       <div class="pll-modal__title" id="pll-m-title"></div>
       <button class="pll-modal__close" data-close aria-label="关闭">✕</button>
+    </div>
+    <div class="pll-modal__bar">
+      <button type="button" class="pll-navbtn" id="pll-m-prev" title="上一条公式（←）">←</button>
+      <select id="pll-m-select" class="pll-modal__select" aria-label="选择公式"></select>
+      <button type="button" class="pll-navbtn" id="pll-m-next" title="下一条公式（→）">→</button>
+      <span class="pll-modal__spacer"></span>
+      <div class="pll-rot" role="group" aria-label="调整预览方向">
+        <button type="button" class="pll-navbtn" id="pll-rot-ccw" title="预览左转 90°">↺</button>
+        <span class="pll-rot__label" id="pll-rot-label">0°</span>
+        <button type="button" class="pll-navbtn" id="pll-rot-cw" title="预览右转 90°">↻</button>
+      </div>
+      <span class="pll-modal__hint">← → 切换公式</span>
     </div>
     <div class="pll-modal__body">
       <div class="pll-modal__net" id="pll-m-net"></div>
@@ -444,6 +489,12 @@
   var timerEl = document.getElementById("pll-timer");
   var timerBtn = document.getElementById("pll-timer-btn");
   var swapBtn = document.getElementById("pll-swap-btn");
+  var mPrev = document.getElementById("pll-m-prev");
+  var mNext = document.getElementById("pll-m-next");
+  var mSelect = document.getElementById("pll-m-select");
+  var rotCw = document.getElementById("pll-rot-cw");
+  var rotCcw = document.getElementById("pll-rot-ccw");
+  var rotLabel = document.getElementById("pll-rot-label");
   var activeId = null;
   // 计时器状态机（标准魔方计时器 hold-to-start，与 UF440 一致）
   var tState = "idle";   // idle | prep | green | running | done
@@ -457,20 +508,105 @@
     return sec + "." + String(mill).padStart(3, "0");
   }
 
-  function openModal(id) {
-    var c = PLL.filter(function (x) { return x.id === id; })[0];
+  /* ============ 预览方向旋转（模拟对实例做 k 次 U 转，顺时针 90° = 1 次） ============
+     - U 面 3×3 网格顺时针转；四条侧面顶行绕中心轮转 F→L→B→R→F（同序不反转）。
+       推导：U 转 = 绕竖轴 (x,z)→(-z,x)（标准 U：(URF UFL ULB UBR)）；
+       再按 flatCase 展开图各臂坐标（下臂 uf[0..2] / 左臂 ul[0..2] / 上臂 ub[2,1,0] / 右臂 ur[2,1,0]）
+       做 (x,y)→(-y,x) 顺时针验证：uf[0]→ul[0]、ul[0]→ub[0]、ub[0]→ur[0]、ur[0]→uf[0]，两法一致。
+     - 公式对应：预览顺时针 90° = 实例比标准态多转了一次 U → 先 U' 归位再执行公式；
+       180° → U2；270° → U。前缀在公式最前面（实例自身朝向下的 AUF，先于公式内的 x/y 整体转）。 */
+  function rotGridCW(s) {
+    var o = [];
+    for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) o[r * 3 + c] = s[(2 - c) * 3 + r];
+    return o.join("");
+  }
+  function rotateFacelets(fl, k) {
+    k = ((k % 4) + 4) % 4;
+    if (k === 0 || !fl) return fl;
+    var us = fl["data-us"];
+    var top = {
+      f: fl["data-uf"].slice(0, 3), l: fl["data-ul"].slice(0, 3),
+      b: fl["data-ub"].slice(0, 3), r: fl["data-ur"].slice(0, 3)
+    };
+    for (var i = 0; i < k; i++) {
+      us = rotGridCW(us);
+      var nf = top.r, nl = top.f, nb = top.l, nr = top.b;   // F→L→B→R→F
+      top = { f: nf, l: nl, b: nb, r: nr };
+    }
+    return {
+      "data-us": us,
+      "data-ub": top.b + fl["data-ub"].slice(3),
+      "data-uf": top.f + fl["data-uf"].slice(3),
+      "data-ul": top.l + fl["data-ul"].slice(3),
+      "data-ur": top.r + fl["data-ur"].slice(3)
+    };
+  }
+  function aufPrefix(k) {
+    k = ((k % 4) + 4) % 4;
+    return k === 1 ? "U' " : k === 2 ? "U2 " : k === 3 ? "U " : "";
+  }
+  function netSvgRot(c, k) {
+    try { return window.CubeArt.flatCase(rotateFacelets(c.facelets, k)); } catch (e) { return null; }
+  }
+
+  var rot = 0;   // 当前预览顺时针旋转次数（0..3）
+  function byId(id) { return PLL.filter(function (x) { return x.id === id; })[0]; }
+
+  // 下拉：21 条按类型分组（行为对齐 UF440 的 a4-modal-select）
+  function fillSelect() {
+    var html = "";
+    ["adj", "opp", "epll"].forEach(function (s) {
+      html += '<optgroup label="' + SUB_GROUP[s] + '">';
+      PLL.forEach(function (c) {
+        if (c.sub === s) html += '<option value="' + c.id + '">' + c.id + '</option>';
+      });
+      html += '</optgroup>';
+    });
+    mSelect.innerHTML = html;
+  }
+
+  // 按当前公式 + 旋转角度渲染弹层（预览图 + 带 AUF 前缀的公式 + 统计）
+  function applyView() {
+    var c = byId(activeId);
+    if (!c) return;
+    var pre = aufPrefix(rot);
+    mTitle.innerHTML = c.id + ' <span class="badge badge--brand">' + c.subName + '</span>' +
+      (pre ? ' <span class="badge badge--amber pll-modal__auf">AUF ' + pre.trim() + '</span>' : '');
+    var svg = netSvgRot(c, rot);
+    mNet.innerHTML = svg ? svg.outerHTML : "";
+    mAlgs.innerHTML = c.algs.map(function (a) {
+      var shown = pre + a;
+      return '<div class="pll-alg"><code data-alg="' + shown.replace(/"/g, "&quot;") + '">' + shown + '</code><button class="cpy" data-copy="' + shown.replace(/"/g, "&quot;") + '">复制</button></div>';
+    }).join("");
+    mCount.textContent = counts[activeId] || 0;
+    fillStats();
+    rotLabel.textContent = (rot * 90) + "°";
+  }
+
+  // 加载一条公式（对齐 UF440 loadCode：重置计时 + 回到标准朝向）
+  function loadCode(id) {
+    var c = byId(id);
     if (!c) return;
     activeId = id;
-    mTitle.innerHTML = c.id + ' <span class="badge badge--brand">' + c.subName + '</span>';
-    var svg = netSvg(c);
-    mNet.innerHTML = svg ? svg.outerHTML : "";
-    mAlgs.innerHTML = c.algs.map(function (a, i) {
-      return '<div class="pll-alg"><code data-alg="' + a.replace(/"/g, "&quot;") + '">' + a + '</code><button class="cpy" data-copy="' + a.replace(/"/g, "&quot;") + '">复制</button></div>';
-    }).join("");
-    mCount.textContent = counts[id] || 0;
-    fillStats();
+    mSelect.value = id;
+    rot = 0;
+    applyView();
     resetTimer();
+  }
+  // 上一条 / 下一条（按名称序 Aa→Z，对齐 UF440 step）
+  function step(delta) {
+    if (!activeId) return;
+    var i = -1;
+    for (var k = 0; k < PLL.length; k++) if (PLL[k].id === activeId) { i = k; break; }
+    if (i < 0) return;
+    var j = Math.max(0, Math.min(PLL.length - 1, i + delta));
+    loadCode(PLL[j].id);
+  }
+
+  function openModal(id) {
+    if (!byId(id)) return;
     modal.hidden = false;
+    loadCode(id);
   }
   function fillStats() {
     if (!activeId) return;
@@ -562,6 +698,14 @@
   });
   timerBtn.addEventListener("click", toggleTimerMouse);
   timerEl.addEventListener("click", toggleTimerMouse);
+  // 浮动框导航（移植自 UF440）：上一条 / 下一条 / 下拉选公式
+  fillSelect();
+  mPrev.addEventListener("click", function () { step(-1); });
+  mNext.addEventListener("click", function () { step(1); });
+  mSelect.addEventListener("change", function () { loadCode(mSelect.value); });
+  // 预览方向：左转 / 右转 90°
+  rotCw.addEventListener("click", function () { rot = (rot + 1) % 4; applyView(); });
+  rotCcw.addEventListener("click", function () { rot = (rot + 3) % 4; applyView(); });
   swapBtn.addEventListener("click", function () {
     if (!activeId) return;
     var cur = swaps[activeId] ? swaps[activeId].alg : "";
@@ -578,10 +722,15 @@
     if (modal.hidden) return;
     if (e.key === "Escape") { closeModal(); e.preventDefault(); return; }
     var isSpace = (e.code === "Space") || (e.key === " ") || (e.key === "Spacebar");
-    if (isSpace && !e.repeat) {
-      if (e.target && e.target.tagName === "BUTTON") return;  // 焦点在按钮上交给按钮自身原生点击，避免双触发
-      keydownHold(); e.preventDefault();
-    }
+    // 空格始终归计时器（keydown 里 preventDefault 会抑制聚焦按钮的空格激活，避免双触发；与 UF440 一致）
+    if (isSpace && !e.repeat) { keydownHold(); e.preventDefault(); return; }
+    // ←/→ 切换公式：表单聚焦（含下拉已展开）或计时进行中不抢，行为对齐 UF440
+    var t = e.target;
+    var inForm = t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+    if (inForm) return;
+    if (tState === "running" || tState === "prep" || tState === "green") return;
+    if (e.key === "ArrowLeft") { step(-1); e.preventDefault(); }
+    else if (e.key === "ArrowRight") { step(1); e.preventDefault(); }
   });
   document.addEventListener("keyup", function (e) {
     if (modal.hidden) return;
