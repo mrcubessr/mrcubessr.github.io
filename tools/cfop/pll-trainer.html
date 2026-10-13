@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLL 公式训练 · 21 条 · 魔方先生SSR训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/cfop/css/cfop.css">
+<style>
+  /* ===== 看板：横屏铺满，21 张大卡片（仿 UF440 形式，卡片更大、带预览图）===== */
+  .pll-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; }
+  .pll-board {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 12px; margin: 10px auto 18px; width: 100%; box-sizing: border-box;
+  }
+  .pll-card {
+    position: relative;
+    flex: 0 0 var(--pll-w, 160px);
+    width: var(--pll-w, 160px);
+    height: var(--pll-h, 210px);
+    border-radius: 12px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.14));
+    background: var(--surface-2, #1A2130);
+    color: var(--fg, #EEF2F8);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 8px 10px;
+    box-sizing: border-box; cursor: pointer; text-align: center;
+    transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    overflow: hidden;
+  }
+  .pll-card:hover, .pll-card:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: var(--sh-md, 0 8px 22px rgba(0,0,0,.4));
+    border-color: var(--brand, #5B8DEF);
+    outline: none;
+  }
+  /* 末行拉伸铺满（剩最后一行且不足整行时） */
+  .pll-card.is-tail { flex-basis: var(--pll-tail, var(--pll-w, 160px)); width: var(--pll-tail, var(--pll-w, 160px)); }
+
+  .pll-card__net {
+    width: 78%; max-width: 130px; aspect-ratio: 1 / 1; margin-top: 2%;
+    display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .pll-card__net .cfop-net { width: 100%; height: 100%; }
+  .pll-card__name {
+    font-size: calc(var(--pll, 160px) * 0.18); line-height: 1; font-weight: 800;
+    margin-top: 6px; letter-spacing: .5px;
+  }
+  .pll-card__sub {
+    font-size: calc(var(--pll, 160px) * 0.085); color: var(--fg-3, #7C8798);
+    margin-top: 3px; font-weight: 600;
+  }
+  .pll-card__alg {
+    font-family: var(--font-mono, "SF Mono", Consolas, monospace);
+    font-size: calc(var(--pll, 160px) * 0.082); color: var(--fg-2, #AEB8CA);
+    margin-top: 4px; line-height: 1.25; max-width: 96%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pll-card__count {
+    position: absolute; top: 7px; right: 8px;
+    font-size: calc(var(--pll, 160px) * 0.085); font-weight: 700;
+    color: var(--fg-3, #7C8798);
+  }
+  /* 换过公式：金边 + 右下角「换」徽标（与 440 一致） */
+  .pll-card.is-swapped {
+    border-color: var(--gold, #f5c518); border-width: 2px;
+    box-shadow: inset 0 0 0 1px rgba(245,197,24,.55), 0 0 10px rgba(245,197,24,.3);
+  }
+  .pll-card .c-swap {
+    position: absolute; right: 6px; bottom: 6px;
+    font-size: calc(var(--pll, 160px) * 0.085); line-height: 1.3; font-weight: 800;
+    color: #1a1400; background: var(--gold, #f5c518);
+    border-radius: 4px; padding: 0 4px;
+  }
+
+  /* ===== 顶部：标题 / KPI / 控件 ===== */
+  .pll-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 6px 0 2px; }
+  .pll-head h1 { font-size: 20px; margin: 0; }
+  .pll-head .sub { color: var(--fg-3, #7C8798); font-size: 13px; }
+  .pll-kpis { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+  .pll-kpi {
+    flex: 1 1 140px; border: 1px solid var(--line, rgba(255,255,255,.08));
+    border-radius: 12px; padding: 10px 14px;
+    background: var(--surface, #141826); color: var(--fg, #EEF2F8);
+  }
+  .pll-kpi .k-label { color: var(--fg-2, #AEB8CA); font-size: 12px; }
+  .pll-kpi .k-value { font-size: 22px; font-weight: 700; }
+  .pll-controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 10px 0 4px; }
+  .pll-controls label { color: var(--fg-2, #AEB8CA); font-size: 13px; margin-right: 6px; font-weight: 500; }
+  .pll-controls select {
+    padding: 6px 10px; border-radius: 8px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+
+  /* ===== 练习弹层 ===== */
+  .pll-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+  .pll-modal[hidden] { display: none; }
+  .pll-modal__backdrop { position: absolute; inset: 0; background: rgba(4,7,14,.72); backdrop-filter: blur(2px); }
+  .pll-modal__panel {
+    position: relative; width: min(560px, 92vw); max-height: 92vh; overflow: auto;
+    background: var(--surface, #141826); border: 1px solid var(--line-2, rgba(255,255,255,.16));
+    border-radius: 16px; padding: 18px 20px 20px; color: var(--fg, #EEF2F8);
+    box-shadow: var(--sh-lg, 0 20px 60px rgba(0,0,0,.5));
+  }
+  .pll-modal__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pll-modal__title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+  .pll-modal__close { background: transparent; border: 1px solid var(--line-2, rgba(255,255,255,.18)); color: var(--fg-2); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 18px; }
+  .pll-modal__body { display: flex; gap: 18px; margin-top: 14px; align-items: flex-start; flex-wrap: wrap; }
+  .pll-modal__net { flex: 1 1 200px; display: flex; align-items: center; justify-content: center; }
+  .pll-modal__net .cfop-net { width: 200px; height: 200px; }
+  .pll-modal__algs { flex: 1 1 240px; min-width: 220px; }
+  .pll-modal__algs h4 { margin: 0 0 8px; font-size: 14px; color: var(--fg-2); }
+  .pll-alg { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 8px; margin-bottom: 7px; font-family: var(--font-mono, Consolas, monospace); font-size: 13px; }
+  .pll-alg code { flex: 1; cursor: pointer; word-break: break-all; }
+  .pll-alg .cpy { font-size: 11px; color: var(--brand, #5B8DEF); cursor: pointer; border: none; background: none; }
+  .pll-modal__timer { margin-top: 16px; text-align: center; }
+  .pll-timer-display {
+    width: 100%; box-sizing: border-box;
+    font-family: var(--font-mono, monospace);
+    font-size: 64px; font-weight: 900; line-height: 1;
+    padding: 20px 0; border-radius: 12px;
+    background: #1e293b; color: #f8fafc;
+    cursor: pointer; user-select: none; letter-spacing: 2px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    transition: background 150ms ease, color 150ms ease;
+    border: 1px solid var(--line-2, rgba(255,255,255,.18));
+    font-variant-numeric: tabular-nums;
+  }
+  .pll-timer-display[data-state="prep"] {
+    background: linear-gradient(135deg,#dc2626 0%,#991b1b 100%); color:#fff;
+    border-color:#991b1b; animation: pll-prep-pulse 1s ease-in-out infinite;
+  }
+  .pll-timer-display[data-state="green"] {
+    background: linear-gradient(135deg,#16a34a 0%,#15803d 100%); color:#fff; border-color:#15803d;
+  }
+  .pll-timer-display[data-state="running"] {
+    background: linear-gradient(135deg,#f59e0b 0%,#ea580c 100%); color:#fff; border-color:#ea580c;
+  }
+  .pll-timer-display[data-state="done"] {
+    background: linear-gradient(135deg,#16a34a 0%,#15803d 100%); color:#fff; border-color:#15803d;
+  }
+  @keyframes pll-prep-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.55); }
+    50%     { box-shadow: 0 0 0 12px rgba(220,38,38,0); }
+  }
+  .pll-timer-hint { color: var(--fg-3); font-size: 12px; margin-top: 6px; }
+  .pll-modal__foot { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .pll-empty { text-align: center; color: var(--fg-3); padding: 40px 0; }
+  @media (max-width: 640px) {
+    .pll-modal__net .cfop-net { width: 150px; height: 150px; }
+    .pll-timer-display { font-size: 52px; padding: 16px 0; }
+  }
+</style>
+</head>
+<body data-nav="3x3">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="container home">
+  <div class="pll-head">
+    <h1>PLL 公式训练</h1>
+    <span class="sub">21 条顶层归位公式 · 大图预览 + 计时 + 进度</span>
+    <span style="flex:1"></span>
+    <a class="btn btn--sm btn--ghost" href="/tools/3x3/">← 三阶</a>
+  </div>
+
+  <div class="pll-kpis" id="pll-kpis"></div>
+
+  <div class="pll-controls">
+    <div>
+      <label for="pll-sort">排序</label>
+      <select id="pll-sort">
+        <option value="name">按名称（Aa→Z）</option>
+        <option value="practice">按练习次数（多优先）</option>
+        <option value="subgroup">按类型分组</option>
+      </select>
+    </div>
+    <div>
+      <label for="pll-filter">筛选</label>
+      <select id="pll-filter">
+        <option value="all">全部 21 条</option>
+        <option value="adj">邻换型 (Adj Swap)</option>
+        <option value="opp">对换型 (Opp Swap)</option>
+        <option value="epll">棱换型 (EPLL)</option>
+        <option value="swapped">只看换过公式</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="pll-wrap">
+    <div class="pll-board" id="pll-board"></div>
+  </div>
+</main>
+
+<!-- 练习弹层 -->
+<div class="pll-modal" id="pll-modal" hidden>
+  <div class="pll-modal__backdrop" data-close></div>
+  <div class="pll-modal__panel">
+    <div class="pll-modal__top">
+      <div class="pll-modal__title" id="pll-m-title"></div>
+      <button class="pll-modal__close" data-close aria-label="关闭">✕</button>
+    </div>
+    <div class="pll-modal__body">
+      <div class="pll-modal__net" id="pll-m-net"></div>
+      <div class="pll-modal__algs">
+        <h4>公式（点击复制）</h4>
+        <div id="pll-m-algs"></div>
+      </div>
+    </div>
+    <div class="pll-modal__timer">
+      <div class="pll-timer-display" id="pll-timer" data-state="idle">0.000</div>
+      <div class="pll-timer-hint">按住 <b>空格</b> 0.5s 变绿后松开开始 · 再按空格停止 · 已练 <span id="pll-m-count">0</span> 次</div>
+    </div>
+    <div class="pll-modal__foot">
+      <button class="btn btn--primary" id="pll-timer-btn">按住空格开始计时</button>
+      <button class="btn btn--ghost" id="pll-swap-btn">标记换公式</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">PLL 公式数据本地化自 speedcubedb.com · 仅供学习训练使用</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="/tools/cfop/js/cube-art.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ============ 1) 内联 21 条 PLL 数据（来源 pll.json，单一训练页自包含） ============ */
+  var PLL = [
+    { id:"Aa", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"obobbbbbb","data-uf":"ggbgggggg","data-ul":"brrrrrrrr","data-ur":"rogoooooo"}, algs:["x R' U R' D2 R U' R' D2 R2 x'","y' x L2 D2 L' U' L D2 L' U L'","l' U R' D2 R U' R' D2 R2 x'","y x' R2 D2 R' U' R D2 R' U R' x"] },
+    { id:"Ab", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"rbgbbbbbb","data-uf":"ggogggggg","data-ul":"orrrrrrrr","data-ur":"boboooooo"}, algs:["x R2 D2 R U R' D2 R U' R x'","y' x L U' L D2 L' U L D2 L2","y x' R U' R D2 R' U R D2 R2 x","R' B' R U' R D R' U R D' R2 B R"] },
+    { id:"E",  sub:"opp", subName:"对换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bogoooooo","data-uf":"grbrrrrrr","data-ul":"obrbbbbbb","data-ur":"rgogggggg"}, algs:["y x' R U' R' D R U R' D' R U R' D R U' R' D' x","y R' U' R' D' R U' R' D R U R' D' R U R' D R2","R2 U F' R' U R U' R' U R U' R' U R U' F U' R2","y x' L' U L D' L' U' L D L' U' L D' L' U L D"] },
+    { id:"F",  sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bogoooooo","data-uf":"rrrrrrrrr","data-ul":"ogbbbbbbb","data-ur":"gbogggggg"}, algs:["y R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R","y R' F R f' R' F R2 U R' U' R' F' R2 U R' S","R' U R U' R2 F' U' F U R F R' F' R2","y R2 F R F' R' U' F' U F R2 U R' U' R"] },
+    { id:"Ga", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"ogbbbbbbb","data-uf":"googggggg","data-ul":"rbrrrrrrr","data-ur":"brgoooooo"}, algs:["R2 U R' U R' U' R U' R2 D U' R' U R D'","R2 u R' U R' U' R u' R2 F' U F","y R U R' F' R U R' U' R' F R U' R' F R2 U' R' U' R U R' F'","D' R2 U R' U R' U' R U' R2 U' D R' U R"] },
+    { id:"Gb", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"orbbbbbbb","data-uf":"gbogggggg","data-ul":"rorrrrrrr","data-ur":"bggoooooo"}, algs:["D R' U' R U D' R2 U R' U R U' R U' R2","R' U' R U D' R2 U R' U R U' R U' R2 D","y F' U' F R2 u R' U R U' R u' R2","R' d' F R2 u R' U R U' R u' R2"] },
+    { id:"Gc", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"oobbbbbbb","data-uf":"gbogggggg","data-ul":"rgrrrrrrr","data-ur":"brgoooooo"}, algs:["R2 U' R U' R U R' U R2 D' U R U' R' D","y2 R2 F2 R U2 R U2 R' F R U R' U' R' F R2","D R2 U' R U' R U R' U R2 D' U R U' R'","R2 u' R U' R U R' u R2 f R' f'"] },
+    { id:"Gd", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"ogbbbbbbb","data-uf":"grogggggg","data-ul":"rorrrrrrr","data-ur":"bbgoooooo"}, algs:["R U R' U' D R2 U' R U' R' U R' U R2 D'","D' R U R' U' D R2 U' R U' R' U R' U R2","R U R' y' R2 u' R U' R' U R' u R2","y R2 F' R U R U' R' F' R U2 R' U2 R' F2 R2"] },
+    { id:"H",  sub:"epll", subName:"棱换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bgbbbbbbb","data-uf":"gbggggggg","data-ul":"rorrrrrrr","data-ur":"orooooooo"}, algs:["M2 U M2 U2 M2 U M2","M2 U' M2 U2 M2 U' M2","R2 S2 R2 U' R2 S2 R2","M2 U2 M2 U M2 U2 M2"] },
+    { id:"Ja", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"ggooooooo","data-uf":"oobrrrrrr","data-ul":"bbgbbbbbb","data-ur":"rrrgggggg"}, algs:["y2 x R2 F R F' R U2 r' U r U2 x'","y R' U L' U2 R U' R' U2 R L","L' U' L F L' U' L U L F' L2 U L","R U' L' U R' U2 L U' L' U2 L"] },
+    { id:"Jb", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"goobbbbbb","data-uf":"rgggggggg","data-ul":"bbbrrrrrr","data-ur":"orroooooo"}, algs:["R U R' F' R U R' U' R' F R2 U' R'","R U2 R' U' R U2 L' U R' U' L","r' F R F' r U2 R' U R U2 R'","L' U R U' L U2 R' U R U2 R'"] },
+    { id:"Na", sub:"opp", subName:"对换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"gbbbbbbbb","data-uf":"bgggggggg","data-ul":"roorrrrrr","data-ur":"orroooooo"}, algs:["R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'","F' R U R' U' R' F R2 F U' R' U' R U F' R'","R F U' R' U R U F' R2 F' R U R U' R' F","r' D r U2 r' D r U2 r' D r U2 r' D r U2 r' D r"] },
+    { id:"Nb", sub:"opp", subName:"对换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bbgbbbbbb","data-uf":"ggbgggggg","data-ul":"oorrrrrrr","data-ur":"rrooooooo"}, algs:["R' U R U' R' F' U' F R U R' F R' F' R U' R","r' D' F r U' r' F' D r2 U r' U' r' F r F'","R' U L' U2 R U' L R' U L' U2 R U' L","R' U R U' R' F' U' F R U R' U' R U' f R f'"] },
+    { id:"Ra", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"ogroooooo","data-uf":"bobrrrrrr","data-ul":"gbobbbbbb","data-ur":"rrggggggg"}, algs:["y R U' R' U' R U R D R' U' R D' R' U2 R'","y R U R' F' R U2 R' U2 R' F R U R U2 R'","L U2 L' U2 L F' L' U' L U L F L2","y R U' R' U' R U R' U R' D' R U' R' D R2 U R'"] },
+    { id:"Rb", sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bogbbbbbb","data-uf":"rgrgggggg","data-ul":"obbrrrrrr","data-ur":"grooooooo"}, algs:["R' U2 R U2 R' F R U R' U' R' F' R2","y R2 F R U R U' R' F' R U2 R' U2 R","R' U2 R' D' R U' R' D R U R U' R' U' R","y R' U R U R' U' R' D' R U R' D R U2 R"] },
+    { id:"T",  sub:"adj", subName:"邻换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"obbbbbbbb","data-uf":"ggogggggg","data-ul":"rorrrrrrr","data-ur":"brgoooooo"}, algs:["R U R' U' R' F R2 U' R' U' R U R' F'","l b d' L' U' F U2 L' U' L' U L U' f' S M r u E U' R'","R U R' U' R' F R2 U' R' U F' L' U L","R2 u R2 u' R2 F2 u' F2 u F2"] },
+    { id:"Ua", sub:"epll", subName:"棱换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"brbbbbbbb","data-uf":"ggggggggg","data-ul":"rorrrrrrr","data-ur":"obooooooo"}, algs:["y2 M2 U M U2 M' U M2","R U R' U R' U' R2 U' R' U R' U R","y R2 U' S' U2 S U' R2","y2 R U' R U R U R U' R' U' R2"] },
+    { id:"Ub", sub:"epll", subName:"棱换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bobbbbbbb","data-uf":"ggggggggg","data-ul":"rbrrrrrrr","data-ur":"orooooooo"}, algs:["y2 M2 U' M U2 M' U' M2","R' U R' U' R' U' R' U R U R2","R2' U R U R' U' R3 U' R' U R'","y2 R2 U R U R' U' R' U' R' U R'"] },
+    { id:"V",  sub:"opp", subName:"对换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"bogbbbbbb","data-uf":"ggbgggggg","data-ul":"orrrrrrrr","data-ur":"rbooooooo"}, algs:["R' U R' U' R D' R' D R' U D' R2 U' R2 D R2","R' U R U' R' f' U' R U2 R' U' R U' R' f R","R' U R' U' y R' F' R2 U' R' U R' F R F","y R U' R U R' D R D' R U' D R2 U R2 D' R2"] },
+    { id:"Y",  sub:"opp", subName:"对换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"brgbbbbbb","data-uf":"ggbgggggg","data-ul":"obrrrrrrr","data-ur":"roooooooo"}, algs:["F R U' R' U' R U R' F' R U R' U' R' F R F'","F R' F R2 U' R' U' R U R' F' R U R' U' F'","R2 U' R2 U' R2 U F U F' R2 F U' F'","F R' F' R U R U' R2 U' R U R f' U' f"] },
+    { id:"Z",  sub:"epll", subName:"棱换型", facelets:{"data-us":"yyyyyyyyy","data-ub":"gogbbbbbb","data-uf":"brbgggggg","data-ul":"ogorrrrrr","data-ur":"rbroooooo"}, algs:["M' U' M2 U' M2 U' M' U2 M2","M2 U M2 U M' U2 M2 U2 M'","y M2 U' M2 U' M' U2 M2 U2 M'","y M' U M2 U M2 U M' U2 M2"] }
+  ];
+
+  /* ============ 2) 本地进度（练习次数 / 换公式标记） ============ */
+  var LS_COUNT = "pll_practice_counts";
+  var LS_SWAP  = "pll_swaps";
+  function loadMap(k) { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch (e) { return {}; } }
+  function saveMap(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  var counts = loadMap(LS_COUNT);
+  var swaps  = loadMap(LS_SWAP);
+
+  /* ============ 3) 渲染看板 ============ */
+  var board = document.getElementById("pll-board");
+  var sortSel = document.getElementById("pll-sort");
+  var filterSel = document.getElementById("pll-filter");
+
+  var SUB_GROUP = { adj: "邻换型 (Adj Swap)", opp: "对换型 (Opp Swap)", epll: "棱换型 (EPLL)" };
+
+  function currentList() {
+    var sort = sortSel.value, filter = filterSel.value;
+    var list = PLL.slice();
+    if (filter === "adj") list = list.filter(function (c) { return c.sub === "adj"; });
+    else if (filter === "opp") list = list.filter(function (c) { return c.sub === "opp"; });
+    else if (filter === "epll") list = list.filter(function (c) { return c.sub === "epll"; });
+    else if (filter === "swapped") list = list.filter(function (c) { return !!swaps[c.id]; });
+
+    if (sort === "practice") {
+      list.sort(function (a, b) {
+        var na = counts[a.id] || 0, nb = counts[b.id] || 0;
+        if (na !== nb) return nb - na;
+        return a.id.localeCompare(b.id);
+      });
+    } else if (sort === "subgroup") {
+      var ord = { adj: 0, opp: 1, epll: 2 };
+      list.sort(function (a, b) { return (ord[a.sub] - ord[b.sub]) || a.id.localeCompare(b.id); });
+    } else {
+      list.sort(function (a, b) { return a.id.localeCompare(b.id); });
+    }
+    return list;
+  }
+
+  function netSvg(c) {
+    try { return window.CubeArt.flatCase(c.facelets); } catch (e) { return null; }
+  }
+
+  function render() {
+    var list = currentList();
+    // KPI
+    var practiced = PLL.filter(function (c) { return (counts[c.id] || 0) > 0; }).length;
+    var swappedN = Object.keys(swaps).length;
+    document.getElementById("pll-kpis").innerHTML =
+      '<div class="pll-kpi"><div class="k-label">公式总数</div><div class="k-value">21</div></div>' +
+      '<div class="pll-kpi"><div class="k-label">已练习</div><div class="k-value">' + practiced + ' / 21</div></div>' +
+      '<div class="pll-kpi"><div class="k-label">换过公式</div><div class="k-value" style="color:#f5c518">' + swappedN + '</div></div>' +
+      '<div class="pll-kpi"><div class="k-label">累计练习次数</div><div class="k-value">' + Object.keys(counts).reduce(function (s, k) { return s + (counts[k] || 0); }, 0) + '</div></div>';
+
+    if (!list.length) {
+      board.innerHTML = '<div class="pll-empty">没有符合筛选条件的公式。</div>';
+      return;
+    }
+    board.innerHTML = list.map(function (c) {
+      var svg = netSvg(c);
+      var n = counts[c.id] || 0;
+      var swap = swaps[c.id];
+      var netHtml = svg ? svg.outerHTML : "";
+      return '<div class="pll-card' + (swap ? ' is-swapped' : '') + '" data-id="' + c.id + '" tabindex="0" role="button" title="' +
+        c.id + ' · ' + SUB_GROUP[c.sub] + (n ? ' · 已练 ' + n + ' 次' : '') + (swap ? ' · 已换公式（' + (swap.alg || '') + '）' : '') + '">' +
+        (n ? '<span class="pll-card__count">' + n + '</span>' : '') +
+        '<div class="pll-card__net">' + netHtml + '</div>' +
+        '<div class="pll-card__name">' + c.id + '</div>' +
+        '<div class="pll-card__sub">' + c.subName + '</div>' +
+        '<div class="pll-card__alg">' + c.algs[0] + '</div>' +
+        (swap ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
+        '</div>';
+    }).join("");
+
+    fitBoard();
+  }
+
+  sortSel.addEventListener("change", render);
+  filterSel.addEventListener("change", render);
+
+  /* ============ 4) 练习弹层 + 计时 ============ */
+  var modal = document.getElementById("pll-modal");
+  var mTitle = document.getElementById("pll-m-title");
+  var mNet = document.getElementById("pll-m-net");
+  var mAlgs = document.getElementById("pll-m-algs");
+  var mCount = document.getElementById("pll-m-count");
+  var timerEl = document.getElementById("pll-timer");
+  var timerBtn = document.getElementById("pll-timer-btn");
+  var swapBtn = document.getElementById("pll-swap-btn");
+  var activeId = null;
+  // 计时器状态机（标准魔方计时器 hold-to-start，与 UF440 一致）
+  var tState = "idle";   // idle | prep | green | running | done
+  var tStart = 0, tTick = 0, tPrep = 0;
+
+  function fmt(ms) {
+    if (!isFinite(ms) || ms < 0) return "0.000";
+    var total = Math.round(ms);
+    var sec = Math.floor(total / 1000);
+    var mill = total % 1000;
+    return sec + "." + String(mill).padStart(3, "0");
+  }
+
+  function openModal(id) {
+    var c = PLL.filter(function (x) { return x.id === id; })[0];
+    if (!c) return;
+    activeId = id;
+    mTitle.innerHTML = c.id + ' <span class="badge badge--brand">' + c.subName + '</span>';
+    var svg = netSvg(c);
+    mNet.innerHTML = svg ? svg.outerHTML : "";
+    mAlgs.innerHTML = c.algs.map(function (a, i) {
+      return '<div class="pll-alg"><code data-alg="' + a.replace(/"/g, "&quot;") + '">' + a + '</code><button class="cpy" data-copy="' + a.replace(/"/g, "&quot;") + '">复制</button></div>';
+    }).join("");
+    mCount.textContent = counts[id] || 0;
+    resetTimer();
+    modal.hidden = false;
+  }
+  function closeModal() {
+    modal.hidden = true;
+    resetTimer();
+    activeId = null;
+  }
+  function setTState(s) { tState = s; timerEl.dataset.state = s; }
+  function renderTimer() { if (tState === "running") timerEl.textContent = fmt(performance.now() - tStart); }
+  function startTimer() {
+    if (tState === "running") return;
+    setTState("running");
+    tStart = performance.now();
+    tTick = setInterval(renderTimer, 50);
+  }
+  function stopTimer(silent) {
+    if (tState !== "running") { if (!silent) resetTimer(); return; }
+    clearInterval(tTick);
+    var total = performance.now() - tStart;
+    counts[activeId] = (counts[activeId] || 0) + 1;
+    saveMap(LS_COUNT, counts);
+    mCount.textContent = counts[activeId];
+    setTState("done");
+    timerEl.textContent = fmt(total);
+    timerBtn.textContent = "再练一次（空格）";
+    if (!silent) { render(); toast("已记录 " + fmt(total) + "s · 累计 " + counts[activeId] + " 次"); }
+  }
+  function resetTimer() {
+    clearInterval(tTick); clearTimeout(tPrep);
+    setTState("idle");
+    timerEl.textContent = "0.000";
+    timerBtn.textContent = "按住空格开始计时";
+  }
+  // 标准魔方计时器 hold-to-start：按下空格→红「按住」；按住 500ms→绿「松开」；松开即开始；
+  // 不足 500ms 松开→取消；计时中再按空格→停止
+  function keydownHold() {
+    if (tState === "running") { stopTimer(false); return; }
+    if (tState === "prep" || tState === "green") { clearTimeout(tPrep); return; }
+    clearTimeout(tPrep);
+    setTState("prep");
+    timerEl.textContent = "按住";
+    tPrep = setTimeout(function () {
+      if (tState === "prep") { setTState("green"); timerEl.textContent = "松开"; }
+    }, 500);
+  }
+  function keyupHold() {
+    clearTimeout(tPrep);
+    if (tState === "green") { startTimer(); return; }
+    if (tState === "prep") { resetTimer(); return; }
+  }
+  function toggleTimerMouse() {
+    if (tState === "running") stopTimer(false);
+    else if (tState === "done" || tState === "idle") startTimer();
+  }
+
+  board.addEventListener("click", function (e) {
+    var card = e.target.closest && e.target.closest(".pll-card");
+    if (card) openModal(card.getAttribute("data-id"));
+  });
+  board.addEventListener("keydown", function (e) {
+    if (!modal.hidden) return;   // 弹层已打开时交给定时器处理，避免卡片焦点重复触发打开
+    if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("pll-card")) {
+      e.preventDefault(); openModal(e.target.getAttribute("data-id"));
+    }
+  });
+  modal.addEventListener("click", function (e) {
+    if (e.target.hasAttribute("data-close")) closeModal();
+    var cp = e.target.closest && e.target.closest("[data-copy]");
+    if (cp) { copyText(cp.getAttribute("data-copy")); toast("已复制"); }
+  });
+  mAlgs.addEventListener("click", function (e) {
+    var code = e.target.closest && e.target.closest("code[data-alg]");
+    if (code) { copyText(code.getAttribute("data-alg")); toast("已复制"); }
+  });
+  timerBtn.addEventListener("click", toggleTimerMouse);
+  timerEl.addEventListener("click", toggleTimerMouse);
+  swapBtn.addEventListener("click", function () {
+    if (!activeId) return;
+    var cur = swaps[activeId] ? swaps[activeId].alg : "";
+    var inp = prompt("将该公式标记为「换过」（已换成自己的习惯公式）。可填入你常用的算法：", cur);
+    if (inp === null) return;
+    if (inp.trim() === "") { delete swaps[activeId]; }
+    else { swaps[activeId] = { alg: inp.trim() }; }
+    saveMap(LS_SWAP, swaps);
+    render();
+    // 刷新弹层标题状态无需重开；重渲看板即可
+    toast(swaps[activeId] ? "已标记换公式" : "已取消换公式标记");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (modal.hidden) return;
+    if (e.key === "Escape") { closeModal(); e.preventDefault(); return; }
+    var isSpace = (e.code === "Space") || (e.key === " ") || (e.key === "Spacebar");
+    if (isSpace && !e.repeat) {
+      if (e.target && e.target.tagName === "BUTTON") return;  // 焦点在按钮上交给按钮自身原生点击，避免双触发
+      keydownHold(); e.preventDefault();
+    }
+  });
+  document.addEventListener("keyup", function (e) {
+    if (modal.hidden) return;
+    var isSpace = (e.code === "Space") || (e.key === " ") || (e.key === "Spacebar");
+    if (isSpace) { keyupHold(); e.preventDefault(); }
+  });
+
+  function copyText(t) {
+    try { navigator.clipboard.writeText(t); } catch (e) {
+      var ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (e2) {} document.body.removeChild(ta);
+    }
+  }
+  var toastTimer = 0;
+  function toast(msg) {
+    var el = document.getElementById("pll-toast");
+    if (!el) { el = document.createElement("div"); el.id = "pll-toast"; el.style.cssText = "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--surface-3,#232C3E);color:var(--fg,#EEF2F8);padding:10px 18px;border-radius:10px;z-index:2000;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:14px;border:1px solid var(--line-2,rgba(255,255,255,.18));"; document.body.appendChild(el); }
+    el.textContent = msg; el.style.opacity = "1";
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.style.opacity = "0"; el.style.transition = "opacity .4s"; }, 1600);
+  }
+
+  /* ============ 5) 横屏铺满（改编自 UF440 fitBoard，卡片更大） ============ */
+  var GAP = 12;
+  var MIN_CELL = 132;       // 大卡片下限
+  var MAX_CELL = 260;
+  var MAX_ASPECT = 1.7;     // 卡片可略高（预览图+文字）
+
+  function divisors(n) { var d = []; for (var i = 1; i <= n; i++) if (n % i === 0) d.push(i); return d; }
+
+  function fitBoard() {
+    var cells = board.children;
+    var n = cells.length;
+    if (!n) return;
+
+    var cs = getComputedStyle(board);
+    var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    var availW = board.clientWidth ? (board.clientWidth - padX - 2)
+                                   : (document.documentElement.clientWidth - 240 - 32);
+    availW = Math.max(240, availW);
+
+    var rect = board.getBoundingClientRect();
+    var topSpace = Math.max(0, rect.top);
+    var footEl = document.querySelector("footer.site-footer");
+    var footH = 0, footMT = 0;
+    if (footEl) { footH = Math.ceil(footEl.getBoundingClientRect().height); footMT = parseFloat(getComputedStyle(footEl).marginTop) || 0; }
+    var boardMB = parseFloat(cs.marginBottom) || 0;
+    var bodyPB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    var tailH = boardMB + footMT + footH + bodyPB;
+    var availH = Math.max(220, window.innerHeight - topSpace - Math.ceil(tailH) - 2);
+
+    var isNarrow = window.innerWidth < 640;
+    var minCell = isNarrow ? 104 : MIN_CELL;
+    var maxCell = isNarrow ? 150 : MAX_CELL;
+
+    var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minCell + GAP))));
+
+    function planFor(cols) {
+      var rows = Math.ceil(n / cols);
+      var rem = n - cols * (rows - 1);
+      var cellW = (availW - (cols - 1) * GAP) / cols;
+      var cellH = (availH - (rows - 1) * GAP) / rows;
+      var lo = Math.min(cellW, cellH), hi = Math.max(cellW, cellH);
+      var tailRatio = rem === 0 ? 1 : ((availW - (rem - 1) * GAP) / rem) / cellW;
+      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellH, cell: lo, aspect: hi / lo, tailRatio: tailRatio, fitsH: true };
+    }
+    function widthPlanFor(cols) {
+      var rows = Math.ceil(n / cols);
+      var rem = n - cols * (rows - 1);
+      var cellW = (availW - (cols - 1) * GAP) / cols;
+      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellW, cell: cellW, aspect: 1, tailRatio: rem === 0 ? 1 : cols / rem, fitsH: false };
+    }
+
+    var best = null;
+    for (var c = 1; c <= maxColsByW; c++) {
+      var p = planFor(c);
+      if (p.cell < minCell || p.cell > maxCell) continue;
+      if (p.aspect > MAX_ASPECT) continue;
+      if (p.tailRatio > 3) continue;
+      if (!best || p.cell > best.cell * 1.02) { best = p; continue; }
+      if (p.cell >= best.cell * 0.98) {
+        var better;
+        if ((p.rem === 0) !== (best.rem === 0)) better = (p.rem === 0);
+        else if (Math.abs(p.tailRatio - best.tailRatio) > 0.03) better = p.tailRatio < best.tailRatio;
+        else if (Math.abs(p.aspect - best.aspect) > 0.02) better = p.aspect < best.aspect;
+        else better = p.cell > best.cell;
+        if (better) best = p;
+      }
+    }
+    if (!best) {
+      var divs = divisors(n);
+      for (var i = 0; i < divs.length; i++) {
+        if (divs[i] > maxColsByW) break;
+        var w1 = widthPlanFor(divs[i]);
+        if (w1.cell < minCell || w1.cell > maxCell) continue;
+        if (!best || w1.cols > best.cols) best = w1;
+      }
+    }
+    if (!best) {
+      for (var c2 = maxColsByW; c2 >= 1; c2--) {
+        var w2 = widthPlanFor(c2);
+        if (w2.cell < minCell || w2.cell > maxCell) continue;
+        best = w2; break;
+      }
+    }
+    if (!best) {
+      var p3 = widthPlanFor(maxColsByW);
+      var cc = Math.max(minCell, Math.min(p3.cellW, maxCell));
+      best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cellW: cc, cellH: cc, cell: cc, aspect: 1, tailRatio: 1, fitsH: false };
+    }
+
+    var tailW = 0;
+    if (best.rem > 0 && best.rem < best.cols) {
+      var t = (availW - (best.rem - 1) * GAP) / best.rem;
+      if (t <= best.cellW * 3) tailW = t;
+    }
+
+    board.style.setProperty("--pll-w", best.cellW.toFixed(2) + "px");
+    board.style.setProperty("--pll-h", best.cellH.toFixed(2) + "px");
+    board.style.setProperty("--pll", best.cell.toFixed(2) + "px");
+    if (tailW > 0) board.style.setProperty("--pll-tail", tailW.toFixed(2) + "px");
+    else board.style.removeProperty("--pll-tail");
+    for (var k = 0; k < n; k++) {
+      var el = cells[k];
+      if (!el || !el.classList) continue;
+      if (tailW > 0 && k >= n - best.rem) el.classList.add("is-tail");
+      else el.classList.remove("is-tail");
+    }
+
+    document.documentElement.style.overflowY = best.fitsH ? "hidden" : "";
+    document.body.style.overflowY = best.fitsH ? "hidden" : "";
+    document.documentElement.style.overflowX = "hidden";
+  }
+
+  function scheduleFit() {
+    if (window.__pllRaf) cancelAnimationFrame(window.__pllRaf);
+    window.__pllRaf = requestAnimationFrame(fitBoard);
+  }
+  window.addEventListener("resize", scheduleFit);
+  window.addEventListener("orientationchange", scheduleFit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBoard);
+  if (typeof ResizeObserver !== "undefined") {
+    var roTimer = 0;
+    var ro = new ResizeObserver(function () { clearTimeout(roTimer); roTimer = setTimeout(fitBoard, 60); });
+    ro.observe(document.documentElement);
+    if (board.parentNode) ro.observe(board.parentNode);
+  }
+  setTimeout(fitBoard, 0);
+
+  render();
+})();
+</script>
+</body>
+</html>
