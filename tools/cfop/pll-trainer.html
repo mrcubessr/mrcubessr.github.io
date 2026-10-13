@@ -32,7 +32,7 @@
     display: flex; flex-direction: column; align-items: center;
     padding: 8px 8px 10px;
     box-sizing: border-box; cursor: pointer; text-align: center;
-    transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 220ms ease, color 220ms ease;
     overflow: hidden;
   }
   .pll-card:hover, .pll-card:focus-visible {
@@ -45,22 +45,24 @@
   .pll-card.is-tail { flex-basis: var(--pll-tail, var(--pll-w, 160px)); width: var(--pll-tail, var(--pll-w, 160px)); }
 
   .pll-card__net {
-    width: 78%; max-width: 130px; aspect-ratio: 1 / 1; margin-top: 2%;
-    display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+    flex: 1 1 auto; min-height: 0; width: 100%; margin: 4px 0 2px;
+    display: flex; align-items: center; justify-content: center;
   }
-  .pll-card__net .cfop-net { width: 100%; height: 100%; }
+  .pll-card__net .cfop-net { width: 100%; height: 100%; max-width: 100%; max-height: 100%; }
   .pll-card__name {
+    flex: 0 0 auto;
     font-size: calc(var(--pll, 160px) * 0.18); line-height: 1; font-weight: 800;
-    margin-top: 6px; letter-spacing: .5px;
+    margin-top: 4px; letter-spacing: .5px;
   }
   .pll-card__sub {
     font-size: calc(var(--pll, 160px) * 0.085); color: var(--fg-3, #7C8798);
     margin-top: 3px; font-weight: 600;
   }
   .pll-card__alg {
+    flex: 0 0 auto;
     font-family: var(--font-mono, "SF Mono", Consolas, monospace);
     font-size: calc(var(--pll, 160px) * 0.082); color: var(--fg-2, #AEB8CA);
-    margin-top: 4px; line-height: 1.25; max-width: 96%;
+    margin-top: 3px; line-height: 1.25; max-width: 96%;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pll-card__count {
@@ -79,6 +81,16 @@
     color: #1a1400; background: var(--gold, #f5c518);
     border-radius: 4px; padding: 0 4px;
   }
+  /* 已练卡片：按成绩快慢着色的成绩徽标（与 440 一致） */
+  .pll-card__best {
+    flex: 0 0 auto;
+    margin-top: 5px; font-size: calc(var(--pll, 160px) * 0.095); font-weight: 800;
+    font-variant-numeric: tabular-nums; letter-spacing: .2px;
+    padding: 1px 9px; border-radius: 999px; background: rgba(0,0,0,.24);
+  }
+  .pll-card.has-data .pll-card__sub { color: inherit; opacity: .82; }
+  .pll-card.has-data .pll-card__alg { color: inherit; opacity: .92; }
+  .pll-card.has-data .pll-card__count { color: inherit; opacity: .82; }
 
   /* ===== 顶部：标题 / KPI / 控件 ===== */
   .pll-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 6px 0 2px; }
@@ -153,6 +165,12 @@
     50%     { box-shadow: 0 0 0 12px rgba(220,38,38,0); }
   }
   .pll-timer-hint { color: var(--fg-3); font-size: 12px; margin-top: 6px; }
+  .pll-modal__stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  .pll-stat { background: var(--surface-2, #1A2130); border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 10px; padding: 6px 14px; text-align: center; min-width: 66px; }
+  .pll-stat .l { font-size: 11px; color: var(--fg-3); }
+  .pll-stat .v { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .pll-stat-hist { flex-basis: 100%; text-align: center; font-size: 12px; color: var(--fg-3); margin-top: 4px; }
+  .pll-stat-hist span { display: inline-block; margin: 0 3px; font-variant-numeric: tabular-nums; }
   .pll-modal__foot { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
   .pll-empty { text-align: center; color: var(--fg-3); padding: 40px 0; }
   @media (max-width: 640px) {
@@ -169,7 +187,7 @@
 <main class="container home">
   <div class="pll-head">
     <h1>PLL 公式训练</h1>
-    <span class="sub">21 条顶层归位公式 · 大图预览 + 计时 + 进度</span>
+    <span class="sub">21 条顶层归位公式 · 大图预览 + 计时 · 卡片颜色越红越慢、越绿越快</span>
     <span style="flex:1"></span>
     <a class="btn btn--sm btn--ghost" href="/tools/3x3/">← 三阶</a>
   </div>
@@ -182,6 +200,7 @@
       <select id="pll-sort">
         <option value="name">按名称（Aa→Z）</option>
         <option value="practice">按练习次数（多优先）</option>
+        <option value="best">按最快成绩（快优先）</option>
         <option value="subgroup">按类型分组</option>
       </select>
     </div>
@@ -217,6 +236,7 @@
         <div id="pll-m-algs"></div>
       </div>
     </div>
+    <div class="pll-modal__stats" id="pll-m-stats"></div>
     <div class="pll-modal__timer">
       <div class="pll-timer-display" id="pll-timer" data-state="idle">0.000</div>
       <div class="pll-timer-hint">按住 <b>空格</b> 0.5s 变绿后松开开始 · 再按空格停止 · 已练 <span id="pll-m-count">0</span> 次</div>
@@ -267,10 +287,60 @@
   /* ============ 2) 本地进度（练习次数 / 换公式标记） ============ */
   var LS_COUNT = "pll_practice_counts";
   var LS_SWAP  = "pll_swaps";
+  var LS_TIMES = "pll_times";   // { id: [秒, 秒, ...] }  每次练习记一条单次成绩
   function loadMap(k) { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch (e) { return {}; } }
   function saveMap(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   var counts = loadMap(LS_COUNT);
   var swaps  = loadMap(LS_SWAP);
+  var times  = loadMap(LS_TIMES);
+
+  // 单公式成绩统计：n=练的次数，best=最快单次，last=最近一次
+  function statsOf(id) {
+    var arr = times[id] || [];
+    if (!arr.length) return { n: 0, best: NaN, last: NaN };
+    var best = arr[0];
+    for (var i = 1; i < arr.length; i++) if (arr[i] < best) best = arr[i];
+    return { n: arr.length, best: best, last: arr[arr.length - 1] };
+  }
+
+  // 与 UF440 一致的多段配色：r 越小=越快=越绿，r 越大=越慢=越红
+  function colorByRatio(r, range) {
+    if (!isFinite(r)) return null;
+    var lo = (range && isFinite(range.lo)) ? range.lo : 0.55;
+    var hi = (range && isFinite(range.hi)) ? range.hi : 1.45;
+    var t = Math.max(0, Math.min(1, (r - lo) / (hi - lo)));
+    var stops = [
+      { at: 0.00, c: [22, 163, 74] },   // 深绿
+      { at: 0.25, c: [74, 222, 128] },  // 亮绿
+      { at: 0.40, c: [132, 204, 22] },  // 黄绿
+      { at: 0.55, c: [250, 204, 21] },  // 黄
+      { at: 0.70, c: [251, 146, 60] },  // 橙
+      { at: 0.85, c: [220, 38, 38] },   // 红
+      { at: 1.00, c: [127, 29, 29] }    // 深红
+    ];
+    var i = 0;
+    while (i < stops.length - 1 && t > stops[i + 1].at) i++;
+    var s0 = stops[i], s1 = stops[Math.min(i + 1, stops.length - 1)];
+    var local = s1.at === s0.at ? 0 : (t - s0.at) / (s1.at - s0.at);
+    var rgbv = [0, 1, 2].map(function (k) { return Math.round(s0.c[k] + (s1.c[k] - s0.c[k]) * local); });
+    var bg = 'rgb(' + rgbv.join(',') + ')';
+    var lum = (0.299 * rgbv[0] + 0.587 * rgbv[1] + 0.114 * rgbv[2]) / 255;
+    var fg = lum > 0.62 ? '#1f2937' : '#ffffff';
+    var tier = r <= 0.85 ? 't-great' : r <= 1.00 ? 't-good' : r <= 1.15 ? 't-warn' : 't-bad';
+    return { bg: bg, fg: fg, tier: tier, r: r };
+  }
+
+  // 自适应基准：bench=已练公式 best 的中位数；range 取 r 的 5%/95% 分位，让色彩铺满整条色带
+  function colorPlan() {
+    var bests = PLL.map(function (c) { return statsOf(c.id).best; }).filter(isFinite).sort(function (a, b) { return a - b; });
+    if (!bests.length) return { bench: NaN, range: { lo: 0.55, hi: 1.45 } };
+    var bench = bests[Math.floor(bests.length / 2)] || bests[0];
+    var rs = bests.map(function (b) { return b / bench; }).sort(function (a, b) { return a - b; });
+    var lo = rs[Math.max(0, Math.floor(rs.length * 0.05))];
+    var hi = rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))];
+    if (!(hi > lo)) hi = lo * 1.6 + 0.05;
+    return { bench: bench, range: { lo: lo, hi: hi } };
+  }
 
   /* ============ 3) 渲染看板 ============ */
   var board = document.getElementById("pll-board");
@@ -296,6 +366,14 @@
     } else if (sort === "subgroup") {
       var ord = { adj: 0, opp: 1, epll: 2 };
       list.sort(function (a, b) { return (ord[a.sub] - ord[b.sub]) || a.id.localeCompare(b.id); });
+    } else if (sort === "best") {
+      list.sort(function (a, b) {
+        var ba = statsOf(a.id).best, bb = statsOf(b.id).best;
+        var fa = isFinite(ba), fb = isFinite(bb);
+        if (fa && fb) return ba - bb;          // 都练过：快（小）的排前
+        if (fa !== fb) return fa ? -1 : 1;      // 练过的排未练前面
+        return a.id.localeCompare(b.id);
+      });
     } else {
       list.sort(function (a, b) { return a.id.localeCompare(b.id); });
     }
@@ -321,18 +399,31 @@
       board.innerHTML = '<div class="pll-empty">没有符合筛选条件的公式。</div>';
       return;
     }
+    var plan = colorPlan();
     board.innerHTML = list.map(function (c) {
       var svg = netSvg(c);
       var n = counts[c.id] || 0;
       var swap = swaps[c.id];
+      var st = statsOf(c.id);
       var netHtml = svg ? svg.outerHTML : "";
-      return '<div class="pll-card' + (swap ? ' is-swapped' : '') + '" data-id="' + c.id + '" tabindex="0" role="button" title="' +
-        c.id + ' · ' + SUB_GROUP[c.sub] + (n ? ' · 已练 ' + n + ' 次' : '') + (swap ? ' · 已换公式（' + (swap.alg || '') + '）' : '') + '">' +
+      var styleAttr = "", klass = "", bestHtml = "", title = c.id + ' · ' + SUB_GROUP[c.sub];
+      if (isFinite(st.best)) {
+        var r = st.best / plan.bench;
+        var col = colorByRatio(r, plan.range);
+        styleAttr = ' style="background:' + col.bg + ';color:' + col.fg + '"';
+        klass = ' has-data ' + col.tier;
+        bestHtml = '<div class="pll-card__best">' + fmt(st.best) + 's</div>';
+        title += ' · 最好 ' + fmt(st.best) + 's · 已练 ' + n + ' 次' + (isFinite(r) ? ' · r=' + r.toFixed(2) + '×' : '');
+      } else {
+        title += (n ? ' · 已练 ' + n + ' 次' : ' · 未练习');
+      }
+      if (swap) title += ' · 已换公式（' + (swap.alg || '') + '）';
+      return '<div class="pll-card' + (swap ? ' is-swapped' : '') + klass + '" data-id="' + c.id + '" tabindex="0" role="button" title="' + title + '"' + styleAttr + '>' +
         (n ? '<span class="pll-card__count">' + n + '</span>' : '') +
         '<div class="pll-card__net">' + netHtml + '</div>' +
         '<div class="pll-card__name">' + c.id + '</div>' +
-        '<div class="pll-card__sub">' + c.subName + '</div>' +
         '<div class="pll-card__alg">' + c.algs[0] + '</div>' +
+        bestHtml +
         (swap ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
         '</div>';
     }).join("");
@@ -349,6 +440,7 @@
   var mNet = document.getElementById("pll-m-net");
   var mAlgs = document.getElementById("pll-m-algs");
   var mCount = document.getElementById("pll-m-count");
+  var mStats = document.getElementById("pll-m-stats");
   var timerEl = document.getElementById("pll-timer");
   var timerBtn = document.getElementById("pll-timer-btn");
   var swapBtn = document.getElementById("pll-swap-btn");
@@ -376,8 +468,21 @@
       return '<div class="pll-alg"><code data-alg="' + a.replace(/"/g, "&quot;") + '">' + a + '</code><button class="cpy" data-copy="' + a.replace(/"/g, "&quot;") + '">复制</button></div>';
     }).join("");
     mCount.textContent = counts[id] || 0;
+    fillStats();
     resetTimer();
     modal.hidden = false;
+  }
+  function fillStats() {
+    if (!activeId) return;
+    var st = statsOf(activeId);
+    var html = '<div class="pll-stat"><div class="l">已练</div><div class="v">' + st.n + '</div></div>' +
+      '<div class="pll-stat"><div class="l">最好</div><div class="v">' + (isFinite(st.best) ? fmt(st.best) + 's' : '—') + '</div></div>' +
+      '<div class="pll-stat"><div class="l">最近</div><div class="v">' + (isFinite(st.last) ? fmt(st.last) + 's' : '—') + '</div></div>';
+    if (st.n > 1) {
+      var recent = times[activeId].slice(-6).reverse();
+      html += '<div class="pll-stat-hist">最近成绩：' + recent.map(function (t) { return fmt(t) + 's'; }).join(' · ') + '</div>';
+    }
+    mStats.innerHTML = html;
   }
   function closeModal() {
     modal.hidden = true;
@@ -395,14 +500,18 @@
   function stopTimer(silent) {
     if (tState !== "running") { if (!silent) resetTimer(); return; }
     clearInterval(tTick);
-    var total = performance.now() - tStart;
+    var total = performance.now() - tStart;          // 单次成绩（秒，毫秒精度）
     counts[activeId] = (counts[activeId] || 0) + 1;
+    times[activeId] = times[activeId] || [];
+    times[activeId].push(total);
     saveMap(LS_COUNT, counts);
+    saveMap(LS_TIMES, times);
     mCount.textContent = counts[activeId];
+    fillStats();
     setTState("done");
     timerEl.textContent = fmt(total);
     timerBtn.textContent = "再练一次（空格）";
-    if (!silent) { render(); toast("已记录 " + fmt(total) + "s · 累计 " + counts[activeId] + " 次"); }
+    if (!silent) { render(); toast("已记录单次 " + fmt(total) + "s · 累计 " + counts[activeId] + " 次"); }
   }
   function resetTimer() {
     clearInterval(tTick); clearTimeout(tPrep);
