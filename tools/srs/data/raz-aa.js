@@ -1,6 +1,9 @@
 /* RAZ AA 核心词汇 · 自动生成，请勿手改
    来源：RAZ AA 级别公开词卡/书目综合整理（去重核心词）
-   字段：en=英文  zh=中文  theme=主题分类  emoji=emoji配图  img=RAZ原图路径 */
+   字段：en=英文  zh=中文  theme=主题分类  emoji=emoji配图  img=RAZ原图路径
+   2026-10-13 手工为 crocodile/butterfly/beetle/giraffe/ostrich 补 img
+   （用户提供「练习册」实拍图，同名覆盖 pig/duck/goat/bird/elephant/frog/lion 配图）
+   注意：重跑 build_raz_deck.py 可能覆盖以上 img，重生成前先备份本文件。 */
 window.RAZ_AA = [
   {en:'chicken', zh:'鸡', theme:'动物·农场', emoji:'🐔', img:'data/img/chicken.jpg'},
   {en:'cow', zh:'奶牛', theme:'动物·农场', emoji:'🐮', img:'data/img/cow.jpg'},
@@ -21,18 +24,18 @@ window.RAZ_AA = [
   {en:'turtle', zh:'乌龟', theme:'动物·宠物', emoji:'🐢', img:'data/img/turtle.jpg'},
   {en:'pet', zh:'宠物', theme:'动物·宠物', emoji:'🐾'},
   {en:'elephant', zh:'大象', theme:'动物·野生动物', emoji:'🐘', img:'data/img/elephant.jpg'},
-  {en:'giraffe', zh:'长颈鹿', theme:'动物·野生动物', emoji:'🦒'},
+  {en:'giraffe', zh:'长颈鹿', theme:'动物·野生动物', emoji:'🦒', img:'data/img/giraffe.jpg'},
   {en:'zebra', zh:'斑马', theme:'动物·野生动物', emoji:'🦓'},
-  {en:'crocodile', zh:'鳄鱼', theme:'动物·野生动物', emoji:'🐊'},
-  {en:'ostrich', zh:'鸵鸟', theme:'动物·野生动物', emoji:'🐦'},
+  {en:'crocodile', zh:'鳄鱼', theme:'动物·野生动物', emoji:'🐊', img:'data/img/crocodile.jpg'},
+  {en:'ostrich', zh:'鸵鸟', theme:'动物·野生动物', emoji:'🐦', img:'data/img/ostrich.jpg'},
   {en:'dinosaur', zh:'恐龙', theme:'动物·野生动物', emoji:'🦖', img:'data/img/dinosaur.jpg'},
   {en:'fox', zh:'狐狸', theme:'动物·野生动物', emoji:'🦊', img:'data/img/fox.jpg'},
   {en:'deer', zh:'鹿', theme:'动物·野生动物', emoji:'🦌', img:'data/img/deer.jpg'},
   {en:'monkey', zh:'猴子', theme:'动物·野生动物', emoji:'🐒', img:'data/img/monkey.jpg'},
   {en:'parrot', zh:'鹦鹉', theme:'动物·野生动物', emoji:'🦜'},
   {en:'snake', zh:'蛇', theme:'动物·野生动物', emoji:'🐍'},
-  {en:'beetle', zh:'甲虫', theme:'动物·野生动物', emoji:'🪲'},
-  {en:'butterfly', zh:'蝴蝶', theme:'动物·野生动物', emoji:'🦋'},
+  {en:'beetle', zh:'甲虫', theme:'动物·野生动物', emoji:'🪲', img:'data/img/beetle.jpg'},
+  {en:'butterfly', zh:'蝴蝶', theme:'动物·野生动物', emoji:'🦋', img:'data/img/butterfly.jpg'},
   {en:'lion', zh:'狮子', theme:'动物·野生动物', emoji:'🦁', img:'data/img/lion.jpg'},
   {en:'bear', zh:'熊', theme:'动物·野生动物', emoji:'🐻', img:'data/img/bear.jpg'},
   {en:'tiger', zh:'老虎', theme:'动物·野生动物', emoji:'🐯', img:'data/img/tiger.jpg'},
