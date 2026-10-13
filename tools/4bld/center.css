@@ -3,6 +3,10 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* 项目红线：本页大量用 hidden 切视图，components/site-layout 里的 display 规则会盖掉 UA 的
+   [hidden]{display:none}（实测 #c4-dash 被 section{display:block} 顶掉 → 矩阵视图仍占 170px 高） */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   padding: 26px 22px 64px;
@@ -71,6 +75,25 @@ html[data-theme="light"] {
 .c4-bar input[type="search"] { width: 120px; }
 .c4-bar .c4-spacer { flex: 1 1 auto; }
 .c4-bar select:hover { border-color: var(--brand, #60a5fa); }
+.c4-bo { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* 矩阵专用说明（只在矩阵视图显示，不用 hidden 属性，避免与全局 [hidden] !important 打架） */
+.c4-mx-hint { display: none; }
+.c4-wrap.is-mx .c4-mx-hint { display: inline; color: var(--brand, #60a5fa); }
+
+/* ---------- 公式矩阵视图：压缩头部/工具条，把高度让给 24 行 ---------- */
+.c4-wrap.is-mx { max-width: none; }
+body.is-mx { padding-bottom: 14px; }
+/* 矩阵一屏时隐藏站点页脚（由 site-nav.js 注入，109px 会把文档撑出滚动条） */
+body.is-mx .site-footer { display: none; }
+.c4-wrap.is-mx .c4-head {
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  padding-bottom: 8px; margin-bottom: 8px;
+}
+.c4-wrap.is-mx .c4-head h1 { font-size: 20px; letter-spacing: 2px; margin: 0; }
+.c4-wrap.is-mx .c4-head .sub { font-size: 12px; line-height: 1.4; }
+.c4-wrap.is-mx .c4-back { display: none; }
+.c4-wrap.is-mx .c4-bar { padding: 8px 12px; margin-bottom: 10px; }
+.c4-wrap.is-mx .c4-bo { display: none; }
 
 /* ---------- 训练总览（KPI + 色带） ---------- */
 .c4-dash { margin-bottom: 16px; }
@@ -127,37 +150,59 @@ html[data-theme="light"] {
 }
 .c4-empty { color: var(--fg-3, #7C8798); font-size: 13px; padding: 20px; }
 
-/* ---------- 矩阵总览（横向铺满，每块标注 行·列） ---------- */
-.c4-matrix { overflow: auto; padding: 10px; border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 10px; background: var(--surface, #141826); }
-.c4-matrix table { width: 100%; min-width: 520px; table-layout: fixed; border-collapse: separate; border-spacing: 4px 3px; }
-.c4-matrix th { font-size: 11px; font-weight: 700; color: var(--fg-3, #7C8798); padding: 0; height: 22px; text-align: center; }
-.c4-matrix th.row-h { color: var(--gc, var(--fg-2)); }
-.c4-matrix td { padding: 0; height: 34px; }
-.c4-matrix .mx {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 100%; height: 100%; min-height: 30px;
-  border: 1px solid transparent; border-radius: 4px; padding: 2px;
-  cursor: pointer; background: var(--surface-3, #232C3E);
-  font: inherit; color: inherit;
+/* ---------- 公式矩阵（23×23 一屏铺满，格内直接显示完整公式） ---------- */
+.c4-matrix {
+  overflow: hidden; padding: 8px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.12));
+  border-radius: 10px; background: var(--surface, #141826);
 }
-.c4-matrix .mx.on { background: var(--gc, var(--brand)); }
-.c4-matrix .mx.on .mx-coord { color: #fff; }
-.c4-matrix .mx.intent { background: var(--c4-intent-bg, rgba(148,163,184,.16)); cursor: default; }
-.c4-matrix .mx.intent .mx-coord { color: var(--fg-3, #7C8798); }
-.c4-matrix .mx.self { background: transparent; border: 1px dashed var(--line-2, rgba(255,255,255,.28)); cursor: default; }
-.c4-matrix .mx.self .mx-coord { color: var(--fg-3, #7C8798); }
-.c4-matrix .mx-coord { font-size: 11px; font-weight: 700; letter-spacing: .5px; color: var(--fg-2, #AEB8CA); line-height: 1.15; text-align: center; }
-.c4-matrix .mx-x { font-size: 9px; opacity: .72; font-weight: 600; }
-.c4-matrix .mx:hover { outline: 2px solid var(--brand, #60a5fa); outline-offset: 1px; }
-.c4-matrix .mx.self:hover { outline: none; }
+.c4-matrix.is-scroll { overflow: auto; }
+.mx-grid {
+  display: grid;
+  grid-template-columns: var(--mx-lab, 28px) repeat(23, minmax(var(--mx-cw, 0px), 1fr));
+  grid-template-rows: var(--mx-hh, 18px) repeat(23, var(--mx-h, 30px));
+  gap: var(--mx-gap, 2px);
+}
+.mx-corner, .mx-ch, .mx-rh {
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--mx-lfs, 11px); font-weight: 800; letter-spacing: .5px;
+  color: var(--fg-3, #7C8798); line-height: 1;
+}
+.mx-corner { font-size: calc(var(--mx-lfs, 11px) * .8); font-weight: 600; opacity: .75; }
+.mx-ch, .mx-rh { color: var(--gc, var(--fg-3, #7C8798)); }
+.mx-grid .mx {
+  /* 两段公式各占一行（.mx-ln 块级）⟹ 必须 column，不能 row */
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 0; min-height: 0; overflow: hidden;
+  appearance: none; border: 0; border-radius: 3px; padding: 0 1px;
+  font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+  font-size: var(--mx-fs, 9px); line-height: 1.24; font-weight: 700;
+  letter-spacing: -.3px; text-align: center;
+  cursor: pointer; color: var(--fg, #EEF2F8);
+  background: rgba(148,163,184,.07);
+}
+/* 极少数超长段（>p90）允许在段内折行，max-width 保证不横向溢出 */
+.mx-grid .mx .mx-ln { display: block; max-width: 100%; word-break: break-all; }
+.mx-grid .mx.on { background: var(--gc-soft, rgba(148,163,184,.20)); }
+.mx-grid .mx.self {
+  background: transparent; cursor: default;
+  box-shadow: inset 0 0 0 1px var(--line-2, rgba(255,255,255,.22));
+}
+.mx-grid .mx.intent { background: var(--c4-intent-bg, rgba(148,163,184,.16)); cursor: default; }
+.mx-grid .mx.on:hover { outline: 2px solid var(--brand, #60a5fa); outline-offset: -1px; }
+/* 公式着色在矩阵里同样生效（字号小，用色区分前置/主体） */
+.mx-grid .a-pre { color: var(--alg-pre); font-weight: 800; }
+.mx-grid .a-core { color: var(--alg-core); }
+.mx-grid .a-punct { color: var(--alg-punct); }
 
-/* 组色（数据色，不随主题变；深/浅底均已校对比度） */
-.g0 { --gc: #e24b4a; }
-.g1 { --gc: #639922; }
-.g2 { --gc: #378add; }
-.g3 { --gc: #7f77dd; }
-.g4 { --gc: #1d9e75; }
-.g5 { --gc: #ba7517; }
+/* 组色（数据色，不随主题变；深/浅底均已校对比度）
+   --gc 实色用于表头/标题；--gc-soft 淡底用于矩阵格（小字号下保证正文对比度） */
+.g0 { --gc: #e24b4a; --gc-soft: rgba(226,75,74,.20); }
+.g1 { --gc: #639922; --gc-soft: rgba(99,153,34,.22); }
+.g2 { --gc: #378add; --gc-soft: rgba(55,138,221,.22); }
+.g3 { --gc: #7f77dd; --gc-soft: rgba(127,119,221,.22); }
+.g4 { --gc: #1d9e75; --gc-soft: rgba(29,158,117,.22); }
+.g5 { --gc: #ba7517; --gc-soft: rgba(186,117,23,.24); }
 
 /* ---------- 详情浮层（矩阵参考，只读） ---------- */
 .c4-modal {
@@ -322,8 +367,7 @@ html[data-theme="light"] {
     .c4-pmodal__alg { font-size: 20px; padding: 8px 0 10px; }
     .c4-pmodal__timer { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 42vh; font-size: clamp(60px, 24vw, 168px); padding: 0; border-width: 2px; }
   }
-  /* 矩阵窄屏：隐藏「行/列」字，只留 AB，避免挤压 */
-  .c4-matrix td { height: 28px; }
-  .c4-matrix .mx-x { display: none; }
-  .c4-matrix .mx-coord { font-size: 10px; }
+  /* 窄屏矩阵：格宽触底后 fitMatrix 自动转横向滚动，这里只收紧内边距 */
+  .c4-matrix { padding: 6px; }
+  .c4-wrap.is-mx .c4-head h1 { font-size: 17px; }
 }

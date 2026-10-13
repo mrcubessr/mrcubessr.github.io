@@ -23,6 +23,7 @@
     <h1>四阶盲拧 · 中心块公式</h1>
     <div class="sub">
       缓冲 <b>Ubl</b> · <b id="c4-count">—</b> 条公式 · 23 个次字母位 · 3-style commutator
+      <span class="c4-mx-hint">· 行 = 首字母 · 列 = 次字母 · 点格子看大图</span>
     </div>
     <a class="c4-back" href="/tools/3bld/index.html">← 返回三盲总览</a>
   </div>
@@ -33,26 +34,29 @@
       <button type="button" data-view="matrix" role="tab">矩阵总览</button>
     </div>
     <span class="c4-spacer"></span>
-    <label for="c4-q">搜索</label>
-    <input type="search" id="c4-q" placeholder="如 GB" autocomplete="off">
-    <label for="c4-metric">指标</label>
-    <select id="c4-metric">
-      <option value="session">最近一次</option>
-      <option value="allavg">全部平均</option>
-      <option value="best">最快单次</option>
-    </select>
-    <label for="c4-sort">排序</label>
-    <select id="c4-sort">
-      <option value="group">按组顺序</option>
-      <option value="slow">最慢优先</option>
-      <option value="practice">按练习次数</option>
-    </select>
-    <label for="c4-filter">筛选</label>
-    <select id="c4-filter">
-      <option value="all">全部公式</option>
-      <option value="todo">只看未练</option>
-      <option value="weak">只看需关注+不合格</option>
-    </select>
+    <!-- 以下控件只对「练习总览」生效，公式矩阵视图下隐藏（省垂直空间） -->
+    <span class="c4-bo">
+      <label for="c4-q">搜索</label>
+      <input type="search" id="c4-q" placeholder="如 GB" autocomplete="off">
+      <label for="c4-metric">指标</label>
+      <select id="c4-metric">
+        <option value="session">最近一次</option>
+        <option value="allavg">全部平均</option>
+        <option value="best">最快单次</option>
+      </select>
+      <label for="c4-sort">排序</label>
+      <select id="c4-sort">
+        <option value="group">按组顺序</option>
+        <option value="slow">最慢优先</option>
+        <option value="practice">按练习次数</option>
+      </select>
+      <label for="c4-filter">筛选</label>
+      <select id="c4-filter">
+        <option value="all">全部公式</option>
+        <option value="todo">只看未练</option>
+        <option value="weak">只看需关注+不合格</option>
+      </select>
+    </span>
   </div>
 
   <!-- 练习总览：KPI + 色带 + 彩色看板 -->
@@ -439,40 +443,76 @@
     scheduleFit();
   }
 
-  /* ============ 矩阵总览（参考索引） ============ */
-  function renderMatrix() {
-    var h = '<table><thead><tr><th></th>';
-    ORDER.forEach(function (c) {
-      h += '<th class="' + gclass(c) + '">' + c + '</th>';
+  /* ============ 公式矩阵（23×23 一屏铺满：行=首字母，列=次字母，格内直显公式） ============ */
+  /* 公式都是 setup:[A,B] 型 commutator ⟹ 在方括号内那个逗号处切成两段，各占一行（不再从 token 中间断）
+     全表统一字号，按「较长段的 p90 长度」反推：公式全为 ASCII，等宽字体 0.55em/字符，再扣负字距。 */
+  var ALG_HALVES = [];
+  (function () {
+    ALL.forEach(function (c) {
+      var a = D.algs[c] || '', d = 0, cut = -1, i, ch;
+      for (i = 0; i < a.length; i++) {
+        ch = a.charAt(i);
+        if (ch === '[') { d++; }
+        else if (ch === ']') { d--; }
+        else if (ch === ',' && d === 1) { cut = i; break; }
+      }
+      ALG_HALVES.push(cut < 0 ? a.length : Math.max(cut + 1, a.length - cut - 1));
     });
-    h += '</tr></thead><tbody>';
+    ALG_HALVES.sort(function (x, y) { return x - y; });
+  })();
+  var HALF_LEN = ALG_HALVES.length
+    ? ALG_HALVES[Math.min(ALG_HALVES.length - 1, Math.floor(ALG_HALVES.length * 0.9))]
+    : 12;
 
+  /** commutator 两段着色（逗号切分），每段一个块级 .mx-ln ⟹ 一行一段 */
+  function fmtAlgCell(alg) {
+    if (!alg) { return ''; }
+    var d = 0, cut = -1, i, ch;
+    for (i = 0; i < alg.length; i++) {
+      ch = alg.charAt(i);
+      if (ch === '[') { d++; }
+      else if (ch === ']') { d--; }
+      else if (ch === ',' && d === 1) { cut = i; break; }
+    }
+    if (cut < 0) { return '<span class="mx-ln">' + fmtAlg(alg) + '</span>'; }
+    return '<span class="mx-ln">' + fmtAlg(alg.slice(0, cut + 1)) + '</span>' +
+           '<span class="mx-ln">' + fmtAlg(alg.slice(cut + 1)) + '</span>';
+  }
+
+  function renderMatrix() {
+    var h = '<div class="mx-grid">';
+    h += '<div class="mx-corner" title="行 = 首字母 · 列 = 次字母">\\</div>';
+    ORDER.forEach(function (c) {
+      h += '<div class="mx-ch ' + gclass(c) + '">' + c + '</div>';
+    });
     ORDER.forEach(function (row) {
-      h += '<tr><th class="row-h ' + gclass(row) + '">' + row + '</th>';
+      h += '<div class="mx-rh ' + gclass(row) + '">' + row + '</div>';
       ORDER.forEach(function (col) {
         var code = row + col;
         var alg = D.algs[code] || '';
-        var cls = 'mx', tip = '';
+        var cls = 'mx', tip = '', inner = '';
         if (alg) {
-          cls += ' on ' + gclass(col); tip = code + '　' + alg;
+          cls += ' on ' + gclass(col);
+          tip = code + '　' + alg;
+          inner = fmtAlgCell(alg);
         } else if (row === col) {
-          cls += ' self'; tip = code + '　自身，无公式';
+          cls += ' self';
+          tip = code + '　自身，无公式';
         } else if (INTENT[code]) {
-          cls += ' intent'; tip = code + '　原表留空（反向已含）';
+          cls += ' intent';
+          tip = code + '　原表留空（反向已含）';
         } else {
+          cls += ' grp';
           tip = code + '　同组内，不生成公式';
         }
-        var coord = '<span class="mx-r">' + row + '</span><span class="mx-x">行</span>' +
-                    '<span class="mx-c">' + col + '</span><span class="mx-x">列</span>';
         var attr = alg ? ' data-code="' + code + '"' : ' disabled';
-        h += '<td><button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '>' +
-             '<span class="mx-coord">' + coord + '</span></button></td>';
+        h += '<button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '>' + inner + '</button>';
       });
-      h += '</tr>';
     });
-    h += '</tbody></table>';
+    h += '</div>';
 
     document.getElementById('c4-matrix').innerHTML = h;
+    scheduleFitMatrix();
   }
 
   /* ============ 视图切换 ============ */
@@ -484,7 +524,11 @@
     document.getElementById('c4-dash').hidden = !board;
     document.getElementById('c4-board').hidden = !board;
     document.getElementById('c4-matrix').hidden = board;
-    if (board) { scheduleFit(); }
+    var wrap = document.querySelector('.c4-wrap');
+    if (wrap) { wrap.classList.toggle('is-mx', !board); }
+    document.body.classList.toggle('is-mx', !board);
+    if (board) { lockScroll(false); scheduleFit(); }
+    else { scheduleFitMatrix(); }
   }
 
   /* ============ 详情浮层（矩阵参考） ============ */
@@ -987,23 +1031,83 @@
     }
   }
 
+  /* ============ 公式矩阵：一屏铺满（宽高双轴 + 字号反推 + 锁滚动，仿 440） ============ */
+  var mxRaf = 0;
+  function scheduleFitMatrix() {
+    if (mxRaf) cancelAnimationFrame(mxRaf);
+    mxRaf = requestAnimationFrame(fitMatrix);
+  }
+  function lockScroll(on) {
+    // 矩阵能一屏放下时锁掉纵向滚动（440 同款）；切回看板 / 窗口过矮时必须解锁
+    var de = document.documentElement;
+    de.style.overflowY = on ? 'hidden' : '';
+    document.body.style.overflowY = on ? 'hidden' : '';
+  }
+  function fitMatrix() {
+    var wrap = document.getElementById('c4-matrix');
+    var grid = wrap && wrap.querySelector('.mx-grid');
+    if (!grid || wrap.hidden || !wrap.clientWidth) return;
+
+    var cs = getComputedStyle(wrap);
+    var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    var padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    // 底部预留 = 容器上下内边距 + 上下边框 + body 下内边距 + 6px 余量（否则锁滚动后底部被裁）
+    var padBottom = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    var availW = wrap.clientWidth - padX - 4;
+    var availH = window.innerHeight - wrap.getBoundingClientRect().top - padY - 2 - padBottom - 6;
+    if (availW < 240 || availH < 160) return;
+
+    var COLS = 24, ROWS = 24, GAP = 2, HH = 18;   // 1 标签列/表头行 + 23 数据
+    var lab = Math.max(16, Math.min(30, Math.round(availW * 0.018)));
+    var cellW = (availW - lab - (COLS - 1) * GAP) / (COLS - 1);
+    var cellH = (availH - HH - (ROWS - 1) * GAP) / (ROWS - 1);
+
+    // 太小就退化成可滚动（宁可滚动也不把字压到看不清）
+    var scroll = false;
+    if (cellW < 40) { cellW = 40; scroll = true; }
+    if (cellH < 15) { cellH = 15; scroll = true; }
+
+    // 字号：从大到小试。① 宽度：典型较长段（p90）必须一行放得下；② 高度：两行文字要装进格子
+    // 0.55em/字符 = 等宽字体字宽，-0.3px = CSS 的负字距；1.24 = 行高留余量
+    var fs = 0;
+    for (var f = 16; f >= 5; f -= 0.25) {
+      if (HALF_LEN * (0.55 * f - 0.3) > cellW - 2) continue;
+      if (2 * f * 1.24 > cellH - 2) continue;
+      fs = f; break;
+    }
+    if (!fs) fs = 5;
+
+    grid.style.setProperty('--mx-h', cellH.toFixed(2) + 'px');
+    grid.style.setProperty('--mx-gap', GAP + 'px');
+    grid.style.setProperty('--mx-lab', lab + 'px');
+    grid.style.setProperty('--mx-hh', HH + 'px');
+    grid.style.setProperty('--mx-cw', (scroll ? cellW : 0) + 'px');
+    grid.style.setProperty('--mx-fs', fs.toFixed(2) + 'px');
+    grid.style.setProperty('--mx-lfs', Math.max(8, Math.min(13, Math.round(cellH * 0.55))) + 'px');
+    wrap.classList.toggle('is-scroll', scroll);
+    lockScroll(!scroll);
+  }
+
   /* ============ 启动 ============ */
   document.getElementById('c4-count').textContent = ALL.length;
   renderBoard();
   renderMatrix();
   fillPSelect();
-  setView('board');
+  setView('matrix');   // 默认进公式矩阵（23×23 一屏）
   bind();
 
-  window.addEventListener('resize', scheduleFit);
+  function fitAll() { scheduleFit(); scheduleFitMatrix(); }
+  window.addEventListener('resize', fitAll);
   if (typeof ResizeObserver !== 'undefined') {
     var roTimer = 0;
-    var ro = new ResizeObserver(function () { clearTimeout(roTimer); roTimer = setTimeout(fitBoard, 60); });
+    var ro = new ResizeObserver(function () { clearTimeout(roTimer); roTimer = setTimeout(fitAll, 60); });
     ro.observe(document.documentElement);
     var wrapEl = document.querySelector('.c4-board-wrap');
     if (wrapEl) ro.observe(wrapEl);
+    var mxEl = document.getElementById('c4-matrix');
+    if (mxEl) ro.observe(mxEl);
   }
-  setTimeout(fitBoard, 0);
+  setTimeout(fitAll, 0);
 
   /* ============ 账号同步（LSProvider，仿 timer / 440） ============ */
   // applySnapshot 从云端回写 localStorage 后，本页内存变量 times/sessions 不会自动更新
