@@ -503,8 +503,10 @@ body { margin: 0; }
 .tm-list__split { display: block; font-size: 10px; font-weight: 600; color: var(--fg-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
 /* ---------- 响应式 ---------- */
-/* 手机端紧凑化：缩小展开图、压缩计时舞台与区块间距，减少上下滚动长度 */
-@media (max-width: 600px) {
+/* 手机端紧凑化：缩小展开图、压缩计时舞台与区块间距，减少上下滚动长度
+   （竖屏触屏平板 ~800px 宽也套用同一套布局，见下方「单屏计时」说明） */
+@media (max-width: 600px),
+       (max-width: 1024px) and (orientation: portrait) and (pointer: coarse) {
   .tm-wrap { padding: 16px 12px 48px; }
   .tm-hero { margin-bottom: 12px; }
   .tm-hero__sub { display: none; }            /* 省掉冗长说明，首屏更短 */
@@ -566,8 +568,13 @@ body { margin: 0; }
 /* =========================================================
    手机端「单屏计时」布局（参考 csTimer 手机版）
    目标：主流手机一屏内看完核心信息，尽量不上下滚动。
+   =========================================================
+   竖屏触屏平板（~800px 宽，如 Pad 竖持）一并套用本布局：
+   否则走桌面布局时下方留大片空白、计时区点按目标也小。
+   pointer: coarse 保证鼠标窄窗口不受影响。
    ========================================================= */
-@media (max-width: 600px) {
+@media (max-width: 600px),
+       (max-width: 1024px) and (orientation: portrait) and (pointer: coarse) {
   /* 页面级：去掉页头页脚 */
   .tm-hero, body > .site-footer { display: none !important; }
 

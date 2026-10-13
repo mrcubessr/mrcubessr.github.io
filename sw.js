@@ -18,7 +18,10 @@
    沿用 v3 的规矩：**凡是动到 APP_SHELL 里的文件，都要递增这个版本号。** */
 /* v9（2026-10-12）：site-nav.js（在 APP_SHELL 清单内）新增「四阶盲拧中心块公式」导航项
    （tools/4bld/），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
-const CACHE = 'fto-timer-v9';
+/* v10（2026-10-13）：timer.css（APP_SHELL 内）把手机单屏布局断点扩展到
+   竖屏触屏平板（≤1024px + portrait + pointer:coarse），Pad 竖持时计时区
+   铺满全屏，不再下方留大片空白。 */
+const CACHE = 'fto-timer-v10';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
