@@ -93,23 +93,54 @@
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-prev" title="上一式">←</button>
       <select id="c4-p-select" class="c4-pmodal__select" aria-label="选择公式"></select>
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-next" title="下一式">→</button>
+      <button type="button" class="c4-pmodal__navbtn" id="c4-p-chain" aria-pressed="false" title="连练：停表后自动进入下一条">连练</button>
       <span class="c4-spacer"></span>
       <span class="c4-pmodal__hint">按住空格 0.5s 后松开开始</span>
       <button type="button" class="c4-pmodal__close" id="c4-p-close" aria-label="关闭">×</button>
     </div>
     <div class="c4-pmodal__body">
+      <div class="c4-chain" id="c4-chain-row" hidden>
+        <label for="c4-chain-scope">范围</label>
+        <select id="c4-chain-scope">
+          <option value="all">全部公式</option>
+          <option value="group">当前组</option>
+          <option value="todo">只看未练</option>
+          <option value="weak">需关注+不合格</option>
+        </select>
+        <label for="c4-chain-order">顺序</label>
+        <select id="c4-chain-order">
+          <option value="seq">按组顺序</option>
+          <option value="rand">随机</option>
+        </select>
+        <span class="c4-chain__prog" id="c4-chain-prog"></span>
+      </div>
       <div class="c4-pmodal__code" id="c4-p-code">--</div>
       <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>
       <div class="c4-pmodal__timer" id="c4-p-timer" data-state="idle">0.000</div>
       <div class="c4-pmodal__summary" id="c4-p-summary" hidden></div>
       <div class="c4-pmodal__acts">
         <button type="button" id="c4-p-copy">复制公式</button>
+        <button type="button" id="c4-p-fs">全屏计时</button>
+        <button type="button" id="c4-p-export">导出成绩</button>
         <button type="button" id="c4-p-del">删除最近一次</button>
         <button type="button" id="c4-p-clear">清空该式</button>
       </div>
       <div class="c4-pmodal__history" id="c4-p-history"></div>
     </div>
   </div>
+</div>
+
+<!-- 全屏沉浸计时：大数字 + 公式，与练习浮层共用同一套计时状态机 -->
+<div class="c4-fs" id="c4-fs" hidden>
+  <div class="c4-fs__bar">
+    <span class="c4-fs__code" id="c4-fs-code">--</span>
+    <span class="c4-fs__prog" id="c4-fs-prog"></span>
+    <span class="c4-spacer"></span>
+    <span class="c4-fs__hint">按住空格 0.5s 松开起表 · 再按停表</span>
+    <button type="button" class="c4-fs__close" id="c4-fs-close" aria-label="退出全屏">×</button>
+  </div>
+  <div class="c4-fs__timer" id="c4-fs-timer" data-state="idle">0.000</div>
+  <div class="c4-fs__alg" id="c4-fs-alg"></div>
 </div>
 
 <!-- 矩阵详情浮层（参考，只读） -->
@@ -552,7 +583,13 @@
     save(SESSIONS_KEY, s);
   }
   function pRenderTimer() {
-    if (pState === 'running') pTimerEl.textContent = pFmt(performance.now() - pStart);
+    if (pState === 'running') { pTimerEl.textContent = pFmt(performance.now() - pStart); }
+    pSyncTimerEls();
+  }
+  /** 全屏计时器镜像浮层计时器的文案与状态（两处共用同一套状态机） */
+  function pSyncTimerEls() {
+    var fs = document.getElementById('c4-fs-timer');
+    if (fs) { fs.textContent = pTimerEl.textContent; fs.dataset.state = pTimerEl.dataset.state; }
   }
   function pStartTimer() {
     if (pState === 'running') return;
@@ -561,6 +598,7 @@
     pTimerEl.dataset.state = 'running';
     pSummaryEl.hidden = true;
     pTick = setInterval(pRenderTimer, 50);
+    pSyncTimerEls();
   }
   function pStopTimer() {
     if (pState !== 'running') return;
@@ -570,11 +608,15 @@
     pState = 'done';
     pTimerEl.dataset.state = 'done';
     pTimerEl.textContent = pFmt(total);
+    pSyncTimerEls();
     pSummaryEl.hidden = false;
     pSummaryEl.innerHTML = '本次用时 <b>' + fmtTime(total) + '</b>';
     pRefreshHistory();
     try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
     renderBoard();
+    // 连练：停表后稍作停顿自动进入下一条（可被手动换式/关闭取消）
+    clearTimeout(chainAdvTimer);
+    if (chainOn && chainList.length) { chainAdvTimer = setTimeout(chainNext, 800); }
   }
   function pResetTimer() {
     clearInterval(pTick); clearTimeout(pPrep);
@@ -582,6 +624,7 @@
     pTimerEl.dataset.state = 'idle';
     pTimerEl.textContent = '0.000';
     pSummaryEl.hidden = true;
+    pSyncTimerEls();
   }
   function pKeydownHold() {
     if (pState === 'running') { pStopTimer(); return; }
@@ -593,6 +636,7 @@
     pPrep = setTimeout(function () {
       if (pState === 'prep') { pState = 'green'; pTimerEl.dataset.state = 'green'; pTimerEl.textContent = '松开'; }
     }, 500);
+    pSyncTimerEls();
   }
   function pKeyupHold() {
     clearTimeout(pPrep);
@@ -614,6 +658,13 @@
     pCodeEl.textContent = code;
     pAlgEl.innerHTML = fmtAlg(D.algs[code] || '');
     pResetTimer();
+    // 连练开启时同步进度（chainNext 先设 chainIdx 再调本函数，结果一致，无副作用）
+    if (chainOn) {
+      var ci = chainList.indexOf(code);
+      if (ci >= 0) { chainIdx = ci; }
+      chainRenderProg();
+    }
+    if (!fsEl.hidden) { fsSyncAll(); }
     pRefreshHistory();
   }
   function pOpenFor(code) {
@@ -622,14 +673,149 @@
   }
   function pClose() {
     clearTimeout(pPrep);
-    if (pState === 'running') pStopTimer();
+    clearTimeout(chainAdvTimer);
+    if (pState === 'running') { pStopTimer(); }
+    fsClose();
     pmodal.classList.remove('is-open');
   }
   function pStep(delta) {
     if (!pCurrent) return;
-    var i = ALL.indexOf(pCurrent);
-    var j = Math.max(0, Math.min(ALL.length - 1, i + delta));
-    pLoadCode(ALL[j]);
+    var list = (chainOn && chainList.length) ? chainList : ALL;
+    var i = list.indexOf(pCurrent);
+    if (i < 0) { i = 0; }
+    var j = Math.max(0, Math.min(list.length - 1, i + delta));
+    pLoadCode(list[j]);
+  }
+
+  /* ============ 连练模式（停表自动进入下一条） ============ */
+  var chainOn = false;
+  var chainScope = 'all';
+  var chainOrder = 'seq';
+  var chainList = [];
+  var chainIdx = -1;
+  var chainAdvTimer = 0;
+
+  function chainBench() {
+    var ms = ALL.filter(function (c) { var st = statsOf(c); return st.n > 0 && isFinite(st.metric()); })
+      .map(function (c) { return statsOf(c).metric(); });
+    return median(ms);
+  }
+  function buildChainList() {
+    var list;
+    if (chainScope === 'group') {
+      var gi = GIDX[pCurrent];
+      list = ALL.filter(function (c) { return GIDX[c] === gi; });
+    } else if (chainScope === 'todo') {
+      list = ALL.filter(function (c) { return statsOf(c).n === 0; });
+    } else if (chainScope === 'weak') {
+      var b = chainBench();
+      list = ALL.filter(function (c) {
+        var st = statsOf(c);
+        if (st.n === 0) { return false; }
+        var t = tierOf(st.metric(), b);
+        return t === 't-warn' || t === 't-bad';
+      });
+    } else {
+      list = ALL.slice();
+    }
+    if (chainOrder === 'rand') {
+      for (var i = list.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = list[i]; list[i] = list[j]; list[j] = t;
+      }
+    }
+    chainList = list;
+    chainIdx = list.indexOf(pCurrent);
+    chainRenderProg();
+    return list;
+  }
+  function chainRenderProg() {
+    var el = document.getElementById('c4-chain-prog');
+    if (!el) { return; }
+    if (!chainOn || !chainList.length) { el.textContent = ''; return; }
+    el.textContent = '第 ' + (chainIdx >= 0 ? chainIdx + 1 : '-') + ' / ' + chainList.length + ' 条';
+    if (!fsEl.hidden) { fsSyncAll(); }
+  }
+  function chainNext() {
+    if (!chainList.length) { return; }
+    chainIdx = (chainIdx + 1) % chainList.length;
+    pLoadCode(chainList[chainIdx]);
+  }
+  function chainSetOn(on) {
+    chainOn = !!on;
+    var btn = document.getElementById('c4-p-chain');
+    var row = document.getElementById('c4-chain-row');
+    var body = document.querySelector('.c4-pmodal__body');
+    if (btn) { btn.setAttribute('aria-pressed', chainOn ? 'true' : 'false'); }
+    if (row) { row.hidden = !chainOn; }
+    if (body) { body.classList.toggle('is-chain', chainOn); }
+    clearTimeout(chainAdvTimer);
+    if (chainOn) { buildChainList(); } else { chainList = []; chainIdx = -1; chainRenderProg(); }
+  }
+
+  /* ============ 全屏沉浸计时（与浮层共用状态机，仅换显示容器） ============ */
+  var fsEl = document.getElementById('c4-fs');
+  function fsSyncAll() {
+    var codeEl = document.getElementById('c4-fs-code');
+    var algEl = document.getElementById('c4-fs-alg');
+    var progEl = document.getElementById('c4-fs-prog');
+    if (codeEl) { codeEl.textContent = pCurrent || '--'; }
+    if (algEl) { algEl.innerHTML = fmtAlg(D.algs[pCurrent] || ''); }
+    if (progEl) {
+      progEl.textContent = (chainOn && chainList.length)
+        ? ('第 ' + (chainIdx >= 0 ? chainIdx + 1 : '-') + ' / ' + chainList.length) : '';
+    }
+    pSyncTimerEls();
+  }
+  function fsOpen() {
+    fsSyncAll();
+    fsEl.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function fsClose() {
+    fsEl.hidden = true;
+    document.body.style.overflow = '';
+  }
+  function fsToggle() { if (fsEl.hidden) { fsOpen(); } else { fsClose(); } }
+
+  /* ============ 成绩导出 CSV ============ */
+  function csvCell(v) {
+    var s = String(v == null ? '' : v);
+    // 公式串含逗号（如 [Ubl, x]），必须按 RFC4180 加引号并转义内部引号
+    if (/[",\r\n]/.test(s)) { return '"' + s.replace(/"/g, '""') + '"'; }
+    return s;
+  }
+  function exportCSV() {
+    var rows = [['代码', '位置组', '练习次数', '最快(秒)', '全部平均(秒)', '最近一次(秒)', '最近10次(秒)']];
+    var exported = 0;
+    ALL.forEach(function (c) {
+      var st = statsOf(c);
+      if (st.n === 0) { return; }   // 只导已练公式，未练的无意义
+      exported++;
+      var last10 = (times[c] || []).slice(-10).map(function (ms) { return (ms / 1000).toFixed(3); });
+      rows.push([
+        c,
+        '第' + ((GIDX[c] >= 0 ? GIDX[c] : 0) + 1) + '组',
+        st.n,
+        (st.best / 1000).toFixed(3),
+        (st.allavg / 1000).toFixed(3),
+        isFinite(st.session) ? (st.session / 1000).toFixed(3) : '',
+        last10.join('; ')
+      ]);
+    });
+    if (!exported) { toast('还没有已练公式的成绩'); return; }
+    // 带 BOM，保证 Excel 打开中文不乱码
+    var csv = '\uFEFF' + rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    var d = new Date();
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    a.href = URL.createObjectURL(blob);
+    a.download = '4bld-center-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); if (a.remove) { a.remove(); } }, 1000);
+    toast('已导出 ' + exported + ' 条公式成绩');
   }
 
   /* ============ 事件 ============ */
@@ -679,8 +865,31 @@
     document.getElementById('c4-p-prev').addEventListener('click', function () { pStep(-1); });
     document.getElementById('c4-p-next').addEventListener('click', function () { pStep(1); });
     pSelect.addEventListener('change', function () { pLoadCode(pSelect.value); });
+    // 连练模式
+    document.getElementById('c4-p-chain').addEventListener('click', function () {
+      chainSetOn(!chainOn);
+      if (chainOn && !chainList.length) { toast('当前范围没有可练的公式'); }
+    });
+    document.getElementById('c4-chain-scope').addEventListener('change', function () {
+      chainScope = this.value;
+      if (chainOn) {
+        buildChainList();
+        if (!chainList.length) { toast('当前范围没有可练的公式'); }
+      }
+    });
+    document.getElementById('c4-chain-order').addEventListener('change', function () {
+      chainOrder = this.value;
+      if (chainOn) { buildChainList(); }
+    });
     document.getElementById('c4-p-copy').addEventListener('click', function () {
       copyText(pCurrent + '  ' + (D.algs[pCurrent] || ''));
+    });
+    document.getElementById('c4-p-fs').addEventListener('click', fsToggle);
+    document.getElementById('c4-p-export').addEventListener('click', exportCSV);
+    document.getElementById('c4-fs-close').addEventListener('click', fsClose);
+    document.getElementById('c4-fs-timer').addEventListener('click', function () {
+      if (pState === 'running') { pStopTimer(); }
+      else if (pState === 'done' || pState === 'idle') { pStartTimer(); }
     });
     document.getElementById('c4-p-del').addEventListener('click', function () {
       var s = (sessions[pCurrent] || []).slice();
@@ -708,7 +917,11 @@
     // 键盘：练习浮层内
     document.addEventListener('keydown', function (e) {
       if (pmodal.classList.contains('is-open')) {
-        if (e.key === 'Escape') { pClose(); e.preventDefault(); return; }
+        if (e.key === 'Escape') {
+          // 全屏开着时 Esc 只退全屏，不关整个练习浮层
+          if (!fsEl.hidden) { fsClose(); e.preventDefault(); return; }
+          pClose(); e.preventDefault(); return;
+        }
         var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
         if (isSpace && !e.repeat) { pKeydownHold(); e.preventDefault(); return; }
         if (isFormFocus(e.target)) return;
@@ -791,6 +1004,43 @@
     if (wrapEl) ro.observe(wrapEl);
   }
   setTimeout(fitBoard, 0);
+
+  /* ============ 账号同步（LSProvider，仿 timer / 440） ============ */
+  // applySnapshot 从云端回写 localStorage 后，本页内存变量 times/sessions 不会自动更新
+  // （sync-engine 只派发 sync:status，无「数据已应用」事件）→ 监听 sync:status，
+  // 仅在「已从云端更新」时重新 load + 重绘，避免「同步成功但界面还是旧数据」。
+  window.addEventListener('sync:status', function (e) {
+    var st = e && e.detail && e.detail['4bld-center'];
+    if (!st || !st.result || st.result.kind !== 'downloaded') { return; }
+    try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (err) { return; }
+    renderBoard();
+    if (pmodal.classList.contains('is-open')) { pRefreshHistory(); }
+  });
+  if (window.SyncBoot) {
+    SyncBoot.ready(function () {
+      if (!window.LSProvider) { return; }
+      LSProvider.register({
+        id: '4bld-center',
+        label: '四阶中心块训练',
+        path: '4bld-center.json',
+        keys: [TIMES_KEY, SESSIONS_KEY],
+        // 空快照保护：两个 key 都无有效成绩时判空，防止空数据覆盖云端/本地已有成绩
+        isEmptySnap: function (snap) {
+          if (!snap) { return true; }
+          var n = 0;
+          [TIMES_KEY, SESSIONS_KEY].forEach(function (k) {
+            var raw = snap[k];
+            if (raw == null || raw === '') { return; }
+            try {
+              var o = JSON.parse(raw) || {};
+              Object.keys(o).forEach(function (c) { n += (o[c] || []).length; });
+            } catch (err) {}
+          });
+          return n === 0;
+        }
+      });
+    });
+  }
 })();
 </script>
 
