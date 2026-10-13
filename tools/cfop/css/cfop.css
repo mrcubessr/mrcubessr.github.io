@@ -219,6 +219,16 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
   .ct__sol-alt{ flex-basis:100%; }
 }
 
+/* 平板 / 触屏设备（≥600px，排除手机）：打乱公式在 Pad 上字号过大、易把下方控件顶出首屏。
+   按「触屏 + 非手机」收窄打乱字号与内边距；竖屏平板单列堆叠，让打乱拿满整宽、减少换行。 */
+@media (pointer: coarse) and (min-width: 600px) {
+  .ct__scramble { font-size: clamp(1.05rem, 3.2vw, 1.6rem); padding: 14px 16px; letter-spacing: .04em; }
+}
+@media (pointer: coarse) and (min-width: 600px) and (orientation: portrait) {
+  .ct { grid-template-columns: 1fr; }
+  .ct__side { position: static; top: auto; }
+}
+
 /* =========================================================
    桌面横版单屏：与 timer 保持一致（锁定视口、隐藏 footer、主区滚动）
    断点 (min-width:1025px) 与侧栏折叠点一致，
