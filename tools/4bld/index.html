@@ -23,69 +23,76 @@
     <h1>四阶盲拧 · 中心块公式</h1>
     <div class="sub">
       缓冲 <b>Ubl</b> · <b id="c4-count">—</b> 条公式 · 23 个次字母位 · 3-style commutator
-      <span class="c4-mx-hint">· 行 = 首字母 · 列 = 次字母 · 点格子看大图</span>
+      <span class="c4-mx-hint">· 行 = 首字母 · 列 = 次字母 · 点格子开始练习</span>
     </div>
     <a class="c4-back" href="/tools/3bld/index.html">← 返回三盲总览</a>
   </div>
 
   <div class="c4-bar">
     <div class="c4-seg" id="c4-view" role="tablist">
-      <button type="button" data-view="board" class="is-active" role="tab">练习总览</button>
-      <button type="button" data-view="matrix" role="tab">矩阵总览</button>
+      <button type="button" data-view="matrix" class="is-active" role="tab">矩阵总览</button>
+      <button type="button" data-view="board" role="tab">练习总览</button>
     </div>
-    <span class="c4-spacer"></span>
-    <!-- 以下控件只对「练习总览」生效，公式矩阵视图下隐藏（省垂直空间） -->
+    <!-- 指标/搜索/筛选两个视图都生效：矩阵里影响着色与高亮，看板里影响着色与列表 -->
+    <label for="c4-metric">指标</label>
+    <select id="c4-metric">
+      <option value="session">最近一次</option>
+      <option value="allavg">全部平均</option>
+      <option value="best">最快单次</option>
+    </select>
+    <label for="c4-q">搜索</label>
+    <input type="search" id="c4-q" placeholder="如 GB" autocomplete="off">
+    <label for="c4-filter">筛选</label>
+    <select id="c4-filter">
+      <option value="all">全部公式</option>
+      <option value="todo">只看未练</option>
+      <option value="weak">只看需关注+不合格</option>
+    </select>
+    <!-- 排序只对「练习总览」的卡片列表有意义，矩阵是固定行列 -->
     <span class="c4-bo">
-      <label for="c4-q">搜索</label>
-      <input type="search" id="c4-q" placeholder="如 GB" autocomplete="off">
-      <label for="c4-metric">指标</label>
-      <select id="c4-metric">
-        <option value="session">最近一次</option>
-        <option value="allavg">全部平均</option>
-        <option value="best">最快单次</option>
-      </select>
       <label for="c4-sort">排序</label>
       <select id="c4-sort">
         <option value="group">按组顺序</option>
         <option value="slow">最慢优先</option>
         <option value="practice">按练习次数</option>
       </select>
-      <label for="c4-filter">筛选</label>
-      <select id="c4-filter">
-        <option value="all">全部公式</option>
-        <option value="todo">只看未练</option>
-        <option value="weak">只看需关注+不合格</option>
-      </select>
     </span>
+    <span class="c4-spacer"></span>
+    <button type="button" id="c4-nav-toggle" class="c4-navbtn" aria-pressed="false"
+            title="隐藏左侧导航栏，让公式卡片占满整个屏幕">隐藏侧栏</button>
   </div>
 
-  <!-- 练习总览：KPI + 色带 + 彩色看板 -->
+  <!-- 练习总览：紧凑仪表盘（一行：KPI + 色带 + TOP10 折叠） -->
   <section id="c4-dash" class="c4-dash">
-    <div class="c4-dash__head">
-      <span class="c4-dash__title">训练总览</span>
-      <span class="c4-dash__std">浮动基准（已练公式 <b id="c4-bench-metric">最近一次</b> 中位数）<b id="c4-bench">--</b></span>
-    </div>
+    <span class="c4-dash__title">训练总览</span>
+    <span class="c4-dash__std">基准 <b id="c4-bench">--</b><i id="c4-bench-metric">最近一次</i></span>
     <div class="c4-kpis" id="c4-kpis"></div>
-    <div class="c4-grad" aria-hidden="true"></div>
-    <div class="c4-grad-ticks" id="c4-grad-ticks">
-      <span style="left:0%">0.65×</span>
-      <span style="left:18%">0.85× 优秀</span>
-      <span style="left:40%">0.95× 良好</span>
-      <span style="left:58%">1.00× 基准</span>
-      <span style="left:78%">1.10×</span>
-      <span style="left:90%">1.15× 需关注</span>
-      <span style="left:100%">1.30×+ 不合格</span>
-    </div>
-
-    <div class="c4-top" id="c4-top" hidden>
-      <div class="c4-dash__head"><span class="c4-dash__title">🎯 最慢 TOP 10 · 建议重点练习</span></div>
+    <span class="c4-gradbox">
+      <span class="c4-grad" aria-hidden="true"></span>
+      <span class="c4-grad-ticks" id="c4-ticks"></span>
+    </span>
+    <details class="c4-top" id="c4-top">
+      <summary>🎯 最慢 TOP 10</summary>
       <div class="c4-top__list" id="c4-top-list"></div>
-    </div>
+    </details>
   </section>
 
   <div id="c4-board" class="c4-board-wrap"><div class="c4-board"></div></div>
 
-  <!-- 矩阵总览：横向铺满，每块标注 行·列（参考索引，点击看公式） -->
+  <!-- 矩阵总览：公式矩阵（点格直接进计时练习） -->
+  <div class="c4-mx-dash" id="c4-mx-dash" hidden>
+    <span class="c4-dash__title">训练总览</span>
+    <span class="c4-dash__std">基准 <b id="c4-mx-bench">--</b><i id="c4-mx-bench-metric">最近一次</i></span>
+    <div class="c4-kpis" id="c4-mx-kpis"></div>
+    <span class="c4-gradbox">
+      <span class="c4-grad" aria-hidden="true"></span>
+      <span class="c4-grad-ticks" id="c4-mx-ticks"></span>
+    </span>
+    <details class="c4-top" id="c4-mx-top">
+      <summary>🎯 最慢 TOP 10</summary>
+      <div class="c4-top__list" id="c4-mx-top-list"></div>
+    </details>
+  </div>
   <div class="c4-matrix" id="c4-matrix" hidden></div>
 
 </div>
@@ -98,6 +105,7 @@
       <select id="c4-p-select" class="c4-pmodal__select" aria-label="选择公式"></select>
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-next" title="下一式">→</button>
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-chain" aria-pressed="false" title="连练：停表后自动进入下一条">连练</button>
+      <button type="button" class="c4-pmodal__navbtn" id="c4-p-detail" title="查看本条公式详情（含反向公式）">详情</button>
       <span class="c4-spacer"></span>
       <span class="c4-pmodal__hint">按住空格 0.5s 后松开开始</span>
       <button type="button" class="c4-pmodal__close" id="c4-p-close" aria-label="关闭">×</button>
@@ -339,46 +347,84 @@
     return { lo: Math.max(0.3, mid - span / 2), hi: Math.min(2.0, mid + span / 2) };
   }
 
-  /* ============ 看板（练习总览） ============ */
-  function renderBoard() {
+  /* ============ 统计集中计算（看板 / 矩阵 / 仪表盘共用一份，口径永远一致） ============ */
+  function computeAll() {
     var stats = {};
     ALL.forEach(function (c) { stats[c] = statsOf(c); });
-
     var practiced = ALL.filter(function (c) { return stats[c].n > 0 && isFinite(stats[c].metric()); });
     var bench = median(practiced.map(function (c) { return stats[c].metric(); }));
-    document.getElementById('c4-bench').textContent = fmtTime(bench);
-    document.getElementById('c4-bench-metric').textContent =
-      metricMode === 'session' ? '最近一次' : (metricMode === 'best' ? '最快' : '全部均');
+    var practicedStats = ALL.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
+    var range = colorRange(practicedStats, bench);
+    return { stats: stats, practiced: practiced, bench: bench, range: range };
+  }
 
-    // KPI
+  /* 搜索 + 筛选的命中集合：矩阵视图用来高亮/压暗，看板视图用来过滤列表 */
+  function matchSet(stats, bench) {
+    var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
+    var set = {};
+    ALL.forEach(function (c) {
+      var ok = true;
+      if (filterMode === 'todo') { ok = stats[c].n === 0; }
+      else if (filterMode === 'weak') {
+        var t = tierOf(stats[c].metric(), bench);
+        ok = stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
+      }
+      if (ok && q) { ok = c.indexOf(q) >= 0 || (D.algs[c] || '').toUpperCase().indexOf(q) >= 0; }
+      if (ok) { set[c] = true; }
+    });
+    return set;
+  }
+
+  /* 紧凑仪表盘：同一份渲染写进看板区或矩阵区（prefix = 'c4-' / 'c4-mx-'） */
+  function renderDash(A, prefix) {
+    var $ = function (n) { return document.getElementById(prefix + n); };
+    var stats = A.stats, bench = A.bench, range = A.range;
+    $('bench').textContent = fmtTime(bench);
+    $('bench-metric').textContent = metricMode === 'session' ? '最近一次' : (metricMode === 'best' ? '最快' : '全部均');
     var totalN = 0;
     ALL.forEach(function (c) { totalN += stats[c].n; });
-    var weak = ALL.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-bad'; }).length;
-    var warn = ALL.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-warn'; }).length;
-    document.getElementById('c4-kpis').innerHTML =
-      '<div class="c4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + practiced.length + ' / ' + ALL.length + '</div></div>' +
+    var weak = 0, warn = 0;
+    ALL.forEach(function (c) {
+      if (stats[c].n === 0) { return; }
+      var t = tierOf(stats[c].metric(), bench);
+      if (t === 't-bad') { weak++; } else if (t === 't-warn') { warn++; }
+    });
+    $('kpis').innerHTML =
+      '<div class="c4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + A.practiced.length + ' / ' + ALL.length + '</div></div>' +
       '<div class="c4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
       '<div class="c4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
       '<div class="c4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
+    $('ticks').innerHTML =
+      '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
+      '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
+      '<span style="left:100%">' + range.hi.toFixed(2) + '×</span>';
 
-    // TOP10 最慢
-    var ranked = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+    // TOP10 最慢（details 折叠，无成绩时整体收起）
+    var topBox = $('top');
+    var ranked = A.practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
     var top = ranked.slice(0, 10);
-    var topBox = document.getElementById('c4-top');
     if (top.length) {
-      topBox.hidden = false;
-      document.getElementById('c4-top-list').innerHTML = top.map(function (c, i) {
+      topBox.classList.remove('is-empty');
+      $('top-list').innerHTML = top.map(function (c, i) {
         return '<button type="button" class="c4-top__item" data-code="' + c + '">' +
           '<span class="c4-top__rank">#' + (i + 1) + '</span><b>' + c + '</b>' +
-          '<span style="color:var(--fg-3);font-size:12px">' + fmtTime(stats[c].metric()) + '</span></button>';
+          '<span class="c4-top__ms">' + fmtTime(stats[c].metric()) + '</span></button>';
       }).join('');
     } else {
-      topBox.hidden = true;
+      topBox.classList.add('is-empty');
+      $('top-list').innerHTML = '';
     }
+  }
 
-    // 组装显示列表
+  /* ============ 看板（练习总览）：横版一屏铺满，卡片带公式 ============ */
+  function renderBoard() {
+    var A = computeAll();
+    var stats = A.stats, bench = A.bench, range = A.range;
+    renderDash(A, 'c4-');
+
+    // 组装显示列表（筛选 → 排序 → 搜索）
     var list = ALL.slice();
-    if (filterMode === 'todo') list = list.filter(function (c) { return stats[c].n === 0; });
+    if (filterMode === 'todo') { list = list.filter(function (c) { return stats[c].n === 0; }); }
     if (filterMode === 'weak') {
       list = list.filter(function (c) {
         var t = tierOf(stats[c].metric(), bench);
@@ -386,19 +432,19 @@
       });
     }
     if (sortMode === 'slow') {
-      list = list.slice().sort(function (a, b) { return statsB(b) - statsB(a); });
+      list.sort(function (a, b) {
+        var x = stats[b].metric(), y = stats[a].metric();
+        return (isFinite(x) ? x : -1) - (isFinite(y) ? y : -1);
+      });
     } else if (sortMode === 'practice') {
-      list = list.slice().sort(function (a, b) {
+      list.sort(function (a, b) {
         var na = stats[a].n, nb = stats[b].n;
-        if (na !== nb) return nb - na;
+        if (na !== nb) { return nb - na; }
         var ma = stats[a].metric(), mb = stats[b].metric();
-        if (isFinite(ma) && isFinite(mb)) return mb - ma;
+        if (isFinite(ma) && isFinite(mb)) { return mb - ma; }
         return isFinite(ma) ? -1 : 1;
       });
     }
-    function statsB(c) { var m = stats[c].metric(); return isFinite(m) ? m : -1; }
-
-    // 搜索（按 code / 公式文本）
     var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
     if (q) {
       list = list.filter(function (c) {
@@ -406,21 +452,20 @@
       });
     }
 
-    var practicedStats = ALL.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
-    var range = colorRange(practicedStats, bench);
-
     var cellsHtml = list.map(function (c) {
       var st = stats[c];
       var m = st.metric();
       var r = isFinite(m) && isFinite(bench) && bench > 0 ? m / bench : NaN;
       var col = colorByRatio(r, range);
+      var alg = D.algs[c] || '';
       var title = (st.n
-        ? (c + ' · ' + fmtTime(m) + ' · ' + st.n + ' 次 · r=' + (isFinite(r) ? r.toFixed(2) : '--') + '× 基准')
-        : (c + ' · 未练习'));
+        ? (c + ' · ' + alg + ' · ' + fmtTime(m) + ' · ' + st.n + ' 次')
+        : (c + ' · ' + alg + ' · 未练习'));
       var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
       return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
         'style="background:' + col.bg + ';color:' + col.fg + '" title="' + esc(title) + '">' +
         '<span class="c-code">' + c + '</span>' +
+        '<span class="c-alg">' + (alg ? fmtAlgCell(alg) : '') + '</span>' +
         '<span class="c-ms">' + (st.n ? fmtTime(m) : '--') + '</span>' +
         '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
         '</a>';
@@ -428,17 +473,6 @@
 
     document.querySelector('.c4-board').innerHTML =
       cellsHtml || '<div class="c4-empty">没有符合筛选条件的公式。</div>';
-
-    // 色带刻度
-    var ticks = document.getElementById('c4-grad-ticks');
-    if (ticks && range) {
-      ticks.innerHTML =
-        '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
-        '<span style="left:25%">' + (range.lo + (range.hi - range.lo) * 0.25).toFixed(2) + '×</span>' +
-        '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
-        '<span style="left:75%">' + (range.lo + (range.hi - range.lo) * 0.75).toFixed(2) + '×</span>' +
-        '<span style="left:100%">' + range.hi.toFixed(2) + '×</span>';
-    }
 
     scheduleFit();
   }
@@ -480,6 +514,13 @@
   }
 
   function renderMatrix() {
+    var A = computeAll();
+    var stats = A.stats, bench = A.bench, range = A.range;
+    renderDash(A, 'c4-mx-');
+    // 有搜索/筛选时：命中格高亮，其余压暗
+    var mset = matchSet(stats, bench);
+    var hasFilter = filterMode !== 'all' || !!(document.getElementById('c4-q').value || '').trim();
+
     var h = '<div class="mx-grid">';
     h += '<div class="mx-corner" title="行 = 首字母 · 列 = 次字母">\\</div>';
     ORDER.forEach(function (c) {
@@ -490,10 +531,22 @@
       ORDER.forEach(function (col) {
         var code = row + col;
         var alg = D.algs[code] || '';
-        var cls = 'mx', tip = '', inner = '';
+        // 每格都带组色：--gc 既画左缘色条，也供未练格的淡底使用
+        var cls = 'mx ' + gclass(col), tip = '', inner = '', style = '';
         if (alg) {
-          cls += ' on ' + gclass(col);
-          tip = code + '　' + alg;
+          var st = stats[code];
+          var m = st.metric();
+          var r = (st.n && isFinite(m) && isFinite(bench) && bench > 0) ? m / bench : NaN;
+          if (isFinite(r)) {
+            // 已练：连续渐变色（绿=快 → 红=慢），与看板同一套 colorByRatio
+            var col2 = colorByRatio(r, range);
+            cls += ' spd ' + col2.tier;
+            style = 'background:' + col2.bg + ';color:' + col2.fg;
+            tip = code + '　' + alg + '　' + fmtTime(m) + ' · ' + st.n + ' 次 · ' + r.toFixed(2) + '× 基准';
+          } else {
+            cls += ' on';   // 未练：组色淡底，保持原表观感
+            tip = code + '　' + alg + '　未练习';
+          }
           inner = fmtAlgCell(alg);
         } else if (row === col) {
           cls += ' self';
@@ -505,8 +558,10 @@
           cls += ' grp';
           tip = code + '　同组内，不生成公式';
         }
+        if (hasFilter) { cls += mset[code] ? ' hit' : ' dim'; }
         var attr = alg ? ' data-code="' + code + '"' : ' disabled';
-        h += '<button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr + '>' + inner + '</button>';
+        h += '<button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr +
+             (style ? ' style="' + style + '"' : '') + '>' + inner + '</button>';
       });
     });
     h += '</div>';
@@ -522,13 +577,16 @@
     });
     var board = (v === 'board');
     document.getElementById('c4-dash').hidden = !board;
+    document.getElementById('c4-mx-dash').hidden = board;
     document.getElementById('c4-board').hidden = !board;
     document.getElementById('c4-matrix').hidden = board;
     var wrap = document.querySelector('.c4-wrap');
     if (wrap) { wrap.classList.toggle('is-mx', !board); }
     document.body.classList.toggle('is-mx', !board);
-    if (board) { lockScroll(false); scheduleFit(); }
-    else { scheduleFitMatrix(); }
+    document.body.classList.toggle('is-board', board);
+    // 切视图必须重渲染：搜索/筛选/指标的改动发生在另一个视图时，这边还是旧列表
+    if (board) { renderBoard(); lockScroll(false); scheduleFit(); }
+    else { renderMatrix(); scheduleFitMatrix(); }
   }
 
   /* ============ 详情浮层（矩阵参考） ============ */
@@ -863,30 +921,41 @@
   }
 
   /* ============ 事件 ============ */
+  /* 当前视图重绘（搜索/指标/筛选/同步回写都走这里，保证两个视图口径一致） */
+  function renderCurrent() {
+    if (document.getElementById('c4-board').hidden) { renderMatrix(); }
+    else { renderBoard(); }
+  }
+
   function bind() {
     document.getElementById('c4-view').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-view]');
       if (b) { setView(b.getAttribute('data-view')); }
     });
-    document.getElementById('c4-q').addEventListener('input', renderBoard);
-    document.getElementById('c4-metric').addEventListener('change', function () { metricMode = this.value; renderBoard(); });
+    document.getElementById('c4-q').addEventListener('input', renderCurrent);
+    document.getElementById('c4-metric').addEventListener('change', function () { metricMode = this.value; renderCurrent(); });
     document.getElementById('c4-sort').addEventListener('change', function () { sortMode = this.value; renderBoard(); });
-    document.getElementById('c4-filter').addEventListener('change', function () { filterMode = this.value; renderBoard(); });
+    document.getElementById('c4-filter').addEventListener('change', function () { filterMode = this.value; renderCurrent(); });
 
     // 看板方块 → 练习浮层
     document.getElementById('c4-board').addEventListener('click', function (e) {
       var b = e.target.closest('.c4-bcell');
       if (b) { pOpenFor(b.getAttribute('data-code')); }
     });
-    // 矩阵方块 → 详情浮层（参考）
+    // 矩阵方块 → 直接进计时练习（矩阵就是练习视图）
     document.getElementById('c4-matrix').addEventListener('click', function (e) {
       var b = e.target.closest('.mx[data-code]');
-      if (b) { openModal(b.getAttribute('data-code')); }
-    });
-    // TOP10 → 练习浮层
-    document.getElementById('c4-top-list').addEventListener('click', function (e) {
-      var b = e.target.closest('.c4-top__item');
       if (b) { pOpenFor(b.getAttribute('data-code')); }
+    });
+    // 两处 TOP10 → 练习浮层
+    ['c4-top-list', 'c4-mx-top-list'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('click', function (e) {
+          var b = e.target.closest('.c4-top__item');
+          if (b) { pOpenFor(b.getAttribute('data-code')); }
+        });
+      }
     });
 
     // 详情浮层
@@ -908,6 +977,10 @@
     document.getElementById('c4-p-close').addEventListener('click', pClose);
     document.getElementById('c4-p-prev').addEventListener('click', function () { pStep(-1); });
     document.getElementById('c4-p-next').addEventListener('click', function () { pStep(1); });
+    // 练习浮层 → 只读详情（反向公式 / 所属组）
+    document.getElementById('c4-p-detail').addEventListener('click', function () {
+      if (pCurrent) { openModal(pCurrent); }
+    });
     pSelect.addEventListener('change', function () { pLoadCode(pSelect.value); });
     // 连练模式
     document.getElementById('c4-p-chain').addEventListener('click', function () {
@@ -958,25 +1031,29 @@
       else if (pState === 'done' || pState === 'idle') pStartTimer();
     });
 
-    // 键盘：练习浮层内
+    // 键盘：从最上层开始逐层退（详情浮层 → 全屏计时 → 练习浮层）
     document.addEventListener('keydown', function (e) {
-      if (pmodal.classList.contains('is-open')) {
-        if (e.key === 'Escape') {
-          // 全屏开着时 Esc 只退全屏，不关整个练习浮层
-          if (!fsEl.hidden) { fsClose(); e.preventDefault(); return; }
-          pClose(); e.preventDefault(); return;
-        }
-        var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
-        if (isSpace && !e.repeat) { pKeydownHold(); e.preventDefault(); return; }
-        if (isFormFocus(e.target)) return;
-        if (pState === 'running' || pState === 'prep' || pState === 'green') return;
-        if (e.key === 'ArrowLeft') { pStep(-1); e.preventDefault(); }
-        else if (e.key === 'ArrowRight') { pStep(1); e.preventDefault(); }
-      } else if (document.getElementById('c4-modal').classList.contains('is-open')) {
-        if (e.key === 'Escape') { closeModal(); }
-        if (e.key === 'ArrowLeft') { stepModal(-1); }
-        if (e.key === 'ArrowRight') { stepModal(1); }
+      var mOpen = document.getElementById('c4-modal').classList.contains('is-open');
+      var pOpen = pmodal.classList.contains('is-open');
+      if (mOpen) {
+        // 最上层：只读详情（Esc 关；←/→ 翻条）
+        if (e.key === 'Escape') { closeModal(); e.preventDefault(); }
+        else if (e.key === 'ArrowLeft') { stepModal(-1); e.preventDefault(); }
+        else if (e.key === 'ArrowRight') { stepModal(1); e.preventDefault(); }
+        return;
       }
+      if (!pOpen) { return; }
+      if (e.key === 'Escape') {
+        // 全屏开着时 Esc 只退全屏，不关整个练习浮层
+        if (!fsEl.hidden) { fsClose(); } else { pClose(); }
+        e.preventDefault(); return;
+      }
+      var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
+      if (isSpace && !e.repeat) { pKeydownHold(); e.preventDefault(); return; }
+      if (isFormFocus(e.target)) return;
+      if (pState === 'running' || pState === 'prep' || pState === 'green') return;
+      if (e.key === 'ArrowLeft') { pStep(-1); e.preventDefault(); }
+      else if (e.key === 'ArrowRight') { pStep(1); e.preventDefault(); }
     });
     document.addEventListener('keyup', function (e) {
       if (!pmodal.classList.contains('is-open')) return;
@@ -1000,35 +1077,151 @@
     } else { toast('浏览器不支持自动复制'); }
   }
 
-  /* ============ 自适应铺满（仿 440 fitBoard，按宽度铺满 + 舒适格高） ============ */
-  var fitRaf = 0, GAP = 6, TARGET = 82;
+  /* ============ 看板铺满（移植 440 fitBoard：宽高双轴 + 末行拉伸 + 锁滚动） ============ */
+  /* MIN_CELL=34：435 张卡在 1440×900 正好 29 列 × 15 行整除（cellW 34.4 / cellH 33.6），
+     卡片带三行信息（字母对+公式+成绩），再小公式就成噪点了；窗口更矮时按 440 的规矩
+     退化成「宽度铺满 + 竖向滚动」，绝不把格子压到不可读。 */
+  var fitRaf = 0, GAP = 5, MIN_CELL = 34, MAX_CELL = 116, MAX_ASPECT = 1.34;
   function scheduleFit() {
     if (fitRaf) cancelAnimationFrame(fitRaf);
     fitRaf = requestAnimationFrame(fitBoard);
   }
+  function divisors(n) {
+    var out = [];
+    for (var i = 1; i * i <= n; i++) {
+      if (n % i === 0) { out.push(i); if (i !== n / i) { out.push(n / i); } }
+    }
+    return out.sort(function (a, b) { return a - b; });
+  }
   function fitBoard() {
     var board = document.querySelector('.c4-board');
-    if (!board) return;
-    var n = board.children.length;
-    if (!n) return;
+    if (!board || document.getElementById('c4-board').hidden) { return; }
+    var cells = board.children;
+    var n = cells.length;
+    if (!n) { return; }
+
+    // 可用宽度：以 board 自身 clientWidth 为准（侧栏骨架异步注入后的真实值）
     var cs = getComputedStyle(board);
     var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
-    var availW = board.clientWidth ? (board.clientWidth - padX - 2) : (document.documentElement.clientWidth - 240 - 32);
+    var availW = board.clientWidth ? (board.clientWidth - padX - 2)
+                                   : (document.documentElement.clientWidth - 240 - 32);
     availW = Math.max(240, availW);
-    var cols = Math.max(1, Math.floor((availW + GAP) / (TARGET + GAP)));
-    cols = Math.min(cols, 30);
-    var cellW = (availW - (cols - 1) * GAP) / cols;
-    if (cellW < 48) { cols = Math.max(1, Math.floor((availW + GAP) / (48 + GAP))); cellW = (availW - (cols - 1) * GAP) / cols; }
-    var cellH = Math.round(cellW * 0.78);
-    board.style.setProperty('--c4-cell-w', cellW.toFixed(2) + 'px');
-    board.style.setProperty('--c4-cell-h', cellH.toFixed(2) + 'px');
-    for (var k = 0; k < n; k++) {
-      var el = board.children[k];
-      if (el && el.classList && el.classList.contains('c4-bcell')) {
-        el.style.width = cellW.toFixed(2) + 'px';
-        el.style.height = cellH.toFixed(2) + 'px';
+
+    // 可用高度：视口高 - 板顶偏移 - 板下尾距（逐项相加，不能用 scrollHeight 反推）
+    var rect = board.getBoundingClientRect();
+    var topSpace = Math.max(0, rect.top);
+    var boardMB = parseFloat(cs.marginBottom) || 0;
+    // ⚠️ .c4-board-wrap 有 padding:4px 0，底边那 4px 在板底 margin 之外，漏算就整页高出 4px
+    var wrapEl = document.querySelector('.c4-board-wrap');
+    var wrapPB = 0, wrapBB = 0;
+    if (wrapEl) {
+      var wcs = getComputedStyle(wrapEl);
+      wrapPB = parseFloat(wcs.paddingBottom) || 0;
+      wrapBB = parseFloat(wcs.borderBottomWidth) || 0;
+    }
+    var bodyPB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    var availH = Math.max(200, window.innerHeight - topSpace - Math.ceil(boardMB + wrapPB + wrapBB + bodyPB) - 2);
+
+    var isNarrow = window.innerWidth < 640;
+    var minCell = isNarrow ? 30 : MIN_CELL;      // 手机放宽下限，尽量多排列
+    var maxCell = isNarrow ? 96 : MAX_CELL;
+    var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minCell + GAP))));
+
+    // 一屏铺满：宽高各自精确分配，cell = min(cellW,cellH) 取最大 → 面积利用率最高
+    function planFor(cols) {
+      var rows = Math.ceil(n / cols);
+      var rem = n - cols * (rows - 1);
+      var cellW = (availW - (cols - 1) * GAP) / cols;
+      var cellH = (availH - (rows - 1) * GAP) / rows;
+      var lo = Math.min(cellW, cellH), hi = Math.max(cellW, cellH);
+      var tailRatio = rem === 0 ? 1 : ((availW - (rem - 1) * GAP) / rem) / cellW;
+      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellH,
+               cell: lo, aspect: hi / lo, tailRatio: tailRatio, fitsH: true };
+    }
+    // 退让：只按宽度铺满（竖向放开滚动），格子保持正方
+    function widthPlanFor(cols) {
+      var rows = Math.ceil(n / cols);
+      var rem = n - cols * (rows - 1);
+      var cellW = (availW - (cols - 1) * GAP) / cols;
+      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellW,
+               cell: cellW, aspect: 1, tailRatio: rem === 0 ? 1 : cols / rem, fitsH: false };
+    }
+
+    var best = null;
+    for (var c = 1; c <= maxColsByW; c++) {
+      var p = planFor(c);
+      if (p.cell < minCell || p.cell > maxCell) { continue; }
+      if (p.aspect > MAX_ASPECT) { continue; }
+      if (p.tailRatio > 3) { continue; }
+      if (!best || p.cell > best.cell * 1.02) { best = p; continue; }
+      if (p.cell >= best.cell * 0.98) {
+        var better;
+        if ((p.rem === 0) !== (best.rem === 0)) { better = (p.rem === 0); }
+        else if (Math.abs(p.tailRatio - best.tailRatio) > 0.03) { better = p.tailRatio < best.tailRatio; }
+        else if (Math.abs(p.aspect - best.aspect) > 0.02) { better = p.aspect < best.aspect; }
+        else { better = p.cell > best.cell; }
+        if (better) { best = p; }
       }
     }
+    if (!best) {   // 一屏物理装不下 → 宽度铺满
+      // 桌面优先整除列（末行满格、不用拉伸）；窄屏直接取列数最多 —— 435 张卡在手机上
+      // 的整除列只有 5 列，会白白多出近一倍滚动高度，不如多排几列。
+      if (isNarrow) {
+        for (var c3 = maxColsByW; c3 >= 1; c3--) {
+          var w3 = widthPlanFor(c3);
+          if (w3.cell < minCell || w3.cell > maxCell) { continue; }
+          best = w3; break;
+        }
+      } else {
+        var divs = divisors(n);
+        for (var i = 0; i < divs.length; i++) {
+          if (divs[i] > maxColsByW) { break; }
+          var w1 = widthPlanFor(divs[i]);
+          if (w1.cell < minCell || w1.cell > maxCell) { continue; }
+          if (!best || w1.cols > best.cols) { best = w1; }
+        }
+      }
+    }
+    if (!best) {   // 任意列数里取「合法范围内列数最多」
+      for (var c2 = maxColsByW; c2 >= 1; c2--) {
+        var w2 = widthPlanFor(c2);
+        if (w2.cell < minCell || w2.cell > maxCell) { continue; }
+        best = w2; break;
+      }
+    }
+    if (!best) {   // 兜底：最大列数 + 最小格宽
+      var p3 = widthPlanFor(maxColsByW);
+      var cc = Math.max(minCell, Math.min(p3.cellW, maxCell));
+      best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cellW: cc, cellH: cc,
+               cell: cc, aspect: 1, tailRatio: 1, fitsH: false };
+    }
+
+    // 末行拉伸：宽度不超过常规格 3 倍才铺，否则保持原宽居中
+    var tailW = 0;
+    if (best.rem > 0 && best.rem < best.cols) {
+      var t = (availW - (best.rem - 1) * GAP) / best.rem;
+      if (t <= best.cellW * 3) { tailW = t; }
+    }
+
+    board.style.setProperty('--c4-cell-w', best.cellW.toFixed(2) + 'px');
+    board.style.setProperty('--c4-cell-h', best.cellH.toFixed(2) + 'px');
+    board.style.setProperty('--c4-cell', best.cell.toFixed(2) + 'px');
+    if (tailW > 0) { board.style.setProperty('--c4-tail', tailW.toFixed(2) + 'px'); }
+    else { board.style.removeProperty('--c4-tail'); }
+    for (var k = 0; k < n; k++) {
+      var el = cells[k];
+      if (!el || !el.classList) { continue; }
+      if (tailW > 0 && k >= n - best.rem) { el.classList.add('is-tail'); }
+      else { el.classList.remove('is-tail'); }
+    }
+
+    // 卡片内三行文字的字号：由格宽反推（公式按较长段 p90 估算）
+    var algFs = (best.cellW - 4) / (HALF_LEN * 0.55);
+    var base = Math.max(4.5, Math.min(algFs, best.cellH * 0.30));
+    board.style.setProperty('--c4-fs', base.toFixed(2) + 'px');
+
+    // 竖向：一屏装得下才锁滚动；装不下必须放开，否则下方格子永远看不到
+    lockScroll(best.fitsH);
   }
 
   /* ============ 公式矩阵：一屏铺满（宽高双轴 + 字号反推 + 锁滚动，仿 440） ============ */
@@ -1088,16 +1281,42 @@
     lockScroll(!scroll);
   }
 
+  /* ============ 左侧导航隐藏（整屏铺满卡片） ============ */
+  var NAV_KEY = 'c4_nav_hidden_v1';
+  function applyNavState(hidden) {
+    document.body.classList.toggle('nav-hidden', hidden);
+    var btn = document.getElementById('c4-nav-toggle');
+    if (btn) {
+      btn.textContent = hidden ? '显示侧栏' : '隐藏侧栏';
+      btn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+    }
+  }
+  function initNavToggle() {
+    var btn = document.getElementById('c4-nav-toggle');
+    if (!btn) { return; }
+    var hidden = false;
+    try { hidden = localStorage.getItem(NAV_KEY) === '1'; } catch (e) {}
+    applyNavState(hidden);
+    btn.addEventListener('click', function () {
+      hidden = !document.body.classList.contains('nav-hidden');
+      applyNavState(hidden);
+      try { localStorage.setItem(NAV_KEY, hidden ? '1' : '0'); } catch (e) {}
+      fitAll();
+    });
+  }
+
   /* ============ 启动 ============ */
   document.getElementById('c4-count').textContent = ALL.length;
+  initNavToggle();
   renderBoard();
   renderMatrix();
   fillPSelect();
-  setView('matrix');   // 默认进公式矩阵（23×23 一屏）
+  setView('matrix');   // 默认进公式矩阵（23×23 一屏，点格即练）
   bind();
 
   function fitAll() { scheduleFit(); scheduleFitMatrix(); }
   window.addEventListener('resize', fitAll);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitAll); }
   if (typeof ResizeObserver !== 'undefined') {
     var roTimer = 0;
     var ro = new ResizeObserver(function () { clearTimeout(roTimer); roTimer = setTimeout(fitAll, 60); });
@@ -1106,6 +1325,8 @@
     if (wrapEl) ro.observe(wrapEl);
     var mxEl = document.getElementById('c4-matrix');
     if (mxEl) ro.observe(mxEl);
+    var dashEl = document.getElementById('c4-mx-dash');
+    if (dashEl) ro.observe(dashEl);
   }
   setTimeout(fitAll, 0);
 
@@ -1117,7 +1338,7 @@
     var st = e && e.detail && e.detail['4bld-center'];
     if (!st || !st.result || st.result.kind !== 'downloaded') { return; }
     try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (err) { return; }
-    renderBoard();
+    renderCurrent();
     if (pmodal.classList.contains('is-open')) { pRefreshHistory(); }
   });
   if (window.SyncBoot) {
