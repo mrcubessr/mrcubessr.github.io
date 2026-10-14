@@ -200,6 +200,17 @@
 @media (max-width:600px){ .rd-row-grid{grid-template-columns:1fr} .rd-panel{max-width:100%} }
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--on-brand);padding:12px 24px;border-radius:0;font-size:15px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
+  /* 手机端计分专用：每行 4 个，方块加高（非正方形）保证名字/学号可读 */
+  @media (max-width:640px){
+    #view-score .grid{gap:8px}
+    #view-score .kid{aspect-ratio:4/5.4;padding:6px 3px 5px}
+    #view-score .kid .num{font-size:36px}
+    #view-score .kid .name{font-size:13px;margin-top:2px}
+    #view-score .kid .nick{font-size:10.5px}
+    #view-score .kid .sid{font-size:9px}
+    #view-score .kid .undo{font-size:11px;padding:1px 7px;top:3px;right:3px}
+  }
+
   /* ===== 课堂宠物体系 ===== */
   .pet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,15vw,200px),1fr));gap:clamp(10px,1.2vw,16px)}
   .pet-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.15s;min-height:clamp(190px,19vw,238px);text-align:center}
@@ -270,6 +281,7 @@
   <nav id="nav">
     <button class="nbtn" data-view="home">首页</button>
     <button class="nbtn" data-view="score">课堂计分</button>
+    <button class="nbtn" data-view="archive">课次存档</button>
     <button class="nbtn" data-view="progress">学习进度</button>
     <button class="nbtn" data-view="students">学生管理</button>
     <button class="nbtn" data-view="course">课程知识点</button>
@@ -307,6 +319,7 @@
         <h2 style="margin:0">课堂计分</h2>
         <span class="meta" id="scoreMeta">—</span>
         <span class="meta">本节累计：<b id="scoreTotal" style="color:var(--primary)">0</b> 次</span>
+        <span class="meta" id="syncBadge" style="cursor:help" title="电脑与手机登录同一账号（右上角账号面板）后，加分会自动互同步">自动同步</span>
         <label class="meta">排列：<select id="scoreSort" style="padding:5px 10px;border-radius:0;border:1px solid var(--border);font-size:13px;color:var(--text-2)">
           <option value="sid">按学号</option>
           <option value="score">按积分</option>
@@ -316,6 +329,30 @@
         <button id="finishBtn">完成本节课</button>
       </div>
       <div id="scoreGrid" class="grid"></div>
+    </div>
+  </div>
+
+  <!-- 课次存档（日历视图，逻辑在 archive.js） -->
+  <div class="view" id="view-archive">
+    <div class="card">
+      <div class="scorebar">
+        <h2 style="margin:0">📅 课次存档</h2>
+        <span class="meta" id="arcMeta">—</span>
+        <div style="flex:1"></div>
+        <button class="btn btn--ghost btn--sm" id="arcPrev">← 上月</button>
+        <span class="meta" id="arcMonth" style="min-width:90px;text-align:center;font-weight:600">—</span>
+        <button class="btn btn--ghost btn--sm" id="arcNext">下月 →</button>
+        <button class="btn btn--ghost btn--sm" id="arcToday">回到本月</button>
+      </div>
+      <div id="arcCalendar"></div>
+    </div>
+    <div class="card" id="arcDetailCard" style="display:none">
+      <div class="scorebar">
+        <h3 style="margin:0" id="arcDetailTitle">课次明细</h3>
+        <div style="flex:1"></div>
+        <button class="btn btn--ghost btn--sm" id="arcDetailClose">关闭</button>
+      </div>
+      <div id="arcDetailBody"></div>
     </div>
   </div>
 
@@ -354,7 +391,8 @@
         <h2 style="margin:0">学生管理</h2>
         <span class="meta" id="stuMeta">—</span>
         <div style="flex:1"></div>
-        <button class="btn btn--ghost btn--sm" id="clearScores" style="color:var(--red)">批量清零积分（本班）</button>
+        <button class="btn btn--ghost btn--sm" id="clearScores" style="color:var(--red)" title="只把本班每人的累计积分与可用余额归零；课次存档、练习统计、学习进度全部保留">清零积分（保留课次）</button>
+        <button class="btn btn--ghost btn--sm" id="clearArchive" style="color:var(--red)" title="删除本班全部已归档课次与计数，并清零积分；学习进度掌握状态不受影响">清除课次存档</button>
       </div>
       <h3>添加学生</h3>
       <div class="row">
@@ -515,6 +553,7 @@
 
 <!-- GitHub 云端读写封装（页面内 GitHubStore 依赖它；此前缺失导致 "GitHubStore is not defined"） -->
 <script src="github-store.js"></script>
+<script src="archive.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script>
 /* ============ 数据层 ============ */
@@ -687,7 +726,7 @@ function freshDB(){
     {id:14,courseId:3,name:'特殊公式',order:3},
     {id:15,courseId:3,name:'全复原',order:4}
   ];
-  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],pets:[],pointLogs:[],version:1,nextId:100,rate:1};
+  return {classes,courses,skills,students:[],sessions:[],tallies:[],progress:[],radar:[],pets:[],pointLogs:[],version:1,nextId:100,rate:1,tomb:[]};
 }
 let DB=null, curClass=null, curSessionId=null, stuChart=null, stuSort='sid', scoreSort='sid', curStuId=null, prevView='students', stuRadarCharts={}, progCourseId='all', progChartType='bar', progCharts=[], curStuCourseId='overview';
 
@@ -696,6 +735,8 @@ function load(){
   if(!DB.radar)DB.radar=[];
   if(!DB.pets)DB.pets=[];        // 兼容旧库：宠物体系后加，老数据补空集合
   if(!DB.pointLogs)DB.pointLogs=[];
+  if(!DB.tomb)DB.tomb=[];      // 兼容旧库：删除/清零墓碑（多端同步用）
+  if(!DB.tomb)DB.tomb=[];        // 多端同步：删除/清零墓碑，防别端旧记录被合并复活
   if(!DB.version)DB.version=1; // 兼容旧库：无版本号旧数据补 1，不破坏既有数据
   migrateIds();                // 修复历史脏数据（字符串 id / 误点重复记录）
 }
@@ -711,11 +752,29 @@ function flushSave(){
 }
 // 页面卸载或切到后台前强制落盘，兜底漏存（D8/D9）
 window.addEventListener('beforeunload',flushSave);
-document.addEventListener('visibilitychange',function(){ if(document.hidden)flushSave(); });
-function uid(){ return DB.nextId++; }
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){flushSave();return;}
+  /* 从后台切回计分页：立刻拉一次云端，手机刚加的分马上补上（不等下一个轮询周期） */
+  if(document.getElementById('view-score')?.classList.contains('active')&&window.SyncEngine){
+    try{ SyncEngine.pull('class-teach'); }catch(e){}
+    if(window.refreshSyncBadge)window.refreshSyncBadge();
+  }
+});
+function uid(){
+  /* 多端同步：uid 带设备槽位偏移（10 亿起随机），避免两台设备各自计数生成同号记录、
+     深合并时把两条不同记录当成一条。历史数字 id（100 起）与新 id 不会相撞。 */
+  var slot=parseInt(localStorage.getItem('mf_dev_slot')||'0',10);
+  if(!slot){slot=1000000000+Math.floor(Math.random()*400000000);localStorage.setItem('mf_dev_slot',String(slot));}
+  return slot+(DB.nextId++);
+}
 function curClassId(){ return curClass?curClass.id:DB.classes[0].id; }
 function students(cId){ return DB.students.filter(s=>sameId(s.classId,cId)).sort(sidCmp); }
 function activeSession(cId){ return DB.sessions.find(s=>sameId(s.classId,cId)&&!s.settled); }
+/* 投屏日聚合：同一日期下所有未结算课次。电脑投屏 + 手机操作时，两端可能各建了一条
+   今日课次（设备槽 uid 不同）——显示与结算都按聚合值走，两端互相看得见分，
+   不会各玩各的；结算时一并归档，不会重复计分。 */
+function daySessionsOf(cId,date){ return DB.sessions.filter(s=>sameId(s.classId,cId)&&!s.settled&&s.date===date); }
+function dayCount(list,stuId){ let c=0; list.forEach(se=>{const t=getTally(se.id,stuId);if(t)c+=(t.count||0);}); return c; }
 function getTally(sessionId,studentId){ return DB.tallies.find(t=>sameId(t.sessionId,sessionId)&&sameId(t.studentId,studentId)); }
 function progOf(studentId,skillId){ return DB.progress.find(p=>sameId(p.studentId,studentId)&&sameId(p.skillId,skillId)); }
 function radarFind(stuId,cId){ return DB.radar.find(x=>sameId(x.studentId,stuId)&&sameId(x.courseId,cId))||null; }
@@ -766,7 +825,17 @@ function setView(name){
   document.querySelectorAll('#nav .nbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   document.body.classList.toggle('wide',name==='score'||name==='stuPage'||name==='pets');
   if(name==='home')renderHome();
-  if(name==='score')renderScore();
+  if(name==='score'){
+    renderScore();
+    /* 课堂投屏：电脑大屏计分、手机同步显示——进计分页开 2.5s 高频拉取，离开即停 */
+    try{
+      var _li=(window.Account&&Account.isLoggedIn&&Account.isLoggedIn())||(window.CBAuth&&CBAuth.isLoggedIn&&CBAuth.isLoggedIn());
+      if(_li&&window.SyncEngine)SyncEngine.fastPull('class-teach',2500);
+    }catch(e){}
+    if(window.refreshSyncBadge)window.refreshSyncBadge();
+  }
+  else if(window.SyncEngine){ try{SyncEngine.stopFastPull('class-teach');}catch(e){} }
+  if(name==='archive')ClassArchive.render();
   if(name==='progress')renderProgress();
   if(name==='students')renderStudents();
   if(name==='course')renderCourse();
@@ -832,9 +901,15 @@ function scoreCellSize(n){
   return Math.max(size,SCORE_MIN_CELL);  // 最小 86px 保证可读
 }
 /* 列数 / 行数推导：先按可用宽算出一行最多几个 86px 方块定列数上限，
-   再保证行数不超过可用高能放下的行数，避免竖向滚动。 */
+   再保证行数不超过可用高能放下的行数，避免竖向滚动。
+   手机端（≤640px）走专用分支：固定 4 列铺满宽度、允许竖向滚动——
+   方块加高保名字可读（见 CSS media query），解决窄屏被减到 2 列、一屏放不下的问题。 */
 function scoreLayout(n){
   const gap=SCORE_GAP;
+  if(window.innerWidth<=640){
+    const cols=Math.max(1,Math.min(4,n));
+    return {cols:cols,rows:Math.ceil(n/cols),gap:gap,mobile:true};
+  }
   let availW=0;
   const gridEl=document.getElementById('scoreGrid');
   const cardEl=gridEl&&gridEl.parentElement;
@@ -862,24 +937,31 @@ function renderScore(){
   let sess=activeSession(cId);
   if(!sess){sess={id:uid(),classId:cId,date:today(),settled:false};DB.sessions.push(sess);save();}
   curSessionId=sess.id;
+  /* 当日未结算课次聚合（投屏场景：两端各建一条也按总和显示） */
+  const dayList=daySessionsOf(cId,sess.date);
   meta.textContent=`${curClass.name} · ${sess.date}（点方块+1，点 −1 或右键减分）`;
   // 排列：按学号 / 按积分(本节计数降序，并列时学号升序)
   const sortMode=document.getElementById('scoreSort')?.value||'sid';
   const sorted=[...ss];
   if(sortMode==='score'){
-    sorted.sort((a,b)=>((getTally(sess.id,b.id)?.count||0)-(getTally(sess.id,a.id)?.count||0))||sidCmp(a,b));
+    sorted.sort((a,b)=>(dayCount(dayList,b.id)-dayCount(dayList,a.id))||sidCmp(a,b));
   }else{
     sorted.sort(sidCmp);
   }
   const lay=scoreLayout(sorted.length);
   const cols=lay.cols, gap=lay.gap;
   const size=scoreCellSize(sorted.length);
-  grid.style.gridTemplateColumns=`repeat(${cols},${size}px)`;
-  grid.style.gridAutoRows=`${size}px`;
+  if(lay.mobile){
+    // 手机端：4 列 1fr 铺满，高度交给 CSS aspect-ratio（方块加高保名字可读）
+    grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    grid.style.gridAutoRows='';
+  }else{
+    grid.style.gridTemplateColumns=`repeat(${cols},${size}px)`;
+    grid.style.gridAutoRows=`${size}px`;
+  }
   grid.style.justifyContent='center';
   grid.innerHTML=sorted.map(s=>{
-    const t=getTally(sess.id,s.id);
-    const cnt=t?t.count:0;
+    const cnt=dayCount(dayList,s.id);
     return `<div class="kid" data-sid="${s.id}" style="background:${s.color}">
       <div class="undo" data-undo="${s.id}">−1</div>
       <div class="num">${cnt}</div>
@@ -901,16 +983,55 @@ function bindScoreCards(){
   });
 }
 function inc(stuId){const t=getTally(curSessionId,stuId);if(t)t.count++;else DB.tallies.push({sessionId:curSessionId,studentId:stuId,count:1});save();renderScoreCounts();}
-function dec(stuId){const t=getTally(curSessionId,stuId);if(!t||t.count<=0)return;t.count--;save();renderScoreCounts();}
+function dec(stuId){
+  /* 减分优先减本机主课次；主课次没计数时（分记在别端同日课次）减别端那条，保证投屏场景 −1 生效 */
+  let t=getTally(curSessionId,stuId);
+  if(!t||t.count<=0){
+    const anchor=activeSession(curClassId());if(!anchor)return;
+    const dl=daySessionsOf(curClassId(),anchor.date);
+    for(const se of dl){const o=getTally(se.id,stuId);if(o&&o.count>0){t=o;break;}}
+  }
+  if(!t||t.count<=0)return;
+  t.count--;save();renderScoreCounts();
+}
 function renderScoreCounts(){//只更新数字，不重建
-  const sess=activeSession(curClassId());if(!sess)return;
-  students(curClassId()).forEach(s=>{const t=getTally(sess.id,s.id);const el=document.querySelector(`.kid[data-sid="${s.id}"] .num`);if(el)el.textContent=t?t.count:0;});
+  const anchor=activeSession(curClassId());if(!anchor)return;
+  const dayList=daySessionsOf(curClassId(),anchor.date);
+  students(curClassId()).forEach(s=>{const el=document.querySelector(`.kid[data-sid="${s.id}"] .num`);if(el)el.textContent=dayCount(dayList,s.id);});
+  reorderScoreGrid();   // 选了「按积分」时，加分/减分后名次实时重排
   updateScoreTotal();
 }
-function updateScoreTotal(){const sess=activeSession(curClassId());let tot=0;(sess?DB.tallies.filter(t=>t.sessionId===sess.id):[]).forEach(t=>tot+=t.count);document.getElementById('scoreTotal').textContent=tot;}
+/* 加分后按当前排序实时重排：用 appendChild 移动已存在的 .kid 元素（不重建 DOM），
+   被点方块的 bump 动画不会中断。仅「按积分」排序需要重排；按学号时 DOM 顺序即学号顺序，无需动。 */
+function reorderScoreGrid(){
+  const grid=document.getElementById('scoreGrid');if(!grid)return;
+  const sortMode=document.getElementById('scoreSort')?.value||'sid';
+  if(sortMode!=='score')return;
+  const anchor=activeSession(curClassId());if(!anchor)return;
+  const dayList=daySessionsOf(curClassId(),anchor.date);
+  const kids=[...grid.querySelectorAll('.kid')];
+  if(kids.length<2)return;
+  const bySid=new Map(kids.map(k=>[String(k.dataset.sid),k]));
+  const order=students(curClassId()).sort((a,b)=>(dayCount(dayList,b.id)-dayCount(dayList,a.id))||sidCmp(a,b));
+  order.forEach(s=>{const k=bySid.get(String(s.id));if(k)grid.appendChild(k);});
+}
+function updateScoreTotal(){
+  const anchor=activeSession(curClassId());
+  let tot=0;
+  if(anchor){daySessionsOf(curClassId(),anchor.date).forEach(se=>{DB.tallies.filter(t=>sameId(t.sessionId,se.id)).forEach(t=>tot+=(t.count||0));});}
+  document.getElementById('scoreTotal').textContent=tot;
+}
 document.getElementById('newSession').onclick=()=>{
   if(!confirm('开始新课？当前未结算的计数将被清空（如需保留请先“完成本节课”）。'))return;
-  const old=activeSession(curClassId());if(old){DB.sessions=DB.sessions.filter(s=>s.id!==old.id);DB.tallies=DB.tallies.filter(t=>t.sessionId!==old.id);}
+  const anchor=activeSession(curClassId());
+  if(anchor){
+    /* 当日所有未结算课次一起清（别端同日课次也清），并写墓碑防止被云端旧版带回来 */
+    daySessionsOf(curClassId(),anchor.date).forEach(se=>{
+      tombAdd('sess',se.id);
+      DB.sessions=DB.sessions.filter(s=>s.id!==se.id);
+      DB.tallies=DB.tallies.filter(t=>t.sessionId!==se.id);
+    });
+  }
   save();renderScore();
 };
 document.getElementById('finishBtn').onclick=openSettle;
@@ -918,11 +1039,12 @@ document.getElementById('finishBtn').onclick=openSettle;
 /* 结算 */
 let settleSessionId=null;
 function openSettle(){
-  const sess=activeSession(curClassId());if(!sess){alert('当前没有进行中的课堂。');return;}
-  settleSessionId=sess.id;
+  const anchor=activeSession(curClassId());if(!anchor){alert('当前没有进行中的课堂。');return;}
+  const dayList=daySessionsOf(curClassId(),anchor.date);
+  settleSessionId=anchor.id;
   const ss=students(curClassId());
-  const rows=ss.map(s=>{const t=getTally(sess.id,s.id);const c=t?t.count:0;return{s,c,sc:c*DB.rate};}).sort((a,b)=>b.c-a.c);
-  document.getElementById('settleDate').textContent=`${curClass.name} · ${sess.date}（1次=${DB.rate}分）`;
+  const rows=ss.map(s=>{const c=dayCount(dayList,s.id);return{s,c,sc:c*DB.rate};}).sort((a,b)=>b.c-a.c);
+  document.getElementById('settleDate').textContent=`${curClass.name} · ${anchor.date}（1次=${DB.rate}分）`;
   const box=document.getElementById('settleRank');
   if(!rows.some(r=>r.c>0)){box.innerHTML='<div class="empty">本节课还没有任何计数。</div>';}
   else box.innerHTML=rows.map((r,i)=>{
@@ -933,18 +1055,24 @@ function openSettle(){
 }
 document.getElementById('settleClose').onclick=()=>document.getElementById('settleModal').classList.remove('show');
 document.getElementById('settleConfirm').onclick=()=>{
-  const sess=DB.sessions.find(s=>s.id===settleSessionId);if(!sess)return;
+  const anchor=activeSession(curClassId());if(!anchor)return;
+  /* 当日所有未结算课次一并结算：两端各记的计数汇总为个人当日总分，各自写流水，全部标记归档 */
+  const dayList=daySessionsOf(curClassId(),anchor.date);
   const ss=students(curClassId());
   const ups=[];
   ss.forEach(s=>{
-    const t=getTally(sess.id,s.id);if(!t)return;
-    const sc=t.count*DB.rate;t.score=sc;
+    let sc=0;
+    dayList.forEach(se=>{const t=getTally(se.id,s.id);if(t&&t.count){t.score=t.count*DB.rate;sc+=t.score;}});
+    if(!sc)return;
     /* 旧数据可能无累计字段：先用已结算课次求和补齐，避免覆盖历史分（totalScoreOf 权威口径一致） */
     if(s.totalScore==null)s.totalScore=DB.sessions.filter(se=>se.settled).reduce((a,ss)=>a+scoreOf(getTally(ss.id,s.id)),0);
     s.totalScore=(s.totalScore||0)+sc;
     /* 双轨②：本次得分同时进「可用余额」，供后续商店/喂食消费 */
     s.balance=(s.balance||0)+sc;
-    DB.pointLogs.push({id:uid(),studentId:s.id,ts:nowStr(),delta:sc,reason:'课堂计分 · '+sess.date,sessionId:sess.id});
+    dayList.forEach(se=>{
+      const t=getTally(se.id,s.id);if(!t||!t.count)return;
+      DB.pointLogs.push({id:uid(),studentId:s.id,ts:nowStr(),delta:t.score,reason:'课堂计分 · '+se.date,sessionId:se.id});
+    });
     /* 双轨①：等级由累计积分派生，只做记录便于播报升级；真值永远是 totalScore */
     const lvBefore=s.petLv||0, lvAfter=petLvOf(s.totalScore||0);
     s.petLv=lvAfter;
@@ -953,7 +1081,8 @@ document.getElementById('settleConfirm').onclick=()=>{
       if(p)ups.push(`${p.name||speciesOf(p.species).name}（${s.name}）升到 Lv${lvAfter} · ${petTitleOf(lvAfter)}`);
     }
   });
-  sess.settled=true;sess.settledAt=nowStr();save();
+  dayList.forEach(se=>{se.settled=true;se.settledAt=nowStr();});
+  save();
   document.getElementById('settleModal').classList.remove('show');
   alert('已归档！积分已累加到每位小朋友。可开始下一节课。'+(ups.length?'\n\n🎉 宠物升级：\n'+ups.join('\n'):''));
   renderScore();
@@ -1744,17 +1873,45 @@ document.getElementById('bulkBtn').onclick=()=>{
   });
   save();document.getElementById('bulk').value='';alert('已导入 '+n+' 名学生。');renderStudents();
 };
-window.delStu=function(id){if(!confirm('删除该学生？其计分、进度与宠物记录也会清除。'))return;DB.students=DB.students.filter(s=>s.id!==id);DB.tallies=DB.tallies.filter(t=>t.studentId!==id);DB.progress=DB.progress.filter(p=>p.studentId!==id);DB.radar=DB.radar.filter(r=>r.studentId!==id);DB.pets=DB.pets.filter(p=>p.studentId!==id);DB.pointLogs=DB.pointLogs.filter(l=>l.studentId!==id);save();renderStudents();};
+window.delStu=function(id){if(!confirm('删除该学生？其计分、进度与宠物记录也会清除。'))return;
+  /* 墓碑：让别端的同步合并跳过这些记录，删过的学生不会被云端旧版带回来 */
+  DB.pointLogs.filter(l=>sameId(l.studentId,id)).forEach(l=>tombAdd('log',l.id));
+  DB.pets.filter(p=>sameId(p.studentId,id)).forEach(p=>tombAdd('pet',p.id));
+  tombAdd('stu',id);
+  DB.students=DB.students.filter(s=>s.id!==id);DB.tallies=DB.tallies.filter(t=>t.studentId!==id);DB.progress=DB.progress.filter(p=>p.studentId!==id);DB.radar=DB.radar.filter(r=>r.studentId!==id);DB.pets=DB.pets.filter(p=>p.studentId!==id);DB.pointLogs=DB.pointLogs.filter(l=>l.studentId!==id);save();renderStudents();};
+/* 清零积分（保留课次）：只把本班每人的累计积分/可用余额归零。
+   课次存档（sessions+tallies）、学习进度、宠物领养全部保留——
+   适用于「总积分乱了想重新计，但课次记录还要」的场景。 */
 document.getElementById('clearScores').onclick=()=>{
   const cId=curClassId();
+  const ss=students(cId);
+  const hasScore=ss.some(s=>(s.totalScore||0)!==0||(s.balance||0)!==0);
+  if(!hasScore){alert('本班所有学生积分本来就是 0，无需清零。');return;}
+  if(!confirm(`将把本班 ${ss.length} 名学生的累计积分与可用余额全部归零。\n\n课次存档、练习统计、学习进度、宠物都不受影响，确定？`))return;
+  /* 墓碑 scorezero：别端合并后同样归零；之后新产生的流水（ts 更新）才重新计数 */
+  ss.forEach(s=>{s.totalScore=0;s.balance=0;s.petLv=petLvOf(0);tombAdd('scorezero',s.id);});
+  save();renderStudents();
+  if(document.getElementById('view-archive')?.classList.contains('active'))ClassArchive.render();
+  alert('已清零本班全部学生的累计积分（课次存档已保留）。');
+};
+/* 清除课次存档：删除本班已归档课次与计数，并清零积分（原「批量清零」逻辑）。
+   学习进度掌握状态不受影响。 */
+document.getElementById('clearArchive').onclick=()=>{
+  const cId=curClassId();
   const cnt=DB.sessions.filter(s=>s.classId===cId&&s.settled).length;
-  if(!cnt){alert('本班暂无已归档课次，无需清零。');return;}
-  if(!confirm(`将清除本班 ${cnt} 节已归档课次及全部积分记录（学习进度掌握状态不受影响），不可恢复。确定？`))return;
+  if(!cnt){alert('本班暂无已归档课次，无需清除。');return;}
+  if(!confirm(`将删除本班 ${cnt} 节已归档课次及全部课中计数，并清零积分（学习进度掌握状态不受影响），不可恢复。确定？`))return;
   const ids=DB.sessions.filter(s=>s.classId===cId&&s.settled).map(s=>s.id);
+  /* 墓碑：课次/流水/清零都写墓碑，别端合并时同步删除效果，不会被旧云端版本带回来 */
+  ids.forEach(id=>tombAdd('sess',id));
+  DB.pointLogs.filter(l=>ids.includes(l.sessionId)).forEach(l=>tombAdd('log',l.id));
   DB.sessions=DB.sessions.filter(s=>!(s.classId===cId&&s.settled));
   DB.tallies=DB.tallies.filter(t=>!ids.includes(t.sessionId));
-  DB.students.forEach(s=>{if(s.classId===cId){s.totalScore=0;s.balance=0;}});
-  save();renderStudents();alert('已清零本班积分与课次记录（含宠物可用余额）。');
+  DB.pointLogs=DB.pointLogs.filter(l=>!ids.includes(l.sessionId));
+  DB.students.forEach(s=>{if(s.classId===cId){s.totalScore=0;s.balance=0;s.petLv=petLvOf(0);tombAdd('scorezero',s.id);}});
+  save();renderStudents();
+  if(document.getElementById('view-archive')?.classList.contains('active'))ClassArchive.render();
+  alert('已清除本班课次存档并清零积分（含宠物可用余额）。');
 };
 
 /* ============ 课程知识点 ============ */
@@ -1808,6 +1965,7 @@ document.getElementById('importFile').onchange=function(){
       DB=d;
       if(!DB.rate)DB.rate=1;
       if(!DB.radar)DB.radar=[];
+      if(!DB.tomb)DB.tomb=[];
       save();
       localStorage.removeItem('mf_cur_class');
       fillClassSel();setView('home');
@@ -1817,6 +1975,113 @@ document.getElementById('importFile').onchange=function(){
   r.readAsText(f);
 };
 document.getElementById('wipeBtn').onclick=()=>{if(!confirm('清空全部数据，不可恢复！建议先导出备份。确定继续？'))return;if(!confirm('再次确认：将删除所有班级、学生、课次与进度数据。'))return;localStorage.removeItem(KEY);localStorage.removeItem('mf_cur_class');load();fillClassSel();setView('home');};
+
+/* ============ 多端同步 · 深合并（课堂投屏场景） ============
+   两端同时开时，整包覆盖会互相冲掉（旧版 applySnapshot 是整包替换）。
+   这里把「应用远端」改为按记录类型合并：
+     · tallies    按 课次+学生 合并，count 取最大（两端各自自增，取大不丢）
+     · sessions / pointLogs  按 id 并集（不丢别处新建的课次与流水）
+     · students   replace 整批换；merge 只补本机没有的（墓碑命中跳过）
+     · progress   replace 整批换；merge 按 学生+知识点，updatedAt 新的赢
+     · radar/pets replace 整批换；merge 本机优先、缺记录才补
+     · classes/courses/skills  replace 以远端为准；merge 补缺
+     · tomb 墓碑  并集；命中墓碑的记录一律跳过（删除/清零要能同步到别端）
+   mode='replace'（远端权威：别处刚推送过、且本机无未同步改动）；
+   mode='merge'（后台高频拉取 / 上传前合并）：一切只增不减，绝不动本机已有数据。
+   返回 {changed:bool} —— 没变化就不落库、不重渲染、不触发回弹上传。 */
+function tombAdd(t,id){(DB.tomb=DB.tomb||[]).push({t:t,id:id,ts:Date.now()});if(DB.tomb.length>500)DB.tomb=DB.tomb.slice(-500);}
+function tombHas(t,id){return (DB.tomb||[]).some(x=>x.t===t&&String(x.id)===String(id));}
+function tombTs(t,id){var m=(DB.tomb||[]).filter(x=>x.t===t&&String(x.id)===String(id)).map(x=>x.ts||0);return m.length?Math.max.apply(null,m):0;}
+/* 累计积分推导：以 pointLogs 流水为准（结算/加分都写流水，两端按 id 并集即一致）；
+   命中「清零墓碑」→ 只数墓碑时间之后的流水（清零后重新加分从 0 起算，旧流水不翻出来）；
+   无流水的旧数据回退已结算课次求和。 */
+function deriveScore(stuId){
+  var zt=tombTs('scorezero',stuId);
+  var logs=(DB.pointLogs||[]).filter(l=>sameId(l.studentId,stuId)&&!tombHas('log',l.id));
+  if(logs.length){
+    return logs.reduce((a,l)=>a+((Date.parse(l.ts)||0)>zt?(l.delta||0):0),0);
+  }
+  if(zt)return 0;
+  return DB.sessions.filter(se=>se.settled&&!tombHas('sess',se.id)).reduce((a,ss)=>a+scoreOf(getTally(ss.id,stuId)),0);
+}
+/* 合并后重算所有学生累计分/可用余额（双轨同源），宠物等级缓存同步刷新 */
+function refreshScores(){
+  DB.students.forEach(s=>{var v=deriveScore(s.id);s.totalScore=v;s.balance=v;s.petLv=petLvOf(v);});
+}
+function mergeDBInto(remote,mode){
+  if(!remote||typeof remote!=='object')return false;
+  var changed=false, rep=(mode==='replace');
+  /* 墓碑并集 */
+  if(Array.isArray(remote.tomb)){
+    remote.tomb.forEach(t=>{
+      if(!DB.tomb.some(x=>x.t===t.t&&String(x.id)===String(t.id))){DB.tomb.push(t);changed=true;}
+    });
+  }
+  /* 结构类：replace 以远端为准；merge 补缺（墓碑跳过） */
+  ['classes','courses','skills'].forEach(k=>{
+    if(!Array.isArray(remote[k]))return;
+    if(rep){ if(JSON.stringify(DB[k])!==JSON.stringify(remote[k])){DB[k]=remote[k];changed=true;} return; }
+    remote[k].forEach(r=>{ if(!tombHas(k,r.id)&&!DB[k].some(x=>sameId(x.id,r.id))){DB[k].push(r);changed=true;} });
+  });
+  /* 学生：replace 整批换；merge 补缺 */
+  if(Array.isArray(remote.students)){
+    if(rep){ DB.students=remote.students.filter(s=>!tombHas('stu',s.id)); changed=true; }
+    else remote.students.forEach(r=>{ if(!tombHas('stu',r.id)&&!DB.students.some(x=>sameId(x.id,r.id))){DB.students.push(r);changed=true;} });
+  }
+  /* 课次并集（墓碑跳过）；别端已结算的课次同步结算标志，防止本端再结一次重复计分 */
+  if(Array.isArray(remote.sessions)){
+    remote.sessions.forEach(r=>{
+      if(tombHas('sess',r.id))return;
+      var mine=DB.sessions.find(x=>sameId(x.id,r.id));
+      if(!mine){DB.sessions.push(r);changed=true;return;}
+      if(r.settled&&!mine.settled){mine.settled=true;mine.settledAt=r.settledAt||mine.settledAt;changed=true;}
+    });
+  }
+  /* 课中计数：按 课次+学生 取 count 最大 */
+  if(Array.isArray(remote.tallies)){
+    remote.tallies.forEach(r=>{
+      var mine=DB.tallies.find(t=>sameId(t.sessionId,r.sessionId)&&sameId(t.studentId,r.studentId));
+      if(!mine){DB.tallies.push(r);changed=true;return;}
+      if((r.count||0)>(mine.count||0)){mine.count=r.count;changed=true;}
+      if(r.score!=null&&(mine.score==null||r.score>mine.score)){mine.score=r.score;changed=true;}
+    });
+  }
+  /* 流水并集（墓碑跳过） */
+  if(Array.isArray(remote.pointLogs)){
+    remote.pointLogs.forEach(r=>{ if(!tombHas('log',r.id)&&!DB.pointLogs.some(x=>sameId(x.id,r.id))){DB.pointLogs.push(r);changed=true;} });
+  }
+  /* 学习进度：replace 整批换；merge 按 学生+知识点，updatedAt 新的赢 */
+  if(Array.isArray(remote.progress)){
+    if(rep){ DB.progress=remote.progress; changed=true; }
+    else remote.progress.forEach(r=>{
+      var mine=DB.progress.find(p=>sameId(p.studentId,r.studentId)&&sameId(p.skillId,r.skillId));
+      if(!mine){DB.progress.push(r);changed=true;return;}
+      if(String(r.updatedAt||'')>String(mine.updatedAt||'')){Object.assign(mine,r);changed=true;}
+    });
+  }
+  /* 雷达：replace 整批换；merge 本机优先补缺字段 */
+  if(Array.isArray(remote.radar)){
+    if(rep){ DB.radar=remote.radar; changed=true; }
+    else remote.radar.forEach(r=>{
+      var mine=DB.radar.find(p=>sameId(p.studentId,r.studentId)&&sameId(p.courseId,r.courseId));
+      if(!mine){DB.radar.push(r);changed=true;return;}
+      ['tech','cognition','formula','speed','interest','efficiency','stage'].forEach(f=>{if(mine[f]==null&&r[f]!=null){mine[f]=r[f];changed=true;}});
+      if(!mine.stageNote&&r.stageNote){mine.stageNote=r.stageNote;changed=true;}
+    });
+  }
+  /* 宠物：replace 按墓碑过滤；merge 并集（墓碑跳过） */
+  if(Array.isArray(remote.pets)){
+    if(rep){ DB.pets=remote.pets.filter(p=>!tombHas('pet',p.id)); changed=true; }
+    else remote.pets.forEach(r=>{ if(!tombHas('pet',r.id)&&!DB.pets.some(x=>sameId(x.id,r.id))){DB.pets.push(r);changed=true;} });
+  }
+  if(typeof remote.nextId==='number'&&remote.nextId>DB.nextId){DB.nextId=remote.nextId;changed=true;}
+  /* 累计分由流水推导，保证两端一致 */
+  var sig=()=>DB.students.map(s=>(s.totalScore||0)+'/'+(s.balance||0)).join(',');
+  var before=sig();
+  refreshScores();
+  if(before!==sig())changed=true;
+  return changed;
+}
 
 /* ============ 工具 ============ */
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -1935,29 +2200,73 @@ if(window.Account&&Account.isLoggedIn()){updateCloudStatus('已接入全站账�
     var _os=save;
     save=function(){var r=_os.apply(null,arguments);_notify();return r;};
   }catch(e){}
+  /* 带记忆的裸落盘：先把本机未落盘改动并进内存再合并；
+     若本来就有挂着防抖计时器的本地改动（一次加分），替它们补发同步通知，
+     避免「改动被合并抢先落盘、却再也没有人上传」；取快照时传 false 不补发，防止自触发。 */
+  function rawFlush(keepNotify){
+    var had=false;
+    try{ had=!!_saveTimer; if(_saveTimer){clearTimeout(_saveTimer);_saveTimer=null;} }catch(e){}
+    try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){}
+    if(had&&keepNotify!==false)_notify();
+  }
+  /* 同步状态徽标：登录态 + 最近一次同步结果，挂在计分页角标和存档页 */
+  function refreshSyncBadge(){
+    var el=document.getElementById('syncBadge'); if(!el)return;
+    var logged=(window.Account&&Account.isLoggedIn&&Account.isLoggedIn())||(window.CBAuth&&CBAuth.isLoggedIn&&CBAuth.isLoggedIn());
+    if(!logged){ el.textContent='自动同步 · 未登录'; el.style.color='var(--text-3)'; return; }
+    var st=(window.SyncEngine&&SyncEngine.status&&SyncEngine.status())||{};
+    var sc=st['class-teach']||{}, r=sc.result||{};
+    var txt='自动同步';
+    if(sc.state==='syncing')txt='同步中…';
+    else if(sc.state==='error')txt='同步出错，点击重试';
+    else if(r.kind==='merged'||r.kind==='downloaded'||r.kind==='uploaded')txt='已同步 '+new Date(r.at||Date.now()).toLocaleTimeString();
+    el.textContent=txt;
+    el.style.color=sc.state==='error'?'var(--red)':'var(--text-3)';
+  }
+  window.refreshSyncBadge=refreshSyncBadge;
+  try{ window.addEventListener('sync:status',refreshSyncBadge); }catch(e){}
   if(!window.SyncBoot)return;
   SyncBoot.ready(function(){
     if(!window.SyncEngine)return;
+    /* 应用远端快照：parse → 深合并 →（有变化才）落库 + 重渲染当前视图。
+       旧版是整包替换，且 setView('view-xx') 传错名字让重渲染静默失败——
+       手机拉完云端不刷新界面，正是当时「手机端显示是零」的原因之一。 */
+    function applyClassTeach(d,mode){
+      if(!d||d.mf_data_v1==null)return{changed:false};
+      var remote=null;
+      try{remote=JSON.parse(d.mf_data_v1);}catch(e){return{changed:false};}
+      var changed=false;
+      try{
+        rawFlush();                 // 先把本机未落盘改动并进内存，作为合并基准
+        changed=mergeDBInto(remote,mode||'merge');
+        if(changed){
+          rawFlush();
+          var av=document.querySelector('.view.active');
+          var vn=av?String(av.id||'').replace('view-',''):'';
+          fillClassSel();fillProgCourse();
+          if(vn){try{setView(vn);}catch(e){}}
+          refreshSyncBadge();
+        }
+      }catch(e){}
+      return{changed:changed};
+    }
     SyncEngine.register({
       id:'class-teach', label:'课堂管理', path:'class-teach.json',
+      pushDebounce:800,     // 课堂加分希望秒级上线，不用默认 3s
+      alwaysMerge:true,     // 计分页高频拉取：远端时间戳不新也合并（别处刚加的计数）
+      mergeOnPush:true,     // 上传前先把远端合并进本机，两端同时加分不丢
       getSnapshot:function(){
-        try{flushSave();}catch(e){}
+        rawFlush(false);
         return Promise.resolve({
           mf_data_v1:localStorage.getItem(KEY),
           mf_cur_class:localStorage.getItem('mf_cur_class')
         });
       },
-      applySnapshot:function(d){
-        if(!d)return Promise.resolve();
-        try{
-          if(d.mf_data_v1!=null)localStorage.setItem(KEY,d.mf_data_v1);
-          if(d.mf_cur_class!=null)localStorage.setItem('mf_cur_class',d.mf_cur_class);
-          else localStorage.removeItem('mf_cur_class');
-          var av=document.querySelector('.view.active');var vn=av?av.id:'';
-          load();fillClassSel();fillProgCourse();
-          if(vn){try{setView(vn);}catch(e){}}
-        }catch(e){}
-        return Promise.resolve();
+      applySnapshot:function(d,opts){
+        return applyClassTeach(d,opts&&opts.mode);
+      },
+      mergeSnapshot:function(d){
+        return applyClassTeach(d,'merge');
       },
       subscribe:function(cb){if(typeof cb==='function')_ls.push(cb);
         return function(){var i=_ls.indexOf(cb);if(i>=0)_ls.splice(i,1);};}
