@@ -9,17 +9,21 @@
  *     label: '记忆卡',                 // 面板展示名
  *     path: 'srs.json',               // 仓库内文件
  *     getSnapshot: () => Promise<obj>,// 本地数据 → 可序列化对象
- *     applySnapshot: (obj) => Promise,// 远端对象 → 写回本地
+ *     applySnapshot: (obj, opts) => Promise,// 远端对象 → 写回本地；opts.mode='merge'|'replace'
  *     subscribe: (cb) => unsub        // 本地变更回调（触发防抖上传）
+ *     pushDebounce: 800,              // 可选：本 scope 的上传防抖（默认 3000）
+ *     alwaysMerge: true,              // 可选：远端时间戳不新也合并（课堂投屏高频拉取场景）
+ *     mergeOnPush: true               // 可选：上传前先把远端合并进本机（两端同时加分不丢）
  *   });
  *
  * 策略（用户已拍板：LWW 最后写入胜）
  *   比较基准 = localStamp(id) = max(本机最后修改时间, 上次同步 _ts)，
  *   即「本机数据真正的版本」，而不是只看「上次同步时间」——
  *   否则本机刚改的新数据会被云端的中间版本顶掉（丢数据）。
- *   · 登录成功 / 周期(5min) → pullAll：远端 _ts > localStamp ⇒ 应用远端，否则本机已是最新
- *   · 本地变更 → 防抖 3s → push：远端 _ts > localStamp 说明云端更新 ——
- *     「远端优先」先应用远端，绝不静默覆盖（remotekept）；否则正常上传
+ *   · 登录成功 / 周期(5min) → pullAll：远端 _ts > localStamp ⇒ 应用远端（replace），否则本机已是最新
+ *   · alwaysMerge：计分页等场景远端 _ts ≤ localStamp 时也做增量合并（merge，幂等只增，不丢本机数据）
+ *   · 本地变更 → 防抖(默认3s/可按 scope 配) → push：远端 _ts > localStamp 说明云端更新 ——
+ *     「远端优先」先应用远端，绝不静默覆盖；mergeOnPush 的 scope 会先把远端合并进本机再上传
  *   · 写冲突 409 → 重新读取并按同样规则重试一次
  *   · forcePushAll 为危险路径（盲目覆盖云端），必须由 UI 二次确认后才调用
  * ============================================================= */
@@ -110,6 +114,30 @@
 
   /* ---------------- 单个 scope 的推拉 ---------------- */
 
+  /* 应用远端快照（合并期间抑制回弹上传）。opts.mode: 'replace'(权威覆盖) | 'merge'(增量合并)。
+     applySnapshot 可返回 {changed:false} 表示「合并没有带来变化」，避免状态无谓抖动。 */
+  function applyRemote(p, data, opts) {
+    var mode = (opts && opts.mode) || 'replace';
+    var remoteTs = (opts && opts.remoteTs) || 0;
+    applying[p.id] = true;
+    return Promise.resolve(p.applySnapshot(data, { mode: mode }))
+      .then(function (res) {
+        var changed = !(res && res.changed === false);
+        setTs(p.id, Math.max(getTs(p.id), remoteTs));
+        setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
+        setResult(p.id, changed ? (mode === 'merge' ? 'merged' : 'downloaded') : 'uptodate',
+          changed ? '已从云端更新' : '本机已是最新');
+        return { id: p.id, kind: changed ? (mode === 'merge' ? 'merged' : 'downloaded') : 'uptodate', detail: changed ? '已从云端更新' : '本机已是最新' };
+      })
+      .catch(function (e) {
+        setStat(p.id, { state: 'error', error: e && e.message || String(e) });
+        setResult(p.id, 'error', e && e.message || String(e));
+        throw e;
+      })
+      .then(function (v) { applying[p.id] = false; return v; },
+        function (e) { applying[p.id] = false; throw e; });
+  }
+
   /** 拉取单个 scope：远端更新则写回本地；返回结构化结果 */
   function pullScope(p, force) {
     if (!ready()) return Promise.resolve({ id: p.id, kind: 'skipped', detail: '未就绪' });
@@ -132,6 +160,9 @@
       var remoteTs = r.data._ts || 0;
       var localTs = localStamp(p.id);   // 本机数据的真实版本（含未同步的本地改动）
       if (!force && remoteTs <= localTs) {
+        /* alwaysMerge（课堂多端投屏）：远端时间戳不新，也可能带着别处刚加的课中计数，
+           照样做增量合并——合并是幂等的「只增」操作，不会丢本机数据 */
+        if (p.alwaysMerge) return applyRemote(p, r.data.data, { mode: 'merge', remoteTs: remoteTs });
         setStat(p.id, { state: 'idle', lastTs: getTs(p.id) });
         setResult(p.id, 'uptodate', '本机已是最新');
         return { id: p.id, kind: 'uptodate', detail: '本机已是最新' };
@@ -149,21 +180,7 @@
           return { id: p.id, kind: 'uptodate', detail: '本机与云端均为空' };
         });
       }
-      applying[p.id] = true;
-      return Promise.resolve(p.applySnapshot(r.data.data))
-        .then(function () {
-          setTs(p.id, remoteTs);
-          setStat(p.id, { state: 'idle', lastTs: remoteTs, error: '' });
-          setResult(p.id, 'downloaded', '已从云端更新');
-          return { id: p.id, kind: 'downloaded', detail: '已从云端更新' };
-        })
-        .catch(function (e) {
-          setStat(p.id, { state: 'error', error: e && e.message || String(e) });
-          setResult(p.id, 'error', e && e.message || String(e));
-          throw e;
-        })
-        .then(function (v) { applying[p.id] = false; return v; },
-          function (e) { applying[p.id] = false; throw e; });
+      return applyRemote(p, r.data.data, { mode: 'replace', remoteTs: remoteTs });
     }).catch(function (e) {
       setStat(p.id, { state: 'error', error: e && e.message || String(e) });
       setResult(p.id, 'error', e && e.message || String(e));
@@ -180,18 +197,23 @@
       return CS().read(p.path).then(function (r) {
         var remoteTs = (r && r.data && r.data._ts) || 0;
         var localTs = localStamp(p.id);   // 本机数据的真实版本（含未同步的本地改动）
-        // 云端比「本机数据」更新（不只是比上次同步新）→ 远端优先，先应用，绝不覆盖更新的云端
+        // 云端比「本机数据」更新（不只是比上次同步新）→ 远端优先，先应用，绝不静默覆盖
         if (!force && remoteTs > localTs) {
           // 铁律：云端是空数据而本机有数据 → 不应用云端（否则空云端会抹掉本机）
           if (snapEmpty(p, snap) || !snapEmpty(p, r.data.data)) {
-            applying[p.id] = true;
-            return Promise.resolve(p.applySnapshot(r.data.data)).then(function () {
-              setTs(p.id, remoteTs);
-              setStat(p.id, { state: 'idle', lastTs: remoteTs, error: '' });
-              setResult(p.id, 'remotekept', '云端更新，已保留云端');
-              return { id: p.id, kind: 'remotekept', detail: '云端更新，已保留云端' };
-            }).then(function (v) { applying[p.id] = false; return v; },
-              function (e) { applying[p.id] = false; throw e; });
+            return applyRemote(p, r.data.data, { mode: 'replace', remoteTs: remoteTs }).then(function (v) {
+              /* 应用远端后，若本机还有改在云端旧版之后的未同步改动，把合并结果继续推上去，
+                 否则这笔本机改动会一直悬着没人上传 */
+              if (getMod(p.id) > remoteTs) {
+                return Promise.resolve(p.getSnapshot()).then(function (snap2) {
+                  return writeWithRetry(p, wrap(snap2), 0).then(function () {
+                    setResult(p.id, 'uploaded', '已备份到云端');
+                    return { id: p.id, kind: 'uploaded', detail: '已备份到云端' };
+                  });
+                });
+              }
+              return v;
+            });
           }
           setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
           setResult(p.id, 'emptykept', '云端为空，已保留本机数据');
@@ -208,6 +230,20 @@
           setStat(p.id, { state: 'idle', lastTs: getTs(p.id), error: '' });
           setResult(p.id, 'uptodate', '本机与云端均为空');
           return { id: p.id, kind: 'uptodate', detail: '本机与云端均为空' };
+        }
+        /* mergeOnPush：上传前先把远端增量合并进本机（课堂两端同时加分时，
+           避免用本机旧计数覆盖另一端刚加的计数）；有变化则重新取快照（getSnapshot 可能是
+           异步的，必须 Promise.resolve 后再 wrap，否则会把 Promise 序列化成 {} 抹掉云端） */
+        if (!force && p.mergeOnPush && r && r.data && r.data.data && typeof p.mergeSnapshot === 'function') {
+          return Promise.resolve(p.mergeSnapshot(r.data.data)).then(function (res) {
+            if (res && res.changed === false) return writeWithRetry(p, payload, 0);
+            return Promise.resolve(p.getSnapshot()).then(function (snap2) {
+              return writeWithRetry(p, wrap(snap2), 0);
+            });
+          }).then(function () {
+            setResult(p.id, 'uploaded', '已备份到云端');
+            return { id: p.id, kind: 'uploaded', detail: '已备份到云端' };
+          });
         }
         return writeWithRetry(p, payload, 0).then(function () {
           setResult(p.id, 'uploaded', '已备份到云端');
@@ -245,7 +281,24 @@
       timers[p.id] = null;
       if (applying[p.id]) return; // 正在应用远端，忽略回弹
       pushScope(p);
-    }, PUSH_DEBOUNCE);
+    }, p.pushDebounce || PUSH_DEBOUNCE);
+  }
+
+  /* ---------------- 高频拉取（课堂多端投屏场景） ---------------- */
+  var fastTimers = {};   // id -> interval id
+  /** 对指定 scope 每 ms 毫秒拉一次并合并（不影响全站 5 分钟周期）；后台标签页自动暂停省请求 */
+  function fastPull(id, ms) {
+    var p = providers[id];
+    if (!p) return;
+    stopFastPull(id);
+    fastTimers[id] = setInterval(function () {
+      if (!ready()) return;
+      if (global.document && global.document.hidden) return; // 后台标签页不打扰
+      pullScope(p, false);
+    }, Math.max(500, ms || 2500));
+  }
+  function stopFastPull(id) {
+    if (fastTimers[id]) { clearInterval(fastTimers[id]); delete fastTimers[id]; }
   }
 
   /* ---------------- 对外 API ---------------- */
@@ -367,7 +420,11 @@
     stop: function () {
       started = false;
       if (pullTimer) { clearInterval(pullTimer); pullTimer = null; }
-    }
+    },
+
+    /** 高频拉取单个 scope（课堂投屏：电脑端大屏 + 手机操作，秒级同步） */
+    fastPull: fastPull,
+    stopFastPull: stopFastPull
   };
 
   /* ---------------- 账号状态联动（CloudBase / GitHub 通用） ---------------- */
