@@ -14,7 +14,6 @@
       { label: '金字塔', soon: true },
       { id: 'fto', label: 'FTO', href: '/fto' }
     ]},
-    { id: 'cfop', label: 'CFOP公式库', href: '/tools/cfop/' },
     { id: 'tools', label: '个人训练工具', children: [
       { id: 'timer',            label: '计时器',           href: '/tools/timer' },
       { id: 'invert',           label: '逆序转换',         href: '/tools/invert' },
@@ -48,7 +47,12 @@
   /* 目录名与菜单 id 不一致时的别名表。
      现在三盲相关工具在侧栏里有独立的「三盲训练」分组，每个工具页直接高亮自己，
      所以这里不再把三盲工具映射到 3bld。仅保留确实需要别名兜底的情况。 */
-  var NAV_ALIAS = {};
+  var NAV_ALIAS = {
+    /* CFOP公式库（/tools/cfop/）已于 2026-10-14 并入「教程 → 三阶」：
+       cfop 各子页 body 都带 data-nav="3x3" 直接高亮；这里兜底
+       URL 判定（老书签/漏写 data-nav 的页面），映射到三阶。 */
+    'cfop': '3x3'
+  };
 
   /* ---------------------------------------------------------
      渲染导航 HTML
