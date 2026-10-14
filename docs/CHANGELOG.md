@@ -9,6 +9,17 @@
 
 ---
 
+## [2.0.8] — 2026-10-14（功能 · OLL 公式训练页：57 条顶层朝向，与 PLL 训练页同款）
+
+- 新增 `tools/cfop/oll-trainer.html`：把 OLL 57 条顶层朝向公式做成与 PLL 公式训练页（`pll-trainer.html`）**完全同款**的看板式训练页。
+- 内联 57 条 OLL 数据（来源 `data/oll.json`，单一训练页自包含），每条含编号 / 子分组 / facelets 预览 / 全部公式；筛选按 **14 个子分组**（Dot Case / Square Shapes / Lightning Shapes / Fish Shapes / Knight Move Shapes / OCLL / All Corners Oriented / Awkward Shapes / P Shapes / T Shapes / C Shapes / W Shapes / L Shapes / Line Shapes）+ 只看换过公式；排序支持按编号（1 → 57）/ 练习次数（多优先）/ 最快成绩（快优先）/ 类型分组。
+- 功能与 PLL 训练页逐项对齐：大图预览（`CubeArt.flatCase`，OLL 的 `l` 渲染为中性灰）、**hold-to-start 空格计时**（prep 红 → green 绿 → running 橙 → done）、单次成绩记录、卡片按速度快慢**连续着色**（绿=快→红=慢，中位数基准 + 5%/95% 分位自适应色阶）、**换公式金边标记**、浮动框导航（← / → 切公式 + 下拉按类型分组 + ↺/↻ 预览方向旋转 + AUF 前缀徽标）、点击复制公式。
+- 成绩存 `localStorage` `oll_times` / `oll_practice_counts` / `oll_swaps`（与 PLL 的 `pll_*` 独立，互不干扰）。
+- 入口加入三阶 hub（`/tools/3x3/`）「训练」区，与「PLL 公式训练」并列。
+- 未改动计时器 PWA 的 APP_SHELL（`oll-trainer.html` 为新增页、不在 `sw.js` 缓存清单内），`sw.js` CACHE 保持不变。
+
+---
+
 ## [2.0.7] — 2026-10-14（修复 · 导航去重：CFOP公式库并入「教程 → 三阶」）
 
 - **问题**：左侧导航「教程 → 三阶」与顶级项「CFOP公式库」两个入口指向的 hub 页内容高度重复（F2L / 进阶 F2L / OLL / PLL / 十字训练五项链接完全相同），且三阶 hub 还多一个「PLL 公式训练」卡，CFOP hub 反而漏了它——用户从哪个进都能到，但入口重复、容易困惑。
