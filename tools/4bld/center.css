@@ -274,6 +274,13 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
 .g3 { --gc: #7f77dd; --gc-soft: rgba(127,119,221,.22); }
 .g4 { --gc: #1d9e75; --gc-soft: rgba(29,158,117,.22); }
 .g5 { --gc: #ba7517; --gc-soft: rgba(186,117,23,.24); }
+/* g6–g11：翼棱训练页（wing.html）12 棱组的后 6 组（中心块页只用 g0–g5） */
+.g6 { --gc: #d45a9d; --gc-soft: rgba(212,90,157,.22); }
+.g7 { --gc: #2fa8c9; --gc-soft: rgba(47,168,201,.22); }
+.g8 { --gc: #8a5a2b; --gc-soft: rgba(138,90,43,.24); }
+.g9 { --gc: #94a3b8; --gc-soft: rgba(148,163,184,.22); }
+.g10 { --gc: #d9b40b; --gc-soft: rgba(217,180,11,.22); }
+.g11 { --gc: #6366f1; --gc-soft: rgba(99,102,241,.22); }
 
 /* ---------- 详情浮层（矩阵参考，只读） ---------- */
 .c4-modal {

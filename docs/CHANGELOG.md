@@ -9,6 +9,18 @@
 
 ---
 
+## [2.0.9] — 2026-10-15（功能 · 高阶翼棱公式训练页：420 种情况，克隆四阶中心块训练页）
+
+- 新增 `tools/4bld/wing.html`：把 blddb.net 高阶盲拧**翼棱（wing）**公式库做成与四阶中心块训练页（`4bld/index.html`）**完全同款**的矩阵 + 看板训练页。
+- 数据来源 `blddb.net/bigbld/wing.html`（8 个原始 JSON 已抓取核对）：缓冲击 `UFr`（字母 `A`，按用户截图选定固定），第二 / 第三位置覆盖 21 个翼块贴纸位（G=URb、H=RUf 库无覆盖，已剔除），共 **21×21 去对角 = 420 种情况**，2306 条公式记录（主公式 + 备选）。
+- 公式抓取脚本 `extract_blddb_wing.py` + 生成器 `gen-wing-data.py`（生成 `wing-data.js`，`window.WING4` 结构，与 `CENTER4` 同构），均经 `--check` 比对一致。中间落盘 TSV `wing-algs.tsv`（420 行）便于人工核对。
+- 功能与四阶中心块页逐项对齐：**矩阵总览（21×21 一屏，格内直显完整公式）**、**练习总览（420 卡双轴铺满一屏，按棱组 12 色着色）**、**hold-to-start 空格计时（prep 红 → green 绿 → running 橙 → done）**、连练模式、全屏计时、详情浮层（主公式 / 交换子 / 备选 / 反向公式）、搜索、筛选（只看未练 / 按棱组）、指标、排序、KPI 仪表盘、TOP10、**CSV 导出（带 BOM）**、侧栏可隐藏、**账号同步**（LSProvider 注册 `4bld-wing`，path `4bld-wing.json`，与中心块互不影响）。
+- 卡片按速度快慢连续着色（绿=快→红=慢，复用四阶中心块 `colorByRatio` + 中位数浮动基准 + 5%/95% 分位色阶）。
+- 中心块配色 `center.css` 补充 `g6`–`g11` 六组色供翼棱 12 棱组使用；导航 `site-nav.js` 新增「高阶翼棱公式」入口（`4bld-wing`）。
+- 未改动计时器 PWA 的 APP_SHELL（`wing.html` 为新增页、不在 `sw.js` 缓存清单内），`sw.js` CACHE 保持不变。
+
+---
+
 ## [2.0.8] — 2026-10-14（功能 · OLL 公式训练页：57 条顶层朝向，与 PLL 训练页同款）
 
 - 新增 `tools/cfop/oll-trainer.html`：把 OLL 57 条顶层朝向公式做成与 PLL 公式训练页（`pll-trainer.html`）**完全同款**的看板式训练页。
