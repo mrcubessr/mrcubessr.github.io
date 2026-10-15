@@ -17,7 +17,7 @@
 - 功能与四阶中心块页逐项对齐：**矩阵总览（21×21 一屏，格内直显完整公式）**、**练习总览（420 卡双轴铺满一屏，按棱组 12 色着色）**、**hold-to-start 空格计时（prep 红 → green 绿 → running 橙 → done）**、连练模式、全屏计时、详情浮层（主公式 / 交换子 / 备选 / 反向公式）、搜索、筛选（只看未练 / 按棱组）、指标、排序、KPI 仪表盘、TOP10、**CSV 导出（带 BOM）**、侧栏可隐藏、**账号同步**（LSProvider 注册 `4bld-wing`，path `4bld-wing.json`，与中心块互不影响）。
 - 卡片按速度快慢连续着色（绿=快→红=慢，复用四阶中心块 `colorByRatio` + 中位数浮动基准 + 5%/95% 分位色阶）。
 - 中心块配色 `center.css` 补充 `g6`–`g11` 六组色供翼棱 12 棱组使用；导航 `site-nav.js` 新增「高阶翼棱公式」入口（`4bld-wing`）。
-- 未改动计时器 PWA 的 APP_SHELL（`wing.html` 为新增页、不在 `sw.js` 缓存清单内），`sw.js` CACHE 保持不变。
+- 因 `site-nav.js` 在计时器 PWA 的 `APP_SHELL` 清单内，按缓存规则将 `sw.js` 的 `CACHE` 由 `fto-timer-v11` 递增到 `fto-timer-v12`（保证已安装计时器 PWA 用户首屏拿到含新入口的侧栏菜单）。`wing.html` 本身为新页、不在 `APP_SHELL` 内。
 
 ---
 

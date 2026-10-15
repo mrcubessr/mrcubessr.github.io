@@ -24,7 +24,9 @@
 /* v11（2026-10-14）：site-nav.js（在 APP_SHELL 清单内）删除「CFOP公式库」顶级项
    （与「教程 → 三阶」内容重复，已并入教程分组），按上述规矩递增，
    避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
-const CACHE = 'fto-timer-v11';
+/* v12（2026-10-15）：site-nav.js（在 APP_SHELL 清单内）新增「高阶翼棱公式」导航项
+   （tools/4bld/wing.html），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
+const CACHE = 'fto-timer-v12';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
