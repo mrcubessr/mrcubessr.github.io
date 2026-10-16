@@ -28,7 +28,9 @@
    （tools/4bld/wing.html），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
 /* v13（2026-10-16）：site-nav.js（在 APP_SHELL 清单内）新增「四阶角心公式」导航项
    （tools/4bld/xcenter.html），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
-const CACHE = 'fto-timer-v13';
+/* v14（2026-10-16）：角心页与四阶中心块页为同一套 case 空间（缓冲 Ubl + 另两中心块位），
+   已整合进中心块页（数据作参考公式源），删除独立角心页并移除对应导航项 → 再递增。 */
+const CACHE = 'fto-timer-v14';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
