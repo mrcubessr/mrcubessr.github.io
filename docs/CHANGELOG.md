@@ -9,7 +9,18 @@
 
 ---
 
-## [2.0.12] — 2026-10-16（整合 · 角心页并入中心块页；参考公式入口提到练习浮层）
+## [2.0.13] — 2026-10-16（重构 · 单式训练页共用框架；UF440 矩阵化；翼棱并入引擎）
+
+- **抽出共用框架 `tools/_shared/train-matrix/`**：此前「矩阵总览 + 练习总览」这套双视图页面形式只在 `tools/4bld/index.html`（440中心块）里以私有代码实现。现抽成配置驱动的共享模块（`train-matrix.css` + `train-matrix.js`，对外 `window.TrainMatrix`），负责视图切换、一屏铺满布局引擎（`fitBoard` / `fitMatrix`）、公式切段着色、仪表盘与 TOP10 挂载、格子点击与 resize/字体/ResizeObserver 监听。**框架只管形式与布局，统计口径（指标 / 基准 / 三连均 / 调色板区间）由各页经 `computeAll` / `dash` / `matchSet` 回调注入** —— 440 是简单 metric，UF440 是「三次连做取三连均」，两者不可强行统一。矩阵行列数参数化（`--mx-cols` / `--mx-rows`），`22×22` 与 `23×23` 共用同一布局函数；保留原有 class 名与 CSS 变量名，既有验证脚本零改动即可复用。
+- **`tools/scramble-uf440/` 矩阵化**：原页面是「按组排布」的分组看板，现改为与四阶两页一致的**矩阵总览**（`22×22 = 484` 格，440 格有公式、22 格对角 self、22 格同组无公式，格内直显公式）+ **练习总览**（扁平卡片铺满一屏，与高阶翼棱同款）。新增搜索框（支持公式 / 编码 / comm 三路匹配）。页面侧 `render()` 拆为 `computeAll` / `dash` / `matchSet` / `boardHTML` / `cellInfo`；补齐 `algOf`（优先用户选择 `uf_ref_selections`，回退 blddb 变体）/ `fmtAlg` / `gclass`（22 组色循环映射到 12 个色类）；公式异步 fetch 到达后触发重绘，格内才显示公式。净减约 789 行。
+- **`tools/4bld/wing.html` 并入同一引擎**：此前只通过 `wing.css → center.css` 间接共用框架 CSS，JS 布局引擎仍是私有一套（约 250 行 `fitBoard` / `fitMatrix` / `renderMatrix` / `setView` / `lockScroll`）。现改为 `TrainMatrix.mount()`，`minCell: 28`（506卡在 1440×900 的最优解约 30 列 × 17 行）经配置传入。至此**三页真正共用同一引擎**。
+- **框架新增 `codeOf(row, col)` 钩子**：默认按 `row + col` 两字母拼编码；翼棱码是三字母 `A+XY`（缓冲 A），必须覆盖，否则矩阵 529 格全部 `algOf` 为空 —— 格内无公式、点击无 `data-code`。
+- **修复看板底部溢出 2px**：`fitBoard` 计算可用高度时须把自身 `boardWrap` 的 `padding-bottom` 计入尾距，现由框架自动注入并按解析后元素去重（页面 `tailEls` 只放额外元素）。
+- **`tools/4bld/center.css` 精简** 498 → 320 行，只保留页面专属样式（公式着色变量、头部、详情/练习浮层、连练、全屏计时、参考公式面板）。
+- **`sw.js` 未改**：`tools/4bld/*` 与 `tools/scramble-uf440/*` 均不在计时器 PWA 的 `APP_SHELL` 清单内。
+- 验证：新增 `verify_uf440_matrix.py`（矩阵 / 看板双视图，21 项）与 `verify_wing_matrix.py`（翼棱双视图，15 项）**均全绿**；回归`verify_refs_4bld.py` **24/24**、`verify_refs_multires.py` **8/8**、`verify_refs_pmodal.py` **25/25**。
+
+---
 
 - **整合重复页**：四阶角心页（`tools/4bld/xcenter.html`）与四阶中心块页（`tools/4bld/index.html`，缓冲 Ubl）实为**同一套 case 空间**（角心码 `D+XY` 去掉缓冲前缀 D 即中心块码 `XY`），且角心数据早已被 `gen-center-alts.py` 用作中心块页的参考公式源 + 补了 20 个空格。故**删除独立角心页** `xcenter.html` / `xcenter.css` / `xcenter-data.js` / `gen-xcenter-data.py`，只保留 `xcenter-algs.tsv`（`gen-center-alts.py` 的输入源）。移除侧栏「四阶角心公式」入口。翼棱页是**不同** case 空间（缓冲 UFr，棱块位），不受影响、完整保留。
 - **参考公式入口提到练习浮层**：原先参考公式只在「详情浮层」底部，需「点格子 → 练习浮层 → 再点详情 → 往下滚」两层才够得到，实际很难发现。现于**练习浮层**工具条「详情」旁新增 `📖 参考公式` 按钮，点一下即就地展开备选列表（可点选切换 / ✎ 手动输入 / 恢复默认，换过公式仍带金边 + 「换」徽标）；440 与翼棱两页同步提供。抽取 `refsHTML()` 复用渲染逻辑，详情浮层原有入口保留不变。
