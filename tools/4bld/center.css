@@ -488,3 +488,11 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
 }
 .c4-modal__refsbar .c4-modal__refsman:hover { border-color: var(--brand, #60a5fa); color: var(--fg, #EEF2F8); }
 .c4-modal__refsbar .c4-modal__refsreset { margin-left: 6px; }
+
+/* 练习浮层内嵌的参考公式面板（v2.0.11：把选公式入口提到练习浮层，不用进详情浮层） */
+.c4-pmodal__refs {
+  margin: 8px 0; padding: 8px 10px; text-align: left;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 8px;
+  background: var(--surface-2, rgba(255,255,255,.03));
+}
+.c4-pmodal__refs .c4-modal__refslist { max-height: 26vh; }

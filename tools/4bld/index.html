@@ -106,6 +106,7 @@
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-next" title="下一式">→</button>
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-chain" aria-pressed="false" title="连练：停表后自动进入下一条">连练</button>
       <button type="button" class="c4-pmodal__navbtn" id="c4-p-detail" title="查看本条公式详情（含反向公式）">详情</button>
+      <button type="button" class="c4-pmodal__navbtn" id="c4-p-refs" aria-pressed="false" title="查看 / 切换本条的参考公式（默认使用人数最多的一条）">📖 参考公式</button>
       <span class="c4-spacer"></span>
       <span class="c4-pmodal__hint">按住空格 0.5s 后松开开始</span>
       <button type="button" class="c4-pmodal__close" id="c4-p-close" aria-label="关闭">×</button>
@@ -128,6 +129,15 @@
       </div>
       <div class="c4-pmodal__code" id="c4-p-code">--</div>
       <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>
+      <div class="c4-pmodal__refs" id="c4-p-refsbox" hidden>
+        <div class="c4-modal__refsbar">
+          <span class="k">参考公式</span>
+          <span class="c4-spacer"></span>
+          <button type="button" class="c4-modal__refsman" id="c4-p-refsmanual">✎ 手动输入</button>
+          <button type="button" class="c4-modal__refsreset" id="c4-p-refsreset">恢复默认</button>
+        </div>
+        <div class="c4-modal__refslist" id="c4-p-refslist"></div>
+      </div>
       <div class="c4-pmodal__timer" id="c4-p-timer" data-state="idle">0.000</div>
       <div class="c4-pmodal__summary" id="c4-p-summary" hidden></div>
       <div class="c4-pmodal__acts">
@@ -265,6 +275,7 @@
     }
     if (pCurrent === code && pmodal.classList.contains('is-open')) {
       pAlgEl.innerHTML = fmtAlg(algOf(code) || '');
+      renderPRefs(code);
     }
     renderCurrent();
   }
@@ -685,17 +696,13 @@
     renderRefs(code);
   }
   /* 参考公式列表：index 0 = 默认（你的公式表公式）；点击即切换 */
-  function renderRefs(code) {
+  function refsHTML(code) {
     var list = refList(code);
     var cur = algOf(code);
-    var box = document.getElementById('c4-m-refslist');
-    var reset = document.getElementById('c4-m-refsreset');
     if (!list.length) {
-      box.innerHTML = '<div class="c4-modal__refsnote">该情况没有可切换的参考公式。</div>';
-      reset.hidden = true;
-      return;
+      return '<div class="c4-modal__refsnote">该情况没有可切换的参考公式。</div>';
     }
-    box.innerHTML = list.map(function (p, i) {
+    return list.map(function (p, i) {
       return '<button type="button" class="c4-ref' + (p[0] === cur ? ' is-on' : '') + '"' +
         ' data-alg="' + esc(p[0]) + '">' +
         '<span class="c4-ref__no">' + (i + 1) + '</span>' +
@@ -704,7 +711,18 @@
         '<span class="c4-ref__n">' + (p[1] > 0 ? p[1] + ' 家' : '公式表') + '</span>' +
         '</button>';
     }).join('');
-    reset.hidden = !isSwapped(code);
+  }
+  function renderRefs(code) {
+    document.getElementById('c4-m-refslist').innerHTML = refsHTML(code);
+    document.getElementById('c4-m-refsreset').hidden =
+      (!refList(code).length || !isSwapped(code));
+  }
+  function renderPRefs(code) {
+    var box = document.getElementById('c4-p-refslist');
+    if (!box) { return; }
+    box.innerHTML = refsHTML(code);
+    document.getElementById('c4-p-refsreset').hidden =
+      (!refList(code).length || !isSwapped(code));
   }
   function openModal(code) {
     if (!D.algs[code]) { return; }
@@ -848,6 +866,7 @@
     pSelect.value = code;
     pCodeEl.textContent = code;
     pAlgEl.innerHTML = fmtAlg(algOf(code) || '');
+    renderPRefs(code);
     pResetTimer();
     // 连练开启时同步进度（chainNext 先设 chainIdx 再调本函数，结果一致，无副作用）
     if (chainOn) {
@@ -1093,6 +1112,38 @@
     // 练习浮层 → 只读详情（反向公式 / 所属组）
     document.getElementById('c4-p-detail').addEventListener('click', function () {
       if (pCurrent) { openModal(pCurrent); }
+    });
+    // 练习浮层 → 参考公式（直接展开备选列表，不用再进详情浮层）
+    var pRefsBox = document.getElementById('c4-p-refsbox');
+    var pRefsBtn = document.getElementById('c4-p-refs');
+    pRefsBtn.addEventListener('click', function () {
+      var show = pRefsBox.hidden;
+      pRefsBox.hidden = !show;
+      pRefsBtn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      if (show && pCurrent) { renderPRefs(pCurrent); }
+    });
+    document.getElementById('c4-p-refslist').addEventListener('click', function (e) {
+      var btn = (e.target && e.target.closest) ? e.target.closest('.c4-ref') : null;
+      if (!btn || !pCurrent) { return; }
+      var alg = btn.getAttribute('data-alg');
+      if (!alg) { return; }
+      setSwap(pCurrent, alg);
+      var i = curRefIdx(pCurrent);
+      toast('已切换为第 ' + (i + 1) + ' 条参考公式' + (i === 0 ? '（默认）' : ''));
+    });
+    document.getElementById('c4-p-refsreset').addEventListener('click', function () {
+      if (!pCurrent) { return; }
+      setSwap(pCurrent, '');
+      toast('已恢复默认公式');
+    });
+    document.getElementById('c4-p-refsmanual').addEventListener('click', function () {
+      if (!pCurrent) { return; }
+      var v = prompt('手动输入「' + pCurrent + '」的公式（留空或取消则不改动）：', algOf(pCurrent) || '');
+      if (v === null) { return; }
+      v = v.trim();
+      if (!v) { return; }
+      setSwap(pCurrent, v);
+      toast(v === baseAlg(pCurrent) ? '已恢复默认公式' : '已设为自定义公式');
     });
     pSelect.addEventListener('change', function () { pLoadCode(pSelect.value); });
     // 连练模式
