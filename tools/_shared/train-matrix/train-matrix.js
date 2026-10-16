@@ -300,6 +300,7 @@
    *   dash(A,prefix), computeAll(),    // 仪表盘（可选）
    *   matchSet(A)                      // 搜索/筛选命中集合（可选，矩阵高亮用）
    *   defaultView, onCellClick(code)
+   *   codeOf(row, col)                   // 默认 row+col；翼棱等三字母码页面须覆盖
    *   minCell/maxCell/minW/minH/labRatio/includeFooter/tailEls
    * }
    */
@@ -383,7 +384,8 @@
       rowOrder.forEach(function (row) {
         h += '<div class="mx-rh ' + (cfg.gclass ? cfg.gclass(row) : '') + '">' + row + '</div>';
         colOrder.forEach(function (col) {
-          var code = row + col;
+          /* ⚠️ code 拼法：默认两字母（中心块 XY / UF440 CE），翼棱是三字母 A+XY（缓冲 A）→ 用 cfg.codeOf 覆盖 */
+          var code = cfg.codeOf ? cfg.codeOf(row, col) : (row + col);
           var info = cfg.cellInfo ? cfg.cellInfo(code, row, col) : null;
           var kind = (info && info.kind) || 'none';
           var alg = (info && info.alg != null) ? info.alg : cfg.algOf(code);
