@@ -26,7 +26,9 @@
    避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
 /* v12（2026-10-15）：site-nav.js（在 APP_SHELL 清单内）新增「高阶翼棱公式」导航项
    （tools/4bld/wing.html），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
-const CACHE = 'fto-timer-v12';
+/* v13（2026-10-16）：site-nav.js（在 APP_SHELL 清单内）新增「四阶角心公式」导航项
+   （tools/4bld/xcenter.html），按上述规矩递增，避免计时器 PWA 用户首屏拿到旧的侧栏菜单。 */
+const CACHE = 'fto-timer-v13';
 
 // 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
 const APP_SHELL = [
