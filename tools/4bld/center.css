@@ -1,11 +1,23 @@
 @import url("/assets/css/tokens.css");
-/* center.css — 四阶盲拧 · 中心块公式页（tools/4bld） */
+@import url("../_shared/train-matrix/train-matrix.css");
+/* center.css — 四阶盲拧 · 中心块公式页（tools/4bld）
+   页面形式（双视图 / 仪表盘 / 看板 / 矩阵 / 布局引擎）已抽到共享框架
+   ../_shared/train-matrix/train-matrix.css；本文件只留本页专属：
+   公式着色变量、详情浮层、练习浮层、全屏计时、参考公式面板。 */
 
-*, *::before, *::after { box-sizing: border-box; }
-
-/* 项目红线：本页大量用 hidden 切视图，components/site-layout 里的 display 规则会盖掉 UA 的
-   [hidden]{display:none}（实测 #c4-dash 被 section{display:block} 顶掉 → 矩阵视图仍占 170px 高） */
-[hidden] { display: none !important; }
+/* 公式语法着色：只新增变量，不改 tokens.css 的主题变量 */
+:root {
+  --alg-pre:   #fbbf24;
+  --alg-core:  #7dd3fc;
+  --alg-punct: #64748b;
+  --c4-intent-bg: rgba(148,163,184,.16);
+}
+html[data-theme="light"] {
+  --alg-pre:   #b45309;
+  --alg-core:  #1d4ed8;
+  --alg-punct: #94a3b8;
+  --c4-intent-bg: rgba(100,116,139,.20);
+}
 
 body {
   margin: 0;
@@ -16,31 +28,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 公式语法着色：只新增变量，不改 tokens.css 的主题变量 */
-:root {
-  --alg-pre:   #fbbf24;
-  --alg-core:  #7dd3fc;
-  --alg-punct: #64748b;
-  --c4-intent-bg: rgba(148,163,184,.16);
-  /* 连续调色板锚点（与 440 一致）：r=0.65 极快 → r=1.30 极慢 */
-  --c-great-a: #16a34a;
-  --c-great-b: #4ade80;
-  --c-good-a:  #84cc16;
-  --c-good-b:  #facc15;
-  --c-mid-b:   #fb923c;
-  --c-bad-a:   #f97316;
-  --c-bad-c:   #7f1d1d;
-}
-html[data-theme="light"] {
-  --alg-pre:   #b45309;
-  --alg-core:  #1d4ed8;
-  --alg-punct: #94a3b8;
-  --c4-intent-bg: rgba(100,116,139,.20);
-}
-
-/* 本页两个视图都按「铺满可用宽度」设计（矩阵 24 列 / 看板最多 30+ 列），不再限 1460 */
-.c4-wrap { max-width: none; }
-
 /* ---------- 头部 ---------- */
 .c4-head { padding: 4px 0 16px; border-bottom: 2px solid var(--line-2, rgba(255,255,255,.14)); margin-bottom: 16px; }
 .c4-head h1 { margin: 0 0 7px; font-size: 26px; font-weight: 700; letter-spacing: 4px; color: var(--brand, #60a5fa); }
@@ -48,239 +35,6 @@ html[data-theme="light"] {
 .c4-head .sub b { color: var(--fg, #EEF2F8); font-weight: 600; }
 .c4-back { display: inline-block; margin-top: 9px; font-size: 13px; color: var(--fg-3, #7C8798); text-decoration: none; }
 .c4-back:hover { color: var(--brand, #60a5fa); }
-
-/* ---------- 工具条 ---------- */
-.c4-bar {
-  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-  padding: 11px 14px; margin-bottom: 18px;
-  background: var(--surface, #141826);
-  border: 1px solid var(--line-2, rgba(255,255,255,.12));
-  border-radius: 10px;
-}
-.c4-seg { display: inline-flex; border: 1px solid var(--line-2, rgba(255,255,255,.18)); border-radius: 8px; overflow: hidden; }
-.c4-seg button {
-  appearance: none; border: 0; background: transparent;
-  color: var(--fg-2, #AEB8CA);
-  font: inherit; font-size: 13px; font-weight: 600;
-  padding: 6px 15px; cursor: pointer;
-}
-.c4-seg button.is-active { background: var(--brand, #2563eb); color: var(--bg, #0B0F18); }
-.c4-bar label { font-size: 13px; color: var(--fg-3, #7C8798); font-weight: 500; }
-.c4-bar input[type="search"], .c4-bar select {
-  font: inherit; font-size: 13px; padding: 6px 10px;
-  background: var(--surface-2, #1A2130);
-  color: var(--fg, #EEF2F8);
-  border: 1px solid var(--line-2, rgba(255,255,255,.18));
-  border-radius: 7px;
-}
-.c4-bar input[type="search"] { width: 120px; }
-.c4-bar .c4-spacer { flex: 1 1 auto; }
-.c4-bar select:hover { border-color: var(--brand, #60a5fa); }
-.c4-bo { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-/* 矩阵专用说明（只在矩阵视图显示，不用 hidden 属性，避免与全局 [hidden] !important 打架） */
-.c4-mx-hint { display: none; }
-.c4-wrap.is-mx .c4-mx-hint { display: inline; color: var(--brand, #60a5fa); }
-
-/* ---------- 左侧导航可隐藏（隐藏后整屏都是公式卡片） ---------- */
-/* 桌面断点由 site-shell.css 给 body 加 border-left:240px；这里同特异性后置 + !important 双保险 */
-@media (min-width: 1025px) {
-  body.nav-hidden { border-left-width: 0 !important; }
-}
-body.nav-hidden .site-nav { display: none !important; }
-.c4-navbtn {
-  appearance: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
-  padding: 6px 12px; border-radius: 8px; white-space: nowrap;
-  background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
-  border: 1px solid var(--line-2, rgba(255,255,255,.18));
-}
-.c4-navbtn:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
-.c4-navbtn[aria-pressed="true"] {
-  border-color: var(--brand-line, rgba(91,141,239,.30));
-  background: var(--brand-soft, rgba(91,141,239,.14)); color: var(--brand, #5B8DEF);
-}
-
-/* ---------- 两个视图都收尾距、隐藏页脚，把高度让给卡片 ---------- */
-body.is-mx, body.is-board { padding-bottom: 14px; }
-body.is-mx .site-footer, body.is-board .site-footer { display: none; }
-
-/* ---------- 公式矩阵视图：压缩头部/工具条，把高度让给 24 行 ---------- */
-/* 两个视图都压缩头部/工具条（矩阵省给 24 行，看板省给卡片） */
-.c4-wrap.is-mx, .c4-wrap.is-board { max-width: none; }
-.c4-wrap.is-mx .c4-head, .c4-wrap.is-board .c4-head {
-  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
-  padding-bottom: 8px; margin-bottom: 8px;
-}
-.c4-wrap.is-mx .c4-head h1, .c4-wrap.is-board .c4-head h1 { font-size: 20px; letter-spacing: 2px; margin: 0; }
-.c4-wrap.is-mx .c4-head .sub, .c4-wrap.is-board .c4-head .sub { font-size: 12px; line-height: 1.4; }
-.c4-wrap.is-mx .c4-back, .c4-wrap.is-board .c4-back { display: none; }
-.c4-wrap.is-mx .c4-bar, .c4-wrap.is-board .c4-bar { padding: 8px 12px; margin-bottom: 10px; }
-/* 排序只对看板有意义；矩阵视图下隐藏 */
-.c4-wrap.is-mx .c4-bo { display: none; }
-
-/* ---------- 紧凑仪表盘（一行：KPI + 色带 + TOP10 折叠；看板与矩阵共用） ---------- */
-.c4-dash, .c4-mx-dash {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  margin-bottom: 10px; padding: 7px 12px;
-  background: var(--surface, #141826);
-  border: 1px solid var(--line-2, rgba(255,255,255,.12));
-  border-radius: 10px;
-}
-.c4-dash__title { font-size: 13px; font-weight: 700; color: var(--fg, #EEF2F8); letter-spacing: 1px; white-space: nowrap; }
-.c4-dash__std { font-size: 12px; color: var(--fg-3, #7C8798); white-space: nowrap; }
-.c4-dash__std b { color: var(--fg-2, #AEB8CA); font-weight: 700; font-family: "Consolas","SF Mono",monospace; }
-.c4-dash__std i { font-style: normal; margin-left: 6px; opacity: .75; }
-.c4-kpis { display: flex; gap: 8px; flex-wrap: wrap; }
-.c4-kpi {
-  display: flex; align-items: baseline; gap: 6px;
-  border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 8px;
-  padding: 4px 9px; background: var(--surface-2, #1A2130); white-space: nowrap;
-}
-.c4-kpi .k-label { color: var(--fg-3, #7C8798); font-size: 11px; font-weight: 500; }
-.c4-kpi .k-value { font-size: 15px; font-weight: 700; color: var(--fg, #EEF2F8); font-family: "Consolas","SF Mono",monospace; }
-.c4-gradbox { display: flex; flex-direction: column; gap: 2px; width: 200px; flex: 0 0 auto; }
-.c4-grad {
-  position: relative; height: 12px; border-radius: 6px; margin: 0;
-  background: linear-gradient(to right,
-    var(--c-great-a) 0%, var(--c-great-b) 18%, var(--c-good-a) 40%,
-    var(--c-good-b) 58%, var(--c-mid-b) 78%, var(--c-bad-a) 90%, var(--c-bad-c) 100%);
-}
-.c4-grad-ticks { position: relative; height: 13px; margin: 0; }
-.c4-grad-ticks span { position: absolute; transform: translateX(-50%); font-size: 10px; color: var(--fg-3, #7C8798); font-weight: 600; white-space: nowrap; }
-
-/* TOP10：details 折叠，展开时浮在仪表盘上，不占布局高度 */
-.c4-top { position: relative; margin-left: auto; flex: 0 0 auto; }
-.c4-top > summary {
-  list-style: none; cursor: pointer; user-select: none;
-  font-size: 12px; font-weight: 600; color: var(--fg-2, #AEB8CA);
-  padding: 5px 10px; border: 1px solid var(--line-2, rgba(255,255,255,.18));
-  border-radius: 8px; background: var(--surface-2, #1A2130); white-space: nowrap;
-}
-.c4-top > summary::-webkit-details-marker { display: none; }
-.c4-top > summary:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
-.c4-top.is-empty { display: none; }
-.c4-top__list {
-  position: absolute; right: 0; top: calc(100% + 6px); z-index: 60;
-  display: none; flex-direction: column; gap: 4px;
-  width: 230px; max-height: 46vh; overflow: auto; padding: 8px;
-  background: var(--surface, #141826);
-  border: 1px solid var(--line-2, rgba(255,255,255,.16)); border-radius: 10px;
-  box-shadow: 0 14px 40px rgba(0,0,0,.5);
-}
-.c4-top[open] .c4-top__list { display: flex; }
-.c4-top__item { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-2, rgba(255,255,255,.12)); border-radius: 8px; padding: 5px 9px; background: var(--surface-2, #1A2130); text-decoration: none; color: var(--fg, #EEF2F8); font: inherit; font-weight: 600; font-size: 12px; cursor: pointer; }
-.c4-top__item:hover { border-color: var(--brand, #60A5FA); }
-.c4-top__rank { font-weight: 800; color: var(--red, #F87171); font-family: "Consolas","SF Mono",monospace; }
-.c4-top__item b { letter-spacing: 1px; }
-.c4-top__ms { margin-left: auto; color: var(--fg-3, #7C8798); font-size: 11px; font-family: "Consolas","SF Mono",monospace; }
-
-/* ---------- 彩色看板（练习总览，仿 440 一屏铺满） ---------- */
-.c4-board-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; overflow: hidden; }
-.c4-board { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 6px auto 12px; width: 100%; box-sizing: border-box; }
-.c4-bcell {
-  position: relative;
-  /* 宽/高分开给变量：宽高各自精确填满可用区域（几乎正方），不伸缩 */
-  flex: 0 0 var(--c4-cell-w, 82px);
-  width: var(--c4-cell-w, 82px);
-  height: var(--c4-cell-h, var(--c4-cell-w, 82px));
-  border-radius: 6px; border: 1px solid rgba(0,0,0,.18);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-decoration: none; color: #fff; font-weight: 700;
-  padding: 2px; transition: transform 120ms ease, box-shadow 120ms ease;
-  overflow: hidden; box-sizing: border-box;
-  /* 三行文字的统一基准字号，由 fitBoard 按格宽反推 */
-  font-size: var(--c4-fs, 10px);
-}
-/* 末行兜底：格宽由 JS 按整行精确分配（--c4-tail），末行铺满且绝不换行 */
-.c4-bcell.is-tail { flex-basis: var(--c4-tail, var(--c4-cell-w)); width: var(--c4-tail, var(--c4-cell-w)); }
-.c4-bcell:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.35); z-index: 2; }
-.c4-bcell .c-code { font-size: 1.7em; line-height: 1; letter-spacing: .5px; font-weight: 800; }
-/* 公式：两行（commutator 两段），与矩阵同一个 fmtAlgCell 结构 */
-.c4-bcell .c-alg {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 100%; min-height: 0; margin: 1px 0;
-  font-family: "Consolas", "SF Mono", "Fira Code", monospace;
-  font-size: 1em; line-height: 1.12; font-weight: 600; opacity: .95;
-}
-.c4-bcell .c-alg .mx-ln { display: block; max-width: 100%; word-break: break-all; }
-.c4-bcell .c-ms { font-size: 1.25em; line-height: 1; opacity: .95; font-weight: 700; font-family: "Consolas","SF Mono",monospace; }
-.c4-bcell .c-n { position: absolute; top: 6%; right: 7%; font-size: 1em; opacity: .8; font-weight: 600; }
-.c4-bcell.t-bad, .c4-bcell.t-warn, .c4-bcell.t-great { text-shadow: 0 1px 2px rgba(0,0,0,.35); }
-/* 未练：跟随主题斜纹 */
-.c4-bcell.t-none {
-  background: repeating-linear-gradient(45deg,
-    var(--surface-2, #1A2130), var(--surface-2, #1A2130) 4px,
-    var(--surface-3, #232C3E) 4px, var(--surface-3, #232C3E) 8px) !important;
-  color: var(--fg-3, #7C8798) !important;
-  border-color: var(--line-2, rgba(255,255,255,.18));
-  opacity: .85;
-}
-.c4-empty { flex: 0 0 100%; color: var(--fg-3, #7C8798); font-size: 13px; padding: 20px; text-align: center; }
-
-/* ---------- 公式矩阵（23×23 一屏铺满，格内直接显示完整公式） ---------- */
-.c4-matrix {
-  overflow: hidden; padding: 8px;
-  border: 1px solid var(--line-2, rgba(255,255,255,.12));
-  border-radius: 10px; background: var(--surface, #141826);
-}
-.c4-matrix.is-scroll { overflow: auto; }
-.mx-grid {
-  display: grid;
-  grid-template-columns: var(--mx-lab, 28px) repeat(23, minmax(var(--mx-cw, 0px), 1fr));
-  grid-template-rows: var(--mx-hh, 18px) repeat(23, var(--mx-h, 30px));
-  gap: var(--mx-gap, 2px);
-}
-.mx-corner, .mx-ch, .mx-rh {
-  display: flex; align-items: center; justify-content: center;
-  font-size: var(--mx-lfs, 11px); font-weight: 800; letter-spacing: .5px;
-  color: var(--fg-3, #7C8798); line-height: 1;
-}
-.mx-corner { font-size: calc(var(--mx-lfs, 11px) * .8); font-weight: 600; opacity: .75; }
-.mx-ch, .mx-rh { color: var(--gc, var(--fg-3, #7C8798)); }
-.mx-grid .mx {
-  /* 两段公式各占一行（.mx-ln 块级）⟹ 必须 column，不能 row */
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-width: 0; min-height: 0; overflow: hidden;
-  appearance: none; border: 0; border-radius: 3px; padding: 0 1px;
-  font-family: "Consolas", "SF Mono", "Fira Code", monospace;
-  font-size: var(--mx-fs, 9px); line-height: 1.24; font-weight: 700;
-  letter-spacing: -.3px; text-align: center;
-  cursor: pointer; color: var(--fg, #EEF2F8);
-  background: rgba(148,163,184,.07);
-}
-/* 极少数超长段（>p90）允许在段内折行，max-width 保证不横向溢出 */
-.mx-grid .mx .mx-ln { display: block; max-width: 100%; word-break: break-all; }
-/* 每格左缘一条组色条：底色让给「快慢渐变」后，组别信息靠这条 + 行列表头保留 */
-.mx-grid .mx { box-shadow: inset 3px 0 0 var(--gc, rgba(148,163,184,.4)); }
-/* 搜索/筛选生效时：命中格高亮，其余压暗 */
-.mx-grid .mx.dim { opacity: .25; }
-.mx-grid .mx.hit { outline: 2px solid var(--brand, #60a5fa); outline-offset: -2px; z-index: 2; }
-.mx-grid .mx.on { background: var(--gc-soft, rgba(148,163,184,.20)); }
-.mx-grid .mx.self {
-  background: transparent; cursor: default;
-  box-shadow: inset 0 0 0 1px var(--line-2, rgba(255,255,255,.22));
-}
-.mx-grid .mx.intent { background: var(--c4-intent-bg, rgba(148,163,184,.16)); cursor: default; }
-.mx-grid .mx.on:hover { outline: 2px solid var(--brand, #60a5fa); outline-offset: -1px; }
-/* 公式着色在矩阵里同样生效（字号小，用色区分前置/主体） */
-.mx-grid .a-pre { color: var(--alg-pre); font-weight: 800; }
-.mx-grid .a-core { color: var(--alg-core); }
-.mx-grid .a-punct { color: var(--alg-punct); }
-
-/* 组色（数据色，不随主题变；深/浅底均已校对比度）
-   --gc 实色用于表头/标题；--gc-soft 淡底用于矩阵格（小字号下保证正文对比度） */
-.g0 { --gc: #e24b4a; --gc-soft: rgba(226,75,74,.20); }
-.g1 { --gc: #639922; --gc-soft: rgba(99,153,34,.22); }
-.g2 { --gc: #378add; --gc-soft: rgba(55,138,221,.22); }
-.g3 { --gc: #7f77dd; --gc-soft: rgba(127,119,221,.22); }
-.g4 { --gc: #1d9e75; --gc-soft: rgba(29,158,117,.22); }
-.g5 { --gc: #ba7517; --gc-soft: rgba(186,117,23,.24); }
-/* g6–g11：翼棱训练页（wing.html）12 棱组的后 6 组（中心块页只用 g0–g5） */
-.g6 { --gc: #d45a9d; --gc-soft: rgba(212,90,157,.22); }
-.g7 { --gc: #2fa8c9; --gc-soft: rgba(47,168,201,.22); }
-.g8 { --gc: #8a5a2b; --gc-soft: rgba(138,90,43,.24); }
-.g9 { --gc: #94a3b8; --gc-soft: rgba(148,163,184,.22); }
-.g10 { --gc: #d9b40b; --gc-soft: rgba(217,180,11,.22); }
-.g11 { --gc: #6366f1; --gc-soft: rgba(99,102,241,.22); }
 
 /* ---------- 详情浮层（矩阵参考，只读） ---------- */
 .c4-modal {
@@ -415,11 +169,6 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
   .c4-fs__timer { padding: 14px 26px; border-radius: 20px; }
 }
 
-/* ---------- 公式着色 ---------- */
-.a-pre   { color: var(--alg-pre); font-weight: 700; }
-.a-core  { color: var(--alg-core); }
-.a-punct { color: var(--alg-punct); }
-
 /* ---------- toast ---------- */
 .c4-toast {
   position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%);
@@ -432,8 +181,6 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
 @media (max-width: 640px) {
   body { padding: 18px 14px 50px; }
   .c4-head h1 { font-size: 20px; letter-spacing: 2px; }
-  .c4-bar { padding: 10px; gap: 8px; }
-  .c4-bar input[type="search"] { width: 96px; }
   .c4-pmodal__hint { display: none; }
   @media (max-width: 820px) {
     .c4-pmodal { padding: 0; }
@@ -445,9 +192,6 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
     .c4-pmodal__alg { font-size: 20px; padding: 8px 0 10px; }
     .c4-pmodal__timer { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 42vh; font-size: clamp(60px, 24vw, 168px); padding: 0; border-width: 2px; }
   }
-  /* 窄屏矩阵：格宽触底后 fitMatrix 自动转横向滚动，这里只收紧内边距 */
-  .c4-matrix { padding: 6px; }
-  .c4-wrap.is-mx .c4-head h1 { font-size: 17px; }
 }
 
 /* ---------- 参考公式（手动切换，默认排名第一；blddb 同款） ---------- */
@@ -475,10 +219,6 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
 .c4-ref__alg { flex: 1 1 auto; min-width: 0; font-family: "Consolas", "SF Mono", monospace; font-size: 12.5px; word-break: break-all; }
 .c4-ref__n { flex: 0 0 auto; font-size: 11px; opacity: .75; white-space: nowrap; }
 .c4-ref__def { flex: 0 0 auto; font-size: 10px; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 1px 5px; }
-/* 换过公式：看板卡金边 + 左上角「换」徽标（与 PLL 训练页一致）；矩阵格金色内环 */
-.c4-bcell.is-swapped { border-color: var(--gold, #f5c518); box-shadow: inset 0 0 0 1px rgba(245,197,24,.55), 0 0 10px rgba(245,197,24,.3); }
-.c4-bcell .c-swap { position: absolute; left: 5%; top: 5%; font-size: .95em; line-height: 1.25; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 0 4px; }
-.mx.is-swapped { box-shadow: inset 0 0 0 2px var(--gold, #f5c518); }
 /* 手动输入公式按钮：与「恢复默认」同排，靠右 */
 .c4-modal__refsbar .c4-modal__refsman {
   appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;

@@ -12,147 +12,9 @@
 <link rel="stylesheet" href="/assets/css/site-layout.css">
 <link rel="stylesheet" href="uf-common.css">
 <link rel="stylesheet" href="uf-stats.css">
+<!-- 单式训练页共用框架（矩阵总览 + 练习总览 + 布局引擎），与四阶中心块/翼棱同款 -->
+<link rel="stylesheet" href="../_shared/train-matrix/train-matrix.css">
 <style>
-  :root {
-    /* 连续调色板锚点：r=0.65 极快 → r=1.30 极慢 */
-    --c-great-a: #16a34a;  /* 深绿 */
-    --c-great-b: #4ade80;  /* 亮绿 */
-    --c-good-a:  #84cc16;  /* 黄绿 */
-    --c-good-b:  #facc15;  /* 黄 */
-    --c-mid-a:   #fbbf24;  /* 黄 */
-    --c-mid-b:   #fb923c;  /* 橙 */
-    --c-bad-a:   #f97316;  /* 橙 */
-    --c-bad-b:   #dc2626;  /* 红 */
-    --c-bad-c:   #991b1b;  /* 深红 */
-  }
-  /* 整板平铺：列数与格宽由 JS fitBoard() 按容器「实际」宽高算出。
-     用 flex+wrap 而非 grid：末行除不尽时，末行方块能横向撑满（或整行居中），
-     不会像 grid 那样在末尾留下一排空洞。 */
-  .a4-board-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; overflow: hidden; }
-  .a4-board {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;      /* 满行时无影响；末行不足时整行居中，不留单侧空洞 */
-    gap: 5px;
-    margin: 8px auto 16px;        /* 居中 */
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .a4-cell {
-    position: relative;
-    /* 宽 / 高分开给变量：宽高各自精确填满可用区域（几乎正方，允许 ±1/3 内的矩形）。
-       --a4-cell 仍保留，只用于字号换算。不伸缩：每行格数 = JS 算出的 cols。 */
-    flex: 0 0 var(--a4-cell-w, 80px);
-    width: var(--a4-cell-w, 80px);
-    height: var(--a4-cell-h, var(--a4-cell-w, 80px));
-    border-radius: 6px;
-    border: 1px solid transparent;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-decoration: none;
-    color: #fff;
-    font-weight: 700;
-    padding: 2px;
-    transition: transform 120ms ease, box-shadow 120ms ease;
-    overflow: hidden;
-    box-sizing: border-box;
-  }
-  /* 末行兜底：格宽由 JS 按整行精确分配（--a4-tail），末行铺满且绝不换行 */
-  .a4-cell.is-tail {
-    flex-basis: var(--a4-tail, var(--a4-cell-w, 80px));
-    width: var(--a4-tail, var(--a4-cell-w, 80px));
-  }
-  /* 方块大小由 --a4-cell 控制（JS 写入），字号随之缩放 */
-  .a4-cell { font-size: calc(var(--a4-cell, 80px) * 0.26); }
-  .a4-cell .c-code { font-size: 0.62em; line-height: 1; letter-spacing: 0.5px; font-weight: 800; }
-  .a4-cell .c-ms   { font-size: 0.42em; line-height: 1; opacity: 0.95; margin-top: 6%; font-weight: 700; }
-  .a4-cell .c-n    { position: absolute; top: 8%; right: 8%; font-size: 0.36em; opacity: 0.8; font-weight: 600; }
-  .a4-cell .c-avg  { position: absolute; bottom: 8%; left: 8%; font-size: 0.36em; opacity: 0.8; font-weight: 600; }
-  /* 换过公式：金边 + 右下角「换」徽标，看板一眼可见（2026-10-09 新增） */
-  .a4-cell.is-swapped {
-    border-color: var(--gold, #f5c518);
-    border-width: 2px;
-    box-shadow: inset 0 0 0 1px rgba(245, 197, 24, 0.55), 0 0 8px rgba(245, 197, 24, 0.35);
-  }
-  .a4-cell .c-swap {
-    position: absolute; right: 6%; bottom: 6%;
-    font-size: 0.34em; line-height: 1.3; font-weight: 800;
-    color: #1a1400; background: var(--gold, #f5c518);
-    border-radius: 4px; padding: 0 3px;
-  }
-
-  /* t-none（未练）—— 跟随主题：深色用深灰斜纹 + 浅灰字 */
-  .a4-cell.t-none {
-    background: repeating-linear-gradient(45deg,
-      var(--surface-2, #1A2130), var(--surface-2, #1A2130) 4px,
-      var(--surface-3, #232C3E) 4px, var(--surface-3, #232C3E) 8px);
-    color: var(--fg-3, #7C8798);
-    border-color: var(--line-2, rgba(255,255,255,.18));
-    opacity: 0.85;
-  }
-
-  /* 由内联样式动态设 background / color */
-  .a4-cell.has-data { border-color: rgba(0,0,0,0.18); }
-
-  .a4-cell.t-bad  { text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
-  .a4-cell.t-warn { text-shadow: 0 1px 2px rgba(0,0,0,0.30); }
-  .a4-cell.t-great{ text-shadow: 0 1px 2px rgba(0,0,0,0.30); }
-
-  /* 组标题：两列内独立显示，左列组 1-11，右列组 12-22 */
-  .a4-group__head {
-    display: flex; align-items: baseline; gap: 10px;
-    margin: 12px 0 4px;
-    padding-bottom: 4px;
-    border-bottom: 1px dashed var(--line, #e2e8f0);
-  }
-  .a4-group__head:first-child { margin-top: 4px; }
-  .a4-group__head .g-letter { font-size: 14px; font-weight: 800; color: var(--fg); }
-  .a4-group__head .g-avg { color: var(--fg-3); font-size: 11px; }
-
-  /* 顶部 KPI + 图例 + 控件，沿用 uf-dash 风格 */
-  .a4-kpis { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0 14px; }
-  .a4-kpi { flex: 1 1 150px; border: 1px solid var(--line, rgba(255,255,255,.08)); border-radius: 12px;
-    padding: 10px 14px; background: var(--surface, #141826); color: var(--fg, #EEF2F8); }
-  .a4-kpi .k-label { color: var(--fg-2, #AEB8CA); font-size: 12px; font-weight: 500; }
-  .a4-kpi .k-value { font-size: 22px; font-weight: 700; color: var(--fg, #EEF2F8); }
-  .a4-controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
-  .a4-controls label { color: var(--fg-2, #AEB8CA); font-size: 13px; margin-right: 6px; font-weight: 500; }
-  .a4-controls select {
-    padding: 5px 10px; border-radius: 8px;
-    border: 1px solid var(--line-2, rgba(255,255,255,.18));
-    background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
-    font-size: 13px; font-weight: 500;
-    cursor: pointer;
-  }
-  .a4-controls select:focus { outline: 2px solid var(--brand, #5B8DEF); outline-offset: 1px; }
-  .a4-controls select option { background: var(--surface, #141826); color: var(--fg, #EEF2F8); }
-
-  /* 顶部色带图例（连续渐变条） */
-  .a4-grad {
-    position: relative;
-    height: 18px;
-    border-radius: 9px;
-    margin: 10px 0 4px;
-    background: linear-gradient(to right,
-        var(--c-great-a) 0%,
-        var(--c-great-b) 18%,
-        var(--c-good-a)  40%,
-        var(--c-good-b)  58%,
-        var(--c-mid-b)   78%,
-        var(--c-bad-a)   90%,
-        var(--c-bad-c)   100%);
-  }
-  .a4-grad-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--fg-2, #AEB8CA); margin-top: 2px; font-weight: 500; }
-  .a4-grad-ticks { position: relative; height: 16px; margin-top: 4px; }
-  .a4-grad-ticks span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--fg-2, #AEB8CA); font-weight: 500; }
-
-  .a4-top { margin: 14px 0 20px; }
-  .a4-top__list { display: flex; gap: 10px; flex-wrap: wrap; }
-  .a4-top__item { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line-2, rgba(255,255,255,.18));
-    border-radius: 10px; padding: 8px 12px; background: var(--surface, #141826); text-decoration: none; color: var(--fg, #EEF2F8);
-    font: inherit; font-weight: 500; cursor: pointer; }
-  .a4-top__item:hover { border-color: var(--brand, #60A5FA); }
-  .a4-top__rank { font-weight: 800; color: var(--red, #F87171); }
-
   /* 练习浮层：紧凑型，无展开图、无滚动；颜色全部取 token（兼容浅/深主题） */
   .a4-modal {
     position: fixed; inset: 0;
@@ -343,60 +205,87 @@
 <div data-site-nav></div>
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
-<div class="header">
-  <h1>440 公式看板 · 单式训练</h1>
-  <div class="sub">连拧拆成单式：每条公式独立计时（每次训练连做 3 次，取三连均速）。颜色越红越慢，优先练「不合格 / 需关注」。</div>
-</div>
-<a class="back-link" href="../scramble-uf/index.html">← 返回 UF 连拧训练组总览</a>
+<div class="c4-wrap">
 
-<div class="uf-dash">
-  <div class="uf-dash__head">
-    <span class="uf-dash__title">训练总览</span>
-    <span class="uf-dash__std">浮动基准（已练公式 <span id="a4-bench-metric">三连均</span> 中位数）<b id="a4-bench">--</b></span>
+  <div class="c4-head">
+    <h1>440 公式看板 · 单式训练</h1>
+    <div class="sub">
+      连拧拆成单式：每条公式独立计时（每次训练连做 3 次，取三连均速）。颜色越红越慢。
+      <b id="a4-count">—</b> 条公式
+      <span class="c4-mx-hint">· 行 = 首字母 · 列 = 次字母 · 点格子开始练习</span>
+    </div>
+    <a class="c4-back" href="../scramble-uf/index.html">← 返回 UF 连拧训练组总览</a>
   </div>
-  <div class="a4-kpis" id="a4-kpis"></div>
-  <div class="a4-grad" aria-hidden="true"></div>
-  <div class="a4-grad-ticks" id="a4-grad-ticks">
-    <span style="left:0%">0.65×</span>
-    <span style="left:18%">0.85× 优秀</span>
-    <span style="left:40%">0.95× 良好</span>
-    <span style="left:58%">1.00× 基准</span>
-    <span style="left:78%">1.10×</span>
-    <span style="left:90%">1.15× 需关注</span>
-    <span style="left:100%">1.30×+ 不合格</span>
-  </div>
-  <div class="a4-controls">
-    <span><label for="a4-metric">指标口径</label>
-      <select id="a4-metric">
-        <option value="session">最近三连均</option>
-        <option value="allavg">全部平均</option>
-        <option value="best">最快单次</option>
-      </select>
-    </span>
-    <span><label for="a4-sort">排序</label>
+
+  <div class="c4-bar">
+    <div class="c4-seg" id="a4-view" role="tablist">
+      <button type="button" data-view="matrix" class="is-active" role="tab">矩阵总览</button>
+      <button type="button" data-view="board" role="tab">练习总览</button>
+    </div>
+    <label for="a4-metric">指标</label>
+    <select id="a4-metric">
+      <option value="session">最近三连均</option>
+      <option value="allavg">全部平均</option>
+      <option value="best">最快单次</option>
+    </select>
+    <label for="a4-q">搜索</label>
+    <input type="search" id="a4-q" placeholder="如 CE" autocomplete="off">
+    <label for="a4-filter">筛选</label>
+    <select id="a4-filter">
+      <option value="all">全部公式</option>
+      <option value="todo">只看未练</option>
+      <option value="weak">只看需关注+不合格</option>
+      <option value="swapped">只看换过公式</option>
+    </select>
+    <!-- 排序只对「练习总览」的卡片列表有意义，矩阵是固定行列 -->
+    <span class="c4-bo">
+      <label for="a4-sort">排序</label>
       <select id="a4-sort">
         <option value="group">按组顺序</option>
         <option value="slow">最慢优先</option>
         <option value="practice">按练习次数（多练优先）</option>
       </select>
     </span>
-    <span><label for="a4-filter">筛选</label>
-      <select id="a4-filter">
-        <option value="all">全部公式</option>
-        <option value="todo">只看未练</option>
-        <option value="weak">只看需关注+不合格</option>
-        <option value="swapped">只看换过公式（换新公式）</option>
-      </select>
-    </span>
+    <span class="c4-spacer"></span>
+    <button type="button" id="c4-nav-toggle" class="c4-navbtn" aria-pressed="false"
+            title="隐藏左侧导航栏，让公式卡片占满整个屏幕">隐藏侧栏</button>
   </div>
-</div>
 
-<div class="a4-top" id="a4-top" hidden>
-  <div class="uf-dash__head"><span class="uf-dash__title">🎯 最慢 TOP 10 · 建议重点练习</span></div>
-  <div class="a4-top__list" id="a4-top-list"></div>
-</div>
+  <!-- 练习总览仪表盘（一行：KPI + 色带 + TOP10 折叠） -->
+  <section id="a4-dash" class="c4-dash">
+    <span class="c4-dash__title">训练总览</span>
+    <span class="c4-dash__std">基准（已练公式 <b id="a4-bench">--</b> <i id="a4-bench-metric">三连均</i> 中位数）</span>
+    <div class="c4-kpis" id="a4-kpis"></div>
+    <span class="c4-gradbox">
+      <span class="c4-grad" aria-hidden="true"></span>
+      <span class="c4-grad-ticks" id="a4-ticks"></span>
+    </span>
+    <details class="c4-top" id="a4-top">
+      <summary>🎯 最慢 TOP 10</summary>
+      <div class="c4-top__list" id="a4-top-list"></div>
+    </details>
+  </section>
 
-<div id="a4-groups"></div>
+  <!-- 练习总览：一屏铺满的扁平彩色卡片（与四阶翼棱/中心块同款） -->
+  <div id="a4-board" class="c4-board-wrap"><div class="c4-board"></div></div>
+
+  <!-- 矩阵总览：22 行（首字母）× 22 列（次字母），格内直显公式 -->
+  <div id="a4-mx-dash" class="c4-mx-dash" hidden>
+    <span class="c4-dash__title">训练总览</span>
+    <span class="c4-dash__std">基准（已练公式 <b id="a4-mx-bench">--</b> <i id="a4-mx-bench-metric">三连均</i> 中位数）</span>
+    <div class="c4-kpis" id="a4-mx-kpis"></div>
+    <span class="c4-gradbox">
+      <span class="c4-grad" aria-hidden="true"></span>
+      <span class="c4-grad-ticks" id="a4-mx-ticks"></span>
+    </span>
+    <details class="c4-top" id="a4-mx-top">
+      <summary>🎯 最慢 TOP 10</summary>
+      <div class="c4-top__list" id="a4-mx-top-list"></div>
+    </details>
+  </div>
+  <div class="c4-matrix" id="a4-matrix" hidden></div>
+
+</div>
 
 <!-- 练习浮层：紧凑型，仅显示计时器与公式（无展开图、无多余滚动） -->
 <div class="a4-modal" id="a4-modal" role="dialog" aria-modal="true" aria-label="单式练习">
@@ -434,6 +323,7 @@
 </footer>
 
 <script src="/assets/js/site-nav.js"></script>
+<script src="../_shared/train-matrix/train-matrix.js"></script>
 <script src="alg440-data.js"></script>
 <script>
 (function () {
@@ -592,153 +482,255 @@
     return { lo: Math.max(0.3, mid - span / 2), hi: Math.min(2.0, mid + span / 2) };
   }
 
-  function render() {
-    var all = window.ALG440.all;
-    var groups = window.ALG440.groups;
-    var order = window.ALG440.groupOrder;
+  /* ============ 公式来源与着色（矩阵/看板/练习浮层共用一份口径） ============ */
+  /* 变体公式库（loadVariants 异步填充）：code -> [alg, alg, ...] */
+  var variantMap = {};
+  var GROUPS_UF = window.ALG440.groupOrder;
+  function gidx(letter) {
+    var i = GROUPS_UF.indexOf(letter);
+    return i < 0 ? 0 : i;
+  }
+  /* 22 组 → 12 色循环（框架只提供 g0–g11） */
+  function gclass(letter) { return 'g' + (gidx(letter) % 12); }
 
+  /** 当前生效的公式：优先用户选的参考公式（refSelections），否则变体库第 1 条 */
+  function algOf(code) {
+    try {
+      var sels = JSON.parse(localStorage.getItem(REF_SEL_KEY)) || {};
+      var g = code.charAt(0);
+      var sel = (sels[g] || {})[code];
+      var s = (sel && typeof sel === 'object') ? (sel.alg || '') : (sel || '');
+      if (s) { return s; }
+    } catch (e) {}
+    var v = variantMap[code];
+    return (v && v[0]) || '';
+  }
+
+  /** 公式语法着色（前置 setup / 主体 / 标点），与四阶训练页同一套变量 */
+  function fmtAlg(alg) {
+    var pre = '', body = String(alg == null ? '' : alg);
+    var m = /^([^:]*?)\s*:\s*(\[.*)$/.exec(body);
+    if (m) { pre = m[1]; body = m[2]; }
+    function colorSeg(s) {
+      return s.replace(/\d+\/\d+/g, function (x) { return '<span class="a-core">' + x + '</span>'; })
+              .replace(/\d+'/g, '<span class="a-pre">\'' + '</span>')
+              .replace(/'/g, '<span class="a-pre">\'</span>');
+    }
+    var out = pre ? '<span class="a-pre">' + colorSeg(pre) + '</span><span class="a-punct">:</span>' : '';
+    return out + colorSeg(body);
+  }
+
+  /* ============ 统计集中计算（两视图共用一份，口径永远一致） ============ */
+  function computeAll() {
+    var all = window.ALG440.all;
     var stats = {};
     all.forEach(function (c) { stats[c] = statsOf(c); });
-
-    // 换过公式的集合（看板标金边 + 可按「只看换过公式」聚焦）
     var swapped = swappedMap();
-
-    // benchmark: 已练公式的当前口径中位数
+    /* benchmark：已练公式的当前口径中位数 */
     var practiced = all.filter(function (c) { return stats[c].n > 0 && isFinite(stats[c].metric()); });
     var bench = median(practiced.map(function (c) { return stats[c].metric(); }));
-    document.getElementById('a4-bench').textContent = fmt(bench);
-    document.getElementById('a4-bench-metric').textContent =
+    var practicedStats = all.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
+    var range = colorRange(practicedStats, bench);
+    return { stats: stats, swapped: swapped, practiced: practiced, bench: bench, range: range };
+  }
+
+  /* 紧凑仪表盘：同一份渲染写进练习总览区（prefix='a4-'）或矩阵区（prefix='a4-mx-'） */
+  function dash(A, prefix) {
+    var $ = function (n) { return document.getElementById(prefix + n); };
+    var all = window.ALG440.all;
+    var stats = A.stats, bench = A.bench, range = A.range;
+    $('bench').textContent = fmt(bench);
+    $('bench-metric').textContent =
       metricMode === 'session' ? '三连均' : (metricMode === 'best' ? '最快' : '全部均');
 
-    // KPI
     var totalN = 0;
     all.forEach(function (c) { totalN += stats[c].n; });
-    var weak = all.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-bad'; }).length;
-    var warn = all.filter(function (c) { return stats[c].n > 0 && tierOf(stats[c].metric(), bench) === 't-warn'; }).length;
-    document.getElementById('a4-kpis').innerHTML =
-      '<div class="a4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + practiced.length + ' / ' + all.length + '</div></div>' +
-      '<div class="a4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
-      '<div class="a4-kpi"><div class="k-label">换过公式</div><div class="k-value" style="color:#f5c518">' + Object.keys(swapped).length + '</div></div>' +
-      '<div class="a4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
-      '<div class="a4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
+    var weak = 0, warn = 0;
+    all.forEach(function (c) {
+      if (stats[c].n === 0) { return; }
+      var t = tierOf(stats[c].metric(), bench);
+      if (t === 't-bad') { weak++; } else if (t === 't-warn') { warn++; }
+    });
+    $('kpis').innerHTML =
+      '<div class="c4-kpi"><div class="k-label">已练公式</div><div class="k-value">' + A.practiced.length + ' / ' + all.length + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">换过公式</div><div class="k-value" style="color:#f5c518">' + Object.keys(A.swapped).length + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
+      '<div class="c4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
 
-    // TOP10 最慢
-    var ranked = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+    $('ticks').innerHTML =
+      '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
+      '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
+      '<span style="left:100%">' + range.hi.toFixed(2) + '×</span>';
+
+    /* TOP10 最慢（details 折叠，无成绩时整体收起） */
+    var ranked = A.practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
     var top = ranked.slice(0, 10);
-    var topBox = document.getElementById('a4-top');
+    var topBox = $('top');
     if (top.length) {
-      topBox.hidden = false;
-      // 与看板方块一致：点条目直接弹练习浮层（不再跳转独立的 train.html 页面）
-      document.getElementById('a4-top-list').innerHTML = top.map(function (c, i) {
-        return '<button type="button" class="a4-top__item" data-alg="' + c + '">' +
-          '<span class="a4-top__rank">#' + (i + 1) + '</span><b>' + c + '</b>' +
-          '<span style="color:var(--fg-3);font-size:12px">' + fmt(stats[c].metric()) + '</span></button>';
+      topBox.classList.remove('is-empty');
+      $('top-list').innerHTML = top.map(function (c, i) {
+        return '<button type="button" class="c4-top__item" data-code="' + c + '">' +
+          '<span class="c4-top__rank">#' + (i + 1) + '</span><b>' + c + '</b>' +
+          '<span class="c4-top__ms">' + fmt(stats[c].metric()) + '</span></button>';
       }).join('');
     } else {
-      topBox.hidden = true;
+      topBox.classList.add('is-empty');
+      $('top-list').innerHTML = '';
     }
+  }
 
-    // 组装显示列表
-    var list = [];
+  /* 搜索 + 筛选的命中集合：矩阵高亮/压暗用 */
+  function matchSet(A) {
+    var q = (document.getElementById('a4-q').value || '').trim().toUpperCase();
+    var set = {};
+    window.ALG440.all.forEach(function (c) {
+      var st = A.stats[c];
+      var ok = true;
+      if (filterMode === 'todo') { ok = st.n === 0; }
+      else if (filterMode === 'weak') {
+        var t = tierOf(st.metric(), A.bench);
+        ok = st.n > 0 && (t === 't-bad' || t === 't-warn');
+      } else if (filterMode === 'swapped') { ok = !!A.swapped[c]; }
+      if (ok && q) { ok = c.indexOf(q) >= 0 || (algOf(c) || '').toUpperCase().indexOf(q) >= 0; }
+      if (ok) { set[c] = true; }
+    });
+    return set;
+  }
+
+  /* ============ 练习总览：横向一屏铺满的卡片（公式 + 成绩 + 次数） ============ */
+  function boardHTML() {
+    var A = computeAll();
+    var stats = A.stats, swapped = A.swapped, bench = A.bench, range = A.range;
+    var all = window.ALG440.all;
+
+    var list = all.slice();
     if (sortMode === 'slow') {
-      list = practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
+      list = A.practiced.slice().sort(function (a, b) { return stats[b].metric() - stats[a].metric(); });
     } else if (sortMode === 'practice') {
-      // 按练习次数降序：练得越多（新公式/不熟）排越前，方便优先练；同次数再比慢者
-      list = all.slice().sort(function (a, b) {
+      /* 练得越多排越前，方便优先练；同次数再比慢者 */
+      list.sort(function (a, b) {
         var na = stats[a].n, nb = stats[b].n;
         if (na !== nb) return nb - na;
         var ma = stats[a].metric(), mb = stats[b].metric();
         if (isFinite(ma) && isFinite(mb)) return mb - ma;
         return isFinite(ma) ? -1 : 1;
       });
-    } else {
-      list = all.slice();
     }
-    if (filterMode === 'todo') list = list.filter(function (c) { return stats[c].n === 0; });
+    if (filterMode === 'todo') { list = list.filter(function (c) { return stats[c].n === 0; }); }
     if (filterMode === 'weak') {
       list = list.filter(function (c) {
         var t = tierOf(stats[c].metric(), bench);
         return stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
       });
     }
-    if (filterMode === 'swapped') {
-      list = list.filter(function (c) { return !!swapped[c]; });
-    }
-
-    // 自适应映射区间（让色彩覆盖完整的绿→红调色板）
-    var practicedStats = all.filter(function (c) { return stats[c].n > 0; }).map(function (c) { return stats[c]; });
-    var range = colorRange(practicedStats, bench);
-
-    // 平铺一列流（所有 440 块放进单个 grid，行列对齐等）
-    var cells;
-    if (sortMode === 'slow' || sortMode === 'practice') {
-      cells = list.map(function (c) { return { c: c }; });
-    } else {
-      cells = [];
-      order.forEach(function (g) {
-        var codes = window.ALG440.groups[g].filter(function (c) { return list.indexOf(c) >= 0; });
-        if (!codes.length) return;
-        codes.forEach(function (c) { cells.push({ c: c }); });
+    if (filterMode === 'swapped') { list = list.filter(function (c) { return !!swapped[c]; }); }
+    var q = (document.getElementById('a4-q').value || '').trim().toUpperCase();
+    if (q) {
+      list = list.filter(function (c) {
+        return c.indexOf(q) >= 0 || (algOf(c) || '').toUpperCase().indexOf(q) >= 0;
       });
     }
 
-    var boardHtml = '<div class="a4-board-wrap"><div class="a4-board">' +
-      cells.map(function (it) { return cellHtml(it, range); }).join('') + '</div></div>';
-
-    document.getElementById('a4-groups').innerHTML =
-      boardHtml || '<div class="uf-empty">没有符合筛选条件的公式。</div>';
-
-    // 更新顶部色带刻度（用真实映射区间显示）
-    var ticks = document.getElementById('a4-grad-ticks');
-    if (ticks && range) {
-      ticks.innerHTML =
-        '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
-        '<span style="left:25%">' + (range.lo + (range.hi - range.lo) * 0.25).toFixed(2) + '×</span>' +
-        '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
-        '<span style="left:75%">' + (range.lo + (range.hi - range.lo) * 0.75).toFixed(2) + '×</span>' +
-        '<span style="left:100%">' + range.hi.toFixed(2) + '×</span>';
-    }
-
-    function cellHtml(it, range) {
-      if (it.gapBefore) {
-        return '';
-      }
-      var c = it.c;
+    return list.map(function (c) {
       var st = stats[c];
       var m = st.metric();
       var r = isFinite(m) && isFinite(bench) && bench > 0 ? m / bench : NaN;
       var col = colorByRatio(r, range);
-      var swap = swapped[c];
+      var alg = algOf(c) || '';
       var title = (st.n
-        ? (c + ' · ' + fmt(m) + ' · ' + st.n + ' 次 · r=' + (isFinite(r) ? r.toFixed(2) : '--') + '× 基准')
-        : (c + ' · 未练习'))
-        + (swap ? ' · 已换新公式（' + (swap.alg || '') + '）' : '');
-      var bg = col.bg;
-      var fg = col.fg;
+        ? (c + ' · ' + alg + ' · ' + fmt(m) + ' · ' + st.n + ' 次')
+        : (c + ' · ' + alg + ' · 未练习'));
       var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
-      if (swap) klass += ' is-swapped';
-      return '<a class="a4-cell ' + klass + '" data-alg="' + c + '" ' +
-        'style="background:' + bg + ';color:' + fg + '" title="' + title + '">' +
+      if (swapped[c]) { klass += ' is-swapped'; }
+      return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
+        'style="background:' + col.bg + ';color:' + col.fg + '" title="' + TrainMatrix.esc(title) + '">' +
         '<span class="c-code">' + c + '</span>' +
-        (swap ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
+        (swapped[c] ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
+        '<span class="c-alg">' + (alg ? TrainMatrix.fmtAlgCell(alg, fmtAlg) : '') + '</span>' +
         '<span class="c-ms">' + (st.n ? fmt(m) : '--') + '</span>' +
         '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
         '</a>';
+    }).join('');
+  }
+
+  /* ============ 矩阵总览：22 行（首字母组）× 22 列（次字母），格内直显公式 ============ */
+  function cellInfo(code, row, col) {
+    if (window.ALG440.groups[row] && window.ALG440.groups[row].indexOf(code) >= 0) {
+      var A = computeAll();
+      var st = A.stats[code], bench = A.bench, range = A.range;
+      var alg = algOf(code) || '';
+      var m = st.metric();
+      var r = (st.n && isFinite(m) && isFinite(bench) && bench > 0) ? m / bench : NaN;
+      if (isFinite(r)) {
+        /* 已练：连续渐变色（绿=快 → 红=慢），与看板同一套 colorByRatio */
+        var c2 = colorByRatio(r, range);
+        return {
+          kind: 'alg', alg: alg, cls: 'spd ' + c2.tier,
+          style: 'background:' + c2.bg + ';color:' + c2.fg,
+          tip: code + '　' + alg + '　' + fmt(m) + ' · ' + st.n + ' 次 · ' + r.toFixed(2) + '× 基准'
+        };
+      }
+      return { kind: 'alg', alg: alg, cls: 'on', tip: code + '　' + alg + '　未练习' };
     }
+    if (row === col) { return { kind: 'self', tip: code + '　自身，无公式' }; }
+    return { kind: 'none', tip: code + '　该组合不生成公式' };
+  }
+
+  /* ============ 视图切换 / 布局引擎：全部委托给 TrainMatrix ============ */
+  var TM = TrainMatrix.mount({
+    viewSel: '#a4-view',
+    dashBoardSel: '#a4-dash',
+    dashMatrixSel: '#a4-mx-dash',
+    boardWrapSel: '#a4-board',
+    matrixSel: '#a4-matrix',
+    dashBoardPrefix: 'a4-',
+    dashMatrixPrefix: 'a4-mx-',
+    rowOrder: window.ALG440.groupOrder,
+    colOrder: window.ALG440.groupOrder,
+    codes: window.ALG440.all,
+    algOf: algOf,
+    isSwapped: function (c) { return !!swappedMap()[c]; },
+    gclass: gclass,
+    fmtAlg: fmtAlg,
+    defaultView: 'matrix',
+    computeAll: computeAll,
+    dash: dash,
+    matchSet: function (A) {
+      /* 有搜索/筛选时：命中格高亮，其余压暗 */
+      var hasFilter = filterMode !== 'all' || !!(document.getElementById('a4-q').value || '').trim();
+      if (!hasFilter) { return null; }
+      return matchSet(A);
+    },
+    cellInfo: cellInfo,
+    boardHTML: boardHTML,
+    onCellClick: function (code) { if (window.__uf440Open) window.__uf440Open(code); },
+    /* 本页顶到视口底没有页脚余量（框架默认按 body 收尾距即可） */
+    navKey: 'c4_nav_hidden_v1'
+  });
+
+  function render() {
+    if (TM.getView() === 'board') { TM.renderBoard(); } else { TM.renderMatrix(); }
+    TM.scheduleBoard();
+    TM.scheduleMatrix();
   }
 
   document.getElementById('a4-metric').addEventListener('change', function () {
-    metricMode = this.value; render(); if (window.__uf440Fit) window.__uf440Fit();
+    metricMode = this.value; render();
   });
   document.getElementById('a4-sort').addEventListener('change', function () {
-    sortMode = this.value; render(); if (window.__uf440Fit) window.__uf440Fit();
+    sortMode = this.value; render();
   });
   document.getElementById('a4-filter').addEventListener('change', function () {
-    filterMode = this.value; render(); if (window.__uf440Fit) window.__uf440Fit();
+    filterMode = this.value; render();
   });
+  document.getElementById('a4-q').addEventListener('input', render);
 
+  document.getElementById('a4-count').textContent = window.ALG440.all.length;
+  TM.initNavToggle();
+  TM.setView('matrix');   /* 默认进矩阵总览（22×22 一屏，点格即练） */
   render();
-  if (window.__uf440Fit) window.__uf440Fit();
+  TM.watch();
 
   // === 练习浮层：紧凑计时器 + 公式下拉，无展开图、无滚动 ===
   (function () {
@@ -762,7 +754,6 @@
     var startTs = 0;
     var tickHandle = 0;
     var prepTimer = 0;     // 500ms 内未到 green 就松开 = 取消
-    var variantMap = {};   // code -> [alg, alg, ...]
 
     function fmt(ms) {
       if (!isFinite(ms) || ms < 0) return '--.--';
@@ -799,6 +790,8 @@
           ALL.forEach(function (code) {
             variantMap[code] = data['A' + code] || [code];
           });
+          /* 公式是异步到达的 → 到位后重绘当前视图，格内才会显示公式 */
+          try { render(); } catch (e) {}
         });
     }
 
@@ -844,7 +837,6 @@
       // 通知父看板刷新
       try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
       render();
-      if (window.__uf440Fit) window.__uf440Fit();
     }
     function resetTimer() {
       clearInterval(tickHandle);
@@ -1108,8 +1100,7 @@
       currentCode = code;
       select.value = code;
       codeEl.textContent = code;
-      var list = variantMap[code] || [code];
-      variantAlg = list[0];
+      variantAlg = algOf(code) || code;
       algEl.textContent = variantAlg;
       resetTimer();
       refreshHistory();
@@ -1170,7 +1161,6 @@
       try { sessions = load(SESSIONS_KEY, {}); } catch (e) {}
       refreshHistory();
       render();
-      if (window.__uf440Fit) window.__uf440Fit();
     });
     clearBtn.addEventListener('click', function () {
       if (!confirm('确认清空「' + currentCode + '」的全部成绩？')) return;
@@ -1180,7 +1170,6 @@
       try { sessions = load(SESSIONS_KEY, {}); times = load(TIMES_KEY, {}); } catch (e) {}
       refreshHistory();
       render();
-      if (window.__uf440Fit) window.__uf440Fit();
     });
 
     // 点遮罩 / ESC 关闭
@@ -1219,14 +1208,8 @@
       else if (state === 'done' || state === 'idle') startTimer();
     });
 
-    // 看板方块 / TOP10 条目 → 打开练习浮层
-    document.addEventListener('click', function (e) {
-      var t = e.target.closest && e.target.closest('.a4-cell, .a4-top__item');
-      if (t && t.dataset && t.dataset.alg) {
-        e.preventDefault();
-        openFor(t.dataset.alg);
-      }
-    });
+    // 练习浮层的打开入口（矩阵格 / 看板卡 / TOP10 由 TrainMatrix.onCellClick 调进来）
+    window.__uf440Open = openFor;
   })();
 
   if (window.SyncBoot) {
@@ -1240,188 +1223,6 @@
     });
   }
 
-  // === 自适应铺满：让 440 个方块按 cols×rows 平铺，格子「尽量大」且两轴都填满 ===
-  // 关键（2026-10-09 改）：以前的目标是「列数越多越好」，在宽屏上会退化成
-  // 44~55 列 × 8~10 行、格子只有 26~32px —— 横着拉成长条、屏幕下半截全空。
-  // 现在的目标是「可用面积利用率最高」，即让 min(cellW,cellH) 最大，天然收敛到
-  // 纵向也填满的那组列数；再卡死长宽比与末行拉伸比，避免排出细长条或一条「面包」末行。
-  var fitRaf = 0;
-  var GAP = 5;
-  var MIN_CELL = 28;
-
-  function divisors(n) {
-    var out = [];
-    for (var i = 1; i * i <= n; i++) {
-      if (n % i === 0) { out.push(i); if (i !== n / i) out.push(n / i); }
-    }
-    return out.sort(function (a, b) { return a - b; });
-  }
-
-  function fitBoard() {
-    var board = document.querySelector('.a4-board');
-    if (!board) return;
-    var cells = board.children;
-    var n = cells.length;
-    if (!n) return;
-
-    // --- 可用宽度：以 board 自身 clientWidth 为准（侧栏骨架注入完成后的真实值）---
-    var cs = getComputedStyle(board);
-    var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
-    var availW = board.clientWidth ? (board.clientWidth - padX - 2)
-                                   : (document.documentElement.clientWidth - 240 - 32);
-    availW = Math.max(240, availW);
-
-    // --- 可用高度：视口高 - board 顶部偏移 - 板下固定尾距 ---
-    // 尾距 = board 下边距 + 页脚上边距 + 页脚高 + body 的 padding-bottom（30px，实测不能漏）。
-    // ⚠️ 不能用 scrollHeight - boardBottom 量：body 有 min-height:100vh，
-    // 内容不足一屏时 scrollHeight 会被视口高托底，量出来的「尾距」会把页面空白也算进去，
-    // 于是越算越小 → 板越小 → 空白越多，收敛到一个格子很小、下方一大片空的坏结果。
-    // 逐项加起来才是真值。一屏铺满方案会把板高精确算到 availH，漏算一项就会超出视口；
-    // 若此时 overflow 被锁死（fitsH），超出部分直接被裁掉（页脚看不见）。
-    // 注意：窗口偏矮时（顶部控件 440px + 页脚 ~180px）一屏物理装不下 440 格，
-    // 此时退化为「按宽度铺满 + 舒适格子 + 竖向滚动」，绝不把格子压到不可读。
-    var rect = board.getBoundingClientRect();
-    var topSpace = Math.max(0, rect.top);
-    var footEl = document.querySelector('footer.site-footer');
-    var footH = 0, footMT = 0;
-    if (footEl) {
-      footH = Math.ceil(footEl.getBoundingClientRect().height);
-      footMT = parseFloat(getComputedStyle(footEl).marginTop) || 0;
-    }
-    var boardMB = parseFloat(cs.marginBottom) || 0;
-    var bodyPB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
-    var tailH = boardMB + footMT + footH + bodyPB;
-    var availH = Math.max(200, window.innerHeight - topSpace - Math.ceil(tailH) - 2);
-
-    // --- 1) 候选列数与尺寸 ---
-    var isNarrow = window.innerWidth < 640;
-    var minCell = isNarrow ? 26 : MIN_CELL;   // 手机放宽下限，尽量多排列
-    // 格宽上限只作安全阀：真正的上限由 min(cellW,cellH) 与长宽比共同决定，不会退化成长条。
-    var maxCell = isNarrow ? 96 : 112;
-    var MAX_ASPECT = 1.34;                    // 格子最大长宽比，超出视为「细长条」弃用
-
-    var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minCell + GAP))));
-
-    // 一屏铺满方案：宽、高各按自己的轴精确分配。
-    // cell = min(cellW,cellH) 当作「方块尺寸」，取它最大 → 可用面积利用率最高，
-    // 天然收敛到「纵向也填满」的那组列数（宽屏不会再排出 44+ 列的长条）。
-    // 不要「先定 cell 让 flex 自己排」：cell 受高度限制变小时宽度有富余，
-    // flex 会多排一列（22→23），按 cols 算出的余数就与实际末行不符、末尾出现空洞。
-    function planFor(cols) {
-      var rows = Math.ceil(n / cols);
-      var rem = n - cols * (rows - 1);              // 末行实际格数（1..cols）
-      var cellW = (availW - (cols - 1) * GAP) / cols;
-      var cellH = (availH - (rows - 1) * GAP) / rows;
-      var lo = Math.min(cellW, cellH), hi = Math.max(cellW, cellH);
-      // 末行拉伸比 = 拉伸后末行格宽 / 常规格宽（≈ cols/rem）；> 3 就是一条「面包」
-      var tailRatio = rem === 0 ? 1 : ((availW - (rem - 1) * GAP) / rem) / cellW;
-      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellH,
-               cell: lo, aspect: hi / lo, tailRatio: tailRatio, fitsH: true };
-    }
-    // 退让方案：只按宽度铺满（竖向放开滚动），格子保持正方
-    function widthPlanFor(cols) {
-      var rows = Math.ceil(n / cols);
-      var rem = n - cols * (rows - 1);
-      var cellW = (availW - (cols - 1) * GAP) / cols;
-      return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellW,
-               cell: cellW, aspect: 1, tailRatio: rem === 0 ? 1 : cols / rem, fitsH: false };
-    }
-
-    var best = null;
-    // 第一轮（首选）：一屏铺满。合法条件 = 格子够大可读 + 够小不失控 + 不是细长条 + 末行拉不成面包
-    for (var c = 1; c <= maxColsByW; c++) {
-      var p = planFor(c);
-      if (p.cell < minCell || p.cell > maxCell) continue;
-      if (p.aspect > MAX_ASPECT) continue;
-      if (p.tailRatio > 3) continue;
-      if (!best || p.cell > best.cell * 1.02) { best = p; continue; }
-      if (p.cell >= best.cell * 0.98) {
-        // 尺寸接近时：优先整除（末行满格不用拉伸）→ 末行拉伸更小 → 更接近正方 → 格子略大
-        var better;
-        if ((p.rem === 0) !== (best.rem === 0)) better = (p.rem === 0);
-        else if (Math.abs(p.tailRatio - best.tailRatio) > 0.03) better = p.tailRatio < best.tailRatio;
-        else if (Math.abs(p.aspect - best.aspect) > 0.02) better = p.aspect < best.aspect;
-        else better = p.cell > best.cell;
-        if (better) best = p;
-      }
-    }
-    // 第二轮：一屏物理装不下（窗口偏矮）→ 按宽度铺满，整除列里取列数最多的
-    if (!best) {
-      var divs = divisors(n);
-      for (var i = 0; i < divs.length; i++) {
-        if (divs[i] > maxColsByW) break;
-        var w1 = widthPlanFor(divs[i]);
-        if (w1.cell < minCell || w1.cell > maxCell) continue;
-        if (!best || w1.cols > best.cols) best = w1;
-      }
-    }
-    // 第三轮：任意列数里取「合法范围内列数最多」（格子最小但仍可读）
-    if (!best) {
-      for (var c2 = maxColsByW; c2 >= 1; c2--) {
-        var w2 = widthPlanFor(c2);
-        if (w2.cell < minCell || w2.cell > maxCell) continue;
-        best = w2; break;
-      }
-    }
-    // 兜底：窗口极窄 → 最大列数 + 最小格宽，放开竖向滚动
-    if (!best) {
-      var p3 = widthPlanFor(maxColsByW);
-      var cc = Math.max(minCell, Math.min(p3.cellW, maxCell));
-      best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cellW: cc, cellH: cc,
-               cell: cc, aspect: 1, tailRatio: 1, fitsH: false };
-    }
-
-    // --- 2) 末行拉伸：宽度不超过常规格 3 倍才铺，否则保持原宽居中 ---
-    var tailW = 0;
-    if (best.rem > 0 && best.rem < best.cols) {
-      var t = (availW - (best.rem - 1) * GAP) / best.rem;
-      if (t <= best.cellW * 3) tailW = t;
-    }
-
-    // --- 3) 应用（宽、高分开写；--a4-cell 只作字号换算基准）---
-    board.style.setProperty('--a4-cell-w', best.cellW.toFixed(2) + 'px');
-    board.style.setProperty('--a4-cell-h', best.cellH.toFixed(2) + 'px');
-    board.style.setProperty('--a4-cell', best.cell.toFixed(2) + 'px');
-    if (tailW > 0) board.style.setProperty('--a4-tail', tailW.toFixed(2) + 'px');
-    else board.style.removeProperty('--a4-tail');
-    for (var k = 0; k < n; k++) {
-      var el = cells[k];
-      if (!el || !el.classList) continue;
-      if (tailW > 0 && k >= n - best.rem) el.classList.add('is-tail');
-      else el.classList.remove('is-tail');
-    }
-
-    // --- 4) 竖向：一屏装得下才锁滚动；装不下必须放开，否则下方格子永远看不到 ---
-    document.documentElement.style.overflowY = best.fitsH ? 'hidden' : '';
-    document.body.style.overflowY = best.fitsH ? 'hidden' : '';
-    document.documentElement.style.overflowX = 'hidden';
-  }
-
-  function scheduleFit() {
-    if (fitRaf) cancelAnimationFrame(fitRaf);
-    fitRaf = requestAnimationFrame(fitBoard);
-  }
-
-  // 初始 + 窗口变化 + 字体加载后重新计算
-  window.addEventListener('resize', scheduleFit);
-  window.addEventListener('orientationchange', scheduleFit);
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(fitBoard);
-  }
-  // 侧栏/骨架是异步注入的，注入不触发 window.resize → 用 ResizeObserver 盯容器宽度
-  if (typeof ResizeObserver !== 'undefined') {
-    var roTimer = 0;
-    var ro = new ResizeObserver(function () {
-      clearTimeout(roTimer);
-      roTimer = setTimeout(fitBoard, 60);
-    });
-    ro.observe(document.documentElement);
-    var wrapEl = document.querySelector('.a4-board-wrap');
-    if (wrapEl) ro.observe(wrapEl);
-  }
-  setTimeout(fitBoard, 0);
-  // 暴露给 render 末尾调用（每次筛/排序/数据刷新都重排）
-  window.__uf440Fit = scheduleFit;
 })();
 </script>
 </body>
