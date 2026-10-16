@@ -1,0 +1,461 @@
+code	pos1	pos2	pos3	nsrc	alg	comm	alts	altnsrc
+DAB	Ubl	Ufl	Ful	6	u l u' l' U l u l' Uw'	u:[l u' l',U]	U Rw U r' U' l' U r U' l Rw' U'|4Dw' l u' l' U l u l' y'|Uw' U' r u' r' U r u r' Uw|U2 r u2 r' U r u2 r' U	4|2|1|1
+DAC	Ubl	Ufl	Luf	10	U' l' u l U l' u' l	[U',l' u l]	U r' u' r U r' u r U2	4
+DAE	Ubl	Ufl	Lub	13	l u' l' U l u l' U'	[l u' l',U]	U2 r u r' U r u' r' U	1
+DAF	Ubl	Ufl	Bul	5	Uw' l' u l U l' u' l u	u':[U',l' u l]	Uw r' u r U r' u' r U' Uw'|U' Rw' l U' r U l' U' r' U Rw U|y r' u r U r' u' r U' y'|U' 4Rw' U' r U l' U' r' U 3Rw U|U r' u2 r U r' u2 r U2	2|2|2|1|1
+DAH	Ubl	Ufl	Bur	11	l u2 l' U l u2 l' U'	[l u2 l',U]	U' Lw U l' U' r' U l U' r Lw' U	2
+DAI	Ubl	Ufl	Rub	11	U' l' u' l U l' u l	[U',l' u' l]	U r' u r U r' u' r U2	4
+DAJ	Ubl	Ufl	Ufr	1	3Rw' l' d2 l U l' d2 l U' 3Rw	3Rw':[l' d2 l,U]	l u' l' U l u l' U l u' l' U2 l u l'	1
+DAK	Ubl	Ufl	Ruf	14	l u l' U l u' l' U'	[l u l',U]	U2 r u' r' U r u r' U	1
+DAL	Ubl	Ufl	Fur	11	U' l' u2 l U l' u2 l	[U',l' u2 l]	Uw r' u' r U r' u r U' Uw'|U Lw' r U' l U r' U' l' U Lw U'	2|1
+DAM	Ubl	Ufl	Ldf	10	l' d' l U l' d l U'	[l' d' l,U]	U2 r' d r U r' d' r U	4
+DAN	Ubl	Ufl	Fdl	6	U r d2 r' U r d2 r' U2	U:[r d2 r',U]	U' Rw l' U' r' U l U' r U Rw' U|U' x U' r' U l U' r U l' x' U|y' l d' l' U l d l' 4Dw'|d U' l d' l' U l d l' d'|U' 4Rw U' r' U l U' r U 3Rw' U	2|2|2|1|1
+DAO	Ubl	Ufl	Dbl	6	U' D' r2 D l2 D' r2 D l2 U	U':[D' r2 D,l2]	U' Rw' l2 U' r U l2 U' r' U Rw U|U' Rw l2 U' r' U l2 U' r U Rw' U	5|1
+DAP	Ubl	Ufl	Bdl	5	U2 r' d2 r U r' d2 r U	U':[U',r' d2 r]	U Rw' U r U' l U r' U' l' Rw U'|y' U' r' d r U r' d' r y|d' l' d l U l' d' l U' d	4|3|1
+DAQ	Ubl	Ufl	Ldb	14	U' l d l' U l d' l'	[U',l d l']	U r d' r' U r d r' U2	1
+DAR	Ubl	Ufl	Dbr	4	U' Lw U l' U' r2 U l U' r2 Lw' U	U' Lw:[U l' U',r2]	M' d2 l U l' d2 l U' l' M|U' r2 D l2 D' r2 D l2 D' U|U' 3Lw U l' U' r2 U l U' r2 3Lw' U|r' l u2 l' U l u2 l' U' r|r l' d2 l U l' d2 l U' r'|4Uw' r2 D l2 D' r2 D l2 y	3|2|1|1|1|1
+DAS	Ubl	Ufl	Rdb	11	l' d l U l' d' l U'	[l' d l,U]	U2 r' d' r U r' d r U	3
+DAT	Ubl	Ufl	Bdr	10	U' l d2 l' U l d2 l'	[U',l d2 l']	U x' U' l' U r U' l U r' x U'|U Lw r' U' l' U r U' l U Lw' U'|U M U' l' U r U' l U r' M' U'	2|1|1
+DAW	Ubl	Ufl	Dfl	6	U l2 D r2 D' l2 D r2 D' U'	U:[l2,D r2 D']	U Rw' U r U' l2 U r' U' l2 Rw U'|U Rw U r' U' l2 U r U' l2 Rw' U'|U2 x u2 r' U r u2 r' U' r x' U2	5|1|1
+DAX	Ubl	Ufl	Dfr	4	U D' l2 D r2 D' l2 D r2 U'	U:[D' l2 D,r2]	r U' l' u2 l U l' u2 l r'|U Lw r2 U' l' U r2 U' l U Lw' U'|U Lw' r2 U' l U r2 U' l' U Lw U'|y' r2 D l2 D' r2 D l2 D' y|Rw U' l' u2 l U l' u2 l Rw'|x l U' l' u2 l U l' u2 x'	3|1|1|1|1|1
+DAY	Ubl	Ufl	Fdr	8	l' d2 l U l' d2 l U'	[l' d2 l,U]	y' U' r' d' r U r' d r y|U' l' U l U' r U l' U' r' l U|U' Lw U l' U' r U l U' r' Lw' U	1|1|1
+DAZ	Ubl	Ufl	Rdf	14	U' l d' l' U l d l'	[U',l d' l']	U r d r' U r d' r' U2	1
+DBA	Ubl	Ful	Ufl	6	Uw l u' l' U' l u l' u'	Uw:[l u' l',U']	U Rw l' U r' U' l U r U' Rw' U'|y l u' l' U' l u l' 4Dw|Uw' r u' r' U' r u r' U Uw|U 4Rw U r' U' l U r U' 3Rw' U'|U' r u2 r' U' r u2 r' U2	3|2|1|1|1
+DBC	Ubl	Ful	Luf	10	F r U r' u' r U' r' u F'	F:[r U r',u']	L' U l' U' l u' l' U l u U' L	1
+DBE	Ubl	Ful	Lub	12	U l' U' l u' l' U l u U'	U:[l' U' l,u']		
+DBF	Ubl	Ful	Bul	10	F r U r' u2 r U' r' u2 F'	F:[r U r',u2]	Lw D U2 r2 U' l' U r2 U' l U' D' Lw'	2
+DBG	Ubl	Ful	Ubr	4	Uw' l u l' U l u' l' u	Uw':[l u l',U]	Rw U r' U' l' U r U' l Rw'|x l U r' U' l' U r U' x'|U r u2 r' U r u2 r' U2|Rw' U r U' l' U r' U' l Rw|r U r' U' l' U r U' r' l	4|2|2|1|1
+DBH	Ubl	Ful	Bur	11	u2 r' U2 r u2 r' U2 r	[u2,r' U2 r]	U l' U' l u2 l' U l u2 U'	2
+DBI	Ubl	Ful	Rub	12	Uw r Uw' l' Uw r' Uw' l	[Uw r Uw',l']	F r U r' u r U' r' u' F'	1
+DBJ	Ubl	Ful	Ufr	26	r u2 r' U2 r u2 r' U2	[r u2 r',U2]	U' Rw' U2 r U' l' U r' U' l U' Rw U	2
+DBK	Ubl	Ful	Ruf	10	U l' U' l u l' U l Uw'	U:[l' U' l,u]	Rw Uw r Uw' l' Uw r' Uw' l Rw'|y' u' r' U' r u r' U r y	2|1
+DBL	Ubl	Ful	Fur	1	U r U' l' U r' U' l	[U r U',l']		
+DBM	Ubl	Ful	Ldf	6	z u r U2 r' u' r U2 r' z'	z:[u,r U2 r']	U l' U' l' d' l U l' d l2 U'|U Lw' r' u' r U r' u r U' Lw U'|l u L2 u' l' u L2 u'|z Uw r U r' u' r U' r' U' z'	4|1|1|1
+DBO	Ubl	Ful	Dbl	7	D2 U r2 U' l' U r2 U' l D2	D2:[U r2 U',l']	Uw' l2 Uw' r' Uw l2 Uw' r Uw2	5
+DBP	Ubl	Ful	Bdl	9	F l U r U' l' U r' U' F'	F:[l,U r U']	Uw l2 u' l' U' l u l' U l' Uw'|Lw D U r2 U' l' U r2 U' l D' Lw'	3|1
+DBQ	Ubl	Ful	Ldb	6	Dw' U r' U' l' U r U' l Dw	Dw':[U r' U',l']	z u r U r' u' r U' r' z'|S l' Uw r Uw' l Uw r' Uw' S'	5|1
+DBR	Ubl	Ful	Dbr	10	D' U r2 U' l' U r2 U' l D	D':[U r2 U',l']	D' Rw U r U' l' U r' U' l Rw' D|x r U2 r' d2 r U2 r' d2 x'	1|1
+DBS	Ubl	Ful	Rdb	7	Rw' Uw r Uw' l' Uw r' Uw' l Rw	Rw':[Uw r Uw',l']	U l' U' l' d l U l' d' l2 U'|z' d l' U2 l d' l' U2 l z|R' Uw r Uw' l' Uw r' Uw' l R	2|2|1
+DBT	Ubl	Ful	Bdr	13	U r' U' l' U r U' l	[U r' U',l']		
+DBW	Ubl	Ful	Dfl	11	D U r2 U' l' U r2 U' l D'	D:[U r2 U',l']	D Rw U r U' l' U r' U' l Rw' D'	1
+DBX	Ubl	Ful	Dfr	12	U r2 U' l' U r2 U' l	[U r2 U',l']	Rw U r U' l' U r' U' l Rw'	1
+DBZ	Ubl	Ful	Rdf	7	Dw U r' U' l' U r U' l Dw'	Dw:[U r' U',l']	R2 Uw r Uw' l' Uw r' Uw' l R2|z' d l' U l d' l' U' l z|Rw U l' U' l u l' U l Uw' Rw'|Rw2 Uw r Uw' l' Uw r' Uw' l Rw2	3|2|1|1
+DCA	Ubl	Luf	Ufl	10	l' u l U' l' u' l U	[l' u l,U']	U2 r' u' r U' r' u r U'	4
+DCB	Ubl	Luf	Ful	10	F u' r U r' u r U' r' F'	F:[u',r U r']	L' U u' l' U' l u l' U l U' L	1
+DCF	Ubl	Luf	Bul	7	u' r U r' u' r U' r' u2	u':[r U r',u']	Uw l U2 l' u' l U2 l' U'|Uw' r U2 r' u' r U2 r' u Uw	5|1
+DCG	Ubl	Luf	Ubr	15	r' u' r U r' u r U'	[r' u' r,U]		
+DCH	Ubl	Luf	Bur	7	U2 r' Uw l Uw' r Uw l' Uw' U2	U2:[r',Uw l Uw']	Rw' U' r' u' r U2 r' u r U' Rw|r' U' r' u' r U2 r' u r U' r|u2 l' Uw r Uw' l Uw r' U' u|L' u r' U2 r u' r' U2 r L	3|1|1|1
+DCI	Ubl	Luf	Rub	12	u' r U r' u2 r U' r' u'	u':[r U r',u2]	y' r U2 r' u2 r U2 r' u2 y	1
+DCJ	Ubl	Luf	Ufr	24	U' r' u' r U2 r' u r U'	U':[r' u' r,U2]	y' U2 l' u2 l U2 l' u2 l y|y U2 r' u2 r U2 r' u2 r y'|U l' u l U2 l' u' l U	1|1|1
+DCK	Ubl	Luf	Ruf	12	R u' r U r' u2 r U' r' u' R'	R u':[r U r',u2]	R y' r U2 r' u2 r U2 r' u2 y R'	1
+DCL	Ubl	Luf	Fur	15	u' r U r' u r U' r'	[u',r U r']		
+DCN	Ubl	Luf	Fdl	6	U l2 u l U2 l' u' l U2 l U'	U l':[l' u l,U2]	F2 u' r U r' u r U' r' F2|S l' U l' u' l U' l' u l2 S'|L' U' u l' U' r' U l U' r u' U2 L|R' F2 R u' r U r' u r U' Rw' F2 R	4|1|1|1
+DCO	Ubl	Luf	Dbl	4	U l u l U2 l' u' l U2 l2 U'	U l:[u,l U2 l']	4Dw l2 U r U' l2 U r' U' 4Dw'|y U r2 U l U' r2 U l' U2 y'|u' D l2 U r U' l2 U r' U' D' u|Uw' F l2 U' r U l2 U' r' U F' Uw|D2 Rw u' r U r' u r U' r' Rw' D2	4|1|1|1|1
+DCP	Ubl	Luf	Bdl	9	u' l U r U' l' U r' U' u	u':[l,U r U']	z l U l' u' l U' l' u z'	2
+DCR	Ubl	Luf	Dbr	5	U2 r2 Uw l Uw' r2 Uw l' Uw' U2	U2:[r2,Uw l Uw']	D' Rw u' r U r' u r U' r' Rw' D|u U2 r2 U l U' r2 U l' U u'|L y' l2 U' r U l2 U' r' U y L'|D' r u' r U r' u r U' r2 D	3|2|1|1
+DCS	Ubl	Luf	Rdb	5	R' u' r U r' u2 r U' r' u' R	R' u':[r U r',u2]	E l U r U' l' U r' U' E'|4Dw l U r U' l' U r' U2 y|R' Uw' r U2 r' u2 r U2 r' u2 Uw R|R' y' r U2 r' u2 r U2 r' u2 y R	4|3|1|1
+DCT	Ubl	Luf	Bdr	6	r2 u' r U r' u r U' r	r':[r' u' r,U]	Rw' r' u' r U r' u r U' Rw	5
+DCW	Ubl	Luf	Dfl	11	u' l2 U r U' l2 U r' U' u	u':[l2,U r U']	E l2 U r U' l2 U r' U2 4Uw|D Rw u' r U r' u r U' r' Rw' D'	1|1
+DCX	Ubl	Luf	Dfr	10	r u' r U r' u r U' r2	r:[u',r U r']	Rw u' r U r' u r U' r' Rw'|L' u' U r2 U' l' U r2 U' l u L	2|1
+DCY	Ubl	Luf	Fdr	5	U2 r Uw l Uw' r' Uw l' Uw' U2	U2:[r,Uw l Uw']	F' u' r U r' u r U' r' F|u U2 r U l U' r' U l' U u'|Rw U' r' u' r U2 r' u r U' Rw'|L d r U2 r' d' r U2 r' L'	5|2|1|1
+DCZ	Ubl	Luf	Rdf	5	R2 u' r U r' u2 r U' r' u' R2	R2 u':[r U r',u2]	u' r U r d r' U' r d' r2 u|R' E l U r U' l' U r' U' E' R|R' 4Dw l U r U' l' U r' U' 4Dw' R|y' F' U2 r' U' l' U r U' l U' F y|R2 y' r U2 r' u2 r U2 r' u2 y R2	3|2|1|1|1
+DEA	Ubl	Lub	Ufl	13	U l u' l' U' l u l'	[U,l u' l']	U' r u r' U' r u' r' U2	1
+DEB	Ubl	Lub	Ful	12	U u' l' U' l u l' U l U'	U:[u',l' U' l]		
+DEF	Ubl	Lub	Bul	7	S l U2 l' u' l U2 l' u S'	S:[l U2 l',u']	U x' r U2 r' u' r U2 r' u x U'|l U2 l' U' l u' l' U l u U2 l'|4Rw' U2 l' U' l u' l' U l u U2 4Rw|L u' r U r' u' r U' r' u2 L'	3|1|1|1
+DEG	Ubl	Lub	Ubr	17	U' l u' l' U l u l'	[U',l u' l']		
+DEH	Ubl	Lub	Bur	14	u r' U2 r u' r' U2 r	[u,r' U2 r]	U' u r' U' r u' r' U r U	1
+DEI	Ubl	Lub	Rub	6	L u' r U r' u2 r U' r' u' L'	L u':[r U r',u2]	y' F2 l U' r U l' U' r' U F2 y|R' u r' U2 r u2 r' U2 r u R|Rw' Fw' Rw U l u' l' U' l u l' Rw' Fw Rw|R' U' u r' U' r u2 r' U r Uw R|R' y' u2 r' U' r u2 r' U r y R	2|2|1|1|1
+DEJ	Ubl	Lub	Ufr	23	r u r' U2 r u' r' U2	[r u r',U2]	U2 l u' l' U2 l u l'	5
+DEK	Ubl	Lub	Ruf	7	u r' U2 r u2 r' U2 r u	u:[r' U2 r,u2]	U u' l' U' l u2 l' U l Uw'|R' E U r' U' l' U r U' l E' R|y' u2 r' U' r u2 r' U r y|y u2 l' U' l u2 l' U l y'	4|1|1|1
+DEL	Ubl	Lub	Fur	10	U r Uw' l' Uw r' Uw' l u	U:[r,Uw' l' Uw]	L u' r U r' u r U' r' L'	2
+DEN	Ubl	Lub	Fdl	8	U' u l' U' r' U l U' r u' U2	U' u:[l',U' r' U]	z u r Uw' l' Uw r' Uw' l U z'	3
+DEO	Ubl	Lub	Dbl	7	U' u l2 U' r' U l2 U' r u' U2	U' u:[l2,U' r' U]	D' Rw' u r' U2 r u' r' U2 r Rw D|D' r' u r' U2 r u' r' U2 r2 D|U D l' u' l' U' l u l' U l2 D' U'	2|2|1
+DEP	Ubl	Lub	Bdl	7	U l2 u' l' U' l u l' U l' U'	U l:[l u' l',U']	U x' r U r' u' r U' r' u x U'|z l U2 l' u' l U2 l' u z'|4Rw' U l' U' l u' l' U l u U' 4Rw|L2 d r U2 r' d r U2 r' d2 L2	2|2|1|1
+DER	Ubl	Lub	Dbr	8	r' u r' U2 r u' r' U2 r2	r':[u,r' U2 r]	Rw' u r' U2 r u' r' U2 r Rw|y' F2 l2 U' r U l2 U' r' U F2 y|y' u2 l2 U' r' U l2 U' r U u2 y	2|1|1
+DES	Ubl	Lub	Rdb	5	u U' r' U' r' d' r U r' d r2 U u'	U' u r':[U',r' d' r]	R2 u r' U2 r u2 r' U2 r u R2|R E U r' U' l' U r U' l E' R'|R2 U' u r' U' r u2 r' U r Uw R2|R y' U2 r' U' l' U r U' l 4Dw' R'|R2 y' u2 r' U' r u2 r' U r y R2|Rw2 u r' U2 r u2 r' U2 r u Rw2	2|1|1|1|1|1
+DET	Ubl	Lub	Bdr	8	U r' Uw' l' Uw r Uw' l u	U:[r',Uw' l' Uw]	Rw' U' l u' l' U l u l' Rw|u' U r' U' l' U r U' l u|L' d' r' U r d r' U' r L	2|2|1
+DEW	Ubl	Lub	Dfl	8	U l' u' l' U' l u l' U l2 U'	U l':[u',l' U' l]	y' U2 r2 U' l' U r2 U' l 4Dw'	3
+DEX	Ubl	Lub	Dfr	7	U r2 Uw' l' Uw r2 Uw' l u	U:[r2,Uw' l' Uw]	u' U r2 U' l' U r2 U' l u|u' Rw U r U' l' U r' U' l Rw' u	4|1
+DEY	Ubl	Lub	Fdr	6	r2 u r' U2 r u' r' U2 r'	r:[r u r',U2]	Rw r u r' U2 r u' r' U2 Rw'|Uw' Lw' U' l U' r U l' U' r' U2 Lw Uw|L2 d r U2 r' d' r U2 r' L2	5|1|1
+DEZ	Ubl	Lub	Rdf	6	E U r' U' l' U r U' l E'	E:[U r' U',l']	R u r' U2 r u2 r' U2 r u R'|y' U2 r' U' l' U r U' l 4Dw'|R U' u r' U' r u2 r' U r Uw R'|Fw' r u r' U2 r u' r' U2 Fw|R y' u2 r' U' r u2 r' U r y R'	3|2|1|1|1
+DFA	Ubl	Bul	Ufl	5	u' l' u l U' l' u' l Uw	u':[l' u l,U']	U' Rw' U' r U l U' r' U l' Rw U|Uw U r' u r U' r' u' r Uw'|y U r' u r U' r' u' r y'|U2 r' u2 r U' r' u2 r U'	3|2|2|1
+DFB	Ubl	Bul	Ful	10	F u2 r U r' u2 r U' r' F'	F:[u2,r U r']	Lw D U l' U r2 U' l U r2 U2 D' Lw'	2
+DFC	Ubl	Bul	Luf	7	u2 r U r' u r U' r' u	u':[u',r U r']	U l U2 l' u l U2 l' Uw'|Uw' u' r U2 r' u r U2 r' Uw	5|1
+DFE	Ubl	Bul	Lub	7	S u' l U2 l' u l U2 l' S'	S:[u',l U2 l']	U x' u' r U2 r' u r U2 r' x U'|l U2 u' l' U' l u l' U l U2 l'|4Rw' U2 u' l' U' l u l' U l U2 4Rw|L u2 r U r' u r U' r' u L'	3|1|1|1
+DFG	Ubl	Bul	Ubr	14	r' u2 r U r' u2 r U'	[r' u2 r,U]	U2 Rw' l U' r U l' U' r' U Rw U2|U2 4Rw' U' r U l' U' r' U 3Rw U2	1|1
+DFH	Ubl	Bul	Bur	1	U2 r' U l U' r U l' U	U':[U' r' U,l]		
+DFI	Ubl	Bul	Rub	8	u2 r U r' u' r U' r' u'	u:[u,r U r']	U l U2 l' u' l U2 l' u U'	4
+DFJ	Ubl	Bul	Ufr	15	U' r' u2 r U2 r' u2 r U'	U':[r' u2 r,U2]	Rw' U2 r U l U' r' U l' U Rw|y U2 r' u r U2 r' u' r y'|Uw' r' u' r U2 r' u r U2 Uw|y' r' u' r U2 r' u r U2 y|U' u r' u r U2 r' u' r Uw'	6|3|2|1|1
+DFK	Ubl	Bul	Ruf	9	U' Uw' r' Uw l Uw' r Uw l' U	U':[Uw' r' Uw,l]	R u2 r U r' u' r U' r' u' R'|u l' Uw r Uw' l Uw r' Uw' u'	2|1
+DFL	Ubl	Bul	Fur	14	u2 r U r' u2 r U' r'	[u2,r U r']		
+DFM	Ubl	Bul	Ldf	6	Dw U2 r U l U' r' U l' U Dw'	U2 Dw:[r,U l U']	z R' u' r' U' r u r' U Rw z'|L' u2 r U r' u r U' r' u L|S Uw' l U l' u l U' l' U S'|L' U l U2 l' u l U2 l' Uw' L	3|2|1|1
+DFN	Ubl	Bul	Fdl	5	Uw l2 u' l U2 l' u l U2 l Uw'	Uw l':[l' u' l,U2]	F' U2 r U l U' r' U l' U F|F2 u2 r U r' u2 r U' r' F2|U2 x' U' r U l2 U' r' U l2 x U2	3|3|1
+DFO	Ubl	Bul	Dbl	10	D' U2 r2 U l U' r2 U l' U D	U2 D':[r2,U l U']	U x' u2 r U2 r' u2 r U2 r' x U'|D2 Rw u2 r U r' u2 r U' r' Rw' D2	1|1
+DFQ	Ubl	Bul	Ldb	4	U l U2 l d l' U2 l d' l2 U'	U l:[U2,l d l']	z R' u' r' U2 r u r' U2 Rw z'|Lw Uw' l' U2 l u l' U2 l U Lw'|L2 u2 r U r' u r U' r' u L2|x' U2 u' l' U' l u l' U l U2 x	3|2|2|1
+DFR	Ubl	Bul	Dbr	10	U2 r2 U l U' r2 U l' U	U':[U' r2 U,l]	x' r' U' r u2 r' U r u2 x|D' Rw u2 r U r' u2 r U' r' Rw' D	1|1
+DFS	Ubl	Bul	Rdb	8	Dw' U2 r U l U' r' U l' U Dw	U2 Dw':[r,U l U']	R' u2 r U r' u' r U' r' u' R|z' Lw l u' l' U' l u l' U Lw' z	4|1
+DFW	Ubl	Bul	Dfl	5	u l2 Uw r Uw' l2 Uw r' Uw' u'	u:[l2,Uw r Uw']	D Rw u2 r U r' u2 r U' r' Rw' D'|U 4Rw' U2 r U' l U r' U' l' U' 4Rw U'|D 4Rw' U l' U r' U' l U r U2 4Rw D'|u2 l2 U r U' l2 U r' U' u2|U2 x' d2 r U' r' d2 r U r' x U2	3|1|1|1|1
+DFX	Ubl	Bul	Dfr	6	D U2 r2 U l U' r2 U l' U D'	U2 D:[r2,U l U']	Rw u2 r U r' u2 r U' r' Rw'|r u2 r U r' u2 r U' r2|4Rw' U l' U r' U' l U r U2 4Rw|U' x' r' U2 r d2 r' U2 r d2 x U	3|1|1|1
+DFY	Ubl	Bul	Fdr	12	U2 r U l U' r' U l' U	U':[U' r U,l]		
+DFZ	Ubl	Bul	Rdf	5	U l U2 l d' l' U2 l d l2 U'	U l:[U2,l d' l']	z' Lw l u' l' U2 l u l' U2 Lw' z|R2 u2 r U r' u' r U' r' u' R2|S' l2 d l' U l d' l' U' l' S|Dw l U l' U r' U' l U r U2 l' Dw'	2|2|1|1
+DGB	Ubl	Ubr	Ful	4	Rw l' U r' U' l U r U' Rw'	Rw:[l',U r' U']	u' l u l' U' l u' l' Uw|x U r' U' l U r U' l' x'|U2 r u2 r' U' r u2 r' U'|4Rw U r' U' l U r U' 3Rw'|l' r U r' U' l U r U' r'	4|2|2|1|1
+DGC	Ubl	Ubr	Luf	15	U r' u' r U' r' u r	[U,r' u' r]		
+DGE	Ubl	Ubr	Lub	17	l u' l' U' l u l' U	[l u' l',U']		
+DGF	Ubl	Ubr	Bul	14	U r' u2 r U' r' u2 r	[U,r' u2 r]	U2 Rw' U' r U l U' r' U l' Rw U2	2
+DGH	Ubl	Ubr	Bur	13	l u2 l' U' l u2 l' U	[l u2 l',U']	x' U' r U' l' U r' U' l U2 x|U2 Lw r' U l' U' r U l U' Lw' U2|4Dw l u' l' U' l u l' y|Lw u2 l' U' l u2 l' U L'	1|1|1|1
+DGI	Ubl	Ubr	Rub	17	U r' u r U' r' u' r	[U,r' u r]		
+DGJ	Ubl	Ubr	Ufr	1	3Lw' U r' d2 r U' r' d2 r 3Lw	3Lw':[U,r' d2 r]	l u' l' U' l u l' U' l u' l' U2 l u l'	1
+DGK	Ubl	Ubr	Ruf	19	l u l' U' l u' l' U	[l u l',U']		
+DGL	Ubl	Ubr	Fur	4	Lw' U' l U r U' l' U r' Lw	Lw':[U' l U,r]	Uw r' u' r U' r' u r u'|x r' U' l U r U' l' U x'|l' U' l U r U' l' U l r'|U' l' u2 l U' l' u2 l U2	4|2|2|1
+DGM	Ubl	Ubr	Ldf	11	l' d' l U' l' d l U	[l' d' l,U']	U2 r' d r U' r' d' r U'	3
+DGN	Ubl	Ubr	Fdl	12	U r d2 r' U' r d2 r'	[U,r d2 r']	U2 Rw U' r' U l' U' r U l Rw' U2|F Rw l' U r' U' l U r U' Rw' F'|x U2 r' U' l U r U' l' U' x'	2|1|1
+DGO	Ubl	Ubr	Dbl	7	D2 r2 D' l2 D r2 D' l2 D'	D:[D r2 D',l2]	Rw' D l2 U r U' l2 U r' U' D' Rw|D Rw' l2 U r U' l2 U r' U' Rw D'	5|1
+DGP	Ubl	Ubr	Bdl	5	Rw' l U r U' l' U r' U' Rw	Rw':[l,U r U']	M U r U' l' U r' U' l M'|x' U r U' l' U r' U' l x|4Rw' U r U' l' U r' U' 3Rw|l r' U r U' l' U r' U' r|U2 r' d2 r U' r' d2 r U'	2|2|1|1|1
+DGQ	Ubl	Ubr	Ldb	16	U r d' r' U' r d r'	[U,r d' r']		
+DGR	Ubl	Ubr	Dbr	7	D' r2 D' l2 D r2 D' l2 D2	D':[r2,D' l2 D]	Lw D' U' l' U r2 U' l U r2 D Lw'|U2 Lw r2 U l' U' r2 U l U' Lw' U2|U' Rw' U l u2 l' U' l u2 l' Rw U|U' x l U l' d2 l U' l' d2 x' U	6|1|1|1
+DGS	Ubl	Ubr	Rdb	15	l' d l U' l' d' l U	[l' d l,U']	U2 r' d' r U' r' d r U'|R U r d r' U' r d' Rw'	1|1
+DGT	Ubl	Ubr	Bdr	4	Lw U' l' U r' U' l U r Lw'	Lw:[U' l' U,r']	l U' l' U r' U' l U l' r|x' r U' l' U r' U' l U x|l' U' l U r' U' l' U r l|U' l d2 l' U' l d2 l' U2|y' l d l' U' l d' l' U y	3|3|1|1|1
+DGW	Ubl	Ubr	Dfl	7	D r2 D' l2 D r2 D' l2	[D r2 D',l2]	Rw' l2 U r U' l2 U r' U' Rw|Rw l2 U r' U' l2 U r U' Rw'|U x r' U r u2 r' U' r u2 x' U'	4|3|1
+DGX	Ubl	Ubr	Dfr	8	r2 D' l2 D r2 D' l2 D	[r2,D' l2 D]	Lw U' l' U r2 U' l U r2 Lw'|Lw' U' l U r2 U' l' U r2 Lw	5|2
+DGY	Ubl	Ubr	Fdr	10	l' d2 l U' l' d2 l U	[l' d2 l,U']	x U' r' U' l U r U' l' U2 x'|U2 Lw' r U l U' r' U l' U' Lw U2|U2 M' U l U' r' U l' U' r M U2|y U r' d r U' r' d' r y'	2|1|1|1
+DGZ	Ubl	Ubr	Rdf	16	U r d r' U' r d' r'	[U,r d r']		
+DHA	Ubl	Bur	Ufl	12	U l u2 l' U' l u2 l'	[U,l u2 l']	U' Lw r' U l' U' r U l U' Lw' U	1
+DHB	Ubl	Bur	Ful	11	r' U2 r u2 r' U2 r u2	[r' U2 r,u2]	U u2 l' U' l u2 l' U l U'	2
+DHC	Ubl	Bur	Luf	7	U2 Uw l Uw' r' Uw l' Uw' r U2	U2:[Uw l Uw',r']	Rw' U r' u' r U2 r' u r U Rw|r' U r' u' r U2 r' u r U r|u' U r Uw' l' Uw r' Uw' l u2|L' r' U2 r u r' U2 r u' L	3|1|1|1
+DHE	Ubl	Bur	Lub	14	r' U2 r u r' U2 r u'	[r' U2 r,u]	U' r' U' r u r' U r u' U	1
+DHF	Ubl	Bur	Bul	1	U' l U' r' U l' U' r U2	U':[l,U' r' U]		
+DHG	Ubl	Bur	Ubr	13	U' l u2 l' U l u2 l'	[U',l u2 l']	x' U2 l' U r U' l U r' U x|U2 Lw U l' U' r' U l U' r Lw' U2|y' l u' l' U l u l' 4Dw'|L U' l u2 l' U l u2 Lw'	1|1|1|1
+DHI	Ubl	Bur	Rub	10	Rw' U2 r u' r' U2 r u R	R':[r' U2 r,u']	R' U' r' U' r u' r' U r Uw R|4Rw' u l' U2 l u' l' U2 3Rw	1|1
+DHJ	Ubl	Bur	Ufr	24	U2 l u2 l' U2 l u2 l'	[U2,l u2 l']	U' Lw U r' U l' U' r U l U2 Lw' U|4Dw' r u' r' U2 r u r' U' y'	1|1
+DHK	Ubl	Bur	Ruf	10	r' U2 r u' r' U2 r u	[r' U2 r,u']	U' r' U' r u' r' U r Uw	1
+DHL	Ubl	Bur	Fur	5	M U2 l' U r2 U' l U r2 U M'	M U':[U' l' U,r2]	x' U2 l' U r2 U' l U r2 U x|4Rw' U2 l' U r2 U' l U r2 U 4Rw|F' r' U2 r u2 r' U2 r u2 F	4|2|1
+DHM	Ubl	Bur	Ldf	5	r' U2 r' d r U2 r' d' r2	r':[U2,r' d r]	Rw' U2 r' d r U2 r' d' r Rw|U' r' U' r' d r U r' d' r2 U|L2 r' U2 r u r' U2 r u' L2	5|1|1
+DHN	Ubl	Bur	Fdl	13	U' l' U' r' U l U' r U2	U':[l',U' r' U]		
+DHO	Ubl	Bur	Dbl	10	U' l2 U' r' U l2 U' r U2	U':[l2,U' r' U]	U x' l U l' u2 l U' l' u2 x U'	1
+DHQ	Ubl	Bur	Ldb	5	U' Dw l' U' r' U l U' r U2 Dw'	U' Dw:[l',U' r' U]	L r' U2 r u r' U2 r u' L'|x' Uw' l' U' l u l' U l U x|Rw' U r d' r' U2 r d r' U Rw	5|1|1
+DHR	Ubl	Bur	Dbr	10	D U' l2 U' r' U l2 U' r U2 D'	U' D:[l2,U' r' U]	x' u2 l' U2 l u2 l' U2 l x	1
+DHS	Ubl	Bur	Rdb	7	r' U2 r' d' r U2 r' d r2	r':[U2,r' d' r]	Rw' U r' u r U2 r' u' r U Rw|R2 r' U2 r u' r' U2 r u R2	4|1
+DHW	Ubl	Bur	Dfl	10	U' D' l2 U' r' U l2 U' r U2 D	U' D':[l2,U' r' U]	U2 x' l U2 l' d2 l U2 l' d2 x U2	1
+DHX	Ubl	Bur	Dfr	5	x' U2 l' U r' U' l U r U x	x' U':[U' l' U,r']	u2 U r2 U' l' U r2 U' l u2|M U2 l' U r' U' l U r U M'|4Rw' U2 l' U r' U' l U r U 4Rw	5|1|1
+DHY	Ubl	Bur	Fdr	6	Uw' r2 u r' U' r u' r' U r' Uw	Uw' r:[r u r',U']	U' x' U l' U' r2 U l U' r2 x U|F U' l' U' r' U l U' r U2 F'|U' 4Rw r2 U l U' r2 U l' U' 4Rw' U	4|1|1
+DHZ	Ubl	Bur	Rdf	6	R r' U2 r u' r' U2 r u R'	R:[r' U2 r,u']	Rw' U2 r' d' r U2 r' d r Rw|Dw' U' l' U' r' U l U' r U2 Dw	3|3
+DIA	Ubl	Rub	Ufl	11	l' u' l U' l' u l U	[l' u' l,U']	U2 r' u r U' r' u' r U'	4
+DIB	Ubl	Rub	Ful	12	l' Uw r Uw' l Uw r' Uw'	[l',Uw r Uw']	F u r U r' u' r U' r' F'	1
+DIC	Ubl	Rub	Luf	12	u r U r' u2 r U' r' u	u:[r U r',u2]	y' u2 r U2 r' u2 r U2 r' y	1
+DIE	Ubl	Rub	Lub	6	L u r U r' u2 r U' r' u L'	L u:[r U r',u2]	y' F2 U' r U l U' r' U l' F2 y|R' u' r' U2 r u2 r' U2 r u' R|Rw' Fw' Rw l u' l' U l u l' U' Rw' Fw Rw|R' Uw' r' U' r u2 r' U r u' U R|R' y' r' U' r u2 r' U r u2 y R	2|2|1|1|1
+DIF	Ubl	Rub	Bul	8	u r U r' u r U' r' u2	u:[r U r',u]	U u' l U2 l' u l U2 l' U'	4
+DIG	Ubl	Rub	Ubr	17	r' u r U r' u' r U'	[r' u r,U]		
+DIH	Ubl	Rub	Bur	10	R' u' r' U2 r u r' U2 Rw	R':[u',r' U2 r]	R' Uw' r' U' r u r' U r U R|Rw' U2 l u l' U2 l u' l' Rw	1|1
+DIJ	Ubl	Rub	Ufr	24	U' r' u r U2 r' u' r U'	U':[r' u r,U2]	U l' u' l U2 l' u l U	2
+DIL	Ubl	Rub	Fur	14	u r U r' u' r U' r'	[u,r U r']	L u r U r' u' r U' r' L'	1
+DIM	Ubl	Rub	Ldf	7	E' l U r U' l' U r' 4Uw'	E':[l,U r U']	y' U' r U l U' r' U l' y|L' u r U r' u2 r U' r' u L|4Dw' l U r U' l' U r' y'|R y' d2 r U' r' d2 r U r' y R'	4|1|1|1
+DIN	Ubl	Rub	Fdl	6	F l' Uw r Uw' l Uw r' Uw' F'	F:[l',Uw r Uw']	U l2 u' l U2 l' u l U2 l U'|Rw' Uw' l' U' r' U l U' r U Uw Rw|R' Uw' l' U' r' U l U' r U Uw R|R2 d r' U r d r' U' r d2 R2	3|1|1|1
+DIO	Ubl	Rub	Dbl	10	D l2 Uw r Uw' l2 Uw r' Uw' D'	D:[l2,Uw r Uw']	Rw' Uw' l2 U' r' U l2 U' r U Uw Rw|4Dw' x d2 l U' l' d2 l U l' x' 4Dw	1|1
+DIP	Ubl	Rub	Bdl	12	l Uw r Uw' l' Uw r' Uw'	[l,Uw r Uw']	R d' r U2 r' d' r U2 r' d2 R'	1
+DIQ	Ubl	Rub	Ldb	6	u r U r d' r' U' r d r2 u'	u r:[U,r d' r']	y' F' U' r U l U' r' U l' F y|R' 4Uw r' U' l' U r U' l E R|R' y' l' U' r' U l U' r U y R|R2 y' r' U2 r d2 r' U2 r d2 y R2|R' y r' U' l' U r U' l 4Dw R	1|1|1|1|1
+DIR	Ubl	Rub	Dbr	5	Uw2 r2 Uw l Uw' r2 Uw l' Uw	Uw':[Uw' r2 Uw,l]	Uw' U' r2 U l U' r2 U l' Uw|y D' U' l2 U r U' l2 U r' D y'|D2 l2 Uw r Uw' l2 Uw r' Uw' D2|R' y r2 U' l' U r2 U' l 4Dw R|Rw d' r U2 r' d r U2 r' Rw'	4|1|1|1|1
+DIT	Ubl	Rub	Bdr	6	r2 u r U r' u' r U' r	r':[r' u r,U]	Rw' U' l u l' U l u' l' Rw|R2 d r' U r d' r' U' r R2|x' l' U' l u l' U l u' x	3|2|1
+DIW	Ubl	Rub	Dfl	13	l2 Uw r Uw' l2 Uw r' Uw'	[l2,Uw r Uw']	u l2 U r U' l2 U r' Uw'	1
+DIX	Ubl	Rub	Dfr	9	r u r U r' u' r U' r2	r:[u,r U r']	D' l2 Uw r Uw' l2 Uw r' Uw' D|b' R' f' R b R' f R|y' U' r2 U l U' r2 U l' y|R' Uw r2 U' l' U r2 U' l u' R	2|1|1|1
+DIY	Ubl	Rub	Fdr	6	Uw2 r Uw l Uw' r' Uw l' Uw	Uw':[Uw' r Uw,l]	Uw' U' r U l U' r' U l' Uw|R d' r U2 r' d r U2 Rw'	4|1
+DJA	Ubl	Ufr	Ufl	1	3Rw' U l' d2 l U' l' d2 l 3Rw	3Rw':[U,l' d2 l]	l u' l' U2 l u l' U' l u' l' U' l u l'	1
+DJB	Ubl	Ufr	Ful	26	U2 r u2 r' U2 r u2 r'	[U2,r u2 r']	U' Rw' U l' U r U' l U r' U2 Rw U	2
+DJC	Ubl	Ufr	Luf	24	U r' u' r U2 r' u r U	U:[r' u' r,U2]	y' l' u2 l U2 l' u2 l U2 y|y r' u2 r U2 r' u2 r U2 y'|U' l' u l U2 l' u' l U'	1|1|1
+DJE	Ubl	Ufr	Lub	23	U2 r u r' U2 r u' r'	[U2,r u r']	l u' l' U2 l u l' U2	5
+DJF	Ubl	Ufr	Bul	15	U r' u2 r U2 r' u2 r U	U:[r' u2 r,U2]	Rw' U' l U' r U l' U' r' U2 Rw|y r' u r U2 r' u' r U2 y'|U u' r' u' r U2 r' u r Uw|y' U2 r' u' r U2 r' u r y	6|3|2|1
+DJG	Ubl	Ufr	Ubr	1	3Lw' r' d2 r U r' d2 r U' 3Lw	3Lw':[r' d2 r,U]	l u' l' U2 l u l' U l u' l' U l u l'	1
+DJH	Ubl	Ufr	Bur	24	l u2 l' U2 l u2 l' U2	[l u2 l',U2]	U' Lw U2 l' U' r' U l U' r U' Lw' U|y U r u' r' U2 r u r' 4Dw	1|1
+DJI	Ubl	Ufr	Rub	24	U r' u r U2 r' u' r U	U:[r' u r,U2]	U' l' u' l U2 l' u l U'	2
+DJK	Ubl	Ufr	Ruf	24	U2 r u' r' U2 r u r'	[U2,r u' r']	l u l' U2 l u' l' U2	5
+DJL	Ubl	Ufr	Fur	8	U' l' u2 l U2 l' u2 l U'	U':[l' u2 l,U2]	Uw r' u' r U2 r' u r U2 Uw'|Lw U2 l' U r U' l U r' U Lw'|y r' u' r U2 r' u r U2 y'|y' U2 r' u r U2 r' u' r y|Uw' U2 r' u r U2 r' u' r Uw|l' U2 l U r U' l' U r' U l	8|4|3|2|1|1
+DJM	Ubl	Ufr	Ldf	27	U2 r' d r U2 r' d' r	[U2,r' d r]	l' d' l U2 l' d l U2|D R' U2 r' d r U2 r' d' Rw D'	1|1
+DJN	Ubl	Ufr	Fdl	12	U r d2 r' U2 r d2 r' U	U:[r d2 r',U2]	Rw' U' l' U' r U l U' r' U2 Rw|y r d' r' U2 r d r' U2 y'|r' U' l' U' r U l U' r' U2 r|y' U2 r d r' U2 r d' r' y	10|3|1|1
+DJO	Ubl	Ufr	Dbl	17	Rw' U' l2 U' r U l2 U' r' U2 Rw	Rw' U':[l2,U' r U]	r U' l2 U' r' U l2 U' r U2 r'|r' U' l2 U' r U l2 U' r' U2 r|y r2 D r2 D' r2 U2 r2 D r2 D' r2 U2 y'	5|2|1
+DJP	Ubl	Ufr	Bdl	23	U2 r' d2 r U2 r' d2 r	[U2,r' d2 r]	U' Rw' U l U r U' l' U r' U2 Rw U|U' r' U l U r U' l' U r' U2 r U|Rw' F' l U r U' l' U r' U' F Rw|y U r' d' r U2 r' d r 4Dw	3|1|1|1
+DJQ	Ubl	Ufr	Ldb	24	U r d' r' U2 r d r' U	U:[r d' r',U2]	U' l d l' U2 l d' l' U'|y' U2 r d2 r' U2 r d2 r' y|y U2 l d2 l' U2 l d2 l' y'|Lw u' l' U2 l u l' U2 L'	1|1|1|1
+DJR	Ubl	Ufr	Dbr	5	Lw D' U2 l' U r2 U' l U r2 D U Lw'	Lw U2 D':[l',U r2 U']	l' U2 D' l U r2 U' l' U r2 U D l|Lw' D' U2 l U r2 U' l' U r2 D U Lw|D Rw' U' l2 U' r U l2 U' r' U2 Rw D'|Lw F' U l' U' r2 U l U' r2 F Lw'|U' Lw U2 l' U' r2 U l U' r2 U' Lw' U|D r' U' l2 U' r U l2 U' r' U2 r D'|l U2 D' l' U r2 U' l U r2 D U l'|U' l' U2 l U' r2 U l' U' r2 U' l U|U' 3Lw U2 l' U' r2 U l U' r2 U' 3Lw' U|4Uw r2 D r2 D' r2 U2 r2 D r2 D' r2 U2 4Uw'	4|4|3|3|2|1|1|1|1|1
+DJS	Ubl	Ufr	Rdb	25	U2 r' d' r U2 r' d r	[U2,r' d' r]	l' d l U2 l' d' l U2	1
+DJT	Ubl	Ufr	Bdr	13	U' l d2 l' U2 l d2 l' U'	U':[l d2 l',U2]	Lw U2 l' U r' U' l U r U Lw'|y r d r' U2 r d' r' U2 y'|l U2 l' U r' U' l U r U l'|l' U2 l U r' U' l' U r U l|3Lw' U2 l U r' U' l' U r U 3Lw|y' U2 r d' r' U2 r d r' y|Lw' U2 l U r' U' l' U r U Lw|y' l d l' U2 l d' l' U2 y	6|3|1|1|1|1|1|1
+DJW	Ubl	Ufr	Dfl	7	Rw' D' U' l2 U' r U l2 U' r' U2 D Rw	Rw' U' D':[l2,U' r U]	Rw' F' l2 U r U' l2 U r' U' F Rw|r U' D' l2 U' r' U l2 U' r U2 D r'|r' U' D' l2 U' r U l2 U' r' U2 D r|U' Rw' U l2 U r U' l2 U r' U2 Rw U|Rw U' D' l2 U' r' U l2 U' r D U2 Rw'|D' Rw' U' l2 U' r U l2 U' r' U2 Rw D|U' r U l2 U r' U' l2 U r U2 r' U|Rw' F' R l2 U r U' l2 U r' U' R' F Rw|y D' r2 D r2 D' r2 U2 r2 D r2 D' r2 U2 D y'	5|4|2|2|2|1|1|1|1
+DJX	Ubl	Ufr	Dfr	9	Lw U2 l' U r2 U' l U r2 U Lw'	Lw U':[U' l' U,r2]	Lw' U2 l U r2 U' l' U r2 U Lw|l' U2 l U r2 U' l' U r2 U l|l U2 l' U r2 U' l U r2 U l'|3Lw U2 l' U r2 U' l U r2 U 3Lw'|3Lw' U2 l U r2 U' l' U r2 U 3Lw|U2 r' B' d2 B r U2 r' B' d2 B r|y D2 r2 D r2 D' r2 U2 r2 D r2 D' r2 U2 D2 y'	6|5|3|1|1|1|1
+DJY	Ubl	Ufr	Fdr	21	l' d2 l U2 l' d2 l U2	[l' d2 l,U2]	U' Lw U2 l' U' r U l U' r' U' Lw' U|U' l U2 l' U' r U l U' r' U' l' U|U' Lw' U2 l U' r U l' U' r' U' Lw U|y' U' r' d' r U2 r' d r 4Dw'|y U r' d r U2 r' d' r 4Dw|d' U2 r' d r U2 r' d' r d	3|1|1|1|1|1
+DJZ	Ubl	Ufr	Rdf	21	U r d r' U2 r d' r' U	U:[r d r',U2]	U' l d' l' U2 l d l' U'|R U2 r u' r' U2 r u Rw'|R' U2 r' d' r U2 r' d Rw	5|1|1
+DKA	Ubl	Ruf	Ufl	14	U l u l' U' l u' l'	[U,l u l']	U' r u' r' U' r u r' U2	1
+DKB	Ubl	Ruf	Ful	10	Uw l' U' l u' l' U l U'	U:[u,l' U' l]	Rw l' Uw r Uw' l Uw r' Uw' Rw'|4Rw Uw r Uw' l Uw r' Uw' 3Rw'|y' r' U' r u' r' U r u y	1|1|1
+DKC	Ubl	Ruf	Luf	12	R u r U r' u2 r U' r' u R'	R u:[r U r',u2]	R y' u2 r U2 r' u2 r U2 r' y R'	1
+DKE	Ubl	Ruf	Lub	7	u' r' U2 r u2 r' U2 r u'	u':[r' U2 r,u2]	Uw l' U' l u2 l' U l u U'|R' E l' U r' U' l U r U' E' R|y' r' U' r u2 r' U r u2 y|y l' U' l u2 l' U l u2 y'	4|1|1|1
+DKF	Ubl	Ruf	Bul	9	U' l Uw' r' Uw l' Uw' r Uw U	U':[l,Uw' r' Uw]	R u r U r' u r U' r' u2 R'|u Uw r Uw' l' Uw r' Uw' l u'	2|1
+DKG	Ubl	Ruf	Ubr	19	U' l u l' U l u' l'	[U',l u l']		
+DKH	Ubl	Ruf	Bur	10	u' r' U2 r u r' U2 r	[u',r' U2 r]	Uw' r' U' r u r' U r U	1
+DKJ	Ubl	Ruf	Ufr	24	r u' r' U2 r u r' U2	[r u' r',U2]	U2 l u l' U2 l u' l'	5
+DKL	Ubl	Ruf	Fur	12	R u r U r' u' r U' Rw'	R:[u,r U r']		
+DKM	Ubl	Ruf	Ldf	5	Uw' r' U' r' d r U r' d' r2 Uw	Uw' r':[U',r' d r]	Uw Lw' r' u' r U r' u r U' Lw Uw'|x' z' U l' U' r2 U l U' r2 z x|R 4Dw' l U r U' l' U r' y' R'|x z' U r' U' l2 U r U' l2 z x'|R E' l U r U' l' U r' 4Uw' R'|R y' U' r U l U' r' U l' y R'|R2 y' d2 r U' r' d2 r U r' y R2|y' x' U l' U' r2 U l U' r2 x y	1|1|1|1|1|1|1|1
+DKN	Ubl	Ruf	Fdl	11	Uw' l' U' r' U l U' r U Uw	Uw':[l',U' r' U]	R' d r' U r d r' U' r d2 R	1
+DKO	Ubl	Ruf	Dbl	10	Uw' l2 U' r' U l2 U' r U Uw	Uw':[l2,U' r' U]	U' l2 Uw' r' Uw l2 Uw' r Uw U|D' r' u' r' U2 r u r' U2 r2 D|y D' r2 U' l' U r2 U' l U D y'	1|1|1
+DKP	Ubl	Ruf	Bdl	6	Rw l Uw r Uw' l' Uw r' Uw' Rw'	Rw:[l,Uw r Uw']	U l2 u l' U' l u' l' U l' U'|Lw U l' U' l u l' U l Uw' Lw'|R2 d' r U2 r' d' r U2 r' d2 R2	4|1|1
+DKQ	Ubl	Ruf	Ldb	7	4Uw r' U' l' U r U' l E	E':[U r' U',l']	y' l' U' r' U l U' r U y|R' y' r' U2 r d2 r' U2 r d2 y R	4|1
+DKR	Ubl	Ruf	Dbr	6	r' u' r' U2 r u r' U2 r2	r':[u',r' U2 r]	y r2 U' l' U r2 U' l 4Dw|Uw D' r2 U' l' U r2 U' l U D Uw'|R Uw2 r2 Uw l Uw' r2 Uw l' Uw R'|y' l2 U' r' U l2 U' r U y	2|1|1|1
+DKT	Ubl	Ruf	Bdr	10	Uw r' U' l' U r U' l u'	Uw:[r',U' l' U]	R' d r' U r d' r' U' Rw	1
+DKW	Ubl	Ruf	Dfl	5	U l' u l' U' l u' l' U l2 U'	U l':[u,l' U' l]	R l2 Uw r Uw' l2 Uw r' Uw' R'|Rw l2 Uw r Uw' l2 Uw r' Uw' Rw'|R u l2 U r U' l2 U r' Uw' R'	3|3|1
+DKX	Ubl	Ruf	Dfr	7	Uw r2 U' l' U r2 U' l u'	u:[U r2 U',l']	Rw u r U r' u' r U' r' Rw'|R b' R' f' R b R' f	5|1
+DKY	Ubl	Ruf	Fdr	5	r2 u' r' U2 r u r' U2 r'	r:[r u' r',U2]	Rw U' r' u r U2 r' u' r U' Rw'|R Uw' U' r U l U' r' U l' Uw R'|R2 d' r U2 r' d r U2 r' R2	4|1|1
+DLA	Ubl	Fur	Ufl	11	l' u2 l U' l' u2 l U	[l' u2 l,U']	Uw U r' u' r U' r' u r Uw'|U Lw' U' l U r U' l' U r' Lw U'	2|1
+DLB	Ubl	Fur	Ful	1	l' U r U' l U r' U'	[l',U r U']		
+DLC	Ubl	Fur	Luf	15	r U r' u' r U' r' u	[r U r',u']		
+DLE	Ubl	Fur	Lub	10	u' l' Uw r Uw' l Uw r' U'	U:[Uw' l' Uw,r]	L r U r' u' r U' r' u L'	2
+DLF	Ubl	Fur	Bul	14	r U r' u2 r U' r' u2	[r U r',u2]		
+DLG	Ubl	Fur	Ubr	4	u r' u' r U r' u r Uw'	u:[r' u' r,U]	Lw' r U' l U r' U' l' U Lw|x U' l U r' U' l' U r x'|Lw r U' l' U r' U' l U Lw'|M' U' l U r' U' l' U r M|r l' U' l U r' U' l' U l|U2 l' u2 l U l' u2 l U	3|2|1|1|1|1
+DLH	Ubl	Fur	Bur	5	M U' r2 U' l' U r2 U' l U2 M'	M U':[r2,U' l' U]	x' U' r2 U' l' U r2 U' l U2 x|4Rw' U' r2 U' l' U r2 U' l U2 4Rw|F' u2 r' U2 r u2 r' U2 r F	4|2|1
+DLI	Ubl	Fur	Rub	14	r U r' u r U' r' u'	[r U r',u]	L r U r' u r U' r' u' L'	1
+DLJ	Ubl	Fur	Ufr	8	U l' u2 l U2 l' u2 l U	U:[l' u2 l,U2]	Uw U2 r' u' r U2 r' u r Uw'|Lw U' r U' l' U r' U' l U2 Lw'|y U2 r' u' r U2 r' u r y'|Uw' r' u r U2 r' u' r U2 Uw|l' U' r U' l U r' U' l' U2 l|y' r' u r U2 r' u' r U2 y	8|4|3|1|1|1
+DLK	Ubl	Fur	Ruf	12	Rw U r' u r U' r' u' R'	R:[r U r',u]		
+DLM	Ubl	Fur	Ldf	7	L' r U r' u' r U' r' u L	L':[r U r',u']	Dw' l U r U' l' U r' U' Dw	6
+DLO	Ubl	Fur	Dbl	12	D l2 U r U' l2 U r' U' D'	D:[l2,U r U']		
+DLP	Ubl	Fur	Bdl	12	l U r U' l' U r' U'	[l,U r U']		
+DLQ	Ubl	Fur	Ldb	6	r U r d' r' U' r d r2	r:[U,r d' r']	L2 r U r' u' r U' r' u L2|Rw U r d' r' U' r d r' Rw'	4|2
+DLR	Ubl	Fur	Dbr	8	D2 l2 U r U' l2 U r' U' D2	D2:[l2,U r U']	Uw2 r2 U l U' r2 U l' U' Uw2|x Rw U' r' U' l U r U' l' U2 Rw' x'|x d2 l U' l' d2 l U l' x'	2|1|1
+DLS	Ubl	Fur	Rdb	7	Dw l U r U' l' U r' U' Dw'	Dw:[l,U r U']	R' r U r' u r U' r' u' R	5
+DLT	Ubl	Fur	Bdr	5	x' r2 U' l' U r2 U' l U x	x':[r2,U' l' U]	F' U r' U' l' U r U' l F|u' r2 u r U r' u' r U' r u|u r2 u' r U r' u r U' r u'|Lw' r U' l U r2 U' l' U r Lw|4Rw' r2 U' l' U r2 U' l U 4Rw	3|2|1|1|1
+DLW	Ubl	Fur	Dfl	13	l2 U r U' l2 U r' U'	[l2,U r U']		
+DLX	Ubl	Fur	Dfr	10	D' l2 U r U' l2 U r' U' D	D':[l2,U r U']	x U' l U r U' l' U r' x'|F' U r2 U' l' U r2 U' l F	1|1
+DLZ	Ubl	Fur	Rdf	6	R2 r U r' u r U' r' u' R2	R2:[r U r',u]	r U r d r' U' r d' r2|Rw l u l' U' l u' l' U Rw'	4|2
+DMA	Ubl	Ldf	Ufl	10	U l' d' l U' l' d l	[U,l' d' l]	U' r' d r U' r' d' r U2	4
+DMB	Ubl	Ldf	Ful	6	z r U2 r' u r U2 r' u' z'	z:[r U2 r',u]	U l2 d' l U' l' d l U l U'|U Lw' U r' u' r U' r' u r Lw U'|u L2 u' l u L2 u' l'|z U r U r' u r U' r' Uw' z'	4|1|1|1
+DMF	Ubl	Ldf	Bul	6	Dw U' l U' r U l' U' r' U2 Dw'	U' Dw:[l,U' r U]	z Rw' U' r u' r' U r u R z'|L' u' r U r' u' r U' r' u2 L|S U' l U l' u' l U' l' Uw S'|L' Uw l U2 l' u' l U2 l' U' L	3|2|1|1
+DMG	Ubl	Ldf	Ubr	11	U' l' d' l U l' d l	[U',l' d' l]	U r' d r U r' d' r U2	3
+DMH	Ubl	Ldf	Bur	5	r2 d r U2 r' d' r U2 r	r':[r' d r,U2]	Rw' r' d r U2 r' d' r U2 Rw|U' r2 d r U' r' d' r U r U|L2 u r' U2 r u' r' U2 r L2	5|1|1
+DMI	Ubl	Ldf	Rub	7	4Uw r U' l U r' U' l' E	4Uw:[r,U' l U]	y' l U' r U l' U' r' U y|L' u' r U r' u2 r U' r' u' L|y r U' l U r' U' l' 4Dw|R y' r U' r' d2 r U r' d2 y R'	4|1|1|1
+DMJ	Ubl	Ldf	Ufr	27	r' d r U2 r' d' r U2	[r' d r,U2]	U2 l' d' l U2 l' d l|D Rw' d r U2 r' d' r U2 R D'	1|1
+DMK	Ubl	Ldf	Ruf	5	Uw' r2 d r U' r' d' r U r Uw	Uw' r':[r' d r,U']	Uw Lw' U r' u' r U' r' u r Lw Uw'|x' z' r2 U l' U' r2 U l U' z x|R y r U' l U r' U' l' 4Dw R'|x z' l2 U r' U' l2 U r U' z x'|R 4Uw r U' l U r' U' l' E R'|R y' l U' r U l' U' r' U y R'|R2 y' r U' r' d2 r U r' d2 y R2|y' x' r2 U l' U' r2 U l U' x y	1|1|1|1|1|1|1|1
+DML	Ubl	Ldf	Fur	7	L' u' r U r' u r U' r' L	L':[u',r U r']	Dw' U r U' l U r' U' l' Dw	6
+DMN	Ubl	Ldf	Fdl	5	F' d r U2 r' d' r U2 r' F	F':[d,r U2 r']	z U Uw r Uw' l' Uw r' Uw' l U' z'|Lw' Uw' U' r U' l U r' U' l' U2 Uw Lw|U Lw' U2 r' u' r U2 r' u r Lw U'|L d' r' U r d' r' U' r d2 L'	4|1|1|1
+DMO	Ubl	Ldf	Dbl	7	4Uw' l2 U' r U l2 U' r' U 4Uw	4Uw':[l2,U' r U]	U' d l2 U' r U l2 U' r' U2 d'|U D l d' l U' l' d l U l2 D' U'	4|1
+DMP	Ubl	Ldf	Bdl	8	U d' l U' l' d l U l' U'	U:[d',l U' l']	y' r U' r' d r U r' d' y|4Uw l U' l' d l U l' 3Uw'|d r U2 r' d r U2 r' d2	1|1|1
+DMQ	Ubl	Ldf	Ldb	1	Dw U' l' U' r U l U' r' U2 Dw'	Dw U':[l',U' r U]		
+DMR	Ubl	Ldf	Dbr	6	Dw' U r2 U' l U r2 U' l' Dw	Dw':[U r2 U',l]	Rw d r U2 r' d' r U2 r' Rw'|y' l2 U' r U l2 U' r' U y|R y r2 U' l U r2 U' l' 4Dw R'	3|3|1
+DMS	Ubl	Ldf	Rdb	11	d r U2 r' d2 r U2 r' d	d:[r U2 r',d2]	y' r U' r' d2 r U r' d2 y	1
+DMT	Ubl	Ldf	Bdr	8	Rw' U' l' d' l U l' d l Rw	Rw':[U',l' d' l]	Rw' U r' d r U r' d' r U2 Rw	3
+DMW	Ubl	Ldf	Dfl	5	U l d' l U' l' d l U l2 U'	U l:[d',l U' l']	z u' r U2 r' u2 r U2 r' u' z'|D d' U r2 U' l U r2 U' l' d D'|L' u' l2 U r U' l2 U r' U' u L|Fw U' l' u l U l' u' l Fw'|y' x u2 l U l' u2 l U' l' x' y	3|1|1|1|1
+DMX	Ubl	Ldf	Dfr	6	d' U r2 U' l U r2 U' l' d	d':[U r2 U',l]	x z U l U' r U l' U' r' z' x'|y' D l2 U' r U l2 U' r' U D' y|D Rw d r U2 r' d' r U2 r' Rw' D'|L y' U' r2 U l' U' r2 U l y L'	2|1|1|1
+DMY	Ubl	Ldf	Fdr	12	d r U2 r' d' r U2 r'	[d,r U2 r']		
+DMZ	Ubl	Ldf	Rdf	5	L d' r' U r d2 r' U' r d' L'	L d':[r' U r,d2]	Rw Uw' Rw' r' d r U' r' d' r U Rw Uw Rw'|z U Uw r Uw' l2 Uw r' Uw' l2 U' z'|R' d r U2 r' d2 r U2 r' d R|R' y' r U' r' d2 r U r' d2 y R	2|2|2|1
+DNA	Ubl	Fdl	Ufl	6	U2 r d2 r' U' r d2 r' U'	U:[U,r d2 r']	U' Rw U' r' U l' U' r U l Rw' U|U' x l U' r' U l' U' r U x' U|4Dw l d' l' U' l d l' y	3|2|2
+DNC	Ubl	Fdl	Luf	6	U l' U2 l' u l U2 l' u' l2 U'	U l':[U2,l' u l]	F2 r U r' u' r U' r' u F2|S l2 u' l U l' u l U' l S'|L' U2 u r' U l' U' r U l u' U L|R' F2 Rw U r' u' r U' r' u R' F2 R	4|1|1|1
+DNE	Ubl	Fdl	Lub	8	U2 u r' U l' U' r U l u' U	U2 u:[r',U l' U']	z U' l' Uw r Uw' l Uw r' u' z'	3
+DNF	Ubl	Fdl	Bul	5	Uw l' U2 l' u' l U2 l' u l2 Uw'	Uw l':[U2,l' u' l]	F' U' l U' r U l' U' r' U2 F|F2 r U r' u2 r U' r' u2 F2|U2 x' l2 U' r U l2 U' r' U x U2	3|3|1
+DNG	Ubl	Fdl	Ubr	12	r d2 r' U r d2 r' U'	[r d2 r',U]	x U l U r' U' l' U r U2 x'|U2 Rw l' U' r' U l U' r U Rw' U2|U2 4Rw U' r' U l U' r U 3Rw' U2	2|1|1
+DNH	Ubl	Fdl	Bur	13	U2 r' U l' U' r U l U	U':[U' r' U,l']		
+DNI	Ubl	Fdl	Rub	6	F Uw r Uw' l' Uw r' Uw' l F'	F:[Uw r Uw',l']	U l' U2 l' u' l U2 l' u l2 U'|Rw' Uw' U' r' U l' U' r U l Uw Rw|R' Uw' U' r' U l' U' r U l Uw R|R2 d2 r' U r d' r' U' r d' R2	3|1|1|1
+DNJ	Ubl	Fdl	Ufr	12	U' r d2 r' U2 r d2 r' U'	U':[r d2 r',U2]	Rw' U2 r U l' U' r' U l U Rw|y U2 r d' r' U2 r d r' y'|r' U2 r U l' U' r' U l U r|y' r d r' U2 r d' r' U2 y	10|3|1|1
+DNK	Ubl	Fdl	Ruf	11	Uw' U' r' U l' U' r U l Uw	Uw':[U' r' U,l']	R' d2 r' U r d' r' U' r d' R	1
+DNM	Ubl	Fdl	Ldf	5	F' r U2 r' d r U2 r' d' F	F':[r U2 r',d]	z U l' Uw r Uw' l Uw r' Uw' U' z'|Lw' U u' l U r U' l' U r' U2 u Lw|U Lw' r' u' r U2 r' u r U2 Lw U'|L d2 r' U r d r' U' r d L'	4|1|1|1
+DNO	Ubl	Fdl	Dbl	10	D' U2 r2 U l' U' r2 U l U D	U2 D':[r2,U l' U']	U' D' Rw U' r U l' U' r' U l Rw' D U	1
+DNP	Ubl	Fdl	Bdl	3	4Fw l' Uw r Uw' l2 Uw r' Uw' l' 4Fw'	4Fw l':[Uw r Uw',l2]	F' r U2 r' d2 r U2 r' d2 F|F2 l U r U' l' U r' U' F2|Lw Uw' l2 Uw' r' Uw l2 Uw' r Uw2 Lw'|L' F2 Lw U r U' l' U r' U' L' F2 L|x' D2 U r2 U' l' U r2 U' l D2 x|Lw D2 U r2 U' l' U r2 U' l D2 Lw'|L F2 L' l U r U' l' U r' U' L F2 L'	3|3|1|1|1|1|1
+DNQ	Ubl	Fdl	Ldb	4	d2 r' U r d r' U' r d	d':[d',r' U r]	z l' Uw r Uw' l Uw r' Uw' z'|U l' U2 l d l' U2 l d' U'|d' Lw u Lw' d Lw u' Lw'	4|3|1
+DNR	Ubl	Fdl	Dbr	11	U2 r2 U l' U' r2 U l U	U':[U' r2 U,l']	U' Rw U' r U l' U' r' U l Rw' U	1
+DNS	Ubl	Fdl	Rdb	6	S' d l' U2 l d' l' U2 l S	S':[d,l' U2 l]	F' r U2 r' d' r U2 r' d F|R d2 r' U r d' r' U' r d' R'|U x d r' U2 r d' r' U2 r x' U'	4|1|1
+DNT	Ubl	Fdl	Bdr	13	d2 r' U r d2 r' U' r	[d2,r' U r]	F U r' U' l' U r U' l F'	1
+DNW	Ubl	Fdl	Dfl	6	d2 l2 U r' U' l2 U r U' d2	d2:[l2,U r' U']	F2 l2 U r U' l2 U r' U' F2|U 4Rw U2 r' U' l' U r U' l U' 4Rw' U'	5|1
+DNX	Ubl	Fdl	Dfr	10	D U2 r2 U l' U' r2 U l U D'	U2 D:[r2,U l' U']	r' d2 r' U r d2 r' U' r2|4Rw U l U r U' l' U r' U2 4Rw'|F U r2 U' l' U r2 U' l F'	1|1|1
+DNY	Ubl	Fdl	Fdr	2	U2 r U l' U' r' U l U	U':[U' r U,l']		
+DNZ	Ubl	Fdl	Rdf	6	d2 r' U r d' r' U' r d'	d:[d,r' U r]	U l' U2 l d' l' U2 l d U'|U2 l' U l d' l' U' l d U2|R Uw' U' r' U l' U' r U l Uw R'	2|2|1
+DOA	Ubl	Dbl	Ufl	6	U' l2 D' r2 D l2 D' r2 D U	U':[l2,D' r2 D]	U' Rw' U' r U l2 U' r' U l2 Rw U|U' Rw U' r' U l2 U' r U l2 Rw' U	5|1
+DOB	Ubl	Dbl	Ful	7	D2 l' U r2 U' l U r2 U' D2	D2:[l',U r2 U']	Uw2 r' Uw l2 Uw' r Uw l2 Uw	5
+DOC	Ubl	Dbl	Luf	5	U l2 U2 l' u l U2 l' u' l' U'	U l:[l U2 l',u]	y' U2 r U' l2 U r' U' l2 4Dw'|y U2 l U' r2 U l' U' r2 U' y'|u' D U r U' l2 U r' U' l2 D' u|Uw' F U' r U l2 U' r' U l2 F' Uw|D2 Rw r U r' u' r U' r' u Rw' D2	3|1|1|1|1
+DOE	Ubl	Dbl	Lub	7	U2 u r' U l2 U' r U l2 u' U	U2 u:[r',U l2 U']	D' Rw' r' U2 r u r' U2 r u' Rw D|D' r2 U2 r u r' U2 r u' r D|U D l2 U' l u' l' U l u l D' U'	2|2|1
+DOF	Ubl	Dbl	Bul	10	D' U' l U' r2 U l' U' r2 U2 D	U' D':[l,U' r2 U]	U x' r U2 r' u2 r U2 r' u2 x U'|D2 Rw r U r' u2 r U' r' u2 Rw' D2	1|1
+DOG	Ubl	Dbl	Ubr	7	D l2 D r2 D' l2 D r2 D2	D:[l2,D r2 D']	Rw' D U r U' l2 U r' U' l2 D' Rw|D Rw' U r U' l2 U r' U' l2 Rw D'	5|1
+DOH	Ubl	Dbl	Bur	10	U2 r' U l2 U' r U l2 U	U':[U' r' U,l2]	U x' u2 l U l' u2 l U' l' x U'	1
+DOI	Ubl	Dbl	Rub	10	D Uw r Uw' l2 Uw r' Uw' l2 D'	D:[Uw r Uw',l2]	Rw' Uw' U' r' U l2 U' r U l2 Uw Rw|U l2 U2 l' u' l U2 l' u l' U'|4Dw' x l U' l' d2 l U l' d2 x' 4Dw	1|1|1
+DOJ	Ubl	Dbl	Ufr	17	Rw' U2 r U l2 U' r' U l2 U Rw	Rw' U':[U' r U,l2]	r U2 r' U l2 U' r U l2 U r'|r' U2 r U l2 U' r' U l2 U r|y U2 r2 D r2 D' r2 U2 r2 D r2 D' r2 y'	5|2|1
+DOK	Ubl	Dbl	Ruf	10	Uw' U' r' U l2 U' r U l2 Uw	Uw':[U' r' U,l2]	U' Uw' r' Uw l2 Uw' r Uw l2 U|D' r2 U2 r u' r' U2 r u r D|y D' U' l' U r2 U' l U r2 D y'	1|1|1
+DOL	Ubl	Dbl	Fur	12	D U r U' l2 U r' U' l2 D'	D:[U r U',l2]		
+DOM	Ubl	Dbl	Ldf	6	4Uw' U' r U l2 U' r' U l2 4Uw	4Uw':[U' r U,l2]	U2 d r U l2 U' r' U l2 d' U|U D l2 U' l' d' l U l' d l' D' U'	4|1
+DON	Ubl	Dbl	Fdl	10	D' U' l' U' r2 U l U' r2 U2 D	U' D':[l',U' r2 U]	U' D' 4Rw U' r U l U' r' U 3Rw' D U	1
+DOP	Ubl	Dbl	Bdl	9	D2 l U r2 U' l' U r2 U' D2	D2:[l,U r2 U']	D2 4Rw' U r' U' l' U r U' 3Rw D2|U x' r U r' u2 r U' r' u2 x U'	1|1
+DOQ	Ubl	Dbl	Ldb	10	U l2 U2 l d l' U2 l d' l U'	U l':[l' U2 l,d]	U2 l2 U l d l' U' l d' l U2|U' y' x r' U' r u2 r' U r u2 x' y U|y' D2 l' U' r2 U l U' r2 U D2 y	1|1|1
+DOS	Ubl	Dbl	Rdb	5	U2 d' r U l2 U' r' U l2 U d	U2 d':[r,U l2 U']	R' D Uw r Uw' l2 Uw r' Uw' l2 D' R|4Uw U r U l2 U' r' U l2 U2 4Uw'|y' D U l U r2 U' l' U r2 U2 D' y|4Dw' x l U2 l' d2 l U2 l' d2 x' 4Dw|D' r2 U2 r' d' r U2 r' d r' D	3|1|1|1|1
+DOT	Ubl	Dbl	Bdr	11	D U r' U' l2 U r U' l2 D'	D:[U r' U',l2]		
+DOW	Ubl	Dbl	Dfl	1	D U r2 U' l2 U r2 U' l2 D'	D:[U r2 U',l2]		
+DOY	Ubl	Dbl	Fdr	12	U2 r U l2 U' r' U l2 U	U':[U' r U,l2]		
+DOZ	Ubl	Dbl	Rdf	10	Dw U r' U' l2 U r U' l2 Dw'	Dw:[U r' U',l2]	y U2 l' U' r2 U l U' r2 U' y'|4Uw x r' U2 r d2 r' U2 r d2 x' 4Uw'	1|1
+DPA	Ubl	Bdl	Ufl	5	U' r' d2 r U' r' d2 r U2	U':[r' d2 r,U']	U Rw' l U r U' l' U r' U' Rw U'|y' r' d r U' r' d' r U y|U 4Rw' U r U' l' U r' U' 3Rw U'	3|3|1
+DPB	Ubl	Bdl	Ful	9	F U r U' l U r' U' l' F'	F:[U r U',l]	Uw l U' l u' l' U l u l2 Uw'|Lw D l' U r2 U' l U r2 U' D' Lw'	3|1
+DPC	Ubl	Bdl	Luf	9	u' U r U' l U r' U' l' u	u':[U r U',l]	z u' l U l' u l U' l' z'	2
+DPE	Ubl	Bdl	Lub	7	U l U' l u' l' U l u l2 U'	U l:[U',l u' l']	U x' u' r U r' u r U' r' x U'|z u' l U2 l' u l U2 l' z'|4Rw' U u' l' U' l u l' U l U' 4Rw|L2 d2 r U2 r' d' r U2 r' d' L2	2|2|1|1
+DPG	Ubl	Bdl	Ubr	5	Rw' U r U' l U r' U' l' Rw	Rw':[U r U',l]	r' U r U' l U r' U' r l'|x' l' U r U' l U r' U' x|3Rw' U r U' l U r' U' 4Rw|U r' d2 r U r' d2 r U2	3|2|1|1
+DPI	Ubl	Bdl	Rub	12	Uw r Uw' l Uw r' Uw' l'	[Uw r Uw',l]	R d2 r U2 r' d r U2 r' d R'	1
+DPJ	Ubl	Bdl	Ufr	23	r' d2 r U2 r' d2 r U2	[r' d2 r,U2]	U' Rw' U2 r U' l U r' U' l' U' Rw U|U' r' U2 r U' l U r' U' l' U' r U|Rw' F' U r U' l U r' U' l' F Rw|4Dw' r' d' r U2 r' d r U' y'	3|1|1|1
+DPK	Ubl	Bdl	Ruf	6	Rw Uw r Uw' l Uw r' Uw' l' Rw'	Rw:[Uw r Uw',l]	U l U' l u l' U l u' l2 U'|Lw Uw l' U' l u' l' U l U' Lw'|R2 d2 r U2 r' d r U2 r' d R2	4|1|1
+DPL	Ubl	Bdl	Fur	12	U r U' l U r' U' l'	[U r U',l]		
+DPM	Ubl	Bdl	Ldf	8	U l U' l' d' l U l' d U'	U:[l U' l',d']	y' d r U' r' d' r U r' y|Uw l U' l' d' l U l' d Uw'|d2 r U2 r' d' r U2 r' d'	1|1|1
+DPN	Ubl	Bdl	Fdl	3	4Fw l Uw r Uw' l2 Uw r' Uw' l 4Fw'	4Fw l:[Uw r Uw',l2]	F' d2 r U2 r' d2 r U2 r' F|F2 U r U' l U r' U' l' F2|Lw Uw2 r' Uw l2 Uw' r Uw l2 Uw Lw'|L' F2 L U r U' l U r' U' Lw' F2 L|x' D2 l' U r2 U' l U r2 U' D2 x|Lw D2 l' U r2 U' l U r2 U' D2 Lw'|L F2 L' U r U' l U r' U' l' L F2 L'	3|3|1|1|1|1|1
+DPO	Ubl	Bdl	Dbl	9	D2 U r2 U' l U r2 U' l' D2	D2:[U r2 U',l]	D2 Rw' U r' U' l U r U' l' Rw D2|U x' u2 r U r' u2 r U' r' x U'	1|1
+DPQ	Ubl	Bdl	Ldb	7	S l Uw r Uw' l' Uw r' Uw' S'	S:[l,Uw r Uw']	z u r U r' u r U' r' u2 z'|L' d2 r U2 r' d' r U2 r' d' L	4|1
+DPR	Ubl	Bdl	Dbr	9	D' U r2 U' l U r2 U' l' D	D':[U r2 U',l]	D' Rw' U r' U' l U r U' l' Rw D	1
+DPS	Ubl	Bdl	Rdb	6	Rw' Uw r Uw' l Uw r' Uw' l' Rw	Rw':[Uw r Uw',l]	U l U' l' d l U l' U' d'|3Rw' Uw r Uw' l Uw r' Uw' 4Rw	5|1
+DPT	Ubl	Bdl	Bdr	1	U r' U' l U r U' l'	[U r' U',l]		
+DPW	Ubl	Bdl	Dfl	10	D U r2 U' l U r2 U' l' D'	D:[U r2 U',l]	D Rw' U r' U' l U r U' l' Rw D'	1
+DPX	Ubl	Bdl	Dfr	10	U r2 U' l U r2 U' l'	[U r2 U',l]	Rw' U r' U' l U r U' l' Rw|Rw U r U' l U r' U' l' Rw'	1|1
+DPY	Ubl	Bdl	Fdr	7	d2 r U2 r' d2 r U2 r'	[d2,r U2 r']	F' U r U' l U r' U' l' F	5
+DPZ	Ubl	Bdl	Rdf	5	Rw' U l U' l' d l U l' U' d' Rw	Rw' U:[l U' l',d]	R2 Uw r Uw' l Uw r' Uw' l' R2|Rw2 Uw r Uw' l Uw r' Uw' l' Rw2|R' d2 r U2 r' d r U2 r' d R	4|2|1
+DQA	Ubl	Ldb	Ufl	14	l d l' U' l d' l' U	[l d l',U']	U2 r d' r' U' r d r' U'	1
+DQB	Ubl	Ldb	Ful	6	Dw' l' U r' U' l U r U' Dw	Dw':[l',U r' U']	z r U r' u r U' r' u' z'|S Uw r Uw' l' Uw r' Uw' l S'	5|1
+DQF	Ubl	Ldb	Bul	4	U l2 d l' U2 l d' l' U2 l' U'	U l:[l d l',U2]	z Rw' U2 r u' r' U2 r u R z'|Lw U' l' U2 l u' l' U2 l Uw Lw'|L2 u' r U r' u' r U' r' u2 L2|x' U2 l' U' l u' l' U l u U2 x	3|2|2|1
+DQG	Ubl	Ldb	Ubr	16	r d' r' U r d r' U'	[r d' r',U]		
+DQH	Ubl	Ldb	Bur	5	U2 Dw r' U l' U' r U l U Dw'	U2 Dw:[r',U l' U']	L u r' U2 r u' r' U2 r L'|x' U' l' U' l u' l' U l Uw x|Rw' U' r d' r' U2 r d r' U' Rw	5|1|1
+DQI	Ubl	Ldb	Rub	6	u r2 d' r' U r d r' U' r' u'	u r:[r d' r',U]	y' F' l U' r U l' U' r' U F y|R' E' l' U r' U' l U r 4Uw' R|R' y' U' r' U l' U' r U l y R|R2 y' d2 r' U2 r d2 r' U2 r y R2|R' 4Dw' l' U r' U' l U r y' R	1|1|1|1|1
+DQJ	Ubl	Ldb	Ufr	24	U' r d' r' U2 r d r' U'	U':[r d' r',U2]	U l d l' U2 l d' l' U|y' r d2 r' U2 r d2 r' U2 y|y l d2 l' U2 l d2 l' U2 y'|L U2 l u' l' U2 l u Lw'	1|1|1|1
+DQK	Ubl	Ldb	Ruf	7	E' l' U r' U' l U r 4Uw'	E':[l',U r' U']	y' U' r' U l' U' r U l y|R' y' d2 r' U2 r d2 r' U2 r y R	4|1
+DQL	Ubl	Ldb	Fur	6	r2 d' r' U r d r' U' r'	r:[r d' r',U]	L2 u' r U r' u r U' r' L2|Rw r d' r' U r d r' U' Rw'	4|2
+DQM	Ubl	Ldb	Ldf	1	Dw U2 r U l' U' r' U l U Dw'	Dw U':[U' r U,l']		
+DQN	Ubl	Ldb	Fdl	4	d' r' U r d' r' U' r d2	d':[r' U r,d']	z Uw r Uw' l' Uw r' Uw' l z'|U d l' U2 l d' l' U2 l U'|Lw u Lw' d' Lw u' Lw' d	4|3|1
+DQO	Ubl	Ldb	Dbl	10	U l' d l' U2 l d' l' U2 l2 U'	U l':[d,l' U2 l]	U2 l' d l' U l d' l' U' l2 U2|U' y' x u2 r' U' r u2 r' U r x' y U|y' D2 U' r2 U l' U' r2 U l D2 y	1|1|1
+DQP	Ubl	Ldb	Bdl	7	S Uw r Uw' l Uw r' Uw' l' S'	S:[Uw r Uw',l]	z u2 r U r' u' r U' r' u' z'|L' d r U2 r' d r U2 r' d2 L	4|1
+DQR	Ubl	Ldb	Dbr	8	4Uw' U' r2 U l' U' r2 U l 4Uw	4Uw':[U' r2 U,l']	U2 d r2 U l' U' r2 U l U d'|D' r' d' r' U r d r' U' r2 D	4|1
+DQS	Ubl	Ldb	Rdb	9	R d' r' U r d2 r' U' r d' R'	R d':[r' U r,d2]	R2 y' U' r' U l' U' r U l y R2|R y' d2 r' U2 r d2 r' U2 r y R'	1|1
+DQT	Ubl	Ldb	Bdr	11	d' r' U r d r' U' r	[d',r' U r]	z Uw r Uw' l Uw r' Uw' l' z'|z D Uw r Uw' l Uw r' Uw' l' D' z'|Lw u Lw' d Lw u' Lw' d'	1|1|1
+DQW	Ubl	Ldb	Dfl	6	d' l2 U r' U' l2 U r U' d	d':[l2,U r' U']	z u' r U r' u2 r U' r' u' z'|y' D U' r2 U l' U' r2 U l D' y|E' l2 U r' U' l2 U r 4Uw'|y' x r U2 r' u2 r U2 r' u2 x' y	3|1|1|1
+DQX	Ubl	Ldb	Dfr	6	r' d' r' U r d r' U' r2	r':[d',r' U r]	y' U' r2 U l' U' r2 U l y|Rw' d' r' U r d r' U' r Rw|Dw' l2 U r' U' l2 U r U' Dw	3|2|1
+DQY	Ubl	Ldb	Fdr	4	Rw U' r d' r' U2 r d r' U' Rw'	Rw U':[r d' r',U2]	r U' r d' r' U2 r d r' U' r'|L' d r U2 r' d' r U2 r' L|x l U2 l' d' l U2 l' d x'|F' r2 d' r' U r d r' U' r' F	3|2|1|1
+DQZ	Ubl	Ldb	Rdf	8	d' r' U r d2 r' U' r d'	d':[r' U r,d2]	z Uw r Uw' l2 Uw r' Uw' l2 z'|Lw u Lw' d2 Lw u' Lw' d2|y' d2 r' U2 r d2 r' U2 r y	2|1|1
+DRA	Ubl	Dbr	Ufl	4	r U l' d2 l U' l' d2 l r'	r:[U,l' d2 l]	U' Lw r2 U l' U' r2 U l U' Lw' U|U' D l2 D' r2 D l2 D' r2 U|U' 3Lw r2 U l' U' r2 U l U' 3Lw' U|r' U l u2 l' U' l u2 l' r|y' l2 D' r2 D l2 D' r2 4Uw	4|2|1|1|1
+DRB	Ubl	Dbr	Ful	10	D' l' U r2 U' l U r2 U' D	D':[l',U r2 U']	D' 4Rw U r U' l U r' U' 3Rw' D|x d2 r U2 r' d2 r U2 r' x'	1|1
+DRC	Ubl	Dbr	Luf	6	U2 Uw l Uw' r2 Uw l' Uw' r2 U2	U2:[Uw l Uw',r2]	D' Rw r U r' u' r U' r' u Rw' D|D' r2 U r' u' r U' r' u r' D|u U' l U' r2 U l' U' r2 U2 u'|L y' U' r U l2 U' r' U l2 y L'	3|2|1|1
+DRE	Ubl	Dbr	Lub	8	r2 U2 r u r' U2 r u' r	r':[r' U2 r,u]	Rw' r' U2 r u r' U2 r u' Rw|y' F2 U' r U l2 U' r' U l2 F2 y|y' u2 U' r' U l2 U' r U l2 u2 y	2|1|1
+DRF	Ubl	Dbr	Bul	10	U' l U' r2 U l' U' r2 U2	U':[l,U' r2 U]	x' u2 r' U' r u2 r' U r x|D' Rw r U r' u2 r U' r' u2 Rw' D	1|1
+DRG	Ubl	Dbr	Ubr	7	D2 l2 D r2 D' l2 D r2 D	D':[D' l2 D,r2]	Lw D' r2 U' l' U r2 U' l U D Lw'|U2 Lw U l' U' r2 U l U' r2 Lw' U2|U' Rw' l u2 l' U l u2 l' U' Rw U|U' x d2 l U l' d2 l U' l' x' U|D' Lw r2 U' l' U r2 U' l U Lw' D	5|1|1|1|1
+DRH	Ubl	Dbr	Bur	10	D U2 r' U l2 U' r U l2 U D'	U2 D:[r',U l2 U']	x' l' U2 l u2 l' U2 l u2 x	1
+DRI	Ubl	Dbr	Rub	4	Uw' l U' r2 U l' U' r2 U Uw	Uw':[l,U' r2 U]	Uw' l Uw' r2 Uw l' Uw' r2 Uw2|D' r2 U r' u r U' r' u' r' D|y D' r U' l2 U r' U' l2 U D y'|D2 Uw r Uw' l2 Uw r' Uw' l2 D2|R' 4Dw' l' U r2 U' l U r2 y' R|Rw r U2 r' d' r U2 r' d Rw'	4|1|1|1|1|1
+DRJ	Ubl	Dbr	Ufr	5	Lw U' D' r2 U' l' U r2 U' l U2 D Lw'	Lw U' D':[r2,U' l' U]	l' U' D' r2 U' l U r2 U' l' U2 D l|Lw' U' D' r2 U' l U r2 U' l' U2 D Lw|D Rw' U2 r U l2 U' r' U l2 U Rw D'|Lw F' r2 U l' U' r2 U l U' F Lw'|U' Lw U r2 U l' U' r2 U l U2 Lw' U|D r' U2 r U l2 U' r' U l2 U r D'|l U' D' r2 U' l' U r2 U' l U2 D l'|U' l' U r2 U l U' r2 U l' U2 l U|U' 3Lw U r2 U l' U' r2 U l U2 3Lw' U|4Uw U2 r2 D r2 D' r2 U2 r2 D r2 D' r2 4Uw'	4|4|3|3|2|1|1|1|1|1
+DRK	Ubl	Dbr	Ruf	6	r2 U2 r u' r' U2 r u r	r':[r' U2 r,u']	4Dw' l' U r2 U' l U r2 y'|Uw D' U' l' U r2 U' l U r2 D Uw'|R Uw' l U' r2 U l' U' r2 U Uw R'|y' U' r' U l2 U' r U l2 y	2|1|1|1
+DRL	Ubl	Dbr	Fur	8	D2 U r U' l2 U r' U' l2 D2	D2:[U r U',l2]	Uw2 U l U' r2 U l' U' r2 Uw2|x Rw U2 l U r' U' l' U r U Rw' x'|x l U' l' d2 l U l' d2 x'	2|1|1
+DRM	Ubl	Dbr	Ldf	6	Dw' l U r2 U' l' U r2 U' Dw	Dw':[l,U r2 U']	Rw r U2 r' d r U2 r' d' Rw'|y' U' r U l2 U' r' U l2 y|R 4Dw' l U r2 U' l' U r2 y' R'	3|3|1
+DRN	Ubl	Dbr	Fdl	11	U' l' U' r2 U l U' r2 U2	U':[l',U' r2 U]	U' 4Rw U' r U l U' r' U 3Rw' U	1
+DRP	Ubl	Dbr	Bdl	9	D' l U r2 U' l' U r2 U' D	D':[l,U r2 U']	D' 4Rw' U r' U' l' U r U' 3Rw D	1
+DRQ	Ubl	Dbr	Ldb	8	4Uw' l' U' r2 U l U' r2 U 4Uw	4Uw':[l',U' r2 U]	U' d l' U' r2 U l U' r2 U2 d'|D' r2 U r d' r' U' r d r D	4|1
+DRS	Ubl	Dbr	Rdb	9	r2 U2 r' d' r U2 r' d r'	r:[r U2 r',d']	U' r2 U' r' d' r U r' d r' U|R' Uw' l U' r2 U l' U' r2 U Uw R|R' Uw' l Uw' r2 Uw l' Uw' r2 Uw2 R|Rw2 l u l' U2 l u' l' U2 Rw2|R2 4Dw' l' U r2 U' l U r2 y' R2	1|1|1|1|1
+DRT	Ubl	Dbr	Bdr	7	D2 U r' U' l2 U r U' l2 D2	D2:[U r' U',l2]	r' U' l u2 l' U l u2 l' r|M l' U' l u2 l' U l u2 M'	2|1
+DRX	Ubl	Dbr	Dfr	1	D' l2 U r2 U' l2 U r2 U' D	D':[l2,U r2 U']		
+DRY	Ubl	Dbr	Fdr	9	D U2 r U l2 U' r' U l2 U D'	U2 D:[r,U l2 U']	U' 4Rw r U l U' r' U l' U' 4Rw' U|U' x r U l U' r' U l' U' x' U|x l U2 l' d2 l U2 l' d2 x'	1|1|1
+DRZ	Ubl	Dbr	Rdf	5	U' d' l' U' r2 U l U' r2 U2 d	U' d':[l',U' r2 U]	U' E' l' U' r2 U l U' r2 U2 E|R2 Uw' l Uw' r2 Uw l' Uw' r2 Uw2 R2|R 4Dw' l' U r2 U' l U r2 y' R'|Rw2 U r' u r U2 r' u' r U Rw2	3|1|1|1
+DSA	Ubl	Rdb	Ufl	11	U l' d l U' l' d' l	[U,l' d l]	U' r' d' r U' r' d r U2	3
+DSB	Ubl	Rdb	Ful	7	Rw' l' Uw r Uw' l Uw r' Uw' Rw	Rw':[l',Uw r Uw']	U l2 d l U' l' d' l U l U'|z' l' U2 l d l' U2 l d' z|R' l' Uw r Uw' l Uw r' Uw' R	2|2|1
+DSC	Ubl	Rdb	Luf	5	R' u r U r' u2 r U' r' u R	R' u:[r U r',u2]	E U r U' l U r' U' l' E'|y' U2 r U' l U r' U' l' 4Dw'|R' Uw' u2 r U2 r' u2 r U2 r' Uw R|R' y' u2 r U2 r' u2 r U2 r' y R	4|3|1|1
+DSE	Ubl	Rdb	Lub	5	u U' r2 d' r U' r' d r U r U u'	U' u r':[r' d' r,U']	R2 u' r' U2 r u2 r' U2 r u' R2|R E l' U r' U' l U r U' E' R'|R2 Uw' r' U' r u2 r' U r u' U R2|R 4Dw l' U r' U' l U r U2 y R'|R2 y' r' U' r u2 r' U r u2 y R2	3|1|1|1|1
+DSF	Ubl	Rdb	Bul	8	Dw' U' l U' r U l' U' r' U2 Dw	U' Dw':[l,U' r U]	R' u r U r' u r U' r' u2 R|z' Lw U' l u' l' U l u l' Lw' z	4|1
+DSG	Ubl	Rdb	Ubr	15	U' l' d l U l' d' l	[U',l' d l]	U r' d' r U r' d r U2|Rw d r' U r d' r' U' R'	1|1
+DSH	Ubl	Rdb	Bur	7	r2 d' r U2 r' d r U2 r	r':[r' d' r,U2]	Rw' U' r' u r U2 r' u' r U' Rw|R2 u' r' U2 r u r' U2 r R2	4|1
+DSJ	Ubl	Rdb	Ufr	25	r' d' r U2 r' d r U2	[r' d' r,U2]	U2 l' d l U2 l' d' l	1
+DSL	Ubl	Rdb	Fur	7	Dw U r U' l U r' U' l' Dw'	Dw:[U r U',l]	R' u r U r' u' r U' r' R	5
+DSM	Ubl	Rdb	Ldf	11	d' r U2 r' d2 r U2 r' d'	d':[r U2 r',d2]	y' d2 r U' r' d2 r U r' y	1
+DSN	Ubl	Rdb	Fdl	6	S' l' U2 l d l' U2 l d' S	S':[l' U2 l,d]	F' d' r U2 r' d r U2 r' F|R d r' U r d r' U' r d2 R'|U x r' U2 r d r' U2 r d' x' U'	4|1|1
+DSO	Ubl	Rdb	Dbl	5	U' d' l2 U' r U l2 U' r' U2 d	U' d':[l2,U' r U]	R' D l2 Uw r Uw' l2 Uw r' Uw' D' R|E' U' l2 U' r U l2 U' r' U2 E|y' D U2 r2 U' l U r2 U' l' U' D' y|4Dw' x d2 l U2 l' d2 l U2 l' x' 4Dw|D' r d' r U2 r' d r U2 r2 D	3|1|1|1|1
+DSP	Ubl	Rdb	Bdl	5	d U l U' l' d' l U l' U'	U:[d,l U' l']	Rw' l Uw r Uw' l' Uw r' Uw' Rw|4Rw' Uw r Uw' l' Uw r' Uw' 3Rw	5|2
+DSQ	Ubl	Rdb	Ldb	8	R d r' U r d2 r' U' r d R'	R d:[r' U r,d2]	Rw' u Rw U r d' r' U' r d r' Rw' u' Rw|R2 y' l' U' r' U l U' r U y R2|R y' r' U2 r d2 r' U2 r d2 y R'	1|1|1
+DSR	Ubl	Rdb	Dbr	9	r d' r U2 r' d r U2 r2	r:[d',r U2 r']	U' r d' r U' r' d r U r2 U|R' Uw' U' r2 U l U' r2 U l' Uw R|R' Uw2 r2 Uw l Uw' r2 Uw l' Uw R|Rw2 U2 l u l' U2 l u' l' Rw2|R2 y r2 U' l' U r2 U' l 4Dw R2	1|1|1|1|1
+DST	Ubl	Rdb	Bdr	6	R d r' U r d' r' U' r R'	R:[d,r' U r]	Rw' r' u r U r' u' r U' Rw	5
+DSW	Ubl	Rdb	Dfl	6	Rw' l2 Uw r Uw' l2 Uw r' Uw' Rw	Rw':[l2,Uw r Uw']	R' l2 Uw r Uw' l2 Uw r' Uw' R|Dw U r2 U' l U r2 U' l' Dw'|U l d l U' l' d' l U l2 U'|R' u l2 U r U' l2 U r' Uw' R|y' U2 r2 U' l U r2 U' l' 4Dw'	4|1|1|1|1
+DSX	Ubl	Rdb	Dfr	6	d U r2 U' l U r2 U' l' d'	d:[U r2 U',l]	R' D' l2 Uw r Uw' l2 Uw r' Uw' D R|Rw2 U' l u l' U l u' l' Rw2|R' r u r U r' u' r U' r2 R|R2 Uw r2 U' l' U r2 U' l u' R2	2|2|1|1
+DSY	Ubl	Rdb	Fdr	12	d' r U2 r' d r U2 r'	[d',r U2 r']	U' d' r U' r' d r U r' U	1
+DTA	Ubl	Bdr	Ufl	10	l d2 l' U' l d2 l' U	[l d2 l',U']	U x' r U' l' U r' U' l U x U'|U Lw U' l' U r' U' l U r Lw' U'|U l U' l' U r' U' l U r l' U'	2|1|1
+DTB	Ubl	Bdr	Ful	13	l' U r' U' l U r U'	[l',U r' U']		
+DTC	Ubl	Bdr	Luf	6	r' U r' u' r U' r' u r2	r':[U,r' u' r]	Rw' U r' u' r U' r' u r Rw	5
+DTE	Ubl	Bdr	Lub	8	u' l' Uw r' Uw' l Uw r U'	U:[Uw' l' Uw,r']	u' l' U r' U' l U r U' u|4Rw' u' l' U' l u l' U 3Rw|Rw' l u' l' U' l u l' U Rw|L' r' U r d' r' U' r d L	2|1|1|1
+DTG	Ubl	Bdr	Ubr	4	Lw r' U' l' U r U' l U Lw'	Lw:[r',U' l' U]	r' l U' l' U r U' l U l'|x' U' l' U r U' l U r' x|M U' l' U r U' l U r' M'|U2 l d2 l' U l d2 l' U|y' U' l d l' U l d' l' y	3|3|1|1|1
+DTI	Ubl	Bdr	Rub	6	r' U r' u r U' r' u' r2	r':[U,r' u r]	R2 r' U r d r' U' r d' R2|Rw' l u l' U' l u' l' U Rw|x' u l' U' l u' l' U l x|4Rw' u l' U' l u' l' U 3Rw	2|2|1|1
+DTJ	Ubl	Bdr	Ufr	13	U l d2 l' U2 l d2 l' U	U:[l d2 l',U2]	Lw U' r' U' l' U r U' l U2 Lw'|y U2 r d r' U2 r d' r' y'|l U' r' U' l' U r U' l U2 l'|l' U' r' U' l U r U' l' U2 l|3Lw' U' r' U' l U r U' l' U2 3Lw|y' r d' r' U2 r d r' U2 y|Lw' U' r' U' l U r U' l' U2 Lw|y' U2 l d l' U2 l d' l' y	6|4|1|1|1|1|1|1
+DTK	Ubl	Bdr	Ruf	10	u l' U r' U' l U r Uw'	u:[l',U r' U']	Rw' U r d r' U' r d' R	1
+DTL	Ubl	Bdr	Fur	5	x' U' l' U r2 U' l U r2 x	x':[U' l' U,r2]	F' l' U r' U' l U r U' F|u' r' U r' u r U' r' u' r2 u|Lw r' U' l' U r2 U' l U r' Lw'|u r' U r' u' r U' r' u r2 u'|4Rw' U' l' U r2 U' l U r2 4Rw	3|2|1|1|1
+DTM	Ubl	Bdr	Ldf	8	Rw' l' d' l U' l' d l U Rw	Rw':[l' d' l,U']	Rw' U2 r' d r U' r' d' r U' Rw	3
+DTN	Ubl	Bdr	Fdl	13	r' U r d2 r' U' r d2	[r' U r,d2]	F l' U r' U' l U r U' F'	1
+DTO	Ubl	Bdr	Dbl	11	D l2 U r' U' l2 U r U' D'	D:[l2,U r' U']		
+DTP	Ubl	Bdr	Bdl	1	l U r' U' l' U r U'	[l,U r' U']		
+DTQ	Ubl	Bdr	Ldb	12	r' U r d' r' U' r d	[r' U r,d']	z l Uw r Uw' l' Uw r' Uw' z'|z D l Uw r Uw' l' Uw r' Uw' D' z'	1|1
+DTR	Ubl	Bdr	Dbr	7	D2 l2 U r' U' l2 U r U' D2	D2:[l2,U r' U']	M u2 l' U' l u2 l' U l M'	3
+DTS	Ubl	Bdr	Rdb	6	R r' U r d r' U' r d' R'	R:[r' U r,d]	Rw' U r' u r U' r' u' r Rw	5
+DTW	Ubl	Bdr	Dfl	13	l2 U r' U' l2 U r U'	[l2,U r' U']		
+DTX	Ubl	Bdr	Dfr	12	D' l2 U r' U' l2 U r U' D	D':[l2,U r' U']	x' U' l' U r' U' l U r x	1
+DTY	Ubl	Bdr	Fdr	5	M' U' r2 U' l U r2 U' l' U2 M	M' U':[r2,U' l U]	x' D' U' l' U r2 U' l U r2 D x|x U' r2 U' l U r2 U' l' U2 x'|F r' U r d2 r' U' r d2 F'|4Rw U' r2 U' l U r2 U' l' U2 4Rw'	4|1|1|1
+DTZ	Ubl	Bdr	Rdf	13	r' U r d r' U' r d'	[r' U r,d]	L2 r' U r d r' U' r d' L2|L r' U r d r' U' r d' L'	1|1
+DWA	Ubl	Dfl	Ufl	6	U D r2 D' l2 D r2 D' l2 U'	U:[D r2 D',l2]	U Rw' l2 U r U' l2 U r' U' Rw U'|U Rw l2 U r' U' l2 U r U' Rw' U'|U2 x r' U r u2 r' U' r u2 x' U2	5|1|1
+DWB	Ubl	Dfl	Ful	11	D l' U r2 U' l U r2 U' D'	D:[l',U r2 U']	D 4Rw U r U' l U r' U' 3Rw' D'	1
+DWC	Ubl	Dfl	Luf	11	u' U r U' l2 U r' U' l2 u	u':[U r U',l2]	4Uw' U2 r U' l2 U r' U' l2 E'|D Rw r U r' u' r U' r' u Rw' D'	1|1
+DWE	Ubl	Dfl	Lub	8	U l2 U' l u' l' U l u l U'	U l':[l' U' l,u']	4Dw l' U r2 U' l U r2 U2 y	3
+DWF	Ubl	Dfl	Bul	5	u Uw r Uw' l2 Uw r' Uw' l2 u'	u:[Uw r Uw',l2]	D Rw r U r' u2 r U' r' u2 Rw' D'|U 4Rw' U l U r U' l' U r' U2 4Rw U'|D 4Rw' U2 r' U' l' U r U' l U' 4Rw D'|u2 U r U' l2 U r' U' l2 u2|U2 x' r U' r' d2 r U r' d2 x U2	3|1|1|1|1
+DWG	Ubl	Dfl	Ubr	8	l2 D r2 D' l2 D r2 D'	[l2,D r2 D']	Rw' U r U' l2 U r' U' l2 Rw|Rw U r' U' l2 U r U' l2 Rw'|U x u2 r' U r u2 r' U' r x' U'	4|2|1
+DWH	Ubl	Dfl	Bur	10	U2 D' r' U l2 U' r U l2 D U	U2 D':[r',U l2 U']	U2 x' d2 l U2 l' d2 l U2 l' x U2	1
+DWI	Ubl	Dfl	Rub	13	Uw r Uw' l2 Uw r' Uw' l2	[Uw r Uw',l2]	Uw r U' l2 U r' U' l2 u'	1
+DWJ	Ubl	Dfl	Ufr	7	Rw' D' U2 r U l2 U' r' U l2 U D Rw	Rw' U2 D':[r,U l2 U']	Rw' F' U r U' l2 U r' U' l2 F Rw|r U2 D' r' U l2 U' r U l2 U D r'|r' U2 D' r U l2 U' r' U l2 D U r|U' Rw' U2 r U' l2 U r' U' l2 U' Rw U|Rw U2 D' r' U l2 U' r U l2 D U Rw'|D' Rw' U2 r U l2 U' r' U l2 U Rw D|U' r U2 r' U' l2 U r U' l2 U' r' U|Rw' F' R U r U' l2 U r' U' l2 R' F Rw|y D' U2 r2 D r2 D' r2 U2 r2 D r2 D' r2 D y'	5|4|2|2|2|1|1|1|1
+DWK	Ubl	Dfl	Ruf	5	U l2 U' l u l' U l u' l U'	U l':[l' U' l,u]	R Uw r Uw' l2 Uw r' Uw' l2 R'|Rw Uw r Uw' l2 Uw r' Uw' l2 Rw'|R Uw r U' l2 U r' U' l2 u' R'	3|3|1
+DWL	Ubl	Dfl	Fur	13	U r U' l2 U r' U' l2	[U r U',l2]		
+DWM	Ubl	Dfl	Ldf	5	U l2 U' l' d' l U l' d l' U'	U l:[l U' l',d']	z u r U2 r' u2 r U2 r' u z'|D d' l U r2 U' l' U r2 U' d D'|L' u' U r U' l2 U r' U' l2 u L|Fw l' u l U' l' u' l U Fw'|y' x l U l' u2 l U' l' u2 x' y	3|1|1|1|1
+DWN	Ubl	Dfl	Fdl	6	d2 U r' U' l2 U r U' l2 d2	d2:[U r' U',l2]	F2 U r U' l2 U r' U' l2 F2|U 4Rw U l' U r' U' l U r U2 4Rw' U'	5|1
+DWO	Ubl	Dfl	Dbl	1	D l2 U r2 U' l2 U r2 U' D'	D:[l2,U r2 U']		
+DWP	Ubl	Dfl	Bdl	10	D l U r2 U' l' U r2 U' D'	D:[l,U r2 U']	D 4Rw' U r' U' l' U r U' 3Rw D'	1
+DWQ	Ubl	Dfl	Ldb	6	d' U r' U' l2 U r U' l2 d	d':[U r' U',l2]	z u r U r' u2 r U' r' u z'|y' D l' U' r2 U l U' r2 U D' y|4Uw r' U' l2 U r U' l2 E|y' x u2 r U2 r' u2 r U2 r' x' y	3|1|1|1
+DWS	Ubl	Dfl	Rdb	6	Rw' Uw r Uw' l2 Uw r' Uw' l2 Rw	Rw':[Uw r Uw',l2]	R' Uw r Uw' l2 Uw r' Uw' l2 R|Dw l U r2 U' l' U r2 U' Dw'|U l2 U' l' d l U l' d' l' U'|R' Uw r U' l2 U r' U' l2 u' R|4Dw l U r2 U' l' U r2 U2 y	4|1|1|1|1
+DWT	Ubl	Dfl	Bdr	13	U r' U' l2 U r U' l2	[U r' U',l2]		
+DWX	Ubl	Dfl	Dfr	1	U r2 U' l2 U r2 U' l2	[U r2 U',l2]	U Lw r2 U' l U r2 U' l' U Lw' U'	1
+DWY	Ubl	Dfl	Fdr	8	D' U2 r U l2 U' r' U l2 U D	U2 D':[r,U l2 U']	F' U r U' l2 U r' U' l2 F	4
+DWZ	Ubl	Dfl	Rdf	6	d U r' U' l2 U r U' l2 d'	d:[U r' U',l2]	Rw2 Uw r Uw' l2 Uw r' Uw' l2 Rw2|R2 Uw r Uw' l2 Uw r' Uw' l2 R2|R2 Uw r U' l2 U r' U' l2 u' R2	3|2|1
+DXA	Ubl	Dfr	Ufl	4	U r2 D' l2 D r2 D' l2 D U'	U:[r2,D' l2 D]	M' u2 l U' l' u2 l U l' M|U Lw U' l' U r2 U' l U r2 Lw' U'|r l' u2 l U' l' u2 l U r'|U Lw' U' l U r2 U' l' U r2 Lw U'|y' D l2 D' r2 D l2 D' r2 y|Rw l' u2 l U' l' u2 l U Rw'|x u2 l U' l' u2 l U l' x'	2|1|1|1|1|1|1
+DXB	Ubl	Dfr	Ful	12	l' U r2 U' l U r2 U'	[l',U r2 U']	4Rw U r U' l U r' U' 3Rw'	1
+DXC	Ubl	Dfr	Luf	10	r2 U r' u' r U' r' u r'	r:[r U r',u']	Rw r U r' u' r U' r' u Rw'|L' u' l' U r2 U' l U r2 U' u L	2|1
+DXE	Ubl	Dfr	Lub	7	u' l' Uw r2 Uw' l Uw r2 U'	U:[Uw' l' Uw,r2]	u' l' U r2 U' l U r2 U' u|u' 4Rw U r U' l U r' U' 3Rw' u	4|1
+DXF	Ubl	Dfr	Bul	6	D U' l U' r2 U l' U' r2 U2 D'	U' D:[l,U' r2 U]	Rw r U r' u2 r U' r' u2 Rw'|r2 U r' u2 r U' r' u2 r'|4Rw' U2 r' U' l' U r U' l U' 4Rw|U' x' d2 r' U2 r d2 r' U2 r x U	3|1|1|1
+DXG	Ubl	Dfr	Ubr	9	D' l2 D r2 D' l2 D r2	[D' l2 D,r2]	Lw r2 U' l' U r2 U' l U Lw'|Lw' r2 U' l U r2 U' l' U Lw	5|1
+DXH	Ubl	Dfr	Bur	5	x' U' r' U' l' U r U' l U2 x	x' U':[r',U' l' U]	u2 l' U r2 U' l U r2 U' u2|M U' r' U' l' U r U' l U2 M'|4Rw' U' r' U' l' U r U' l U2 4Rw	5|1|1
+DXI	Ubl	Dfr	Rub	9	r2 U r' u r U' r' u' r'	r:[r U r',u]	D' Uw r Uw' l2 Uw r' Uw' l2 D|R' f' R b' R' f R b|y' l U' r2 U l' U' r2 U y|R' u l' U r2 U' l U r2 Uw' R	2|1|1|1
+DXJ	Ubl	Dfr	Ufr	10	Lw U' r2 U' l' U r2 U' l U2 Lw'	Lw U':[r2,U' l' U]	Lw' U' r2 U' l U r2 U' l' U2 Lw|l' U' r2 U' l U r2 U' l' U2 l|l U' r2 U' l' U r2 U' l U2 l'|3Lw U' r2 U' l' U r2 U' l U2 3Lw'|3Lw' U' r2 U' l U r2 U' l' U2 3Lw|r' B' d2 B r U2 r' B' d2 B r U2|y D2 U2 r2 D r2 D' r2 U2 r2 D r2 D' r2 D2 y'	6|5|3|1|1|1|1
+DXK	Ubl	Dfr	Ruf	7	u l' U r2 U' l U r2 Uw'	u:[l',U r2 U']	Rw r U r' u r U' r' u' Rw'|f' R b' R' f R b R'	5|1
+DXL	Ubl	Dfr	Fur	10	D' U r U' l2 U r' U' l2 D	D':[U r U',l2]	x r U' l U r' U' l' U x'|F' l' U r2 U' l U r2 U' F	1|1
+DXM	Ubl	Dfr	Ldf	6	d' l U r2 U' l' U r2 U' d	d':[l,U r2 U']	x z r U l U' r' U l' U' z' x'|y' D U' r U l2 U' r' U l2 D' y|D Rw r U2 r' d r U2 r' d' Rw' D'|L y' l' U' r2 U l U' r2 U y L'	2|1|1|1
+DXN	Ubl	Dfr	Fdl	10	D U' l' U' r2 U l U' r2 U2 D'	U' D:[l',U' r2 U]	r2 U r d2 r' U' r d2 r|4Rw U2 r U' l U r' U' l' U' 4Rw'|F l' U r2 U' l U r2 U' F'	1|1|1
+DXP	Ubl	Dfr	Bdl	10	l U r2 U' l' U r2 U'	[l,U r2 U']	4Rw' U r' U' l' U r U' 3Rw|Rw l U r U' l' U r' U' Rw'	1|1
+DXQ	Ubl	Dfr	Ldb	6	r2 U r d' r' U' r d r	r':[r' U r,d']	y' l' U' r2 U l U' r2 U y|Rw' r' U r d' r' U' r d Rw|Dw' U r' U' l2 U r U' l2 Dw	3|2|1
+DXR	Ubl	Dfr	Dbr	1	D' U r2 U' l2 U r2 U' l2 D	D':[U r2 U',l2]		
+DXS	Ubl	Dfr	Rdb	6	d l U r2 U' l' U r2 U' d'	d:[l,U r2 U']	R' D' Uw r Uw' l2 Uw r' Uw' l2 D R|Rw2 l u l' U' l u' l' U Rw2|R' r2 U r' u r U' r' u' r' R|R2 u l' U r2 U' l U r2 Uw' R2	2|2|1|1
+DXT	Ubl	Dfr	Bdr	12	D' U r' U' l2 U r U' l2 D	D':[U r' U',l2]	x' r' U' l' U r U' l U x	1
+DXW	Ubl	Dfr	Dfl	1	l2 U r2 U' l2 U r2 U'	[l2,U r2 U']	U Lw U' l U r2 U' l' U r2 Lw' U'	1
+DXY	Ubl	Dfr	Fdr	5	x U' r U' l U r' U' l' U2 x'	x U':[r,U' l U]	d2 l U r2 U' l' U r2 U' d2|M' U' r U' l U r' U' l' U2 M|4Rw U' r U' l U r' U' l' U2 4Rw'|F2 l' U r2 U' l U r2 U' F2	4|1|1|1
+DXZ	Ubl	Dfr	Rdf	9	r2 U r d r' U' r d' r	r':[r' U r,d]	Rw2 U r' u r U' r' u' r Rw2|R u l' U r2 U' l U r2 Uw' R'	2|1
+DYA	Ubl	Fdr	Ufl	8	U l' d2 l U' l' d2 l	[U,l' d2 l]	y' r' d' r U' r' d r U y|U' M' U l U' r' U l' U' r M U|U' Lw r U l' U' r' U l U' Lw' U	1|1|1
+DYC	Ubl	Fdr	Luf	5	U2 Uw l Uw' r Uw l' Uw' r' U2	U2:[Uw l Uw',r]	F' r U r' u' r U' r' u F|u U' l U' r U l' U' r' U2 u'|Rw U r' u' r U2 r' u r U Rw'|L r U2 r' d r U2 r' d' L'	5|2|1|1
+DYE	Ubl	Fdr	Lub	6	r U2 r u r' U2 r u' r2	r:[U2,r u r']	Rw U2 r u r' U2 r u' r' Rw'|Uw' Lw' U2 r U l U' r' U l' U Lw Uw|L2 r U2 r' d r U2 r' d' L2	5|1|1
+DYF	Ubl	Fdr	Bul	12	U' l U' r U l' U' r' U2	U':[l,U' r U]		
+DYG	Ubl	Fdr	Ubr	10	U' l' d2 l U l' d2 l	[U',l' d2 l]	x U2 l U r' U' l' U r U x'|U2 Lw' U l U' r U l' U' r' Lw U2|U2 l' U l U' r U l' U' r' l U2|y r' d r U r' d' r U' y'	2|1|1|1
+DYH	Ubl	Fdr	Bur	6	Uw' r U' r u r' U r u' r2 Uw	Uw' r:[U',r u r']	U' x' r2 U l' U' r2 U l U' x U|F U2 r' U l' U' r U l U F'|U' 4Rw U l U' r2 U l' U' r2 4Rw' U	4|1|1
+DYI	Ubl	Fdr	Rub	6	Uw' l Uw' r Uw l' Uw' r' Uw2	Uw':[l,Uw' r Uw]	Uw' l U' r U l' U' r' U Uw|Rw U2 r' d' r U2 r' d R'	4|1
+DYJ	Ubl	Fdr	Ufr	21	U2 l' d2 l U2 l' d2 l	[U2,l' d2 l]	U' Lw U r U l' U' r' U l U2 Lw' U|U' l U r U l' U' r' U l U2 l' U|U' Lw' U r U l U' r' U l' U2 Lw U|4Dw r' d' r U2 r' d r U y|4Dw' r' d r U2 r' d' r U' y'|d' r' d r U2 r' d' r U2 d	3|1|1|1|1|1
+DYK	Ubl	Fdr	Ruf	5	r U2 r u' r' U2 r u r2	r:[U2,r u' r']	Rw U r' u r U2 r' u' r U Rw'|R Uw' l U' r U l' U' r' U Uw R'|R2 r U2 r' d' r U2 r' d R2	4|1|1
+DYM	Ubl	Fdr	Ldf	12	r U2 r' d r U2 r' d'	[r U2 r',d]		
+DYN	Ubl	Fdr	Fdl	2	U' l' U' r U l U' r' U2	U':[l',U' r U]		
+DYO	Ubl	Fdr	Dbl	12	U' l2 U' r U l2 U' r' U2	U':[l2,U' r U]		
+DYP	Ubl	Fdr	Bdl	7	r U2 r' d2 r U2 r' d2	[r U2 r',d2]	F' l U r U' l' U r' U' F	5
+DYQ	Ubl	Fdr	Ldb	4	Rw U r d' r' U2 r d r' U Rw'	Rw U:[r d' r',U2]	r U r d' r' U2 r d r' U r'|L' r U2 r' d r U2 r' d' L|x d' l U2 l' d l U2 l' x'|F' r U r d' r' U' r d r2 F	3|2|1|1
+DYR	Ubl	Fdr	Dbr	9	D U' l2 U' r U l2 U' r' U2 D'	U' D:[l2,U' r U]	U' 4Rw U l U' r U l' U' r' 4Rw' U|U' x U l U' r U l' U' r' x' U|x d2 l U2 l' d2 l U2 l' x'	1|1|1
+DYS	Ubl	Fdr	Rdb	12	r U2 r' d' r U2 r' d	[r U2 r',d']	U' r U' r' d' r U r' d U	1
+DYT	Ubl	Fdr	Bdr	5	M' U2 l U r2 U' l' U r2 U M	M' U':[U' l U,r2]	x' D' r2 U' l' U r2 U' l U D x|x U2 l U r2 U' l' U r2 U x'|F d2 r' U r d2 r' U' r F'|4Rw U2 l U r2 U' l' U r2 U 4Rw'	4|1|1|1
+DYW	Ubl	Fdr	Dfl	8	D' U' l2 U' r U l2 U' r' U2 D	U' D':[l2,U' r U]	F' l2 U r U' l2 U r' U' F	4
+DYX	Ubl	Fdr	Dfr	5	x U2 l U r U' l' U r' U x'	x U':[U' l U,r]	d2 U r2 U' l U r2 U' l' d2|M' U2 l U r U' l' U r' U M|4Rw U2 l U r U' l' U r' U 4Rw'|F2 U r2 U' l' U r2 U' l F2	4|1|1|1
+DYZ	Ubl	Fdr	Rdf	7	Rw U2 r u' r' U2 r u r' Rw'	Rw:[U2,r u' r']	R' r U2 r' d' r U2 r' d R|Rw l u l' U2 l u' l' U2 Rw'	3|1
+DZA	Ubl	Rdf	Ufl	14	l d' l' U' l d l' U	[l d' l',U']	U2 r d r' U' r d' r' U'	1
+DZB	Ubl	Rdf	Ful	5	Dw l' U r' U' l U r U' Dw'	Dw:[l',U r' U']	R2 l' Uw r Uw' l Uw r' Uw' R2|d l' U r' U' l U r U' d'|z' l' U l d l' U' l d' z|Rw Uw l' U' l u' l' U l U' Rw'|Rw2 l' Uw r Uw' l Uw r' Uw' Rw2	3|2|2|1|1
+DZC	Ubl	Rdf	Luf	5	R2 u r U r' u2 r U' r' u R2	R2 u:[r U r',u2]	u' r2 d r' U r d' r' U' r' u|R' E U r U' l U r' U' l' E' R|R' 4Dw U r U' l U r' U' l' 4Dw' R|y' F' U l' U r' U' l U r U2 F y|R2 y' u2 r U2 r' u2 r U2 r' y R2	3|2|1|1|1
+DZE	Ubl	Rdf	Lub	6	E l' U r' U' l U r U' E'	E:[l',U r' U']	R u' r' U2 r u2 r' U2 r u' R'|4Dw l' U r' U' l U r U2 y|R Uw' r' U' r u2 r' U r u' U R'|Fw' U2 r u r' U2 r u' r' Fw|R y' r' U' r u2 r' U r u2 y R'	3|2|1|1|1
+DZF	Ubl	Rdf	Bul	5	U l2 d' l' U2 l d l' U2 l' U'	U l:[l d' l',U2]	z' Lw U2 l u' l' U2 l u l' Lw' z|R2 u r U r' u r U' r' u2 R2|S' l U l d l' U' l d' l2 S|Dw l U2 r' U' l' U r U' l U' l' Dw'	2|2|1|1
+DZG	Ubl	Rdf	Ubr	16	r d r' U r d' r' U'	[r d r',U]		
+DZH	Ubl	Rdf	Bur	6	R u' r' U2 r u r' U2 r R'	R:[u',r' U2 r]	Rw' r' d' r U2 r' d r U2 Rw|Dw' U2 r' U l' U' r U l U Dw	3|3
+DZJ	Ubl	Rdf	Ufr	21	U' r d r' U2 r d' r' U'	U':[r d r',U2]	U l d' l' U2 l d l' U|Rw u' r' U2 r u r' U2 R'|Rw' d' r U2 r' d r U2 R	5|1|1
+DZL	Ubl	Rdf	Fur	6	R2 u r U r' u' r U' r' R2	R2:[u,r U r']	r2 d r' U r d' r' U' r'|Rw U' l u l' U l u' l' Rw'	4|2
+DZM	Ubl	Rdf	Ldf	5	L d r' U r d2 r' U' r d L'	L d:[r' U r,d2]	Rw Uw' Rw' U' r' d r U r' d' r Rw Uw Rw'|z U l2 Uw r Uw' l2 Uw r' Uw' U' z'|R' d' r U2 r' d2 r U2 r' d' R|R' y' d2 r U' r' d2 r U r' y R	2|2|2|1
+DZN	Ubl	Rdf	Fdl	5	d r' U r d r' U' r d2	d:[r' U r,d]	U d' l' U2 l d l' U2 l U'|U2 d' l' U l d l' U' l U2|R Uw' l' U' r' U l U' r U Uw R'|L2 d r' U r d r' U' r d2 L2	2|2|1|1
+DZO	Ubl	Rdf	Dbl	10	Dw l2 U r' U' l2 U r U' Dw'	Dw:[l2,U r' U']	y U r2 U l' U' r2 U l U2 y'|4Uw x d2 r' U2 r d2 r' U2 r x' 4Uw'	1|1
+DZP	Ubl	Rdf	Bdl	5	Rw' d U l U' l' d' l U l' U' Rw	Rw' U:[d,l U' l']	R2 l Uw r Uw' l' Uw r' Uw' R2|Rw2 l Uw r Uw' l' Uw r' Uw' Rw2|R' d' r U2 r' d' r U2 r' d2 R	4|2|1
+DZQ	Ubl	Rdf	Ldb	8	d r' U r d2 r' U' r d	d:[r' U r,d2]	z l2 Uw r Uw' l2 Uw r' Uw' z'|d2 Lw u Lw' d2 Lw u' Lw'|y' r' U2 r d2 r' U2 r d2 y	2|1|1
+DZR	Ubl	Rdf	Dbr	5	U2 d' r2 U l' U' r2 U l U d	U2 d':[r2,U l' U']	4Uw U r2 U l' U' r2 U l U2 4Uw'|R2 Uw2 r2 Uw l Uw' r2 Uw l' Uw R2|R y r2 U' l' U r2 U' l 4Dw R'|Rw2 U' r' u r U2 r' u' r U' Rw2	3|1|1|1
+DZT	Ubl	Rdf	Bdr	13	d r' U r d' r' U' r	[d,r' U r]	L2 d r' U r d' r' U' r L2|L d r' U r d' r' U' r L'	1|1
+DZW	Ubl	Rdf	Dfl	6	d l2 U r' U' l2 U r U' d'	d:[l2,U r' U']	R2 l2 Uw r Uw' l2 Uw r' Uw' R2|Rw2 l2 Uw r Uw' l2 Uw r' Uw' Rw2|4Rw2 Uw r Uw' l2 Uw r' Uw' 3Rw2|R2 u l2 U r U' l2 U r' Uw' R2	2|2|1|1
+DZX	Ubl	Rdf	Dfr	9	r' d r' U r d' r' U' r2	r':[d,r' U r]	Rw2 r' u r U r' u' r U' Rw2|R Uw r2 U' l' U r2 U' l u' R'	2|1
+DZY	Ubl	Rdf	Fdr	7	Rw r u' r' U2 r u r' U2 Rw'	Rw:[r u' r',U2]	R' d' r U2 r' d r U2 r' R|Rw U2 l u l' U2 l u' l' Rw'	3|1

@@ -449,3 +449,42 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
   .c4-matrix { padding: 6px; }
   .c4-wrap.is-mx .c4-head h1 { font-size: 17px; }
 }
+
+/* ---------- 参考公式（手动切换，默认排名第一；blddb 同款） ---------- */
+.c4-modal__refs { margin: 2px 0 10px; border-top: 1px dashed var(--line-2, rgba(255,255,255,.16)); padding-top: 10px; }
+.c4-modal__refsbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.c4-modal__refsbar .k { color: var(--fg-3, #7C8798); font-size: 12px; font-weight: 600; min-width: 66px; }
+.c4-modal__refsnote { font-size: 11.5px; color: var(--fg-3, #7C8798); }
+.c4-modal__refsreset {
+  appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
+  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  background: transparent; color: var(--gold, #f5c518);
+  border: 1px solid rgba(245,197,24,.5);
+}
+.c4-modal__refsreset:hover { background: rgba(245,197,24,.14); }
+.c4-modal__refslist { display: flex; flex-direction: column; gap: 5px; max-height: 32vh; overflow: auto; padding-right: 2px; }
+.c4-ref {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  padding: 6px 9px; border-radius: 7px; cursor: pointer; font: inherit;
+  background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.14));
+}
+.c4-ref:hover { border-color: var(--brand, #60a5fa); color: var(--fg, #EEF2F8); }
+.c4-ref.is-on { border-color: var(--gold, #f5c518); background: rgba(245,197,24,.12); color: var(--fg, #EEF2F8); }
+.c4-ref__no { flex: 0 0 18px; text-align: right; font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
+.c4-ref__alg { flex: 1 1 auto; min-width: 0; font-family: "Consolas", "SF Mono", monospace; font-size: 12.5px; word-break: break-all; }
+.c4-ref__n { flex: 0 0 auto; font-size: 11px; opacity: .75; white-space: nowrap; }
+.c4-ref__def { flex: 0 0 auto; font-size: 10px; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 1px 5px; }
+/* 换过公式：看板卡金边 + 左上角「换」徽标（与 PLL 训练页一致）；矩阵格金色内环 */
+.c4-bcell.is-swapped { border-color: var(--gold, #f5c518); box-shadow: inset 0 0 0 1px rgba(245,197,24,.55), 0 0 10px rgba(245,197,24,.3); }
+.c4-bcell .c-swap { position: absolute; left: 5%; top: 5%; font-size: .95em; line-height: 1.25; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 0 4px; }
+.mx.is-swapped { box-shadow: inset 0 0 0 2px var(--gold, #f5c518); }
+/* 手动输入公式按钮：与「恢复默认」同排，靠右 */
+.c4-modal__refsbar .c4-modal__refsman {
+  appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
+  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  background: transparent; color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.2));
+}
+.c4-modal__refsbar .c4-modal__refsman:hover { border-color: var(--brand, #60a5fa); color: var(--fg, #EEF2F8); }
+.c4-modal__refsbar .c4-modal__refsreset { margin-left: 6px; }

@@ -9,6 +9,17 @@
 
 ---
 
+## [2.0.11] — 2026-10-16（功能 · 四阶三页「参考公式可选 + 手动输入」；新增四阶角心训练页）
+
+- **参考公式可选（四阶中心块 / 高阶翼棱 / 四阶角心 三页统一）**：详情浮层底部新增「参考公式」选择条（样板取自 `scramble-uf440` 页）——**默认 = 库中使用人数最多、排名第 1 的那条**（列表第 1 条带「默认」徽标）；其余备选可下拉点选切换，当前选中项高亮；另加「✎ 手动输入」按钮可粘贴自定义公式；**换过公式的格子/卡片带金边 + 「换」徽标**，并有「恢复默认」。选择写入 `localStorage`（`c4_center_swaps` / `c4_wing_swaps` / `c4_xcenter_swaps`，三页互不影响），刷新后保留。
+- **四阶中心块（440）补齐**：`center-data.js` 新增独立顶层 **`alts`** 键（`455` 格，每格 `[[公式, 来源数], ...]` 有序参考列表，`index 0` = 默认；来源数 `0` 表示来自用户公式表）；原 `algs` 字符串（Excel 默认公式，`455` 条）字节保持不变。页面侧补齐此前缺失的 `refreshCode()` 定义、`renderRefs()` 列表渲染与事件监听（`c4-m-refslist` 切换 / `c4-m-refsreset` 恢复 / `c4-m-refsmanual` 手动输入），并在 `renderBoard` / `renderMatrix` 接上 `isSwapped` 金边标记——修复此前「切换公式报 `refreshCode is not defined`」「切换后无金边」问题。
+- **新增四阶角心训练页 `tools/4bld/xcenter.html`**：克隆翼棱页结构，缓冲固定 `D`（`Ubl`），另两位置全排列；`23×23` 矩阵、去对角后 **460** 个有向情况（`XCENTER4`，来源 `blddb.net/bigbld/xcenter.html` 角心库）。功能与翼棱 / 中心块页逐项对齐（矩阵总览、练习看板、hold-to-start 计时、连练、详情浮层、搜索、筛选、指标、排序、KPI、CSV 导出、侧栏隐藏、账号同步 provider `4bld-xcenter`）。导航新增「四阶角心公式」入口（`site-nav.js` → `4bld-xcenter`）。
+- **生成器**：新增 `gen-center-alts.py`（并 `440` 的 `alts`，安全闸保证原 Excel `455` 条默认公式零改动）、`gen-xcenter-data.py`（`xcenter-algs.tsv` → `xcenter-data.js`，`--check` 幂等）。
+- **`sw.js` `CACHE` v12 → v13**：`site-nav.js` 在计时器 PWA 的 `APP_SHELL` 清单内，新增角心导航项按规矩递增缓存版本（`wing.html` / `xcenter.html` 等 `tools/4bld/` 页不在清单内，无需理会）。
+- 验证：本地 `.workbuddy/outputs/verify_refs_4bld.py` 三页共 **36/36 PASS**（默认徽标、切换公式、金边标记、恢复默认、手动输入、0 控制台错误）；`.workbuddy/outputs/verify_refs_multires.py` 三页 × 四档（1920×1080 / 1440×900 / 1366×768 / 640×900）共 **12/12 PASS**（矩阵 `529` 格、看板卡 `506`/`455`/`460`、0 报错）。
+
+---
+
 ## [2.0.10] — 2026-10-16（修复 · 翼棱公式覆盖 420 → 506，补全含 G/H 情况的旋转解析）
 
 - **问题**：v2.0.9 的翼棱页只收录了以缓冲 `A`（UFr）为**首字母**的 `420` 条码，误把含 `G`/`H`（URb / RUf 两个翼块位）的 `86` 个情况当成"库无覆盖"剔除——例如 `ABG` 在页面里搜不到。而用户口径要求：**缓冲固定、其余位置全排列**，即 `23×22 = 506` 个有向情况必须全部有公式。

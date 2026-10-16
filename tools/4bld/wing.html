@@ -174,7 +174,15 @@
     <div class="c4-modal__row"><span class="k">交换子</span><span class="v" id="c4-m-comm">--</span></div>
     <div class="c4-modal__row"><span class="k">棱组</span><span class="v" id="c4-m-grp">--</span></div>
     <div class="c4-modal__row"><span class="k">来源</span><span class="v" id="c4-m-src">--</span></div>
-    <div class="c4-modal__row"><span class="k">备选公式</span><span class="v" id="c4-m-alt">--</span></div>
+    <div class="c4-modal__refs" id="c4-m-refs">
+      <div class="c4-modal__refsbar">
+        <span class="k">参考公式</span>
+        <span class="c4-modal__refsnote" id="c4-m-refsnote">默认取排名第一；点下面任意一条即可切换</span>
+        <button type="button" id="c4-m-refsmanual" class="c4-modal__refsman">✎ 手动输入</button>
+        <button type="button" id="c4-m-refsreset" hidden>恢复默认</button>
+      </div>
+      <div class="c4-modal__refslist" id="c4-m-refslist"></div>
+    </div>
     <div class="c4-modal__acts">
       <button type="button" id="c4-m-copy">复制公式</button>
       <button type="button" id="c4-m-locate">去练习</button>
@@ -213,11 +221,54 @@
     return (POS[g[0]] || '').slice(0, 2) + ' 棱（' + g.join(' ') + '）';
   }
 
-  /* 主公式 / 交换子 / 来源数 / 备选 —— value = [alg, comm, nsrc, alts[]] */
-  function algOf(code) { var v = D.algs[code]; return v ? v[0] : ''; }
-  function commOf(code) { var v = D.algs[code]; return v ? v[1] : ''; }
-  function nsrcOf(code) { var v = D.algs[code]; return v ? v[2] : 0; }
-  function altsOf(code) { var v = D.algs[code]; return (v && v[3]) || []; }
+  /* ============ 参考公式（手动切换，默认 = 排名第一） ============ */
+  /* 数据兼容：翼棱/角心页 value = [alg, comm, nsrc, alts[[公式,来源数]...]]；
+     四阶中心块页 value = 公式字符串 + 平行 alts。统一输出有序参考公式 [[公式,来源数]...] */
+  var SWAPS_KEY = 'c4_wing_swaps';
+  var swaps = load(SWAPS_KEY, {});
+  function saveSwaps() { save(SWAPS_KEY, swaps); }
+  function refList(code) {
+    var v = D.algs[code];
+    if (!v) { return []; }
+    if (typeof v === 'string') {
+      var a = (D.alts && D.alts[code]) || [];
+      return a.length ? a : [[v, 0]];
+    }
+    var out = [[v[0], v[2]]];
+    (v[3] || []).forEach(function (x) {
+      // 防御：备选既有 [公式, 来源数] 二元组，也可能是旧格式纯字符串
+      var pair = (x && typeof x.length === 'number' && typeof x !== 'string')
+        ? [x[0], x[1] || 0] : [x, 0];
+      if (!pair[0]) { return; }
+      var dup = false;
+      for (var i = 0; i < out.length; i++) { if (out[i][0] === pair[0]) { dup = true; break; } }
+      if (!dup) { out.push(pair); }
+    });
+    return out;
+  }
+  function baseAlg(code) {
+    var v = D.algs[code];
+    if (!v) { return ''; }
+    return typeof v === 'string' ? v : (v[0] || '');
+  }
+  function algOf(code) { return swaps[code] || baseAlg(code); }
+  function isSwapped(code) { return !!swaps[code]; }
+  function curRefIdx(code) {
+    var cur = algOf(code), list = refList(code);
+    for (var i = 0; i < list.length; i++) { if (list[i][0] === cur) { return i; } }
+    return -1;
+  }
+  function setSwap(code, alg) {
+    if (!alg || alg === baseAlg(code)) { delete swaps[code]; }
+    else { swaps[code] = alg; }
+    saveSwaps();
+    refreshCode(code);
+  }
+  function commOf(code) { var v = D.algs[code]; return (v && typeof v !== 'string') ? (v[1] || '') : ''; }
+  function nsrcOf(code) {
+    var i = curRefIdx(code);
+    return i >= 0 ? refList(code)[i][1] : 0;
+  }
   function posStr(code) {
     return (POS[code.charAt(0)] || '?') + ' → ' + (POS[code.charAt(1)] || '?') + ' → ' + (POS[code.charAt(2)] || '?');
   }
@@ -410,11 +461,13 @@
       var t = tierOf(stats[c].metric(), bench);
       if (t === 't-bad') { weak++; } else if (t === 't-warn') { warn++; }
     });
+    var swappedN = ALL.filter(isSwapped).length;
     $('kpis').innerHTML =
       '<div class="c4-kpi"><div class="k-label">已练情况</div><div class="k-value">' + A.practiced.length + ' / ' + ALL.length + '</div></div>' +
       '<div class="c4-kpi"><div class="k-label">总单次次数</div><div class="k-value">' + totalN + '</div></div>' +
       '<div class="c4-kpi"><div class="k-label">不合格（慢）</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
-      '<div class="c4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>';
+      '<div class="c4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>' +
+      (swappedN ? '<div class="c4-kpi"><div class="k-label">换过公式</div><div class="k-value" style="color:#f5c518">' + swappedN + '</div></div>' : '');
     $('ticks').innerHTML =
       '<span style="left:0%">' + range.lo.toFixed(2) + '×</span>' +
       '<span style="left:50%">' + ((range.lo + range.hi) / 2).toFixed(2) + '× 基准</span>' +
@@ -486,10 +539,11 @@
       var title = (st.n
         ? (c + ' · ' + alg + ' · ' + fmtTime(m) + ' · ' + st.n + ' 次')
         : (c + ' · ' + alg + ' · 未练习'));
-      var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
+      var klass = (col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier) + (isSwapped(c) ? ' is-swapped' : '');
       return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
         'style="background:' + col.bg + ';color:' + col.fg + '" title="' + esc(title) + '">' +
         '<span class="c-code">' + c + '</span>' +
+        (isSwapped(c) ? '<span class="c-swap" title="已切换为参考公式：' + esc(algOf(c)) + '">换</span>' : '') +
         '<span class="c-alg">' + (alg ? fmtAlgCell(alg) : '') + '</span>' +
         '<span class="c-ms">' + (st.n ? fmtTime(m) : '--') + '</span>' +
         '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
@@ -580,6 +634,7 @@
           cls += ' grp';
           tip = code + '　blddb 库未收录';
         }
+        if (isSwapped(code)) { cls += ' is-swapped'; }
         if (hasFilter) { cls += mset[code] ? ' hit' : ' dim'; }
         var attr = alg ? ' data-code="' + code + '"' : ' disabled';
         h += '<button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr +
@@ -621,9 +676,11 @@
     });
     return listCache;
   }
+  var modalCode = '';
   function fillModal(code) {
     var alg = algOf(code);
     if (!alg) { return; }
+    modalCode = code;
     var b = code.charAt(1), c3 = code.charAt(2);
     var t = document.getElementById('c4-m-title');
     t.className = 'c4-modal__title ' + gclass(b);
@@ -637,9 +694,46 @@
     document.getElementById('c4-m-comm').textContent = commOf(code) || '—';
     var gi = GIDX[b];
     document.getElementById('c4-m-grp').textContent = '第 ' + (gi + 1) + ' 组 · ' + edgeName(gi);
-    var alts = altsOf(code);
-    document.getElementById('c4-m-src').textContent = nsrcOf(code) + ' 家（blddb 使用人数）';
-    document.getElementById('c4-m-alt').textContent = alts.length ? alts.join('　|　') : '无';
+    var ns = nsrcOf(code);
+    document.getElementById('c4-m-src').textContent = ns > 0
+      ? ns + ' 家（blddb 使用人数）'
+      : '你的公式表（默认）';
+    renderRefs(code);
+  }
+
+  /* 参考公式列表：index 0 = 默认；点击即切换 */
+  function renderRefs(code) {
+    var list = refList(code);
+    var cur = algOf(code);
+    var box = document.getElementById('c4-m-refslist');
+    var reset = document.getElementById('c4-m-refsreset');
+    if (!list.length) {
+      box.innerHTML = '<div class="c4-modal__refsnote">该情况没有可切换的参考公式。</div>';
+      reset.hidden = true;
+      return;
+    }
+    box.innerHTML = list.map(function (p, i) {
+      return '<button type="button" class="c4-ref' + (p[0] === cur ? ' is-on' : '') + '"' +
+        ' data-alg="' + esc(p[0]) + '">' +
+        '<span class="c4-ref__no">' + (i + 1) + '</span>' +
+        '<span class="c4-ref__alg">' + esc(p[0]) + '</span>' +
+        (i === 0 ? '<span class="c4-ref__def">默认</span>' : '') +
+        '<span class="c4-ref__n">' + (p[1] > 0 ? p[1] + ' 家' : '公式表') + '</span>' +
+        '</button>';
+    }).join('');
+    reset.hidden = !isSwapped(code);
+  }
+
+  /* 切换后：同步详情浮层 / 练习浮层 / 看板 / 矩阵 */
+  function refreshCode(code) {
+    if (modalCode === code && document.getElementById('c4-modal').classList.contains('is-open')) {
+      fillModal(code);
+    }
+    if (pCurrent === code && pmodal.classList.contains('is-open')) {
+      pAlgEl.innerHTML = fmtAlg(algOf(code) || '');
+    }
+    renderBoard();
+    renderMatrix();
   }
   function openModal(code) {
     if (!D.algs[code]) { return; }
@@ -912,7 +1006,7 @@
     return s;
   }
   function exportCSV() {
-    var rows = [['代码', '位置', '棱组', '练习次数', '最快(秒)', '全部平均(秒)', '最近一次(秒)', '最近10次(秒)']];
+    var rows = [['代码', '位置', '棱组', '练习次数', '最快(秒)', '全部平均(秒)', '最近一次(秒)', '最近10次(秒)', '当前公式', '换过公式']];
     var exported = 0;
     ALL.forEach(function (c) {
       var st = statsOf(c);
@@ -927,7 +1021,9 @@
         (st.best / 1000).toFixed(3),
         (st.allavg / 1000).toFixed(3),
         isFinite(st.session) ? (st.session / 1000).toFixed(3) : '',
-        last10.join('; ')
+        last10.join('; '),
+        algOf(c),
+        isSwapped(c) ? '是' : ''
       ]);
     });
     if (!exported) { toast('还没有已练公式的成绩'); return; }
@@ -996,6 +1092,28 @@
       var code = currentModalCode();
       closeModal();
       setTimeout(function () { pOpenFor(code); }, 60);
+    });
+    // 参考公式：点某一条即切换；恢复默认
+    document.getElementById('c4-m-refslist').addEventListener('click', function (e) {
+      var btn = (e.target && e.target.closest) ? e.target.closest('.c4-ref') : null;
+      if (!btn) { return; }
+      var alg = btn.getAttribute('data-alg');
+      if (!alg) { return; }
+      setSwap(modalCode, alg);
+      var i = curRefIdx(modalCode);
+      toast('已切换为第 ' + (i + 1) + ' 条参考公式' + (i === 0 ? '（默认）' : ''));
+    });
+    document.getElementById('c4-m-refsreset').addEventListener('click', function () {
+      setSwap(modalCode, '');
+      toast('已恢复默认公式');
+    });
+    document.getElementById('c4-m-refsmanual').addEventListener('click', function () {
+      var v = prompt('手动输入「' + modalCode + '」的公式（留空或取消则不改动）：', algOf(modalCode) || '');
+      if (v === null) { return; }
+      v = v.trim();
+      if (!v) { return; }
+      setSwap(modalCode, v);
+      toast(v === baseAlg(modalCode) ? '已恢复默认公式' : '已设为自定义公式');
     });
 
     // 练习浮层

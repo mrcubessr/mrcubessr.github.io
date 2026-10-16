@@ -37,6 +37,7 @@
       { id: 'scramble-uf440', label: 'UF440公式训练',  href: '/tools/scramble-uf440/' },
       { id: '4bld-center',    label: '四阶中心块公式', href: '/tools/4bld/' },
       { id: '4bld-wing',      label: '高阶翼棱公式',   href: '/tools/4bld/wing.html' },
+      { id: '4bld-xcenter',   label: '四阶角心公式',   href: '/tools/4bld/xcenter.html' },
       { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' },
       { id: 'bld-trainer',    label: 'bld-trainer',    href: '/tools/bld-trainer/' }
     ]},

@@ -12,7 +12,8 @@
 - 正确口径（与 blddb 官网 wing.js 的 algSearch 一致）：对每个缓冲-A 有向情况 (A X Y)，依次尝试
   (A X Y)/(X Y A)/(Y A X) 三次旋转去库里查，命中即用。缓冲固定 A 时全部 23×22 = 506 个
   有向情况都能命中（含 G 或 H 的 86 个——44 含 G、44 含 H，AGH/AHG 两者兼有；之前被误剔）。
-- 每情况 value = [主公式, 交换子, 来源数, 备选公式数组]（blddb「人造」风格，按使用人数排序）
+- 每情况 value = [主公式, 交换子, 来源数, 备选公式数组]（blddb「人造」风格，按使用人数排序）；
+  备选为 [公式, 来源数] 二元组，供页面「参考公式」列表显示各条的使用人数。
 """
 import os, sys
 
@@ -48,14 +49,18 @@ def main():
     order_seen = []
     with open(tsv, encoding="utf-8") as f:
         header = f.readline().rstrip("\n").split("\t")
-        assert header == ["code", "pos1", "pos2", "pos3", "nsrc", "alg", "comm", "alts"], header
+        assert header == ["code", "pos1", "pos2", "pos3", "nsrc", "alg", "comm",
+                          "alts", "altnsrc"], header
         for line in f:
             line = line.rstrip("\n")
             if not line:
                 continue
-            code, pos1, pos2, pos3, nsrc, algx, comm, alts = line.split("\t")
+            code, pos1, pos2, pos3, nsrc, algx, comm, alts, altnsrc = line.split("\t")
             assert POS[code[0]] == pos1 and POS[code[1]] == pos2 and POS[code[2]] == pos3, code
-            rows[code] = [algx, comm, int(nsrc), alts.split("|") if alts else []]
+            alist = alts.split("|") if alts else []
+            nlist = [int(x) for x in altnsrc.split("|")] if altnsrc else []
+            assert len(alist) == len(nlist), code
+            rows[code] = [algx, comm, int(nsrc), list(zip(alist, nlist))]
             order_seen.append(code)
 
     # 校验：506 = 23×22 去对角，缓冲 A 固定时全部有向情况全覆盖
@@ -70,7 +75,8 @@ def main():
     lines.append(" *  本文件由 gen-wing-data.py 生成，勿手改；改数据请改 wing-algs.tsv 后重新生成。")
     lines.append(" *  来源：blddb.net/bigbld/wing.html「翼棱公式库」（人造风格，2026-10-15 抓取）")
     lines.append(" *  key = 三字母码（缓冲固定 A=UFr，如 \"ACB\" = UFr -> ULf -> FUl）")
-    lines.append(" *  value = [主公式, 交换子, 来源数, 备选公式数组]；行/列 = 23 个次位置字母（G/H 已含，经旋转解析补全）")
+    lines.append(" *  value = [主公式, 交换子, 来源数, 备选公式数组]；备选为 [公式, 来源数] 二元组")
+    lines.append(" *  行/列 = 23 个次位置字母（G/H 已含，经旋转解析补全）")
     lines.append(" */")
     lines.append("window.WING4 = {")
     lines.append("  buffer: 'A',")
@@ -90,7 +96,7 @@ def main():
         a, comm, n, alts = rows[code]
         val = "[%s, %s, %d, [%s]]" % (
             js_str(a), js_str(comm), n,
-            ",".join(js_str(x) for x in alts))
+            ",".join("[%s, %d]" % (js_str(x), k) for x, k in alts))
         lines.append("    %s: %s," % (js_str(code), val))
     lines.append("  },")
     lines.append("};")
