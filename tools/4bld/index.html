@@ -548,7 +548,9 @@
       if (isSwapped(c)) { klass += ' is-swapped'; }
       /* 卡片不显示公式，直接显示位置码（440/UF440 码本就是两字母）。
          title 仍带完整码与公式，鼠标悬停可查。 */
-      return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
+      /* 组色 class：与矩阵格同一口径（按次字母取组），未练卡才能有组色淡底 */
+      var gc = gclass(c.charAt(c.length - 1));
+      return '<a class="c4-bcell ' + gc + ' ' + klass + '" data-code="' + c + '" ' +
         'style="color:' + col.text + '" title="' + esc(title) + '">' +
         '<span class="c-code">' + c + '</span>' +
         (isSwapped(c) ? '<span class="c-swap" title="已切换为参考公式">换</span>' : '') +

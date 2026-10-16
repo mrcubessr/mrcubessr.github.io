@@ -564,7 +564,9 @@
       /* 卡片不显示公式，直接显示位置码；翼棱码是三字母 A+XY，去掉缓冲前缀 A
          显示「B行M列 → BM」，与矩阵行列一眼对应。title 仍带完整码与公式。 */
       var label = c.length > 2 ? c.slice(1) : c;
-      return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
+      /* 组色 class：与矩阵格同一口径（按次字母取组），未练卡才能有组色淡底 */
+      var gc = gclass(c.charAt(c.length - 1));
+      return '<a class="c4-bcell ' + gc + ' ' + klass + '" data-code="' + c + '" ' +
         'style="color:' + col.text + '" title="' + esc(title) + '">' +
         '<span class="c-code">' + label + '</span>' +
         (isSwapped(c) ? '<span class="c-swap" title="已切换为参考公式：' + esc(algOf(c)) + '">换</span>' : '') +

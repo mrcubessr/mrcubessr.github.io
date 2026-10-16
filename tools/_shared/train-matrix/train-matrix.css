@@ -170,9 +170,10 @@ body.nav-hidden .site-nav { display: none !important; }
 .c4-top__ms { margin-left: auto; color: var(--fg-3, #7C8798); font-size: 11px; font-family: "Consolas","SF Mono",monospace; }
 
 /* ---------- 练习总览：横版一屏铺满的卡片（翼棱/中心块/UF440 同款） ----------
-   配色分层：底色表「是否练过」，字色表「快慢」。
+   配色分层：底色表「组别 + 是否练过」，字色表「快慢」——与矩阵总览同一套口径。
    - 已练：浅色底（--surface-2）+ 彩色字（JS 内联 col.text）
-   - 未练：组色淡底 / 主题斜纹 + 灰字 */
+   - 未练：组色淡底（--gc-soft，卡片自带 g0–g11 组色 class）+ 灰字
+   注：组色 class 由各页 boardHTML 拼上（gclass(次字母)），框架 CSS 不猜组别。 */
 .c4-board-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; overflow: hidden; }
 .c4-board { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 6px auto 12px; width: 100%; box-sizing: border-box; }
 .c4-bcell {
@@ -192,20 +193,20 @@ body.nav-hidden .site-nav { display: none !important; }
 }
 /* 末行兜底：格宽由 JS 按整行精确分配（--c4-tail），末行铺满且绝不换行 */
 .c4-bcell.is-tail { flex-basis: var(--c4-tail, var(--c4-cell-w)); width: var(--c4-tail, var(--c4-cell-w)); }
-.c4-bcell:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.28); z-index: 2; }
+/* 组别色条：与矩阵格一致，卡片左缘一条 --gc，按组别成排时一眼可辨 */
+.c4-bcell { box-shadow: inset 3px 0 0 var(--gc, rgba(148,163,184,.4)); }
+.c4-bcell:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.28), inset 3px 0 0 var(--gc, rgba(148,163,184,.4)); z-index: 2; }
 /* 位置码：卡片主角（已不显示公式），放大居中 */
 .c4-bcell .c-code { font-size: 2.3em; line-height: 1; letter-spacing: 1px; font-weight: 800; }
 /* 成绩时间：等宽数字，弱于位置码 */
 .c4-bcell .c-ms { font-size: 1.15em; line-height: 1; opacity: .8; font-weight: 700; font-family: "Consolas","SF Mono",monospace; }
 .c4-bcell .c-n { position: absolute; top: 6%; right: 7%; font-size: 1em; opacity: .7; font-weight: 600; }
-/* 未练：跟随主题斜纹 */
+/* 未练：组色淡底（与矩阵 .mx.on 同一口径），字色压灰让位给组别 */
 .c4-bcell.t-none {
-  background: repeating-linear-gradient(45deg,
-    var(--surface-2, #f1f5f9), var(--surface-2, #f1f5f9) 4px,
-    var(--surface-3, #e2e8f0) 4px, var(--surface-3, #e2e8f0) 8px) !important;
+  background: var(--gc-soft, var(--surface-2, #f1f5f9)) !important;
   color: var(--fg-3, #7C8798) !important;
   border-color: var(--line-2, rgba(0,0,0,.14));
-  opacity: .9;
+  opacity: .95;
 }
 .c4-empty { flex: 0 0 100%; color: var(--fg-3, #7C8798); font-size: 13px; padding: 20px; text-align: center; }
 
@@ -258,8 +259,9 @@ body.nav-hidden .site-nav { display: none !important; }
    否则 .a-pre/.a-core/.a-punct 会盖掉快慢色，矩阵就看不出成绩好坏了。
    浮层（详情/练习）里的公式仍走 --alg-pre/--alg-core/--alg-punct 着色。 */
 
-/* ---------- 换过公式：金边 + 「换」徽标（看板卡 / 矩阵格） ---------- */
-.c4-bcell.is-swapped { border-color: var(--gold, #f5c518); box-shadow: inset 0 0 0 1px rgba(245,197,24,.55), 0 0 10px rgba(245,197,24,.3); }
+/* 换过公式：金边 + 「换」徽标（看板卡 / 矩阵格）
+   金边与组色条共存：inset 金框在前、组色条在后，两者都要看得见 */
+.c4-bcell.is-swapped { border-color: var(--gold, #f5c518); box-shadow: inset 3px 0 0 var(--gc, rgba(148,163,184,.4)), inset 0 0 0 1px rgba(245,197,24,.55), 0 0 10px rgba(245,197,24,.3); }
 .c4-bcell .c-swap { position: absolute; left: 5%; top: 5%; font-size: .95em; line-height: 1.25; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 0 4px; }
 .mx.is-swapped { box-shadow: inset 0 0 0 2px var(--gold, #f5c518); }
 

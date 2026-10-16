@@ -652,7 +652,9 @@
       var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
       if (swapped[c]) { klass += ' is-swapped'; }
       /* 卡片不显示公式，直接显示位置码（UF440 码本就是两字母，无需去前缀） */
-      return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
+      /* 组色 class：与矩阵格同一口径（按次字母取组），未练卡才能有组色淡底 */
+      var gc = gclass(c.charAt(c.length - 1));
+      return '<a class="c4-bcell ' + gc + ' ' + klass + '" data-code="' + c + '" ' +
         'style="color:' + col.text + '" title="' + TrainMatrix.esc(title) + '">' +
         '<span class="c-code">' + c + '</span>' +
         (swapped[c] ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
