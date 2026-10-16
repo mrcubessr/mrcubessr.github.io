@@ -375,12 +375,23 @@
   }
 
   /* 连续调色板：r=0.65 极快 → r=1.30 极慢（与 440 一致） */
+  /* 快慢配色两套锚点：
+     - bg   亮色渐变：留给图例（.c4-grad）与深色底场景；
+     - text 暗色渐变：页面已改为「字色表快慢」，必须在浅底上可读，
+       故同色相整体压暗一档（亮黄 #facc15 → #a16207，对比度 ≥ 4.5:1）。
+     cellInfo / boardHTML 一律取 col.text，不再给 background。 */
   function colorByRatio(r, range) {
-    if (!isFinite(r)) return { bg: '#e2e8f0', fg: '#475569', tier: 't-none' };
+    if (!isFinite(r)) { return { bg: 'transparent', fg: 'var(--fg-3, #7C8798)', text: 'var(--fg-3, #7C8798)', tier: 't-none' }; }
     var lo = (range && isFinite(range.lo)) ? range.lo : 0.55;
     var hi = (range && isFinite(range.hi)) ? range.hi : 1.45;
     var t = Math.max(0, Math.min(1, (r - lo) / (hi - lo)));
-    var stops = [
+    /* 快慢字色 = 7 阶离散，取 CSS 变量（train-matrix.css 的 --spd-t0..6）。
+       深/浅主题各自一套色值，切主题即时生效，不必重渲染页面。
+       bg 仍保留连续插值，只给仪表盘图例 .c4-grad 用。 */
+    var SPD_LEVELS = 7;
+    var spdIdx = Math.max(0, Math.min(SPD_LEVELS - 1, Math.round(t * (SPD_LEVELS - 1))));
+    var text = 'var(--spd-t' + spdIdx + ')';
+    var bgStops = [
       { at: 0.00, c: [22, 163, 74] },
       { at: 0.25, c: [74, 222, 128] },
       { at: 0.40, c: [132, 204, 22] },
@@ -390,21 +401,19 @@
       { at: 1.00, c: [127, 29, 29] }
     ];
     var i = 0;
-    while (i < stops.length - 1 && t > stops[i + 1].at) i++;
-    var s0 = stops[i], s1 = stops[Math.min(i + 1, stops.length - 1)];
+    while (i < bgStops.length - 1 && t > bgStops[i + 1].at) i++;
+    var s0 = bgStops[i], s1 = bgStops[Math.min(i + 1, bgStops.length - 1)];
     var local = s1.at === s0.at ? 0 : (t - s0.at) / (s1.at - s0.at);
     var rgbv = [0, 1, 2].map(function (k) {
       return Math.round(s0.c[k] + (s1.c[k] - s0.c[k]) * local);
     });
     var bg = 'rgb(' + rgbv.join(',') + ')';
-    var lum = (0.299 * rgbv[0] + 0.587 * rgbv[1] + 0.114 * rgbv[2]) / 255;
-    var fg = lum > 0.62 ? '#1f2937' : '#ffffff';
     var tier;
     if (r <= 0.85) tier = 't-great';
     else if (r <= 1.00) tier = 't-good';
     else if (r <= 1.15) tier = 't-warn';
     else tier = 't-bad';
-    return { bg: bg, fg: fg, tier: tier, r: r };
+    return { bg: bg, fg: text, text: text, tier: tier, r: r };
   }
 
   /* 基于已练公式的 r 值，取 5%/95% 分位 → 让色彩铺满整个调色板 */
@@ -537,11 +546,12 @@
         : (c + ' · ' + alg + ' · 未练习'));
       var klass = col.tier === 't-none' ? 't-none' : 'has-data ' + col.tier;
       if (isSwapped(c)) { klass += ' is-swapped'; }
+      /* 卡片不显示公式，直接显示位置码（440/UF440 码本就是两字母）。
+         title 仍带完整码与公式，鼠标悬停可查。 */
       return '<a class="c4-bcell ' + klass + '" data-code="' + c + '" ' +
-        'style="background:' + col.bg + ';color:' + col.fg + '" title="' + esc(title) + '">' +
+        'style="color:' + col.text + '" title="' + esc(title) + '">' +
         '<span class="c-code">' + c + '</span>' +
         (isSwapped(c) ? '<span class="c-swap" title="已切换为参考公式">换</span>' : '') +
-        '<span class="c-alg">' + (alg ? TrainMatrix.fmtAlgCell(alg, fmtAlg) : '') + '</span>' +
         '<span class="c-ms">' + (st.n ? fmtTime(m) : '--') + '</span>' +
         '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
         '</a>';
@@ -562,7 +572,7 @@
         var c2 = colorByRatio(r, range);
         return {
           kind: 'alg', alg: alg, cls: 'spd ' + c2.tier,
-          style: 'background:' + c2.bg + ';color:' + c2.fg,
+          style: 'color:' + c2.text,
           tip: code + '　' + alg + '　' + fmtTime(m) + ' · ' + st.n + ' 次 · ' + r.toFixed(2) + '× 基准'
         };
       }
@@ -757,7 +767,9 @@
     pSummaryEl.innerHTML = '本次用时 <b>' + fmtTime(total) + '</b>';
     pRefreshHistory();
     try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
-    renderBoard();
+    /* 必须重绘当前视图：原写法只 renderBoard()，在矩阵视图下成绩写入了但格子/
+       KPI/TOP10 不更新 ⟹ 用户看到「计时后不显示，要刷新页面才生效」。 */
+    renderCurrent();
     // 连练：停表后稍作停顿自动进入下一条（可被手动换式/关闭取消）
     clearTimeout(chainAdvTimer);
     if (chainOn && chainList.length) { chainAdvTimer = setTimeout(chainNext, 800); }
@@ -772,14 +784,17 @@
   }
   function pKeydownHold() {
     if (pState === 'running') { pStopTimer(); return; }
-    if (pState === 'prep' || pState === 'green') { clearTimeout(pPrep); return; }
+    /* ⚠️ 长按 autorepeat 会重复触发 keydown：此处必须「什么都不做」。
+       原写法 clearTimeout(pPrep) 会把 500ms 计时器清掉且不重建 ⟹ 按住再久
+       都到不了 green，松手即取消 —— 表现为「计时器按了没反应/不灵敏」。 */
+    if (pState === 'prep' || pState === 'green') { return; }
     clearTimeout(pPrep);
     pState = 'prep';
     pTimerEl.dataset.state = 'prep';
     pTimerEl.textContent = '按住';
     pPrep = setTimeout(function () {
       if (pState === 'prep') { pState = 'green'; pTimerEl.dataset.state = 'green'; pTimerEl.textContent = '松开'; }
-    }, 500);
+    }, 300);   /* 300ms：比 500ms 响应更快，仍足够避免误触 */
     pSyncTimerEls();
   }
   function pKeyupHold() {
@@ -1090,7 +1105,7 @@
       var allS = load(SESSIONS_KEY, {}); allS[pCurrent] = s; save(SESSIONS_KEY, allS);
       var allT = load(TIMES_KEY, {}); allT[pCurrent] = (times[pCurrent] || []).slice(0, s.length); save(TIMES_KEY, allT);
       try { sessions = load(SESSIONS_KEY, {}); times = load(TIMES_KEY, {}); } catch (e) {}
-      pRefreshHistory(); renderBoard();
+      pRefreshHistory(); renderCurrent();
     });
     document.getElementById('c4-p-clear').addEventListener('click', function () {
       if (!confirm('确认清空「' + pCurrent + '」的全部成绩？')) return;
@@ -1098,7 +1113,7 @@
       delete allS[pCurrent]; delete allT[pCurrent];
       save(SESSIONS_KEY, allS); save(TIMES_KEY, allT);
       try { sessions = load(SESSIONS_KEY, {}); times = load(TIMES_KEY, {}); } catch (e) {}
-      pRefreshHistory(); renderBoard();
+      pRefreshHistory(); renderCurrent();
     });
     pmodal.addEventListener('click', function (e) { if (e.target === pmodal) pClose(); });
     pTimerEl.addEventListener('click', function () {

@@ -16,6 +16,28 @@
   --c-mid-b:   #fb923c;
   --c-bad-a:   #f97316;
   --c-bad-c:   #7f1d1d;
+
+  /* 快慢字色（7 阶离散）：JS 只算索引，输出 var(--spd-tN)。
+     深色主题（默认）用亮色；浅色主题整体压暗一档。
+     两者保证各自底色上对比度 ≥ 4.5:1（亮黄在深底可读，暗黄 #a16207 在浅底可读）。
+     ⚠️ 增减阶数必须同步 colorByRatio 里的 SPD_LEVELS。 */
+  --spd-t0: #4ade80;  /* 最快 */
+  --spd-t1: #a3e635;
+  --spd-t2: #facc15;
+  --spd-t3: #fb923c;
+  --spd-t4: #f87171;
+  --spd-t5: #ef4444;
+  --spd-t6: #fca5a5;  /* 最慢 */
+}
+/* 浅色主题：同色相压暗（theme.js 写 data-theme 到 html） */
+[data-theme="light"] {
+  --spd-t0: #15803d;
+  --spd-t1: #16a34a;
+  --spd-t2: #65a30d;
+  --spd-t3: #a16207;
+  --spd-t4: #c2410c;
+  --spd-t5: #b91c1c;
+  --spd-t6: #7f1d1d;
 }
 
 /* 项目红线：本框架两个视图都用 hidden 切显示，components/site-layout 的 display 规则
@@ -147,7 +169,10 @@ body.nav-hidden .site-nav { display: none !important; }
 .c4-top__item b { letter-spacing: 1px; }
 .c4-top__ms { margin-left: auto; color: var(--fg-3, #7C8798); font-size: 11px; font-family: "Consolas","SF Mono",monospace; }
 
-/* ---------- 练习总览：横版一屏铺满的彩色卡片（翼棱/中心块/UF440 同款） ---------- */
+/* ---------- 练习总览：横版一屏铺满的卡片（翼棱/中心块/UF440 同款） ----------
+   配色分层：底色表「是否练过」，字色表「快慢」。
+   - 已练：浅色底（--surface-2）+ 彩色字（JS 内联 col.text）
+   - 未练：组色淡底 / 主题斜纹 + 灰字 */
 .c4-board-wrap { padding: 4px 0; width: 100%; box-sizing: border-box; overflow: hidden; }
 .c4-board { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 6px auto 12px; width: 100%; box-sizing: border-box; }
 .c4-bcell {
@@ -156,37 +181,31 @@ body.nav-hidden .site-nav { display: none !important; }
   flex: 0 0 var(--c4-cell-w, 82px);
   width: var(--c4-cell-w, 82px);
   height: var(--c4-cell-h, var(--c4-cell-w, 82px));
-  border-radius: 6px; border: 1px solid rgba(0,0,0,.18);
+  border-radius: 6px; border: 1px solid var(--line-2, rgba(0,0,0,.14));
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-decoration: none; color: #fff; font-weight: 700;
+  text-decoration: none; color: var(--fg, #1f2937); font-weight: 700;
+  background: var(--surface-2, #f1f5f9);
   padding: 2px; transition: transform 120ms ease, box-shadow 120ms ease;
   overflow: hidden; box-sizing: border-box;
-  /* 三行文字的统一基准字号，由 TrainMatrix.fitBoard 按格宽反推 */
+  /* 各行文字的统一基准字号，由 TrainMatrix.fitBoard 按格宽反推 */
   font-size: var(--c4-fs, 10px);
 }
 /* 末行兜底：格宽由 JS 按整行精确分配（--c4-tail），末行铺满且绝不换行 */
 .c4-bcell.is-tail { flex-basis: var(--c4-tail, var(--c4-cell-w)); width: var(--c4-tail, var(--c4-cell-w)); }
-.c4-bcell:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.35); z-index: 2; }
-.c4-bcell .c-code { font-size: 1.7em; line-height: 1; letter-spacing: .5px; font-weight: 800; }
-/* 公式：两行（commutator 两段），与矩阵同一个 fmtAlgCell 结构 */
-.c4-bcell .c-alg {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 100%; min-height: 0; margin: 1px 0;
-  font-family: "Consolas", "SF Mono", "Fira Code", monospace;
-  font-size: 1em; line-height: 1.12; font-weight: 600; opacity: .95;
-}
-.c4-bcell .c-alg .mx-ln { display: block; max-width: 100%; word-break: break-all; }
-.c4-bcell .c-ms { font-size: 1.25em; line-height: 1; opacity: .95; font-weight: 700; font-family: "Consolas","SF Mono",monospace; }
-.c4-bcell .c-n { position: absolute; top: 6%; right: 7%; font-size: 1em; opacity: .8; font-weight: 600; }
-.c4-bcell.t-bad, .c4-bcell.t-warn, .c4-bcell.t-great { text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.c4-bcell:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.28); z-index: 2; }
+/* 位置码：卡片主角（已不显示公式），放大居中 */
+.c4-bcell .c-code { font-size: 2.3em; line-height: 1; letter-spacing: 1px; font-weight: 800; }
+/* 成绩时间：等宽数字，弱于位置码 */
+.c4-bcell .c-ms { font-size: 1.15em; line-height: 1; opacity: .8; font-weight: 700; font-family: "Consolas","SF Mono",monospace; }
+.c4-bcell .c-n { position: absolute; top: 6%; right: 7%; font-size: 1em; opacity: .7; font-weight: 600; }
 /* 未练：跟随主题斜纹 */
 .c4-bcell.t-none {
   background: repeating-linear-gradient(45deg,
-    var(--surface-2, #1A2130), var(--surface-2, #1A2130) 4px,
-    var(--surface-3, #232C3E) 4px, var(--surface-3, #232C3E) 8px) !important;
+    var(--surface-2, #f1f5f9), var(--surface-2, #f1f5f9) 4px,
+    var(--surface-3, #e2e8f0) 4px, var(--surface-3, #e2e8f0) 8px) !important;
   color: var(--fg-3, #7C8798) !important;
-  border-color: var(--line-2, rgba(255,255,255,.18));
-  opacity: .85;
+  border-color: var(--line-2, rgba(0,0,0,.14));
+  opacity: .9;
 }
 .c4-empty { flex: 0 0 100%; color: var(--fg-3, #7C8798); font-size: 13px; padding: 20px; text-align: center; }
 
@@ -235,10 +254,9 @@ body.nav-hidden .site-nav { display: none !important; }
 }
 .mx-grid .mx.intent { background: var(--c4-intent-bg, var(--intent-bg, rgba(148,163,184,.16))); cursor: default; }
 .mx-grid .mx.on:hover { outline: 2px solid var(--brand, #60a5fa); outline-offset: -1px; }
-/* 公式着色在矩阵里同样生效（字号小，用色区分前置/主体） */
-.mx-grid .a-pre { color: var(--alg-pre); font-weight: 800; }
-.mx-grid .a-core { color: var(--alg-core); }
-.mx-grid .a-punct { color: var(--alg-punct); }
+/* 公式着色在矩阵里不生效：格内公式统一继承「快慢字色」（JS 内联 color），
+   否则 .a-pre/.a-core/.a-punct 会盖掉快慢色，矩阵就看不出成绩好坏了。
+   浮层（详情/练习）里的公式仍走 --alg-pre/--alg-core/--alg-punct 着色。 */
 
 /* ---------- 换过公式：金边 + 「换」徽标（看板卡 / 矩阵格） ---------- */
 .c4-bcell.is-swapped { border-color: var(--gold, #f5c518); box-shadow: inset 0 0 0 1px rgba(245,197,24,.55), 0 0 10px rgba(245,197,24,.3); }
