@@ -2,12 +2,16 @@
 """gen-wing-data.py — 由 wing-algs.tsv 生成 wing-data.js（高阶盲拧 · 翼棱公式数据）
 
 源：wing-algs.tsv（由 .workbuddy/outputs/extract_blddb_wing.py 从 blddb.net/bigbld/wing.html
-    的 bigbldWingAlgToInfoManmade.json 抽取，缓冲 A = UFr，420 个有向情况，主公式 = 来源数最多）
+    的 bigbldWingAlgToInfoManmade.json 抽取，缓冲 A = UFr，506 个有向情况，主公式 = 来源数最多）
 用法：python gen-wing-data.py [--check]   # --check 只比对不写入（防手改漂移）
 
-数据口径（2026-10-15 定）：
+数据口径（2026-10-16 修正）：
 - 24 翼块贴纸位 ↔ 24 字母（A–Z 去 U,V），缓冲固定 A（UFr），小写 r = 缓冲贴纸方向
-- blddb 库在 A 缓冲下第二/三位置只覆盖 21 个字母（G=URb、H=RUf 无覆盖）→ 21×21 去对角 = 420
+- blddb 的 3 字母码 = 三循环，首字母即「缓冲位」；同一三循环可写作 3 种循环旋转，且 G/H
+  情况被 blddb 存成了以 G/H 为首字母的码（如 {A,B,G} 存为 GAB/GBA）。因此不能只取 A 首字母。
+- 正确口径（与 blddb 官网 wing.js 的 algSearch 一致）：对每个缓冲-A 有向情况 (A X Y)，依次尝试
+  (A X Y)/(X Y A)/(Y A X) 三次旋转去库里查，命中即用。缓冲固定 A 时全部 23×22 = 506 个
+  有向情况都能命中（含 G 或 H 的 86 个——44 含 G、44 含 H，AGH/AHG 两者兼有；之前被误剔）。
 - 每情况 value = [主公式, 交换子, 来源数, 备选公式数组]（blddb「人造」风格，按使用人数排序）
 """
 import os, sys
@@ -27,8 +31,8 @@ EDGES = [
     ["I", "J"], ["K", "L"], ["M", "N"], ["O", "P"],
     ["Q", "R"], ["S", "T"], ["W", "X"], ["Y", "Z"],
 ]
-# 矩阵行/列字母序（缓冲 A 与库无覆盖的 G/H 除外，21 个；B 领头与其余按字母序）
-ORDER = ["B", "C", "D", "E", "F", "I", "J", "K", "L", "M", "N", "O", "P",
+# 矩阵行/列字母序（缓冲 A 除外，其余 23 个翼块位；B 领头与其余按字母序）
+ORDER = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
          "Q", "R", "S", "T", "W", "X", "Y", "Z"]
 
 
@@ -54,7 +58,7 @@ def main():
             rows[code] = [algx, comm, int(nsrc), alts.split("|") if alts else []]
             order_seen.append(code)
 
-    # 校验：420 = 21×21 去对角，全覆盖
+    # 校验：506 = 23×22 去对角，缓冲 A 固定时全部有向情况全覆盖
     expect = ["A" + r + c for r in ORDER for c in ORDER if r != c]
     missing = [c for c in expect if c not in rows]
     extra = [c for c in rows if c not in expect]
@@ -66,7 +70,7 @@ def main():
     lines.append(" *  本文件由 gen-wing-data.py 生成，勿手改；改数据请改 wing-algs.tsv 后重新生成。")
     lines.append(" *  来源：blddb.net/bigbld/wing.html「翼棱公式库」（人造风格，2026-10-15 抓取）")
     lines.append(" *  key = 三字母码（缓冲固定 A=UFr，如 \"ACB\" = UFr -> ULf -> FUl）")
-    lines.append(" *  value = [主公式, 交换子, 来源数, 备选公式数组]；行/列 = 21 个次位置字母（G/H 库无覆盖）")
+    lines.append(" *  value = [主公式, 交换子, 来源数, 备选公式数组]；行/列 = 23 个次位置字母（G/H 已含，经旋转解析补全）")
     lines.append(" */")
     lines.append("window.WING4 = {")
     lines.append("  buffer: 'A',")

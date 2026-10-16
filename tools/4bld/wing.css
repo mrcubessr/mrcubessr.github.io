@@ -1,8 +1,8 @@
 @import url("center.css");
 /* wing.css — 高阶盲拧 · 翼棱公式页（tools/4bld/wing.html）
    复用 center.css 全套 c4-* 样式，只覆盖与矩阵规模相关的部分：
-   中心块页矩阵 23×23（+表头=24），翼棱页 21×21（+表头=22，缓冲 A 固定、G/H 库无覆盖） */
+   翼棱页矩阵 23×23（+表头=24，缓冲 A 固定，G/H 经旋转解析已含，共 506 种情况） */
 .mx-grid {
-  grid-template-columns: var(--mx-lab, 28px) repeat(21, minmax(var(--mx-cw, 0px), 1fr));
-  grid-template-rows: var(--mx-hh, 18px) repeat(21, var(--mx-h, 30px));
+  grid-template-columns: var(--mx-lab, 28px) repeat(23, minmax(var(--mx-cw, 0px), 1fr));
+  grid-template-rows: var(--mx-hh, 18px) repeat(23, var(--mx-h, 30px));
 }

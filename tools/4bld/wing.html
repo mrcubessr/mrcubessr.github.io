@@ -22,9 +22,9 @@
   <div class="c4-head">
     <h1>高阶盲拧 · 翼棱公式</h1>
     <div class="sub">
-      缓冲 <b>UFr</b>（A） · <b id="c4-count">—</b> 种情况 · 21 个次位置 · 3-style commutator · 数据
+      缓冲 <b>UFr</b>（A） · <b id="c4-count">—</b> 种情况 · 23 个次位置 · 3-style commutator · 数据
       <a href="https://blddb.net/bigbld/wing.html" target="_blank" rel="noopener" title="blddb.net 翼棱公式库（人造风格，取使用人数最多的主公式）" style="color:inherit">blddb.net</a>
-      <span class="c4-mx-hint">· 行 = 第二位置 · 列 = 第三位置 · 点格子开始练习 · G/H（UR 棱）库无覆盖</span>
+      <span class="c4-mx-hint">· 行 = 第二位置 · 列 = 第三位置 · 点格子开始练习 · 含 G/H（UR 棱）情况，已用三循环旋转解析补全（与 blddb 一致）</span>
     </div>
     <a class="c4-back" href="/tools/4bld/index.html">← 返回四阶中心块公式</a>
   </div>
@@ -199,7 +199,7 @@
   if (!D) { return; }
 
   var BUF = D.buffer;               // 'A'
-  var ORDER = D.order;              // 21 个次位置字母（缓冲 A 与库无覆盖的 G/H 除外）
+  var ORDER = D.order;              // 23 个次位置字母（缓冲 A 除外，G/H 经旋转解析已含）
   var GROUPS = D.edges || [];       // 12 条棱 × 2 翼块
   var POS = D.pos || {};
   var N = ORDER.length;
@@ -282,7 +282,7 @@
   var sortMode = 'group';
   var filterMode = 'all';
 
-  /* 全部 420 种情况（按行×列顺序），看板只渲这些 */
+  /* 全部 506 种情况（按行×列顺序），看板只渲这些 */
   var ALL = [];
   ORDER.forEach(function (r) {
     ORDER.forEach(function (c) { var code = BUF + r + c; if (D.algs[code]) { ALL.push(code); } });
@@ -468,8 +468,12 @@
     }
     var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
     if (q) {
+      var qrot = q.length === 3 ? [q, q[1] + q[2] + q[0], q[2] + q[0] + q[1]] : null;
       list = list.filter(function (c) {
-        return c.indexOf(q) >= 0 || algOf(c).toUpperCase().indexOf(q) >= 0 || commOf(c).toUpperCase().indexOf(q) >= 0;
+        if (c.indexOf(q) >= 0 || algOf(c).toUpperCase().indexOf(q) >= 0 || commOf(c).toUpperCase().indexOf(q) >= 0) { return true; }
+        // 旋转容错：ABG / GAB / BAG 是同一三循环（与 blddb 一致），互相可命中
+        if (qrot) { return qrot.indexOf(c) >= 0; }
+        return false;
       });
     }
 
@@ -498,7 +502,7 @@
     scheduleFit();
   }
 
-  /* ============ 公式矩阵（21×21 一屏铺满：行=第二位置，列=第三位置，格内直显公式） ============ */
+  /* ============ 公式矩阵（23×23 一屏铺满：行=第二位置，列=第三位置，格内直显公式） ============ */
   /* setup:[A,B] 型 commutator 在方括号内那个逗号处切成两段，各占一行（不再从 token 中间断）
      全表统一字号，按「较长段的 p90 长度」反推：公式全为 ASCII，等宽字体 0.55em/字符，再扣负字距。 */
   var ALG_HALVES = [];
@@ -1099,10 +1103,11 @@
   }
 
   /* ============ 看板铺满（移植 440 fitBoard：宽高双轴 + 末行拉伸 + 锁滚动） ============ */
-  /* MIN_CELL=32：420 卡在 1440×900 的最优解是 28 列 × 15 行（cellW 36.4 / cellH 33.6）。
-     440 页用 34 是因为 435=29×15 整除时 cellW 34.97 恰好过线；420 卡在同样的 15 行下
-     cellH 只有 33.6，卡 34 会误判「装不下」而整页退化成滚动，故本页放宽到 32。 */
-  var fitRaf = 0, GAP = 5, MIN_CELL = 32, MAX_CELL = 116, MAX_ASPECT = 1.34;
+  /* MIN_CELL=28：506 卡在 1440×900 的最优解约 30 列 × 17 行（cellW 34 / cellH 29）。
+     420 卡时代用 32 即可（28×15，cellH 33.6）；506 卡多 ~3 行，1440 下 cellH 仅 ~29，
+     卡 32 会误判「装不下」退回滚动，故放宽到 28（仅影响中等宽度，1920 仍取最大格、
+     窄屏另有 30 下限）。 */
+  var fitRaf = 0, GAP = 5, MIN_CELL = 28, MAX_CELL = 116, MAX_ASPECT = 1.34;
   /* ⚠️ flex 换行舍入：格宽若向上取整到 2 位小数，N 列总宽会超出可用宽零点几像素 →
      实际只排得下 N-1 列 → 多出一整行 → 一屏铺满失效。统一向下取整再减 0.02px。 */
   function cwSafe(w) { return (Math.max(1, Math.floor(w * 100) / 100 - 0.02)).toFixed(2) + 'px'; }
@@ -1273,7 +1278,7 @@
     var availH = window.innerHeight - wrap.getBoundingClientRect().top - padY - 2 - padBottom - 6;
     if (availW < 240 || availH < 160) return;
 
-    var COLS = N + 1, ROWS = N + 1, GAP = 2, HH = 18;   // 1 标签列/表头行 + 21 数据
+    var COLS = N + 1, ROWS = N + 1, GAP = 2, HH = 18;   // 1 标签列/表头行 + N 数据
     var lab = Math.max(16, Math.min(30, Math.round(availW * 0.018)));
     var cellW = (availW - lab - (COLS - 1) * GAP) / (COLS - 1);
     var cellH = (availH - HH - (ROWS - 1) * GAP) / (ROWS - 1);
@@ -1334,7 +1339,7 @@
   renderBoard();
   renderMatrix();
   fillPSelect();
-  setView('matrix');   // 默认进公式矩阵（21×21 一屏，点格即练）
+  setView('matrix');   // 默认进公式矩阵（23×23 一屏，点格即练）
   bind();
 
   function fitAll() { scheduleFit(); scheduleFitMatrix(); }
