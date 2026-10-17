@@ -5,8 +5,20 @@
 <script src="/assets/js/theme.js"></script>
 <script src="/assets/js/palette.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>角块编码识别训练</title>
+
+<!-- ===== PWA（v2.0.16）：可「添加到主屏幕」像小程序一样全屏离线打开 =====
+     独立 manifest（start_url/scope 指向本页，不与计时器 PWA 混用），
+     独立 Service Worker（sw.js）预缓存本页壳资源，支持离线答题。 -->
+<link rel="manifest" href="/tools/corner-trainer/manifest.webmanifest">
+<meta name="theme-color" content="#0d1118">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="角块训练">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="icon" href="/assets/icons/icon-192.png">
 
 <link rel="stylesheet" href="/assets/css/site-nav.css">
     <link rel="stylesheet" href="/assets/css/components.css">
@@ -108,7 +120,10 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
 .review-item {
   display: flex; align-items: center; gap: 10px;
   padding: 8px 12px; border-radius: 0; background: var(--red-soft);
-  margin-bottom: 6px; font-size: 13px; color: var(--surface-2);
+  margin-bottom: 6px; font-size: 13px;
+  /* 用 --fg 而非 --surface-2：--surface-2 在浅色主题下是浅灰字，
+     压在 --red-soft 淡红底上几乎看不清（角块名整行糊掉）。 */
+  color: var(--fg);
 }
 .review-item .rev-correct { margin-left: auto; font-weight: 700; color: var(--green); }
 .back-row { margin-bottom: 16px; }
@@ -147,6 +162,143 @@ body{ display:block; padding:0 16px 28px; }
   .badge--mono { color: var(--on-brand); }
   .badge--mono.dark-text { color: var(--fg); }
 
+</style>
+
+<!-- ===== 一屏适配层（v2.0.16）：手机/PWA 下全内容一屏显示、页面自身不滚动 =====
+     设计口径（对齐 PLL/UF440 的单屏训练页做法）：
+     ① 页面整体锁定视口高，滚动只发生在「内容确实放不下」的局部容器内（对照表 / 记录列表）；
+     ② 页脚在单屏模式下隐藏（它占 130px + 64px 上边距，是溢出的最大头）；
+     ③ canvas 按剩余高度缩放，题图始终完整可见；
+     ④ 用 --ct-fit-shrink 由 JS 按视口高度算出缩放系数，各区块用 calc 反推尺寸，
+        而不是写死像素断点 —— 这样 iPhone SE 到 iPad 竖屏都能一屏装下。
+     作用域只在本页（body.ct-single-screen），不影响其它页面。 -->
+<style id="ct-single-screen">
+  /* 单屏模式：body 锁定视口，页面自身不滚动 */
+  body.ct-single-screen {
+    height: 100vh;
+    height: 100dvh;             /* 移动端浏览器地址栏收放时以动态视口高为准 */
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 12px;
+  }
+  /* 顶部导航条（站点骨架注入）：单屏时压缩高度 */
+  body.ct-single-screen [data-site-nav] { flex: 0 0 auto; }
+  /* 主容器吃掉剩余高度，内部纵向 flex，便于各区块按比例分配 */
+  body.ct-single-screen .container {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: 520px;
+    margin: 8px auto 0;
+    display: flex;
+    flex-direction: column;
+  }
+  /* 卡片：吃掉剩余高度，且不再溢出外层 */
+  body.ct-single-screen .card {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+    padding: clamp(12px, 2.6vh, 26px) clamp(14px, 3vw, 24px);
+    overflow: hidden;
+  }
+  /* 隐藏中的面板不占位（沿用 hidden 类，冗余一道保险） */
+  body.ct-single-screen .card.hidden { display: none !important; }
+  /* 页脚：单屏模式隐藏 */
+  body.ct-single-screen > footer.site-footer { display: none !important; }
+
+  /* ---- 首页：标题与副标题按视口缩放 ---- */
+  body.ct-single-screen h1 { font-size: clamp(19px, 3.4vh, 26px); }
+  body.ct-single-screen .subtitle { margin: 4px 0 clamp(8px, 1.8vh, 20px); font-size: clamp(11px, 1.7vh, 13px); }
+  /* 训练数据三格：压缩内边距 */
+  body.ct-single-screen .overview { margin: 2px 0 clamp(8px, 1.6vh, 18px); gap: 8px; }
+  body.ct-single-screen .ov-item { padding: clamp(5px, 1.1vh, 12px) 4px; }
+  body.ct-single-screen .ov-num { font-size: clamp(17px, 2.8vh, 22px); }
+  body.ct-single-screen .ov-label { font-size: clamp(10px, 1.5vh, 12px); }
+  body.ct-single-screen .section-title { margin-bottom: clamp(5px, 1.1vh, 14px); font-size: clamp(12px, 1.7vh, 14px); }
+
+  /* ---- 编码对照表：优先整表放下（6 组是核心参考，不该被截断）；
+         极矮屏实在放不下时才退化为表内滚动 ---- */
+  body.ct-single-screen #cornerTable {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  body.ct-single-screen .corner-row {
+    padding: clamp(2px, .62vh, 9px) 10px;
+    margin-bottom: clamp(2px, .42vh, 8px);
+  }
+  /* 对照行支持自动换行成网格：窄屏一行放 6 组，比竖排省一半高度。
+     角块名（黄红蓝）单行放下：给名称 nowrap + 允许压缩，字号随视口高度收 */
+  body.ct-single-screen #cornerTable.ct-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2px, .5vh, 6px) 8px;
+  }
+  body.ct-single-screen #cornerTable.ct-grid .corner-row {
+    margin-bottom: 0;
+    padding: clamp(2px, .62vh, 8px) 7px;
+    gap: 5px;
+  }
+  body.ct-single-screen #cornerTable.ct-grid .corner-name {
+    font-size: clamp(9px, 1.42vh, 13px);
+    white-space: nowrap;
+    letter-spacing: -.3px;
+  }
+  /* 两列时字母片略缩，给名称让出宽度 */
+  body.ct-single-screen #cornerTable.ct-grid .badge { transform: scale(.88); transform-origin: center; }
+  body.ct-single-screen .corner-name { font-size: clamp(12px, 1.75vh, 14px); }
+  body.ct-single-screen .tip { font-size: clamp(10px, 1.5vh, 13px); line-height: 1.55; margin: clamp(5px, 1.1vh, 10px) 0 clamp(7px, 1.5vh, 18px); }
+  body.ct-single-screen .btn { padding: clamp(9px, 1.9vh, 15px) 0; font-size: clamp(14px, 2.1vh, 17px); }
+  body.ct-single-screen .btn + .btn { margin-top: clamp(6px, 1.3vh, 12px); }
+
+  /* ---- 答题页：进度条 / canvas / 选项按剩余高度分配 ---- */
+  body.ct-single-screen .quiz-top { margin-bottom: 5px; flex: 0 0 auto; }
+  body.ct-single-screen .progress { flex: 0 0 auto; }
+  /* canvas 容器吃掉剩余空间，canvas 由 JS 按此尺寸重绘（保持比例不失真） */
+  body.ct-single-screen .canvas-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(4px, 1vh, 16px) 0;
+  }
+  body.ct-single-screen #cubeCanvas {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
+  body.ct-single-screen .question { margin: clamp(4px, 1vh, 10px) 0 clamp(6px, 1.3vh, 16px); font-size: clamp(13px, 2vh, 16px); flex: 0 0 auto; }
+  body.ct-single-screen .options { flex: 0 0 auto; gap: clamp(6px, 1.2vh, 12px); }
+  body.ct-single-screen .opt { padding: clamp(9px, 2vh, 18px) 0; font-size: clamp(22px, 4.4vh, 30px); }
+  body.ct-single-screen .feedback { margin-top: clamp(6px, 1.4vh, 14px); min-height: 20px; font-size: clamp(12px, 1.9vh, 15px); flex: 0 0 auto; }
+
+  /* ---- 结果页 / 记录页：错题与记录列表放不下时列表内滚 ---- */
+  body.ct-single-screen .result-score { font-size: clamp(34px, 7vh, 52px); }
+  body.ct-single-screen .review-list,
+  body.ct-single-screen #recordList,
+  body.ct-single-screen #wrongStats {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  body.ct-single-screen .stat-table { margin: 4px 0 clamp(6px, 1.4vh, 16px); font-size: clamp(11px, 1.65vh, 13px); }
+  body.ct-single-screen .stat-table td { padding: clamp(3px, .7vh, 7px) 5px; }
+
+  /* 窄屏微调：三阶选项改为两列仍保持，但进一步收紧边距 */
+  @media (max-width: 380px) {
+    body.ct-single-screen { padding: 0 8px; }
+    body.ct-single-screen .card { padding: 10px 10px; }
+  }
 </style>
 </head>
 <body>
@@ -275,6 +427,17 @@ function findLetter(letter) {
 function formatDate(d) {
   const p = n => String(n).padStart(2, "0");
   return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+/* 面板切换后通知一屏适配引擎重算（DOM 更新完成后再量高度才有意义）。
+   ⚠️ 必须同步生效：startQuiz 里紧接着就 renderQuestion() 画题图，
+   若走 rAF 异步，canvas 尺寸还没调好就会画出旧尺寸的图。
+   故引擎把 apply() 挂到 window.__ctFitSync 上，这里优先同步调用，事件只作兜底。 */
+function notifyPanelChange() {
+  try {
+    if (typeof window.__ctFitSync === "function") { window.__ctFitSync(); return; }
+  } catch (e) {}
+  window.dispatchEvent(new Event("ct:panelchange"));
 }
 
 // ============ 绘制角块（标准等距立方体角）============
@@ -551,6 +714,7 @@ function showResult() {
   document.getElementById("quizPanel").classList.add("hidden");
   const rp = document.getElementById("resultPanel");
   rp.classList.remove("hidden");
+  notifyPanelChange();
   document.getElementById("resultScore").textContent = `${score} / ${QUIZ_LEN}`;
   const pct = Math.round(score / QUIZ_LEN * 100);
   document.getElementById("resultSub").textContent =
@@ -583,7 +747,10 @@ function showResult() {
   const tip = document.getElementById("savedTip");
   tip.classList.remove("hidden");
   tip.textContent = "本次记录已保存";
-  document.getElementById("resultPanel").scrollIntoView({ behavior: "smooth" });
+  // 单屏模式下页面本身不滚动，无需再滚到结果面板
+  if (!document.body.classList.contains("ct-single-screen")) {
+    document.getElementById("resultPanel").scrollIntoView({ behavior: "smooth" });
+  }
 }
 
 // ============ 历史面板 ============
@@ -595,7 +762,11 @@ function showHistory() {
   hp.classList.remove("hidden");
   renderWrongStats();
   renderRecordList();
-  hp.scrollIntoView({ behavior: "smooth" });
+  notifyPanelChange();
+  // 单屏模式下页面本身不滚动，无需再滚到面板顶部
+  if (!document.body.classList.contains("ct-single-screen")) {
+    hp.scrollIntoView({ behavior: "smooth" });
+  }
 }
 
 function renderWrongStats() {
@@ -666,6 +837,8 @@ function startQuiz(mode) {
   document.getElementById("quizPanel").classList.remove("hidden");
   modeBadge.classList.toggle("hidden", mode !== "special");
   startTimer();
+  /* 先让一屏引擎按新面板的可用高度把 canvas 调好，再画题图 —— 顺序反了会画出旧尺寸的图 */
+  notifyPanelChange();
   renderQuestion();
 }
 
@@ -677,11 +850,143 @@ document.getElementById("backBtn").addEventListener("click", () => {
   document.getElementById("historyPanel").classList.add("hidden");
   document.getElementById("startPanel").classList.remove("hidden");
   renderOverview();
+  notifyPanelChange();
 });
 
 // 初始化
 renderTable();
 renderOverview();
+
+/* ============================================================
+ * 一屏适配引擎（v2.0.16）
+ * 目标：手机 / PWA 下全内容一屏显示，页面自身不出现纵向滚动条，
+ *      内容真的放不下时（编码对照表 / 错题列表 / 练习记录）改为容器内滚动。
+ * 做法：
+ *   ① 判定是否进入单屏模式 → body 加 .ct-single-screen（CSS 负责布局与缩放）；
+ *      退出时移除该类并把 canvas 尺寸还原，避免桌面端被误伤。
+ *   ② canvas 按 .canvas-wrap 的可用空间重设 width/height 后重绘题图。
+ *      drawCorner 内部按 canvas.width/height 计算（Math.min(W,H)*0.30），
+ *      所以改尺寸后重绘即可自适应，不会变形。
+ *   ③ 用视口高（100dvh）而非 innerHeight —— 移动端地址栏收放时 innerHeight 会跳。
+ * ============================================================ */
+(function setupSingleScreen() {
+  var body = document.body;
+  var wrap = document.querySelector("#quizPanel .canvas-wrap");
+  var cv = document.getElementById("cubeCanvas");
+  var BASE_W = cv.width, BASE_H = cv.height;   // 原始 340×300
+  var rafId = 0;
+
+  /* 单屏模式判定：视口够矮（横持手机 / 竖持小屏）或窄屏时启用。
+     阈值取 820px 高 + 900px 宽，覆盖 iPhone SE(375×667) 到 iPad 竖持(768×1024)。 */
+  function shouldSingleScreen() {
+    var w = document.documentElement.clientWidth;
+    var h = window.innerHeight;
+    return (h <= 860 || w <= 820) ? true : false;
+  }
+
+  /* 按容器可用空间等比缩放 canvas（原比例 340:300） */
+  function fitCanvas() {
+    if (!wrap || !cv) return;
+    var box = wrap.getBoundingClientRect();
+    // 容器 padding 已在 CSS 里用 clamp 收紧，这里取内容盒可用尺寸
+    var availW = Math.floor(box.width) - 4;
+    var availH = Math.floor(box.height) - 4;
+    if (availW <= 0 || availH <= 0) return;   // 面板隐藏时不处理
+    var ratio = BASE_W / BASE_H;
+    var w = availW, h = Math.round(availW / ratio);
+    if (h > availH) { h = availH; w = Math.round(availH * ratio); }
+    if (w <= 0 || h <= 0) return;
+    if (cv.width === w && cv.height === h) return;   // 尺寸未变则不重绘
+    cv.width = w;
+    cv.height = h;
+    // 尺寸变了必须重绘：当前若正处于答题页，重画当前题图
+    redrawIfQuiz();
+  }
+
+  /* 编码对照表：单列放不下时改两列网格（省一半高度），两列仍放不下才允许表内滚动。
+     逐档试：先按两列量，再按单列量，取「不触发滚动的最简布局」。 */
+  function fitCornerTable() {
+    var tbl = document.getElementById("cornerTable");
+    if (!tbl) return;
+    var start = document.getElementById("startPanel");
+    if (!start || start.classList.contains("hidden")) return;   // 非首页不管
+
+    // 表格自身可用的滚动高度 = 卡片剩余空间（卡片是 flex 列，表格是最后一个可变项）
+    var rows = tbl.querySelectorAll(".corner-row");
+    if (!rows.length) return;
+    var oneRowH = rows[0].getBoundingClientRect().height;
+    if (oneRowH <= 0) return;   // 尚未布局，跳过
+
+    // 先试两列：所需高度 = 行数/2 * 行高 + gap
+    tbl.classList.add("ct-grid");
+    var twoColNeed = Math.ceil(rows.length / 2) * oneRowH;
+    var twoColFits = tbl.scrollHeight <= tbl.clientHeight + 1;
+
+    if (!twoColFits) {
+      // 两列放不下（或反而更挤）→ 回退单列，靠表内滚动
+      tbl.classList.remove("ct-grid");
+      return;
+    }
+    // 两列已能放下：若单列也放得下，用单列更清晰（大屏观感）；窄屏才用两列
+    if (window.innerWidth >= 520) tbl.classList.remove("ct-grid");
+  }
+
+  /* 答题页重绘当前题（quizPanel 可见时才重绘） */
+  function redrawIfQuiz() {
+    var quiz = document.getElementById("quizPanel");
+    if (!quiz || quiz.classList.contains("hidden")) return;
+    if (typeof qIndex !== "undefined" && typeof questions !== "undefined") {
+      var q = questions[qIndex];
+      if (q && typeof CORNERS !== "undefined") {
+        drawCorner(cv, CORNERS[q.ci].colors, q.fi);
+      }
+    }
+  }
+
+  function apply() {
+    var on = shouldSingleScreen();
+    body.classList.toggle("ct-single-screen", on);
+    if (on) {
+      fitCornerTable();
+      fitCanvas();
+    } else {
+      var tbl = document.getElementById("cornerTable");
+      if (tbl) tbl.classList.remove("ct-grid");
+      // 退出单屏模式：还原原始尺寸并重绘，避免题图被拉伸
+      if (cv && (cv.width !== BASE_W || cv.height !== BASE_H)) {
+        cv.width = BASE_W; cv.height = BASE_H;
+        redrawIfQuiz();
+      }
+    }
+  }
+
+  function schedule() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(function () { rafId = 0; apply(); });
+  }
+
+  window.addEventListener("resize", schedule);
+  window.addEventListener("orientationchange", function () { setTimeout(schedule, 120); });
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", schedule);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+  /* 骨架异步注入（导航条/页脚）不触发 resize → 用 ResizeObserver 兜底 */
+  if (typeof ResizeObserver !== "undefined") {
+    var roTimer = 0;
+    var ro = new ResizeObserver(function () {
+      clearTimeout(roTimer); roTimer = setTimeout(schedule, 60);
+    });
+    ro.observe(document.documentElement);
+    var cont = document.querySelector(".container");
+    if (cont) ro.observe(cont);
+  }
+  /* 面板切换（首页↔答题↔结果↔记录）后需要重新适配 */
+  window.addEventListener("ct:panelchange", schedule);
+  /* 同步入口：供 notifyPanelChange() 在画图前立即调用 */
+  window.__ctFitSync = function () { apply(); };
+  apply();
+  setTimeout(schedule, 0);
+  setTimeout(schedule, 350);   // 等导航条/页脚注入完成后再算一次
+})();
 </script>
 <script src="/assets/js/site-nav.js"></script>
 <footer class="site-footer">
@@ -690,5 +995,17 @@ renderOverview();
     </footer>
 <script src="/assets/js/sync-boot.js"></script>
 <script>SyncBoot.ready(function(){LSProvider.register({id:'corner-trainer',label:'角块训练',path:'corner-trainer.json',keys:['corner_trainer_records_v1']});});</script>
+<script>
+/* 注册本页 PWA Service Worker（tools/corner-trainer/sw.js）。
+   与根目录计时器 sw.js 作用域不同，互不干扰。
+   file:// 协议下无法注册（Chrome 会抛 SecurityError），直接跳过即可，不影响功能。 */
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/tools/corner-trainer/sw.js").catch(function (e) {
+      console.warn("[corner-trainer] SW 注册失败：", e && e.message);
+    });
+  });
+}
+</script>
 </body>
 </html>
