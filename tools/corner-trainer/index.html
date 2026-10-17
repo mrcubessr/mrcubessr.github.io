@@ -903,32 +903,23 @@ renderOverview();
     redrawIfQuiz();
   }
 
-  /* 编码对照表：单列放不下时改两列网格（省一半高度），两列仍放不下才允许表内滚动。
-     逐档试：先按两列量，再按单列量，取「不触发滚动的最简布局」。 */
+  /* 编码对照表：本页 6 组，窄屏改两列网格（比竖排省一半高度）。
+     是否用两列**由「高度装不装得下」决定，而不是屏幕宽度** ——
+     宽屏单列本来就能装下（两列反而显得挤），矮屏（如横持手机）才必须两列。
+     逐档试：先按两列量，溢出则退回单列 + 表内滚动。 */
   function fitCornerTable() {
     var tbl = document.getElementById("cornerTable");
     if (!tbl) return;
     var start = document.getElementById("startPanel");
     if (!start || start.classList.contains("hidden")) return;   // 非首页不管
 
-    // 表格自身可用的滚动高度 = 卡片剩余空间（卡片是 flex 列，表格是最后一个可变项）
     var rows = tbl.querySelectorAll(".corner-row");
     if (!rows.length) return;
-    var oneRowH = rows[0].getBoundingClientRect().height;
-    if (oneRowH <= 0) return;   // 尚未布局，跳过
+    if (rows[0].getBoundingClientRect().height <= 0) return;   // 尚未布局，跳过
 
-    // 先试两列：所需高度 = 行数/2 * 行高 + gap
-    tbl.classList.add("ct-grid");
-    var twoColNeed = Math.ceil(rows.length / 2) * oneRowH;
-    var twoColFits = tbl.scrollHeight <= tbl.clientHeight + 1;
-
-    if (!twoColFits) {
-      // 两列放不下（或反而更挤）→ 回退单列，靠表内滚动
-      tbl.classList.remove("ct-grid");
-      return;
-    }
-    // 两列已能放下：若单列也放得下，用单列更清晰（大屏观感）；窄屏才用两列
-    if (window.innerWidth >= 520) tbl.classList.remove("ct-grid");
+    tbl.classList.add("ct-grid");           // 先试两列
+    if (tbl.scrollHeight <= tbl.clientHeight + 1) return;      // 装得下就用两列
+    tbl.classList.remove("ct-grid");         // 装不下 → 回退单列，靠表内滚动
   }
 
   /* 答题页重绘当前题（quizPanel 可见时才重绘） */

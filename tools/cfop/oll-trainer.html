@@ -49,22 +49,26 @@
     display: flex; align-items: center; justify-content: center;
   }
   .oll-card__net .cfop-net { width: 100%; height: 100%; max-width: 100%; max-height: 100%; }
+  /* 名称字号按卡片宽度自适应：OLL 10~57 是双位数（约 6 字符），
+     用固定 0.17 倍宽会在 100px 宽的卡里被裁成「OLL 1(」。
+     这里按 6 字符上限反推字号，并给 flex 容器加 min-width:0 防止溢出。 */
   .oll-card__name {
-    flex: 0 0 auto;
-    font-size: calc(var(--oll, 160px) * 0.18); line-height: 1; font-weight: 800;
-    margin-top: 4px; letter-spacing: .5px;
+    flex: 0 0 auto; width: 100%; min-width: 0;
+    font-size: var(--oll-name-fs, calc(var(--oll, 160px) * 0.17));
+    line-height: 1; font-weight: 800;
+    margin-top: 3px; letter-spacing: 0;
+    text-align: center; overflow: hidden; white-space: nowrap;
   }
+  /* 子分组：名称下方的小字（与名称分两行，避免「OLL 10」这类双位数被裁） */
   .oll-card__sub {
-    font-size: calc(var(--oll, 160px) * 0.085); color: var(--fg-3, #7C8798);
-    margin-top: 3px; font-weight: 600;
+    flex: 0 0 auto; width: 100%;
+    font-size: calc(var(--oll, 160px) * 0.075); font-weight: 600;
+    color: var(--fg-3, #7C8798); line-height: 1;
+    margin-top: 2px; text-align: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px;
   }
-  .oll-card__alg {
-    flex: 0 0 auto;
-    font-family: var(--font-mono, "SF Mono", Consolas, monospace);
-    font-size: calc(var(--oll, 160px) * 0.082); color: var(--fg-2, #AEB8CA);
-    margin-top: 3px; line-height: 1.25; max-width: 96%;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
+  /* 注：卡片内的公式行 .oll-card__alg 已移除（公式移入练习弹层，
+     悬停 title 与弹层均仍可查）—— 57 张卡要一屏铺满，卡片必须减负。 */
   .oll-card__count {
     position: absolute; top: 7px; right: 8px;
     font-size: calc(var(--oll, 160px) * 0.085); font-weight: 700;
@@ -513,7 +517,7 @@
         (n ? '<span class="oll-card__count">' + n + '</span>' : '') +
         '<div class="oll-card__net">' + netHtml + '</div>' +
         '<div class="oll-card__name">' + c.id + '</div>' +
-        '<div class="oll-card__alg">' + c.algs[0] + '</div>' +
+        '<div class="oll-card__sub" title="' + SUB_GROUP[c.sub] + '">' + c.subName + '</div>' +
         bestHtml +
         (swap ? '<span class="c-swap" title="已换新公式">换</span>' : '') +
         '</div>';
@@ -800,9 +804,20 @@
 
   /* ============ 5) 横屏铺满（改编自 UF440 fitBoard，卡片更大） ============ */
   var GAP = 12;
-  var MIN_CELL = 132;       // 大卡片下限
+  var MIN_CELL = 132;       // 大卡片下限（理想值，非硬约束 —— 见下方 minCellFloor）
   var MAX_CELL = 260;
   var MAX_ASPECT = 1.7;     // 卡片可略高（预览图+文字）
+  /* OLL 有 57 条（PLL 只 21 条）。卡片已精简为「预览图 + 名称(含子分组) + 成绩」
+     三层（公式移入弹层，title 与弹层仍可查）。
+     实测 1440×900（可用约 1160×620）：
+       132px 下**任何列数都排不下**（宽高总有一边太小）→ 只能溢出滚动；
+       88px 下最优解是 10 列 × 6 行、每格 93px，预览图与名称均清晰可读。
+     故 OLL 的硬下限取 88（保住预览图），排不下就接受滚动，绝不压到预览图消失。
+     PLL 只有 21 张，132px 下能排满一屏，无需降级。 */
+  function minCellFloorFor(n, isNarrow) {
+    if (isNarrow) return n > 40 ? 88 : 104;   // 手机：卡多时略降，但保住预览图
+    return n > 40 ? 88 : MIN_CELL;            // 桌面：OLL 57 卡 → 10×6
+  }
 
   function divisors(n) { var d = []; for (var i = 1; i <= n; i++) if (n % i === 0) d.push(i); return d; }
 
@@ -822,6 +837,13 @@
     var footEl = document.querySelector("footer.site-footer");
     var footH = 0, footMT = 0;
     if (footEl) { footH = Math.ceil(footEl.getBoundingClientRect().height); footMT = parseFloat(getComputedStyle(footEl).marginTop) || 0; }
+    /* 卡片多时隐藏页脚：OLL 57 张时页脚(117px + 64px 上边距 = 181px)会吃掉 43% 的
+       视口高度，导致可用高度只剩 496px、每张卡被压到 72px（预览图消失）。
+       隐藏后可用高度回到 660px，10 列 × 6 行、每格 100px，预览图与名称都清晰。
+       阈值与 minCellFloorFor 同一口径（>40 张才隐藏），PLL 21 张不受影响。 */
+    var hideFooter = n > 40;
+    if (footEl) footEl.style.display = hideFooter ? "none" : "";
+    if (hideFooter) { footH = 0; footMT = 0; }
     var boardMB = parseFloat(cs.marginBottom) || 0;
     var bodyPB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
     var tailH = boardMB + footMT + footH + bodyPB;
@@ -830,8 +852,11 @@
     var isNarrow = window.innerWidth < 640;
     var minCell = isNarrow ? 104 : MIN_CELL;
     var maxCell = isNarrow ? 150 : MAX_CELL;
+    var minFloor = minCellFloorFor(n, isNarrow);   // 硬下限：低于此值宁可溢出
 
-    var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minCell + GAP))));
+    /* fallback 分支的列数上限：按硬下限算（已经走到这里说明理想尺寸排不下，
+       目标是尽可能多列以接近一屏）。searchByHeight 内部会按各自下限另算列数上限。 */
+    var maxColsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (minFloor + GAP))));
 
     function planFor(cols) {
       var rows = Math.ceil(n / cols);
@@ -849,21 +874,35 @@
       return { cols: cols, rows: rows, rem: rem, cellW: cellW, cellH: cellW, cell: cellW, aspect: 1, tailRatio: rem === 0 ? 1 : cols / rem, fitsH: false };
     }
 
-    var best = null;
-    for (var c = 1; c <= maxColsByW; c++) {
-      var p = planFor(c);
-      if (p.cell < minCell || p.cell > maxCell) continue;
-      if (p.aspect > MAX_ASPECT) continue;
-      if (p.tailRatio > 3) continue;
-      if (!best || p.cell > best.cell * 1.02) { best = p; continue; }
-      if (p.cell >= best.cell * 0.98) {
-        var better;
-        if ((p.rem === 0) !== (best.rem === 0)) better = (p.rem === 0);
-        else if (Math.abs(p.tailRatio - best.tailRatio) > 0.03) better = p.tailRatio < best.tailRatio;
-        else if (Math.abs(p.aspect - best.aspect) > 0.02) better = p.aspect < best.aspect;
-        else better = p.cell > best.cell;
-        if (better) best = p;
+    /* 主搜索：按给定尺寸下限找「既能一屏装下、格子又尽量大」的列数方案。
+       先用理想下限 minCell 搜（能大就大），失败再用硬下限 minFloor 重搜一轮
+       —— 57 卡在桌面只有 77~100px 可用，若拿 132 当硬下限必然全军覆没。
+       ⚠️ 列数上限必须按「本轮实际用的下限」重算：若沿用 minCell 算出的上限，
+       第二轮降下限后列数仍被卡住，等于白搜。 */
+    function searchByHeight(lo) {
+      var colsByW = Math.min(n, Math.max(1, Math.floor((availW + GAP) / (lo + GAP))));
+      var b = null;
+      for (var c = 1; c <= colsByW; c++) {
+        var p = planFor(c);
+        if (p.cell < lo || p.cell > maxCell) continue;
+        if (p.aspect > MAX_ASPECT) continue;
+        if (p.tailRatio > 3) continue;
+        if (!b || p.cell > b.cell * 1.02) { b = p; continue; }
+        if (p.cell >= b.cell * 0.98) {
+          var better;
+          if ((p.rem === 0) !== (b.rem === 0)) better = (p.rem === 0);
+          else if (Math.abs(p.tailRatio - b.tailRatio) > 0.03) better = p.tailRatio < b.tailRatio;
+          else if (Math.abs(p.aspect - b.aspect) > 0.02) better = p.aspect < b.aspect;
+          else better = p.cell > b.cell;
+          if (better) b = p;
+        }
       }
+      return b;
+    }
+
+    var best = searchByHeight(minCell);          // 第一轮：理想尺寸
+    if (!best && minFloor < minCell) {
+      best = searchByHeight(minFloor);            // 第二轮：降到硬下限，保证一屏
     }
     if (!best) {
       var divs = divisors(n);
@@ -883,7 +922,7 @@
     }
     if (!best) {
       var p3 = widthPlanFor(maxColsByW);
-      var cc = Math.max(minCell, Math.min(p3.cellW, maxCell));
+      var cc = Math.max(minFloor, Math.min(p3.cellW, maxCell));
       best = { cols: p3.cols, rows: p3.rows, rem: p3.rem, cellW: cc, cellH: cc, cell: cc, aspect: 1, tailRatio: 1, fitsH: false };
     }
 
@@ -896,6 +935,11 @@
     board.style.setProperty("--oll-w", best.cellW.toFixed(2) + "px");
     board.style.setProperty("--oll-h", best.cellH.toFixed(2) + "px");
     board.style.setProperty("--pll", best.cell.toFixed(2) + "px");
+    /* 名称字号按实际卡宽反推：双位数「OLL 10」约 6 个字符，
+       粗体大写每字符宽约 0.62em ⟹ 6 字符需 ≈3.72em；卡宽内留 8% 余量后夹到 [10, 26]px。
+       CSS 里的固定倍率在小卡（~100px）下会把「OLL 10」裁成「OLL 1(」。 */
+    var nameFs = Math.max(10, Math.min(best.cell * 0.92 / 3.72, 26));
+    board.style.setProperty("--oll-name-fs", nameFs.toFixed(2) + "px");
     if (tailW > 0) board.style.setProperty("--oll-tail", tailW.toFixed(2) + "px");
     else board.style.removeProperty("--oll-tail");
     for (var k = 0; k < n; k++) {

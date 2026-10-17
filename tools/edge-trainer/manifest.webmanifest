@@ -1,0 +1,32 @@
+{
+  "name": "棱块编码识别训练",
+  "short_name": "棱块训练",
+  "description": "二阶魔方盲拧 · 棱块色块编码认读。每组 10 题，随机展示一个棱块，从 4 个选项中选出它的编码，成绩本地保存。",
+  "lang": "zh-CN",
+  "start_url": "/tools/edge-trainer/",
+  "scope": "/tools/edge-trainer/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1118",
+  "theme_color": "#0d1118",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
