@@ -9,6 +9,25 @@
 
 ---
 
+## [2.0.19] — 2026-10-18（整改 · 左侧导航栏重组）
+
+用户反馈工具越来越多后左侧导航出现重复与归属混乱，出整改方案并落地。
+
+- **拆出「高阶盲拧 (4×4)」独立分组**：原「三盲训练」里混入的 5 个四阶/高阶项（四阶中心块公式、高阶翼棱公式、UF 分组、UF440公式训练、UR 分组）移出，名实相符。
+- **三盲训练从 16 项减到 12 项**，并去重改名：
+  - `bld-trainer`（标签原为丑陋的 `"bld-trainer"`）→ **「盲拧编码记忆」**（实为魔方盲拧记忆编码训练器，与「读码还原」`bldtrainer` 是两个不同工具，此前看着像重复）；
+  - `kmap`（「KMap」）→ **「二阶知识地图」**（实为二阶编码图）；
+  - `2x2`（「二阶练习纸」）→ **「二阶公式练习」**（实为二阶公式练习工具）；
+  - 新增 **「三阶知识地图」** `/tools/bld-kmap/` 入导航（此前只挂在 3bld 枢纽，导航里无三阶地图入口）。
+- **教程新增 PLL / OLL 公式训练**：`/tools/cfop/pll-trainer.html`、`/tools/cfop/oll-trainer.html` 加进「教程」分组（提升公式训练发现率）。
+- **个人训练工具**：收编原「外链」组的「工具导航」`/tools/nav`；「三阶魔方教学」→ **「三阶趣味课堂」**（与「教程→三阶」区分）。删空「外链」分组。
+- `tools/bld-kmap/index.html` 的 `body[data-nav]` 由 `3bld` 改为 `bld-kmap`，使新菜单项正确高亮。
+- ⚠️ `assets/js/site-nav.js` 在 PWA APP_SHELL 内 → 根 `sw.js` 缓存 `fto-timer-v14` → **`fto-timer-v15`**（独立 PWA corner/edge 不动）。
+
+验证：`node --check` 通过；Playwright 真机冒烟确认菜单结构与高亮。
+
+---
+
 ## [2.0.18] — 2026-10-17（新增 · 三阶盲拧教学知识地图 `tools/bld-kmap/`）
 
 用户要求把之前散落各处的三阶盲拧知识体系整成一张可编排的「知识地图」。
@@ -60,7 +79,7 @@
 - 结果：溢出 **967px → 2px**，10 列 × 6 行、每格 103px，**OLL 1~57 全部完整可读**；PLL 页（21 张）完全不受影响。
 
 ### 三个 PWA 作用域隔离
-`sw.js`（`fto-timer-v14`，scope `/`）· `tools/corner-trainer/sw.js`（`fto-corner-v1`）· `tools/edge-trainer/sw.js`（`fto-edge-v1`）。各 SW 激活时**只清理自己前缀**的旧缓存，绝不误删其他 PWA；`install` 阶段逐个 `cache.add` 并吞掉个别错误（`cache.addAll` 会因单个 404 整体失败）。
+`sw.js`（`fto-timer-v15`，scope `/`）· `tools/corner-trainer/sw.js`（`fto-corner-v1`）· `tools/edge-trainer/sw.js`（`fto-edge-v1`）。各 SW 激活时**只清理自己前缀**的旧缓存，绝不误删其他 PWA；`install` 阶段逐个 `cache.add` 并吞掉个别错误（`cache.addAll` 会因单个 404 整体失败）。
 
 ### 验证
 `verify_blind_trainers_mobile.py`：两页 × 4 视口（375/390/430/768）× 4 面板（首页/答题/结果/记录）均 `docH == innerH` 零溢出、对照表齐全且无需滚动、canvas 未超容器且保持原始比例、答题流程走通、桌面端不启用单屏且原布局不变、9 项 PWA 标签齐备、三个 SW 缓存名互不相同 —— **全部通过**。

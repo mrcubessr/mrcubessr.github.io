@@ -10,6 +10,8 @@
     { id: 'home', label: '首页', href: '/' },
     { id: 'tutorial', label: '教程', children: [
       { id: '3x3', label: '三阶', href: '/tools/3x3/' },
+      { id: 'pll', label: 'PLL 公式训练', href: '/tools/cfop/pll-trainer.html' },
+      { id: 'oll', label: 'OLL 公式训练', href: '/tools/cfop/oll-trainer.html' },
       { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
       { id: 'fto', label: 'FTO', href: '/fto' }
@@ -19,29 +21,30 @@
       { id: 'invert',           label: '逆序转换',         href: '/tools/invert' },
       { id: 'scramble-trainer', label: '打乱公式训练',     href: '/tools/scramble-trainer' },
       { id: 'srs',              label: '记忆卡片 SRS',     href: '/tools/srs/' },
-      { id: '3x3teach',         label: '三阶魔方教学',     href: '/tools/3x3teach' },
-      { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' }
+      { id: '3x3teach',         label: '三阶趣味课堂',     href: '/tools/3x3teach' },
+      { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' },
+      { id: 'nav',              label: '工具导航',         href: '/tools/nav' }
     ]},
     { id: '3bld-tools', label: '三盲训练', children: [
       { id: '3bld',           label: '三盲总览',       href: '/tools/3bld/' },
       { id: 'bld-level',      label: '难度分级标准',   href: '/tools/3bld/level.html' },
       { id: 'bldtrainer',     label: '读码还原',       href: '/tools/bldtrainer/' },
+      { id: 'bld-trainer',    label: '盲拧编码记忆',   href: '/tools/bld-trainer/' },
       { id: 'corner-trainer', label: '角块训练',       href: '/tools/corner-trainer/' },
       { id: 'edge-trainer',   label: '棱块训练',       href: '/tools/edge-trainer/' },
       { id: 'edge-printout',  label: '棱块出题器',     href: '/tools/edge-printout/' },
-      { id: 'kmap',           label: 'KMap',           href: '/tools/kmap/' },
       { id: 'practice',       label: '练习题生成器',   href: '/tools/practice/' },
       { id: 'bldscramble',    label: '定向打乱',       href: '/tools/bldscramble/' },
-      { id: '2x2',            label: '二阶练习纸',     href: '/tools/2x2/' },
-      { id: 'scramble-uf',    label: 'UF 分组',        href: '/tools/scramble-uf/' },
-      { id: 'scramble-uf440', label: 'UF440公式训练',  href: '/tools/scramble-uf440/' },
+      { id: '2x2',            label: '二阶公式练习',   href: '/tools/2x2/' },
+      { id: 'kmap',           label: '二阶知识地图',   href: '/tools/kmap/' },
+      { id: 'bld-kmap',       label: '三阶知识地图',   href: '/tools/bld-kmap/' }
+    ]},
+    { id: '4bld-tools', label: '高阶盲拧 (4×4)', children: [
       { id: '4bld-center',    label: '四阶中心块公式', href: '/tools/4bld/' },
       { id: '4bld-wing',      label: '高阶翼棱公式',   href: '/tools/4bld/wing.html' },
-      { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' },
-      { id: 'bld-trainer',    label: 'bld-trainer',    href: '/tools/bld-trainer/' }
-    ]},
-    { id: 'links', label: '外链', children: [
-      { id: 'nav', label: '工具导航', href: '/tools/nav' }
+      { id: 'scramble-uf',    label: 'UF 分组',        href: '/tools/scramble-uf/' },
+      { id: 'scramble-uf440', label: 'UF440公式训练',  href: '/tools/scramble-uf440/' },
+      { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' }
     ]}
   ];
 
@@ -165,7 +168,7 @@
     if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
-  /* 菜单列较长时（例如「三盲训练」分组展开后多达 14 项），
+  /* 菜单列较长时（例如「三盲训练」分组展开后多达 12 项，另有「高阶盲拧(4×4)」5 项），
      把当前页项滚到容器可视区内，避免用户打开抽屉后还要自己找。
      只滚动 .nav-links 自身（不用 scrollIntoView），不会带动页面滚动。 */
   function scrollActiveIntoView() {
