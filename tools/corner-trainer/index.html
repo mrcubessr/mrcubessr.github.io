@@ -630,16 +630,24 @@ function stopTimer() {
 function genQuiz(mode) {
   const qs = [];
   const pool = mode === "special" ? wrongLetterPool() : [];
+  let prevCi = -1;
   for (let i = 0; i < QUIZ_LEN; i++) {
     let ci, fi;
     if (mode === "special" && pool.length > 0) {
-      const letter = pool[Math.floor(Math.random() * pool.length)];
+      // 复习错题：尽量不连续考同一个角块
+      const others = pool.filter(l => findLetter(l).ci !== prevCi);
+      const src = others.length > 0 ? others : pool;
+      const letter = src[Math.floor(Math.random() * src.length)];
       const pos = findLetter(letter);
       ci = pos.ci; fi = pos.fi;
     } else {
-      ci = Math.floor(Math.random() * CORNERS.length);
+      // 练习：连续两题不考同一个角块
+      const candidates = [];
+      for (let c = 0; c < CORNERS.length; c++) if (c !== prevCi) candidates.push(c);
+      ci = candidates[Math.floor(Math.random() * candidates.length)];
       fi = Math.floor(Math.random() * 3);
     }
+    prevCi = ci;
     const corner = CORNERS[ci];
     const answer = corner.letters[fi];
     const poolLetters = shuffle(ALL_LETTERS.filter(l => l !== answer));
