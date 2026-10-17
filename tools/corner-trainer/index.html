@@ -365,13 +365,19 @@ body{ display:block; padding:0 16px 28px; }
 
 <script>
 // ============ 角块数据（颜色顺序与编码顺序一一对应）============
+// 红/橙配色说明（v2.0.18）：原用官方贴纸色 红 #C41E3A / 橙 #FF5800，
+// 两者对比度仅 1.85:1，在编码对照表的 15px 小色块上并排几乎分不出（用户反馈「看不清」）。
+// 现改为 红 #A31229（深酒红） / 橙 #FF8A1F（亮橙），对比度 3.33:1（+80%），
+// 红↔橙一眼可分；同时橙/黄仍有 1.66:1，不会与黄色混。其余四色沿用官方色不变。
+const RED    = "#A31229";   // 深酒红（原 #C41E3A）
+const ORANGE = "#FF8A1F";   // 亮橙  （原 #FF5800）
 const CORNERS = [
-  { name: "黄红蓝", colors: ["#FFD500", "#C41E3A", "#0051BA"], letters: ["A", "B", "C"] },
-  { name: "黄蓝橘", colors: ["#FFD500", "#0051BA", "#FF5800"], letters: ["D", "E", "F"] },
-  { name: "黄橘绿", colors: ["#FFD500", "#FF5800", "#009E60"], letters: ["G", "H", "I"] },
-  { name: "白蓝红", colors: ["#FFFFFF", "#0051BA", "#C41E3A"], letters: ["W", "M", "N"] },
-  { name: "白橘蓝", colors: ["#FFFFFF", "#FF5800", "#0051BA"], letters: ["O", "P", "Q"] },
-  { name: "白绿橘", colors: ["#FFFFFF", "#009E60", "#FF5800"], letters: ["R", "S", "T"] }
+  { name: "黄红蓝", colors: ["#FFD500", RED,    "#0051BA"], letters: ["A", "B", "C"] },
+  { name: "黄蓝橘", colors: ["#FFD500", "#0051BA", ORANGE], letters: ["D", "E", "F"] },
+  { name: "黄橘绿", colors: ["#FFD500", ORANGE, "#009E60"], letters: ["G", "H", "I"] },
+  { name: "白蓝红", colors: ["#FFFFFF", "#0051BA", RED],    letters: ["W", "M", "N"] },
+  { name: "白橘蓝", colors: ["#FFFFFF", ORANGE, "#0051BA"], letters: ["O", "P", "Q"] },
+  { name: "白绿橘", colors: ["#FFFFFF", "#009E60", ORANGE], letters: ["R", "S", "T"] }
 ];
 const ALL_LETTERS = CORNERS.flatMap(c => c.letters);
 

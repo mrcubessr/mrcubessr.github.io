@@ -365,9 +365,13 @@ h1 { font-size: 26px; font-weight: 700; color: var(--fg); text-align: center; le
 <script>
 // ============ 棱块数据（12条棱 × 2朝向 = 24编码字母）============
 // 编码方案（魔方先生教学体系，非 bldtrainer 的 edgeCh 映射）
-// 标准配色：U=黄 R=绿 F=红 D=白 L=蓝 B=橙
-const YELLOW = "#FFD500", BLUE = "#0051BA", RED = "#C41E3A";
-const WHITE  = "#FFFFFF", GREEN = "#009E60", ORANGE = "#FF5800";
+// 配色：U=黄 R=绿 F=红 D=白 L=蓝 B=橙
+// 红/橙配色说明（v2.0.18）：原用官方贴纸色 红 #C41E3A / 橙 #FF5800，
+// 两者对比度仅 1.85:1，在编码对照表的 15px 小色块上并排几乎分不出（用户反馈「看不清」）。
+// 现改为 红 #A31229（深酒红） / 橙 #FF8A1F（亮橙），对比度 3.33:1（+80%），
+// 与角块训练页保持同一套配色（两页同源，必须同步）。其余四色沿用官方色不变。
+const YELLOW = "#FFD500", BLUE = "#0051BA", RED = "#A31229";   // 红：深酒红（原 #C41E3A）
+const WHITE  = "#FFFFFF", GREEN = "#009E60", ORANGE = "#FF8A1F"; // 橙：亮橙  （原 #FF5800）
 
 const EDGES = [
   { name: "黄绿 UR", colors: [YELLOW, GREEN],  letters: ["G", "H"] },
