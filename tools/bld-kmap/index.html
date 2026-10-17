@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三阶魔方盲拧 · 教学知识地图</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/bld-kmap/bld-kmap.css">
+</head>
+<body data-nav="3bld">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<div class="map">
+
+<!-- ======== 顶部 ======== -->
+<div class="map-header">
+  <div class="title-group">
+    <h1>三阶魔方盲拧 · 教学内容知识地图</h1>
+    <div class="sub">3×3 BLINDFOLDED SOLVING — 5 大模块 · 16 个知识点 · 工具 / 公式库一键直达</div>
+  </div>
+  <div class="meta">
+    定稿 2026.10.17 · 魔方先生SSR 魔方训练中心<br>
+    与「二阶盲拧知识地图」并列 · 三盲训练中心入口
+  </div>
+</div>
+
+<!-- ======== 左侧面板 ======== -->
+<div class="panel-l">
+
+  <!-- 教学四阶段 -->
+  <div class="block">
+    <div class="block-title orange">学习四阶段</div>
+    <div class="stage-card s1">
+      <div class="sn">第一阶段</div>
+      <div class="sname">建立概念</div>
+      <div class="sdesc">奇偶校验、缓冲块、定向与排列，搭好盲拧心智模型</div>
+    </div>
+    <div class="stage-card s2">
+      <div class="sn">第二阶段</div>
+      <div class="sname">字母编码与记忆</div>
+      <div class="sdesc">24 字母体系、读码规则、联想词记忆法</div>
+    </div>
+    <div class="stage-card s3">
+      <div class="sn">第三阶段</div>
+      <div class="sname">学习还原方法</div>
+      <div class="sdesc">角块 OP / 3-Style，棱块 M2 / R2 / 3-Style，奇偶处理</div>
+    </div>
+    <div class="stage-card s4">
+      <div class="sn">第四阶段</div>
+      <div class="sname">实战与提速</div>
+      <div class="sdesc">读码→还原全流程、难度分级、专项连拧训练</div>
+    </div>
+  </div>
+
+  <!-- 盲拧实战流程 -->
+  <div class="block">
+    <div class="block-title purple">盲拧实战流程</div>
+    <div class="step-list">
+      <div class="step-item"><div class="sn sn-o">1</div><div class="si"><strong>观察</strong><span>记住缓冲块与整体状态，规划顺序</span></div></div>
+      <div class="step-item"><div class="sn sn-t">2</div><div class="si"><strong>编码</strong><span>从缓冲出发沿循环读字母，得到编码串</span></div></div>
+      <div class="step-item"><div class="sn sn-b">3</div><div class="si"><strong>记忆</strong><span>联想词把字母串变成画面故事</span></div></div>
+      <div class="step-item"><div class="sn sn-y">4</div><div class="si"><strong>回忆</strong><span>闭眼后按画面逐段复述编码</span></div></div>
+      <div class="step-item"><div class="sn sn-p">5</div><div class="si"><strong>执行</strong><span>按方法执行各循环与奇偶修正</span></div></div>
+      <div class="step-item"><div class="sn sn-r">6</div><div class="si"><strong>复原</strong><span>检查全部归位，完成盲拧</span></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ======== 中央面板 ======== -->
+<div class="panel-c">
+
+  <!-- 知识模块总览 -->
+  <div class="block">
+    <div class="block-title teal">三阶盲拧知识总览 · 五大模块</div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--km-orange-l);margin:4px 0 10px">① 基础概念</div>
+    <div class="kmap-grid" style="margin-bottom:18px">
+      <a class="kmap-card c-o" href="/tools/3bld/">
+        <div class="kc-tag">原理</div><div class="kc-title">盲拧原理</div>
+        <div class="kc-desc">记忆与执行两阶段；为什么闭眼也能还原</div></a>
+      <a class="kmap-card c-o" href="/tools/3bld/blddb/parity.html">
+        <div class="kc-tag">奇偶</div><div class="kc-title">奇偶校验</div>
+        <div class="kc-desc">角循环数与棱循环数同奇偶，否则需奇偶算法</div></a>
+      <a class="kmap-card c-o" href="/tools/3bld/">
+        <div class="kc-tag">缓冲</div><div class="kc-title">缓冲块 Buffer</div>
+        <div class="kc-desc">默认角 UBL / 棱 UB，读码起点，可自定义</div></a>
+      <a class="kmap-card c-o" href="/tools/3bld/">
+        <div class="kc-tag">状态</div><div class="kc-title">定向与排列</div>
+        <div class="kc-desc">角(朝向/位置) 与 棱(朝向/位置) 四要素</div></a>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--km-teal-l);margin:4px 0 10px">② 编码系统</div>
+    <div class="kmap-grid" style="margin-bottom:18px">
+      <a class="kmap-card c-t" href="/tools/corner-trainer/">
+        <div class="kc-tag">字母</div><div class="kc-title">24 字母体系</div>
+        <div class="kc-desc">去掉 U、V 的 24 字母，角块 / 棱块各 24 个位置</div></a>
+      <a class="kmap-card c-t" href="/tools/3bld/">
+        <div class="kc-tag">读码</div><div class="kc-title">读码规则</div>
+        <div class="kc-desc">3码→4码、小循环、借位、翻射角块</div></a>
+      <a class="kmap-card c-t" href="/tools/3bld/association.html">
+        <div class="kc-tag">记忆</div><div class="kc-title">联想记忆法</div>
+        <div class="kc-desc">联想词把字母串变画面，可出题打印</div></a>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--km-blue-l);margin:4px 0 10px">③ 还原方法</div>
+    <div class="kmap-grid" style="margin-bottom:18px">
+      <a class="kmap-card c-b" href="/tools/3bld/blddb/corner.html">
+        <div class="kc-tag">角块</div><div class="kc-title">角块还原</div>
+        <div class="kc-desc">OP 法 (Old Pochmann) 或 3-Style (TuRBo)</div></a>
+      <a class="kmap-card c-b" href="/tools/3bld/blddb/edge.html">
+        <div class="kc-tag">棱块</div><div class="kc-title">棱块还原</div>
+        <div class="kc-desc">M2 法 / R2 法 / 3-Style，最常用 M2</div></a>
+      <a class="kmap-card c-b" href="/tools/3bld/">
+        <div class="kc-tag">顺序</div><div class="kc-title">还原顺序</div>
+        <div class="kc-desc">先角后棱 或 先棱后角，需配合奇偶处理</div></a>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--km-red);margin:4px 0 10px">④ 特殊情形</div>
+    <div class="kmap-grid" style="margin-bottom:18px">
+      <a class="kmap-card c-r" href="/tools/3bld/blddb/parity.html">
+        <div class="kc-tag">奇偶</div><div class="kc-title">奇偶算法</div>
+        <div class="kc-desc">角棱循环奇偶不一致时插入的修正</div></a>
+      <a class="kmap-card c-r" href="/tools/3bld/blddb/2flips.html">
+        <div class="kc-tag">翻色</div><div class="kc-title">棱翻转 2flips</div>
+        <div class="kc-desc">单条棱自身翻色的处理</div></a>
+      <a class="kmap-card c-r" href="/tools/3bld/blddb/twists.html">
+        <div class="kc-tag">扭角</div><div class="kc-title">角扭转 twists</div>
+        <div class="kc-desc">单个角块朝向错误的修正</div></a>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--km-green-l);margin:4px 0 10px">⑤ 体系与训练</div>
+    <div class="kmap-grid">
+      <a class="kmap-card c-g" href="/tools/3bld/level.html">
+        <div class="kc-tag">分级</div><div class="kc-title">难度分级标准</div>
+        <div class="kc-desc">加权分→0~100→L1~L5 五档</div></a>
+      <a class="kmap-card c-g" href="/tools/3bld/blddb/index.html">
+        <div class="kc-tag">公式</div><div class="kc-title">盲拧公式库</div>
+        <div class="kc-desc">3-Style / 2e2e / LTCT / LTEF 等</div></a>
+      <a class="kmap-card c-g" href="/tools/bldtrainer/">
+        <div class="kc-tag">实战</div><div class="kc-title">读码还原训练</div>
+        <div class="kc-desc">读码→还原全流程练习</div></a>
+    </div>
+  </div>
+
+  <!-- 魔方转动符号 -->
+  <div class="block">
+    <div class="block-title yellow">魔方转动符号</div>
+    <table class="table">
+      <thead><tr><th>符号</th><th>操作说明</th><th>简易口诀</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700;font-size:15px">R</td><td>右侧面顺时针转 90°</td><td>右顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">U</td><td>顶层顺时针转 90°</td><td>顶顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">F</td><td>正面顺时针转 90°</td><td>前顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">L</td><td>左侧面顺时针转 90°</td><td>左顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">D</td><td>底层顺时针转 90°</td><td>底顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">B</td><td>背面顺时针转 90°</td><td>背顺 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">M</td><td>中层（贴 L）转 90°</td><td>M 层</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">x/y/z</td><td>整体绕轴转 90°</td><td>整体转</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">R' U' F'</td><td>对应面逆时针转 90°</td><td>逆 90</td></tr>
+        <tr><td style="font-weight:700;font-size:15px">R2 U2</td><td>对应面转 180°（半圈）</td><td>转半圈</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ======== 右侧面板 ======== -->
+<div class="panel-r">
+
+  <!-- 公式体系速查 -->
+  <div class="block">
+    <div class="block-title blue">公式体系速查 · blddb</div>
+    <div class="linklist">
+      <a class="linkrow" href="/tools/3bld/blddb/corner.html"><span class="lr-name">角块 3-Style<small>字母对 → 算法（梦魇/平衡/原子/人造）</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/edge.html"><span class="lr-name">棱块 3-Style<small>字母对 → 算法</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/2e2e.html"><span class="lr-name">2e2e<small>双边翻转类</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/2flips.html"><span class="lr-name">棱翻转 2flips<small>单棱翻色</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/twists.html"><span class="lr-name">角扭转 twists<small>单角扭向</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/ltct.html"><span class="lr-name">LTCT<small>左手角-角交换</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/ltef.html"><span class="lr-name">LTEF<small>左手棱-角交换</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/parity.html"><span class="lr-name">奇偶 Parity<small>奇偶修正算法</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/blddb/index.html"><span class="lr-name">公式库总览<small>全部模块入口</small></span><span class="lr-arrow">↗</span></a>
+    </div>
+  </div>
+
+  <!-- 训练工具直达 -->
+  <div class="block">
+    <div class="block-title green">训练工具直达</div>
+    <div class="linklist">
+      <a class="linkrow" href="/tools/bldtrainer/"><span class="lr-name">三盲读码还原<small>读码→还原全流程</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/bld-trainer/"><span class="lr-name">记忆编码训练<small>字母编码强化</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/bldscramble/"><span class="lr-name">盲拧打乱生成<small>3×3 / 2×2</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/scramble-uf/"><span class="lr-name">UF 组连拧<small>专项连拧训练</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/scramble-ur/"><span class="lr-name">UR 组连拧<small>专项连拧训练</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/corner-trainer/"><span class="lr-name">角块编码训练<small>角块缓冲练习</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/edge-trainer/"><span class="lr-name">棱块编码训练<small>棱块缓冲练习</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/3bld/association.html"><span class="lr-name">联想词出题器<small>20组×6 可打印</small></span><span class="lr-arrow">↗</span></a>
+      <a class="linkrow" href="/tools/practice/"><span class="lr-name">练习纸生成器<small>通用题纸打印</small></span><span class="lr-arrow">↗</span></a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ======== 底部三栏 ======== -->
+<div class="panel-bottom">
+
+  <div class="block">
+    <div class="block-title teal">角块编码</div>
+    <p style="font-size:13px;color:var(--fg-3);margin-bottom:12px">24 字母体系下的角块位置与缓冲编码，配套答题与训练。</p>
+    <a class="linkrow" href="/tools/corner-trainer/"><span class="lr-name">角块编码训练<small>缓冲编码练习 + 一屏适配</small></span><span class="lr-arrow">↗</span></a>
+  </div>
+
+  <div class="block">
+    <div class="block-title blue">棱块编码</div>
+    <p style="font-size:13px;color:var(--fg-3);margin-bottom:12px">24 字母体系下的棱块位置与缓冲编码，三列网格适配手机。</p>
+    <a class="linkrow" href="/tools/edge-trainer/"><span class="lr-name">棱块编码训练<small>缓冲编码练习 + 一屏适配</small></span><span class="lr-arrow">↗</span></a>
+  </div>
+
+  <div class="block">
+    <div class="block-title green">难度分级</div>
+    <p style="font-size:13px;color:var(--fg-3);margin-bottom:12px">每条公式按加权分映射到 0~100，划 L1~L5 五档，训练有的放矢。</p>
+    <a class="linkrow" href="/tools/3bld/level.html"><span class="lr-name">三盲难度分级标准<small>算法 + 样例 + FAQ</small></span><span class="lr-arrow">↗</span></a>
+  </div>
+
+</div>
+
+</div>
+
+<p style="text-align:center;color:var(--fg-3);font-size:12px;margin-top:18px">三阶盲拧知识地图 · 与二阶盲拧知识地图并列 · 所有工具与公式库支持深色 / 浅色主题</p>
+
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>
