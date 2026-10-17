@@ -1,19 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="620" height="520" viewBox="0 0 620 520" preserveAspectRatio="xMidYMid meet" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif">
-<rect x="0" y="0" width="620" height="520" rx="12" fill="#11151f"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="552" viewBox="0 0 620 552" preserveAspectRatio="xMidYMid meet" font-family="'Noto Sans SC','Microsoft YaHei',sans-serif">
+<rect x="0" y="0" width="620" height="552" rx="12" fill="#11151f"/>
 <text x="24" y="42" fill="#eef2f8" font-size="22" font-weight="800">二阶魔方角块编码图</text>
-<text x="24" y="66" fill="#9fb0c8" font-size="13">24 字母体系 · 标准展开图</text>
+<text x="24" y="68" fill="#9fb0c8" font-size="13">24 字母体系 · 标准展开图</text>
 
 <!-- 贴纸尺寸：70×70，间距 2；每个面 2×2 -->
+<!-- 整体下移 26px，给标题 + 副标题留出独立空间（原副标题与 U 面贴纸重叠） -->
+<g transform="translate(0,26)">
+
 <!-- 黄色 U 面（顶） -->
 <g id="u-face">
   <rect x="148" y="62" width="70" height="70" rx="2" fill="#fff100" stroke="#000" stroke-width="2"/>
-  <text x="183" y="108" fill="#000" font-size="36" font-weight="800" text-anchor="middle">A</text>
+  <text x="183" y="108" fill="#000" font-size="36" font-weight="800" text-anchor="middle">D</text>
   <rect x="220" y="62" width="70" height="70" rx="2" fill="#fff100" stroke="#000" stroke-width="2"/>
-  <text x="255" y="108" fill="#000" font-size="36" font-weight="800" text-anchor="middle">J</text>
+  <text x="255" y="108" fill="#000" font-size="36" font-weight="800" text-anchor="middle">G</text>
   <rect x="148" y="134" width="70" height="70" rx="2" fill="#fff100" stroke="#000" stroke-width="2"/>
-  <text x="183" y="180" fill="#000" font-size="36" font-weight="800" text-anchor="middle">D</text>
+  <text x="183" y="180" fill="#000" font-size="36" font-weight="800" text-anchor="middle">A</text>
   <rect x="220" y="134" width="70" height="70" rx="2" fill="#fff100" stroke="#000" stroke-width="2"/>
-  <text x="255" y="180" fill="#000" font-size="36" font-weight="800" text-anchor="middle">G</text>
+  <text x="255" y="180" fill="#000" font-size="36" font-weight="800" text-anchor="middle">J</text>
 </g>
 
 <!-- 蓝色 L 面（左） -->
@@ -74,5 +77,7 @@
   <text x="183" y="472" fill="#000" font-size="36" font-weight="800" text-anchor="middle">O</text>
   <rect x="220" y="426" width="70" height="70" rx="2" fill="#fff" stroke="#000" stroke-width="2"/>
   <text x="255" y="472" fill="#000" font-size="36" font-weight="800" text-anchor="middle">R</text>
+</g>
+
 </g>
 </svg>
