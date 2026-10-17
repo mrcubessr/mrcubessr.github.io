@@ -9,6 +9,40 @@
 
 ---
 
+## [2.0.16] — 2026-10-17（功能 · 盲拧角块/棱块训练页手机端一屏适配 + 独立 PWA；OLL 桌面端 57 卡一屏铺满）
+
+用户诉求：「角块训练和棱块训练这两个页面做手机端优化，做成 PWA 形式，手机端在一个页面完整显示全部内容、不需要上下滚动，像小程序一样」。
+
+### 盲拧训练页一屏适配（`tools/corner-trainer/` + `tools/edge-trainer/`）
+
+两页为同源克隆（同 id、同函数名，`drawCorner` ↔ `drawEdge`，canvas 同 id）。改动前**两页都完全没有布局引擎**（无 `innerHeight` / `@media` / `fitBoard`），纯文档流：角块页手机端溢出 259px、棱块页溢出 825px（iPhone SE），题图被挤出屏幕。
+
+- **新增一屏适配层**（`body.ct-single-screen` / `body.et-single-screen`，作用域仅本页）：
+  - body 锁定 `100dvh` + `overflow:hidden`，**页面自身不再出现纵向滚动条**（用 dvh 而非 innerHeight —— 移动端地址栏收放时 innerHeight 会跳）；
+  - 单屏模式下**隐藏页脚**（130px + 64px 上边距 = 194px，占原溢出 75%，是最大头）；
+  - **canvas 按容器可用空间等比缩放并重绘**：两页的 `drawCorner` / `drawEdge` 内部都按 `canvas.width/height` 计算（`Math.min(W,H)*k`），所以改尺寸后重绘即自适应、不变形；退出单屏模式时还原原始 340×300 / 340×240，避免桌面端题图被拉伸；
+  - 字号与间距全部使用 `clamp(..., vh, ...)` 随视口高缩放，**不写死像素断点**，iPhone SE 到 iPad 竖屏通用；
+  - **编码对照表改网格排布**：角块 6 组改两列（6 行 → 3 行，280px → 97px），棱块 12 组改三列（12 行 → 4 行）；是否启用网格**由「高度装不装得下」决定**（早期版本按 `innerWidth` 阈值判断方向错了 —— iPad 竖屏 768 宽但棱块单列 12 行装不下）。实在放不下才退化为表内滚动。
+  - 错题列表 / 练习记录同理：超高时容器内滚动，页面本身不滚。
+- **新增独立 PWA**：每页各自 `manifest.webmanifest` + `sw.js`，可「添加到主屏幕」像小程序一样全屏离线打开；补 `theme-color` / `apple-mobile-web-app-capable` / `mobile-web-app-capable` / `apple-mobile-web-app-status-bar-style` / `apple-touch-icon` / `viewport-fit=cover`。
+- **修复浅色主题下错题行看不清**：`.review-item` 字色 `var(--surface-2)`（浅灰）压在 `--red-soft` 淡红底上几乎不可读，改为 `var(--fg)`。
+
+### OLL 桌面端 57 卡一屏铺满（`tools/cfop/oll-trainer.html`）
+
+- **根因**：`MIN_CELL = 132` 被当作**硬下限**，而 OLL 有 57 张卡（PLL 仅 21 张），在 1440×900 可用区（1134×496）下任何列数都排不下 → 所有方案被否决 → 落到 `fallback(fitsH:false)` → `overflowY` 不设 `hidden` → **整页溢出 967px**。
+- **修复**：区分「理想尺寸 `minCell`」与「硬下限 `minCellFloorFor(n, isNarrow)`」（>40 张时降至 88）；先按理想值搜一轮，失败再按硬下限重搜（**列数上限须按本轮下限重算**，沿用旧上限等于白搜）。
+- **卡片减负**：公式行移入练习浮层（`title` 与浮层本就含子分组与全部公式，不丢信息），保留「预览图 + 名称 + 子分组 + 成绩」；子分组移到名称下方独立一行；名称字号由 JS 按实际卡宽反推（`--oll-name-fs`），否则双位数「OLL 10」在 ~100px 卡里被裁成「OLL 1(」。
+- **卡片数 > 40 时隐藏页脚**：页脚 181px 会吃掉 43% 的视口高度，使可用高度从 613px 掉到 496px、每张卡被压到 72px（预览图消失）—— 这是最大杠杆。
+- 结果：溢出 **967px → 2px**，10 列 × 6 行、每格 103px，**OLL 1~57 全部完整可读**；PLL 页（21 张）完全不受影响。
+
+### 三个 PWA 作用域隔离
+`sw.js`（`fto-timer-v14`，scope `/`）· `tools/corner-trainer/sw.js`（`fto-corner-v1`）· `tools/edge-trainer/sw.js`（`fto-edge-v1`）。各 SW 激活时**只清理自己前缀**的旧缓存，绝不误删其他 PWA；`install` 阶段逐个 `cache.add` 并吞掉个别错误（`cache.addAll` 会因单个 404 整体失败）。
+
+### 验证
+`verify_blind_trainers_mobile.py`：两页 × 4 视口（375/390/430/768）× 4 面板（首页/答题/结果/记录）均 `docH == innerH` 零溢出、对照表齐全且无需滚动、canvas 未超容器且保持原始比例、答题流程走通、桌面端不启用单屏且原布局不变、9 项 PWA 标签齐备、三个 SW 缓存名互不相同 —— **全部通过**。
+
+---
+
 ## [2.0.15] — 2026-10-16（功能 · 看板卡片按组别上底色，与矩阵总览统一配色口径）
 
 用户提出练习总览应与矩阵总览配色一致、**按组别排列要有底色**。此前 v2.0.14 把快慢改为字色后，底色层只剩「是否练过」，组别信息在看板上完全丢失（矩阵则靠每格左缘的组色条 + 未练格的组色淡底保留）。本次补齐，三页同步（`tools/4bld/wing.html` 翼棱、`tools/4bld/index.html` 440 中心块、`tools/scramble-uf440/index.html` UF440）。
