@@ -9,6 +9,26 @@
 
 ---
 
+## [2.0.22] — 2026-10-18（功能 · 全站 PWA 化：所有页面可离线、可安装）
+
+用户诉求：「整站所有的页面都要做这个 PWA 的优化」。此前全站 232 个页面里只有 3 个（计时器 / 角块训练 / 棱块训练）有 manifest 与 Service Worker，其余 229 页完全没有 PWA 能力。
+
+- **根 `sw.js` 由「只服务计时器」升级为「服务全站」**：原 `isOurConcern()` 只放行 `/tools/timer/` + 预缓存清单，现接管整个同源 GET 并分策略 ——
+  - ① 导航请求（页面 HTML）**network-first**：在线永远拿最新，离线依次回退「本页缓存 → `/offline.html`」；
+  - ② 静态资源（css/js/图片/字体/数据）**stale-while-revalidate**：秒开 + 后台静默更新；
+  - ③ `/api/`、`/vercel-proxy/api/`、非 GET、跨域一律不接管。
+- **修掉一个会误伤其他 PWA 的隐患**：`activate` 原逻辑是「删除所有名字不等于自己的缓存」，而 `caches` 是同源共享的 —— 会把 `fto-corner-v1` / `fto-edge-v1` 一起清掉，导致那两个独立 PWA 离线失效。现改为**按前缀 `fto-timer-` 过滤**后再删。
+- **新增独立运行时缓存** `fto-site-rt-v1`（与版本化外壳缓存分开），并做容量裁剪（上限 300 条，超限淘汰最早写入），避免全站缓存无上限膨胀；外壳缓存仍按版本整批作废。
+- **预缓存补漏**：`site-shell.css` / `site-wide.css` / `palettes.css` 三者由 `site-nav.js` 运行时注入、不在任何静态 HTML 里，此前从未被预缓存，离线首屏会缺样式；现补进 `APP_SHELL` 并加 `/manifest.webmanifest`。`install` 改为逐个 `cache.add().catch()`（原 `addAll` 会因单个 404 整批失败、SW 直接装不上）。
+- **manifest 拆分**：根 `/manifest.webmanifest` 改为**站点级**（`魔方先生SSR魔方训练中心`，scope `/`、start_url `/`）；计时器那份独立为 `/tools/timer/manifest.webmanifest`（保留「魔方先生计时器」独立 PWA 身份与 start_url），timer 页 href 同步改指。
+- **集中注入（覆盖 199 个已加载 `site-nav.js` 的页面）**：新增 `ensureManifest()`（页面已自带 manifest 则跳过，避免与 3 个专属 PWA 重复声明）+ `ensureServiceWorker()`（仅 https 注册；corner/edge 两目录因有专属 SW 而跳过，不重复注册根 SW）。
+- **`tools/3bld/blddb/` 9 个公式库页面**（未加载 `site-nav.js`）补轻量 manifest link + SW 注册片段，不改版式、保留 BOM。
+- 缓存版本 `fto-timer-v15` → **`fto-timer-v16`**。
+
+验证：`node --check` 通过；线上两级验证（字节级比对 + Playwright 真机冒烟：非计时器页已注入站点 manifest、根 SW 注册成功、`set_offline` 后重载仍能打开）。
+
+---
+
 ## [2.0.21] — 2026-10-18（修复 · 盲拧训练连续两题不考同一角块/棱）
 
 用户反馈练习时「连续两道题有时会考同一个角块（同一考点）」。根因：原 `genQuiz()` 每题的角块/棱索引 `ci`/`ei` 都是独立随机，理论上会连续重复（6 个角块里约 1/6 概率连号）。

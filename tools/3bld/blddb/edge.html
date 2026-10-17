@@ -9,6 +9,13 @@
   <link rel="icon" href="images/logo.svg" type="image/x-icon" />
   <link rel="apple-touch-icon" href="images/logo.png" />
   <meta name="google-site-verification" content="s3hE2D_rJuuUUj4rVvWBADMHqHqiSM-bQh80mnwzDMA" />
+<link rel="manifest" href="/manifest.webmanifest">
+<script>
+/* 全站 PWA：本页不加载 site-nav.js，故在此直接声明 manifest 并注册根 sw.js */
+if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function () {});
+}
+</script>
 </head>
 <body>
   <div class="allscreen">

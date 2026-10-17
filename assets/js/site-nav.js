@@ -359,6 +359,40 @@
   }
 
   /* ---------------------------------------------------------
+     全站 PWA manifest：集中在公共脚本注入，避免逐页改 <head>。
+     ⚠️ 已有 rel=manifest 的页面不覆盖 —— 计时器、角块训练、棱块训练
+     三页各自声明了专属 manifest（三个独立 PWA 作用域），
+     重复声明两个 manifest 会让浏览器取第一个、行为不确定。
+     根 manifest 为站点级（scope '/'），计时器那份在 /tools/timer/。
+     --------------------------------------------------------- */
+  function ensureManifest() {
+    if (document.querySelector('link[rel="manifest"]')) return;
+    var link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = '/manifest.webmanifest';
+    document.head.appendChild(link);
+  }
+
+  /* ---------------------------------------------------------
+     全站 Service Worker 注册（根 sw.js，作用域 '/'）。
+     ⚠️ 两个跳过条件：
+     ① 非 https 不注册 —— file:// 下 Chrome 直接抛 SecurityError；
+     ② corner-trainer / edge-trainer 有各自作用域的专属 SW，
+        这两目录的页面由「作用域更长」的专属 SW 接管，不重复注册根 SW。
+     --------------------------------------------------------- */
+  var SW_SKIP_PREFIX = ['/tools/corner-trainer/', '/tools/edge-trainer/'];
+
+  function ensureServiceWorker() {
+    if (location.protocol !== 'https:') return;
+    if (!('serviceWorker' in navigator)) return;
+    for (var i = 0; i < SW_SKIP_PREFIX.length; i++) {
+      if (location.pathname.indexOf(SW_SKIP_PREFIX[i]) === 0) return;
+    }
+    /* 注册失败（旧浏览器 / 隐私模式）不能影响页面本身功能 */
+    navigator.serviceWorker.register('/sw.js').catch(function () {});
+  }
+
+  /* ---------------------------------------------------------
      配色方案层：运行时注入 assets/css/palettes.css
      6 套配色（data-palette ↔ localStorage['mf_palette']）由主题按钮旁的
      「配色方案」面板切换，与明度（data-theme）正交。
@@ -458,6 +492,8 @@
     ensureShellCSS();
     ensureWideCSS();
     ensureFavicon();
+    ensureManifest();
+    ensureServiceWorker();
     initAriaState(document);
     var placeholder = document.querySelector('[data-site-nav]');
     if (placeholder && !document.getElementById('siteNav')) {

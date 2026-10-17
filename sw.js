@@ -1,8 +1,20 @@
 /*
- * 魔方计时器 PWA Service Worker
- * 放在站点根目录，作用域为 '/'，以便缓存计时器依赖的跨路径资源
- * （/assets/*、/tools/cfop/* 等 GitHub Pages 无法用 Service-Worker-Allowed 头放宽作用域）。
- * 控制范围刻意只覆盖「计时器应用壳 + 其声明的依赖」，不接管全站其他页面。
+ * 魔方训练站 · 全站 PWA Service Worker
+ * 放在站点根目录，作用域为 '/'。
+ *
+ * 【2026-10-18 改造：从「只服务计时器」升级为「服务全站」】
+ * 旧版用 isOurConcern() 把接管范围限制在 /tools/timer/ + 预缓存清单，
+ * 于是除计时器外的 200+ 个页面完全没有离线能力与资源缓存。
+ * 现改为接管整个同源 GET 请求，并按资源类型分策略：
+ *   ① 导航请求（页面 HTML）：network-first —— 在线永远拿最新，离线才回退缓存/兜底页；
+ *   ② 静态资源（css/js/图片/字体/数据）：stale-while-revalidate —— 秒开 + 后台静默更新；
+ *   ③ 其余（含 /api/ 代理、非 GET、跨域）：不接管，直接放行。
+ *
+ * ⚠️ 作用域隔离（勿改）：站内共 3 个 PWA，各自独立作用域 ——
+ *   根 sw.js（本文件，scope '/'）、tools/corner-trainer/sw.js（scope 该目录）、
+ *   tools/edge-trainer/sw.js（scope 该目录）。
+ *   对 corner/edge 目录下的页面，由「作用域更长」的专属 SW 接管，本文件不冲突。
+ *   因此 activate 清理缓存必须按前缀过滤，绝不能无差别删除其他 PWA 的缓存。
  */
 /* v8（2026-10-10）：修复「导入本站 JSON 备份」整份失败 + csTimer 往返导入不幂等——
    ① parseOwnJson 的分组容器写死 {"3x3":[],"2x2":[]} 缺 bld 键，备份里只要含三盲
@@ -32,9 +44,19 @@
    已整合进中心块页（数据作参考公式源），删除独立角心页并移除对应导航项 → 再递增。 */
 /* v15（2026-10-18）：site-nav.js 重组导航（拆出「高阶盲拧(4×4)」组、三盲训练去重改名、
    新增三阶知识地图入口、教程下加 PLL/OLL 训练、删外链组）→ 再递增。 */
-const CACHE = 'fto-timer-v15';
+/* v16（2026-10-18）：全站 PWA 化 —— 本文件由「只服务计时器」改为接管全站；
+   activate 改为按前缀清理（不再误删 corner/edge 两个独立 PWA 的缓存）；
+   APP_SHELL 补进 site-shell.css / site-wide.css / palettes.css（三者由 site-nav.js
+   运行时注入，不在任何静态 HTML 里，此前从未被预缓存，离线首屏会缺样式）→ 再递增。 */
+const CACHE = 'fto-timer-v16';
 
-// 预缓存清单：计时器页本身 + 它直接依赖的全部站点级资源
+/* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
+   分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate
+   后台更新即可，不需要跟着版本号一起丢；且裁剪容量时不会误删外壳。 */
+const RT_CACHE = 'fto-site-rt-v1';
+const RT_MAX = 300; // 运行时缓存条目上限，超出后淘汰最早写入的
+
+// 预缓存清单：计时器应用壳 + 全站共享的站点级资源（注入型 CSS 也在内）
 const APP_SHELL = [
   '/tools/timer/',
   '/tools/timer/index.html',
@@ -52,25 +74,41 @@ const APP_SHELL = [
   '/assets/css/site-nav.css',
   '/assets/css/components.css',
   '/assets/css/site-layout.css',
+  '/assets/css/site-shell.css',
+  '/assets/css/site-wide.css',
+  '/assets/css/palettes.css',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
   '/assets/icons/icon-maskable-512.png',
-  '/offline.html'
+  '/offline.html',
+  '/manifest.webmanifest'
 ];
 
-const SHELL_SET = new Set(APP_SHELL);
+/* 不接管的路径前缀：这些是动态接口，缓存会返回脏数据 */
+const NO_CACHE_PREFIX = ['/api/', '/vercel-proxy/api/'];
 
-// 仅接管「计时器目录」及其声明的依赖，避免影响全站其他页面
-function isOurConcern(pathname) {
-  if (pathname.startsWith('/tools/timer/')) return true;
-  if (SHELL_SET.has(pathname)) return true;
+/* 按扩展名判定为「静态资源」→ 走 stale-while-revalidate */
+const STATIC_RE = /\.(?:css|js|mjs|json|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|otf|mp3|mp4|wasm)$/i;
+
+function isNoCache(pathname) {
+  for (var i = 0; i < NO_CACHE_PREFIX.length; i++) {
+    if (pathname.indexOf(NO_CACHE_PREFIX[i]) === 0) return true;
+  }
   return false;
 }
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE)
-      .then(function (cache) { return cache.addAll(APP_SHELL); })
+      .then(function (cache) {
+        /* 逐个 add 并吞掉单个失败：cache.addAll 会因任意一个 404 整批失败，
+           导致整个 SW 装不上、PWA 完全不可用（corner/edge 的 SW 已采用此写法）。 */
+        return Promise.all(APP_SHELL.map(function (u) {
+          return cache.add(u).catch(function (e) {
+            console.warn('[sw] precache skip', u, e && e.message);
+          });
+        }));
+      })
       .then(function () { return self.skipWaiting(); })
   );
 });
@@ -80,12 +118,33 @@ self.addEventListener('activate', function (event) {
     caches.keys()
       .then(function (keys) {
         return Promise.all(
-          keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); })
+          keys
+            /* ⚠️ 必须按前缀过滤：caches 是同源共享的，无差别删除会把
+               tools/corner-trainer/sw.js（fto-corner-v1）与
+               tools/edge-trainer/sw.js（fto-edge-v1）的缓存一起清掉，
+               导致那两个独立 PWA 离线失效。 */
+            .filter(function (k) { return k.indexOf('fto-timer-') === 0 && k !== CACHE; })
+            .map(function (k) { return caches.delete(k); })
         );
       })
       .then(function () { return self.clients.claim(); })
   );
 });
+
+function trimRuntime(cache) {
+  /* 容量裁剪：只在超限时才遍历，避免每次请求都查全量 key */
+  return cache.keys().then(function (keys) {
+    if (keys.length <= RT_MAX) return;
+    var drop = keys.slice(0, keys.length - RT_MAX);
+    return Promise.all(drop.map(function (k) { return cache.delete(k); }));
+  }).catch(function () { /* 裁剪失败不影响主流程 */ });
+}
+
+function putRuntime(req, res) {
+  caches.open(RT_CACHE).then(function (c) {
+    c.put(req, res).then(function () { return trimRuntime(c); });
+  }).catch(function () {});
+}
 
 self.addEventListener('fetch', function (event) {
   var req = event.request;
@@ -93,38 +152,39 @@ self.addEventListener('fetch', function (event) {
 
   var url;
   try { url = new URL(req.url); } catch (e) { return; }
-  if (url.origin !== self.location.origin) return; // 不碰跨域（云同步等）
-  if (!isOurConcern(url.pathname)) return;          // 不接管非计时器资源
+  if (url.origin !== self.location.origin) return;   // 不碰跨域（云同步等）
+  if (isNoCache(url.pathname)) return;                // 动态接口放行
 
-  // 导航请求：network-first，离线时回退缓存的计时器页，再回退 offline 兜底页
+  // ① 导航请求：network-first —— 在线取最新，离线依次回退「本页缓存 → offline 兜底」
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
         .then(function (res) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(req, copy); });
+          if (res && res.status === 200) putRuntime(req, res.clone());
           return res;
         })
         .catch(function () {
           return caches.match(req)
-            .then(function (r) { return r || caches.match('/tools/timer/index.html'); })
-            .then(function (r) { return r || caches.match('/offline.html'); });
+            .then(function (r) { return r || caches.match('/offline.html'); })
+            .then(function (r) { return r || new Response('离线', { status: 503 }); });
         })
     );
     return;
   }
 
-  // 静态资源：cache-first，命中后立即返回，同时后台拉取新版本更新缓存（stale-while-revalidate）
-  event.respondWith(
-    caches.match(req).then(function (cached) {
-      var network = fetch(req).then(function (res) {
-        if (res && res.status === 200) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(req, copy); });
-        }
-        return res;
-      }).catch(function () { return cached; });
-      return cached || network;
-    })
-  );
+  // ② 静态资源：stale-while-revalidate —— 命中即返回，同时后台拉新版本更新缓存
+  if (STATIC_RE.test(url.pathname) || url.pathname.indexOf('/assets/') === 0) {
+    event.respondWith(
+      caches.match(req).then(function (cached) {
+        var network = fetch(req).then(function (res) {
+          if (res && res.status === 200) putRuntime(req, res.clone());
+          return res;
+        }).catch(function () { return cached; });
+        return cached || network;
+      })
+    );
+    return;
+  }
+
+  // ③ 其余同源 GET（无扩展名的目录请求等）：不接管，走浏览器默认
 });
