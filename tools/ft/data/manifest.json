@@ -1,7 +1,7 @@
 {
  "systems": {
   "corner": {
-   "name": "三盲 · 角块",
+   "name": "三阶 · 角块",
    "buffers": 24,
    "cellsPerBuffer": 378,
    "groups": 8,
@@ -13,7 +13,7 @@
    "desc": "24 字母色组体系 · 每角 3 个字母 · blddb 噩梦风格"
   },
   "edge": {
-   "name": "三盲 · 棱块",
+   "name": "三阶 · 棱块",
    "buffers": 24,
    "cellsPerBuffer": 440,
    "groups": 12,
@@ -37,7 +37,7 @@
    "desc": "24 个翼块 · blddb 人造风格（旋转派生补全非 A 缓冲）"
   },
   "center": {
-   "name": "四阶 · 中心块",
+   "name": "高阶 · 角心",
    "buffers": 24,
    "cellsPerBuffer": 506,
    "groups": 6,
@@ -46,7 +46,31 @@
    "rot": 6552,
    "excel": 455,
    "miss": 0,
-   "desc": "24 个中心块 · blddb 人造风格 + 你的 Excel 公式表"
+   "desc": "24 个角心块 · blddb 人造风格 + 你的 Excel 公式表"
+  },
+  "tcenter": {
+   "name": "高阶 · 棱心",
+   "buffers": 24,
+   "cellsPerBuffer": 506,
+   "groups": 6,
+   "lettersPerGroup": 4,
+   "direct": 4782,
+   "rot": 7362,
+   "excel": 0,
+   "miss": 0,
+   "desc": "24 个棱心 · 字母同棱块 · blddb 人造风格（旋转派生补全）"
+  },
+  "midge": {
+   "name": "高阶 · 中棱",
+   "buffers": 24,
+   "cellsPerBuffer": 440,
+   "groups": 12,
+   "lettersPerGroup": 2,
+   "direct": 2640,
+   "rot": 7920,
+   "excel": 0,
+   "miss": 0,
+   "desc": "12 个中棱 × 2 取向 · 字母同棱块 · blddb 人造风格"
   }
  }
 }

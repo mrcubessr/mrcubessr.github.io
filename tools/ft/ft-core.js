@@ -1,16 +1,17 @@
 /* ft-core.js — 公式训练器（tools/ft）共用内核
  *
- * 覆盖页面：index.html（统一入口）、corner/edge/center/wing.html（四个体系训练页）、
- *           special.html（特殊情形查阅）。
+ * 覆盖页面：index.html（统一入口）、corner/edge/center/wing/tcenter/midge.html
+ *           （六个体系训练页）、special.html（特殊情形查阅）。
  * 本文件只管「数据与体系」，不管页面形式（矩阵/看板/计时器在 ft-page.js + TrainMatrix）。
  *
  * 职责：
- *   ① 体系注册表（三盲角块 / 三盲棱块 / 四阶中心块 / 高阶翼棱）
+ *   ① 体系注册表（三盲角块 / 三盲棱块 / 高阶角心 / 高阶翼棱 / 高阶棱心 / 高阶中棱）
  *   ② 按缓冲懒加载 data/<sys>-<BUF>.json（内存缓存 + 进行中去重，切缓冲不重复请求）
  *   ③ 缓冲选择记忆（localStorage ft_buf_<sys>，每页记住上次用的缓冲）
  *   ④ 路线 C 手动补全 / 参考公式切换（localStorage ft_swaps_<sys>）
  *      —— 与 4bld 旧页同一套交互：点备选即切换、✎ 手动输入、恢复默认
  *   ⑤ 派生展示名（组名 / 来源标签 / 合法格判定）
+ *   ⑥ 入口页分组字段 section：'3bld'（三阶）/ 'big'（高阶）；二阶盲拧为预留，暂无数据
  *
  * 数据格式（gen-data.py 生成，见该文件头注释）：
  *   { sys, buf, bufPos, order[23], pos{24}, groups, names?, blank[],
@@ -27,22 +28,25 @@ window.FT = (function () {
                  'Q','R','S','T','W','X','Y','Z'];
 
   /* ============ 体系注册表 ============ */
-  /* cellsPerBuffer 等数字与 data/manifest.json 一致（改数据后同步改这里或跑 gen-data.py 对账） */
+  /* cellsPerBuffer 等数字与 data/manifest.json 一致（改数据后同步改这里或跑 gen-data.py 对账）
+     section：入口页分组用 —— '3bld' 三阶 / 'big' 高阶（二阶盲拧预留，暂无注册项） */
   var SYSTEMS = {
     corner: {
       id: 'corner', name: '三盲 · 角块', short: '角块',
       page: 'corner.html',
-      defBuf: 'A',                 // blddb 噩梦风格默认缓冲
+      section: '3bld',
+      defBuf: 'J',                 // UFR 角（最常用缓冲）
       cellsPerBuffer: 378, groups: 8, lettersPerGroup: 3,
       kind: 'same-piece',          // 三字母须分属三块才合法（角/棱）
       letterDesc: '24 字母色组体系',
       pieceDesc: '每角 3 个字母',
       srcDesc: 'blddb 噩梦风格',
-      desc: '三阶盲拧角块 3-style：选缓冲后，其余两角的所有排列组合直接进矩阵，点格即练。'
+      desc: '三阶盲拧角块 3-style：默认缓冲 UFR，其余两角的所有排列组合直接进矩阵，点格即练。'
     },
     edge: {
       id: 'edge', name: '三盲 · 棱块', short: '棱块',
       page: 'edge.html',
+      section: '3bld',
       defBuf: 'A',
       cellsPerBuffer: 440, groups: 12, lettersPerGroup: 2,
       kind: 'same-piece',
@@ -52,19 +56,21 @@ window.FT = (function () {
       desc: '三阶盲拧棱块 3-style：与角块同构，24 个缓冲任选，440 种情况一屏铺开。'
     },
     center: {
-      id: 'center', name: '四阶 · 中心块', short: '中心块',
+      id: 'center', name: '高阶 · 角心', short: '角心',
       page: 'center.html',
+      section: 'big',
       defBuf: 'D',                 // 你的 Excel 公式表缓冲 Ubl
       cellsPerBuffer: 506, groups: 6, lettersPerGroup: 3,
       kind: 'self-only',           // 每个字母自成一块，仅同格非法（中心/翼棱）
       letterDesc: '24 个中心块',
       pieceDesc: '每中心块 1 个字母',
       srcDesc: 'blddb 人造风格 + 你的 Excel 公式表',
-      desc: '四阶盲拧中心块：缓冲 D 用你的公式表，其余 23 个缓冲由 blddb 抓取 + 旋转派生补全。'
+      desc: '四阶/五阶盲拧角心（X-Center）：缓冲 D 用你的公式表，其余 23 个缓冲由 blddb 抓取 + 旋转派生补全。'
     },
     wing: {
       id: 'wing', name: '高阶 · 翼棱', short: '翼棱',
       page: 'wing.html',
+      section: 'big',
       defBuf: 'A',
       cellsPerBuffer: 506, groups: 12, lettersPerGroup: 2,
       kind: 'self-only',
@@ -72,6 +78,30 @@ window.FT = (function () {
       pieceDesc: '每翼块 1 个字母',
       srcDesc: 'blddb 人造风格（旋转派生补全非 A 缓冲）',
       desc: '高阶盲拧翼棱：含 G/H（UR 棱）情况，非 A 缓冲由整魔方旋转共轭派生，覆盖率 100%。'
+    },
+    tcenter: {
+      id: 'tcenter', name: '高阶 · 棱心', short: '棱心',
+      page: 'tcenter.html',
+      section: 'big',
+      defBuf: 'A',
+      cellsPerBuffer: 506, groups: 6, lettersPerGroup: 4,
+      kind: 'self-only',
+      letterDesc: '24 个棱心（T 中心）',
+      pieceDesc: '每棱心 1 个字母',
+      srcDesc: 'blddb 人造风格（旋转派生补全非 A 缓冲）',
+      desc: '高阶盲拧棱心（T 中心）：每条棱正中的那片，与翼棱同构；按面分 6 组，24 个缓冲任选。'
+    },
+    midge: {
+      id: 'midge', name: '高阶 · 中棱', short: '中棱',
+      page: 'midge.html',
+      section: 'big',
+      defBuf: 'A',
+      cellsPerBuffer: 440, groups: 12, lettersPerGroup: 2,
+      kind: 'same-piece',
+      letterDesc: '24 个中棱位',
+      pieceDesc: '每棱 2 个字母（同槽不同向）',
+      srcDesc: 'blddb 人造风格（旋转派生补全非 A 缓冲）',
+      desc: '高阶盲拧中棱：每条棱正中间那片，UF/FU 同槽不同向，与三阶棱块同构，440 种情况。'
     }
   };
 
@@ -169,16 +199,17 @@ window.FT = (function () {
   function originLabel(o) { return ORIGIN_LABEL[o] || o || '—'; }
 
   /* ============ 组名 / 位置名 ============ */
-  /* 角块有中文色组名（names）；棱/翼棱取位置名前两字符（UF 棱）；中心块取面字母（U 面）。 */
+  /* 角块有中文色组名（names）；棱/翼棱/中棱取位置名前两字符（UF 棱）；
+     中心块/棱心取面字母（U 面）——棱心按面分 6 组，位置名前缀即面字母。 */
   function groupLabel(sys, data, gi) {
     var g = (data && data.groups && data.groups[gi]) || [];
     if (!g.length) { return '第 ' + (gi + 1) + ' 组'; }
     var tag = '';
     if (sys === 'corner' && data.names && data.names[gi]) {
       tag = data.names[gi];
-    } else if (sys === 'wing' || sys === 'edge') {
+    } else if (sys === 'wing' || sys === 'edge' || sys === 'midge') {
       tag = (data.pos[g[0]] || '').slice(0, 2) + ' 棱';
-    } else if (sys === 'center') {
+    } else if (sys === 'center' || sys === 'tcenter') {
       tag = (data.pos[g[0]] || '').slice(0, 1) + ' 面';
     }
     return '第 ' + (gi + 1) + ' 组' + (tag ? ' · ' + tag : '') + '（' + g.join(' ') + '）';
@@ -215,6 +246,88 @@ window.FT = (function () {
     return !!(data && data.blank && data.blank.indexOf(code) >= 0);
   }
 
+  /* ============ 迁移来的脏 swaps 清理 ============ */
+  /* 旧页「选默认第 1 条参考公式」也会写 selections，迁过来等于默认主公式的条目
+     应删掉（ft 语义：swaps 里有该 code = 换过公式，金边标记）。数据加载后调用。 */
+  function normalizeSwaps(sys, data) {
+    var swaps = getSwaps(sys);
+    var changed = false;
+    Object.keys(swaps).forEach(function (code) {
+      if (!baseAlgOf(data, code) || swaps[code] === baseAlgOf(data, code)) {
+        delete swaps[code];
+        changed = true;
+      }
+    });
+    if (changed) { saveSwaps(sys, swaps); }
+    return swaps;
+  }
+
+  /* ============ 旧页练习数据自动迁移（v2.0.24 一次性） ============ */
+  /* 旧页暂留但入口已移除；首次打开任意 ft 页时把成绩/公式选择搬进新键：
+     - tools/scramble-uf440/（UF440 公式训练）：alg440_times / alg440_sessions / uf_ref_selections
+       旧码两字母（'CE'）→ 新 edge 码 'A'+两字母（'ACE'，edge 默认缓冲 A = UF，与旧页同一套公式）
+     - tools/4bld/（四阶中心块）：c4_center_times / c4_center_sessions / c4_center_swaps
+       旧码两字母（'XY'）→ 新 center 码 'D'+两字母（'DXY'，center 默认缓冲 D = Ubl）
+     - tools/4bld/wing.html（高阶翼棱）：c4_wing_times / c4_wing_sessions / c4_wing_swaps
+       旧码本就是三字母（'AXY'），原样搬
+     旧键一律保留不动（不删不改）；ft_migrated_v1 防重入；任何异常静默跳过不影响页面使用。 */
+  var MIGRATE_KEY = 'ft_migrated_v1';
+  function migrateLegacy() {
+    try {
+      if (localStorage.getItem(MIGRATE_KEY)) { return; }
+      var jobs = [
+        { from: 'alg440_times',      to: 'ft_times_edge',     prefix: 'A', kind: 'list' },
+        { from: 'alg440_sessions',   to: 'ft_sessions_edge',  prefix: 'A', kind: 'list' },
+        { from: 'uf_ref_selections', to: 'ft_swaps_edge',     prefix: 'A', kind: 'alg'  },
+        { from: 'c4_center_times',    to: 'ft_times_center',    prefix: 'D', kind: 'list' },
+        { from: 'c4_center_sessions', to: 'ft_sessions_center', prefix: 'D', kind: 'list' },
+        { from: 'c4_center_swaps',    to: 'ft_swaps_center',    prefix: 'D', kind: 'alg'  },
+        { from: 'c4_wing_times',    to: 'ft_times_wing',    prefix: '', kind: 'list' },
+        { from: 'c4_wing_sessions', to: 'ft_sessions_wing', prefix: '', kind: 'list' },
+        { from: 'c4_wing_swaps',    to: 'ft_swaps_wing',    prefix: '', kind: 'alg'  }
+      ];
+      jobs.forEach(function (j) {
+        var old;
+        try { old = JSON.parse(localStorage.getItem(j.from)); } catch (e) { return; }
+        if (!old || typeof old !== 'object') { return; }
+        var dst;
+        try { dst = JSON.parse(localStorage.getItem(j.to)) || {}; } catch (e) { dst = {}; }
+        var moved = 0;
+        Object.keys(old).forEach(function (code) {
+          /* 码校验：加前缀后必须是 3 个合法字母、非自格（第二三位相同）；
+             同组非法码（same-piece 体系）不在此层拦——旧页数据本身不会产生，
+             偶发脏码也只是永不被 ALL 收录的死数据，normalizeSwaps 会兜底清理 swaps。
+             目标键已有该码则不覆盖 */
+          if (typeof code !== 'string') { return; }
+          var body = j.prefix ? code.slice(0, 2) : code;
+          if (body.length !== (j.prefix ? 2 : 3)) { return; }
+          var nk = j.prefix + body;
+          for (var i = 0; i < nk.length; i++) {
+            if (LETTERS.indexOf(nk.charAt(i)) < 0) { return; }
+          }
+          if (nk.charAt(1) === nk.charAt(2)) { return; }
+          if (dst[nk] !== undefined) { return; }
+          var v = old[code];
+          if (j.kind === 'list') {
+            if (!Array.isArray(v) || !v.length) { return; }
+            for (var k = 0; k < v.length; k++) {
+              if (typeof v[k] !== 'number' || !isFinite(v[k])) { return; }
+            }
+          } else {
+            if (typeof v !== 'string' || !v.trim()) { return; }
+          }
+          dst[nk] = v;
+          moved++;
+        });
+        if (moved) {
+          try { localStorage.setItem(j.to, JSON.stringify(dst)); } catch (e) {}
+        }
+      });
+      try { localStorage.setItem(MIGRATE_KEY, '1'); } catch (e) {}
+    } catch (e) {}
+  }
+  migrateLegacy();
+
   return {
     LETTERS: LETTERS,
     SYSTEMS: SYSTEMS,
@@ -235,6 +348,7 @@ window.FT = (function () {
     groupLabel: groupLabel,
     posStr: posStr,
     illegalFn: illegalFn,
-    isBlank: isBlank
+    isBlank: isBlank,
+    normalizeSwaps: normalizeSwaps
   };
 })();

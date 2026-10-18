@@ -1,8 +1,8 @@
-/* ft-page.js — 公式训练器页面引擎（tools/ft，四个体系页共用）
+/* ft-page.js — 公式训练器页面引擎（tools/ft，六个体系页共用）
  *
  * 页面只提供：<head> 样式、c4-head（标题/副标题/返回链接）、一行挂载配置；
  * 其余骨架（工具条 / 仪表盘 / 看板 / 矩阵 / 练习浮层 / 全屏计时 / 详情浮层 / toast）
- * 全部由本文件注入，四页零重复 —— 改一处四页生效，杜绝「同源克隆漏同步」。
+ * 全部由本文件注入，六页零重复 —— 改一处六页生效，杜绝「同源克隆漏同步」。
  *
  * 与 tools/4bld/wing.html 的关系：逻辑同源（计时状态机 / 连练 / 参考公式 / CSV /
  * LSProvider 同步全部照搬该页的坑位写法），差异是：
@@ -1179,7 +1179,7 @@ window.FTPage = (function () {
       if (cur) {
         cur.innerHTML = '当前 <b>' + esc(state.POS[state.BUF] || '') + '</b>（' + state.BUF + '）';
       }
-      /* 页头副标题里的缓冲名同步（角/棱/中心/翼棱四页都有这个元素） */
+      /* 页头副标题里的缓冲名同步（六个训练页都有这个元素） */
       var nm = document.getElementById('ft-buf-name');
       if (nm) { nm.textContent = (state.POS[state.BUF] || '') + '（' + state.BUF + '）'; }
     }
@@ -1209,6 +1209,8 @@ window.FTPage = (function () {
       state.POS = d.pos || {};
       state.illegal = FT.illegalFn(sys, d);
       state.cells0 = d.cells || {};
+      /* 清理迁移来的脏 swaps（等于默认主公式 / 新数据无此码的条目） */
+      state.swaps = FT.normalizeSwaps(sys, d);
       rebuildGIDX();
       replaceArr(ORDER, d.order || []);
       rebuildAll();

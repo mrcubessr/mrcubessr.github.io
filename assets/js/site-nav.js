@@ -39,14 +39,14 @@
       { id: 'kmap',           label: '二阶知识地图',   href: '/tools/kmap/' },
       { id: 'bld-kmap',       label: '三阶知识地图',   href: '/tools/bld-kmap/' }
     ]},
+    /* 高阶盲拧 (4×4)：公式训练已并入「公式训练器」（/tools/ft/，含角心/翼棱/棱心/中棱），
+       这里只留 UF / UR 分组连拧训练；旧页（4bld/、4bld/wing.html、scramble-uf440/）
+       暂时保留可访问，稳定后删除。 */
     { id: '4bld-tools', label: '高阶盲拧 (4×4)', children: [
-      { id: '4bld-center',    label: '四阶中心块公式', href: '/tools/4bld/' },
-      { id: '4bld-wing',      label: '高阶翼棱公式',   href: '/tools/4bld/wing.html' },
-      { id: 'scramble-uf',    label: 'UF 分组',        href: '/tools/scramble-uf/' },
-      { id: 'scramble-uf440', label: 'UF440公式训练',  href: '/tools/scramble-uf440/' },
-      { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' }
+      { id: 'scramble-uf',    label: 'UF 分组连拧训练', href: '/tools/scramble-uf/' },
+      { id: 'scramble-ur',    label: 'UR 分组连拧训练', href: '/tools/scramble-ur/' }
     ]},
-    /* 公式训练器：三盲角/棱 + 四阶中心 + 高阶翼棱四体系统一入口（自选缓冲 → 矩阵自动展开） */
+    /* 公式训练器：三盲角/棱 + 高阶角心/翼棱/棱心/中棱六体系统一入口（自选缓冲 → 矩阵自动展开） */
     { id: 'ft', label: '公式训练器', href: '/tools/ft/' }
   ];
 

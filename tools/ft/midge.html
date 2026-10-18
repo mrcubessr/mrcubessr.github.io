@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公式训练器 · 高阶中棱 - 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="ft.css">
+</head>
+<body data-nav="ft">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<div class="c4-wrap">
+
+  <div class="c4-head">
+    <h1>公式训练器 · 高阶中棱</h1>
+    <div class="sub">
+      缓冲 <b id="ft-buf-name">—</b> · <b id="c4-count">—</b> 种情况 · 23 个次位置 · 人造风格 · 来源 <span id="ft-src">加载中…</span>
+      <span class="c4-mx-hint">· 行 = 第二位置 · 列 = 第三位置 · 点格子开始练习 · 中棱 = 每条棱正中间那片，UF / FU 同槽不同向，与三阶棱块同构</span>
+    </div>
+    <a class="c4-back" href="index.html">← 返回公式训练器</a>
+  </div>
+
+  <!-- 工具条 / 仪表盘 / 看板 / 矩阵 / 各浮层由 ft-page.js 注入（六页共用一套骨架） -->
+
+</div>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="ft-core.js"></script>
+<script src="../_shared/train-matrix/train-matrix.js"></script>
+<script src="ft-page.js"></script>
+<script>
+FTPage.mount({ sys: 'midge' });
+</script>
+
+</body>
+</html>

@@ -1,41 +1,52 @@
 # -*- coding: utf-8 -*-
 """gen-data.py — 生成「公式训练器」(tools/ft) 全部训练数据（按缓冲切片的 JSON）
 
-产物：tools/ft/data/{corner,edge,center,wing}-<缓冲字母>.json（24 缓冲 × 4 体系 = 96 个）
+产物：tools/ft/data/{corner,edge,center,wing,tcenter,midge}-<缓冲字母>.json（24 缓冲 × 6 体系 = 144 个）
       + tools/ft/data/manifest.json（入口页元数据）
 
-数据来源（三处；字母表经程序化比对完全一致，逐字母对齐、无需转换）：
+数据来源（字母表经程序化比对完全一致，逐字母对齐、无需转换）：
   1) 三盲角块 / 棱块：tools/3bld/blddb/assets/json/
        cornerAlgToInfo + cornerAlgToStandard + cornerAlgToNightmare + cornerCodeToPos
        edgeAlgToInfo  + edgeAlgToStandard  + edgeAlgToNightmare  + edgeCodeToPos
      键 = 位置三元组（首字母即缓冲位），经 AlgToStandard 归一化后查公式数组。
      本站色组字母与 blddb 逐字母同一体系（黄=U/白=D/红=F/橘=B/绿=R/蓝=L，6 组全验无冲突）。
   2) 高阶翼棱：.workbuddy/outputs/blddb-src/bigbldWingAlgToInfoManmade.json
-       （blddb.net/bigbld/wing.html，人造风格；--fetch 可重新抓取）
-  3) 四阶角心（中心块）：.workbuddy/outputs/xcenter-src/bigbldXcenterAlgToInfoManmade.json
-       （blddb.net/bigbld/xcenter.html，人造风格；--fetch 可重新抓取）
+  3) 高阶角心（中心块）：.workbuddy/outputs/xcenter-src/bigbldXcenterAlgToInfoManmade.json
+       （blddb.net/bigbld/xcenter.html，人造风格）
        + tools/4bld/center-data.js 的 algs（用户 Excel 公式表 = 真值源，仅缓冲 D 优先）
+  4) 高阶棱心（T-Center）：.workbuddy/outputs/blddb-src/bigbldTcenterAlgToInfoManmade.json
+  5) 高阶中棱（Midge）：.workbuddy/outputs/blddb-src/bigbldMidgeAlgToInfoManmade.json
+       （4/5 来源均为 blddb.net/bigbld/ 人造风格；--fetch 可重新抓取）
+
+字母表口径（棱心/中棱）：
+  - 两者字母表都与「三盲棱块」同一套（blddb 的 edgePosToCode）：A=UF、B=FU、C=UL…
+  - 棱心位置 = (名字首字面, 次字侧)：字母 A（名字 UF）= U 面上贴 F 侧的那片 T 中心
+    （用 setcode.js 的 144 槽默认字母串逐点验证：U 面 4 片 = A/C/E/G，F 面 = B/J/Q/S，与棱字母全吻合）；
+  - 中棱位置 = 棱槽 + 取向（与棱块同构：UF/FU 同槽不同向），故同块非法 → 440 有效格/缓冲；
+  - 棱心每字母自成一块 → 506 有效格/缓冲（与角心/翼棱同构）。
+  - 中棱查表走 edgeAlgToStandard 归一化（与 blddb midge 页一致）；棱心不走（与 wing/xcenter 页一致）。
 
 取数口径（三层，与 blddb 官网 algSearch 一致）：
-  L1 直接：三循环轮换解析 —— 同一 3-循环可写作 3 种轮换，(B X Y)/(X Y B)/(Y B X) 命中即用；
+  L1 直接：三循环轮换解析 —— 同一 3-循环可写作 3 种轮换，(B X Y)/(X Y B)/(Y B X) 命中即用
+      （中棱额外经 edgeAlgToStandard 归一化）；
   L2 旋转派生：整魔方旋转（24 个保对面置换）共轭 —— 把目标码按旋转 g 变换成 g(B)g(X)g(Y)
-     再走 L1，命中则公式按 g 做面置换。只处理「干净」公式（不含 x/y/z 整魔方旋转步；
-     含旋转步的公式共轭后无法写成单 token，故跳过该条、取同格其他备选）。
-  L3 路线 C：仍缺的格不写进数据，页面渲染为「待补」，由老师在浮层手动输入公式
-     （localStorage，与既有「参考公式 / 手动输入」同一套机制）。
+      再走 L1，命中则公式按 g 做面置换（含中层 M/E/S 的切片置换）。只处理「干净」公式
+      （不含 x/y/z 整魔方旋转步；含旋转步的公式共轭后无法写成单 token，故跳过该条、取同格其他备选）。
+  L3 路线 C：仍缺的格不写进数据，页面渲染为「待补」，由用户在浮层手动输入公式
+      （localStorage，与既有「参考公式 / 手动输入」同一套机制）。
 
-覆盖率（本脚本实测并打印）：角块 24×378=9072、棱块 24×440=10560、角心/翼棱 24×506=12144，
-L1+L2 后四体系均 0 缺失（角/棱全靠 L1；角心 5592 直接+6552 派生；翼棱 3462+8682）。
+覆盖率（本脚本实测并打印）：角块 24×378=9072、棱块 24×440=10560、角心/翼棱/棱心 24×506=12144、
+中棱 24×440=10560；L1+L2 后六体系均 0 缺失。
 
 中心块缓冲 D 特例（尊重用户既有决策）：
-  - Excel 公式表（435 条）作为该格默认公式，blddb 公式作备选（来源数显示「公式表」）；
+  - Excel 公式表（455 条）作为该格默认公式，blddb 公式作备选（来源数显示「公式表」）；
   - 5 个 intentional 刻意留空格保持留空（反向格公式已覆盖，与四阶中心块页一致）；
   - 其余格（含旧页 46 个「库未收录」空格）用 L1/L2 补上 —— 新训练器比旧页更完整。
 
 用法：
   python gen-data.py            # 生成
   python gen-data.py --check    # 只比对不写入（防手改漂移）
-  python gen-data.py --fetch    # 先从 blddb.net 重新抓取翼棱/角心源 JSON 再生成
+  python gen-data.py --fetch    # 先从 blddb.net 重新抓取源 JSON 再生成
 """
 import json, os, re, sys, string, urllib.request
 
@@ -75,23 +86,63 @@ ROTS = _rot_group()
 assert len(ROTS) == 24, len(ROTS)
 
 # ---------------------------------------------------------------- 公式工具
-_TOK = re.compile(r'(3?)([UDLFRBudlfrb])(w?)(2|\'?)')
+# token = 可选层数前缀（如 3Lw / 4Rw）+ 面/中层字母（含小写内层）+ 可选宽层标记 + 可选修饰符
+_TOK = re.compile(r"(\d?)([UDLFRBMESudlfrbmes])(w?)(2|'?)")
 _ROTMOVE = re.compile(r'(?<![A-Za-z])[xyz][2\']?(?![A-Za-z])')
+_SLICE_PAIRS = (('M', 'LR'), ('E', 'UD'), ('S', 'FB'))   # 中层 = 哪两条对面之间
+
 def is_clean(alg):
     """干净 = 不含 x/y/z 整魔方旋转步（共轭后仍可写为单 token 面转动）"""
     return not _ROTMOVE.search(alg)
 
-def rotate_alg(alg, g):
-    """整魔方旋转共轭：面字母按 g 置换；宽/内层标记、修饰符、未匹配文本原样保留"""
+def _slice_map(g):
+    """面置换 g -> 中层置换 {'M': X, 'E': Y, 'S': Z}。g 保对面，故每个中层仍映射到中层
+    （如 x 旋转：L/R 不动 → M→M，U/D↔F/B → E↔S）。"""
+    def sl(a, b):
+        pair = frozenset((a, b))
+        for s, faces in _SLICE_PAIRS:
+            if pair == frozenset(faces):
+                return s
+        raise ValueError('bad slice pair %s%s' % (a, b))
+    return {'M': sl(g['L'], g['R']), 'E': sl(g['U'], g['D']), 'S': sl(g['F'], g['B'])}
+
+def rotate_alg(alg, g, smap=None):
+    """整魔方旋转共轭：面字母按 g 置换，中层字母按切片置换；
+    3 层前缀 / 宽层标记 / 修饰符 / 未匹配文本（如 x/y/z）原样保留"""
+    if smap is None:
+        smap = _slice_map(g)
     out, i = [], 0
     for m in _TOK.finditer(alg):
         out.append(alg[i:m.start()])
         pre, face, wide, mod = m.groups()
-        nf = g[face.upper()]
+        F = face.upper()
+        nf = smap[F] if F in 'MES' else g[F]
         out.append(pre + (nf if face.isupper() else nf.lower()) + wide + mod)
         i = m.end()
     out.append(alg[i:])
     return ''.join(out)
+
+def _selftest():
+    """令牌覆盖 + 旋转往返：防「公式里有没被映射的记号」这类静默错误"""
+    import glob
+    srcs = []
+    for pat in ('blddb-src/bigbld*AlgToInfoManmade.json', 'xcenter-src/bigbld*AlgToInfoManmade.json'):
+        srcs += glob.glob(os.path.join(REPO, '.workbuddy', 'outputs', pat))
+    for p in srcs:
+        for k, v in json.load(open(p, encoding='utf-8')).items():
+            for e in v:
+                a = e[0]
+                # x/y/z 整魔方旋转步合法地不被映射（L1 直接条目允许含；L2 只取干净公式）
+                leftover = _ROTMOVE.sub('', _TOK.sub('', a)).strip()
+                assert not leftover, '未映射记号 %r in %s (%s)' % (leftover, k, os.path.basename(p))
+    sample = ["U 3Lw' U' l U m U' l' U Lw U'", "S u l' U2 l u' l' U2 l S'",
+              "U' m2 U' m U2 m' U' m2 U", "R B' R' S R B R2 F R S' R' F'"]
+    for g in ROTS:
+        gi = {v: k2 for k2, v in g.items()}
+        sm = _slice_map(g)
+        for a in sample:
+            assert rotate_alg(rotate_alg(a, g, sm), gi, _slice_map(gi)) == a, (a, g)
+    print('[selftest] 令牌覆盖 + 旋转往返 OK（%d 个源文件）' % len(srcs))
 
 def _rots3(code):
     return [code, code[1:] + code[0], code[2:] + code[0:2]]
@@ -109,6 +160,11 @@ EDGE_GROUPS = [['A', 'B'], ['C', 'D'], ['E', 'F'], ['G', 'H'], ['I', 'J'], ['K',
                ['M', 'N'], ['O', 'P'], ['Q', 'R'], ['S', 'T'], ['W', 'X'], ['Y', 'Z']]
 CENTER_GROUPS = [['G', 'J', 'A'], ['B', 'L', 'Y', 'N'], ['E', 'C', 'M', 'Q'],
                  ['H', 'F', 'P', 'T'], ['K', 'I', 'S', 'Z'], ['W', 'X', 'R', 'O']]
+# 棱心（T-Center）按面分组：字母 = 棱字母，位置 = (首字面, 次字侧)
+#   U 面 {UF,UL,UB,UR}={A,C,E,G}；F 面 {FU,FL,FR,FD}={B,S,Q,J}；D 面 {DF,DL,DB,DR}={I,K,M,O}
+#   B 面 {BU,BR,BD,BL}={F,Y,N,W}；R 面 {RU,RF,RB,RD}={H,P,Z,R}；L 面 {LU,LF,LB,LD}={D,T,X,L}
+TCENTER_GROUPS = [['A', 'C', 'E', 'G'], ['B', 'J', 'Q', 'S'], ['I', 'K', 'M', 'O'],
+                  ['F', 'N', 'Y', 'W'], ['H', 'P', 'R', 'Z'], ['D', 'L', 'T', 'X']]
 
 def _piece_map(p2c):
     """字母 -> 所属 piece（角/棱：同 piece 多个字母，按位置面集合归并）"""
@@ -143,6 +199,18 @@ def _center_rot_perms(c2p):
         out.append((g, m))
     return out
 
+def _edge_rot_perms(p2c):
+    """棱心 / 中棱：位置名就是棱名（"UF" 两字符）→ 字母置换 = 面置换作用到名字两字符。
+    棱心位置 (首字面, 次字侧) 与中棱位置 (棱槽+取向) 在同一名空间，故共用这一套置换。"""
+    out = []
+    for g in ROTS:
+        m = {}
+        for name, l in p2c.items():
+            m[l] = p2c[g[name[0]] + g[name[1]]]
+        assert sorted(m.values()) == LETTERS
+        out.append((g, m))
+    return out
+
 # ---------------------------------------------------------------- 取数
 def resolve_3x3(std, info, night, code):
     """三盲角/棱 L1：三循环轮换 + AlgToStandard 归一化 → 有序参考公式 [[alg,0]...]"""
@@ -160,7 +228,7 @@ def resolve_3x3(std, info, night, code):
     return None
 
 def resolve_big(alg, rotperms, code):
-    """四阶翼棱/角心：L1 直接优先，否则 L2 旋转派生（只共轭干净公式）。
+    """四阶翼棱/角心/棱心：L1 直接优先，否则 L2 旋转派生（只共轭干净公式）。
     返回 (refs, origin)；refs = [[alg, 来源数]...]，origin = 'blddb' | 'rot'"""
     for r in _rots3(code):
         if r in alg:
@@ -178,6 +246,7 @@ def resolve_big(alg, rotperms, code):
     for g, m in rotperms:
         if all(m[c] == c for c in LETTERS):
             continue
+        smap = _slice_map(g)
         t = ''.join(m[c] for c in code)
         for r in _rots3(t):
             if r not in alg:
@@ -188,7 +257,49 @@ def resolve_big(alg, rotperms, code):
                 a = e[0]
                 if a and is_clean(a) and a not in seen:
                     seen.add(a)
-                    refs.append([rotate_alg(a, g), len(e[1])])
+                    refs.append([rotate_alg(a, g, smap), len(e[1])])
+                if len(refs) >= NALT + 1:
+                    break
+            if not refs:
+                continue
+            score = sum(len(e[1]) for e in entries)
+            if best is None or score > best[0]:
+                best = (score, refs)
+    return (best[1], 'rot') if best else (None, None)
+
+def resolve_midge(std, alg, rotperms, code):
+    """中棱：L1 = 三循环轮换 + edgeAlgToStandard 归一化（与 blddb midge 页一致）；
+    否则 L2 旋转派生（旋转后的码也过 std 归一化，只共轭干净公式）。"""
+    for r in _rots3(code):
+        canon = std.get(r)
+        if canon and canon in alg:
+            entries = sorted(alg[canon], key=lambda e: len(e[1]), reverse=True)
+            refs, seen = [], set()
+            for e in entries:
+                a = e[0]
+                if a and a not in seen:
+                    seen.add(a)
+                    refs.append([a, len(e[1])])
+                if len(refs) >= NALT + 1:
+                    break
+            return refs, 'blddb'
+    best = None
+    for g, m in rotperms:
+        if all(m[c] == c for c in LETTERS):
+            continue
+        smap = _slice_map(g)
+        t = ''.join(m[c] for c in code)
+        for r in _rots3(t):
+            canon = std.get(r)
+            if not canon or canon not in alg:
+                continue
+            entries = sorted(alg[canon], key=lambda e: len(e[1]), reverse=True)
+            refs, seen = [], set()
+            for e in entries:
+                a = e[0]
+                if a and is_clean(a) and a not in seen:
+                    seen.add(a)
+                    refs.append([rotate_alg(a, g, smap), len(e[1])])
                 if len(refs) >= NALT + 1:
                     break
             if not refs:
@@ -259,6 +370,27 @@ def build():
         pos_fmt=lambda s: s[0] + s[1:].lower(),     # UBL -> Ubl（与四阶中心块页一致）
         excel=excel, intentional=intentional)
 
+    # ============ 高阶棱心（T-Center，五阶+） ============
+    # 字母表 = 棱块字母表（edgePosToCode）：字母 A（名字 UF）= U 面上贴 F 侧的棱心
+    alg = _load('bigbldTcenterAlgToInfoManmade.json', WING_SRC)
+    e2p = _load('edgePosToCode.json', BLDDB)
+    systems['tcenter'] = dict(
+        kind='big', alg=alg, rotperms=_edge_rot_perms(e2p), c2p={v: k for k, v in e2p.items()},
+        groups=TCENTER_GROUPS, names=None,
+        group_of=lambda L: next(i for i, g in enumerate(TCENTER_GROUPS) if L in g),
+        pos_fmt=lambda s: s)
+
+    # ============ 高阶中棱（Midge，五阶+） ============
+    # 字母表 = 棱块字母表；UF/FU 同槽不同取向 → 同块非法 → 440 有效格/缓冲（与棱块同构）
+    alg = _load('bigbldMidgeAlgToInfoManmade.json', WING_SRC)
+    systems['midge'] = dict(
+        kind='midge', alg=alg, std=_load('edgeAlgToStandard.json', BLDDB),
+        rotperms=_edge_rot_perms(e2p), piece=_piece_map(e2p),
+        c2p={v: k for k, v in e2p.items()},
+        groups=EDGE_GROUPS, names=None,
+        group_of=lambda L: next(i for i, g in enumerate(EDGE_GROUPS) if L in g),
+        pos_fmt=lambda s: s)
+
     manifest = {'systems': {}}
     stats_total = {}
 
@@ -282,6 +414,8 @@ def build():
                     if S['kind'] == '3x3':
                         refs = resolve_3x3(S['std'], S['info'], S['night'], code)
                         origin = 'blddb' if refs else None
+                    elif S['kind'] == 'midge':
+                        refs, origin = resolve_midge(S['std'], S['alg'], S['rotperms'], code)
                     else:
                         refs, origin = resolve_big(S['alg'], S['rotperms'], code)
                     if sid == 'center' and buf == 'D':
@@ -318,15 +452,18 @@ def build():
             print('    待补分布:', {b: n for b, n in miss.items() if n})
         stats_total[sid] = dict(direct=n_direct, rot=n_rot, excel=n_excel, miss=total_miss)
         manifest['systems'][sid] = dict(
-            name={'corner': '三盲 · 角块', 'edge': '三盲 · 棱块',
-                  'center': '四阶 · 中心块', 'wing': '高阶 · 翼棱'}[sid],
+            name={'corner': '三阶 · 角块', 'edge': '三阶 · 棱块',
+                  'center': '高阶 · 角心', 'wing': '高阶 · 翼棱',
+                  'tcenter': '高阶 · 棱心', 'midge': '高阶 · 中棱'}[sid],
             buffers=len(LETTERS), cellsPerBuffer=valid_per_buf['A'],
             groups=len(S['groups']), lettersPerGroup=len(S['groups'][0]),
             direct=n_direct, rot=n_rot, excel=n_excel, miss=total_miss,
             desc={'corner': '24 字母色组体系 · 每角 3 个字母 · blddb 噩梦风格',
                   'edge': '24 字母标准配对 · 每棱 2 个字母 · blddb 噩梦风格',
-                  'center': '24 个中心块 · blddb 人造风格 + 你的 Excel 公式表',
-                  'wing': '24 个翼块 · blddb 人造风格（旋转派生补全非 A 缓冲）'}[sid])
+                  'center': '24 个角心块 · blddb 人造风格 + 你的 Excel 公式表',
+                  'wing': '24 个翼块 · blddb 人造风格（旋转派生补全非 A 缓冲）',
+                  'tcenter': '24 个棱心 · 字母同棱块 · blddb 人造风格（旋转派生补全）',
+                  'midge': '12 个中棱 × 2 取向 · 字母同棱块 · blddb 人造风格'}[sid])
         S['docs'] = docs
     return systems, manifest, stats_total
 
@@ -342,6 +479,7 @@ def _serialize(systems, manifest):
 
 
 def main():
+    _selftest()
     if '--fetch' in sys.argv:
         import socket
         socket.setdefaulttimeout(300)
@@ -382,6 +520,10 @@ FETCH = [
      'https://blddb.net/assets/json/bigbld/bigbldXcenterAlgToInfoManmade.json', XC_SRC),
     ('cornerCodeToPos.json',
      'https://blddb.net/assets/json/cornerCodeToPos.json', XC_SRC),
+    ('bigbldTcenterAlgToInfoManmade.json',
+     'https://blddb.net/assets/json/bigbld/bigbldTcenterAlgToInfoManmade.json', WING_SRC),
+    ('bigbldMidgeAlgToInfoManmade.json',
+     'https://blddb.net/assets/json/bigbld/bigbldMidgeAlgToInfoManmade.json', WING_SRC),
 ]
 
 if __name__ == '__main__':
