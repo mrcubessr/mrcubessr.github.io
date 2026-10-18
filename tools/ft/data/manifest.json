@@ -10,6 +10,7 @@
    "rot": 0,
    "excel": 0,
    "miss": 0,
+   "comm": false,
    "desc": "24 字母色组体系 · 每角 3 个字母 · blddb 噩梦风格"
   },
   "edge": {
@@ -22,6 +23,7 @@
    "rot": 0,
    "excel": 0,
    "miss": 0,
+   "comm": false,
    "desc": "24 字母标准配对 · 每棱 2 个字母 · blddb 噩梦风格"
   },
   "wing": {
@@ -34,6 +36,7 @@
    "rot": 8682,
    "excel": 0,
    "miss": 0,
+   "comm": true,
    "desc": "24 个翼块 · blddb 人造风格（旋转派生补全非 A 缓冲）"
   },
   "center": {
@@ -46,6 +49,7 @@
    "rot": 6552,
    "excel": 455,
    "miss": 0,
+   "comm": true,
    "desc": "24 个角心块 · blddb 人造风格 + 你的 Excel 公式表"
   },
   "tcenter": {
@@ -58,6 +62,7 @@
    "rot": 7362,
    "excel": 0,
    "miss": 0,
+   "comm": true,
    "desc": "24 个棱心 · 字母同棱块 · blddb 人造风格（旋转派生补全）"
   },
   "midge": {
@@ -70,6 +75,7 @@
    "rot": 7920,
    "excel": 0,
    "miss": 0,
+   "comm": true,
    "desc": "12 个中棱 × 2 取向 · 字母同棱块 · blddb 人造风格"
   }
  }

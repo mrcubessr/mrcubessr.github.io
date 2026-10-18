@@ -41,6 +41,7 @@ window.FT = (function () {
       letterDesc: '24 字母色组体系',
       pieceDesc: '每角 3 个字母',
       srcDesc: 'blddb 噩梦风格',
+      hasComm: false,             // 三阶噩梦风格源无括号格式数据
       desc: '三阶盲拧角块 3-style：默认缓冲 UFR，其余两角的所有排列组合直接进矩阵，点格即练。'
     },
     edge: {
@@ -53,6 +54,7 @@ window.FT = (function () {
       letterDesc: '24 字母标准配对',
       pieceDesc: '每棱 2 个字母',
       srcDesc: 'blddb 噩梦风格',
+      hasComm: false,             // 三阶噩梦风格源无括号格式数据
       desc: '三阶盲拧棱块 3-style：与角块同构，24 个缓冲任选，440 种情况一屏铺开。'
     },
     center: {
@@ -65,6 +67,7 @@ window.FT = (function () {
       letterDesc: '24 个中心块',
       pieceDesc: '每中心块 1 个字母',
       srcDesc: 'blddb 人造风格 + 你的 Excel 公式表',
+      hasComm: true,              // blddb comm 字段（已逐条验证展开一致）
       desc: '四阶/五阶盲拧角心（X-Center）：缓冲 D 用你的公式表，其余 23 个缓冲由 blddb 抓取 + 旋转派生补全。'
     },
     wing: {
@@ -77,6 +80,7 @@ window.FT = (function () {
       letterDesc: '24 个翼块',
       pieceDesc: '每翼块 1 个字母',
       srcDesc: 'blddb 人造风格（旋转派生补全非 A 缓冲）',
+      hasComm: true,
       desc: '高阶盲拧翼棱：含 G/H（UR 棱）情况，非 A 缓冲由整魔方旋转共轭派生，覆盖率 100%。'
     },
     tcenter: {
@@ -89,6 +93,7 @@ window.FT = (function () {
       letterDesc: '24 个棱心（T 中心）',
       pieceDesc: '每棱心 1 个字母',
       srcDesc: 'blddb 人造风格（旋转派生补全非 A 缓冲）',
+      hasComm: true,
       desc: '高阶盲拧棱心（T 中心）：每条棱正中的那片，与翼棱同构；按面分 6 组，24 个缓冲任选。'
     },
     midge: {
@@ -101,6 +106,7 @@ window.FT = (function () {
       letterDesc: '24 个中棱位',
       pieceDesc: '每棱 2 个字母（同槽不同向）',
       srcDesc: 'blddb 人造风格（旋转派生补全非 A 缓冲）',
+      hasComm: true,
       desc: '高阶盲拧中棱：每条棱正中间那片，UF/FU 同槽不同向，与三阶棱块同构，440 种情况。'
     }
   };
@@ -173,19 +179,38 @@ window.FT = (function () {
     var v = cellOf(data, code);
     return v ? (v[0] || '') : '';
   }
-  /* 有序参考公式列表 [[公式, 来源数]...]，index 0 = 默认主公式 */
+  /* 有序参考公式列表 [[公式, 来源数, comm]...]，index 0 = 默认主公式。
+     comm = 括号格式（[A:B] 共轭 / [A,B] 交换子），数据无则为 null。 */
   function refListOf(data, code) {
     var v = cellOf(data, code);
     if (!v) { return []; }
-    var out = [[v[0], v[1] || 0]];
+    var out = [[v[0], v[1] || 0, v[4] || null]];
     (v[2] || []).forEach(function (x) {
-      var pair = (x && typeof x.length === 'number' && typeof x !== 'string')
-        ? [x[0], x[1] || 0] : [x, 0];
-      if (!pair[0]) { return; }
-      for (var i = 0; i < out.length; i++) { if (out[i][0] === pair[0]) { return; } }
-      out.push(pair);
+      var trip = (x && typeof x.length === 'number' && typeof x !== 'string')
+        ? [x[0], x[1] || 0, x[2] || null] : [x, 0, null];
+      if (!trip[0]) { return; }
+      for (var i = 0; i < out.length; i++) { if (out[i][0] === trip[0]) { return; } }
+      out.push(trip);
     });
     return out;
+  }
+  /* 主公式的括号格式（cell 第 5 位） */
+  function commOf(data, code) {
+    var v = cellOf(data, code);
+    return (v && v[4]) || null;
+  }
+  /* 按公式文本反查括号格式：默认主公式 → cell[4]；备选 → alts 对应项；
+     手动输入 / Excel 公式表 / 旋转派生失败 → null（调用方回退展开式）。 */
+  function commOfAlg(data, code, alg) {
+    if (!alg) { return null; }
+    var v = cellOf(data, code);
+    if (!v) { return null; }
+    if (alg === v[0]) { return v[4] || null; }
+    var alts = v[2] || [];
+    for (var i = 0; i < alts.length; i++) {
+      if (alts[i] && alts[i][0] === alg) { return alts[i][2] || null; }
+    }
+    return null;
   }
   function originOf(data, code) {
     var v = cellOf(data, code);
@@ -197,6 +222,18 @@ window.FT = (function () {
     excel: '你的公式表'
   };
   function originLabel(o) { return ORIGIN_LABEL[o] || o || '—'; }
+
+  /* ============ 括号格式显示开关 ============ */
+  /* localStorage 'ft_comm' = '1' 开 / '0' 关；六页共用一个键（偏好全局一致）。
+     开启后公式以 blddb 括号格式显示：A:[B,C] = 共轭套交换子，[A,B] = 交换子；
+     该条无括号数据（或你手动输入过公式）时自动回退为展开式。 */
+  var COMM_KEY = 'ft_comm';
+  function commOn() {
+    try { return localStorage.getItem(COMM_KEY) === '1'; } catch (e) { return false; }
+  }
+  function setComm(on) {
+    try { localStorage.setItem(COMM_KEY, on ? '1' : '0'); } catch (e) {}
+  }
 
   /* ============ 组名 / 位置名 ============ */
   /* 角块有中文色组名（names）；棱/翼棱/中棱取位置名前两字符（UF 棱）；
@@ -349,6 +386,10 @@ window.FT = (function () {
     posStr: posStr,
     illegalFn: illegalFn,
     isBlank: isBlank,
-    normalizeSwaps: normalizeSwaps
+    normalizeSwaps: normalizeSwaps,
+    commOf: commOf,
+    commOfAlg: commOfAlg,
+    commOn: commOn,
+    setComm: setComm
   };
 })();

@@ -130,6 +130,14 @@
           <div class="ft-step__d">按住空格 0.5 秒起表，停表自动记录；看板按快慢着色，最慢的自动排前。</div>
         </div>
       </div>
+      <div class="ft-step">
+        <span class="ft-step__no">4</span>
+        <div>
+          <div class="ft-step__t">括号格式一键切换</div>
+          <div class="ft-step__d">高阶四个体系（角心 / 翼棱 / 棱心 / 中棱）点工具条「括号格式」，公式变成
+            <code>[A,B]</code> 交换子、<code>A:[B,C]</code> 共轭结构，一眼看清公式怎么组成；再点一次回到展开式。</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -290,7 +298,8 @@
     if (!manifest || !manifest.systems) {
       note.innerHTML = '公式数据由 <code>tools/ft/gen-data.py</code> 生成：三盲角/棱取 blddb 噩梦风格，'
         + '高阶角心/翼棱/棱心/中棱取 blddb 人造风格；'
-        + '非默认缓冲由整魔方旋转共轭派生补全，覆盖率 100%。';
+        + '非默认缓冲由整魔方旋转共轭派生补全，覆盖率 100%。'
+        + '高阶四个体系支持「括号格式」显示（交换子 / 共轭记法）。';
       return;
     }
     var rows = ALL_ORDER.map(function (id) {
@@ -309,7 +318,9 @@
       + '<br>来源口径：<code>blddb</code> = 公式库直接抓取（默认取使用人数最多的主公式）；'
       + '<code>rot</code> = 整魔方旋转共轭派生（干净公式，数学上等价）；'
       + '<code>excel</code> = 你的公式表（角心缓冲 D 优先）。'
-      + '格子底部 <b>✎</b> 虚线框 = 原表留空，可点格子手动补全（路线 C）。';
+      + '格子底部 <b>✎</b> 虚线框 = 原表留空，可点格子手动补全（路线 C）。'
+      + '<br>括号格式：高阶四个体系内置 blddb 的交换子 / 共轭记法（<code>[A,B]</code>、<code>A:[B,C]</code>），'
+      + '生成时逐条验证过「展开后与公式完全一致」，对不上的不收录——工具条「括号格式」一键切换。';
   }
 
   fetch('data/manifest.json', { cache: 'no-cache' })

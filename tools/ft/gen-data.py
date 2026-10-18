@@ -144,8 +144,130 @@ def _selftest():
             assert rotate_alg(rotate_alg(a, g, sm), gi, _slice_map(gi)) == a, (a, g)
     print('[selftest] 令牌覆盖 + 旋转往返 OK（%d 个源文件）' % len(srcs))
 
+# ---------------------------------------------------------------- 括号格式（comm）
+# blddb 记法：`A:[B,C]` = [A: [B,C]] = A·B·C·B⁻¹·C⁻¹·A⁻¹（共轭套交换子）；`[A,B]` = 交换子。
+def _inv_tok(t):
+    if t.endswith('2'): return t
+    if t.endswith("'"): return t[:-1]
+    return t + "'"
+
+def _inv_seq(seq):
+    """公式序列（空格分隔字符串）整体求逆：倒序 + 每步求逆"""
+    return ' '.join(_inv_tok(t) for t in reversed(seq.split()))
+
+_TOK_FULL = re.compile(r"(\d?)([UDLFRBMESudlfrbmes])(w?)(2|')?$")
+
+def norm_seq(seq):
+    """归一化公式序列：合并相邻同面同层步（R R=R2、R2 R=R'、R R'=抵消）。
+    blddb 的 comm 记法常把共轭尾步与交换子步合并书写（U' U'→U2），必须归一化后才可比。"""
+    out = []   # [[key, 角度1/2/3]...]，key = 层数前缀+面+宽层
+    for t in seq.split():
+        m = _TOK_FULL.match(t)
+        if not m:
+            return None                      # 含 x/y/z 等不可合并步 → 放弃归一化
+        pre, face, wide, mod = m.groups()
+        ang = {'': 1, '2': 2, "'": 3}[mod or '']
+        key = (pre or '') + face + (wide or '')
+        if out and out[-1][0] == key:
+            ang = (out[-1][1] + ang) % 4
+            if ang == 0:
+                out.pop()
+            else:
+                out[-1][1] = ang
+        else:
+            out.append([key, ang])
+    return ' '.join(k + {1: '', 2: '2', 3: "'"}[a] for k, a in out)
+
+def expand_comm(comm):
+    """把括号格式展开为逐步公式串（自洽验证用：expand(comm) 必须等于源 alg）"""
+    c = comm.strip()
+    # 顶层 ':'：A:[B,C] → expand(A) + expand(rest) + inv(expand(A))
+    depth = 0
+    for i, ch in enumerate(c):
+        if ch == '[': depth += 1
+        elif ch == ']': depth -= 1
+        elif ch == ':' and depth == 0:
+            ea = expand_comm(c[:i])
+            return (ea + ' ' + expand_comm(c[i + 1:]) + ' ' + _inv_seq(ea)).strip()
+    # 顶层 '[A,B]'：交换子 → A + B + A⁻¹ + B⁻¹
+    if c.startswith('[') and c.endswith(']'):
+        inner = c[1:-1]
+        depth = 0
+        for i, ch in enumerate(inner):
+            if ch == '[': depth += 1
+            elif ch == ']': depth -= 1
+            elif ch == ',' and depth == 0:
+                ea = expand_comm(inner[:i])
+                eb = expand_comm(inner[i + 1:])
+                return (ea + ' ' + eb + ' ' + _inv_seq(ea) + ' ' + _inv_seq(eb)).strip()
+    return ' '.join(c.split())      # 纯公式段
+
+def comm_ok(comm, alg):
+    """comm 是否与逐步公式语义一致（归一化后逐 token 相等）"""
+    if not comm or not alg:
+        return False
+    a = norm_seq(expand_comm(comm))
+    b = norm_seq(alg)
+    return a is not None and b is not None and a == b
+
+_COMM_STRUCT = re.compile(r'([\[\],:])')
+
+def rotate_comm(comm, g, smap=None):
+    """括号格式随整魔方旋转共轭：结构符 [ ] , : 保留，公式段逐 token 旋转。
+    段内含 x/y/z（无法按面置换映射）→ 返回 None（该条放弃括号格式，仍显示展开式）。"""
+    if not comm:
+        return None
+    if smap is None:
+        smap = _slice_map(g)
+    parts = []
+    for seg in _COMM_STRUCT.split(comm):
+        if seg in ('[', ']', ',', ':', ''):
+            parts.append(seg)
+            continue
+        for t in seg.split():
+            if _ROTMOVE.search(t):
+                return None
+        parts.append(' '.join(rotate_alg(t, g, smap) for t in seg.split()))
+    return ''.join(parts)
+
+def _selftest_comm():
+    """comm 自洽抽查：① 源数据一致率（blddb 人为维护的 comm 有瑕疵，只报告不拦截）；
+    ② 旋转往返 rotate(rotate(c))==c（rotate_comm 正确性硬断言）"""
+    import glob
+    n_src = n_ok = n_rot = 0
+    for pat in ('blddb-src/bigbld*AlgToInfoManmade.json', 'xcenter-src/bigbld*AlgToInfoManmade.json'):
+        for p in glob.glob(os.path.join(REPO, '.workbuddy', 'outputs', pat)):
+            for k, v in json.load(open(p, encoding='utf-8')).items():
+                for e in v:
+                    if len(e) < 3 or not isinstance(e[2], str) or not e[2].strip():
+                        continue
+                    n_src += 1
+                    if comm_ok(e[2].strip(), e[0]):
+                        n_ok += 1
+    for g in ROTS:
+        gi = {v: k2 for k2, v in g.items()}
+        sm, smi = _slice_map(g), _slice_map(gi)
+        for comm in ("Lw':[r' D2 r,U2]", "Rw B:[R' U' R,u]", "U Lw':[m',U' l U]"):
+            r1 = rotate_comm(comm, g, sm)
+            if r1 is None:
+                continue
+            r2 = rotate_comm(r1, gi, smi)
+            assert r2 == comm, (comm, r1, r2)
+            n_rot += 1
+    print('[selftest] comm：源数据 %d 条中 %d 条与公式语义一致（%.0f%%），旋转往返 %d 次 OK'
+          % (n_src, n_ok, 100.0 * n_ok / max(n_src, 1), n_rot))
+
 def _rots3(code):
     return [code, code[1:] + code[0], code[2:] + code[0:2]]
+
+def _comm_of(e):
+    """源条目 e = [alg, authors, comm] → 与 alg 语义一致的 comm，否则 None。
+    blddb 人为维护的 comm 约四成与公式不符（缺步合并/记录偏差），一律先验证后采用——
+    宁可没有括号格式，也不能显示一个展开后不等于公式的错误结构。"""
+    if len(e) < 3 or not isinstance(e[2], str) or not e[2].strip():
+        return None
+    c = e[2].strip()
+    return c if comm_ok(c, e[0]) else None
 
 # ---------------------------------------------------------------- 源数据加载
 def _load(name, base):
@@ -213,7 +335,8 @@ def _edge_rot_perms(p2c):
 
 # ---------------------------------------------------------------- 取数
 def resolve_3x3(std, info, night, code):
-    """三盲角/棱 L1：三循环轮换 + AlgToStandard 归一化 → 有序参考公式 [[alg,0]...]"""
+    """三盲角/棱 L1：三循环轮换 + AlgToStandard 归一化 → 有序参考公式 [[alg,0,None]...]
+    （三阶噩梦风格源无括号格式数据，comm 位恒 None）"""
     for r in _rots3(code):
         canon = std.get(r)
         if canon and canon in info:
@@ -223,13 +346,13 @@ def resolve_3x3(std, info, night, code):
             for a in ordered:
                 if a and a not in seen:
                     seen.add(a)
-                    out.append([a, 0])
+                    out.append([a, 0, None])
             return out
     return None
 
 def resolve_big(alg, rotperms, code):
     """四阶翼棱/角心/棱心：L1 直接优先，否则 L2 旋转派生（只共轭干净公式）。
-    返回 (refs, origin)；refs = [[alg, 来源数]...]，origin = 'blddb' | 'rot'"""
+    返回 (refs, origin)；refs = [[alg, 来源数, comm]...]，origin = 'blddb' | 'rot'"""
     for r in _rots3(code):
         if r in alg:
             entries = sorted(alg[r], key=lambda e: len(e[1]), reverse=True)
@@ -238,7 +361,7 @@ def resolve_big(alg, rotperms, code):
                 a = e[0]
                 if a and a not in seen:
                     seen.add(a)
-                    refs.append([a, len(e[1])])
+                    refs.append([a, len(e[1]), _comm_of(e)])
                 if len(refs) >= NALT + 1:
                     break
             return refs, 'blddb'
@@ -257,7 +380,7 @@ def resolve_big(alg, rotperms, code):
                 a = e[0]
                 if a and is_clean(a) and a not in seen:
                     seen.add(a)
-                    refs.append([rotate_alg(a, g, smap), len(e[1])])
+                    refs.append([rotate_alg(a, g, smap), len(e[1]), rotate_comm(_comm_of(e), g, smap)])
                 if len(refs) >= NALT + 1:
                     break
             if not refs:
@@ -269,7 +392,8 @@ def resolve_big(alg, rotperms, code):
 
 def resolve_midge(std, alg, rotperms, code):
     """中棱：L1 = 三循环轮换 + edgeAlgToStandard 归一化（与 blddb midge 页一致）；
-    否则 L2 旋转派生（旋转后的码也过 std 归一化，只共轭干净公式）。"""
+    否则 L2 旋转派生（旋转后的码也过 std 归一化，只共轭干净公式）。
+    refs = [[alg, 来源数, comm]...]"""
     for r in _rots3(code):
         canon = std.get(r)
         if canon and canon in alg:
@@ -279,7 +403,7 @@ def resolve_midge(std, alg, rotperms, code):
                 a = e[0]
                 if a and a not in seen:
                     seen.add(a)
-                    refs.append([a, len(e[1])])
+                    refs.append([a, len(e[1]), _comm_of(e)])
                 if len(refs) >= NALT + 1:
                     break
             return refs, 'blddb'
@@ -299,7 +423,7 @@ def resolve_midge(std, alg, rotperms, code):
                 a = e[0]
                 if a and is_clean(a) and a not in seen:
                     seen.add(a)
-                    refs.append([rotate_alg(a, g, smap), len(e[1])])
+                    refs.append([rotate_alg(a, g, smap), len(e[1]), rotate_comm(_comm_of(e), g, smap)])
                 if len(refs) >= NALT + 1:
                     break
             if not refs:
@@ -425,12 +549,14 @@ def build():
                             continue
                         if key in S['excel']:
                             x = S['excel'][key]
-                            refs = ([[x, 0]] + [p for p in (refs or []) if p[0] != x])[:NALT + 1]
+                            refs = ([[x, 0, None]] + [p for p in (refs or []) if p[0] != x])[:NALT + 1]
                             origin = 'excel'
                     if not refs:
                         continue          # L3 待补：不写数据，页面渲染为「待补」
+                    # cell = [主公式, 来源数, [[备选,来源数,comm]...], origin, 主公式括号格式]
                     cells[code] = [refs[0][0], refs[0][1],
-                                   [[a, n] for a, n in refs[1:NALT + 1]], origin]
+                                   [[a, n, c] for a, n, c in refs[1:NALT + 1]], origin,
+                                   refs[0][2]]
                     if origin == 'excel':
                         n_excel += 1
                     elif origin == 'rot':
@@ -458,6 +584,8 @@ def build():
             buffers=len(LETTERS), cellsPerBuffer=valid_per_buf['A'],
             groups=len(S['groups']), lettersPerGroup=len(S['groups'][0]),
             direct=n_direct, rot=n_rot, excel=n_excel, miss=total_miss,
+            # 括号格式（comm）可用性：blddb 人造风格四大体系有，三阶噩梦风格无
+            comm=(sid in ('center', 'wing', 'tcenter', 'midge')),
             desc={'corner': '24 字母色组体系 · 每角 3 个字母 · blddb 噩梦风格',
                   'edge': '24 字母标准配对 · 每棱 2 个字母 · blddb 噩梦风格',
                   'center': '24 个角心块 · blddb 人造风格 + 你的 Excel 公式表',
@@ -470,16 +598,27 @@ def build():
 
 def _serialize(systems, manifest):
     files = []
+    n_comm = 0
     for sid, S in systems.items():
         for buf, doc in S['docs'].items():
+            for code, cell in doc['cells'].items():
+                # 硬验证：括号格式展开后必须与逐步公式语义一致（防旋转派生错位 / 脏 comm 漏网）
+                for a, c in [(cell[0], cell[4])] + [(x[0], x[2]) for x in (cell[2] or [])]:
+                    if not c:
+                        continue
+                    assert comm_ok(c, a), \
+                        'comm 展开不等于公式: %s %s-%s %r vs %r' % (sid, code, buf, c, a)
+                    n_comm += 1
             files.append(('%s-%s.json' % (sid, buf),
                           json.dumps(doc, ensure_ascii=False, separators=(',', ':'), sort_keys=True) + '\n'))
+    print('[comm] %d 条括号格式（含备选）展开验证全部与逐步公式一致' % n_comm)
     files.append(('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=1) + '\n'))
     return files
 
 
 def main():
     _selftest()
+    _selftest_comm()
     if '--fetch' in sys.argv:
         import socket
         socket.setdefaulttimeout(300)
