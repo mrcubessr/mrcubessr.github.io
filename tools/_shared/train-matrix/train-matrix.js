@@ -414,7 +414,10 @@
           if (info && info.manual) { cls += ' manual'; }
           if (mset) { cls += mset[code] ? ' hit' : ' dim'; }
           if (cfg.isSwapped && cfg.isSwapped(code)) { cls += ' is-swapped'; }
-          var inner = (kind === 'alg' && alg) ? fmtAlgCell(alg, cfg.fmtAlg) : '';
+          /* info.html：页面要完全接管格子内容时用它（v2.0.26 公式训练器矩阵格改成
+             「大字字母组合 + 时间 + 星标」就是走这条路）。没给就退回画公式。 */
+          var inner = (info && info.html != null) ? info.html
+                    : ((kind === 'alg' && alg) ? fmtAlgCell(alg, cfg.fmtAlg) : '');
           var attr = (kind === 'alg' && alg && !(info && info.disabled)) ? ' data-code="' + code + '"'
                    : ((info && info.manual) ? ' data-code="' + code + '"' : ' disabled');
           h += '<button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr +

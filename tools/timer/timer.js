@@ -309,6 +309,8 @@
     els.scramble.classList.remove("is-pop");
     void els.scramble.offsetWidth;
     els.scramble.classList.add("is-pop");
+    /* 速拧：打乱一变就重画展开图（三盲由 renderBld() 驱动，它画的是预摆后的打乱） */
+    if (opt.event !== "bld") renderSpeedNet();
   }
 
   /* ---------- 三盲：解法计算与展示 ---------- */
@@ -380,6 +382,34 @@
     }
   }
 
+  /* 速拧（三阶 / 二阶）的展开图：直接画当前打乱本身，不涉及坐标朝向换算。
+     二阶用 Cube(2)：WCA 二阶打乱只用 R/U/F，没有中层和宽层，2 阶展开图即可正确表达。
+     ⚠️ 三盲不在这里画 —— 它要画的是「按用户坐标系预摆后的打乱」orientedScramble，
+        直接画 curScramble 会与读码口径对不上（见 renderBldNet / renderBldNetFrom）。 */
+  function renderSpeedNet() {
+    if (!els.bldNet) return;
+    var cap = els.bldNetCap;
+    var def = eventDef(opt.event);
+    if (typeof window.drawScrambleNet !== "function") {
+      if (cap) cap.textContent = "展开图（渲染库未加载）";
+      return;
+    }
+    if (!curScramble) { if (cap) cap.textContent = "展开图"; return; }
+    try {
+      window.drawScrambleNet(curScramble, els.bldNet, "white-green", opt.event === "2x2" ? 2 : 3);
+      if (cap) cap.textContent = def.label + "打乱展开图";
+    } catch (e) {
+      if (cap) cap.textContent = "展开图渲染失败";
+    }
+  }
+
+  /* 统一入口：按当前项目把展开图画到同一块 canvas 上。
+     所有项目（三阶 / 二阶 / 三盲）都要有展开图 —— 之前只有三盲有。 */
+  function renderNet() {
+    if (opt.event === "bld") renderBldNet();
+    else renderSpeedNet();
+  }
+
   /* 难度指标：主记法（棱X+角Y[+1]）+ 总公式数 + 等级 + 明细 chip
      d = difficulty 对象；complexity 由调用方传入（当前打乱或历史成绩各自的编码数） */
   function renderBldDiff(d, complexity) {
@@ -416,7 +446,7 @@
       els.bldRows.innerHTML = '<div class="tm-bld__empty">无法计算解法（请检查参数或刷新页面）</div>';
       if (els.bldMeta) els.bldMeta.textContent = "";
       if (els.bldDiff) els.bldDiff.innerHTML = "";
-      renderBldNet();
+      renderNet();
       updateBldReveal();
       return;
     }
@@ -587,7 +617,10 @@
     if (els.bldOpen) els.bldOpen.hidden = !isBld;
     if (els.bldAnalysis) els.bldAnalysis.hidden = !isBld;
     manualSegs().forEach(function (seg) { seg.hidden = isBld; });
-    if (els.bldNetSide) els.bldNetSide.hidden = !isBld;   /* 展开图与打乱公式同处显示 */
+    /* 展开图：所有项目都显示（v2.0.26 —— 之前只有三盲有）。
+       三盲画「按坐标系预摆后的打乱」，速拧画当前打乱本身（二阶用 2 阶展开图）。 */
+    if (els.bldNetSide) els.bldNetSide.hidden = false;
+    if (!isBld) renderSpeedNet();
     if (isBld && els.manualBox) els.manualBox.hidden = true;
     /* 三盲不需要 15 秒观察（盲拧靠记忆，观察无意义）→ 隐藏该选项并强制关闭；
        切回速拧时还原用户原本的观察偏好 */
@@ -3374,7 +3407,7 @@
        并重绘三盲展开图（它的底板取的是当前主题的卡片底色，不重绘会留着旧底色） */
     Theme.onChange(function () {
       refreshThemeActive();
-      renderBldNet();
+      renderNet();
     });
     refreshThemeActive();
     /* 手机端工具栏的主题开关：一键浅色 ↔ 深色（导航被收起时也能切） */
@@ -3432,8 +3465,10 @@
       clearTimeout(_netTimer);
       _netTimer = setTimeout(function () {
         _netTimer = 0;
-        if (opt.event === "bld" && els.bld && !els.bld.hidden && lastBldView) {
-          renderBldNetFrom(lastBldView);
+        if (opt.event === "bld") {
+          if (els.bld && !els.bld.hidden && lastBldView) renderBldNetFrom(lastBldView);
+        } else {
+          renderSpeedNet();   /* 速拧展开图同样是画死的 canvas 宽，缩放后必须重绘 */
         }
       }, 200);
     });

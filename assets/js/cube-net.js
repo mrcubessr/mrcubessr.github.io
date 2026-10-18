@@ -278,10 +278,12 @@ function expandMoveNet(base, dir){
 // 绘制标准十字展开图；canvasId 可选，默认使用 id=player 的 canvas（也支持直接传入 canvas 元素）
 // orientation: 'white-green' | 'yellow-red' | 'yellow-blue' | 'yellow-green' | 'yellow-orange'，
 //   决定打乱前把魔方摆放成哪种拿法（语义 B：先预摆再执行，同公式不同拿法 → 不同实体状态）
-function drawScrambleNet(alg, canvasId, orientation) {
+// size: 阶数，默认 3。二阶（2×2×2）传 2 —— 计时器「二阶」项目的展开图用，
+//   高层/中层转法在 2 阶上无意义，WCA 二阶打乱只用 R/U/F，故直接建 Cube(2) 即可。
+function drawScrambleNet(alg, canvasId, orientation, size) {
     const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
     if(!canvas) return;
-    const cube = new Cube(3);
+    const cube = new Cube(size || 3);
     // 打乱前预摆：把 solved 魔方整体摆成目标拿法（白顶绿前无需摆）
     if (orientation === 'yellow-red') cube.rotateM();
     else if (orientation === 'yellow-blue') cube.rotateX180();

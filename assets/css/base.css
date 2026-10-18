@@ -109,3 +109,16 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
     scroll-behavior:auto !important;
   }
 }
+
+/* --- 26. 计时器数字禁止选中（v2.0.26） ---
+   桌面端想「复制这一把的时间」而去拖选 / 双击时间数字时，浏览器会先建立选区，
+   这一下 mousedown 不再被计时区当作「起表按下」，表现就是按住空格/鼠标却起不了表。
+   时间数字本来就该用页面上的「复制 / 导出」按钮导出，不需要手动选中。
+   覆盖全站带计时的训练页：公式训练器、四阶页、UF440、角/棱块训练、CFOP、计时器。
+   手机端各页另有自己的全局禁选规则，这里补的是桌面端。 */
+.c4-pmodal__timer, .c4-fs__timer, .a4-modal__timer,
+.timer-text, .oll-timer-display, .oll-modal__timer,
+.tm-time, .tm-stage__time {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}

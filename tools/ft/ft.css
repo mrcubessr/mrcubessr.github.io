@@ -45,7 +45,7 @@ body {
 .ft-buf__list { display: flex; flex-wrap: wrap; gap: 4px; }
 .ft-bufbtn {
   appearance: none; cursor: pointer; font: inherit;
-  min-width: 28px; height: 26px; padding: 0 5px; border-radius: 7px;
+  min-width: 28px; height: 26px; padding: 0 5px; border-radius: 0;
   background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
   border: 1px solid var(--line-2, rgba(255,255,255,.18));
   font-size: 13px; font-weight: 800; line-height: 1;
@@ -76,7 +76,7 @@ body {
   width: min(660px, 96vw); max-height: 90vh; overflow: auto;
   background: var(--surface, #141826);
   border: 1px solid var(--line-2, rgba(255,255,255,.16));
-  border-radius: 14px; padding: 18px 20px 20px;
+  border-radius: 0; padding: 18px 20px 20px;
 }
 .c4-modal__bar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .c4-modal__title { font-size: 15px; font-weight: 700; color: var(--fg, #EEF2F8); letter-spacing: 1px; }
@@ -85,7 +85,7 @@ body {
 .c4-modal__close {
   appearance: none; width: 28px; height: 28px; cursor: pointer;
   background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
-  border: 1px solid var(--line-2, rgba(255,255,255,.18)); border-radius: 7px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.18)); border-radius: 0;
   font: inherit; font-size: 16px; line-height: 1;
 }
 .c4-modal__alg {
@@ -94,7 +94,7 @@ body {
   padding: 14px 16px; margin-bottom: 14px;
   background: var(--surface-2, #1A2130);
   border: 1px solid var(--line-2, rgba(255,255,255,.12));
-  border-radius: 9px;
+  border-radius: 0;
 }
 .c4-modal__row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; font-size: 13px; }
 .c4-modal__row .k { color: var(--fg-3, #7C8798); min-width: 66px; font-weight: 500; }
@@ -102,7 +102,7 @@ body {
 .c4-modal__acts { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
 .c4-modal__acts button {
   appearance: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
-  padding: 7px 15px; border-radius: 8px;
+  padding: 7px 15px; border-radius: 0;
   background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
   border: 1px solid var(--line-2, rgba(255,255,255,.2));
 }
@@ -110,7 +110,7 @@ body {
 .c4-modal__nav { display: flex; align-items: center; gap: 6px; }
 .c4-modal__nav button {
   appearance: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
-  padding: 5px 12px; border-radius: 7px;
+  padding: 5px 12px; border-radius: 0;
   background: transparent; color: var(--fg-2, #AEB8CA);
   border: 1px solid var(--line-2, rgba(255,255,255,.18));
 }
@@ -126,25 +126,25 @@ body {
 .c4-pmodal__box {
   width: min(720px, 96vw); max-height: 92vh;
   background: var(--surface, #141826); color: var(--fg, #EEF2F8);
-  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 14px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 0;
   box-shadow: 0 20px 60px rgba(0,0,0,.5);
   display: flex; flex-direction: column; overflow: hidden;
 }
 .c4-pmodal__bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line-2, rgba(255,255,255,.12)); background: var(--surface-2, #1A2130); }
-.c4-pmodal__navbtn { border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px; font-weight: 600; }
+.c4-pmodal__navbtn { border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); border-radius: 0; padding: 4px 10px; cursor: pointer; font-size: 14px; font-weight: 600; }
 .c4-pmodal__navbtn:hover { border-color: var(--brand, #60a5fa); }
-.c4-pmodal__select { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); font-size: 14px; font-weight: 700; }
+.c4-pmodal__select { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 0; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); font-size: 14px; font-weight: 700; }
 .c4-pmodal__spacer { flex: 0 0 8px; }
 .c4-pmodal__hint { color: var(--fg-2, #AEB8CA); font-size: 12px; margin-right: 4px; font-weight: 500; }
-.c4-pmodal__close { border: 1px solid transparent; background: transparent; color: var(--fg, #EEF2F8); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 8px; border-radius: 6px; }
+.c4-pmodal__close { border: 1px solid transparent; background: transparent; color: var(--fg, #EEF2F8); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 8px; border-radius: 0; }
 .c4-pmodal__close:hover { color: #fff; background: var(--red-soft, rgba(248,113,113,.18)); border-color: var(--red, #F87171); }
 .c4-pmodal__body { padding: 14px 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow: auto; }
 .c4-pmodal__code { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: var(--fg, #EEF2F8); }
-.c4-pmodal__alg { width: 100%; text-align: center; font-family: "Consolas","SF Mono","Fira Code", monospace; font-size: 18px; line-height: 1.5; color: var(--fg, #EEF2F8); padding: 4px 0 8px; word-break: break-word; background: var(--surface-2, #1A2130); border-radius: 8px; }
+.c4-pmodal__alg { width: 100%; text-align: center; font-family: "Consolas","SF Mono","Fira Code", monospace; font-size: 18px; line-height: 1.5; color: var(--fg, #EEF2F8); padding: 4px 0 8px; word-break: break-word; background: var(--surface-2, #1A2130); border-radius: 0; }
 .c4-pmodal__timer {
   width: 100%; text-align: center; font-family: "Consolas","SF Mono",monospace;
   font-size: 72px; font-weight: 900; line-height: 1; padding: 22px 0;
-  border-radius: 12px; background: #1e293b; color: #f8fafc; cursor: pointer;
+  border-radius: 0; background: #1e293b; color: #f8fafc; cursor: pointer;
   user-select: none; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.45);
   transition: background 150ms ease, color 150ms ease; border: 1px solid var(--line-2, rgba(255,255,255,.18));
 }
@@ -156,17 +156,17 @@ body {
 .c4-pmodal__summary { font-size: 13px; color: var(--fg-2, #AEB8CA); text-align: center; }
 .c4-pmodal__summary b { color: var(--fg, #EEF2F8); font-size: 16px; }
 .c4-pmodal__acts { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
-.c4-pmodal__acts button { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); cursor: pointer; font-size: 12px; font-weight: 600; }
+.c4-pmodal__acts button { padding: 5px 12px; border-radius: 0; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); cursor: pointer; font-size: 12px; font-weight: 600; }
 .c4-pmodal__acts button:hover { border-color: var(--brand, #60a5fa); }
 .c4-pmodal__history { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--fg-2, #AEB8CA); max-height: 100px; overflow: auto; padding-top: 6px; border-top: 1px dashed var(--line-2, rgba(255,255,255,.12)); }
-.c4-pmodal__history .sh-item { padding: 2px 8px; border-radius: 6px; background: var(--brand-soft, rgba(91,141,239,.18)); color: var(--fg, #EEF2F8); font-family: "Consolas","SF Mono",monospace; font-weight: 600; }
+.c4-pmodal__history .sh-item { padding: 2px 8px; border-radius: 0; background: var(--brand-soft, rgba(91,141,239,.18)); color: var(--fg, #EEF2F8); font-family: "Consolas","SF Mono",monospace; font-weight: 600; }
 
 /* ---------- 连练模式 ---------- */
 /* 注意：aria-pressed 用 brand-soft（极淡底）+ brand（实色字），不是实色蓝底，无「蓝底蓝字」问题 */
 .c4-pmodal__navbtn[aria-pressed="true"] { border-color: var(--brand-line, rgba(91,141,239,.30)); background: var(--brand-soft, rgba(91,141,239,.14)); color: var(--brand, #5B8DEF); }
-.c4-chain { width: 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px dashed var(--line-2, rgba(255,255,255,.18)); border-radius: 8px; background: var(--surface-2, #1A2130); font-size: 12px; color: var(--fg-2, #AEB8CA); }
+.c4-chain { width: 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px dashed var(--line-2, rgba(255,255,255,.18)); border-radius: 0; background: var(--surface-2, #1A2130); font-size: 12px; color: var(--fg-2, #AEB8CA); }
 .c4-chain label { font-weight: 600; white-space: nowrap; }
-.c4-chain select { padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); font-size: 12px; font-weight: 600; }
+.c4-chain select { padding: 3px 6px; border-radius: 0; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); font-size: 12px; font-weight: 600; }
 .c4-chain__prog { margin-left: auto; font-family: "Consolas","SF Mono",monospace; font-weight: 700; color: var(--brand, #5B8DEF); white-space: nowrap; }
 .c4-pmodal__body.is-chain .c4-pmodal__code { color: var(--brand, #5B8DEF); }
 
@@ -178,14 +178,14 @@ body {
 .c4-fs__code { font-size: 28px; font-weight: 800; letter-spacing: 3px; color: var(--fg, #EEF2F8); }
 .c4-fs__prog { font-family: "Consolas","SF Mono",monospace; font-weight: 700; color: var(--brand, #5B8DEF); font-size: 14px; }
 .c4-fs__hint { color: var(--fg-3, #7C8798); font-size: 13px; white-space: nowrap; }
-.c4-fs__close { margin-left: auto; border: 1px solid transparent; background: transparent; color: var(--fg-2, #AEB8CA); font-size: 26px; line-height: 1; cursor: pointer; padding: 0 10px; border-radius: 6px; }
+.c4-fs__close { margin-left: auto; border: 1px solid transparent; background: transparent; color: var(--fg-2, #AEB8CA); font-size: 26px; line-height: 1; cursor: pointer; padding: 0 10px; border-radius: 0; }
 .c4-fs__close:hover { color: #fff; background: var(--red-soft, rgba(248,113,113,.18)); border-color: var(--red, #F87171); }
 .c4-fs__timer {
   font-family: "Consolas","SF Mono",monospace; font-weight: 900; font-variant-numeric: tabular-nums;
   text-align: center; line-height: 1.1; letter-spacing: 3px; cursor: pointer;
   user-select: none; -webkit-user-select: none; touch-action: manipulation;
   background: #1e293b; color: #f8fafc; border: 3px solid var(--line-2, rgba(255,255,255,.18));
-  border-radius: 28px; padding: 20px 52px; text-shadow: 0 2px 10px rgba(0,0,0,.45);
+  border-radius: 0; padding: 20px 52px; text-shadow: 0 2px 10px rgba(0,0,0,.45);
   /* 字号沿用 tools/timer 宽屏分级口径：1025–1279 用小档 */
   font-size: clamp(48px, 8vw, 110px);
 }
@@ -195,14 +195,14 @@ body {
 .c4-fs__alg { max-width: 920px; text-align: center; font-family: "Consolas","SF Mono",monospace; font-size: clamp(16px, 2.2vw, 26px); line-height: 1.6; color: var(--fg-2, #AEB8CA); word-break: break-word; }
 @media (max-width: 640px) {
   .c4-fs__hint { display: none; }
-  .c4-fs__timer { padding: 14px 26px; border-radius: 20px; }
+  .c4-fs__timer { padding: 14px 26px; border-radius: 0; }
 }
 
 /* ---------- toast ---------- */
 .c4-toast {
   position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%);
   background: var(--fg, #EEF2F8); color: var(--bg, #0B0F18);
-  font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 0;
   opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10000;
 }
 .c4-toast.is-on { opacity: 1; }
@@ -230,7 +230,7 @@ body {
 .c4-modal__refsnote { font-size: 11.5px; color: var(--fg-3, #7C8798); }
 .c4-modal__refsreset {
   appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
-  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  margin-left: auto; padding: 4px 10px; border-radius: 0;
   background: transparent; color: var(--gold, #f5c518);
   border: 1px solid rgba(245,197,24,.5);
 }
@@ -238,7 +238,7 @@ body {
 .c4-modal__refslist { display: flex; flex-direction: column; gap: 5px; max-height: 32vh; overflow: auto; padding-right: 2px; }
 .c4-ref {
   display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
-  padding: 6px 9px; border-radius: 7px; cursor: pointer; font: inherit;
+  padding: 6px 9px; border-radius: 0; cursor: pointer; font: inherit;
   background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
   border: 1px solid var(--line-2, rgba(255,255,255,.14));
 }
@@ -247,11 +247,11 @@ body {
 .c4-ref__no { flex: 0 0 18px; text-align: right; font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
 .c4-ref__alg { flex: 1 1 auto; min-width: 0; font-family: "Consolas", "SF Mono", monospace; font-size: 12.5px; word-break: break-all; }
 .c4-ref__n { flex: 0 0 auto; font-size: 11px; opacity: .75; white-space: nowrap; }
-.c4-ref__def { flex: 0 0 auto; font-size: 10px; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 1px 5px; }
+.c4-ref__def { flex: 0 0 auto; font-size: 10px; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 0; padding: 1px 5px; }
 /* 手动输入公式按钮：与「恢复默认」同排，靠右 */
 .c4-modal__refsbar .c4-modal__refsman {
   appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
-  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  margin-left: auto; padding: 4px 10px; border-radius: 0;
   background: transparent; color: var(--fg-2, #AEB8CA);
   border: 1px solid var(--line-2, rgba(255,255,255,.2));
 }
@@ -261,7 +261,7 @@ body {
 /* 练习浮层内嵌的参考公式面板（v2.0.11：把选公式入口提到练习浮层，不用进详情浮层） */
 .c4-pmodal__refs {
   margin: 8px 0; padding: 8px 10px; text-align: left;
-  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 8px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 0;
   background: var(--surface-2, rgba(255,255,255,.03));
 }
 .c4-pmodal__refs .c4-modal__refslist { max-height: 26vh; }
@@ -280,3 +280,211 @@ body {
   background: var(--c4-intent-bg, rgba(148,163,184,.16));
 }
 .c4-matrix .mx.manual::after { color: var(--gold, #f5c518); opacity: .9; }
+
+/* ==================================================================
+   v2.0.26 追加：直角风格统一 + 卡片改版 + 星标 + 字母筛选 + 详情浮层新版
+   ================================================================== */
+
+/* ---------- ① 直角风格：把共享框架（train-matrix.css）里的圆角一并压平 ----------
+   共享框架被 4bld 等多处复用，不能改它；这里在 ft.css 里覆盖（ft.css 后加载，同特异性靠后生效）。
+   只压「公式训练器这一族页面」的圆角，卡片/按钮/矩阵格/分段控件全变直角。 */
+.c4-bar, .c4-bar select, .c4-bar input, .c4-bar button,
+.c4-seg, .c4-seg button, .c4-navbtn, .ft-bufbtn,
+.c4-dash, .c4-kpi, .c4-top, .c4-top__item, .c4-grad, .c4-gradbox,
+.c4-bcell, .c4-matrix .mx, .mx-grid, .mx-ch, .mx-rh, .mx-corner,
+.c4-modal__box, .c4-modal__alg, .c4-modal__acts button, .c4-modal__nav button,
+.c4-modal__close, .c4-modal__refsreset, .c4-modal__refsman, .c4-ref, .c4-ref__def,
+.c4-pmodal__box, .c4-pmodal__navbtn, .c4-pmodal__select, .c4-pmodal__alg,
+.c4-pmodal__timer, .c4-pmodal__acts button, .c4-pmodal__history .sh-item,
+.c4-chain, .c4-chain select, .c4-fs__timer, .c4-fs__close, .c4-toast,
+.c4-meta, .ft-ltr, .ft-starc__b, .c4-rep__i {
+  border-radius: 0;
+}
+
+/* ---------- ② 矩阵格改版：大字字母组合 + 时间 + 右上角星标 ----------
+   不再在格子里塞公式（几百条公式挤在一起反而看不清），公式进详情/练习浮层看。 */
+.c4-matrix .mx { position: relative; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px; padding: 1px; line-height: 1; }
+.c4-matrix .mx-code {
+  font-family: "Consolas","SF Mono",monospace;
+  font-size: calc(var(--mx-fs, 9px) * 1.55); font-weight: 800; letter-spacing: .5px;
+}
+.c4-matrix .mx-ms {
+  font-family: "Consolas","SF Mono",monospace; font-variant-numeric: tabular-nums;
+  font-size: calc(var(--mx-fs, 9px) * 1.0); font-weight: 600; opacity: .82;
+}
+/* 星标：默认淡灰 ☆，标记后按档位着色；点在它上面不会触发「打开练习」（JS 捕获阶段拦掉） */
+.mx-star {
+  position: absolute; top: 0; right: 1px;
+  font-size: calc(var(--mx-fs, 9px) * 1.25); line-height: 1;
+  color: var(--fg-3, #7C8798); opacity: .45; pointer-events: auto;
+  text-shadow: 0 0 2px var(--surface, #141826);
+}
+.c4-matrix .mx:hover .mx-star { opacity: 1; }
+.mx-star.is-on { opacity: 1; }
+.mx-star.s-gold   { color: #f5c518; }
+.mx-star.s-red    { color: #f87171; }
+.mx-star.s-blue   { color: #60a5fa; }
+.mx-star.s-green  { color: #4ade80; }
+.mx-star.s-purple { color: #c084fc; }
+
+/* 看板卡的星标（与矩阵同一套颜色） */
+.c4-bcell .c-star { position: absolute; right: 5%; bottom: 6%; font-size: .95em; line-height: 1.2; font-weight: 800; }
+.c4-bcell .c-star.s-gold { color: #f5c518; }
+.c4-bcell .c-star.s-red { color: #f87171; }
+.c4-bcell .c-star.s-blue { color: #60a5fa; }
+.c4-bcell .c-star.s-green { color: #4ade80; }
+.c4-bcell .c-star.s-purple { color: #c084fc; }
+
+/* ---------- ③ 字母筛选条（第二行工具条） ---------- */
+.c4-bar--letters { margin-top: -6px; padding: 7px 12px;
+  border-bottom: 1px solid var(--line-2, rgba(255,255,255,.12)); }
+.c4-bar__label { font-size: 12px; color: var(--fg-3, #7C8798); font-weight: 600; white-space: nowrap; }
+.c4-bar__hint { font-size: 11.5px; color: var(--fg-3, #7C8798); }
+.ft-letters { display: flex; flex-wrap: wrap; gap: 3px; }
+.ft-ltr {
+  appearance: none; cursor: pointer; font: inherit;
+  min-width: 24px; height: 22px; padding: 0 5px;
+  background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18));
+  font-size: 12px; font-weight: 800; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.ft-ltr:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
+.ft-ltr.is-on {
+  border-color: var(--gold, #f5c518); background: rgba(245,197,24,.16); color: var(--gold, #f5c518);
+}
+
+/* ---------- ④ 星标档位选择器（详情浮层） ---------- */
+.c4-modal__star {
+  appearance: none; cursor: pointer; font: inherit; font-size: 20px; line-height: 1;
+  width: 30px; height: 26px; padding: 0;
+  background: transparent; color: var(--fg-3, #7C8798);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18));
+}
+.c4-modal__star:hover { color: var(--gold, #f5c518); border-color: var(--gold, #f5c518); }
+.c4-modal__star.is-on { color: #f5c518; border-color: var(--gold, #f5c518); background: rgba(245,197,24,.12); }
+.c4-modal__star.is-on.s-red { color: #f87171; border-color: #f87171; background: rgba(248,113,113,.14); }
+.c4-modal__star.is-on.s-blue { color: #60a5fa; border-color: #60a5fa; background: rgba(96,165,250,.14); }
+.c4-modal__star.is-on.s-green { color: #4ade80; border-color: #4ade80; background: rgba(74,222,128,.14); }
+.c4-modal__star.is-on.s-purple { color: #c084fc; border-color: #c084fc; background: rgba(192,132,252,.14); }
+
+.c4-modal__starbox { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 10px 0; padding: 9px 10px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14));
+  background: var(--surface-2, #1A2130); }
+.c4-modal__starbox .k { color: var(--fg-3, #7C8798); font-size: 12px; font-weight: 600; min-width: 40px; }
+.ft-starc { display: flex; flex-wrap: wrap; gap: 5px; }
+.ft-starc__b {
+  appearance: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px;
+  background: var(--surface-3, #232C3E); color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18));
+}
+.ft-starc__b:hover { border-color: var(--brand, #60a5fa); color: var(--fg, #EEF2F8); }
+.ft-starc__dot { width: 9px; height: 9px; display: inline-block; }
+.ft-starc__b.s-gold .ft-starc__dot { background: #f5c518; }
+.ft-starc__b.s-red .ft-starc__dot { background: #f87171; }
+.ft-starc__b.s-blue .ft-starc__dot { background: #60a5fa; }
+.ft-starc__b.s-green .ft-starc__dot { background: #4ade80; }
+.ft-starc__b.s-purple .ft-starc__dot { background: #c084fc; }
+.ft-starc__b.is-on { color: var(--fg, #EEF2F8); border-width: 2px; }
+.ft-starc__b.s-gold.is-on { border-color: #f5c518; background: rgba(245,197,24,.16); }
+.ft-starc__b.s-red.is-on { border-color: #f87171; background: rgba(248,113,113,.16); }
+.ft-starc__b.s-blue.is-on { border-color: #60a5fa; background: rgba(96,165,250,.16); }
+.ft-starc__b.s-green.is-on { border-color: #4ade80; background: rgba(74,222,128,.16); }
+.ft-starc__b.s-purple.is-on { border-color: #c084fc; background: rgba(192,132,252,.16); }
+.c4-modal__note { flex: 1 1 220px; min-width: 0; font-size: 13px;
+  padding: 5px 9px; background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18)); }
+
+/* ---------- ⑤ 详情浮层：加大尺寸 + 分区排版 ---------- */
+.c4-modal__box {
+  width: min(880px, 96vw); max-height: 92vh;
+  padding: 0; display: flex; flex-direction: column;
+}
+.c4-modal__bar { margin: 0; padding: 13px 18px;
+  border-bottom: 1px solid var(--line-2, rgba(255,255,255,.14));
+  background: var(--surface-2, #1A2130); }
+.c4-modal__title { font-size: 17px; }
+.c4-modal__body { padding: 16px 18px 6px; overflow: auto; flex: 1 1 auto; }
+.c4-modal__acts { margin: 0; padding: 12px 18px; gap: 10px;
+  border-top: 1px solid var(--line-2, rgba(255,255,255,.14));
+  background: var(--surface-2, #1A2130); }
+.c4-modal__algwrap { margin-bottom: 14px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.16)); background: var(--surface-2, #1A2130); }
+.c4-modal__algbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; border-bottom: 1px solid var(--line-2, rgba(255,255,255,.12)); }
+.c4-modal__algbar .k { color: var(--fg-3, #7C8798); font-size: 12px; font-weight: 600; }
+.c4-modal__algbar .c4-spacer { flex: 1 1 auto; }
+.c4-seg--sm button { padding: 3px 10px; font-size: 12px; font-weight: 600;
+  background: transparent; color: var(--fg-2, #AEB8CA); border: 0;
+  border-right: 1px solid var(--line-2, rgba(255,255,255,.14)); cursor: pointer; font-family: inherit; }
+.c4-seg--sm button:last-child { border-right: 0; }
+.c4-seg--sm button.is-active { background: var(--brand-soft, rgba(91,141,239,.16)); color: var(--brand, #5B8DEF); }
+.c4-modal__mini { appearance: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
+  padding: 3px 10px; background: transparent; color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.2)); }
+.c4-modal__mini:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
+.c4-modal__alg { margin: 0; padding: 16px 18px; font-size: 25px; line-height: 1.55;
+  border: 0; background: transparent; }
+.c4-modal__alg--sub { border-top: 1px dashed var(--line-2, rgba(255,255,255,.14));
+  font-size: 21px; color: var(--fg-2, #AEB8CA); }
+.c4-modal__alg.is-comm { color: var(--gold, #f5c518); }
+
+/* 元信息：一格一项，扫一眼看完（位置/分组/来源/练习/最快/平均/最近） */
+.c4-modal__meta { display: grid; gap: 1px; margin-bottom: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.c4-meta { display: flex; align-items: baseline; gap: 8px; padding: 7px 10px;
+  background: var(--surface-2, #1A2130); border-left: 3px solid var(--brand, #5B8DEF); }
+.c4-meta__k { font-size: 11.5px; color: var(--fg-3, #7C8798); font-weight: 600; flex: 0 0 30px; }
+.c4-meta__v { font-size: 13px; color: var(--fg, #EEF2F8); font-weight: 600;
+  font-family: "Consolas","SF Mono",monospace; word-break: break-all; }
+
+/* 参考公式折叠区 */
+.c4-modal__refsmore { margin-top: 6px; }
+.c4-modal__refsmore[hidden] { display: none; }
+.c4-modal__refsmore summary { cursor: pointer; font-size: 12px; font-weight: 600;
+  color: var(--brand, #5B8DEF); padding: 5px 0; }
+
+/* ---------- ⑥ 练习浮层：头部行 + 星标 + 三次平均进度 ---------- */
+.c4-pmodal__headrow { display: flex; align-items: center; gap: 10px; width: 100%; }
+.c4-pmodal__code { flex: 0 0 auto; }
+.c4-pmodal__star { appearance: none; cursor: pointer; font: inherit; font-size: 22px; line-height: 1;
+  width: 32px; height: 30px; padding: 0; background: transparent; color: var(--fg-3, #7C8798);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18)); }
+.c4-pmodal__star:hover { color: var(--gold, #f5c518); border-color: var(--gold, #f5c518); }
+.c4-pmodal__star.is-on { color: #f5c518; border-color: var(--gold, #f5c518); background: rgba(245,197,24,.12); }
+.c4-pmodal__star.is-on.s-red { color: #f87171; border-color: #f87171; background: rgba(248,113,113,.14); }
+.c4-pmodal__star.is-on.s-blue { color: #60a5fa; border-color: #60a5fa; background: rgba(96,165,250,.14); }
+.c4-pmodal__star.is-on.s-green { color: #4ade80; border-color: #4ade80; background: rgba(74,222,128,.14); }
+.c4-pmodal__star.is-on.s-purple { color: #c084fc; border-color: #c084fc; background: rgba(192,132,252,.14); }
+.c4-pmodal__replab { font-size: 12px; color: var(--fg-3, #7C8798); font-weight: 600; }
+.c4-pmodal__repselect { padding: 4px 7px; font-size: 12px; font-weight: 600;
+  background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18)); }
+.c4-pmodal__alg--sub { font-size: 15px; color: var(--fg-2, #AEB8CA);
+  border-top: 1px dashed var(--line-2, rgba(255,255,255,.14)); }
+.c4-pmodal__alg--sub[hidden] { display: none; }
+.c4-pmodal__rep { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;
+  padding: 7px 10px; font-size: 12px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.16)); background: var(--surface-2, #1A2130); }
+.c4-pmodal__rep[hidden] { display: none; }
+.c4-rep__lab { font-weight: 700; color: var(--brand, #5B8DEF); }
+.c4-rep__tip { color: var(--fg-3, #7C8798); }
+.c4-rep__i { font-family: "Consolas","SF Mono",monospace; font-weight: 700;
+  padding: 2px 8px; background: var(--surface-3, #232C3E); color: var(--fg-2, #AEB8CA); }
+.c4-rep__i.is-cur { background: var(--brand-soft, rgba(91,141,239,.2)); color: var(--brand, #5B8DEF); }
+
+/* 计时数字禁止选中：拖选/双击时间会把「按住起表」的 mousedown 吃掉（v2.0.26） */
+.c4-pmodal__timer, .c4-fs__timer, .c4-pmodal__summary, .c4-pmodal__code {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+
+@media (max-width: 900px) {
+  .c4-modal__box { width: 96vw; }
+  .c4-modal__alg { font-size: 20px; padding: 12px 14px; }
+  .c4-modal__alg--sub { font-size: 17px; }
+  .c4-modal__meta { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+}

@@ -82,9 +82,11 @@
             <div class="tm-bld__rows" id="tm-bld-rows"></div>
           </div>
         </div>
-        <!-- 三盲：展开图与打乱公式同处展示（仅「三盲」项目显示） -->
-        <div class="tm-bld-net-side" id="tm-bld-net-side" hidden>
-          <canvas id="tm-bld-net" aria-label="三盲打乱展开图"></canvas>
+        <!-- 展开图与打乱公式同处展示。
+             v2.0.26：所有项目（三阶 / 二阶 / 三盲）都显示展开图，不再只限三盲。
+             三盲画的是「按坐标系预摆后的打乱」，速拧画当前打乱本身（二阶用 2 阶展开图）。 -->
+        <div class="tm-bld-net-side" id="tm-bld-net-side">
+          <canvas id="tm-bld-net" aria-label="打乱展开图"></canvas>
           <span class="tm-bld__net-cap" id="tm-bld-net-cap">展开图</span>
         </div>
       </div>

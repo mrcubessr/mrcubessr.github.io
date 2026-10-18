@@ -45,6 +45,9 @@ window.FTPage = (function () {
     + '    <option value="all">全部公式</option>'
     + '    <option value="todo">只看未练</option>'
     + '    <option value="weak">只看需关注+不合格</option>'
+    + '    <option value="starred">★ 只看已标记</option>'
+    + '    <option value="mother">只看母公式</option>'
+    + '    <option value="done">只看已练</option>'
     + '  </select>'
     + '  <span class="c4-bo">'
     + '    <label for="c4-sort">排序</label>'
@@ -52,13 +55,35 @@ window.FTPage = (function () {
     + '      <option value="group">按组顺序</option>'
     + '      <option value="slow">最慢优先</option>'
     + '      <option value="practice">按练习次数</option>'
+    + '      <option value="star">★ 标记优先</option>'
     + '    </select>'
     + '  </span>'
+    + '  <label for="c4-algview">显示</label>'
+    + '  <select id="c4-algview" title="公式用哪种写法显示">'
+    + '    <option value="expand">展开式</option>'
+    + '    <option value="comm">括号格式</option>'
+    + '    <option value="both">两者都显示</option>'
+    + '  </select>'
+    + '  <label for="c4-repmode">练习</label>'
+    + '  <select id="c4-repmode" title="每条公式练一次记一次，还是连做三次取平均">'
+    + '    <option value="single">单次计时</option>'
+    + '    <option value="avg3">连做三次取平均</option>'
+    + '  </select>'
     + '  <button type="button" id="c4-nav-toggle" class="c4-navbtn" aria-pressed="false"'
     + '          title="隐藏左侧导航栏，让公式卡片占满整个屏幕">隐藏侧栏</button>'
     + '  <button type="button" id="c4-comm" class="c4-navbtn" aria-pressed="false"'
-    + '          title="公式显示为括号格式：[A,B] 交换子 = A B A⁻¹ B⁻¹；A:[B,C] 共轭 = A [B,C] A⁻¹。'
-    + '该条无括号数据（或你手动输入过公式）时仍显示展开式">括号格式</button>'
+    + '          title="快捷切换：公式显示为括号格式。[A,B] 交换子 = A B A⁻¹ B⁻¹；'
+    + 'A:[B,C] 共轭 = A [B,C] A⁻¹。该条无括号数据（或你手动输入过公式）时仍显示展开式">括号格式</button>'
+    + '</div>'
+    /* ---------- 第二行：字母筛选（点字母即只看「行或列含该字母」的公式） ----------
+       用途举例：想专门练 B 开头的公式 → 只点亮 B，矩阵与看板都只剩 B 相关那一批。
+       多选，取并集；全不点 = 不过滤。缓冲字母不在列表里（它是所有码的首字母）。 */
+    + '<div class="c4-bar c4-bar--letters" id="c4-bar-letters">'
+    + '  <span class="c4-bar__label">字母筛选</span>'
+    + '  <span class="ft-letters" id="c4-letters"></span>'
+    + '  <button type="button" class="c4-navbtn" id="c4-letters-clear" title="清空字母筛选">清空</button>'
+    + '  <span class="c4-spacer"></span>'
+    + '  <span class="c4-bar__hint" id="c4-letters-hint"></span>'
     + '</div>'
     /* ---------- 练习总览仪表盘 ---------- */
     + '<section id="c4-dash" class="c4-dash">'
@@ -120,8 +145,19 @@ window.FTPage = (function () {
     + '        </select>'
     + '        <span class="c4-chain__prog" id="c4-chain-prog"></span>'
     + '      </div>'
-    + '      <div class="c4-pmodal__code" id="c4-p-code">--</div>'
-    + '      <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>'
+      + '      <div class="c4-pmodal__headrow">'
+      + '        <div class="c4-pmodal__code" id="c4-p-code">--</div>'
+      + '        <button type="button" class="c4-pmodal__star" id="c4-p-star" title="标记这条公式（母公式 / 重点练 / 易错…）">☆</button>'
+      + '        <span class="c4-spacer"></span>'
+      + '        <label for="c4-p-repmode" class="c4-pmodal__replab">练习</label>'
+      + '        <select id="c4-p-repmode" class="c4-pmodal__repselect" title="单次计时，还是连做三次取平均">'
+      + '          <option value="single">单次</option>'
+      + '          <option value="avg3">三次平均</option>'
+      + '        </select>'
+      + '      </div>'
+      + '      <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>'
+      + '      <div class="c4-pmodal__alg c4-pmodal__alg--sub" id="c4-p-alg2" hidden></div>'
+      + '      <div class="c4-pmodal__rep" id="c4-p-rep" hidden></div>'
     + '      <div class="c4-pmodal__refs" id="c4-p-refsbox" hidden>'
     + '        <div class="c4-modal__refsbar">'
     + '          <span class="k">参考公式</span>'
@@ -156,11 +192,13 @@ window.FTPage = (function () {
     + '  <div class="c4-fs__timer" id="c4-fs-timer" data-state="idle">0.000</div>'
     + '  <div class="c4-fs__alg" id="c4-fs-alg"></div>'
     + '</div>'
-    /* ---------- 矩阵详情浮层（只读参考） ---------- */
+    /* ---------- 详情浮层（v2.0.26 重做：更大更宽松，公式显示方式可三选，
+           参考公式默认 5 条 + 折叠，带星标标记与备注） ---------- */
     + '<div class="c4-modal" id="c4-modal" role="dialog" aria-modal="true" aria-label="公式详情">'
     + '  <div class="c4-modal__box">'
     + '    <div class="c4-modal__bar">'
     + '      <span class="c4-modal__title" id="c4-m-title">--</span>'
+    + '      <button type="button" class="c4-modal__star" id="c4-m-star" title="标记这条公式（母公式 / 重点练 / 易错…）">☆</button>'
     + '      <span class="c4-spacer"></span>'
     + '      <div class="c4-modal__nav">'
     + '        <button type="button" id="c4-m-prev">← 上一式</button>'
@@ -168,23 +206,47 @@ window.FTPage = (function () {
     + '      </div>'
     + '      <button type="button" class="c4-modal__close" id="c4-m-close" aria-label="关闭">×</button>'
     + '    </div>'
-    + '    <div class="c4-modal__alg" id="c4-m-alg">--</div>'
-    + '    <div class="c4-modal__row"><span class="k">位置</span><span class="v" id="c4-m-pos">--</span></div>'
-    + '    <div class="c4-modal__row"><span class="k">反向</span><span class="v" id="c4-m-rev">--</span></div>'
-    + '    <div class="c4-modal__row"><span class="k">分组</span><span class="v" id="c4-m-grp">--</span></div>'
-    + '    <div class="c4-modal__row"><span class="k">来源</span><span class="v" id="c4-m-src">--</span></div>'
-    + '    <div class="c4-modal__refs" id="c4-m-refs">'
-    + '      <div class="c4-modal__refsbar">'
-    + '        <span class="k">参考公式</span>'
-    + '        <span class="c4-modal__refsnote" id="c4-m-refsnote">默认取排名第一；点下面任意一条即可切换</span>'
-    + '        <button type="button" id="c4-m-refsmanual" class="c4-modal__refsman">✎ 手动输入</button>'
-    + '        <button type="button" id="c4-m-refsreset" hidden>恢复默认</button>'
+    + '    <div class="c4-modal__body">'
+    + '      <div class="c4-modal__algwrap">'
+    + '        <div class="c4-modal__algbar">'
+    + '          <span class="k">公式</span>'
+    + '          <div class="c4-seg c4-seg--sm" id="c4-m-algview" role="group" aria-label="公式显示方式">'
+    + '            <button type="button" data-av="expand">展开式</button>'
+    + '            <button type="button" data-av="comm">括号格式</button>'
+    + '            <button type="button" data-av="both">都显示</button>'
+    + '          </div>'
+    + '          <span class="c4-spacer"></span>'
+    + '          <button type="button" class="c4-modal__mini" id="c4-m-copy">复制公式</button>'
+    + '        </div>'
+    + '        <div class="c4-modal__alg" id="c4-m-alg">--</div>'
+    + '        <div class="c4-modal__alg c4-modal__alg--sub" id="c4-m-alg2" hidden></div>'
     + '      </div>'
-    + '      <div class="c4-modal__refslist" id="c4-m-refslist"></div>'
+    + '      <div class="c4-modal__meta" id="c4-m-meta"></div>'
+    + '      <div class="c4-modal__row"><span class="k">反向</span><span class="v" id="c4-m-rev">--</span></div>'
+    + '      <div class="c4-modal__starbox">'
+    + '        <span class="k">标记</span>'
+    + '        <span class="ft-starc" id="c4-m-starc"></span>'
+    + '        <input class="input c4-modal__note" id="c4-m-note" type="text" maxlength="60"'
+    + '               placeholder="备注：如「母公式，C 组都从它变」">'
+    + '      </div>'
+    + '      <div class="c4-modal__refs" id="c4-m-refs">'
+    + '        <div class="c4-modal__refsbar">'
+    + '          <span class="k">参考公式</span>'
+    + '          <span class="c4-modal__refsnote" id="c4-m-refsnote">默认取排名第一；点下面任意一条即可切换</span>'
+    + '          <span class="c4-spacer"></span>'
+    + '          <button type="button" id="c4-m-refsmanual" class="c4-modal__refsman">✎ 手动输入</button>'
+    + '          <button type="button" id="c4-m-refsreset" hidden>恢复默认</button>'
+    + '        </div>'
+    + '        <div class="c4-modal__refslist" id="c4-m-refslist"></div>'
+    + '        <details class="c4-modal__refsmore" id="c4-m-refsmore" hidden>'
+    + '          <summary id="c4-m-refsmore-sum"></summary>'
+    + '          <div class="c4-modal__refslist" id="c4-m-refslist2"></div>'
+    + '        </details>'
+    + '      </div>'
     + '    </div>'
     + '    <div class="c4-modal__acts">'
-    + '      <button type="button" id="c4-m-copy">复制公式</button>'
     + '      <button type="button" id="c4-m-locate">去练习</button>'
+    + '      <button type="button" id="c4-m-close2">关闭</button>'
     + '    </div>'
     + '  </div>'
     + '</div>'
@@ -230,12 +292,57 @@ window.FTPage = (function () {
     /* ---------- 公式读取（含路线 C 手动补全 / 参考公式切换） ---------- */
     function baseAlg(code) { return FT.baseAlgOf(state.D, code); }
     function algOf(code) { return state.swaps[code] || baseAlg(code); }
-    /* 括号格式显示：开关打开且该条（当前公式）有括号数据 → 括号格式，否则展开式。
-       手动输入 / Excel 公式 / 无 comm 的格子自动回退，不会显示错误结构。 */
-    var commOn = FT.commOn();
+
+    /* ---------- 公式显示方式（v2.0.26）----------
+       'expand' 展开式 | 'comm' 括号/转换机格式 | 'both' 两者都显示。
+       手动输入 / Excel 公式 / 无 comm 数据的格子会自动回退为展开式。 */
+    var algView = FT.algView();
+    function commText(code) { return FT.commOfAlg(state.D, code, algOf(code)) || ''; }
     function displayAlg(code) {
-      if (!commOn) { return algOf(code); }
-      return FT.commOfAlg(state.D, code, algOf(code)) || algOf(code);
+      var a = algOf(code);
+      if (algView === 'expand') { return a; }
+      var c = commText(code);
+      if (algView === 'comm') { return c || a; }
+      return c ? (a + '   ║   ' + c) : a;   /* both：单串场景用分隔符并列 */
+    }
+    function setAlgView(v) {
+      algView = v;
+      FT.setAlgView(v);
+      /* 同步工具条与详情浮窗里的三选状态 */
+      var sel = document.getElementById('c4-algview');
+      if (sel) { sel.value = v; }
+      var btn = document.getElementById('c4-comm');
+      if (btn) { btn.setAttribute('aria-pressed', v === 'expand' ? 'false' : 'true'); }
+      syncModalAlgViewSeg();
+    }
+
+    /* ---------- 星标标记（v2.0.26）----------
+       state.stars 是页面内缓存：矩阵一次要画 506 格，逐格读 localStorage 会卡。 */
+    var stars = FT.getStars(sys);
+    function starOf(code) { return stars[code] || null; }
+    function saveStars() { FT.saveStars(sys, stars); }
+    function toggleStar(code) {
+      if (stars[code]) {
+        delete stars[code];
+      } else {
+        stars[code] = { c: 'gold', n: '' };   /* 默认「母公式」金色：最常见的标记诉求 */
+      }
+      saveStars();
+      renderCurrent();
+      toast(stars[code] ? '已标记为「母公式」（可在详情里改颜色和备注）' : '已取消标记');
+    }
+    function setStarColor(code, k) {
+      if (!stars[code]) { stars[code] = { c: k, n: '' }; }
+      else { stars[code].c = k; }
+      saveStars();
+      renderCurrent();
+      if (modalCode === code) { fillModal(code); }
+    }
+    function setStarNote(code, n) {
+      if (!stars[code]) { stars[code] = { c: 'gold', n: n }; }
+      else { stars[code].n = n; }
+      saveStars();
+      renderCurrent();
     }
     function isSwapped(code) { return !!state.swaps[code]; }
     function refList(code) { return FT.refListOf(state.D, code); }
@@ -390,24 +497,57 @@ window.FTPage = (function () {
     }
 
     /* ---------- 搜索 + 筛选 ---------- */
-    function matchSet(stats, bench) {
+    /* ---------- 筛选（v2.0.26 扩展）----------
+       ① 下拉：全部 / 未练 / 需关注 / 已标记 / 母公式 / 已练
+       ② 字母筛选：点亮的字母取并集，code 的「行字母或列字母」命中即保留
+          （例：只想练 B 开头的公式 → 只点亮 B）
+       ③ 搜索框：码 / 公式（展开式与括号式都匹配）/ 位置，另带三循环旋转容错
+       矩阵与看板共用同一份判定，保证两处结果一致。 */
+    var letterSet = {};                 /* { 'B': true, ... } */
+    function hasLetterFilter() {
+      for (var k in letterSet) { if (letterSet[k]) { return true; } }
+      return false;
+    }
+    function passLetter(c) {
+      if (!hasLetterFilter()) { return true; }
+      return !!letterSet[c.charAt(1)] || !!letterSet[c.charAt(2)];
+    }
+    function passFilter(c, stats, bench) {
+      if (!passLetter(c)) { return false; }
+      var st = stats[c];
+      if (filterMode === 'todo') { return st.n === 0; }
+      if (filterMode === 'done') { return st.n > 0; }
+      if (filterMode === 'weak') {
+        var t = tierOf(st.metric(), bench);
+        return st.n > 0 && (t === 't-bad' || t === 't-warn');
+      }
+      if (filterMode === 'starred') { return !!stars[c]; }
+      if (filterMode === 'mother') { return !!stars[c] && (stars[c].c || 'gold') === 'gold'; }
+      return true;
+    }
+    function passQuery(c, q, qrot) {
+      if (!q) { return true; }
+      if (c.indexOf(q) >= 0 ||
+          algOf(c).toUpperCase().indexOf(q) >= 0 ||
+          displayAlg(c).toUpperCase().indexOf(q) >= 0 ||
+          posStr(c).toUpperCase().indexOf(q) >= 0) { return true; }
+      /* 旋转容错：ADM / DMA / MAD 是同一三循环，互相可命中（与 blddb 一致） */
+      return !!(qrot && qrot.indexOf(c) >= 0);
+    }
+    function queryState() {
       var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
+      return { q: q, qrot: q.length === 3 ? [q, q[1] + q[2] + q[0], q[2] + q[0] + q[1]] : null };
+    }
+    function hasAnyFilter() {
+      return filterMode !== 'all' || hasLetterFilter() ||
+             !!(document.getElementById('c4-q').value || '').trim();
+    }
+
+    function matchSet(stats, bench) {
+      var qs = queryState();
       var set = {};
       ALL.forEach(function (c) {
-        var ok = true;
-        if (filterMode === 'todo') { ok = stats[c].n === 0; }
-        else if (filterMode === 'weak') {
-          var t = tierOf(stats[c].metric(), bench);
-          ok = stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
-        }
-        if (ok && q) {
-          /* 搜索同时匹配展开式与括号格式（两种记法是同一公式） */
-          ok = c.indexOf(q) >= 0 ||
-               algOf(c).toUpperCase().indexOf(q) >= 0 ||
-               displayAlg(c).toUpperCase().indexOf(q) >= 0 ||
-               posStr(c).toUpperCase().indexOf(q) >= 0;
-        }
-        if (ok) { set[c] = true; }
+        if (passFilter(c, stats, bench) && passQuery(c, qs.q, qs.qrot)) { set[c] = true; }
       });
       return set;
     }
@@ -460,14 +600,10 @@ window.FTPage = (function () {
       var stats = A.stats, bench = A.bench, range = A.range;
       renderDash(A, 'c4-');
 
-      var list = ALL.slice();
-      if (filterMode === 'todo') { list = list.filter(function (c) { return stats[c].n === 0; }); }
-      if (filterMode === 'weak') {
-        list = list.filter(function (c) {
-          var t = tierOf(stats[c].metric(), bench);
-          return stats[c].n > 0 && (t === 't-bad' || t === 't-warn');
-        });
-      }
+      var qs = queryState();
+      var list = ALL.filter(function (c) {
+        return passFilter(c, stats, bench) && passQuery(c, qs.q, qs.qrot);
+      });
       if (sortMode === 'slow') {
         list.sort(function (a, b) {
           var x = stats[b].metric(), y = stats[a].metric();
@@ -481,17 +617,14 @@ window.FTPage = (function () {
           if (isFinite(ma) && isFinite(mb)) { return mb - ma; }
           return isFinite(ma) ? -1 : 1;
         });
-      }
-      var q = (document.getElementById('c4-q').value || '').trim().toUpperCase();
-      if (q) {
-        var qrot = q.length === 3 ? [q, q[1] + q[2] + q[0], q[2] + q[0] + q[1]] : null;
-        list = list.filter(function (c) {
-          if (c.indexOf(q) >= 0 || algOf(c).toUpperCase().indexOf(q) >= 0
-              || displayAlg(c).toUpperCase().indexOf(q) >= 0) { return true; }
-          /* 旋转容错：ADM / DMA / MAD 是同一三循环，互相可命中（与 blddb 一致） */
-          if (qrot) { return qrot.indexOf(c) >= 0; }
-          return false;
-        });
+      } else if (sortMode === 'star') {
+        /* 已标记排前（母公式最前），其余保持组顺序 */
+        var rank = function (c) {
+          var s = stars[c];
+          if (!s) { return 9; }
+          return (s.c === 'gold') ? 0 : 1;
+        };
+        list.sort(function (a, b) { return rank(a) - rank(b); });
       }
 
       var cellsHtml = list.map(function (c) {
@@ -500,6 +633,7 @@ window.FTPage = (function () {
         var r = isFinite(m) && isFinite(bench) && bench > 0 ? m / bench : NaN;
         var col = colorByRatio(r, range);
         var alg = displayAlg(c);
+        var sk = starOf(c);
         var title = (st.n
           ? (c + ' · ' + alg + ' · ' + fmtTime(m) + ' · ' + st.n + ' 次')
           : (c + ' · ' + alg + ' · 未练习'));
@@ -513,13 +647,17 @@ window.FTPage = (function () {
           (isSwapped(c) ? '<span class="c-swap" title="已切换为参考公式：' + esc(algOf(c)) + '">换</span>' : '') +
           '<span class="c-ms">' + (st.n ? fmtTime(m) : '--') + '</span>' +
           '<span class="c-n">' + (st.n ? st.n : '') + '</span>' +
+          (sk ? '<span class="c-star s-' + esc(sk.c || 'gold') + '" title="' +
+                 esc(FT.starColorName(sk.c) + (sk.n ? ' · ' + sk.n : '')) + '">★</span>' : '') +
           '</a>';
       }).join('');
 
       return cellsHtml || '<div class="c4-empty">没有符合筛选条件的公式。</div>';
     }
 
-    /* ---------- 矩阵单格 ---------- */
+    /* ---------- 矩阵单格 ----------
+       v2.0.26：格子里不再塞公式（一屏几百条公式反而看不清），改成与「练习总览」
+       同一套卡片语言：大字字母组合 + 时间 + 右上角星标。公式进详情/练习浮层看。 */
     function cellInfo(code, row, col) {
       var alg = algOf(code);
       if (alg) {
@@ -528,14 +666,22 @@ window.FTPage = (function () {
         var m = st.metric();
         var r = (st.n && isFinite(m) && isFinite(bench) && bench > 0) ? m / bench : NaN;
         var shown = displayAlg(code);
+        var label = code.length > 2 ? code.slice(1) : code;
+        var sk = starOf(code);
+        var starHtml = '<span class="mx-star' + (sk ? ' is-on s-' + esc(sk.c || 'gold') : '') + '"' +
+          ' data-star="' + code + '"' +
+          ' title="' + esc(sk ? (FT.starColorName(sk.c) + (sk.n ? ' · ' + sk.n : '')) : '标记这条公式') + '">' +
+          (sk ? '★' : '☆') + '</span>';
+        var html = '<span class="mx-code">' + label + '</span>' +
+                   '<span class="mx-ms">' + (st.n ? fmtTime(m) : '—') + '</span>' + starHtml;
         if (isFinite(r)) {
           var col2 = colorByRatio(r, range);
-          return { kind: 'alg', alg: alg, cls: 'spd ' + col2.tier,
+          return { kind: 'alg', alg: alg, cls: 'spd ' + col2.tier, html: html,
                    style: 'color:' + col2.text,
                    tip: code + '　' + posStr(code) + '　' + shown + '　' +
                         fmtTime(m) + ' · ' + st.n + ' 次' };
         }
-        return { kind: 'alg', alg: alg, cls: 'on',
+        return { kind: 'alg', alg: alg, cls: 'on', html: html,
                  tip: code + '　' + posStr(code) + '　' + shown + '　未练习' };
       }
       if (row === col) { return { kind: 'self', tip: code + '　同一位置，无此情况' }; }
@@ -562,8 +708,7 @@ window.FTPage = (function () {
       computeAll: computeAll,
       dash: renderDash,
       matchSet: function (A) {
-        var hasFilter = filterMode !== 'all' || !!(document.getElementById('c4-q').value || '').trim();
-        if (!hasFilter) { return null; }
+        if (!hasAnyFilter()) { return null; }
         return matchSet(A.stats, A.bench);
       },
       cellInfo: cellInfo,
@@ -601,6 +746,83 @@ window.FTPage = (function () {
     }
     function invalidateList() { listCache = null; }
     var modalCode = '';
+    var REFS_SHOWN = 5;             /* 参考公式默认显示条数，其余折叠（详情浮层） */
+
+    /* 公式显示：三选一（展开式 / 括号格式 / 都显示）。
+       「都显示」时主行展开式、副行括号格式，副行没有数据就只留主行。 */
+    function renderModalAlg(code) {
+      var a = algOf(code), c = commText(code);
+      var e1 = document.getElementById('c4-m-alg');
+      var e2 = document.getElementById('c4-m-alg2');
+      if (!e1) { return; }
+      if (algView === 'both') {
+        e1.innerHTML = fmtAlg(a);
+        e1.className = 'c4-modal__alg';
+        if (c && e2) {
+          e2.innerHTML = fmtAlg(c);
+          e2.className = 'c4-modal__alg c4-modal__alg--sub';
+          e2.hidden = false;
+        } else if (e2) { e2.hidden = true; e2.innerHTML = ''; }
+      } else {
+        var shown = (algView === 'comm') ? (c || a) : a;
+        e1.innerHTML = fmtAlg(shown);
+        e1.className = 'c4-modal__alg' + (algView === 'comm' && c ? ' is-comm' : '');
+        if (e2) { e2.hidden = true; e2.innerHTML = ''; }
+      }
+      syncModalAlgViewSeg();
+    }
+    function syncModalAlgViewSeg() {
+      var box = document.getElementById('c4-m-algview');
+      if (!box) { return; }
+      Array.prototype.forEach.call(box.querySelectorAll('button[data-av]'), function (b) {
+        b.classList.toggle('is-active', b.getAttribute('data-av') === algView);
+        b.setAttribute('aria-pressed', b.getAttribute('data-av') === algView ? 'true' : 'false');
+      });
+    }
+
+    /* 详情浮层的元信息块：位置 / 分组 / 来源 / 练习统计，一格一项，一眼扫完 */
+    function modalMetaHTML(code, st) {
+      var gi = GIDX_REF[code.charAt(1)];
+      var org = originOf(code);
+      var list = refList(code), cur = curRefIdx(code);
+      var ns = cur >= 0 && list[cur] ? list[cur][1] : 0;
+      var items = [
+        ['位置', posStr(code)],
+        ['分组', gi >= 0 ? groupName(gi) : '—'],
+        ['来源', FT.originLabel(org) + (ns > 0 ? ' · ' + ns + ' 家' : '')],
+        ['练习', st.n + ' 次'],
+        ['最快', st.n ? fmtTime(st.best) : '—'],
+        ['平均', st.n ? fmtTime(st.allavg) : '—'],
+        ['最近', isFinite(st.session) ? fmtTime(st.session) : '—']
+      ];
+      return items.map(function (it) {
+        return '<div class="c4-meta"><span class="c4-meta__k">' + esc(it[0]) + '</span>' +
+               '<span class="c4-meta__v">' + esc(it[1]) + '</span></div>';
+      }).join('');
+    }
+
+    /* 星标区：5 档颜色单选 + 备注输入。点已选中的档位 = 取消标记。 */
+    function renderModalStar(code) {
+      var sk = starOf(code);
+      var starBtn = document.getElementById('c4-m-star');
+      if (starBtn) {
+        starBtn.className = 'c4-modal__star' + (sk ? ' is-on s-' + esc(sk.c || 'gold') : '');
+        starBtn.textContent = sk ? '★' : '☆';
+        starBtn.title = sk ? '已标记：' + FT.starColorName(sk.c) + '（再点取消）' : '标记这条公式';
+      }
+      var box = document.getElementById('c4-m-starc');
+      if (box) {
+        box.innerHTML = FT.STAR_COLORS.map(function (o) {
+          var on = sk && (sk.c || 'gold') === o.k;
+          return '<button type="button" class="ft-starc__b s-' + o.k + (on ? ' is-on' : '') + '"' +
+            ' data-sc="' + o.k + '" title="' + esc(o.tip) + '">' +
+            '<span class="ft-starc__dot"></span>' + esc(o.name) + '</button>';
+        }).join('');
+      }
+      var note = document.getElementById('c4-m-note');
+      if (note) { note.value = sk ? (sk.n || '') : ''; }
+    }
+
     function fillModal(code) {
       var alg = algOf(code);
       if (!alg) { return; }
@@ -609,31 +831,29 @@ window.FTPage = (function () {
       var t = document.getElementById('c4-m-title');
       t.className = 'c4-modal__title ' + gclass(b);
       t.textContent = code + '　（' + posStr(code) + '）';
-      document.getElementById('c4-m-alg').innerHTML = fmtAlg(displayAlg(code));
-      document.getElementById('c4-m-pos').textContent = posStr(code);
+      renderModalAlg(code);
+      var st = statsOf(code);
+      var meta = document.getElementById('c4-m-meta');
+      if (meta) { meta.innerHTML = modalMetaHTML(code, st); }
       var rev = algOf(state.BUF + c3 + b) || '';
       document.getElementById('c4-m-rev').innerHTML = rev
         ? '<b>' + (state.BUF + c3 + b) + '</b>　' + fmtAlg(displayAlg(state.BUF + c3 + b))
         : '<span style="color:var(--fg-3,#7C8798)">无（该方向未收录）</span>';
-      var gi = GIDX_REF[b];
-      document.getElementById('c4-m-grp').textContent = gi >= 0 ? groupName(gi) : '—';
-      var org = originOf(code);
-      var list = refList(code);
-      var cur = curRefIdx(code);
-      var ns = cur >= 0 && list[cur] ? list[cur][1] : 0;
-      document.getElementById('c4-m-src').textContent =
-        FT.originLabel(org) + (ns > 0 ? ' · ' + ns + ' 家（blddb 使用人数）' : '');
+      renderModalStar(code);
       renderRefs(code);
     }
-    function refsHTML(code) {
+
+    /* 参考公式：前 REFS_SHOWN 条直接列出，其余进 <details> 折叠。
+       括号格式在按钮 title 里始终可见（不影响 data-alg 的切换语义）。 */
+    function refsHTML(code, from, to) {
       var list = refList(code);
       var cur = algOf(code);
       if (!list.length) {
         return '<div class="c4-modal__refsnote">该情况没有可切换的参考公式（可用「✎ 手动输入」补上你的公式）。</div>';
       }
-      return list.map(function (p, i) {
-        /* 开关打开且有括号数据：备选行也显示括号格式（data-alg 始终是展开式，切换逻辑不变） */
-        var shown = (commOn && p[2]) ? p[2] : p[0];
+      return list.slice(from, to).map(function (p, j) {
+        var i = from + j;
+        var shown = (algView !== 'expand' && p[2]) ? p[2] : p[0];
         return '<button type="button" class="c4-ref' + (p[0] === cur ? ' is-on' : '') + '"' +
           ' data-alg="' + esc(p[0]) + '"' +
           (p[2] ? ' title="括号格式：' + esc(p[2]) + '"' : '') + '>' +
@@ -645,9 +865,32 @@ window.FTPage = (function () {
       }).join('');
     }
     function renderRefs(code) {
-      document.getElementById('c4-m-refslist').innerHTML = refsHTML(code);
+      var list = refList(code);
+      var l1 = document.getElementById('c4-m-refslist');
+      var l2 = document.getElementById('c4-m-refslist2');
+      var more = document.getElementById('c4-m-refsmore');
+      var sum = document.getElementById('c4-m-refsmore-sum');
+      if (l1) { l1.innerHTML = refsHTML(code, 0, REFS_SHOWN); }
+      var rest = list.length - REFS_SHOWN;
+      if (l2 && more) {
+        if (rest > 0) {
+          l2.innerHTML = refsHTML(code, REFS_SHOWN, list.length);
+          more.hidden = false;
+          if (sum) { sum.textContent = '展开其余 ' + rest + ' 条参考公式'; }
+        } else {
+          l2.innerHTML = '';
+          more.hidden = true;
+          more.removeAttribute('open');
+        }
+      }
       document.getElementById('c4-m-refsreset').hidden =
-        (!refList(code).length || !isSwapped(code));
+        (!list.length || !isSwapped(code));
+      var note = document.getElementById('c4-m-refsnote');
+      if (note) {
+        note.textContent = list.length
+          ? ('共 ' + list.length + ' 条 · 默认取排名第一；点任意一条即可切换')
+          : '';
+      }
     }
     function renderPRefs(code) {
       var box = document.getElementById('c4-p-refslist');
@@ -662,7 +905,7 @@ window.FTPage = (function () {
         fillModal(code);
       }
       if (pCurrent === code && pmodal.classList.contains('is-open')) {
-        pAlgEl.innerHTML = fmtAlg(displayAlg(code) || '');
+        pRenderAlg(code);
         renderPRefs(code);
       }
       renderCurrent();
@@ -722,6 +965,55 @@ window.FTPage = (function () {
     var pState = 'idle';
     var pStart = 0, pTick = 0, pPrep = 0;
 
+    /* ---------- 练习模式（v2.0.26）----------
+       'single' 单次计时（一条公式做一次记一次）
+       'avg3'   连做三次取平均（三阶角/棱常用：同一公式连拧三次看稳定性）
+       两种并存，工具条与练习浮层里都能切，记在全局键 ft_repmode。 */
+    var repMode = FT.repMode();
+    var repIdx = 0;          /* avg3：已完成的次数 0~3 */
+    var repList = [];        /* avg3：本轮三次的原始用时 */
+    function setRepMode(v) {
+      repMode = v;
+      FT.setRepMode(v);
+      repIdx = 0; repList = [];
+      var a = document.getElementById('c4-repmode');
+      var b = document.getElementById('c4-p-repmode');
+      if (a) { a.value = v; }
+      if (b) { b.value = v; }
+      renderRepProgress();
+    }
+    /* 三次平均的进度条：未开始时提示模式，进行中显示 第 n/3 次与已记成绩 */
+    function renderRepProgress() {
+      var box = document.getElementById('c4-p-rep');
+      if (!box) { return; }
+      if (repMode !== 'avg3') {
+        box.hidden = true; box.innerHTML = '';
+        return;
+      }
+      box.hidden = false;
+      if (!repList.length) {
+        box.innerHTML = '<span class="c4-rep__lab">三次平均</span>' +
+          '<span class="c4-rep__tip">连做 3 次后取平均记一次成绩</span>';
+        return;
+      }
+      var parts = repList.map(function (ms, i) {
+        return '<span class="c4-rep__i' + (i === repList.length - 1 ? ' is-cur' : '') + '">' +
+               (i + 1) + ' · ' + pFmt(ms) + '</span>';
+      }).join('');
+      box.innerHTML = '<span class="c4-rep__lab">三次平均 ' + repList.length + '/3</span>' + parts;
+    }
+    function repFinish() {
+      var a = avg(repList);
+      pushTimes(a);
+      var txt = repList.map(function (ms) { return pFmt(ms); }).join(' / ');
+      pSummaryEl.hidden = false;
+      pSummaryEl.innerHTML = '三次 <b>' + txt + '</b> → 平均 <b>' + fmtTime(a) + '</b>（记为 1 次成绩）';
+      repList = []; repIdx = 0;
+      pRefreshHistory();
+      try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
+      renderCurrent();
+    }
+
     function pFmt(ms) {
       if (!isFinite(ms) || ms < 0) return '--.--';
       var total = Math.round(ms);
@@ -774,11 +1066,29 @@ window.FTPage = (function () {
       if (pState !== 'running') return;
       clearInterval(pTick);
       var total = performance.now() - pStart;
-      pushTimes(total);
       pState = 'done';
       pTimerEl.dataset.state = 'done';
       pTimerEl.textContent = pFmt(total);
       pSyncTimerEls();
+
+      /* 三次平均模式：前两次只记进 repList 并提示继续，第三次才结算平均值 */
+      if (repMode === 'avg3') {
+        repList.push(total);
+        repIdx = repList.length;
+        renderRepProgress();
+        if (repIdx >= 3) {
+          repFinish();
+          clearTimeout(chainAdvTimer);
+          if (chainOn && chainList.length) { chainAdvTimer = setTimeout(chainNext, 800); }
+        } else {
+          pSummaryEl.hidden = false;
+          pSummaryEl.innerHTML = '第 ' + repIdx + '/3 次 <b>' + fmtTime(total) + '</b> · 再按住空格做第 ' +
+                                 (repIdx + 1) + ' 次';
+        }
+        return;
+      }
+
+      pushTimes(total);
       pSummaryEl.hidden = false;
       pSummaryEl.innerHTML = '本次用时 <b>' + fmtTime(total) + '</b>';
       pRefreshHistory();
@@ -823,12 +1133,38 @@ window.FTPage = (function () {
       for (var i = start; i < s.length; i++) { parts.push('<span class="sh-item">' + fmtTime(s[i]) + '</span>'); }
       pHistoryEl.innerHTML = parts.join('');
     }
+    /* 练习浮层的公式区 + 星标 + 练习模式：三处一起刷新，切公式/换显示方式都走这里 */
+    function pRenderAlg(code) {
+      var a = algOf(code), c = commText(code);
+      var e2 = document.getElementById('c4-p-alg2');
+      if (algView === 'both') {
+        pAlgEl.innerHTML = fmtAlg(a);
+        if (c && e2) { e2.innerHTML = fmtAlg(c); e2.hidden = false; }
+        else if (e2) { e2.hidden = true; e2.innerHTML = ''; }
+      } else {
+        pAlgEl.innerHTML = fmtAlg((algView === 'comm') ? (c || a) : a);
+        if (e2) { e2.hidden = true; e2.innerHTML = ''; }
+      }
+      var sk = starOf(code);
+      var sb = document.getElementById('c4-p-star');
+      if (sb) {
+        sb.className = 'c4-pmodal__star' + (sk ? ' is-on s-' + esc(sk.c || 'gold') : '');
+        sb.textContent = sk ? '★' : '☆';
+        sb.title = sk ? ('已标记：' + FT.starColorName(sk.c) + (sk.n ? ' · ' + sk.n : '') + '（再点取消）')
+                      : '标记这条公式（母公式 / 重点练 / 易错…）';
+      }
+      var rs = document.getElementById('c4-p-repmode');
+      if (rs) { rs.value = repMode; }
+      /* 换公式 = 新一轮：三次平均的半途成绩作废，避免把別条的两次算进来 */
+      if (repList.length) { repList = []; repIdx = 0; }
+      renderRepProgress();
+    }
     function pLoadCode(code) {
       if (ALL.indexOf(code) < 0) { code = ALL[0]; }
       pCurrent = code;
       pSelect.value = code;
       pCodeEl.textContent = code + '　' + posStr(code);
-      pAlgEl.innerHTML = fmtAlg(displayAlg(code) || '');
+      pRenderAlg(code);
       renderPRefs(code);
       pResetTimer();
       if (chainOn) {
@@ -932,7 +1268,10 @@ window.FTPage = (function () {
       var algEl = document.getElementById('c4-fs-alg');
       var progEl = document.getElementById('c4-fs-prog');
       if (codeEl) { codeEl.textContent = pCurrent || '--'; }
-      if (algEl) { algEl.innerHTML = fmtAlg(displayAlg(pCurrent) || ''); }
+      if (algEl) {
+        var c2 = commText(pCurrent);
+        algEl.innerHTML = fmtAlg((algView === 'comm' && c2) ? c2 : algOf(pCurrent));
+      }
       if (progEl) {
         progEl.textContent = (chainOn && chainList.length)
           ? ('第 ' + (chainIdx >= 0 ? chainIdx + 1 : '-') + ' / ' + chainList.length) : '';
@@ -1002,6 +1341,8 @@ window.FTPage = (function () {
 
       // 详情浮层
       document.getElementById('c4-m-close').addEventListener('click', closeModal);
+      var mclose2 = document.getElementById('c4-m-close2');
+      if (mclose2) { mclose2.addEventListener('click', closeModal); }
       document.getElementById('c4-m-prev').addEventListener('click', function () { stepModal(-1); });
       document.getElementById('c4-m-next').addEventListener('click', function () { stepModal(1); });
       document.getElementById('c4-modal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
@@ -1013,15 +1354,22 @@ window.FTPage = (function () {
         closeModal();
         setTimeout(function () { pOpenFor(code); }, 60);
       });
-      document.getElementById('c4-m-refslist').addEventListener('click', function (e) {
-        var btn = (e.target && e.target.closest) ? e.target.closest('.c4-ref') : null;
-        if (!btn) { return; }
-        var alg = btn.getAttribute('data-alg');
-        if (!alg) { return; }
-        setSwap(modalCode, alg);
-        var i = curRefIdx(modalCode);
-        toast('已切换为第 ' + (i + 1) + ' 条参考公式' + (i === 0 ? '（默认）' : ''));
-      });
+      /* 参考公式：前 5 条与折叠区各绑一份（同一套切换逻辑） */
+      function bindRefList(id) {
+        var box = document.getElementById(id);
+        if (!box) { return; }
+        box.addEventListener('click', function (e) {
+          var btn = (e.target && e.target.closest) ? e.target.closest('.c4-ref') : null;
+          if (!btn) { return; }
+          var alg = btn.getAttribute('data-alg');
+          if (!alg) { return; }
+          setSwap(modalCode, alg);
+          var i = curRefIdx(modalCode);
+          toast('已切换为第 ' + (i + 1) + ' 条参考公式' + (i === 0 ? '（默认）' : ''));
+        });
+      }
+      bindRefList('c4-m-refslist');
+      bindRefList('c4-m-refslist2');
       document.getElementById('c4-m-refsreset').addEventListener('click', function () {
         setSwap(modalCode, '');
         toast('已恢复默认公式');
@@ -1235,6 +1583,7 @@ window.FTPage = (function () {
       invalidateList();
       renderBufBar();
       updateHead();
+      renderLetters();       /* 字母筛选条依赖 ORDER（切缓冲后字母集合会变） */
       fillPSelect();
       renderBoard();
       renderMatrix();
@@ -1265,37 +1614,183 @@ window.FTPage = (function () {
       });
     }
 
-    /* ---------- 括号格式开关（仅 blddb 人造风格体系有数据） ---------- */
-    function initCommBtn() {
+    /* ---------- 公式显示方式（展开式 / 括号格式 / 都显示） ----------
+       三处入口共用同一个 algView：工具条按钮（快捷两态）、工具条下拉（三选）、
+       详情浮层里的分段按钮（三选）。切完全量重渲染，保证矩阵 tip / 详情 /
+       练习浮层 / 全屏 / CSV 列口径一致。 */
+    function renderAlgViewAll() {
+      renderCurrent();
+      if (modalCode && document.getElementById('c4-modal').classList.contains('is-open')) {
+        fillModal(modalCode);
+      }
+      if (pCurrent && pmodal.classList.contains('is-open')) {
+        pRenderAlg(pCurrent);
+        renderPRefs(pCurrent);
+      }
+      if (!fsEl.hidden) { fsSyncAll(); }
+    }
+    function initAlgView() {
       var btn = document.getElementById('c4-comm');
-      if (!btn) { return; }
-      if (!SYS.hasComm) { btn.hidden = true; return; }   // 三阶角/棱：噩梦风格源无括号数据
-      btn.setAttribute('aria-pressed', commOn ? 'true' : 'false');
-      btn.classList.toggle('is-on', commOn);
-      btn.addEventListener('click', function () {
-        commOn = !commOn;
-        FT.setComm(commOn);
-        btn.setAttribute('aria-pressed', commOn ? 'true' : 'false');
-        btn.classList.toggle('is-on', commOn);
-        /* 全量重渲染：矩阵/看板 tip、详情浮层、练习浮层、全屏、CSV 列 */
-        renderCurrent();
-        if (modalCode && document.getElementById('c4-modal').classList.contains('is-open')) {
-          fillModal(modalCode);
+      var sel = document.getElementById('c4-algview');
+      /* 三阶角/棱是噩梦风格源，没有括号数据：把括号相关入口一并收掉，
+         免得用户切过去发现「怎么还是展开式」。 */
+      if (!SYS.hasComm) {
+        if (btn) { btn.hidden = true; }
+        if (sel) {
+          Array.prototype.forEach.call(sel.querySelectorAll('option'), function (o) {
+            if (o.value === 'comm' || o.value === 'both') { o.disabled = true; }
+          });
         }
-        if (pCurrent && pmodal.classList.contains('is-open')) {
-          pAlgEl.innerHTML = fmtAlg(displayAlg(pCurrent) || '');
-          renderPRefs(pCurrent);
-        }
-        if (!fsEl.hidden) { fsSyncAll(); }
-        toast(commOn ? '已切换为括号格式（[A,B] 交换子 · A:[B,C] 共轭）' : '已切换为展开式');
+        if (algView !== 'expand') { setAlgView('expand'); }
+        return;
+      }
+      if (sel) { sel.value = algView; }
+      if (btn) {
+        btn.setAttribute('aria-pressed', algView === 'expand' ? 'false' : 'true');
+        btn.classList.toggle('is-on', algView !== 'expand');
+        btn.addEventListener('click', function () {
+          setAlgView(algView === 'expand' ? 'comm' : 'expand');
+          renderAlgViewAll();
+          toast(algView === 'comm' ? '已切换为括号格式（[A,B] 交换子 · A:[B,C] 共轭）' : '已切换为展开式');
+        });
+      }
+      if (sel) {
+        sel.addEventListener('change', function () {
+          setAlgView(this.value);
+          renderAlgViewAll();
+          toast(this.value === 'both' ? '同时显示展开式与括号格式'
+              : (this.value === 'comm' ? '已切换为括号格式' : '已切换为展开式'));
+        });
+      }
+      var seg = document.getElementById('c4-m-algview');
+      if (seg) {
+        seg.addEventListener('click', function (e) {
+          var b = (e.target && e.target.closest) ? e.target.closest('button[data-av]') : null;
+          if (!b) { return; }
+          setAlgView(b.getAttribute('data-av'));
+          renderAlgViewAll();
+        });
+      }
+      syncModalAlgViewSeg();
+    }
+
+    /* ---------- 练习模式（单次 / 三次平均） ---------- */
+    function initRepMode() {
+      var a = document.getElementById('c4-repmode');
+      var b = document.getElementById('c4-p-repmode');
+      if (a) {
+        a.value = repMode;
+        a.addEventListener('change', function () {
+          setRepMode(this.value);
+          if (pCurrent && pmodal.classList.contains('is-open')) { pRenderAlg(pCurrent); }
+          toast(this.value === 'avg3' ? '连做三次取平均（做满 3 次才记一次成绩）' : '单次计时');
+        });
+      }
+      if (b) {
+        b.value = repMode;
+        b.addEventListener('change', function () {
+          setRepMode(this.value);
+          if (pCurrent && pmodal.classList.contains('is-open')) { pRenderAlg(pCurrent); }
+          toast(this.value === 'avg3' ? '连做三次取平均（做满 3 次才记一次成绩）' : '单次计时');
+        });
+      }
+    }
+
+    /* ---------- 字母筛选（点字母即只看行/列含它的公式） ---------- */
+    function renderLetters() {
+      var box = document.getElementById('c4-letters');
+      if (!box) { return; }
+      var html = '';
+      ORDER.forEach(function (L) {
+        var on = !!letterSet[L];
+        html += '<button type="button" class="ft-ltr' + (on ? ' is-on' : '') + '" data-ltr="' + L + '"' +
+          ' aria-pressed="' + (on ? 'true' : 'false') + '" title="' + L + ' · ' +
+          esc(state.POS[L] || '') + '">' + L + '</button>';
       });
+      box.innerHTML = html;
+      var hint = document.getElementById('c4-letters-hint');
+      if (hint) {
+        var on2 = Object.keys(letterSet).filter(function (k) { return letterSet[k]; });
+        hint.textContent = on2.length
+          ? ('已选 ' + on2.length + ' 个字母：' + on2.join(' ') + '（行或列命中即保留）')
+          : '点字母筛选：如只练 B 开头就只点亮 B';
+      }
+    }
+    function initLetters() {
+      var box = document.getElementById('c4-letters');
+      if (box) {
+        box.addEventListener('click', function (e) {
+          var b = (e.target && e.target.closest) ? e.target.closest('.ft-ltr') : null;
+          if (!b) { return; }
+          var L = b.getAttribute('data-ltr');
+          if (letterSet[L]) { delete letterSet[L]; } else { letterSet[L] = true; }
+          renderLetters();
+          renderCurrent();
+        });
+      }
+      var clr = document.getElementById('c4-letters-clear');
+      if (clr) {
+        clr.addEventListener('click', function () {
+          letterSet = {};
+          renderLetters();
+          renderCurrent();
+        });
+      }
+    }
+
+    /* ---------- 星标交互（矩阵格 / 看板 / 详情 / 练习浮层） ---------- */
+    function initStars() {
+      /* 矩阵格里的星标：捕获阶段拦截，避免冒泡到格子触发「打开练习」 */
+      var mx = document.getElementById('c4-matrix');
+      if (mx) {
+        mx.addEventListener('click', function (e) {
+          var s = (e.target && e.target.closest) ? e.target.closest('[data-star]') : null;
+          if (!s) { return; }
+          e.preventDefault();
+          e.stopPropagation();
+          toggleStar(s.getAttribute('data-star'));
+        }, true);
+      }
+      var mstar = document.getElementById('c4-m-star');
+      if (mstar) {
+        mstar.addEventListener('click', function () {
+          if (modalCode) { toggleStar(modalCode); fillModal(modalCode); }
+        });
+      }
+      var starc = document.getElementById('c4-m-starc');
+      if (starc) {
+        starc.addEventListener('click', function (e) {
+          var b = (e.target && e.target.closest) ? e.target.closest('[data-sc]') : null;
+          if (!b || !modalCode) { return; }
+          var k = b.getAttribute('data-sc');
+          var cur = starOf(modalCode);
+          if (cur && (cur.c || 'gold') === k) { toggleStar(modalCode); }   /* 再点同档 = 取消 */
+          else { setStarColor(modalCode, k); }
+          fillModal(modalCode);
+        });
+      }
+      var note = document.getElementById('c4-m-note');
+      if (note) {
+        note.addEventListener('change', function () {
+          if (modalCode) { setStarNote(modalCode, this.value.trim()); fillModal(modalCode); }
+        });
+      }
+      var pstar = document.getElementById('c4-p-star');
+      if (pstar) {
+        pstar.addEventListener('click', function () {
+          if (pCurrent) { toggleStar(pCurrent); pRenderAlg(pCurrent); }
+        });
+      }
     }
 
     /* ================= 启动 ================= */
     TM.initNavToggle();
     bindBufBar();
     bind();
-    initCommBtn();
+    initAlgView();
+    initRepMode();
+    initLetters();
+    initStars();
     setView('matrix');
     TM.watch();
 

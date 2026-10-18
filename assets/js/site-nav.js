@@ -8,24 +8,27 @@
      --------------------------------------------------------- */
   var NAV_DATA = [
     { id: 'home', label: '首页', href: '/' },
-    { id: 'tutorial', label: '教程', children: [
+    { id: 'tutorial', label: '魔方教程与公式库', children: [
       { id: '3x3', label: '三阶', href: '/tools/3x3/' },
       { id: 'pll', label: 'PLL 公式训练', href: '/tools/cfop/pll-trainer.html' },
       { id: 'oll', label: 'OLL 公式训练', href: '/tools/cfop/oll-trainer.html' },
       { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
+      { label: '五魔方', soon: true },
+      { label: 'SQ1', soon: true },
+      { label: '斜转', soon: true },
+      { label: '高阶魔方', soon: true },
       { id: 'fto', label: 'FTO', href: '/fto' }
     ]},
-    { id: 'tools', label: '个人训练工具', children: [
+    /* 魔方教练工具箱：原「个人训练工具」+「三盲训练」两个分组于 v2.0.26 合并为一处，
+       页面上写 data-nav="coach"（旧值 tools / 3bld-tools 由 NAV_ALIAS 兜底映射）。 */
+    { id: 'coach', label: '魔方教练工具箱', children: [
+      /* —— 通用训练工具 —— */
       { id: 'timer',            label: '计时器',           href: '/tools/timer' },
       { id: 'invert',           label: '逆序转换',         href: '/tools/invert' },
       { id: 'scramble-trainer', label: '打乱公式训练',     href: '/tools/scramble-trainer' },
       { id: 'srs',              label: '记忆卡片 SRS',     href: '/tools/srs/' },
-      { id: '3x3teach',         label: '三阶趣味课堂',     href: '/tools/3x3teach' },
-      { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' },
-      { id: 'nav',              label: '工具导航',         href: '/tools/nav' }
-    ]},
-    { id: '3bld-tools', label: '三盲训练', children: [
+      /* —— 盲拧训练 —— */
       { id: '3bld',           label: '三盲总览',       href: '/tools/3bld/' },
       { id: 'bld-level',      label: '难度分级标准',   href: '/tools/3bld/level.html' },
       { id: 'bldtrainer',     label: '读码还原',       href: '/tools/bldtrainer/' },
@@ -37,17 +40,16 @@
       { id: 'bldscramble',    label: '定向打乱',       href: '/tools/bldscramble/' },
       { id: '2x2',            label: '二阶公式练习',   href: '/tools/2x2/' },
       { id: 'kmap',           label: '二阶知识地图',   href: '/tools/kmap/' },
-      { id: 'bld-kmap',       label: '三阶知识地图',   href: '/tools/bld-kmap/' }
+      { id: 'bld-kmap',       label: '三阶知识地图',   href: '/tools/bld-kmap/' },
+      /* —— 教学 —— */
+      { id: '3x3teach',         label: '三阶趣味课堂',     href: '/tools/3x3teach' },
+      { id: 'class-teach',      label: '魔方课堂教学系统', href: '/tools/class-teach' },
+      { id: 'nav',              label: '工具导航',         href: '/tools/nav' }
     ]},
-    /* 高阶盲拧 (4×4)：公式训练已并入「公式训练器」（/tools/ft/，含角心/翼棱/棱心/中棱），
-       这里只留 UF / UR 分组连拧训练；旧页（4bld/、4bld/wing.html、scramble-uf440/）
-       暂时保留可访问，稳定后删除。 */
-    { id: '4bld-tools', label: '高阶盲拧 (4×4)', children: [
-      { id: 'scramble-uf',    label: 'UF 分组连拧训练', href: '/tools/scramble-uf/' },
-      { id: 'scramble-ur',    label: 'UR 分组连拧训练', href: '/tools/scramble-ur/' }
-    ]},
-    /* 公式训练器：三盲角/棱 + 高阶角心/翼棱/棱心/中棱六体系统一入口（自选缓冲 → 矩阵自动展开） */
-    { id: 'ft', label: '公式训练器', href: '/tools/ft/' }
+    /* 盲拧公式训练器（原「公式训练器」，v2.0.26 改名）：
+       三阶角块/棱块 + 高阶角心/翼棱/棱心/中棱六体系统一入口（自选缓冲 → 矩阵自动展开）。
+       UF / UR 分组连拧训练已于 v2.0.24 并入本项，导航不再单独列出（页面可访问）。 */
+    { id: 'ft', label: '盲拧公式训练器', href: '/tools/ft/' }
   ];
 
   /* 目录名与菜单 id 不一致时的别名表。
@@ -57,7 +59,19 @@
     /* CFOP公式库（/tools/cfop/）已于 2026-10-14 并入「教程 → 三阶」：
        cfop 各子页 body 都带 data-nav="3x3" 直接高亮；这里兜底
        URL 判定（老书签/漏写 data-nav 的页面），映射到三阶。 */
-    'cfop': '3x3'
+    'cfop': '3x3',
+    /* v2.0.26 导航合并：「个人训练工具」+「三盲训练」→「魔方教练工具箱」。
+       旧页面 body 上的 data-nav="tools" / "3bld-tools" 走这里映射到新 id，
+       否则这些页面会整条导航没有一个高亮项。 */
+    'tools': 'coach',
+    '3bld-tools': 'coach',
+    /* 高阶盲拧分组已删除：四阶中心块/翼棱旧页、UF/UR 连拧页
+       一并归入「盲拧公式训练器」（公式已并入该训练器）。 */
+    '4bld-tools': 'ft',
+    '4bld-center': 'ft',
+    '4bld-wing': 'ft',
+    'scramble-uf': 'ft',
+    'scramble-ur': 'ft'
   };
 
   /* ---------------------------------------------------------

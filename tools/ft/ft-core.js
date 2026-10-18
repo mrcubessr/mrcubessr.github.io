@@ -235,6 +235,69 @@ window.FT = (function () {
     try { localStorage.setItem(COMM_KEY, on ? '1' : '0'); } catch (e) {}
   }
 
+  /* ============ 公式显示方式（v2.0.26）============
+     ft_algview = 'expand'（展开式）| 'comm'（括号/转换机格式）| 'both'（两者都显示）
+     取代旧的布尔键 ft_comm —— 旧值 '1' 首次读取时自动迁移为 'comm'，用户无感。 */
+  var ALGVIEW_KEY = 'ft_algview';
+  function algView() {
+    try {
+      var v = localStorage.getItem(ALGVIEW_KEY);
+      if (v === 'expand' || v === 'comm' || v === 'both') { return v; }
+      if (v === null && localStorage.getItem(COMM_KEY) === '1') { return 'comm'; }
+    } catch (e) {}
+    return 'expand';
+  }
+  function setAlgView(v) {
+    try { localStorage.setItem(ALGVIEW_KEY, v); } catch (e) {}
+  }
+
+  /* ============ 星标标记（v2.0.26）============
+     ft_stars_<sys> = { 三字母码: { c: 颜色键, n: '备注文字' } }
+     用途：把「母公式」这类特殊公式单独标出来 —— 母公式是基础转换机，
+     其他公式是它的变化形式，练的时候标出来一眼就能认出结构来源。
+     每档一个颜色，矩阵卡片、练习浮层、详情浮窗三处同步。
+     ⚠️ 读取走页面缓存（state.stars）：矩阵一次要画 506 格，
+        每格 parse 一次 localStorage 会明显卡顿。 */
+  var STAR_COLORS = [
+    { k: 'gold',   name: '母公式', tip: '基础转换机 · 其他公式由它变化而来' },
+    { k: 'red',    name: '重点练', tip: '容易卡壳 · 需要反复练' },
+    { k: 'blue',   name: '易错',   tip: '方向容易做反或记混' },
+    { k: 'green',  name: '已掌握', tip: '已稳定 · 可以少练' },
+    { k: 'purple', name: '自定义', tip: '自己定义的一类（备注里写清楚）' }
+  ];
+  function starsKey(sys) { return 'ft_stars_' + sys; }
+  function getStars(sys) {
+    try {
+      var v = JSON.parse(localStorage.getItem(starsKey(sys)));
+      return (v && typeof v === 'object') ? v : {};
+    } catch (e) { return {}; }
+  }
+  function saveStars(sys, s) {
+    try { localStorage.setItem(starsKey(sys), JSON.stringify(s || {})); } catch (e) {}
+  }
+  function starColorName(k) {
+    for (var i = 0; i < STAR_COLORS.length; i++) {
+      if (STAR_COLORS[i].k === k) { return STAR_COLORS[i].name; }
+    }
+    return '已标记';
+  }
+
+  /* ============ 练习模式（v2.0.26）============
+     ft_repmode = 'single'（单次计时）| 'avg3'（连做三次取平均）
+     三阶角/棱常用「同一公式连做三次取平均」看稳定性，高阶（角心/翼棱）常做单次。
+     两种模式并存，由用户在工具条/练习浮层里切换，记在全局键里。 */
+  var REPMODE_KEY = 'ft_repmode';
+  function repMode() {
+    try {
+      var v = localStorage.getItem(REPMODE_KEY);
+      if (v === 'single' || v === 'avg3') { return v; }
+    } catch (e) {}
+    return 'single';
+  }
+  function setRepMode(v) {
+    try { localStorage.setItem(REPMODE_KEY, v); } catch (e) {}
+  }
+
   /* ============ 组名 / 位置名 ============ */
   /* 角块有中文色组名（names）；棱/翼棱/中棱取位置名前两字符（UF 棱）；
      中心块/棱心取面字母（U 面）——棱心按面分 6 组，位置名前缀即面字母。 */
@@ -390,6 +453,15 @@ window.FT = (function () {
     commOf: commOf,
     commOfAlg: commOfAlg,
     commOn: commOn,
-    setComm: setComm
+    setComm: setComm,
+    algView: algView,
+    setAlgView: setAlgView,
+    STAR_COLORS: STAR_COLORS,
+    starsKey: starsKey,
+    getStars: getStars,
+    saveStars: saveStars,
+    starColorName: starColorName,
+    repMode: repMode,
+    setRepMode: setRepMode
   };
 })();

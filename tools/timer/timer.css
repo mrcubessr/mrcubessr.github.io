@@ -131,6 +131,16 @@ body { margin: 0; }
 .tm-stage.is-running { border-color: var(--brand); }
 .tm-stage.is-stopped { border-color: var(--line-2); }
 
+/* 计时数字禁止选中（v2.0.26）：
+   桌面端想「复制这一把的时间」而去拖选 / 双击时间数字时，浏览器会先建立选区，
+   这一下 mousedown 不再被计时区当作「起表按下」处理 —— 表现就是按住空格/鼠标
+   却起不了表。时间数字本来就该用「复制」按钮导出，不需要手动选中。
+   ⚠️ 手机端的 .tm * 全局禁选已有（见下文媒体查询），这里补的是桌面端。 */
+.tm-time, .tm-state, .tm-pen {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .tm-time {
   font-family: var(--font-mono); font-variant-numeric: tabular-nums;
   font-weight: 800; font-size: calc(clamp(52px, 13vw, 132px) * var(--tm-time-scale)); line-height: 1;
