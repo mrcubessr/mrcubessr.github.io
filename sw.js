@@ -48,7 +48,10 @@
    activate 改为按前缀清理（不再误删 corner/edge 两个独立 PWA 的缓存）；
    APP_SHELL 补进 site-shell.css / site-wide.css / palettes.css（三者由 site-nav.js
    运行时注入，不在任何静态 HTML 里，此前从未被预缓存，离线首屏会缺样式）→ 再递增。 */
-const CACHE = 'fto-timer-v16';
+/* v17（2026-10-19）：site-nav.js（在 APP_SHELL 清单内）新增顶级「公式训练器」入口
+   （/tools/ft/，三盲角/棱 + 四阶中心 + 高阶翼棱四体系统一入口），按上述规矩递增，
+   避免已安装 PWA 的用户首屏拿到旧的侧栏菜单。 */
+const CACHE = 'fto-timer-v17';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

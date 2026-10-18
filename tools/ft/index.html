@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<title>公式训练器 · 选缓冲即练 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/assets/css/pages/home.css">
+<link rel="stylesheet" href="/tools/3bld/3bld.css">
+<style>
+  /* 公式训练器首页专属微调 */
+  .ft-hero__tag {
+    display: inline-block; margin-bottom: 10px; padding: 3px 10px;
+    font-size: 12px; letter-spacing: .08em;
+    color: var(--brand); border: 1px solid var(--brand);
+  }
+  .ft-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 4px 0 8px; }
+  .ft-step {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px; border-radius: 10px;
+    background: var(--surface, #141826); border: 1px solid var(--line-2, rgba(255,255,255,.12));
+  }
+  .ft-step__no {
+    flex: 0 0 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--brand, #60a5fa); color: #fff; font-weight: 800; font-size: 13px;
+  }
+  .ft-step__t { font-size: 13.5px; font-weight: 700; color: var(--fg, #EEF2F8); margin-bottom: 3px; }
+  .ft-step__d { font-size: 12.5px; color: var(--fg-3, #7C8798); line-height: 1.6; }
+  .ft-sysgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .ft-sys {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 16px 18px; border-radius: 12px; text-decoration: none;
+    background: var(--surface, #141826); border: 1px solid var(--line-2, rgba(255,255,255,.12));
+    transition: transform 120ms ease, border-color 120ms ease;
+  }
+  .ft-sys:hover { transform: translateY(-2px); border-color: var(--brand, #60a5fa); }
+  .ft-sys__top { display: flex; align-items: center; gap: 12px; }
+  .ft-sys__icon {
+    flex: 0 0 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--brand-soft, rgba(91,141,239,.14)); color: var(--brand, #60a5fa);
+  }
+  .ft-sys__icon svg { width: 24px; height: 24px; }
+  .ft-sys__name { font-size: 17px; font-weight: 800; color: var(--fg, #EEF2F8); letter-spacing: 1px; }
+  .ft-sys__sub { font-size: 12px; color: var(--fg-3, #7C8798); margin-top: 2px; }
+  .ft-sys__desc { font-size: 13px; color: var(--fg-2, #AEB8CA); line-height: 1.65; }
+  .ft-sys__stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+  .ft-stat {
+    font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 6px;
+    background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+    border: 1px solid var(--line-2, rgba(255,255,255,.14));
+    font-family: "Consolas","SF Mono",monospace;
+  }
+  .ft-stat b { color: var(--brand, #60a5fa); }
+  .ft-sys__go { margin-top: auto; font-size: 13px; font-weight: 700; color: var(--brand, #60a5fa); }
+  .ft-note { font-size: 12.5px; color: var(--fg-3, #7C8798); line-height: 1.8; }
+  .ft-note code {
+    font-family: "Consolas","SF Mono",monospace; font-size: 12px;
+    background: var(--surface-2, #1A2130); padding: 1px 6px; border-radius: 5px;
+    border: 1px solid var(--line-2, rgba(255,255,255,.14)); color: var(--fg-2, #AEB8CA);
+  }
+</style>
+</head>
+<body data-nav="ft">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="container home">
+
+  <!-- 页头 -->
+  <div class="bld-hero page-head">
+    <span class="ft-hero__tag">FORMULA TRAINER</span>
+    <h1 class="page-head__title">公式训练器</h1>
+    <p class="page-head__sub">选一个缓冲块，剩下两个位置的排列组合全部自动进矩阵 · 四套体系一处练</p>
+  </div>
+
+  <!-- 怎么用 -->
+  <section class="group" aria-labelledby="ft-how">
+    <h2 class="section-title" id="ft-how">怎么用</h2>
+    <div class="ft-steps">
+      <div class="ft-step">
+        <span class="ft-step__no">1</span>
+        <div>
+          <div class="ft-step__t">选缓冲块</div>
+          <div class="ft-step__d">24 个字母任选其一（默认记住你上次的选择），页头显示它的位置名。</div>
+        </div>
+      </div>
+      <div class="ft-step">
+        <span class="ft-step__no">2</span>
+        <div>
+          <div class="ft-step__t">矩阵自动展开</div>
+          <div class="ft-step__d">其余 23 个字母组成 23×23 矩阵，每个有效格子就是一条公式，点开即练。</div>
+        </div>
+      </div>
+      <div class="ft-step">
+        <span class="ft-step__no">3</span>
+        <div>
+          <div class="ft-step__t">计时 + 统计</div>
+          <div class="ft-step__d">按住空格 0.5 秒起表，停表自动记录；看板按快慢着色，最慢的自动排前。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 四套体系 -->
+  <section class="group" aria-labelledby="ft-sys">
+    <h2 class="section-title" id="ft-sys">四套训练体系</h2>
+    <div class="ft-sysgrid" id="ft-sysgrid"><!-- JS 渲染，数据与 ft-core.js 注册表同源 --></div>
+    <p class="ft-note" style="margin-top:12px">
+      四套体系共用同一套 24 字母表与三字母码（<code>缓冲 + 第二位置 + 第三位置</code>），和站内角块 / 棱块编码训练、
+      公式库（blddb）逐字母同一体系，学完一处处处通用。成绩按体系分别存在本地浏览器，支持登录后云同步。
+    </p>
+  </section>
+
+  <!-- 特殊情形 -->
+  <section class="group" aria-labelledby="ft-sp">
+    <h2 class="section-title" id="ft-sp">特殊情形</h2>
+    <p class="x3-path">
+      角扭转、棱翻转、奇偶、LTCT / LTEF、2e2e 等特殊情形不进训练矩阵（它们不是「缓冲 + 两个目标」的三循环结构），
+      单独做了一页<a href="special.html">特殊情形查阅</a>，链到站内公式库对应模块。
+    </p>
+  </section>
+
+  <!-- 数据来源 -->
+  <section class="group" aria-labelledby="ft-data">
+    <h2 class="section-title" id="ft-data">数据从哪来</h2>
+    <p class="ft-note" id="ft-data-note">加载中…</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="ft-core.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var ICONS = {
+    corner: '<path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M12 2v20M3 7l9 5 9-5"/>',
+    edge:   '<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18M7 6v12M17 6v12"/>',
+    center: '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 12h16M12 4v16"/>',
+    wing:   '<path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/><path d="M10 7h4M10 17h4M7 10v4M17 10v4"/>'
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* 卡片渲染：数字以 data/manifest.json 为准，拿不到则用注册表里的（两者同源生成） */
+  function render(manifest) {
+    var grid = document.getElementById('ft-sysgrid');
+    if (!grid) { return; }
+    var order = ['corner', 'edge', 'center', 'wing'];
+    var html = '';
+    order.forEach(function (id) {
+      var s = FT.SYSTEMS[id];
+      var m = (manifest && manifest.systems && manifest.systems[id]) || {};
+      var cells = m.cellsPerBuffer || s.cellsPerBuffer;
+      var groups = m.groups || s.groups;
+      var per = m.lettersPerGroup || s.lettersPerGroup;
+      html += '<a class="ft-sys" href="' + s.page + '">'
+        + '<div class="ft-sys__top">'
+        +   '<span class="ft-sys__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + ICONS[id] + '</svg></span>'
+        +   '<div><div class="ft-sys__name">' + esc(s.name) + '</div>'
+        +   '<div class="ft-sys__sub">' + esc(s.letterDesc) + ' · ' + esc(s.pieceDesc) + '</div></div>'
+        + '</div>'
+        + '<div class="ft-sys__desc">' + esc(s.desc) + '</div>'
+        + '<div class="ft-sys__stats">'
+        +   '<span class="ft-stat">缓冲 <b>24</b> 选 1</span>'
+        +   '<span class="ft-stat">每缓冲 <b>' + cells + '</b> 条</span>'
+        +   '<span class="ft-stat"><b>' + groups + '</b> 组 × ' + per + ' 字母</span>'
+        + '</div>'
+        + '<div class="ft-sys__go">进入训练 →</div>'
+        + '</a>';
+    });
+    grid.innerHTML = html;
+
+    /* 数据来源说明：按 manifest 的实际统计写，避免手抄数字过期 */
+    var note = document.getElementById('ft-data-note');
+    if (!note) { return; }
+    if (!manifest || !manifest.systems) {
+      note.innerHTML = '公式数据由 <code>tools/ft/gen-data.py</code> 生成：三盲角/棱取 blddb 噩梦风格，'
+        + '四阶中心块用你的 Excel 公式表 + blddb 人造风格，高阶翼棱取 blddb 人造风格；'
+        + '非默认缓冲由整魔方旋转共轭派生补全，覆盖率 100%。';
+      return;
+    }
+    var rows = order.map(function (id) {
+      var m = manifest.systems[id] || {};
+      var s = FT.SYSTEMS[id];
+      var parts = [];
+      if (m.direct) { parts.push('库直接 ' + m.direct); }
+      if (m.rot) { parts.push('旋转派生 ' + m.rot); }
+      if (m.excel) { parts.push('公式表 ' + m.excel); }
+      if (m.miss) { parts.push('<b style="color:#ef4444">缺口 ' + m.miss + '</b>'); }
+      return '<code>' + esc(s.short) + '</code> ' + (parts.join(' · ') || '—')
+        + '（' + (m.buffers || 24) + ' 缓冲 × ' + (m.cellsPerBuffer || s.cellsPerBuffer) + ' 条）';
+    });
+    note.innerHTML = '公式数据由 <code>tools/ft/gen-data.py</code> 生成，按缓冲切成 96 个 JSON 文件随页面懒加载：<br>'
+      + rows.join('<br>')
+      + '<br>来源口径：<code>blddb</code> = 公式库直接抓取（默认取使用人数最多的主公式）；'
+      + '<code>rot</code> = 整魔方旋转共轭派生（干净公式，数学上等价）；'
+      + '<code>excel</code> = 你的公式表（中心块缓冲 D 优先）。'
+      + '格子底部 <b>✎</b> 虚线框 = 原表留空，可点格子手动补全（路线 C）。';
+  }
+
+  fetch('data/manifest.json', { cache: 'no-cache' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .catch(function () { return null; })
+    .then(render);
+})();
+</script>
+
+</body>
+</html>

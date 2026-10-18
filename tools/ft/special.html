@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<title>特殊情形查阅 · 公式训练器 - 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/assets/css/pages/home.css">
+<link rel="stylesheet" href="/tools/3bld/3bld.css">
+<style>
+  .ft-hero__tag {
+    display: inline-block; margin-bottom: 10px; padding: 3px 10px;
+    font-size: 12px; letter-spacing: .08em;
+    color: var(--brand); border: 1px solid var(--brand);
+  }
+  .ft-spgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .ft-sp {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 16px 18px; border-radius: 12px; text-decoration: none;
+    background: var(--surface, #141826); border: 1px solid var(--line-2, rgba(255,255,255,.12));
+    transition: transform 120ms ease, border-color 120ms ease;
+  }
+  .ft-sp:hover { transform: translateY(-2px); border-color: var(--brand, #60a5fa); }
+  .ft-sp__name { font-size: 16px; font-weight: 800; color: var(--fg, #EEF2F8); letter-spacing: 1px; }
+  .ft-sp__name span { font-size: 12px; font-weight: 600; color: var(--fg-3, #7C8798); margin-left: 8px; letter-spacing: 0; }
+  .ft-sp__desc { font-size: 13px; color: var(--fg-2, #AEB8CA); line-height: 1.65; }
+  .ft-sp__go { margin-top: auto; font-size: 13px; font-weight: 700; color: var(--brand, #60a5fa); }
+  .ft-sp__go.ext { color: var(--fg-3, #7C8798); }
+</style>
+</head>
+<body data-nav="ft">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="container home">
+
+  <div class="bld-hero page-head">
+    <span class="ft-hero__tag">SPECIAL CASES</span>
+    <h1 class="page-head__title">特殊情形查阅</h1>
+    <p class="page-head__sub">角扭转 / 棱翻转 / 奇偶 / LTCT / LTEF / 2e2e —— 不是三循环结构，不进训练矩阵，这里集中查阅</p>
+  </div>
+
+  <section class="group" aria-labelledby="sp-h">
+    <h2 class="section-title" id="sp-h">为什么特殊情形不进训练矩阵</h2>
+    <p class="x3-path">
+      公式训练器的矩阵是「缓冲块 + 两个目标位置」的三循环结构（3-style commutator）。
+      角扭转、棱翻转这类情况要动的是<b>朝向</b>而不是位置，奇偶和 2e2e 更是一次换多组，
+      套不进同一张矩阵 —— 所以单独做这页查阅，公式直接链到站内公式库（blddb 全量搬运）对应模块。
+    </p>
+  </section>
+
+  <section class="group" aria-labelledby="sp-list">
+    <h2 class="section-title" id="sp-list">查阅入口</h2>
+    <div class="ft-spgrid">
+
+      <a class="ft-sp" href="/tools/3bld/blddb/twists.html">
+        <div class="ft-sp__name">角扭转<span>Corner Twist</span></div>
+        <div class="ft-sp__desc">两个角原地扭向 → 单独扭转公式集，三盲必备的特殊情形。</div>
+        <div class="ft-sp__go">打开公式库模块 →</div>
+      </a>
+
+      <a class="ft-sp" href="/tools/3bld/blddb/2flips.html">
+        <div class="ft-sp__name">棱翻转<span>Edge Flip</span></div>
+        <div class="ft-sp__desc">两条棱原地翻向 → 棱翻转公式集（含 M2/U2 族与无 M2 族）。</div>
+        <div class="ft-sp__go">打开公式库模块 →</div>
+      </a>
+
+      <a class="ft-sp" href="/tools/3bld/blddb/parity.html">
+        <div class="ft-sp__name">三盲奇偶<span>3BLD Parity</span></div>
+        <div class="ft-sp__desc">奇数换 ⟹ 最后剩两个角两个棱的奇偶处理公式。</div>
+        <div class="ft-sp__go">打开公式库模块 →</div>
+      </a>
+
+      <a class="ft-sp" href="/tools/3bld/blddb/ltct.html">
+        <div class="ft-sp__name">LTCT<span>LTCT &amp; T2C</span></div>
+        <div class="ft-sp__desc">缓冲关联两个角扭转 → 一步做完两处角扭，进阶提速向。</div>
+        <div class="ft-sp__go">打开公式库模块 →</div>
+      </a>
+
+      <a class="ft-sp" href="/tools/3bld/blddb/ltef.html">
+        <div class="ft-sp__name">LTEF<span>LTEF</span></div>
+        <div class="ft-sp__desc">缓冲关联两个棱翻转 → 一步做完两处棱翻，进阶提速向。</div>
+        <div class="ft-sp__go">打开公式库模块 →</div>
+      </a>
+
+      <a class="ft-sp" href="/tools/3bld/blddb/2e2e.html">
+        <div class="ft-sp__name">2e2e<span>2 Edge 2 Edge</span></div>
+        <div class="ft-sp__desc">四条棱两个交换子一步做完全部棱，竞速向大法。</div>
+        <div class="ft-sp__go">打开公式库模块 →</div>
+      </a>
+
+      <a class="ft-sp" href="https://blddb.net/5style.html" target="_blank" rel="noopener">
+        <div class="ft-sp__name">5-Style<span>外链</span></div>
+        <div class="ft-sp__desc">一个缓冲同时拧两组的高阶玩法，站内未搬运，链 blddb 原站。</div>
+        <div class="ft-sp__go ext">前往 blddb.net ↗</div>
+      </a>
+
+      <a class="ft-sp" href="/tools/3bld/blddb/index.html">
+        <div class="ft-sp__name">公式库总览<span>blddb 全量</span></div>
+        <div class="ft-sp__desc">角/棱 3-Style、噩梦风格等全部模块，完整站在新标签打开。</div>
+        <div class="ft-sp__go">打开公式库 →</div>
+      </a>
+
+    </div>
+  </section>
+
+  <p class="ft-note x3-note">公式库为 blddb.net 全量搬运；训练矩阵里的公式默认取「使用人数最多」的一条，可随时在练习浮层切换备选或✎ 手动输入。</p>
+
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>

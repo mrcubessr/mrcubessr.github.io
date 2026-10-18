@@ -1,0 +1,52 @@
+{
+ "systems": {
+  "corner": {
+   "name": "三盲 · 角块",
+   "buffers": 24,
+   "cellsPerBuffer": 378,
+   "groups": 8,
+   "lettersPerGroup": 3,
+   "direct": 9072,
+   "rot": 0,
+   "excel": 0,
+   "miss": 0,
+   "desc": "24 字母色组体系 · 每角 3 个字母 · blddb 噩梦风格"
+  },
+  "edge": {
+   "name": "三盲 · 棱块",
+   "buffers": 24,
+   "cellsPerBuffer": 440,
+   "groups": 12,
+   "lettersPerGroup": 2,
+   "direct": 10560,
+   "rot": 0,
+   "excel": 0,
+   "miss": 0,
+   "desc": "24 字母标准配对 · 每棱 2 个字母 · blddb 噩梦风格"
+  },
+  "wing": {
+   "name": "高阶 · 翼棱",
+   "buffers": 24,
+   "cellsPerBuffer": 506,
+   "groups": 12,
+   "lettersPerGroup": 2,
+   "direct": 3462,
+   "rot": 8682,
+   "excel": 0,
+   "miss": 0,
+   "desc": "24 个翼块 · blddb 人造风格（旋转派生补全非 A 缓冲）"
+  },
+  "center": {
+   "name": "四阶 · 中心块",
+   "buffers": 24,
+   "cellsPerBuffer": 506,
+   "groups": 6,
+   "lettersPerGroup": 3,
+   "direct": 5132,
+   "rot": 6552,
+   "excel": 455,
+   "miss": 0,
+   "desc": "24 个中心块 · blddb 人造风格 + 你的 Excel 公式表"
+  }
+ }
+}

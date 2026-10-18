@@ -307,6 +307,14 @@
   function mount(cfg) {
     var rowOrder = cfg.rowOrder, colOrder = cfg.colOrder;
     var halfLen = cfg.halfLen || halfLenOf(cfg.codes || [], cfg.algOf);
+    /* halfLenFn：数据异步加载的页面（公式训练器 ft）在挂载时还没有 codes，
+       字号基准要等数据到了再算 → 每次布局时现算（≤506 个 code，开销可忽略）。
+       不传则沿用挂载时算好的 halfLen，旧页行为不变。 */
+    function curHalfLen() {
+      if (cfg.halfLen) { return cfg.halfLen; }
+      if (cfg.halfLenFn) { return cfg.halfLenFn(); }
+      return halfLen;
+    }
 
     var el = {
       wrap: document.querySelector(cfg.wrapSel || '.c4-wrap'),
@@ -335,7 +343,7 @@
         boardRaf = 0;
         if (el.boardWrap && el.boardWrap.hidden) { return; }
         var r = fitBoard(el.board, {
-          halfLen: halfLen,
+          halfLen: curHalfLen(),
           gap: cfg.gap, minCell: cfg.minCell, maxCell: cfg.maxCell,
           minCellNarrow: cfg.minCellNarrow, maxCellNarrow: cfg.maxCellNarrow,
           maxAspect: cfg.maxAspect, includeFooter: cfg.includeFooter,
@@ -351,7 +359,7 @@
         if (!el.matrix || el.matrix.hidden) { return; }
         var r = fitMatrix(el.matrix, {
           cols: colOrder.length, rows: rowOrder.length,
-          halfLen: halfLen, gap: cfg.mxGap, hh: cfg.mxHH,
+          halfLen: curHalfLen(), gap: cfg.mxGap, hh: cfg.mxHH,
           minW: cfg.mxMinW, minH: cfg.mxMinH, labRatio: cfg.labRatio
         });
         if (r) { lockScroll(!r.scroll); }
@@ -400,10 +408,15 @@
           } else if (kind === 'none') {
             cls += ' grp';
           }
+          /* info.manual：无公式但允许「点格子手动补全」的空格（公式训练器 ft 页用：
+             原表刻意留空的格，如四阶中心块缓冲 D 的 5 格）。仍带 data-code 可点击，
+             样式由页面 CSS 给 .mx.manual（虚线 + ✎ 提示）。默认不开启，旧页行为不变。 */
+          if (info && info.manual) { cls += ' manual'; }
           if (mset) { cls += mset[code] ? ' hit' : ' dim'; }
           if (cfg.isSwapped && cfg.isSwapped(code)) { cls += ' is-swapped'; }
           var inner = (kind === 'alg' && alg) ? fmtAlgCell(alg, cfg.fmtAlg) : '';
-          var attr = (kind === 'alg' && alg && !(info && info.disabled)) ? ' data-code="' + code + '"' : ' disabled';
+          var attr = (kind === 'alg' && alg && !(info && info.disabled)) ? ' data-code="' + code + '"'
+                   : ((info && info.manual) ? ' data-code="' + code + '"' : ' disabled');
           h += '<button type="button" class="' + cls + '" title="' + esc(tip) + '"' + attr +
                (style ? ' style="' + style + '"' : '') + '>' + inner + '</button>';
         });

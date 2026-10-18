@@ -45,7 +45,9 @@
       { id: 'scramble-uf',    label: 'UF 分组',        href: '/tools/scramble-uf/' },
       { id: 'scramble-uf440', label: 'UF440公式训练',  href: '/tools/scramble-uf440/' },
       { id: 'scramble-ur',    label: 'UR 分组',        href: '/tools/scramble-ur/' }
-    ]}
+    ]},
+    /* 公式训练器：三盲角/棱 + 四阶中心 + 高阶翼棱四体系统一入口（自选缓冲 → 矩阵自动展开） */
+    { id: 'ft', label: '公式训练器', href: '/tools/ft/' }
   ];
 
   /* 目录名与菜单 id 不一致时的别名表。

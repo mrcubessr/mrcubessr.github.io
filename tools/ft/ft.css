@@ -1,0 +1,282 @@
+@import url("/assets/css/tokens.css");
+@import url("../_shared/train-matrix/train-matrix.css");
+/* ft.css — 公式训练器（tools/ft）页面样式
+   页面形式（双视图 / 仪表盘 / 看板 / 矩阵 / 布局引擎）在共享框架
+   ../_shared/train-matrix/train-matrix.css；本文件只留本工具专属：
+   公式着色变量、缓冲选择条、详情浮层、练习浮层、全屏计时、参考公式面板。
+   与 tools/4bld/center.css 同源克隆（浮层/计时器全套一致），差异只在：
+   ① 新增 .ft-buf 缓冲选择条（24 字母任选，本工具的核心交互）；
+   ② 新增 .mx.manual 可手动补全空格（路线 C）。 */
+
+/* 公式语法着色：只新增变量，不改 tokens.css 的主题变量 */
+:root {
+  --alg-pre:   #fbbf24;
+  --alg-core:  #7dd3fc;
+  --alg-punct: #64748b;
+  --c4-intent-bg: rgba(148,163,184,.16);
+}
+html[data-theme="light"] {
+  --alg-pre:   #b45309;
+  --alg-core:  #1d4ed8;
+  --alg-punct: #94a3b8;
+  --c4-intent-bg: rgba(100,116,139,.20);
+}
+
+body {
+  margin: 0;
+  padding: 26px 22px 64px;
+  background: var(--bg);
+  color: var(--fg-2, #AEB8CA);
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 头部 ---------- */
+.c4-head { padding: 4px 0 16px; border-bottom: 2px solid var(--line-2, rgba(255,255,255,.14)); margin-bottom: 16px; }
+.c4-head h1 { margin: 0 0 7px; font-size: 26px; font-weight: 700; letter-spacing: 4px; color: var(--brand, #60a5fa); }
+.c4-head .sub { font-size: 13px; color: var(--fg-3, #7C8798); letter-spacing: 1.2px; line-height: 1.7; }
+.c4-head .sub b { color: var(--fg, #EEF2F8); font-weight: 600; }
+.c4-back { display: inline-block; margin-top: 9px; font-size: 13px; color: var(--fg-3, #7C8798); text-decoration: none; }
+.c4-back:hover { color: var(--brand, #60a5fa); }
+
+/* ---------- 缓冲选择条（公式训练器核心交互：24 字母任选其一） ---------- */
+.ft-buf { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ft-buf__label { font-size: 13px; color: var(--fg-3, #7C8798); font-weight: 600; white-space: nowrap; }
+.ft-buf__list { display: flex; flex-wrap: wrap; gap: 4px; }
+.ft-bufbtn {
+  appearance: none; cursor: pointer; font: inherit;
+  min-width: 28px; height: 26px; padding: 0 5px; border-radius: 7px;
+  background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18));
+  font-size: 13px; font-weight: 800; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.ft-bufbtn:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
+.ft-bufbtn.is-on {
+  border-color: var(--brand-line, rgba(91,141,239,.30));
+  background: var(--brand-soft, rgba(91,141,239,.14));
+  color: var(--brand, #5B8DEF);
+  box-shadow: 0 0 0 1px var(--brand-line, rgba(91,141,239,.30));
+}
+.ft-buf__cur { font-size: 12px; color: var(--fg-3, #7C8798); white-space: nowrap; }
+.ft-buf__cur b { color: var(--fg, #EEF2F8); font-family: "Consolas","SF Mono",monospace; }
+/* 矩阵视图下压缩缓冲条，把高度让给数据行 */
+.c4-wrap.is-mx .ft-bufbtn { height: 22px; min-width: 24px; font-size: 12px; }
+.c4-wrap.is-mx .ft-buf { gap: 6px; }
+.c4-wrap.is-mx .ft-buf__list { gap: 3px; }
+
+/* ---------- 详情浮层（矩阵参考，只读） ---------- */
+.c4-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(2, 6, 23, .66); padding: 18px;
+}
+.c4-modal.is-open { display: flex; }
+.c4-modal__box {
+  width: min(660px, 96vw); max-height: 90vh; overflow: auto;
+  background: var(--surface, #141826);
+  border: 1px solid var(--line-2, rgba(255,255,255,.16));
+  border-radius: 14px; padding: 18px 20px 20px;
+}
+.c4-modal__bar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.c4-modal__title { font-size: 15px; font-weight: 700; color: var(--fg, #EEF2F8); letter-spacing: 1px; }
+.c4-modal__title::before { content: ''; display: inline-block; width: 4px; height: 15px; background: var(--gc, var(--brand)); margin-right: 8px; vertical-align: -2px; }
+.c4-modal__bar .c4-spacer { flex: 1 1 auto; }
+.c4-modal__close {
+  appearance: none; width: 28px; height: 28px; cursor: pointer;
+  background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18)); border-radius: 7px;
+  font: inherit; font-size: 16px; line-height: 1;
+}
+.c4-modal__alg {
+  font-family: "Consolas", "SF Mono", "Fira Code", monospace;
+  font-size: 22px; line-height: 1.6; word-break: break-all;
+  padding: 14px 16px; margin-bottom: 14px;
+  background: var(--surface-2, #1A2130);
+  border: 1px solid var(--line-2, rgba(255,255,255,.12));
+  border-radius: 9px;
+}
+.c4-modal__row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; font-size: 13px; }
+.c4-modal__row .k { color: var(--fg-3, #7C8798); min-width: 66px; font-weight: 500; }
+.c4-modal__row .v { color: var(--fg-2, #AEB8CA); font-family: "Consolas", "SF Mono", monospace; word-break: break-all; }
+.c4-modal__acts { display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; }
+.c4-modal__acts button {
+  appearance: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+  padding: 7px 15px; border-radius: 8px;
+  background: var(--surface-2, #1A2130); color: var(--fg, #EEF2F8);
+  border: 1px solid var(--line-2, rgba(255,255,255,.2));
+}
+.c4-modal__acts button:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
+.c4-modal__nav { display: flex; align-items: center; gap: 6px; }
+.c4-modal__nav button {
+  appearance: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+  padding: 5px 12px; border-radius: 7px;
+  background: transparent; color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18));
+}
+.c4-modal__nav button:hover { border-color: var(--brand, #60a5fa); color: var(--brand, #60a5fa); }
+
+/* ---------- 练习浮层（计时器，仿 440） ---------- */
+.c4-pmodal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(2, 6, 23, .65); padding: 18px;
+}
+.c4-pmodal.is-open { display: flex; }
+.c4-pmodal__box {
+  width: min(720px, 96vw); max-height: 92vh;
+  background: var(--surface, #141826); color: var(--fg, #EEF2F8);
+  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.c4-pmodal__bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line-2, rgba(255,255,255,.12)); background: var(--surface-2, #1A2130); }
+.c4-pmodal__navbtn { border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 14px; font-weight: 600; }
+.c4-pmodal__navbtn:hover { border-color: var(--brand, #60a5fa); }
+.c4-pmodal__select { flex: 1; min-width: 0; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); font-size: 14px; font-weight: 700; }
+.c4-pmodal__spacer { flex: 0 0 8px; }
+.c4-pmodal__hint { color: var(--fg-2, #AEB8CA); font-size: 12px; margin-right: 4px; font-weight: 500; }
+.c4-pmodal__close { border: 1px solid transparent; background: transparent; color: var(--fg, #EEF2F8); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 8px; border-radius: 6px; }
+.c4-pmodal__close:hover { color: #fff; background: var(--red-soft, rgba(248,113,113,.18)); border-color: var(--red, #F87171); }
+.c4-pmodal__body { padding: 14px 18px 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; overflow: auto; }
+.c4-pmodal__code { font-size: 24px; font-weight: 800; letter-spacing: 2px; color: var(--fg, #EEF2F8); }
+.c4-pmodal__alg { width: 100%; text-align: center; font-family: "Consolas","SF Mono","Fira Code", monospace; font-size: 18px; line-height: 1.5; color: var(--fg, #EEF2F8); padding: 4px 0 8px; word-break: break-word; background: var(--surface-2, #1A2130); border-radius: 8px; }
+.c4-pmodal__timer {
+  width: 100%; text-align: center; font-family: "Consolas","SF Mono",monospace;
+  font-size: 72px; font-weight: 900; line-height: 1; padding: 22px 0;
+  border-radius: 12px; background: #1e293b; color: #f8fafc; cursor: pointer;
+  user-select: none; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.45);
+  transition: background 150ms ease, color 150ms ease; border: 1px solid var(--line-2, rgba(255,255,255,.18));
+}
+.c4-pmodal__timer[data-state="prep"], .c4-fs__timer[data-state="prep"] { background: linear-gradient(135deg,#dc2626,#991b1b); color:#fff; text-shadow:0 2px 6px rgba(120,0,0,.55); border-color:#991b1b; animation: c4-prep-pulse 1s ease-in-out infinite; }
+.c4-pmodal__timer[data-state="green"], .c4-fs__timer[data-state="green"] { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; text-shadow:0 2px 6px rgba(0,60,20,.55); border-color:#15803d; }
+.c4-pmodal__timer[data-state="running"], .c4-fs__timer[data-state="running"] { background: linear-gradient(135deg,#f59e0b,#ea580c); color:#fff; text-shadow:0 2px 6px rgba(120,40,0,.55); border-color:#ea580c; }
+.c4-pmodal__timer[data-state="done"], .c4-fs__timer[data-state="done"] { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; text-shadow:0 2px 6px rgba(0,60,20,.55); border-color:#15803d; }
+@keyframes c4-prep-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.55); } 50%{ box-shadow:0 0 0 12px rgba(220,38,38,0); } }
+.c4-pmodal__summary { font-size: 13px; color: var(--fg-2, #AEB8CA); text-align: center; }
+.c4-pmodal__summary b { color: var(--fg, #EEF2F8); font-size: 16px; }
+.c4-pmodal__acts { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+.c4-pmodal__acts button { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); cursor: pointer; font-size: 12px; font-weight: 600; }
+.c4-pmodal__acts button:hover { border-color: var(--brand, #60a5fa); }
+.c4-pmodal__history { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--fg-2, #AEB8CA); max-height: 100px; overflow: auto; padding-top: 6px; border-top: 1px dashed var(--line-2, rgba(255,255,255,.12)); }
+.c4-pmodal__history .sh-item { padding: 2px 8px; border-radius: 6px; background: var(--brand-soft, rgba(91,141,239,.18)); color: var(--fg, #EEF2F8); font-family: "Consolas","SF Mono",monospace; font-weight: 600; }
+
+/* ---------- 连练模式 ---------- */
+/* 注意：aria-pressed 用 brand-soft（极淡底）+ brand（实色字），不是实色蓝底，无「蓝底蓝字」问题 */
+.c4-pmodal__navbtn[aria-pressed="true"] { border-color: var(--brand-line, rgba(91,141,239,.30)); background: var(--brand-soft, rgba(91,141,239,.14)); color: var(--brand, #5B8DEF); }
+.c4-chain { width: 100%; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px dashed var(--line-2, rgba(255,255,255,.18)); border-radius: 8px; background: var(--surface-2, #1A2130); font-size: 12px; color: var(--fg-2, #AEB8CA); }
+.c4-chain label { font-weight: 600; white-space: nowrap; }
+.c4-chain select { padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line-2, rgba(255,255,255,.18)); background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8); font-size: 12px; font-weight: 600; }
+.c4-chain__prog { margin-left: auto; font-family: "Consolas","SF Mono",monospace; font-weight: 700; color: var(--brand, #5B8DEF); white-space: nowrap; }
+.c4-pmodal__body.is-chain .c4-pmodal__code { color: var(--brand, #5B8DEF); }
+
+/* ---------- 全屏沉浸计时 ---------- */
+/* 注意：.c4-fs 是 display:flex，必须显式补 [hidden] 的 display:none（项目红线） */
+.c4-fs { position: fixed; inset: 0; z-index: 10001; background: var(--bg, #0B0F18); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; }
+.c4-fs[hidden] { display: none; }
+.c4-fs__bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; padding: 14px 20px; }
+.c4-fs__code { font-size: 28px; font-weight: 800; letter-spacing: 3px; color: var(--fg, #EEF2F8); }
+.c4-fs__prog { font-family: "Consolas","SF Mono",monospace; font-weight: 700; color: var(--brand, #5B8DEF); font-size: 14px; }
+.c4-fs__hint { color: var(--fg-3, #7C8798); font-size: 13px; white-space: nowrap; }
+.c4-fs__close { margin-left: auto; border: 1px solid transparent; background: transparent; color: var(--fg-2, #AEB8CA); font-size: 26px; line-height: 1; cursor: pointer; padding: 0 10px; border-radius: 6px; }
+.c4-fs__close:hover { color: #fff; background: var(--red-soft, rgba(248,113,113,.18)); border-color: var(--red, #F87171); }
+.c4-fs__timer {
+  font-family: "Consolas","SF Mono",monospace; font-weight: 900; font-variant-numeric: tabular-nums;
+  text-align: center; line-height: 1.1; letter-spacing: 3px; cursor: pointer;
+  user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  background: #1e293b; color: #f8fafc; border: 3px solid var(--line-2, rgba(255,255,255,.18));
+  border-radius: 28px; padding: 20px 52px; text-shadow: 0 2px 10px rgba(0,0,0,.45);
+  /* 字号沿用 tools/timer 宽屏分级口径：1025–1279 用小档 */
+  font-size: clamp(48px, 8vw, 110px);
+}
+@media (min-width: 1280px) {
+  .c4-fs__timer { font-size: clamp(64px, 10vw, 168px); }
+}
+.c4-fs__alg { max-width: 920px; text-align: center; font-family: "Consolas","SF Mono",monospace; font-size: clamp(16px, 2.2vw, 26px); line-height: 1.6; color: var(--fg-2, #AEB8CA); word-break: break-word; }
+@media (max-width: 640px) {
+  .c4-fs__hint { display: none; }
+  .c4-fs__timer { padding: 14px 26px; border-radius: 20px; }
+}
+
+/* ---------- toast ---------- */
+.c4-toast {
+  position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%);
+  background: var(--fg, #EEF2F8); color: var(--bg, #0B0F18);
+  font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+  opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10000;
+}
+.c4-toast.is-on { opacity: 1; }
+
+@media (max-width: 640px) {
+  body { padding: 18px 14px 50px; }
+  .c4-head h1 { font-size: 20px; letter-spacing: 2px; }
+  .c4-pmodal__hint { display: none; }
+  @media (max-width: 820px) {
+    .c4-pmodal { padding: 0; }
+    .c4-pmodal__box { width: 100%; max-height: none; height: 100vh; height: 100dvh; border-radius: 0; border: 0; }
+    .c4-pmodal__bar { padding: 12px 14px; gap: 10px; }
+    .c4-pmodal__close { font-size: 28px; padding: 0 12px; }
+    .c4-pmodal__body { flex: 1 1 auto; justify-content: center; gap: 16px; padding: 18px 16px; }
+    .c4-pmodal__code { font-size: 32px; }
+    .c4-pmodal__alg { font-size: 20px; padding: 8px 0 10px; }
+    .c4-pmodal__timer { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 42vh; font-size: clamp(60px, 24vw, 168px); padding: 0; border-width: 2px; }
+  }
+}
+
+/* ---------- 参考公式（手动切换，默认排名第一；blddb 同款） ---------- */
+.c4-modal__refs { margin: 2px 0 10px; border-top: 1px dashed var(--line-2, rgba(255,255,255,.16)); padding-top: 10px; }
+.c4-modal__refsbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.c4-modal__refsbar .k { color: var(--fg-3, #7C8798); font-size: 12px; font-weight: 600; min-width: 66px; }
+.c4-modal__refsnote { font-size: 11.5px; color: var(--fg-3, #7C8798); }
+.c4-modal__refsreset {
+  appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
+  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  background: transparent; color: var(--gold, #f5c518);
+  border: 1px solid rgba(245,197,24,.5);
+}
+.c4-modal__refsreset:hover { background: rgba(245,197,24,.14); }
+.c4-modal__refslist { display: flex; flex-direction: column; gap: 5px; max-height: 32vh; overflow: auto; padding-right: 2px; }
+.c4-ref {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+  padding: 6px 9px; border-radius: 7px; cursor: pointer; font: inherit;
+  background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.14));
+}
+.c4-ref:hover { border-color: var(--brand, #60a5fa); color: var(--fg, #EEF2F8); }
+.c4-ref.is-on { border-color: var(--gold, #f5c518); background: rgba(245,197,24,.12); color: var(--fg, #EEF2F8); }
+.c4-ref__no { flex: 0 0 18px; text-align: right; font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
+.c4-ref__alg { flex: 1 1 auto; min-width: 0; font-family: "Consolas", "SF Mono", monospace; font-size: 12.5px; word-break: break-all; }
+.c4-ref__n { flex: 0 0 auto; font-size: 11px; opacity: .75; white-space: nowrap; }
+.c4-ref__def { flex: 0 0 auto; font-size: 10px; font-weight: 800; color: #1a1400; background: var(--gold, #f5c518); border-radius: 4px; padding: 1px 5px; }
+/* 手动输入公式按钮：与「恢复默认」同排，靠右 */
+.c4-modal__refsbar .c4-modal__refsman {
+  appearance: none; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 600;
+  margin-left: auto; padding: 4px 10px; border-radius: 6px;
+  background: transparent; color: var(--fg-2, #AEB8CA);
+  border: 1px solid var(--line-2, rgba(255,255,255,.2));
+}
+.c4-modal__refsbar .c4-modal__refsman:hover { border-color: var(--brand, #60a5fa); color: var(--fg, #EEF2F8); }
+.c4-modal__refsbar .c4-modal__refsreset { margin-left: 6px; }
+
+/* 练习浮层内嵌的参考公式面板（v2.0.11：把选公式入口提到练习浮层，不用进详情浮层） */
+.c4-pmodal__refs {
+  margin: 8px 0; padding: 8px 10px; text-align: left;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 8px;
+  background: var(--surface-2, rgba(255,255,255,.03));
+}
+.c4-pmodal__refs .c4-modal__refslist { max-height: 26vh; }
+
+/* ---------- 可手动补全的空格（路线 C） ----------
+   框架 .mx.intent 默认 cursor:default，这里覆写为可点；虚线边框 + ✎ 提示
+   「此格原表留空，点一下补上你自己的公式」。补过后走 is-swapped 金边。 */
+.c4-matrix .mx.intent, .c4-matrix .mx.manual { cursor: pointer; }
+.c4-matrix .mx.intent::after, .c4-matrix .mx.manual::after {
+  content: '✎'; position: absolute; right: 3px; bottom: 1px;
+  font-size: calc(var(--mx-fs, 9px) * 1.1); font-weight: 700;
+  color: var(--fg-3, #7C8798); opacity: .8;
+}
+.c4-matrix .mx.manual {
+  border: 1px dashed var(--line-2, rgba(255,255,255,.35));
+  background: var(--c4-intent-bg, rgba(148,163,184,.16));
+}
+.c4-matrix .mx.manual::after { color: var(--gold, #f5c518); opacity: .9; }
