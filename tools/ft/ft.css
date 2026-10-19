@@ -488,3 +488,17 @@ body {
   .c4-modal__alg--sub { font-size: 17px; }
   .c4-modal__meta { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
 }
+
+/* ---------- ⑦ 矩阵行列坐标点击筛选（v2.0.26 补） ---------- */
+/* 行标 / 列标可点击：手型 + hover 反馈；锁定行/列高亮主色 */
+.c4-matrix .mx-rh,
+.c4-matrix .mx-ch { cursor: pointer; -webkit-user-select: none; user-select: none;
+  transition: background .12s ease, color .12s ease; }
+.c4-matrix .mx-rh:hover,
+.c4-matrix .mx-ch:hover { background: var(--brand-soft, rgba(91,141,239,.18));
+  color: var(--brand, #5B8DEF); }
+.c4-matrix .mx-rh.is-axis-on,
+.c4-matrix .mx-ch.is-axis-on { background: var(--brand, #5B8DEF); color: #fff; font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+/* 锁定行/列后，非命中格更淡地虚化（聚焦；仍占网格位以保坐标完整） */
+.c4-matrix.is-axis .mx.dim { opacity: .15; }

@@ -512,7 +512,26 @@ window.FTPage = (function () {
       if (!hasLetterFilter()) { return true; }
       return !!letterSet[c.charAt(1)] || !!letterSet[c.charAt(2)];
     }
+    /* 行列坐标筛选（v2.0.26 补）：直接点矩阵「左侧行标 / 顶部列标」做整行 / 整列筛选。
+       命中 = 选中行 ∪ 选中列（任一命中即保留），两集合皆空 = 全选。 */
+    var axisRows = {};                 /* { 'B': true, ... } 选中的行 */
+    var axisCols = {};                 /* 选中的列 */
+    function rowColOf(code) {          /* code = BUF + row + col → 去缓冲前缀取行/列字母 */
+      var buf = state.BUF || '';
+      return [code.charAt(buf.length), code.charAt(buf.length + 1)];
+    }
+    function hasAxisFilter() {
+      for (var k in axisRows) { if (axisRows[k]) { return true; } }
+      for (var k in axisCols) { if (axisCols[k]) { return true; } }
+      return false;
+    }
+    function passAxis(c) {
+      if (!hasAxisFilter()) { return true; }
+      var rc = rowColOf(c);
+      return !!(axisRows[rc[0]] || axisCols[rc[1]]);
+    }
     function passFilter(c, stats, bench) {
+      if (!passAxis(c)) { return false; }
       if (!passLetter(c)) { return false; }
       var st = stats[c];
       if (filterMode === 'todo') { return st.n === 0; }
@@ -539,7 +558,7 @@ window.FTPage = (function () {
       return { q: q, qrot: q.length === 3 ? [q, q[1] + q[2] + q[0], q[2] + q[0] + q[1]] : null };
     }
     function hasAnyFilter() {
-      return filterMode !== 'all' || hasLetterFilter() ||
+      return filterMode !== 'all' || hasLetterFilter() || hasAxisFilter() ||
              !!(document.getElementById('c4-q').value || '').trim();
     }
 
@@ -1711,9 +1730,15 @@ window.FTPage = (function () {
       var hint = document.getElementById('c4-letters-hint');
       if (hint) {
         var on2 = Object.keys(letterSet).filter(function (k) { return letterSet[k]; });
-        hint.textContent = on2.length
-          ? ('已选 ' + on2.length + ' 个字母：' + on2.join(' ') + '（行或列命中即保留）')
-          : '点字母筛选：如只练 B 开头就只点亮 B';
+        if (on2.length) {
+          hint.textContent = '已选 ' + on2.length + ' 个字母：' + on2.join(' ') + '（行或列命中即保留）';
+        } else if (hasAxisFilter()) {
+          var rs = Object.keys(axisRows).filter(function (k) { return axisRows[k]; });
+          var cs = Object.keys(axisCols).filter(function (k) { return axisCols[k]; });
+          hint.textContent = '已锁定「行 ' + (rs.join('') || '—') + ' · 列 ' + (cs.join('') || '—') + '」，点矩阵行/列标可增减，或点「清空筛选」复位';
+        } else {
+          hint.textContent = '点字母快速筛（行或列命中即留）；也可直接点矩阵左侧行标 / 顶部列标做整行整列筛选';
+        }
       }
     }
     function initLetters() {
@@ -1732,10 +1757,53 @@ window.FTPage = (function () {
       if (clr) {
         clr.addEventListener('click', function () {
           letterSet = {};
+          axisRows = {};
+          axisCols = {};
           renderLetters();
+          applyAxisClasses();
           renderCurrent();
         });
       }
+    }
+
+    /* ---------- 矩阵行列坐标点击筛选（v2.0.26 补） ---------- */
+    /* 高亮当前锁定行/列；每次矩阵重渲染后由 MutationObserver 自动重画 */
+    function applyAxisClasses() {
+      var mx = document.getElementById('c4-matrix');
+      if (!mx) { return; }
+      mx.classList.toggle('is-axis', hasAxisFilter());
+      var heads = mx.querySelectorAll('.mx-rh, .mx-ch');
+      for (var i = 0; i < heads.length; i++) {
+        var h = heads[i], txt = (h.textContent || '').trim();
+        if (h.classList.contains('mx-rh')) {
+          h.classList.toggle('is-axis-on', !!axisRows[txt]);
+        } else {
+          h.classList.toggle('is-axis-on', !!axisCols[txt]);
+        }
+      }
+    }
+    function initAxis() {
+      var mx = document.getElementById('c4-matrix');
+      if (!mx) { return; }
+      mx.addEventListener('click', function (e) {
+        var t = e.target;
+        var rh = (t && t.closest) ? t.closest('.mx-rh') : null;
+        var ch = (t && t.closest) ? t.closest('.mx-ch') : null;
+        var h = rh || ch;
+        if (!h) { return; }
+        e.preventDefault();
+        var txt = (h.textContent || '').trim();
+        var set = rh ? axisRows : axisCols;
+        if (set[txt]) { delete set[txt]; } else { set[txt] = true; }
+        renderCurrent();
+        applyAxisClasses();
+      });
+      /* 矩阵每次重渲染（切视图 / 改筛选）都重画轴高亮与 is-axis 类 */
+      if (typeof MutationObserver !== 'undefined') {
+        var mo = new MutationObserver(function () { applyAxisClasses(); });
+        mo.observe(mx, { childList: true, subtree: false });
+      }
+      applyAxisClasses();
     }
 
     /* ---------- 星标交互（矩阵格 / 看板 / 详情 / 练习浮层） ---------- */
@@ -1790,6 +1858,7 @@ window.FTPage = (function () {
     initAlgView();
     initRepMode();
     initLetters();
+    initAxis();
     initStars();
     setView('matrix');
     TM.watch();
