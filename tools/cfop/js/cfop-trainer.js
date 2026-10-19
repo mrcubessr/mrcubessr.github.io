@@ -362,12 +362,33 @@ window.CFOP = (function () {
       m = ((m % 4) + 4) % 4;
       return m === 1 ? "U' " : m === 2 ? 'U2 ' : m === 3 ? 'U ' : '';
     }
-    /* 显示用公式 = 基准公式 + AUF 前缀。rot = 当前平面图旋转量(0..3)，
-       k = 公式有效角度。要先把图案从 rot 拧到 k：U^(k-rot) = aufPrefix(rot-k)。 */
-    function displayedAlg(c, rot) {
+    /* 核纯净：剥掉前导 y 后，公式里不再含整魔方旋转 token（x/x'/x2/y/y'/y2/z/z'/z2）。
+       核不纯的公式（如 x' R U R' D R U' R' D' x）里的 y 是「握把」不是 AUF：
+       全串能解标准图案，但净置换含整魔方旋转分量，硬剥会把隐藏行列的差错
+       带进可见面（pycuber 全量审计：Aa#2/Ab#2/E#4 等剥了会视觉解错）。 */
+    var ROT_TOK = /^(?:[xyz])(?:2|')?$/;
+    function corePure(core) {
+      return !(core || '').split(/\s+/).some(function (t) { return ROT_TOK.test(t); });
+    }
+    /* 显示用公式。库公式统一按标准角度给出，最前面的 y^s 只是转体：
+       剥掉 y^s 后的核 core 对「顺时针转过 s 的图案」成立。所以预览旋转
+       rot≠0 时直接把 y 吸收进旋转——aufPrefix(rot - s) + core，比老规则
+       （U 前缀挂在带 y 的全串前）少 s+1 步，且开头不再残留转体。
+       rot=0 仍显库原式（带 y），与公式库面板保持一致。
+       核不纯 / 自定义公式走老规则：aufPrefix(rot - k) + 原公式（恒视觉正确，
+       见 .workbuddy/outputs/audit4_final.py 的全量 pycuber 审计）。 */
+    function algParts(c, rot) {
       var cur = curAlg(c);
+      var s = splitAuf(cur.text);
+      if (!cur.isCustom && rot !== 0 && s.k && corePure(s.rest)) {
+        return { pre: aufPrefix(rot - s.k), text: s.rest };
+      }
       var need = ((rot - cur.k) % 4 + 4) % 4;
-      return aufPrefix(need) + cur.text;
+      return { pre: aufPrefix(need), text: cur.text };
+    }
+    function displayedAlg(c, rot) {
+      var p = algParts(c, rot);
+      return p.pre + p.text;
     }
 
     /* ================= 7) 骨架注入 ================= */
@@ -476,11 +497,11 @@ window.CFOP = (function () {
         + '        <select id="c4-p-var" class="c4-pmodal__select" title="公式库：切换本条公式的候选算法"></select>'
         + '        <span class="cf-algrow__gap"></span>'
         + '        <div class="cf-rot" role="group" aria-label="旋转预览方向">'
-        + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-ccw" title="预览左转 90°（公式自动加对应 AUF）">↺</button>'
+        + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-ccw" title="预览左转 90°（公式自动转成对应角度；带 y 转体的公式会把 y 吸收掉、步骤更短）">↺</button>'
         + '          <span class="cf-rot__label" id="c4-rot-label">0°</span>'
-        + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-cw" title="预览右转 90°（公式自动加对应 AUF）">↻</button>'
+        + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-cw" title="预览右转 90°（公式自动转成对应角度；带 y 转体的公式会把 y 吸收掉、步骤更短）">↻</button>'
         + '        </div>'
-        + '        <button type="button" class="c4-pmodal__navbtn" id="c4-strip" title="去掉公式最前面的 y 转体，并把预览图转成对应角度">去掉转体</button>'
+        + '        <button type="button" class="c4-pmodal__navbtn" id="c4-strip" title="去掉公式最前面的 y 转体，并把预览图转成对应角度（公式里含 x/y/z 整魔方旋转的「握把式」公式不可剥）">去掉转体</button>'
         + '        <button type="button" class="c4-pmodal__navbtn" id="c4-edit" title="手动修改这条公式（按当前预览角度保存）">✎</button>'
         + '        <button type="button" class="c4-pmodal__navbtn" id="c4-alg-reset" title="恢复数据里的默认公式">恢复默认</button>'
         + '      </div>'
@@ -929,19 +950,18 @@ window.CFOP = (function () {
       var c = byId[pCurrent];
       if (!c) { return; }
       var cur = curAlg(c);
-      var need = ((rot - cur.k) % 4 + 4) % 4;
-      var pre = aufPrefix(need);
+      var p = algParts(c, rot);
       /* 标题 + AUF 徽标 */
       $('c4-p-code').textContent = c.id + '　' + c.sub;
       var badge = $('c4-auf-badge');
-      if (pre) { badge.hidden = false; badge.textContent = 'AUF ' + pre.trim(); }
+      if (p.pre) { badge.hidden = false; badge.textContent = 'AUF ' + p.pre.trim(); }
       else { badge.hidden = true; badge.textContent = ''; }
       /* 预览图（按 rot 旋转） */
       var svg = netSvg(c, rot);
       $('c4-m-net').innerHTML = svg ? svg.outerHTML : '';
-      /* 公式（含 AUF 前缀） */
-      $('c4-p-alg').innerHTML = fmtAlg(pre + cur.text);
-      $('c4-fs-alg').innerHTML = fmtAlg(pre + cur.text);
+      /* 公式（rot≠0 且核纯净时 y 已被吸收进旋转，见 algParts） */
+      $('c4-p-alg').innerHTML = fmtAlg(p.pre + p.text);
+      $('c4-fs-alg').innerHTML = fmtAlg(p.pre + p.text);
       /* 公式下拉 */
       var sel = $('c4-p-var');
       sel.innerHTML = c.algs.map(function (v, i) {
@@ -950,12 +970,16 @@ window.CFOP = (function () {
       }).join('') + (cur.isCustom ? '<option value="-1" selected>自定义公式</option>' : '');
       /* 方向控制 */
       $('c4-rot-label').textContent = (rot * 90) + '°';
-      /* 去掉转体：仅当基准公式最前面有 y 转体时可点 */
+      /* 去掉转体：仅当基准公式最前面有 y 转体、且剥掉后核纯净时可点
+         （核不纯时 y 是握把不是 AUF，剥掉会错，见 corePure 注释） */
       var s = splitAuf(cur.text);
       var strip = $('c4-strip');
-      if (s.k) {
+      if (s.k && corePure(s.rest)) {
         strip.disabled = false;
         strip.title = '去掉公式最前面的 ' + s.prefix.trim() + ' 转体，并把预览图转成对应角度（' + (s.k * 90) + '°）';
+      } else if (s.k) {
+        strip.disabled = true;
+        strip.title = '这条公式的 ' + s.prefix.trim() + ' 是握把转体不是 AUF（公式里还含 x/y/z 整魔方旋转），剥掉会错；可换公式库里的无 y 公式';
       } else {
         strip.disabled = true;
         strip.title = cur.isCustom ? '这条公式最前面没有 y 转体' : '这条公式没有 y 转体（数据里的公式已按标准角度给出）';
@@ -1034,13 +1058,18 @@ window.CFOP = (function () {
       applyView();
       renderCurrent();
     }
-    /* 去掉转体：剥掉公式最前面的 y 转体，平面图同步转过去使其对应 */
+    /* 去掉转体：剥掉公式最前面的 y 转体，平面图同步转过去使其对应。
+       核不纯（剥掉后还含 x/y/z）时禁用——那种 y 是握把，剥了公式会错。 */
     function stripAuf() {
       var c = byId[pCurrent];
       if (!c) { return; }
       var cur = curAlg(c);
       var s = splitAuf(cur.text);
       if (!s.k) { toast('这条公式没有 y 转体'); return; }
+      if (!corePure(s.rest)) {
+        toast('这条公式的 ' + s.prefix.trim() + ' 是握把转体不是 AUF，剥掉会错；可换公式库里的无 y 公式');
+        return;
+      }
       var nk = (cur.k + s.k) % 4;
       swaps[c.id] = { i: null, alg: s.rest, k: nk };
       saveSwaps();
