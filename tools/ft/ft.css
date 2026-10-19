@@ -296,27 +296,35 @@ body {
 .c4-modal__close, .c4-modal__refsreset, .c4-modal__refsman, .c4-ref, .c4-ref__def,
 .c4-pmodal__box, .c4-pmodal__navbtn, .c4-pmodal__select, .c4-pmodal__alg,
 .c4-pmodal__timer, .c4-pmodal__acts button, .c4-pmodal__history .sh-item,
+.c4-pmodal__starrow, .c4-pmodal__note,
 .c4-chain, .c4-chain select, .c4-fs__timer, .c4-fs__close, .c4-toast,
 .c4-meta, .ft-starc__b, .c4-rep__i {
   border-radius: 0;
 }
 
-/* ---------- ② 矩阵格改版：大字字母组合 + 时间 + 右上角星标 ----------
-   不再在格子里塞公式（几百条公式挤在一起反而看不清），公式进详情/练习浮层看。 */
+/* ---------- ② 矩阵格改版：大字字母组合 + 右下时间 + 右上星标 ----------
+   不再在格子里塞公式（几百条公式挤在一起反而看不清），公式进详情/练习浮层看。
+   v2.0.29：字母放大到约 2 倍。--mx-fs 是框架按「公式行高」算的（一屏 500+ 格时
+   只有 5px 左右），字母再乘 1.55 也才 7.75px，太小；改按格子高度 --mx-h 驱动，
+   时间移到右下角、星标保持右上，字母靠左独占中央，互不压字。 */
 .c4-matrix .mx { position: relative; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 1px; padding: 1px; line-height: 1; }
+  align-items: center; justify-content: center; gap: 1px; padding: 1px; line-height: 1;
+  overflow: hidden; }
 .c4-matrix .mx-code {
   font-family: "Consolas","SF Mono",monospace;
-  font-size: calc(var(--mx-fs, 9px) * 1.55); font-weight: 800; letter-spacing: .5px;
+  font-size: calc(var(--mx-h, 18px) * .84); font-weight: 800; letter-spacing: 0;
+  line-height: 1; white-space: nowrap;
+  margin-right: auto; padding-left: 3px;
 }
 .c4-matrix .mx-ms {
+  position: absolute; right: 2px; bottom: 0;
   font-family: "Consolas","SF Mono",monospace; font-variant-numeric: tabular-nums;
-  font-size: calc(var(--mx-fs, 9px) * 1.0); font-weight: 600; opacity: .82;
+  font-size: calc(var(--mx-h, 18px) * .26); font-weight: 700; opacity: .82; line-height: 1;
 }
 /* 星标：默认淡灰 ☆，标记后按档位着色；点在它上面不会触发「打开练习」（JS 捕获阶段拦掉） */
 .mx-star {
   position: absolute; top: 0; right: 1px;
-  font-size: calc(var(--mx-fs, 9px) * 1.25); line-height: 1;
+  font-size: calc(var(--mx-h, 18px) * .42); line-height: 1;
   color: var(--fg-3, #7C8798); opacity: .45; pointer-events: auto;
   text-shadow: 0 0 2px var(--surface, #141826);
 }
@@ -380,6 +388,18 @@ body {
 .ft-starc__b.s-green.is-on { border-color: #4ade80; background: rgba(74,222,128,.16); }
 .ft-starc__b.s-purple.is-on { border-color: #c084fc; background: rgba(192,132,252,.16); }
 .c4-modal__note { flex: 1 1 220px; min-width: 0; font-size: 13px;
+  padding: 5px 9px; background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+  border: 1px solid var(--line-2, rgba(255,255,255,.18)); }
+
+/* ---------- ②-B 练习浮层标记行（v2.0.29：标记功能搬进练习浮层） ----------
+   公式正下方常驻：五档颜色按钮直接点（再点同色 = 取消），备注直接写。
+   星标按钮（#c4-p-star）保留为快捷切换：点一下默认金色、再点取消。 */
+.c4-pmodal__starrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 8px 0 2px; padding: 7px 10px;
+  border: 1px solid var(--line-2, rgba(255,255,255,.14));
+  background: var(--surface-2, #1A2130); }
+.c4-pmodal__starrow .k { color: var(--fg-3, #7C8798); font-size: 12px; font-weight: 600; }
+.c4-pmodal__note { flex: 1 1 180px; min-width: 0; font-size: 13px;
   padding: 5px 9px; background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
   border: 1px solid var(--line-2, rgba(255,255,255,.18)); }
 

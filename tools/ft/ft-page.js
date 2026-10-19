@@ -148,6 +148,14 @@ window.FTPage = (function () {
       + '      </div>'
       + '      <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>'
       + '      <div class="c4-pmodal__alg c4-pmodal__alg--sub" id="c4-p-alg2" hidden></div>'
+      /* v2.0.29：标记行搬进练习浮层——公式正下方常驻五档颜色 + 备注，
+         点开就能直接选，不必再进详情浮层。 */
+      + '      <div class="c4-pmodal__starrow">'
+      + '        <span class="k">标记</span>'
+      + '        <span class="ft-starc" id="c4-p-starc"></span>'
+      + '        <input class="input c4-pmodal__note" id="c4-p-note" type="text" maxlength="60"'
+      + '               placeholder="备注：如「母公式，C 组都从它变」">'
+      + '      </div>'
       + '      <div class="c4-pmodal__rep" id="c4-p-rep" hidden></div>'
     + '      <div class="c4-pmodal__refs" id="c4-p-refsbox" hidden>'
     + '        <div class="c4-modal__refsbar">'
@@ -320,7 +328,7 @@ window.FTPage = (function () {
       }
       saveStars();
       renderCurrent();
-      toast(stars[code] ? '已标记为「母公式」（可在详情里改颜色和备注）' : '已取消标记');
+      toast(stars[code] ? '已标记为「母公式」（浮层标记行里可改颜色和备注）' : '已取消标记');
     }
     function setStarColor(code, k) {
       if (!stars[code]) { stars[code] = { c: k, n: '' }; }
@@ -800,6 +808,17 @@ window.FTPage = (function () {
       }).join('');
     }
 
+    /* 五档颜色按钮（详情浮层与练习浮层共用同一套 DOM 结构） */
+    function renderStarColors(box, sk) {
+      if (!box) { return; }
+      box.innerHTML = FT.STAR_COLORS.map(function (o) {
+        var on = sk && (sk.c || 'gold') === o.k;
+        return '<button type="button" class="ft-starc__b s-' + o.k + (on ? ' is-on' : '') + '"' +
+          ' data-sc="' + o.k + '" title="' + esc(o.tip) + '">' +
+          '<span class="ft-starc__dot"></span>' + esc(o.name) + '</button>';
+      }).join('');
+    }
+
     /* 星标区：5 档颜色单选 + 备注输入。点已选中的档位 = 取消标记。 */
     function renderModalStar(code) {
       var sk = starOf(code);
@@ -809,17 +828,24 @@ window.FTPage = (function () {
         starBtn.textContent = sk ? '★' : '☆';
         starBtn.title = sk ? '已标记：' + FT.starColorName(sk.c) + '（再点取消）' : '标记这条公式';
       }
-      var box = document.getElementById('c4-m-starc');
-      if (box) {
-        box.innerHTML = FT.STAR_COLORS.map(function (o) {
-          var on = sk && (sk.c || 'gold') === o.k;
-          return '<button type="button" class="ft-starc__b s-' + o.k + (on ? ' is-on' : '') + '"' +
-            ' data-sc="' + o.k + '" title="' + esc(o.tip) + '">' +
-            '<span class="ft-starc__dot"></span>' + esc(o.name) + '</button>';
-        }).join('');
-      }
+      renderStarColors(document.getElementById('c4-m-starc'), sk);
       var note = document.getElementById('c4-m-note');
       if (note) { note.value = sk ? (sk.n || '') : ''; }
+    }
+
+    /* 练习浮层的标记行（v2.0.29）：星标按钮 + 五档颜色 + 备注，全部就地刷新 */
+    function pRenderStar(code) {
+      var sk = starOf(code);
+      var sb = document.getElementById('c4-p-star');
+      if (sb) {
+        sb.className = 'c4-pmodal__star' + (sk ? ' is-on s-' + esc(sk.c || 'gold') : '');
+        sb.textContent = sk ? '★' : '☆';
+        sb.title = sk ? ('已标记：' + FT.starColorName(sk.c) + (sk.n ? ' · ' + sk.n : '') + '（再点取消）')
+                      : '标记这条公式（母公式 / 重点练 / 易错…）';
+      }
+      renderStarColors(document.getElementById('c4-p-starc'), sk);
+      var note = document.getElementById('c4-p-note');
+      if (note && document.activeElement !== note) { note.value = sk ? (sk.n || '') : ''; }
     }
 
     function fillModal(code) {
@@ -1144,14 +1170,7 @@ window.FTPage = (function () {
         pAlgEl.innerHTML = fmtAlg((algView === 'comm') ? (c || a) : a);
         if (e2) { e2.hidden = true; e2.innerHTML = ''; }
       }
-      var sk = starOf(code);
-      var sb = document.getElementById('c4-p-star');
-      if (sb) {
-        sb.className = 'c4-pmodal__star' + (sk ? ' is-on s-' + esc(sk.c || 'gold') : '');
-        sb.textContent = sk ? '★' : '☆';
-        sb.title = sk ? ('已标记：' + FT.starColorName(sk.c) + (sk.n ? ' · ' + sk.n : '') + '（再点取消）')
-                      : '标记这条公式（母公式 / 重点练 / 易错…）';
-      }
+      pRenderStar(code);
       var rs = document.getElementById('c4-p-repmode');
       if (rs) { rs.value = repMode; }
       /* 换公式 = 新一轮：三次平均的半途成绩作废，避免把別条的两次算进来 */
@@ -1804,18 +1823,39 @@ window.FTPage = (function () {
           if (cur && (cur.c || 'gold') === k) { toggleStar(modalCode); }   /* 再点同档 = 取消 */
           else { setStarColor(modalCode, k); }
           fillModal(modalCode);
+          renderCurrent();   /* 同步矩阵 / 看板里的星标 */
         });
       }
       var note = document.getElementById('c4-m-note');
       if (note) {
         note.addEventListener('change', function () {
-          if (modalCode) { setStarNote(modalCode, this.value.trim()); fillModal(modalCode); }
+          if (modalCode) { setStarNote(modalCode, this.value.trim()); fillModal(modalCode); renderCurrent(); }
         });
       }
       var pstar = document.getElementById('c4-p-star');
       if (pstar) {
         pstar.addEventListener('click', function () {
-          if (pCurrent) { toggleStar(pCurrent); pRenderAlg(pCurrent); }
+          if (pCurrent) { toggleStar(pCurrent); pRenderAlg(pCurrent); renderCurrent(); }
+        });
+      }
+      /* 练习浮层标记行（v2.0.29）：五档颜色直接选，备注直接写 */
+      var pstarc = document.getElementById('c4-p-starc');
+      if (pstarc) {
+        pstarc.addEventListener('click', function (e) {
+          var b = (e.target && e.target.closest) ? e.target.closest('[data-sc]') : null;
+          if (!b || !pCurrent) { return; }
+          var k = b.getAttribute('data-sc');
+          var cur = starOf(pCurrent);
+          if (cur && (cur.c || 'gold') === k) { toggleStar(pCurrent); }   /* 再点同档 = 取消 */
+          else { setStarColor(pCurrent, k); }
+          pRenderAlg(pCurrent);
+          renderCurrent();
+        });
+      }
+      var pnote = document.getElementById('c4-p-note');
+      if (pnote) {
+        pnote.addEventListener('change', function () {
+          if (pCurrent) { setStarNote(pCurrent, this.value.trim()); pRenderAlg(pCurrent); renderCurrent(); }
         });
       }
     }
