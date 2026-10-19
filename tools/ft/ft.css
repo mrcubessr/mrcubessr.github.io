@@ -302,24 +302,23 @@ body {
   border-radius: 0;
 }
 
-/* ---------- ② 矩阵格改版：大字字母组合 + 右下时间 + 右上星标 ----------
+/* ---------- ② 矩阵格改版：大字字母组合居中 + 下方时间 + 右上星标 ----------
    不再在格子里塞公式（几百条公式挤在一起反而看不清），公式进详情/练习浮层看。
-   v2.0.29：字母放大到约 2 倍。--mx-fs 是框架按「公式行高」算的（一屏 500+ 格时
-   只有 5px 左右），字母再乘 1.55 也才 7.75px，太小；改按格子高度 --mx-h 驱动，
-   时间移到右下角、星标保持右上，字母靠左独占中央，互不压字。 */
+   v2.0.29：--mx-fs 是框架按公式行高算的（一屏 500+ 格时只有 5px 左右），字母再乘
+   1.55 也才 7.75px，太小；改按格子高度 --mx-h 驱动。
+   v2.0.30（用户反馈）：词组是主体，居中排；时间数字放它正下方、一起居中；
+   字母比初版略收（.84→.68）、padding 归零，给时间行让出高度，两者仍不超格高。 */
 .c4-matrix .mx { position: relative; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 1px; padding: 1px; line-height: 1;
+  align-items: center; justify-content: center; gap: 0; padding: 0; line-height: 1;
   overflow: hidden; }
 .c4-matrix .mx-code {
   font-family: "Consolas","SF Mono",monospace;
-  font-size: calc(var(--mx-h, 18px) * .84); font-weight: 800; letter-spacing: 0;
+  font-size: calc(var(--mx-h, 18px) * .68); font-weight: 800; letter-spacing: .5px;
   line-height: 1; white-space: nowrap;
-  margin-right: auto; padding-left: 3px;
 }
 .c4-matrix .mx-ms {
-  position: absolute; right: 2px; bottom: 0;
   font-family: "Consolas","SF Mono",monospace; font-variant-numeric: tabular-nums;
-  font-size: calc(var(--mx-h, 18px) * .26); font-weight: 700; opacity: .82; line-height: 1;
+  font-size: calc(var(--mx-h, 18px) * .22); font-weight: 700; opacity: .82; line-height: 1;
 }
 /* 星标：默认淡灰 ☆，标记后按档位着色；点在它上面不会触发「打开练习」（JS 捕获阶段拦掉） */
 .mx-star {
@@ -336,9 +335,25 @@ body {
 .mx-star.s-green  { color: #4ade80; }
 .mx-star.s-purple { color: #c084fc; }
 
+/* ---------- ②-C 练习总览卡片：与矩阵同审美，词组放大居中 + 下方时间 ----------
+   v2.0.30（用户反馈）：练习总览的字母也要大一些。共享 train-matrix.css 的
+   .c4-bcell .c-code 是 2.3em 且未指定字体（落到系统比例字体，W/M 等宽字母
+   在小卡上会溢出），这里只覆盖 ft 页（四阶/UF440 复用方不受影响）：
+   ① 改等宽字体，与矩阵字母一致；② 放大到 2.9em，按卡宽设上限 .52
+     （等宽字体 2 字母仅 1.1em 宽：cellW-8 内放得下；fitBoard 一屏塞
+      500+ 张时卡宽 ~29px，超限才收）；③ 时间同步放大带上限。
+   卡片本身是 flex column 居中排布（字母在上、时间在下、次数右上、星标右下）。 */
+.c4-bcell .c-code {
+  font-family: "Consolas","SF Mono",monospace;
+  font-size: min(2.9em, calc(var(--c4-cell-w, 82px) * .52));
+  letter-spacing: 1px; line-height: 1;
+}
+.c4-bcell .c-ms {
+  font-size: min(1.4em, calc(var(--c4-cell-w, 82px) * .22));
+}
+
 /* 看板卡的星标（与矩阵同一套颜色） */
-.c4-bcell .c-star { position: absolute; right: 5%; bottom: 6%; font-size: .95em; line-height: 1.2; font-weight: 800; }
-.c4-bcell .c-star.s-gold { color: #f5c518; }
+.c4-bcell .c-star { position: absolute; right: 5%; bottom: 6%; font-size: .95em; line-height: 1.2; font-weight: 800; }.c4-bcell .c-star.s-gold { color: #f5c518; }
 .c4-bcell .c-star.s-red { color: #f87171; }
 .c4-bcell .c-star.s-blue { color: #60a5fa; }
 .c4-bcell .c-star.s-green { color: #4ade80; }
