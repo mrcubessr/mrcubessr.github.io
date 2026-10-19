@@ -1,0 +1,81 @@
+/* =========================================================
+   cfop-trainer.css — 三阶 OLL / PLL 训练页专属样式
+ *
+ * 复用关系：ft.css 内部 @import 了 tokens.css 与 train-matrix.css，
+ * 工具条 / 仪表盘 / 看板卡片 / 练习浮层 / 全屏计时 / 星标 / toast
+ * 全部沿用盲拧公式训练器那一套（类名一致，观感一致）。
+ * 本文件只补 CFOP 自己的部分：
+ *   ① 案例预览图（cfop-net，自包含不依赖 cfop.css）
+ *   ② 卡片里预览图 + 大字名称 + 时间的排布与字号
+ *   ③ 练习浮层的 AUF（转体）控制行 / 手动编辑行 / 预览图尺寸
+ * ========================================================= */
+
+/* ---------- ① 案例配图（移植自 cfop.css：顶面平面示意图） ---------- */
+.cfop-net { align-self: center; width: 100%; height: 100%; --net-ink: #101218; }
+.cfop-cube-body polygon, .cfop-cube-body rect { fill: var(--net-ink, #101218); }
+.cfop-cube-body polygon { stroke: var(--line, rgba(255,255,255,.12)); stroke-width: .8; stroke-linejoin: round; }
+.cfop-net--flat > rect { stroke: var(--net-ink, #101218); stroke-width: .9; stroke-linejoin: round; }
+
+/* ---------- ② 看板卡片：预览图 + 大字名称 + 时间（直角风格） ---------- */
+/* 组别色补齐：train-matrix.css 只定义 g0–g11，OLL 有 14 个形状类型
+   （Line Shapes = g13）。这里补 g12/g13，与框架同口径（--gc 实色 + --gc-soft 淡底）。 */
+.g12 { --gc: #f26d21; --gc-soft: rgba(242,109,33,.22); }
+.g13 { --gc: #c026d3; --gc-soft: rgba(192,38,211,.20); }
+
+.c4-board .c4-bcell { border-radius: 0; padding: 3px; }
+.c4-bcell .cf-net {
+  flex: 1 1 auto; min-height: 0; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2px;
+}
+.c4-bcell .cf-net .cfop-net { width: 100%; height: 100%; max-width: 100%; max-height: 100%; }
+/* 名称：等宽字体 + 按「卡宽 ÷ 最长名称字符数」反推字号（JS 写 --cf-name-fs）。
+   "OLL 57" 6 字符 / "Gb" 2 字符用同一公式，大小卡都不裁切。 */
+.c4-bcell .c-code {
+  font-family: "Consolas", "SF Mono", monospace;
+  font-size: var(--cf-name-fs, 15px);
+  letter-spacing: 0; line-height: 1; font-weight: 800;
+}
+.c4-bcell .c-ms { font-size: var(--cf-ms-fs, 11px); margin-top: 2px; }
+/* 卡片星标可点（点一下标金，再点取消） */
+.c4-bcell .c-star { cursor: pointer; }
+.c4-bcell .c-star:hover { transform: scale(1.15); }
+
+/* ---------- ③ 练习浮层：预览图 + 公式选择 + AUF 控制 ---------- */
+/* 案例预览图：随 AUF 旋转的顶面示意图 */
+.cf-mnet { width: 168px; height: 168px; flex: 0 0 auto; }
+.cf-mnet .cfop-net { width: 100%; height: 100%; }
+@media (max-width: 640px) { .cf-mnet { width: 128px; height: 128px; } }
+
+/* 公式选择行：公式下拉 + 方向旋转 + 去转体 / 编辑 / 恢复默认 */
+.cf-algrow {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  width: 100%; justify-content: center;
+}
+.cf-algrow > label { font-size: 12px; color: var(--fg-3, #7C8798); font-weight: 600; white-space: nowrap; }
+.cf-algrow .c4-pmodal__select { flex: 0 1 auto; width: auto; min-width: 128px; }
+.cf-algrow__gap { flex: 0 0 4px; }
+.cf-rot { display: inline-flex; align-items: center; gap: 4px; }
+.cf-rot__label {
+  min-width: 36px; text-align: center; font-size: 12px; font-weight: 800;
+  color: var(--fg-2, #AEB8CA); font-variant-numeric: tabular-nums;
+}
+/* AUF 徽标（标题行里那枚「AUF U'」） */
+.cf-auf-badge {
+  font-size: 12px; font-weight: 800; color: var(--gold, #f5c518);
+  border: 1px solid rgba(245, 197, 24, .5); padding: 1px 7px; line-height: 1.4;
+}
+/* 去掉转体：公式没有 y 转体时置灰 */
+#c4-strip:disabled { opacity: .45; cursor: default; }
+#c4-strip:disabled:hover { border-color: var(--line-2, rgba(255, 255, 255, .18)); }
+/* 手动编辑行 */
+.cf-editrow { display: flex; gap: 8px; width: 100%; }
+.cf-editrow .input {
+  flex: 1 1 auto; min-width: 0;
+  font-family: "Consolas", "SF Mono", monospace; font-size: 15px; font-weight: 600;
+}
+.cf-editrow[hidden] { display: none; }
+
+/* 公式库面板里的等宽公式 */
+.c4-ref code { font-family: "Consolas", "SF Mono", monospace; font-size: 12.5px; word-break: break-all; }
+.c4-ref b { min-width: 62px; color: var(--fg, #EEF2F8); font-size: 12px; }
