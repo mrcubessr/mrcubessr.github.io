@@ -13,7 +13,7 @@
  *   ③ 统计口径：最近一次 / 最快单次 / 全部平均，快慢七阶字色 + 中位数基准；
  *   ④ 星标 / 练习模式复用 ft-core（键 ft_stars_<set> / ft_repmode），两边一致。
  * 差异：CFOP 没有字母编码矩阵，筛选走「排序 / 指标 / 下拉筛选 / 搜索」；
- *      公式不堆在卡片和浮窗里，用「公式下拉 + 公式库面板」选择；
+ *      公式不堆在卡片里，浮层内「大字公式 + 候选条」一体，点候选即切换；
  *      独有 AUF（y 转体）编辑：去掉转体后按角度旋转平面图使其对应。
  *
  * 数据：fetch /tools/cfop/data/{set}.json（speedcubedb 本地化，唯一来源；
@@ -35,6 +35,7 @@ window.CFOP = (function () {
       back: '/tools/3x3/', backLabel: '← 返回三阶',
       groupLabel: '形状类型',
       minCell: 132, minFloor: 88,   // 理想卡宽 / 硬下限（57 卡一屏只有 ~97px 可用）
+      maxCell: 180,                  // 卡片宽度上限（57 张要挤一屏，卡不能太肥）
       maxChars: 6                    // 最长名称字符数（"OLL 57"）
     },
     pll: {
@@ -44,6 +45,11 @@ window.CFOP = (function () {
       back: '/tools/3x3/', backLabel: '← 返回三阶',
       groupLabel: '置换类型',
       minCell: 105, minFloor: 96,
+      /* 只有 21 张卡，宽屏下必须让卡片长到能铺满：固定 180 上限会把末行比例
+         撑爆（21 = 9+8+4 等排法都过不了 tailRatio<=3），fitBoard 只能退回
+         「正方形兜底」，1920 宽就出现 101px 小卡 + 下方大片空白。
+         改成随视口放大 → 1920 选 7×3 的 224px、2560 选 7×3 的 319px。 */
+      maxCell: function () { return Math.max(240, Math.min(460, Math.round(window.innerWidth * 0.17))); },
       maxChars: 2                    // 最长名称（"Gb"）
     }
   };
@@ -173,8 +179,17 @@ window.CFOP = (function () {
     }
 
     /* ================= 3) 统计 / 配色（与 ft 同一套口径） ================= */
-    var metricMode = 'best';    // session | best | allavg
-    var sortMode = 'num';       // num | fast | slow | practice | group | star
+    /* 排序即指标（v2.0.34）：旧版「指标（最快单次/最近一次）」与排序口径重复，
+       两套下拉互相牵制、用户看不懂。现在只留一个「排序」下拉，卡片上显示的
+       时间 / 配色 / 排列顺序全部由它决定：
+         best / worst → 最快单次；avg → 全部平均；
+         num / practice / group / star 是浏览态 → 默认显示全部平均。 */
+    var SORT_METRIC = {
+      num: 'allavg', best: 'best', worst: 'best', avg: 'allavg',
+      practice: 'allavg', group: 'allavg', star: 'allavg'
+    };
+    var sortMode = 'num';
+    var metricMode = SORT_METRIC[sortMode];
     var filterMode = 'all';
 
     function fmtTime(ms) {
@@ -374,7 +389,7 @@ window.CFOP = (function () {
        剥掉 y^s 后的核 core 对「顺时针转过 s 的图案」成立。所以预览旋转
        rot≠0 时直接把 y 吸收进旋转——aufPrefix(rot - s) + core，比老规则
        （U 前缀挂在带 y 的全串前）少 s+1 步，且开头不再残留转体。
-       rot=0 仍显库原式（带 y），与公式库面板保持一致。
+       rot=0 仍显库原式（带 y），与候选列表里的原式一致。
        核不纯 / 自定义公式走老规则：aufPrefix(rot - k) + 原公式（恒视觉正确，
        见 .workbuddy/outputs/audit4_final.py 的全量 pycuber 审计）。 */
     function algParts(c, rot) {
@@ -397,19 +412,14 @@ window.CFOP = (function () {
       /* ---------- 工具条 ---------- */
       h += '<div class="c4-bar">'
         + '  <label for="c4-sort">排序</label>'
-        + '  <select id="c4-sort" title="卡片排列顺序">'
+        + '  <select id="c4-sort" title="卡片排列顺序；卡片上显示的时间就是这张卡按什么排的那个成绩（配色也按它）">'
         + '    <option value="num">按编号</option>'
-        + '    <option value="fast">最快优先</option>'
-        + '    <option value="slow">最慢优先</option>'
-        + '    <option value="practice">按练习次数</option>'
+        + '    <option value="best">最快单次 · 快→慢</option>'
+        + '    <option value="worst">最快单次 · 慢→快</option>'
+        + '    <option value="avg">平均成绩 · 快→慢</option>'
+        + '    <option value="practice">练习次数 · 多→少</option>'
         + '    <option value="group">按' + S.groupLabel + '分组</option>'
         + '    <option value="star">★ 标记优先</option>'
-        + '  </select>'
-        + '  <label for="c4-metric">指标</label>'
-        + '  <select id="c4-metric" title="卡片上显示的时间按哪种口径算，配色与排序都以它为准">'
-        + '    <option value="best">最快单次</option>'
-        + '    <option value="session">最近一次</option>'
-        + '    <option value="allavg">全部平均</option>'
         + '  </select>'
         + '  <label for="c4-filter">筛选</label>'
         + '  <select id="c4-filter" title="只保留符合条件的公式">'
@@ -456,7 +466,6 @@ window.CFOP = (function () {
         + '      <select id="c4-p-select" class="c4-pmodal__select" aria-label="选择公式案例"></select>'
         + '      <button type="button" class="c4-pmodal__navbtn" id="c4-p-next" title="下一条（→）">→</button>'
         + '      <button type="button" class="c4-pmodal__navbtn" id="c4-p-chain" aria-pressed="false" title="连练：停表后自动进入下一条">连练</button>'
-        + '      <button type="button" class="c4-pmodal__navbtn" id="c4-p-refs" aria-pressed="false" title="公式库：查看 / 切换本条的全部候选公式">公式库</button>'
         + '      <span class="c4-spacer"></span>'
         + '      <span class="c4-pmodal__hint">按住空格 0.3s 变绿后松开开始</span>'
         + '      <button type="button" class="c4-pmodal__close" id="c4-p-close" aria-label="关闭">×</button>'
@@ -491,11 +500,8 @@ window.CFOP = (function () {
         + '      </div>'
         /* 案例预览图（顶面示意图，随 AUF 旋转） */
         + '      <div class="cf-mnet" id="c4-m-net"></div>'
-        /* 公式选择 + 方向控制 */
+        /* 方向控制 + 编辑（公式选择已并入下方公式区，见 #c4-vars） */
         + '      <div class="cf-algrow">'
-        + '        <label for="c4-p-var">公式</label>'
-        + '        <select id="c4-p-var" class="c4-pmodal__select" title="公式库：切换本条公式的候选算法"></select>'
-        + '        <span class="cf-algrow__gap"></span>'
         + '        <div class="cf-rot" role="group" aria-label="旋转预览方向">'
         + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-ccw" title="预览左转 90°（公式自动转成对应角度；带 y 转体的公式会把 y 吸收掉、步骤更短）">↺</button>'
         + '          <span class="cf-rot__label" id="c4-rot-label">0°</span>'
@@ -511,8 +517,12 @@ window.CFOP = (function () {
         + '               placeholder="输入公式，回车保存，Esc 取消">'
         + '        <button type="button" class="c4-pmodal__navbtn" id="c4-alg-save">保存</button>'
         + '      </div>'
-        /* 公式主体 */
-        + '      <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>'
+        /* 公式区：当前公式（大字）+ 本条全部候选（小 chip，点一下即切换）
+           —— 原来「公式库」按钮 + 独立面板要两次点击，这里合并成一条 */
+        + '      <div class="cf-algbox">'
+        + '        <div class="c4-pmodal__alg" id="c4-p-alg">加载中…</div>'
+        + '        <div class="cf-vars" id="c4-vars"></div>'
+        + '      </div>'
         /* 标记行（v2.0.29 同款：五档颜色 + 备注，点开就能直接选） */
         + '      <div class="c4-pmodal__starrow">'
         + '        <span class="k">标记</span>'
@@ -521,16 +531,6 @@ window.CFOP = (function () {
         + '               placeholder="备注：如「母公式，同类型都从它变」">'
         + '      </div>'
         + '      <div class="c4-pmodal__rep" id="c4-p-rep" hidden></div>'
-        /* 公式库面板 */
-        + '      <div class="c4-pmodal__refs" id="c4-refs" hidden>'
-        + '        <div class="c4-modal__refsbar">'
-        + '          <span class="k">公式库</span>'
-        + '          <span class="c4-modal__refsnote">点一条即切换；金边 = 当前使用的公式</span>'
-        + '          <button type="button" class="c4-modal__refsman" id="c4-refs-manual">✎ 手动输入</button>'
-        + '          <button type="button" class="c4-modal__refsreset" id="c4-refs-reset">恢复默认</button>'
-        + '        </div>'
-        + '        <div class="c4-modal__refslist" id="c4-refs-list"></div>'
-        + '      </div>'
         /* 计时器 */
         + '      <div class="c4-pmodal__timer" id="c4-p-timer" data-state="idle">0.000</div>'
         + '      <div class="c4-pmodal__summary" id="c4-p-summary" hidden></div>'
@@ -597,8 +597,8 @@ window.CFOP = (function () {
       });
       var A = computeAll();
       var stats = A.stats;
-      if (sortMode === 'fast' || sortMode === 'slow') {
-        var dir = sortMode === 'fast' ? 1 : -1;
+      if (sortMode === 'best' || sortMode === 'worst' || sortMode === 'avg') {
+        var dir = sortMode === 'worst' ? -1 : 1;
         list.sort(function (a, b) {
           var x = stats[a.id].metric(), y = stats[b.id].metric();
           var fx = isFinite(x), fy = isFinite(y);
@@ -638,8 +638,7 @@ window.CFOP = (function () {
     function renderDash(A) {
       var stats = A.stats, bench = A.bench;
       $('c4-bench').textContent = fmtTime(bench);
-      $('c4-bench-metric').textContent =
-        metricMode === 'session' ? '最近一次' : (metricMode === 'best' ? '最快单次' : '全部平均');
+      $('c4-bench-metric').textContent = metricMode === 'best' ? '最快单次' : '平均成绩';
       var totalN = 0, weak = 0, warn = 0, swappedN = 0;
       CASES.forEach(function (c) {
         totalN += stats[c.id].n;
@@ -707,12 +706,14 @@ window.CFOP = (function () {
         return '<a class="c4-bcell ' + gclass(c.sub) + ' ' + klass + '" data-code="' + esc(c.id) + '" '
           + 'style="color:' + col.text + '" title="' + esc(title) + '">'
           + '<span class="cf-net">' + (svg ? svg.outerHTML : '') + '</span>'
-          + '<span class="c-code">' + esc(c.id) + '</span>'
-          + '<span class="c-ms">' + (st.n ? fmtTime(m) : '--') + '</span>'
-          + (st.n ? '<span class="c-n">' + st.n + '</span>' : '')
+          + '<span class="cf-name"><span class="c-code">' + esc(c.id) + '</span>'
           + (sk ? '<span class="c-star s-' + esc(sk.c || 'gold') + '" data-star="' + esc(c.id) + '" title="'
                  + esc((window.FT ? FT.starColorName(sk.c) : (sk.c || 'gold')) + (sk.n ? ' · ' + sk.n : '')) + '">★</span>' : '')
-          + (isSwapped(c.id) ? '<span class="c-swap" title="已切换公式：' + esc(cur.text) + '">换</span>' : '')
+          + '</span>'
+          + '<span class="c-ms"><span class="c-t">' + (st.n ? fmtTime(m) : '--') + '</span>'
+          + (st.n ? '<i class="c-n">' + st.n + '</i>' : '')
+          + '</span>'
+          + (isSwapped(c.id) ? '<span class="c-swap" title="已切换公式：' + esc(cur.text) + '">⇄</span>' : '')
           + '</a>';
       }).join('');
       fitBoard();
@@ -728,8 +729,13 @@ window.CFOP = (function () {
          下内边距从 64px 收到 14px（与 ft 看板视图同口径）——页脚 109px 会让
          21 张 PLL 卡在 768 高度死活差一屏。这里不再用 JS 动 footer。 */
       var tailEls = ['.cfop-foot'];
+      /* 卡片很少时（筛选到几条 / 只有几条公式）不再受常规上限约束，直接铺满：
+         2 张就该是两张巨卡，而不是左上角两个小方块 + 半屏空白。 */
+      var sparse = n <= 6;
       var opts = {
-        gap: 8, minCell: S.minCell, minCellNarrow: 96, maxCell: 180, maxAspect: 1.75,
+        gap: 8, minCell: S.minCell, minCellNarrow: 96,
+        maxCell: sparse ? 4000 : (typeof S.maxCell === 'function' ? S.maxCell() : (S.maxCell || 180)),
+        maxAspect: sparse ? 2.6 : 1.75,
         includeFooter: false, tailEls: tailEls, halfLen: S.maxChars
       };
       var r = TrainMatrix.fitBoard(boardEl, opts);
@@ -741,9 +747,14 @@ window.CFOP = (function () {
       /* 名称 / 时间字号按实际卡宽与最长名称反推 */
       var cellW = parseFloat(boardEl.style.getPropertyValue('--c4-cell-w')) || 82;
       var cellH = parseFloat(boardEl.style.getPropertyValue('--c4-cell-h')) || 82;
-      var nameFs = Math.max(9, Math.min(cellW * 0.92 / (S.maxChars * 0.62), cellH * 0.20));
+      /* 名称字号：横向留出星标位置（0.86），纵向不超过 1/5 卡高；
+         上限随卡宽走（226px 卡 42px、稀疏视图的巨卡最多 64px，再大就压图了） */
+      var nameCap = Math.max(42, Math.min(64, cellW * 0.15));
+      var nameFs = Math.max(9, Math.min(cellW * 0.86 / (S.maxChars * 0.62), cellH * 0.20, nameCap));
       boardEl.style.setProperty('--cf-name-fs', nameFs.toFixed(2) + 'px');
-      boardEl.style.setProperty('--cf-ms-fs', Math.max(8, cellH * 0.13).toFixed(2) + 'px');
+      /* 时间字号：始终明显小于名称（0.5 倍封顶），巨卡上不至于跟名称抢视觉 */
+      var msFs = Math.max(8, Math.min(cellH * 0.13, nameFs * 0.5, 34));
+      boardEl.style.setProperty('--cf-ms-fs', msFs.toFixed(2) + 'px');
       if (window.TrainMatrix.lockScroll) { TrainMatrix.lockScroll(!!(r && r.fitsH)); }
     }
     function scheduleFit() {
@@ -926,23 +937,29 @@ window.CFOP = (function () {
       if (note && document.activeElement !== note) { note.value = sk ? (sk.n || '') : ''; }
     }
 
-    /* ---- 公式库面板 ---- */
-    function renderRefs() {
+    /* ---- 候选公式条（替代原「公式库」面板：与公式主体同一区域，一次点击切换） ---- */
+    function shortAlg(a) {
+      a = String(a || '');
+      return a.length > 14 ? a.slice(0, 13) + '…' : a;
+    }
+    function renderVarChips() {
+      var box = $('c4-vars');
       var c = byId[pCurrent];
-      if (!c) { return; }
+      if (!box || !c) { return; }
       var cur = curAlg(c);
-      var html = c.algs.map(function (v, i) {
+      /* 只有一条候选时不占行（没有可选的就别摆一个孤零零的按钮） */
+      if (c.algs.length < 2 && !cur.isCustom) { box.innerHTML = ''; box.hidden = true; return; }
+      box.hidden = false;
+      /* 序号称只留数字（数据里 label 是「公式 1」），4~5 条候选才排得进一行 */
+      box.innerHTML = c.algs.map(function (v, i) {
         var on = (!cur.isCustom && cur.vi === i);
-        return '<button type="button" class="c4-ref' + (on ? ' is-on' : '') + '" data-i="' + i + '">'
-          + '<b>' + esc(v.label) + '</b>'
-          + '<code>' + fmtAlg(v.alg) + '</code>'
-          + '</button>';
-      }).join('');
-      if (cur.isCustom) {
-        html += '<button type="button" class="c4-ref is-on" data-i="-1">'
-          + '<b>自定义公式</b><code>' + fmtAlg(cur.text) + '</code></button>';
-      }
-      $('c4-refs-list').innerHTML = html;
+        var no = String(v.label).replace(/[^\d]/g, '') || String(i + 1);
+        return '<button type="button" class="cf-var' + (on ? ' is-on' : '') + '" data-i="' + i + '"'
+          + ' title="' + esc(v.label + '：' + v.alg) + '" aria-pressed="' + (on ? 'true' : 'false') + '">'
+          + '<b>' + esc(no) + '</b><code>' + esc(shortAlg(v.alg)) + '</code></button>';
+      }).join('')
+        + (cur.isCustom ? '<button type="button" class="cf-var is-on" data-i="-1" aria-pressed="true">'
+            + '<b>✎</b><code>' + esc(shortAlg(cur.text)) + '</code></button>' : '');
     }
 
     /* ---- 浮层主渲染 ---- */
@@ -962,12 +979,8 @@ window.CFOP = (function () {
       /* 公式（rot≠0 且核纯净时 y 已被吸收进旋转，见 algParts） */
       $('c4-p-alg').innerHTML = fmtAlg(p.pre + p.text);
       $('c4-fs-alg').innerHTML = fmtAlg(p.pre + p.text);
-      /* 公式下拉 */
-      var sel = $('c4-p-var');
-      sel.innerHTML = c.algs.map(function (v, i) {
-        return '<option value="' + i + '"' + ((!cur.isCustom && cur.vi === i) ? ' selected' : '')
-          + '>' + esc(v.label) + '</option>';
-      }).join('') + (cur.isCustom ? '<option value="-1" selected>自定义公式</option>' : '');
+      /* 候选公式条（当前项金边高亮，点一下直接切换） */
+      renderVarChips();
       /* 方向控制 */
       $('c4-rot-label').textContent = (rot * 90) + '°';
       /* 去掉转体：仅当基准公式最前面有 y 转体、且剥掉后核纯净时可点
@@ -979,7 +992,7 @@ window.CFOP = (function () {
         strip.title = '去掉公式最前面的 ' + s.prefix.trim() + ' 转体，并把预览图转成对应角度（' + (s.k * 90) + '°）';
       } else if (s.k) {
         strip.disabled = true;
-        strip.title = '这条公式的 ' + s.prefix.trim() + ' 是握把转体不是 AUF（公式里还含 x/y/z 整魔方旋转），剥掉会错；可换公式库里的无 y 公式';
+        strip.title = '这条公式的 ' + s.prefix.trim() + ' 是握把转体不是 AUF（公式里还含 x/y/z 整魔方旋转），剥掉会错；可换候选里的无 y 公式';
       } else {
         strip.disabled = true;
         strip.title = cur.isCustom ? '这条公式最前面没有 y 转体' : '这条公式没有 y 转体（数据里的公式已按标准角度给出）';
@@ -989,7 +1002,6 @@ window.CFOP = (function () {
       if (rs) { rs.value = repMode; }
       if (repList.length) { repList = []; repIdx = 0; }
       renderRepProgress();
-      renderRefs();
       pRefreshHistory();
     }
     function pLoadCode(id) {
@@ -1034,8 +1046,6 @@ window.CFOP = (function () {
       if (pState === 'running') { pStopTimer(); }
       fsClose();
       $('c4-editrow').hidden = true;
-      $('c4-refs').hidden = true;
-      $('c4-p-refs').setAttribute('aria-pressed', 'false');
       pmodal.classList.remove('is-open');
       pCurrent = null;
       /* 全屏计时锁过页面滚动；关浮层后按看板能否一屏恢复锁态
@@ -1067,7 +1077,7 @@ window.CFOP = (function () {
       var s = splitAuf(cur.text);
       if (!s.k) { toast('这条公式没有 y 转体'); return; }
       if (!corePure(s.rest)) {
-        toast('这条公式的 ' + s.prefix.trim() + ' 是握把转体不是 AUF，剥掉会错；可换公式库里的无 y 公式');
+        toast('这条公式的 ' + s.prefix.trim() + ' 是握把转体不是 AUF，剥掉会错；可换候选里的无 y 公式');
         return;
       }
       var nk = (cur.k + s.k) % 4;
@@ -1210,8 +1220,11 @@ window.CFOP = (function () {
 
     function bind() {
       /* 工具条 */
-      $('c4-sort').addEventListener('change', function () { sortMode = this.value; renderBoard(); });
-      $('c4-metric').addEventListener('change', function () { metricMode = this.value; renderBoard(); });
+      $('c4-sort').addEventListener('change', function () {
+        sortMode = this.value;
+        metricMode = SORT_METRIC[sortMode] || 'allavg';
+        renderBoard();
+      });
       $('c4-filter').addEventListener('change', function () { filterMode = this.value; renderBoard(); });
       $('c4-q').addEventListener('input', renderBoard);
       $('c4-clear').addEventListener('click', function () {
@@ -1244,7 +1257,6 @@ window.CFOP = (function () {
       $('c4-p-prev').addEventListener('click', function () { pStep(-1); });
       $('c4-p-next').addEventListener('click', function () { pStep(1); });
       $('c4-p-select').addEventListener('change', function () { pLoadCode(this.value); });
-      $('c4-p-var').addEventListener('change', function () { selectVariant(this.value); });
       /* 方向旋转：只转预览图，公式自动补 AUF 前缀 */
       $('c4-rot-cw').addEventListener('click', function () { rot = (rot + 1) % 4; applyView(); });
       $('c4-rot-ccw').addEventListener('click', function () { rot = (rot + 3) % 4; applyView(); });
@@ -1258,24 +1270,16 @@ window.CFOP = (function () {
         e.stopPropagation();
       });
       $('c4-alg-reset').addEventListener('click', algReset);
-      /* 公式库面板 */
-      $('c4-p-refs').addEventListener('click', function () {
-        var box = $('c4-refs');
-        var on = box.hidden;
-        box.hidden = !on;
-        this.setAttribute('aria-pressed', on ? 'true' : 'false');
-        if (on) { renderRefs(); }
-      });
-      $('c4-refs-list').addEventListener('click', function (e) {
-        var b = e.target.closest && e.target.closest('.c4-ref');
+      /* 候选公式条：点一下直接切换（原「公式库」面板已并入） */
+      $('c4-vars').addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('.cf-var');
         if (!b) { return; }
-        var i = b.getAttribute('data-i');
-        if (i === '-1') { editOpen(); return; }
+        var i = parseInt(b.getAttribute('data-i'), 10);
+        if (i < 0) { return; }
+        if (!curAlg(byId[pCurrent]).isCustom && curAlg(byId[pCurrent]).vi === i) { return; }
         selectVariant(i);
-        toast('已切换：' + byId[pCurrent].algs[parseInt(i, 10)].label);
+        toast('已切换：' + byId[pCurrent].algs[i].label);
       });
-      $('c4-refs-manual').addEventListener('click', editOpen);
-      $('c4-refs-reset').addEventListener('click', algReset);
       /* 连练 */
       $('c4-p-chain').addEventListener('click', chainToggle);
       $('c4-chain-scope').addEventListener('change', function () {
@@ -1430,8 +1434,8 @@ window.CFOP = (function () {
       fillFilterGroups();
       bind();
       renderBoard();
-      /* 指标/练习模式下拉回显（localStorage 里可能存过） */
-      $('c4-metric').value = metricMode;
+      /* 排序 / 练习模式下拉回显 */
+      $('c4-sort').value = sortMode;
       $('c4-repmode').value = repMode;
       setTimeout(fitBoard, 0);
     }
