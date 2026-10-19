@@ -3256,12 +3256,35 @@ function hideJump() {
     document.getElementById("jumpdiv").style.display = "none";
 }
 
+/* 备用复制：选中 textarea 后用 execCommand（clipboard API 不可用/被拒时兜底） */
+function copyScrsFallback(el, text) {
+    var ok = false;
+    try {
+        if (el) {
+            el.removeAttribute('readonly');
+            el.focus();
+            el.setSelectionRange(0, text.length);
+            ok = document.execCommand('copy');
+            el.setAttribute('readonly', 'readonly');
+        }
+    } catch (e) { ok = false; }
+    alert(ok ? '一键复制成功！' : '复制失败，请手动全选后复制。');
+}
+
 function copyScrs() {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(document.getElementById("outputScrs").value);
-        alert('一键复制成功！');
-    }else{
-        alert('当前设备暂不支持一键复制，请手动全选复制。');
+    var el = document.getElementById("outputScrs");
+    var text = el ? el.value : "";
+    if (!text) { alert('还没有可复制的打乱内容。'); return; }
+    /* 注意：writeText 返回 Promise，必须 catch —— 权限被拒时会 reject，
+       若不处理就照样提示"复制成功"，用户会被误导。 */
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+            alert('一键复制成功！');
+        }).catch(function () {
+            copyScrsFallback(el, text);
+        });
+    } else {
+        copyScrsFallback(el, text);
     }
 }
 
@@ -3528,14 +3551,7 @@ function resizeTextarea() {
     }
 }
 
-function copyScrs() {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(document.getElementById("outputScrs").value);
-        alert('一键复制成功！');
-    } else {
-        alert('当前设备暂不支持一键复制，请手动全选复制。');
-    }
-}
+/* 注：copyScrs 已在本文件上方定义，此处原先有一份重复定义（会覆盖上方版本且同样缺 catch），已删除。 */
 
 </script>
 <script>

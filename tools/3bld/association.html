@@ -398,10 +398,14 @@ function generateGroups() {
 
 // ===== 切换标签 =====
 function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  /* 注意：按钮类名是 .tab（不是 .tab-btn），写错会导致查不到元素、
+     null.classList 抛错并使整段切换逻辑中断——两个模式都切不过去。 */
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
-  document.getElementById(`tab-${tab}`).classList.add('active');
+  var btn = document.querySelector(`.tab[onclick="switchTab('${tab}')"]`);
+  var pane = document.getElementById(`tab-${tab}`);
+  if (btn) btn.classList.add('active');
+  if (pane) pane.classList.add('active');
 }
 
 function printPaper() { window.print(); }

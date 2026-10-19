@@ -1,0 +1,93 @@
+/* =============================================================
+   blddb 移植页 · 深色模式适配
+   -------------------------------------------------------------
+   这些页面是从第三方项目（nbwzx/blddb，基于 HTML5 UP Phantom）移植来的，
+   沿用自带的 main.css，不读本站 tokens.css。原先它们没有引入 theme.js，
+   导致站点处于深色模式时这几页仍是纯白底（#ffffff）——夜间打开会白屏刺眼。
+
+   本文件只在 [data-theme="dark"] 下生效，覆盖主要背景/文字/链接/表格，
+   不改动布局与间距，也不影响浅色模式（浅色完全走原 main.css）。
+   ============================================================= */
+
+[data-theme="dark"] body,
+[data-theme="dark"] .main-body {
+  background: #0b0d14 !important;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  color: #e6e9f0 !important;
+}
+
+[data-theme="dark"] a {
+  color: #9fb4d8 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.25) !important;
+}
+[data-theme="dark"] a:hover {
+  color: #f2849e !important;
+}
+
+/* 标题与正文块 */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] strong,
+[data-theme="dark"] b,
+[data-theme="dark"] label {
+  color: #f2f5fa !important;
+}
+
+/* 顶部栏与主内容容器 */
+[data-theme="dark"] header,
+[data-theme="dark"] #main,
+[data-theme="dark"] #main .inner,
+[data-theme="dark"] #footer .inner {
+  background-color: transparent !important;
+  color: #e6e9f0 !important;
+}
+[data-theme="dark"] #footer,
+[data-theme="dark"] .copyright {
+  color: #9aa3b2 !important;
+}
+
+/* 表格（公式库主体） */
+[data-theme="dark"] table {
+  background: #151a25 !important;
+  color: #e6e9f0 !important;
+}
+[data-theme="dark"] thead,
+[data-theme="dark"] tfoot {
+  background: #1b2230 !important;
+}
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #e6e9f0 !important;
+}
+[data-theme="dark"] tbody tr:nth-child(2n) {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* 输入框/下拉/按钮底 */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #151a25 !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+/* 卡片网格里除有色块之外的留白区 */
+[data-theme="dark"] .tiles {
+  background: transparent !important;
+}
+
+/* 弹层（beta-popup 等） */
+[data-theme="dark"] .popup-content {
+  background: #151a25 !important;
+  color: #e6e9f0 !important;
+}

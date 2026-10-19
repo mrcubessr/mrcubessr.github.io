@@ -6,7 +6,9 @@
 <script src="/assets/js/palette.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>魔方课堂教学系统</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- Chart.js 改为本地 vendor：原先走 cdnjs.cloudflare.com，国内访问会阻塞页面
+     十几秒甚至失败，且阻塞式 <script> 会拖垮整页渲染、图表全废。 -->
+<script src="/assets/vendor/chart/chart.umd.min.js"></script>
 
   <link rel="stylesheet" href="/assets/css/site-nav.css" />
     <link rel="stylesheet" href="/assets/css/components.css">

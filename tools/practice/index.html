@@ -673,7 +673,9 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- jsPDF 改为本地 vendor：原先走 cdnjs.cloudflare.com，国内常加载失败，
+     导出 PDF 会直接提示「PDF 库未加载」。 -->
+<script src="/assets/vendor/jspdf/jspdf.umd.min.js"></script>
 <script src="/assets/js/scramble-gen.js"></script>
 <script src="/tools/timer/scramble.js"></script>
 <script src="/assets/js/bld-scramble-core.js"></script>

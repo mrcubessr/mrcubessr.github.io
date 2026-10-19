@@ -7,6 +7,7 @@
 <html>
 
 <head>
+  <script src="/assets/js/theme.js"></script>
   <title class="lang" key="title"></title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
@@ -14,11 +15,16 @@
     content="BLDDB is a 3x3x3 Rubik's cube blindfolded algorithms database, including 3-style corner (all buffers), 3-style edge (all buffers), corner twist, edge flip, and so on.">
   <meta name="keywords" content="bld, algorithm, db, database, blindfolded, cube">
   <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/dark-fix.css" />
   <link rel="icon" href="images/logo.svg" type="image/x-icon" />
   <link rel="apple-touch-icon" href="images/logo.png" />
   <meta name="google-site-verification" content="s3hE2D_rJuuUUj4rVvWBADMHqHqiSM-bQh80mnwzDMA" />
   <meta name="baidu-site-verification" content="code-drW3Xb0ML6" />
   <style>
+    /* 未移植页面的入口：灰化 + 禁止点击，避免点了跳转到 404 */
+    a.na { opacity: .42; cursor: not-allowed; filter: grayscale(1); }
+    a.na h2::after { content: " · 未开放"; font-size: .58em; opacity: .85; letter-spacing: 0; }
+
     .popup {
       display: none;
       position: fixed;
@@ -148,7 +154,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
               <span class="image">
                 <img src="images/grey.png" alt="" />
               </span>
-              <a href="image.html">
+              <a href="image.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">
                 <h2>联想词库</h2>
               </a>
             </article>
@@ -180,7 +186,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
               <span class="image">
                 <img src="images/grey.png" alt="" />
               </span>
-              <a href="5style.html">
+              <a href="5style.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">
                 <h2 class="lang" key="5style"></h2>
               </a>
             </article>
@@ -188,7 +194,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
               <span class="image">
                 <img src="images/grey.png" alt="" />
               </span>
-              <a href="nightmare.html">
+              <a href="nightmare.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">
                 <h2 class="lang" key="nightmare"></h2>
               </a>
             </article>
@@ -196,7 +202,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
               <span class="image">
                 <img src="images/grey.png" alt="" />
               </span>
-              <a href="custom.html">
+              <a href="custom.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">
                 <h2 class="lang" key="custom"></h2>
               </a>
             </article>
@@ -204,7 +210,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
               <span class="image">
                 <img src="images/grey.png" alt="" />
               </span>
-              <a href="bigbld.html">
+              <a href="bigbld.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">
                 <h2 class="lang" key="bigbld"></h2>
               </a>
             </article>
@@ -212,7 +218,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
               <span class="image">
                 <img src="images/grey.png" alt="" />
               </span>
-              <a href="code.html">
+              <a href="code.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">
                 <h2 class="lang" key="code"></h2>
               </a>
             </article>
@@ -234,7 +240,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
             <li>Github: <a href="https://github.com/nbwzx/blddb">blddb</a></li>
             <li>License: <a href="https://www.gnu.org/licenses">GPL-3.0 license</a></li>
             <li>Powered by <a href="http://html5up.net">HTML5 UP</a></li>
-            <li><a id="donate" href="donate.html">Donate me</a></li>
+            <li><a id="donate" href="donate.html" class="na" onclick="return false;" title="该页面在本站尚未移植，暂未开放">Donate me</a></li>
           </ul>
         </div>
       </footer>

@@ -9,6 +9,49 @@
 
 ---
 
+## [2.0.35] — 2026-10-20（全站体检 · 修复 6 类 bug）
+
+按「全网站检测并修补 bug」做了一轮系统性体检：全量 JS 语法扫描、109 页资源/死链扫描、
+运行时异常扫描、交互冒烟（逐页点击全部按钮）、手机/平板/桌面三档视口溢出扫描、
+动态 JSON 数据缺口扫描。共定位并修复 5 类真 bug + 1 类一致性问题。
+
+### 1. 三盲联想词页：模式切换整段失效（`tools/3bld/association.html`）
+`switchTab()` 查的是 `.tab-btn`，而 HTML 里按钮类名是 `.tab` —— 选择器落空返回 null，
+`null.classList` 抛错使整段切换逻辑中断，**「字母组模式」根本切不过去**。
+修正类名并对两个目标元素加空值保护。
+
+### 2. 课堂教学页：国外 CDN 阻塞整页（`tools/class-teach/index.html`）
+Chart.js 走 `cdnjs.cloudflare.com` 且是阻塞式 `<script>`，国内访问会卡十几秒、失败则图表全废。
+改为本地 vendor `assets/vendor/chart/chart.umd.min.js`（205KB），实测加载 15s+ → <2s。
+
+### 3. 训练计划页：jsPDF 走国外 CDN，导出 PDF 不可用（`tools/practice/index.html`）
+改为本地 vendor `assets/vendor/jspdf/jspdf.umd.min.js`（364KB）。
+（页面原有的「PDF 库未加载」提示保留为兜底。）
+
+### 4. 三盲公式库：7 个导航入口指向未移植页面（`tools/3bld/blddb/index.html`）
+image / 5style / nightmare / custom / bigbld / code / donate 七个页面在移植时未搬入，
+点击直接 404。改为灰化 + 禁止点击 + 「未开放」角标，保留网格视觉完整。
+
+### 5. 打乱训练页：复制失败却提示成功（`tools/bldtrainer/index.html`）
+`navigator.clipboard.writeText()` 返回 Promise 却没有 catch：权限被拒时既静默失败、
+又照样 alert「一键复制成功」，用户会被误导。补 catch + `execCommand` 降级 + 真实反馈；
+顺带删除了该函数在文件末尾的**重复定义**（会覆盖上方的正确版本）。
+
+### 6. 三盲公式库 9 页在深色模式下是纯白屏
+这 9 页从第三方项目移植、未引入 `theme.js`，站点深色时它们仍 `background:#ffffff`（亮度 255），
+夜间打开刺眼。补 `theme.js` + 新增 `assets/css/dark-fix.css`（仅在 `[data-theme="dark"]` 生效，
+浅色模式完全不受影响）。实测深色下背景亮度 255 → 13，与全站一致。
+
+### 体检结论（未发现问题的项）
+- 全量 JS 语法：0 失败；资源 404：0；重复 DOM id：0。
+- 手机 390 / 平板 768 / 桌面 1440 三档横向溢出：0。
+- 核心 54 页 + 数据 51 页运行时异常：0（仅代理测试页因本地无后端有预期报错）。
+- 动态 JSON 数据缺口：0（7 处命中均为 localStorage/同步引擎的虚拟桶名，非真实文件）。
+
+### 备注
+新增 vendor 均位于 `/assets/` 下，由 sw.js 的运行时 stale-while-revalidate 自动缓存，
+未改动 APP_SHELL，故 `sw.js` CACHE 版本保持 `fto-timer-v24` 不递增。
+
 ## [2.0.34] — 2026-10-20（UI：CFOP 训练器卡片重排 / 浮窗公式合并 / 排序口径统一 / PLL 铺满）
 
 用户诉求（原话）：「OLL 练习之后卡片上显示的大五角星太大了，右侧那个练习次数太丑陋……
