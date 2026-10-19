@@ -305,6 +305,11 @@
       <!-- 桌面横版：三盲参数从右侧抽屉滑出，这是唯一的打开入口（仅三盲项目显示、仅桌面显示） -->
       <button class="btn btn--sm btn--ghost tm-bld-open" id="tm-bld-open" type="button"
               aria-expanded="false" aria-controls="tm-bld-params" hidden>三盲参数</button>
+      <!-- 蓝牙：计时器垫 / 智能魔方（不支持 Web 蓝牙的浏览器由 bt-timer.js 隐藏并给出提示） -->
+      <button class="btn btn--sm btn--ghost" id="tm-bt-timer" type="button" hidden>蓝牙计时器</button>
+      <button class="btn btn--sm btn--ghost" id="tm-bt-cube" type="button" hidden>智能魔方计时</button>
+      <button class="btn btn--sm btn--ghost" id="tm-bt-arm" type="button" hidden>准备</button>
+      <span class="tm-tools__hint" id="tm-bt-hint" hidden></span>
       <span class="tm-label" id="tm-inspect-label">观察</span>
       <div class="seg" id="tm-inspect-seg" data-inspect-seg role="group" aria-label="是否启用 15 秒观察"></div>
       <span class="tm-tools__hint" id="tm-tools-hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
@@ -506,6 +511,8 @@
 <script src="/tools/timer/stats.js"></script>
 <script src="/tools/timer/bld-stats.js"></script>
 <script src="/tools/timer/timer.js"></script>
+<script type="module" src="/assets/js/bt-cube.js"></script>
+<script src="/tools/timer/bt-timer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>
 <script src="/assets/js/sync-boot.js"></script>
 <script>SyncBoot.ready(function(){LSProvider.register({id:'timer',label:'计时成绩',path:'timer.json',keys:['timer_data_v2','timer_options_v1'],isEmptySnap:function(snap){if(!snap)return true;var raw=snap.timer_data_v2;if(raw==null||raw==='')return true;try{var o=JSON.parse(raw),n=0;['3x3','2x2','bld'].forEach(function(e){var b=o&&o[e];((b&&b.groups)||[]).forEach(function(g){n+=((g&&g.solves)||[]).length;});});return n===0;}catch(e){return false;}}});});</script>

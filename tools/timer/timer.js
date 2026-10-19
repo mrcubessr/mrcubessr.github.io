@@ -3552,6 +3552,31 @@
     get mapOpen() { return !!(els.mapModal && !els.mapModal.hidden); },
     get exportMenuOpen() { return !!(els.exportMenu && !els.exportMenu.hidden); },
     press: press, release: release,
+    /* 蓝牙计时器 / 智能魔方计时：由硬件事件驱动起停。
+       与键盘 press/release 的区别：跳过「长按防误触」与观察倒计时——
+       观察由实体计时器自己的宽限期处理；软件侧只负责被叫起停。 */
+    btArm: function () {
+      /* 手已放上计时器（HANDS_ON / GET_SET）：进入 ready，等 RUNNING */
+      if (state === "idle" || state === "inspect") {
+        clearTimeout(holdTimer); stopRaf(); toReady();
+      }
+      return state;
+    },
+    btStart: function () {
+      /* RUNNING：确保 ready 后立即起表；已在计时则忽略（硬件可能重复推流） */
+      if (state === "running") return "running";
+      if (state === "idle" || state === "inspect") {
+        clearTimeout(holdTimer); stopRaf(); toReady();
+      }
+      if (state !== "ready") return state;      /* confirm 等状态不抢现有流程 */
+      startRun();
+      return "running";
+    },
+    btStop: function () {
+      /* STOPPED：停表并进入确认栏（+2/DNF 仍由用户判断，不自动确认） */
+      if (state === "running") { stop(); return "confirm"; }
+      return state;
+    },
     openSettings: openSettings, closeSettings: closeSettings,
     setEvent: function (k) {
       opt.event = k; buildEvents(); applyEventUI();

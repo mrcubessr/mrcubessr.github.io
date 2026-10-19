@@ -990,6 +990,17 @@ window.CFOP = (function () {
       var j = Math.max(0, Math.min(list.length - 1, i + delta));
       pLoadCode(list[j]);
     }
+    /* —— 蓝牙接线：把练习计时起停暴露给 cfop-bt.js ——
+       只暴露「起 / 停 / 状态」，不参与键盘长按（pKeydownHold）流程，
+       避免破坏既有的 hold-to-start 语义。 */
+    window.CFOP._bt = {
+      start: function () { if (pState === 'running') { return 'running'; } pStartTimer(); return pState; },
+      stop: function () { if (pState === 'running') { pStopTimer(); } return pState; },
+      state: function () { return pState; },
+      open: function () { return !!(pmodal && pmodal.classList.contains('is-open')); },
+      code: function () { return pCurrent || ''; }
+    };
+
     function pOpenFor(id) {
       pmodal.classList.add('is-open');
       pLoadCode(id);

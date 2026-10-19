@@ -195,6 +195,53 @@ PWA 缓存 `fto-timer-v21 → v22`。
 
 ---
 
+## [2.0.22] — 2026-10-19（新功能 · 蓝牙接入智能魔方计时器与智能魔方）
+
+用户诉求：① 计时器能通过蓝牙连智能魔方计时器；② 公式练习能蓝牙连智能魔方（国内主流是魔域与 GAN），要求「cstimer 能连，我们也想能连」。
+
+### 技术选型
+- 底层是 **Web Bluetooth API + 开源逆向协议库**，与 csTimer 同一路线，可行性成立。
+- 采用 **`gan-web-bluetooth@3.0.2`**（MIT）。选它的理由：它是唯一同时覆盖
+  **蓝牙计时器垫（GAN Smart Timer / Halo）** 与 **GAN 全系方块** 的库，
+  且**魔域 AI 2023 走的就是 GAN Gen2 协议**，一并覆盖。
+  - ⚠️ **已知覆盖缺口**：魔域原生协议的型号（WRM 智能 / MHC / Weipo V5，**`WCU_MY3`/`WCU_MY22`**）本库不支持；
+    多品牌库 `smartcube-web-bluetooth` 虽覆盖它们，但**未发布到 npm、需本地构建**（本机 npm registry 不可达，无法构建），
+    故本期先交付 GAN + 魔域 AI 2023，原生魔域型号留作后续（可再 vendor `btcube-web`）。
+- **依赖全部 vendor 进仓库** `assets/vendor/bt/`（协议库 + rxjs + aes-js + tslib ≈137KB）。
+  ⚠️ jsDelivr 的 `+esm` 会把依赖写成站点无关的 `/npm/...` 根路径，搬到本站会 404，
+  已改写为 `./xxx.esm.js` 相对路径并验证浏览器 import 成功 —— **离线/PWA 可用，不依赖外网 CDN**。
+
+### 新增能力
+1. **计时器接蓝牙计时器垫**（`tools/timer/`）：工具条「蓝牙计时器」→ 设备状态机直接驱动起停
+   （`HANDS_ON/GET_SET`→待命、`RUNNING`→起表、`STOPPED`→停表）。
+2. **智能魔方当计时器**（同一页「智能魔方计时」）：打乱后点【准备】，第一次转动起表、还原停表。
+3. **CFOP 公式练习抓转动判错**（`tools/cfop/` OLL/PLL）：连上魔方后，练习浮层里
+   第一次转动自动起表，停表后给出「实际转动 vs 目标公式」比对（去首尾 AUF 后严格比对）。
+
+### 关键实现约束（踩坑记录）
+- **不碰既有输入流程**：`timer.js` 只在 `window.__tm` 上**新增** `btArm/btStart/btStop`，
+  键盘 hold-to-start 与触屏逻辑零改动（已验证 `press/release` 起表不回归）。
+- **比对不做整体转体 y 容差**：曾尝试「试 4 个朝向」，会把 `F U F' U'` 误判为与 `R U R' U'` 一致
+  （不同朝向执行是不同公式）→ 单测抓出后改为**只放宽 AUF**。
+  已知取舍：末尾少一个 `U'` 与 AUF 无法区分，UI 会同时显示实际转动供人工确认。
+- **库不保证每次转动都推 `FACELETS`**：改为转动后节流 250ms 主动 `REQUEST_FACELETS` 判定还原。
+- **CFOP 骨架是 `mount()` 之后才注入的**，且可能晚于 DOMContentLoaded → 蓝牙按钮改为轮询等待 `.c4-bar`（否则静默不注入）。
+- **PWA 缓存 `sw.js` CACHE `fto-timer-v23` → `v24`**：本次改到了 APP_SHELL 内的 `timer/index.html` 与 `timer.js`。
+  新增的蓝牙脚本**故意不进 APP_SHELL**（按需动态 import，预缓存只会拖慢安装），走运行时 stale-while-revalidate。
+
+### 平台限制（必须告知用户）
+- **iOS Safari 原生不支持 Web 蓝牙** → iPhone/iPad 需用 **Bluefy 浏览器**；代码已内置检测与提示。
+- 需 HTTPS（本站满足）；Firefox 不支持；连接需用户点击手势触发。
+- GAN / 魔域部分型号连接需一次性提供 **MAC 地址**（自动探测失败时会弹出输入框，按设备名缓存）。
+
+### 验证
+- 纯函数单测：`verify-bt-cfop-alg.js` 16/16、`verify-bt-core.js` 9/9。
+- 浏览器真机验证 `verify_bt_v2022.py` 16/16：vendor 依赖链在浏览器 import 成功、
+  桥接就绪、不支持时正确降级（模拟 iOS 提示 Bluefy）、两页 0 控制台报错、原有计时/练习流程不回归。
+- ⚠️ **硬件连通性无法自动化**，需在带蓝牙的 Chrome + 实体计时器/魔方上人工验收。
+
+---
+
 ## [2.0.21] — 2026-10-18（修复 · 盲拧训练连续两题不考同一角块/棱）
 
 用户反馈练习时「连续两道题有时会考同一个角块（同一考点）」。根因：原 `genQuiz()` 每题的角块/棱索引 `ci`/`ei` 都是独立随机，理论上会连续重复（6 个角块里约 1/6 概率连号）。

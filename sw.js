@@ -75,7 +75,16 @@
    字体（原 2.3em 且未指定字体，落到系统比例字体，W/M 等宽字母在小卡上会
    溢出）——新 min(2.9em, .52×卡宽)，实测一屏 500+ 卡时不溢出且比原来大约
    27%；仅覆盖 ft 页，四阶/UF440 复用方不受影响。 */
-const CACHE = 'fto-timer-v23';
+/* v24（2026-10-19）：接入 Web 蓝牙（智能魔方计时器 / 智能魔方）——
+   ① /tools/timer/index.html + timer.js（均在 APP_SHELL 内）：timer.js 的
+   window.__tm 新增 btArm/btStart/btStop 三个蓝牙起停入口，index.html 工具条
+   新增「蓝牙计时器 / 智能魔方计时 / 准备」三个按钮，按规矩递增，避免已安装
+   PWA 用户拿到旧的计时器外壳而连不上硬件；
+   ② 新增的蓝牙文件不进 APP_SHELL：assets/js/bt-cube.js（适配层，ESM）与
+   assets/vendor/bt/*.esm.js（协议库+rxjs+aes-js+tslib，约 137KB）都是
+   「用户点连接才动态 import」的按需资源，预缓存只会拖慢安装，
+   交由运行时 stale-while-revalidate 缓存即可（.js 命中 STATIC_RE）。 */
+const CACHE = 'fto-timer-v24';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

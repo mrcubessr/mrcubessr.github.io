@@ -79,3 +79,22 @@
 /* 公式库面板里的等宽公式 */
 .c4-ref code { font-family: "Consolas", "SF Mono", monospace; font-size: 12.5px; word-break: break-all; }
 .c4-ref b { min-width: 62px; color: var(--fg, #EEF2F8); font-size: 12px; }
+
+/* ===== 智能魔方（cfop-bt.js 注入） ===== */
+.c4-bt-hint {
+  font-size: 12px; color: var(--fg-3, #7C8798); line-height: 1.5;
+  align-self: center; max-width: 320px;
+}
+.c4-bt-hint[hidden] { display: none; }
+/* 练习浮层里的「实际转动 vs 公式」比对结果 */
+.c4-btline {
+  margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line-2, rgba(255, 255, 255, .18));
+  display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline;
+  font-size: 12.5px; color: var(--fg-2, #A9B4C4);
+}
+.c4-btline__tag { font-weight: 700; }
+.c4-btline__tag.is-ok { color: var(--green, #22C55E); }
+.c4-btline__tag.is-bad { color: var(--amber, #F59E0B); }
+.c4-btline__actual {
+  font-family: "Consolas", "SF Mono", monospace; word-break: break-all;
+}
