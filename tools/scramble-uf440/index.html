@@ -247,8 +247,6 @@
       </select>
     </span>
     <span class="c4-spacer"></span>
-    <button type="button" id="c4-nav-toggle" class="c4-navbtn" aria-pressed="false"
-            title="隐藏左侧导航栏，让公式卡片占满整个屏幕">隐藏侧栏</button>
   </div>
 
   <!-- 练习总览仪表盘（一行：KPI + 色带 + TOP10 折叠） -->
@@ -714,9 +712,9 @@
     },
     cellInfo: cellInfo,
     boardHTML: boardHTML,
-    onCellClick: function (code) { if (window.__uf440Open) window.__uf440Open(code); },
-    /* 本页顶到视口底没有页脚余量（框架默认按 body 收尾距即可） */
-    navKey: 'c4_nav_hidden_v1'
+    onCellClick: function (code) { if (window.__uf440Open) window.__uf440Open(code); }
+    /* v2.0.28：原 navKey（页面内「隐藏侧栏」按钮的存储键）已废弃——
+       侧栏收起入口改到侧栏自身右上角，见 site-nav.js / site-shell.css ⑪。 */
   });
 
   function render() {
@@ -737,7 +735,6 @@
   document.getElementById('a4-q').addEventListener('input', render);
 
   document.getElementById('a4-count').textContent = window.ALG440.all.length;
-  TM.initNavToggle();
   TM.setView('matrix');   /* 默认进矩阵总览（22×22 一屏，点格即练） */
   render();
   TM.watch();

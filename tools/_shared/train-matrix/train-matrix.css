@@ -95,12 +95,10 @@ body.is-mx .site-footer, body.is-board .site-footer { display: none; }
 .c4-mx-hint { display: none; }
 .c4-wrap.is-mx .c4-mx-hint { display: inline; color: var(--brand, #60a5fa); }
 
-/* ---------- 左侧导航可隐藏（隐藏后整屏都是公式卡片） ---------- */
-/* 桌面断点由 site-shell.css 给 body 加 border-left:240px；这里同特异性后置 + !important 双保险 */
-@media (min-width: 1025px) {
-  body.nav-hidden { border-left-width: 0 !important; }
-}
-body.nav-hidden .site-nav { display: none !important; }
+/* ---------- 左侧导航可隐藏（v2.0.28 起上移为全站能力） ----------
+   侧栏收起按钮改到侧栏自身右上角（site-nav.js 注入 #navCollapse），
+   收起后左缘浮出「展开」条；body.nav-hidden 的样式与状态记忆
+   全部收在 assets/css/site-shell.css ⑪，本文件不再重复定义。 */
 .c4-navbtn {
   appearance: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
   padding: 6px 12px; border-radius: 8px; white-space: nowrap;

@@ -323,8 +323,7 @@
       dashMatrix: document.querySelector(cfg.dashMatrixSel || '#c4-mx-dash'),
       boardWrap: document.querySelector(cfg.boardWrapSel || '#c4-board'),
       board: document.querySelector(cfg.boardSel || '.c4-board'),
-      matrix: document.querySelector(cfg.matrixSel || '#c4-matrix'),
-      navBtn: document.getElementById('c4-nav-toggle')
+      matrix: document.querySelector(cfg.matrixSel || '#c4-matrix')
     };
 
     var boardRaf = 0, mxRaf = 0;
@@ -469,27 +468,11 @@
       });
     }
 
-    /* ---- 左侧导航隐藏 ---- */
-    var NAV_KEY = cfg.navKey || 'c4_nav_hidden_v1';
-    function applyNavState(hidden) {
-      document.body.classList.toggle('nav-hidden', hidden);
-      if (el.navBtn) {
-        el.navBtn.textContent = hidden ? '显示侧栏' : '隐藏侧栏';
-        el.navBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
-      }
-    }
-    function initNavToggle() {
-      if (!el.navBtn) { return; }
-      var hidden = false;
-      try { hidden = localStorage.getItem(NAV_KEY) === '1'; } catch (e) {}
-      applyNavState(hidden);
-      el.navBtn.addEventListener('click', function () {
-        hidden = !document.body.classList.contains('nav-hidden');
-        applyNavState(hidden);
-        try { localStorage.setItem(NAV_KEY, hidden ? '1' : '0'); } catch (e) {}
-        fitAll();
-      });
-    }
+    /* ---- 左侧导航隐藏 ----
+       v2.0.28 已整体移除：页面内的「隐藏侧栏」按钮全部删除，收起入口改到
+       侧栏自身右上角（site-nav.js 注入 #navCollapse + 左缘 #navExpandTab），
+       状态类 body.nav-hidden 与样式收在 site-nav.js / site-shell.css ⑪，
+       与本框架无关。 */
 
     /* ---- 自适应：resize + 字体加载 + ResizeObserver（骨架异步注入不触发 resize） ---- */
     function watch() {
@@ -516,7 +499,6 @@
       getView: function () { return view; },
       lockScroll: lockScroll,
       halfLen: halfLen,
-      initNavToggle: initNavToggle,
       watch: watch,
       fmtAlgCell: function (alg) { return fmtAlgCell(alg, cfg.fmtAlg); }
     };

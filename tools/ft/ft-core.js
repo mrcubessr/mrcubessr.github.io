@@ -235,9 +235,11 @@ window.FT = (function () {
     try { localStorage.setItem(COMM_KEY, on ? '1' : '0'); } catch (e) {}
   }
 
-  /* ============ 公式显示方式（v2.0.26）============
+  /* ============ 公式显示方式（v2.0.26，v2.0.28 改默认）============
      ft_algview = 'expand'（展开式）| 'comm'（括号/转换机格式）| 'both'（两者都显示）
-     取代旧的布尔键 ft_comm —— 旧值 '1' 首次读取时自动迁移为 'comm'，用户无感。 */
+     取代旧的布尔键 ft_comm —— 旧值 '1' 首次读取时自动迁移为 'comm'，用户无感。
+     v2.0.28：默认值改为 'comm' —— 浮窗里直接显示带括号的转换机公式，
+     不再需要用户手动切到「括号格式」才看得到。 */
   var ALGVIEW_KEY = 'ft_algview';
   function algView() {
     try {
@@ -245,7 +247,7 @@ window.FT = (function () {
       if (v === 'expand' || v === 'comm' || v === 'both') { return v; }
       if (v === null && localStorage.getItem(COMM_KEY) === '1') { return 'comm'; }
     } catch (e) {}
-    return 'expand';
+    return 'comm';
   }
   function setAlgView(v) {
     try { localStorage.setItem(ALGVIEW_KEY, v); } catch (e) {}

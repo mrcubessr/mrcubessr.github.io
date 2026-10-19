@@ -516,3 +516,84 @@ body{
     min-height:0 !important;
   }
 }
+
+/* =========================================================
+   ⑪ 侧栏收起（v2.0.28）
+   ---------------------------------------------------------
+   入口按钮在侧栏自身右上角（site-nav.js 的 buildNav 注入
+   #navCollapse）；收起后左侧边缘浮出「展开」条（#navExpandTab，
+   同样由 site-nav.js 注入到 body，不属于任何页面内容）。
+   状态类 body.nav-hidden 与 localStorage（site_nav_hidden_v1）
+   都由 site-nav.js 维护，页面零改动。
+   ⚠️ 只在桌面断点生效：窄屏顶部条 + 抽屉不参与收起，
+      也不能因残留的 nav-hidden 把顶部条藏掉（故全部规则
+      都关在 min-width:1025px 里）。
+   ========================================================= */
+.site-nav .nav-collapse-btn{
+  display:none;                      /* 默认隐藏，桌面断点打开 */
+  position:absolute;
+  top:12px;
+  right:10px;
+  width:30px;
+  height:30px;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  font:inherit;
+  font-size:15px;
+  line-height:1;
+  color:var(--fg-3,#7C8798);
+  background:transparent;
+  border:1px solid var(--nav-line,rgba(100,180,255,.16));
+  cursor:pointer;
+  transition:color .15s ease,border-color .15s ease,background .15s ease;
+}
+.site-nav .nav-collapse-btn:hover{
+  color:var(--nav-accent,#64b4ff);
+  border-color:var(--nav-accent,#64b4ff);
+  background:var(--brand-soft,rgba(100,180,255,.10));
+}
+.site-nav .nav-collapse-btn:focus-visible{
+  outline:2px solid var(--nav-accent,#64b4ff);
+  outline-offset:2px;
+}
+
+/* 收起后的「展开」悬浮条：贴在屏幕左缘，垂直居中 */
+.nav-expand-tab{
+  display:none;                      /* 仅桌面 + body.nav-hidden 时可见 */
+  position:fixed;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:1001;                      /* 高于侧栏(--z-nav)与内容 */
+  width:24px;
+  height:72px;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  font:inherit;
+  font-size:14px;
+  line-height:1;
+  color:var(--fg-3,#7C8798);
+  background:var(--nav-bg-solid,rgba(13,13,26,.97));
+  border:1px solid var(--nav-line,rgba(100,180,255,.16));
+  border-left:0;
+  cursor:pointer;
+  transition:color .15s ease,background .15s ease;
+}
+.nav-expand-tab:hover{
+  color:var(--nav-accent,#64b4ff);
+  background:var(--brand-soft,rgba(100,180,255,.14));
+}
+.nav-expand-tab:focus-visible{
+  outline:2px solid var(--nav-accent,#64b4ff);
+  outline-offset:-2px;
+}
+
+@media (min-width:1025px){
+  .site-nav .nav-collapse-btn{ display:inline-flex; }
+  /* 收起：侧栏整体退场；主体让出的 240px 还回去（与 ② 同特异性、后置 + !important） */
+  body.nav-hidden{ border-left-width:0 !important; }
+  body.nav-hidden .site-nav{ display:none !important; }
+  body.nav-hidden .nav-expand-tab{ display:inline-flex; }
+}

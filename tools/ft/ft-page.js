@@ -60,8 +60,8 @@ window.FTPage = (function () {
     + '  </span>'
     + '  <label for="c4-algview">显示</label>'
     + '  <select id="c4-algview" title="公式用哪种写法显示">'
-    + '    <option value="expand">展开式</option>'
     + '    <option value="comm">括号格式</option>'
+    + '    <option value="expand">展开式</option>'
     + '    <option value="both">两者都显示</option>'
     + '  </select>'
     + '  <label for="c4-repmode">练习</label>'
@@ -69,21 +69,12 @@ window.FTPage = (function () {
     + '    <option value="single">单次计时</option>'
     + '    <option value="avg3">连做三次取平均</option>'
     + '  </select>'
-    + '  <button type="button" id="c4-nav-toggle" class="c4-navbtn" aria-pressed="false"'
-    + '          title="隐藏左侧导航栏，让公式卡片占满整个屏幕">隐藏侧栏</button>'
+    + '  <button type="button" id="c4-clear" class="c4-navbtn"'
+    + '          title="清空筛选：矩阵行列锁定 / 搜索 / 下拉筛选，全部复位">清空筛选</button>'
+    + '  <span class="c4-filter-hint" id="c4-filter-hint"></span>'
     + '  <button type="button" id="c4-comm" class="c4-navbtn" aria-pressed="false"'
     + '          title="快捷切换：公式显示为括号格式。[A,B] 交换子 = A B A⁻¹ B⁻¹；'
     + 'A:[B,C] 共轭 = A [B,C] A⁻¹。该条无括号数据（或你手动输入过公式）时仍显示展开式">括号格式</button>'
-    + '</div>'
-    /* ---------- 第二行：字母筛选（点字母即只看「行或列含该字母」的公式） ----------
-       用途举例：想专门练 B 开头的公式 → 只点亮 B，矩阵与看板都只剩 B 相关那一批。
-       多选，取并集；全不点 = 不过滤。缓冲字母不在列表里（它是所有码的首字母）。 */
-    + '<div class="c4-bar c4-bar--letters" id="c4-bar-letters">'
-    + '  <span class="c4-bar__label">字母筛选</span>'
-    + '  <span class="ft-letters" id="c4-letters"></span>'
-    + '  <button type="button" class="c4-navbtn" id="c4-letters-clear" title="清空字母筛选">清空</button>'
-    + '  <span class="c4-spacer"></span>'
-    + '  <span class="c4-bar__hint" id="c4-letters-hint"></span>'
     + '</div>'
     /* ---------- 练习总览仪表盘 ---------- */
     + '<section id="c4-dash" class="c4-dash">'
@@ -497,23 +488,13 @@ window.FTPage = (function () {
     }
 
     /* ---------- 搜索 + 筛选 ---------- */
-    /* ---------- 筛选（v2.0.26 扩展）----------
+    /* ---------- 筛选（v2.0.26 扩展，v2.0.28 收简）----------
        ① 下拉：全部 / 未练 / 需关注 / 已标记 / 母公式 / 已练
-       ② 字母筛选：点亮的字母取并集，code 的「行字母或列字母」命中即保留
-          （例：只想练 B 开头的公式 → 只点亮 B）
+       ② 矩阵行列坐标点击：点左侧行标 / 顶部列标做整行整列锁定，
+          命中 = 选中行 ∪ 选中列（任一命中即保留），两集合皆空 = 全选
+          （v2.0.28 起字母筛选行删除，坐标点击是唯一的行列筛选入口）
        ③ 搜索框：码 / 公式（展开式与括号式都匹配）/ 位置，另带三循环旋转容错
        矩阵与看板共用同一份判定，保证两处结果一致。 */
-    var letterSet = {};                 /* { 'B': true, ... } */
-    function hasLetterFilter() {
-      for (var k in letterSet) { if (letterSet[k]) { return true; } }
-      return false;
-    }
-    function passLetter(c) {
-      if (!hasLetterFilter()) { return true; }
-      return !!letterSet[c.charAt(1)] || !!letterSet[c.charAt(2)];
-    }
-    /* 行列坐标筛选（v2.0.26 补）：直接点矩阵「左侧行标 / 顶部列标」做整行 / 整列筛选。
-       命中 = 选中行 ∪ 选中列（任一命中即保留），两集合皆空 = 全选。 */
     var axisRows = {};                 /* { 'B': true, ... } 选中的行 */
     var axisCols = {};                 /* 选中的列 */
     function rowColOf(code) {          /* code = BUF + row + col → 去缓冲前缀取行/列字母 */
@@ -532,7 +513,6 @@ window.FTPage = (function () {
     }
     function passFilter(c, stats, bench) {
       if (!passAxis(c)) { return false; }
-      if (!passLetter(c)) { return false; }
       var st = stats[c];
       if (filterMode === 'todo') { return st.n === 0; }
       if (filterMode === 'done') { return st.n > 0; }
@@ -558,7 +538,7 @@ window.FTPage = (function () {
       return { q: q, qrot: q.length === 3 ? [q, q[1] + q[2] + q[0], q[2] + q[0] + q[1]] : null };
     }
     function hasAnyFilter() {
-      return filterMode !== 'all' || hasLetterFilter() || hasAxisFilter() ||
+      return filterMode !== 'all' || hasAxisFilter() ||
              !!(document.getElementById('c4-q').value || '').trim();
     }
 
@@ -1353,10 +1333,10 @@ window.FTPage = (function () {
 
     /* ---------- 事件绑定 ---------- */
     function bind() {
-      document.getElementById('c4-q').addEventListener('input', renderCurrent);
+      document.getElementById('c4-q').addEventListener('input', function () { renderFilterHint(); renderCurrent(); });
       document.getElementById('c4-metric').addEventListener('change', function () { metricMode = this.value; renderCurrent(); });
       document.getElementById('c4-sort').addEventListener('change', function () { sortMode = this.value; renderBoard(); });
-      document.getElementById('c4-filter').addEventListener('change', function () { filterMode = this.value; renderCurrent(); });
+      document.getElementById('c4-filter').addEventListener('change', function () { filterMode = this.value; renderFilterHint(); renderCurrent(); });
 
       // 详情浮层
       document.getElementById('c4-m-close').addEventListener('click', closeModal);
@@ -1602,10 +1582,13 @@ window.FTPage = (function () {
       invalidateList();
       renderBufBar();
       updateHead();
-      renderLetters();       /* 字母筛选条依赖 ORDER（切缓冲后字母集合会变） */
+      /* 切缓冲后字母集合变了，旧的行/列锁定已无意义 → 复位（v2.0.28） */
+      axisRows = {};
+      axisCols = {};
       fillPSelect();
       renderBoard();
       renderMatrix();
+      applyAxisClasses();
       /* 练习浮层里若是旧缓冲的 code，直接关掉，避免串味 */
       if (pmodal.classList.contains('is-open')) { pClose(); }
     }
@@ -1715,58 +1698,43 @@ window.FTPage = (function () {
       }
     }
 
-    /* ---------- 字母筛选（点字母即只看行/列含它的公式） ---------- */
-    function renderLetters() {
-      var box = document.getElementById('c4-letters');
-      if (!box) { return; }
-      var html = '';
-      ORDER.forEach(function (L) {
-        var on = !!letterSet[L];
-        html += '<button type="button" class="ft-ltr' + (on ? ' is-on' : '') + '" data-ltr="' + L + '"' +
-          ' aria-pressed="' + (on ? 'true' : 'false') + '" title="' + L + ' · ' +
-          esc(state.POS[L] || '') + '">' + L + '</button>';
-      });
-      box.innerHTML = html;
-      var hint = document.getElementById('c4-letters-hint');
-      if (hint) {
-        var on2 = Object.keys(letterSet).filter(function (k) { return letterSet[k]; });
-        if (on2.length) {
-          hint.textContent = '已选 ' + on2.length + ' 个字母：' + on2.join(' ') + '（行或列命中即保留）';
-        } else if (hasAxisFilter()) {
-          var rs = Object.keys(axisRows).filter(function (k) { return axisRows[k]; });
-          var cs = Object.keys(axisCols).filter(function (k) { return axisCols[k]; });
-          hint.textContent = '已锁定「行 ' + (rs.join('') || '—') + ' · 列 ' + (cs.join('') || '—') + '」，点矩阵行/列标可增减，或点「清空筛选」复位';
-        } else {
-          hint.textContent = '点字母快速筛（行或列命中即留）；也可直接点矩阵左侧行标 / 顶部列标做整行整列筛选';
-        }
+    /* ---------- 筛选状态提示 + 清空（v2.0.28）----------
+       原「字母筛选行」删除后，由它接替两件事：
+       ① 在工具条显示当前锁定状态（行/列/搜索/下拉），避免锁了看不出锁了啥；
+       ② 「清空筛选」一键复位行列锁定 + 搜索 + 下拉。 */
+    function renderFilterHint() {
+      var hint = document.getElementById('c4-filter-hint');
+      if (!hint) { return; }
+      if (hasAxisFilter()) {
+        var rs = Object.keys(axisRows).filter(function (k) { return axisRows[k]; });
+        var cs = Object.keys(axisCols).filter(function (k) { return axisCols[k]; });
+        hint.textContent = '已锁定 行 ' + (rs.join('') || '—') + ' · 列 ' + (cs.join('') || '—')
+          + '（点矩阵行/列标增减）';
+      } else if (hasAnyFilter()) {
+        hint.textContent = '筛选生效中（搜索 / 下拉），点「清空筛选」复位';
+      } else {
+        hint.textContent = '';
       }
     }
-    function initLetters() {
-      var box = document.getElementById('c4-letters');
-      if (box) {
-        box.addEventListener('click', function (e) {
-          var b = (e.target && e.target.closest) ? e.target.closest('.ft-ltr') : null;
-          if (!b) { return; }
-          var L = b.getAttribute('data-ltr');
-          if (letterSet[L]) { delete letterSet[L]; } else { letterSet[L] = true; }
-          renderLetters();
-          renderCurrent();
-        });
-      }
-      var clr = document.getElementById('c4-letters-clear');
-      if (clr) {
-        clr.addEventListener('click', function () {
-          letterSet = {};
-          axisRows = {};
-          axisCols = {};
-          renderLetters();
-          applyAxisClasses();
-          renderCurrent();
-        });
-      }
+    function clearAllFilters() {
+      axisRows = {};
+      axisCols = {};
+      filterMode = 'all';
+      var q = document.getElementById('c4-q');
+      if (q) { q.value = ''; }
+      var f = document.getElementById('c4-filter');
+      if (f) { f.value = 'all'; }
+      applyAxisClasses();
+      renderFilterHint();
+      renderCurrent();
+    }
+    function initClear() {
+      var btn = document.getElementById('c4-clear');
+      if (btn) { btn.addEventListener('click', clearAllFilters); }
+      renderFilterHint();
     }
 
-    /* ---------- 矩阵行列坐标点击筛选（v2.0.26 补） ---------- */
+    /* ---------- 矩阵行列坐标点击筛选（v2.0.27 起为唯一行列筛选入口） ---------- */
     /* 高亮当前锁定行/列；每次矩阵重渲染后由 MutationObserver 自动重画 */
     function applyAxisClasses() {
       var mx = document.getElementById('c4-matrix');
@@ -1781,6 +1749,7 @@ window.FTPage = (function () {
           h.classList.toggle('is-axis-on', !!axisCols[txt]);
         }
       }
+      renderFilterHint();
     }
     function initAxis() {
       var mx = document.getElementById('c4-matrix');
@@ -1852,12 +1821,11 @@ window.FTPage = (function () {
     }
 
     /* ================= 启动 ================= */
-    TM.initNavToggle();
     bindBufBar();
     bind();
     initAlgView();
     initRepMode();
-    initLetters();
+    initClear();
     initAxis();
     initStars();
     setView('matrix');

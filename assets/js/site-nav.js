@@ -82,6 +82,11 @@
     var h = '<nav class="site-nav" id="siteNav" aria-label="主导航">';
     h += '<div class="nav-inner">';
     h += '<a class="nav-logo" href="/">魔方先生SSR魔方训练中心</a>';
+    /* 侧栏收起按钮（v2.0.28）：放在侧栏自身右上角，不再占用页面内容区。
+       窄屏顶部条模式下由 CSS 隐藏（桌面断点才显示）。 */
+    h += '<button class="nav-collapse-btn" id="navCollapse" type="button" aria-label="收起侧栏" aria-expanded="true" title="收起侧栏">';
+    h += '<span aria-hidden="true">«</span>';
+    h += '</button>';
     h += '<button class="nav-toggle-btn" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="navLinks">';
     h += '<span></span><span></span><span></span>';
     h += '</button>';
@@ -218,6 +223,60 @@
     /* 打开后再滚，等一帧让 .open 引发的布局稳定下来 */
     if (open) {
       window.requestAnimationFrame(scrollActiveIntoView);
+    }
+  }
+
+  /* ---------------------------------------------------------
+     侧栏收起（v2.0.28）
+     入口按钮在侧栏自身右上角（buildNav 注入的 #navCollapse）；
+     收起后左侧边缘浮出「展开」条（#navExpandTab，由本文件注入到
+     body，不属于任何页面内容 —— 页面零改动，全站一致）。
+     状态类 body.nav-hidden + localStorage 记忆；只在桌面断点生效
+     （CSS 见 site-shell.css ⑪）：窄屏顶部条 + 抽屉不参与收起。
+     --------------------------------------------------------- */
+  var NAV_HIDDEN_KEY = 'site_nav_hidden_v1';
+
+  function isNavHidden() {
+    try { return localStorage.getItem(NAV_HIDDEN_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function setNavHidden(hidden) {
+    try { localStorage.setItem(NAV_HIDDEN_KEY, hidden ? '1' : '0'); } catch (e) {}
+    if (document.body) { document.body.classList.toggle('nav-hidden', hidden); }
+    var cb = document.getElementById('navCollapse');
+    if (cb) {
+      cb.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+      cb.setAttribute('aria-label', hidden ? '展开侧栏' : '收起侧栏');
+      cb.title = hidden ? '展开侧栏' : '收起侧栏';
+    }
+  }
+
+  function ensureExpandTab() {
+    var tab = document.getElementById('navExpandTab');
+    if (!tab) {
+      tab = document.createElement('button');
+      tab.type = 'button';
+      tab.id = 'navExpandTab';
+      tab.className = 'nav-expand-tab';
+      tab.setAttribute('aria-label', '展开侧栏');
+      tab.title = '展开侧栏';
+      tab.innerHTML = '<span aria-hidden="true">&raquo;</span>';
+      tab.addEventListener('click', function () { setNavHidden(false); });
+      document.body.appendChild(tab);
+    }
+    return tab;
+  }
+
+  function initNavCollapse() {
+    ensureExpandTab();
+    setNavHidden(isNavHidden());
+    var cb = document.getElementById('navCollapse');
+    if (cb) {
+      cb.addEventListener('click', function (e) {
+        /* 必须阻止冒泡：bindNav 里有「点外部关抽屉」的 document 监听 */
+        e.stopPropagation();
+        setNavHidden(!isNavHidden());
+      });
     }
   }
 
@@ -519,6 +578,7 @@
     var nav = document.getElementById('siteNav');
     if (!nav) return;
     bindNav(nav);
+    initNavCollapse();
 
     /* 手机端抽屉里的「主题」项：接上 theme.js 引擎（浅色 ↔ 深色），
        点完顺手收起抽屉，好让用户立刻看到整页换了主题。
