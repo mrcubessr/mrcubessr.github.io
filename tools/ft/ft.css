@@ -145,7 +145,12 @@ body {
   width: 100%; text-align: center; font-family: "Consolas","SF Mono",monospace;
   font-size: 72px; font-weight: 900; line-height: 1; padding: 22px 0;
   border-radius: 0; background: #1e293b; color: #f8fafc; cursor: pointer;
-  user-select: none; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.45);
+  /* v2.0.36：补 -webkit- 前缀与 touch-callout —— 只有标准 user-select 时，
+     iOS Safari / Android WebView 上长按数字仍会弹「复制/粘贴」菜单，
+     触摸被打断 → touchcancel → click 不派发 → 点了没反应、起不了表。 */
+  -webkit-user-select: none; user-select: none; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.45);
+  -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: background 150ms ease, color 150ms ease; border: 1px solid var(--line-2, rgba(255,255,255,.18));
 }
 .c4-pmodal__timer[data-state="prep"], .c4-fs__timer[data-state="prep"] { background: linear-gradient(135deg,#dc2626,#991b1b); color:#fff; text-shadow:0 2px 6px rgba(120,0,0,.55); border-color:#991b1b; animation: c4-prep-pulse 1s ease-in-out infinite; }

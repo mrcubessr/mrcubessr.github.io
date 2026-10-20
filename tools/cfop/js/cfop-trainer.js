@@ -848,6 +848,39 @@ window.CFOP = (function () {
       else if (pState === 'done' || pState === 'idle') { pStartTimer(); }
     }
 
+    /* 计时区点击/触摸统一入口（v2.0.36）
+       ⚠️ 手机上的真 bug：按住计时数字稍久 / 双击，浏览器会对数字建立选区并弹出
+       「复制 / 粘贴」系统菜单；这一次触摸随即被判为拖选 → touchcancel →
+       合成 click 不再派发 → 用户看到「点了没反应、起不了表」。三层防护：
+         ① contextmenu 阻止：直接掐掉长按菜单本身
+         ② pointerdown 清残留选区：防止上一次操作的选区让浏览器把这次判成拖选
+         ③ pointerup 兜底：touchcancel 吞掉 click 时仍能起表
+       click 保留给鼠标 / 不支持 PointerEvent 的环境；两条路径互斥（tapMark 去重），
+       绝不会一次点击起停两次（= 起表后立刻停表）。 */
+    function bindTapTimer(el, fn) {
+      if (!el) { return; }
+      var down = false, sx = 0, sy = 0, tapMark = 0;
+      el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      el.addEventListener('pointerdown', function (e) {
+        down = true; sx = e.clientX; sy = e.clientY;
+        try { if (window.getSelection) { window.getSelection().removeAllRanges(); } } catch (err) { /* 忽略 */ }
+      });
+      el.addEventListener('pointercancel', function () { down = false; });
+      el.addEventListener('pointerup', function (e) {
+        if (!down) { return; }
+        down = false;
+        /* 手指滑开超过阈值 = 滚动/拖拽意图，不当作点按 */
+        if (Math.abs(e.clientX - sx) > 18 || Math.abs(e.clientY - sy) > 18) { return; }
+        tapMark = Date.now();
+        fn();
+        e.preventDefault();   /* 抑制随后合成的 click，避免 pointer+click 双触发 */
+      });
+      el.addEventListener('click', function () {
+        if (Date.now() - tapMark < 600) { return; }   /* 已由 pointer 路径处理过 */
+        fn();
+      });
+    }
+
     /* ---- 成绩 ---- */
     function pushTimes(ms) {
       if (!pCurrent) { return; }
@@ -1289,8 +1322,9 @@ window.CFOP = (function () {
       $('c4-chain-order').addEventListener('change', function () {
         chainOrder = this.value; buildChainList(); chainRenderProg();
       });
-      /* 计时器 */
-      $('c4-p-timer').addEventListener('click', toggleTimerMouse);
+      /* 计时器（含全屏计时）：走 bindTapTimer，抗长按菜单 / touchcancel */
+      bindTapTimer($('c4-p-timer'), toggleTimerMouse);
+      bindTapTimer($('c4-fs-timer'), toggleTimerMouse);
       /* 练习模式：工具条 + 浮层两个入口都走 setRepMode（两边同步） */
       $('c4-repmode').addEventListener('change', function () {
         setRepMode(this.value);

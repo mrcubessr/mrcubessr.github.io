@@ -9,6 +9,53 @@
 
 ---
 
+## [2.0.36] — 2026-10-20（优化 · CFOP 练习浮层手机单屏 + 计时区防误触）
+
+**1. 手机端练习浮层：图 / 计时 / 公式同屏，不用滚动**
+
+旧布局在窄屏一屏装不下：预览图在最上，计时器却排在「标记行」之后，
+下面还有操作按钮和成绩条 —— 必须往上拉才看得到计时数字，而计时过程中
+手指一滑又容易误停表。
+
+- **顺序重排**（flex `order`，不动 DOM）：标题 → 预览图 → **计时器** → 本次结果 → 公式
+  → 方向控制 / 编辑 / 标记 / 操作按钮 / 成绩条。
+- **尺寸随视口**：预览图 `clamp(96px, 30vh, 152px)`；计时器高度 `clamp(54px, 11vh, 88px)`
+  （⚠️ 覆盖 ft.css 窄屏的 `min-height:42vh` —— 那是桌面大屏观感参数，窄屏直接吃掉近半屏，
+  正是「必须滚动才看得到」的主因）；编号 32px→20px。
+- **成绩条吃掉剩余空间并自己滚动**，保证上面三段永不被挤出视口。
+- **断点口径**：`max-width:820px`（含 iPad 竖屏 768）**或** `max-height:560px`（手机横屏），
+  两者取或；`body` 保留 `overflow-y:auto` 兜底，极矮视口仍能滚到被压住的内容。
+- 桌面 (>820px 宽且 >560px 高) 布局完全不变。
+
+实测（新装学籍浮层后）：iPhone SE 375×667 / iPhone 14 390×844 / iPad 竖屏 768×1024 /
+iPad mini 744×1133 **图+计时+公式全部同屏、需滚动 0px**；手机横屏 844×390 三者仍在首屏
+（仅次要区滚 99px）。
+
+**2. 计时区点了没反应、起不了表（长按弹出「复制/粘贴」菜单）**
+
+手机上按住计时数字稍久或双击，浏览器会对数字建立选区并弹出系统「复制 / 粘贴」菜单，
+这一次触摸随即被判为拖选 → `touchcancel` → 合成的 `click` 不再派发 → 表现为点了没反应。
+
+根因是**这类禁选规则写在 `/assets/css/base.css` 第 26 节，而 OLL/PLL 两页没有引入 base.css**，
+共享的 `ft.css` 又只写了标准 `user-select`（缺 `-webkit-` 前缀，iOS Safari / Android WebView
+管不住长按菜单）。三层修复：
+
+1. **CSS**：`cfop-trainer.css` 给 `.c4-pmodal__timer` / `.c4-fs__timer` 补齐
+   `-webkit-user-select` + `-webkit-touch-callout` + `-webkit-tap-highlight-color`
+   + `touch-action: manipulation`（禁双击缩放）；`ft.css` 同步补前缀（ft 六体系页一并受益）。
+2. **阻止 contextmenu**：直接掐掉长按菜单本身。
+3. **pointerup 兜底**：`touchcancel` 吞掉 `click` 时仍能起表；
+   与 `click` 两条路径互斥（`tapMark` 去重 + 滑动位移阈值），**一次点按绝不起停两次**。
+
+主计时器页 `tools/timer/` 已在自己的 `timer.css` 里做完全局禁选，无需改动。
+
+### 验证
+- `verify_cfop_v2036.py` **43/43 ALL PASS**：布局 / 顺序 / 无需滚动、user-select 与 touch-action、
+  source 含 `-webkit-touch-callout`、contextmenu 被阻止、触屏 tap 起表→停表→再起表、
+  pointerup 兜底路径、桌面端不回归。
+- `verify_cfop_v2034.py` 39 项回归 ALL PASS（卡片/看板层未受影响）。
+- CFOP 两页 + ft 两页交互冒烟 0 问题。
+
 ## [2.0.35] — 2026-10-20（全站体检 · 修复 6 类 bug）
 
 按「全网站检测并修补 bug」做了一轮系统性体检：全量 JS 语法扫描、109 页资源/死链扫描、
