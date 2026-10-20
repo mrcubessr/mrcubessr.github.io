@@ -116,6 +116,10 @@
 /* 案例预览图：随 AUF 旋转的顶面示意图 */
 .cf-mnet { width: 168px; height: 168px; flex: 0 0 auto; }
 .cf-mnet .cfop-net { width: 100%; height: 100%; }
+/* 没有状态图的体系（SQ1 / 五魔方，facelets:null）：图位与旋转控件一起收掉，
+   否则浮层顶部会留 168px 空白。 */
+.cf-mnet.is-empty { display: none; }
+.cf-rot.is-empty { display: none; }
 @media (max-width: 640px) { .cf-mnet { width: 128px; height: 128px; } }
 
 /* 公式选择行：公式下拉 + 方向旋转 + 去转体 / 编辑 / 恢复默认 */
@@ -309,4 +313,38 @@
     align-content: flex-start;
     padding-top: 6px;
   }
+}
+
+/* ---------- ⑨ 长案例名体系（SQ1）的看板卡 ----------------
+   Square-1 的案例名是「形状码 / 形状名」形式（"3-1-2 / Perpendicular Edges"），
+   照三阶那套 nowrap 大字会被卡片左右各裁掉一截（看板 overflow:hidden + 居中 → 两端同时丢字）。
+   改成最多三行小字自动换行；时间行略收，避免和名字抢高度。
+   body.c4-longname 由 cfop-trainer.js 在数据加载后按「最长案例名 > 8 字符」判定（SQ1 独有，
+   ZBLL / EG / 五魔方的名字都短，保持原来的大字版式）。 */
+body.c4-longname .c4-bcell .cf-name {
+  /* 卡片是 align-items:center 的 flex column，子项默认按 max-content 撑开 →
+     长名字会横向溢出被裁。必须显式拉满宽度，换行/裁行才会生效。 */
+  width: 100%;
+  max-width: 100%;
+  padding: 0 2px;
+  box-sizing: border-box;
+}
+body.c4-longname .c4-bcell .c-code {
+  width: 100%;
+  max-width: 100%;
+  font-size: min(1.32em, calc(var(--c4-cell-w, 82px) * .115));
+  line-height: 1.25;
+  letter-spacing: 0;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-align: center;
+  padding: 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+body.c4-longname .c4-bcell .c-ms {
+  font-size: min(1.15em, calc(var(--c4-cell-w, 82px) * .17));
 }

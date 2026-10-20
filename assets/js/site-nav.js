@@ -10,17 +10,21 @@
     { id: 'home', label: '首页', href: '/' },
     { id: 'tutorial', label: '魔方教程与公式库', children: [
       { id: '3x3', label: '三阶', href: '/tools/3x3/' },
+      /* 三阶 ZBLL（v2.0.46）：472 条最后一层一步到位公式 + 训练器，
+         与 OLL / PLL 同走 CFOP 训练器骨架，项目归属三阶。 */
+      { id: 'zbll', label: '三阶 ZBLL', href: '/tools/cfop/zbll-trainer.html' },
       /* 盲拧（v2.0.44：由「三盲」改名并对外开放）—— 三阶魔方盲拧项目主页，
          公式库（棱 / 角查询）与全套盲拧训练工具都收敛到这一页。 */
       { id: '3bld', label: '盲拧', href: '/tools/3bld/' },
       /* 盲拧公式训练器（角/棱 + 高阶角心/翼棱/棱心/中棱六体系）：
          v2.0.44 从独立顶级项并入「盲拧」项目下，按项目组织（公式库 + 训练工具同页）。 */
       { id: 'ft', label: '盲拧公式训练器', href: '/tools/ft/' },
+      /* 二阶 EG（v2.0.46）：CLL / EG-1 / EG-2 共 120 条，二阶高阶解法。 */
+      { id: 'eg', label: '二阶 EG', href: '/tools/cfop/eg-trainer.html' },
+      { id: 'sq1', label: 'Square-1', href: '/tools/sq1/' },
+      { id: 'mega', label: '五魔方', href: '/tools/mega/' },
       { id: 'fto', label: 'FTO', href: '/fto' },
-      { label: '二阶', soon: true },
       { label: '金字塔', soon: true },
-      { label: '五魔方', soon: true },
-      { label: 'SQ1', soon: true },
       { label: '斜转', soon: true },
       { label: '高阶魔方', soon: true }
     ]},

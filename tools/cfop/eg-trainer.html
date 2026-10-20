@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二阶 EG 公式训练 · 120 条 - 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/ft/ft.css">
+<link rel="stylesheet" href="css/cfop-trainer.css">
+</head>
+<body data-nav="eg">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="c4-wrap">
+
+  <div class="c4-head">
+    <h1>二阶 EG 公式训练</h1>
+    <div class="sub">
+      CLL / EG-1 / EG-2 共 120 条 · 二阶高阶解法 · 顶面图只画四个角块 · 点卡片进练习浮层
+      <span class="c4-mx-hint">· 卡片颜色越绿越快、越红越慢 · 按住空格 0.3s 松开起表 · 支持单次 / 连做三次取平均</span>
+    </div>
+    <a class="c4-back" href="/">← 返回首页</a>
+  </div>
+
+  <!-- 工具条 / 训练总览 / 看板 / 练习浮层 / 全屏计时 / toast 全部由 cfop-trainer.js 注入 -->
+  <div id="cfop-mount"></div>
+
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">EG 数据本地化自 Nexus Timer 开源算法库 · 逐条魔方模拟校验 · 仅供学习训练使用</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="js/cube-art.js"></script>
+<script src="/tools/ft/ft-core.js"></script>
+<script src="/tools/_shared/train-matrix/train-matrix.js"></script>
+<script src="js/cfop-trainer.js"></script>
+<script type="module" src="/assets/js/bt-cube.js"></script>
+<script src="js/cfop-bt.js"></script>
+<script>
+CFOP.mount({ set: 'eg' });
+</script>
+
+</body>
+</html>

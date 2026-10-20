@@ -113,7 +113,7 @@
    ③ /tools/timer/index.html 在 APP_SHELL 内且已改（三盲参数脚
    加难度分级标准直链）。
    三件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
-const CACHE = 'fto-timer-v27';
+const CACHE = 'fto-timer-v28';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

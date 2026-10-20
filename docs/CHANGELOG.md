@@ -9,7 +9,64 @@
 
 ---
 
-## [2.0.45] — 2026-10-20（修复 · 训练器星标/公式切换同步缺失）
+## [2.0.46] — 2026-10-21（新功能 · 三阶 ZBLL / 二阶 EG / Square-1 / 五魔方 四套公式库 + 训练器）
+
+**1. 数据来源与选型**
+
+- 目标：补齐站内缺失的四套公式库，并统一做成「公式库 + 训练器」形态。
+- 比选：AlgDB 官网与镜像均已不可达（`CONNECT tunnel failed 502` / API 404），改用 **Nexus Timer**（`bryanlundberg/NexusTimer`，GPL-3.0，开源算法库，ZBLL / SQ1 带 `setup`，是本站能拿到配图数据的关键）。
+- 落库（`tools/cfop/data/`）：`zbll.json` 472 条 / 1767 公式 / 7 个子集（T·U·L·H·Pi·S·As，182 KB）；`eg.json` 120 条 / 449 公式 / 3 组（CLL·EG-1·EG-2，37.5 KB）；`sq1.json` 245 条 / 274 公式 / 12 组（1~7 Slices + CO/CP/EO/EP/Parity，49.8 KB）；`mega.json` 39 条 / 55 公式 / 4 组（EO/CO/CP/EP，6.1 KB）。
+
+**2. 生成器 `tools/cfop/scripts/gen-algsets.js`（新增，构建期脚本，不进运行时）**
+
+- 用 `vm` 加载 `rubik-core.js`，补齐它没有的记法：`M/E/S` 中层、`x/y/z` 整体转体、`r/l/u/d/f/b` 宽步法、`Rw/Lw`、`R3`、`U2'`。
+- **状态与公式对齐**（这一步是正确性核心）：源数据里 `setup` 只与列表中某一条公式配对、未必是第一条。逐条模拟找出能复原的公式并**提到首位**，保证页面显示的案例确实能被默认公式复原；两个候选状态（源 setup 造态 / 首公式取逆造态）里优先取「通过案例自洽校验」的那个。
+- 校验口径：ZBLL 用「最后一层复原」（U 面单色 + 四侧顶行单色，允许 AUF / 底层整体转动）；EG 用「2×2 八角复原」。
+- 配图：`face3()` 生成三阶顶面图（`us` 9 格 + 四臂各 3 贴），`face2()` 生成二阶顶面图（`us` 4 格 + 四臂各 2 贴）。
+
+**3. 修掉两个会产出错图的坑（本轮 bug 检查的主要收获）**
+
+- **宽步法 / 整体转体整条被静默丢弃**：`UNIT` 展开表里写成了数组 `[['R'],['M',3]]`，而 `applyToken` 读的是 `u.face` / `u.slice` → 全部 `undefined` → `r/l/u/d/f/b/x/y/z` 变成空操作，凡是 setup 里带这些记法的案例状态全错（首轮 472 条里 51 条顶面棱位不是顶色，`us` 出现 `lllllllll`）。改成 `{face,n}` / `{slice,n}` 对象，并把 `/^[xyz]$/` 的大小写判断一并修正（原先 `x/y/z` 也走不到转体分支）。
+- **`llSolved` 只看「U 面单色」不看是不是顶色**：整块转体后的状态顶面其实是侧面，也会被判过关，于是画出一张把 F2L 摆到顶上的废图。改为强制 `U[0] === 顶色`，并新增 `llCase()` 案例自洽校验（底面单色 + 四侧底行单色，ZBLL 另要求四条棱已翻正）。
+- 修完：**ZBLL 472/472 案例态取自源 setup、0 条不可信；EG 120/120 通过 2×2 角块校验、0 条视角不可信**（EG 无 setup，用公式取逆造态时会挑第一条「不含 x/z 转体」的候选，避免整块转过来导致顶面图画错）。
+
+**4. 渲染器 `tools/cfop/js/cube-art.js`**
+
+- `flatCase()` 增加 2×2 分支：`us` 长度 4 → `n=2`、二阶专用矩阵 `F2`（同一 75×75 外框、两条中线 + 四周窄臂），四臂循环从写死 3 改成 `n`，反序逻辑 `rev ? (n-1-k) : k`。
+- 三阶路径零改动，OLL 57 / PLL 21 张图逐格回归通过。
+
+**5. 训练器 `tools/cfop/js/cfop-trainer.js`（不改架构，只加注册表项）**
+
+- `SETS` 新增 `zbll` / `eg` / `sq1` / `mega` 四项（数据路径、返回目标、分组名、卡片尺寸上限）。
+- `rotGridCW()` 改为按字符串长度自适应 2×2 / 3×3，供二阶方向旋转使用。
+- 浮层：`facelets:null` 的体系（SQ1 / 五魔方）把 168px 图位与方向旋转控件一起收掉，不再留一大片空白。
+- 看板：案例名很长的体系（SQ1 的「3-1-2 / Perpendicular Edges」）加 `body.c4-longname`，卡片名改三行小字自动换行 —— 原先 nowrap 大字被卡片左右各裁掉一截。
+
+**6. 新增页面**
+
+- `tools/cfop/zbll-trainer.html`（三阶 ZBLL，472 张卡，`data-nav="zbll"`）
+- `tools/cfop/eg-trainer.html`（二阶 EG，120 张卡，二阶顶面图，`data-nav="eg"`）
+- `tools/sq1/index.html`（Square-1 公式库 + 训练器，245 张卡，`data-nav="sq1"`）
+- `tools/mega/index.html`（五魔方 4LLL 公式库 + 训练器，39 张卡，`data-nav="mega"`）
+
+**7. 导航 / 首页 / 项目页**
+
+- `site-nav.js`：「二阶 / 五魔方 / SQ1」三项由「即将上线」转为真入口，并新增「三阶 ZBLL」「二阶 EG」，整个列表按项目重排。
+- `index.html`：二阶卡换成 EG 入口、五魔方 / SQ1 卡换成真链接（金字塔 / 斜转 / 高阶魔方仍为 soon），三阶卡描述补 ZBLL。
+- `tools/3x3/index.html`：公式库与训练两区各加一张 ZBLL 卡。
+- `sw.js`：`CACHE` 递增到 `fto-timer-v28`（`site-nav.js`、`index.html` 在 APP_SHELL 内）。
+
+**8. 上线前 bug 检查（全部本地服务 + 无头 Chrome）**
+
+- 四个新页：卡片数 472/120/245/39 全对、浮层可打开、公式正常渲染、0 pageerror / 0 console.error / 0 个 4xx。
+- **图元逐格比对**（新脚本 `.workbuddy/outputs/verify_netmaps.py`）：从 DOM 里把每张卡 SVG 的色块还原成色字母，与 JSON `facelets` 逐格对比 —— ZBLL 472/472、EG 120/120、PLL 21/21、OLL 57/57 全部一致，臂序/反序/密度判定无镜像错误。
+- 全站体检：资源缺失 0（死链仍是 blddb 7 个已灰化入口 + 1 个 JS 模板路径，属存量）、重复 id 0 页、运行时 0 异常（仅 `_design/nav-preview` 与 `vercel-proxy` 两个存量网络页）、横向溢出仅 `tools/3bld/blddb/ltct.html`（存量）。
+- 导航高亮：`/tools/3x3/`→`3x3`、ZBLL→`zbll`、EG→`eg`、SQ1→`sq1`、五魔方→`mega`，首页与三阶页的入口链接全部可点。
+- 手机 390×844：四页浮层 `top=0 / bottom=844`，不溢出；ZBLL 有序图、SQ1 无图时计时器直接顶到标题下。
+- 首屏：ZBLL 472 张卡 0.46s、SQ1 245 张 0.25s、EG 0.32s、MEGA 0.28s（本地基线）。
+
+---
+
 
 **1. 盲拧公式训练器（`tools/ft/ft-page.js`）—— 用户报障：翼棱页标好的星号换设备后一个都没有**
 

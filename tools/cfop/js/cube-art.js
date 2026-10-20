@@ -1,8 +1,10 @@
 /* =========================================================
    cube-art.js — CFOP 案例配图渲染器（复刻 speedcubedb 原站样式）
    两个渲染器：
-     · flatCase(facelets) — 顶面平面示意图（OLL / PLL）
-         data-us/ub/uf/ul/ur 五面：中央 3×3 = us；四周一圈 = ub/uf/ul/ur 之顶层 3 贴
+     · flatCase(facelets) — 顶面平面示意图（OLL / PLL / ZBLL / 二阶 EG）
+         data-us/ub/uf/ul/ur 五面：中央 = us；四周一圈 = ub/uf/ul/ur 之顶层贴纸。
+         密度按 us 长度自动判定：9 格 = 三阶 3×3（四周各 3 贴），
+         4 格 = 二阶 2×2（四周各 2 贴，v2.0.46 为二阶 EG 加的）
      · isoCube(fl)        — 等轴立体魔方（F2L / Advanced F2L）
          fl 为 45 字符：前三组 9 = 可见的 顶面 / 左侧面 / 右侧面（行主序），后两组隐藏
    配色全部走 tokens.css 的 --face-*，随深浅主题自动切换。
@@ -36,16 +38,24 @@
   }
   function r(n) { return Math.round(n * 1000) / 1000; }
 
-  /* ---------------- ① 顶面平面示意图（OLL / PLL） ---------------- */
+  /* ---------------- ① 顶面平面示意图（OLL / PLL / ZBLL / 二阶 EG） ----------------
+     两种密度由 us 的长度决定：9 格 = 三阶 3×3；4 格 = 二阶 2×2（v2.0.46 为 EG 加的）。
+     二阶的矩阵常量 F2 按同一外框 75×75 换算（两条中线 + 四周窄臂），
+     与三阶图并排时视觉大小一致。 */
   var F = { origin: 9.3056, cell: 17.5, pitch: 19.4444, strip: 6.389, edge: 0.972, rx: 2 };
+  var F2 = { origin: 9.3056, cell: 27, pitch: 29.4, strip: 6.389, edge: 0.972, rx: 2.6 };
   function str(facelets, key) {
     if (!facelets) return "";
     return facelets[key] || facelets["data-" + key] || "";
   }
   function flatCase(facelets) {
     var us = str(facelets, "us");
-    if (!us || us.length < 9) return null;
-    var svg = svgEl("svg", { class: "cfop-net cfop-net--flat", viewBox: "0 0 75 75", "aria-hidden": "true" });
+    if (!us) return null;
+    var is2 = us.length === 4;
+    var n = is2 ? 2 : 3;
+    if (us.length < n * n) return null;
+    var G = is2 ? F2 : F;
+    var svg = svgEl("svg", { class: "cfop-net cfop-net--flat" + (is2 ? " cfop-net--mini" : ""), viewBox: "0 0 75 75", "aria-hidden": "true" });
 
     /* 黑色底板（十字形） */
     var body = svgEl("g", { class: "cfop-cube-body" });
@@ -56,14 +66,14 @@
     put(body, "rect", { x: 66.667, y: 8.333, width: 8.333, height: 58.333 });
     svg.appendChild(body);
 
-    /* 中央 3×3 顶面 */
-    for (var row = 0; row < 3; row++) {
-      for (var col = 0; col < 3; col++) {
-        var i = row * 3 + col;
-        rect(svg, F.origin + col * F.pitch, F.origin + row * F.pitch, F.cell, F.cell, F.rx, us[i]);
+    /* 中央 n×n 顶面 */
+    for (var row = 0; row < n; row++) {
+      for (var col = 0; col < n; col++) {
+        var i = row * n + col;
+        rect(svg, G.origin + col * G.pitch, G.origin + row * G.pitch, G.cell, G.cell, G.rx, us[i]);
       }
     }
-    /* 四周侧面顶层贴纸（上=ub 下=uf 左=ul 右=ur，各取前 3）
+    /* 四周侧面顶层贴纸（上=ub 下=uf 左=ul 右=ur，各取前 n 位）
        注意 jcube 的 ub / ur 存的是「站在该面外侧正对看」的自然序：
          ub = UBR,UB,UBL   ur = UFR,UR,UBR
        而展开到平面上之后（四面绕各自与 U 的公共棱向外翻 90°）：
@@ -71,16 +81,16 @@
        所以 ub / ur 必须反序取，否则顶角会贴出「橙+红」这类对面色组合
        （T-perm 等案例会立刻看出镜像错误）。uf / ul 的自然序恰好等于展开序。 */
     var strips = [
-      { s: str(facelets, "ub"), horiz: true, y: F.edge, rev: true },
-      { s: str(facelets, "uf"), horiz: true, y: 75 - F.edge - F.strip, rev: false },
-      { s: str(facelets, "ul"), horiz: false, x: F.edge, rev: false },
-      { s: str(facelets, "ur"), horiz: false, x: 75 - F.edge - F.strip, rev: true }
+      { s: str(facelets, "ub"), horiz: true, y: G.edge, rev: true },
+      { s: str(facelets, "uf"), horiz: true, y: 75 - G.edge - G.strip, rev: false },
+      { s: str(facelets, "ul"), horiz: false, x: G.edge, rev: false },
+      { s: str(facelets, "ur"), horiz: false, x: 75 - G.edge - G.strip, rev: true }
     ];
     strips.forEach(function (st) {
-      for (var k = 0; k < 3; k++) {
-        var cur = st.s[st.rev ? 2 - k : k] || "l";
-        if (st.horiz) rect(svg, F.origin + k * F.pitch, st.y, F.cell, F.strip, 1.8, cur);
-        else rect(svg, st.x, F.origin + k * F.pitch, F.strip, F.cell, 1.8, cur);
+      for (var k = 0; k < n; k++) {
+        var cur = st.s[st.rev ? (n - 1 - k) : k] || "l";
+        if (st.horiz) rect(svg, G.origin + k * G.pitch, st.y, G.cell, G.strip, 1.8, cur);
+        else rect(svg, st.x, G.origin + k * G.pitch, G.strip, G.cell, 1.8, cur);
       }
     });
     return svg;

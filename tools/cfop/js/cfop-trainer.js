@@ -1,10 +1,13 @@
 /* =========================================================
-   cfop-trainer.js — 三阶 OLL / PLL 公式训练引擎（tools/cfop）
+   cfop-trainer.js — 「案例清单 → 看板式训练」通用引擎（tools/cfop）
  *
- * 覆盖页面：oll-trainer.html（57 条 OLL）、pll-trainer.html（21 条 PLL）。
- * 两页都是薄壳：<head> 样式 + 一行 CFOP.mount({ set: 'oll' | 'pll' })，
+ * 覆盖页面（全部是薄壳，一行 CFOP.mount({ set: 'xxx' })）：
+ *   oll-trainer.html（57 条 OLL）、pll-trainer.html（21 条 PLL）、
+ *   zbll-trainer.html（472 条三阶 ZBLL）、eg-trainer.html（120 条二阶 EG）、
+ *   ../sq1/index.html（245 条 Square-1）、../mega/index.html（39 条五魔方 4LLL）。
  * 骨架（工具条 / 仪表盘 / 看板 / 练习浮层 / 全屏计时 / 公式库 / toast）
- * 全部由本文件注入 —— 与 tools/ft/ft-page.js 同一思路，改一处两页生效。
+ * 全部由本文件注入 —— 与 tools/ft/ft-page.js 同一思路，改一处全部生效。
+ * 新增一套公式库只需要：① 按数据契约产一份 JSON；② 在下方 SETS 里注册一项。
  *
  * 与盲拧公式训练器（tools/ft）的关系：交互全面对齐 ——
  *   ① 看板卡片：大字名称 + 时间 + 五档星标 + 换过公式金边（外加案例预览图）；
@@ -51,6 +54,42 @@ window.CFOP = (function () {
          改成随视口放大 → 1920 选 7×3 的 224px、2560 选 7×3 的 319px。 */
       maxCell: function () { return Math.max(240, Math.min(460, Math.round(window.innerWidth * 0.17))); },
       maxChars: 2                    // 最长名称（"Gb"）
+    },
+    /* ---- v2.0.46 新增四套：三阶 ZBLL / 二阶 EG / Square-1 / 五魔方 4LLL ----
+       数据由 tools/cfop/scripts/gen-algsets.js 生成（源：Nexus Timer 开源算法库，
+       逐条用魔方模型模拟校验，保证页面显示的案例能被默认公式复原）。
+       SQ1 / 五魔方没有案例状态图（记法与几何不同于三阶），卡片只显示案例名与成绩。 */
+    zbll: {
+      id: 'zbll', name: 'ZBLL', title: 'ZBLL 公式训练',
+      sub: '472 条三阶 ZBLL · 最后一层一步到位 · 7 个形状子集分别练',
+      data: '/tools/cfop/data/zbll.json',
+      back: '/tools/3x3/', backLabel: '← 返回三阶',
+      groupLabel: '形状子集',
+      minCell: 118, minFloor: 82, maxCell: 168, maxChars: 6   // "As 12"
+    },
+    eg: {
+      id: 'eg', name: 'EG', title: '二阶 EG 公式训练',
+      sub: 'CLL / EG-1 / EG-2 共 120 条 · 二阶高阶解法 · 顶面图只画角块',
+      data: '/tools/cfop/data/eg.json',
+      back: '/', backLabel: '← 返回首页',
+      groupLabel: '解法阶段',
+      minCell: 126, minFloor: 88, maxCell: 196, maxChars: 9   // "EG1 AS 12"
+    },
+    sq1: {
+      id: 'sq1', name: 'SQ1', title: 'Square-1 公式训练',
+      sub: '245 条：打方形 / CO / EO / CP / EP / Parity · 记法 (a,b) 为转层、/ 为切',
+      data: '/tools/cfop/data/sq1.json',
+      back: '/', backLabel: '← 返回首页',
+      groupLabel: '阶段',
+      minCell: 140, minFloor: 96, maxCell: 240, maxChars: 13  // "Edge Permutation"
+    },
+    mega: {
+      id: 'mega', name: 'MEGA', title: '五魔方 4LLL 公式训练',
+      sub: 'EO / CO / CP / EP 共 39 条 · 五魔方四步最后一层 · R++/D++/U 记法',
+      data: '/tools/cfop/data/mega.json',
+      back: '/', backLabel: '← 返回首页',
+      groupLabel: '步骤',
+      minCell: 140, minFloor: 96, maxCell: 260, maxChars: 8   // "EP 5"
     }
   };
 
@@ -329,9 +368,11 @@ window.CFOP = (function () {
        移植自旧 oll-trainer.html（推导已验证）：
        - U 面 3×3 网格顺时针转；四条侧面顶行绕中心轮转 F→L→B→R→F；
        - 预览顺时针 90° = 实例比标准态多转了一次 U（先 U' 归位再执行公式）。 */
+    /* n 由长度推断：9 格 = 3×3（三阶），4 格 = 2×2（二阶 EG 的顶面图） */
     function rotGridCW(s) {
+      var n = (s && s.length === 4) ? 2 : 3;
       var o = [];
-      for (var r = 0; r < 3; r++) { for (var c = 0; c < 3; c++) { o[r * 3 + c] = s[(2 - c) * 3 + r]; } }
+      for (var r = 0; r < n; r++) { for (var c = 0; c < n; c++) { o[r * n + c] = s[(n - 1 - c) * n + r]; } }
       return o.join('');
     }
     function rotateFacelets(fl, k) {
@@ -502,7 +543,7 @@ window.CFOP = (function () {
         + '      <div class="cf-mnet" id="c4-m-net"></div>'
         /* 方向控制 + 编辑（公式选择已并入下方公式区，见 #c4-vars） */
         + '      <div class="cf-algrow">'
-        + '        <div class="cf-rot" role="group" aria-label="旋转预览方向">'
+        + '        <div class="cf-rot" id="c4-rot" role="group" aria-label="旋转预览方向">'
         + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-ccw" title="预览左转 90°（公式自动转成对应角度；带 y 转体的公式会把 y 吸收掉、步骤更短）">↺</button>'
         + '          <span class="cf-rot__label" id="c4-rot-label">0°</span>'
         + '          <button type="button" class="c4-pmodal__navbtn" id="c4-rot-cw" title="预览右转 90°（公式自动转成对应角度；带 y 转体的公式会把 y 吸收掉、步骤更短）">↻</button>'
@@ -1006,9 +1047,13 @@ window.CFOP = (function () {
       var badge = $('c4-auf-badge');
       if (p.pre) { badge.hidden = false; badge.textContent = 'AUF ' + p.pre.trim(); }
       else { badge.hidden = true; badge.textContent = ''; }
-      /* 预览图（按 rot 旋转） */
+      /* 预览图（按 rot 旋转）。SQ1 / 五魔方没有案例状态图（facelets:null）：
+         整块图位与旋转控件一起收掉，否则浮层顶部会留一大片空白。 */
       var svg = netSvg(c, rot);
       $('c4-m-net').innerHTML = svg ? svg.outerHTML : '';
+      $('c4-m-net').classList.toggle('is-empty', !svg);
+      var rotBox = document.getElementById('c4-rot');
+      if (rotBox) { rotBox.classList.toggle('is-empty', !svg); }
       /* 公式（rot≠0 且核纯净时 y 已被吸收进旋转，见 algParts） */
       $('c4-p-alg').innerHTML = fmtAlg(p.pre + p.text);
       $('c4-fs-alg').innerHTML = fmtAlg(p.pre + p.text);
@@ -1541,6 +1586,11 @@ window.CFOP = (function () {
         .then(function (d) {
           flatten(d);
           if (!CASES.length) { throw new Error('数据为空'); }
+          /* 案例名很长（SQ1 的 "3-1-2 / Perpendicular Edges" 这类）：
+             body 上加个标记，卡片改用「长名字换行 + 小字」，否则 nowrap 大字
+             会被卡片左右各裁掉一截。ZBLL/EG/五魔方的名字短，不受影响。 */
+          var maxLen = CASES.reduce(function (m, c) { return Math.max(m, String(c.id).length); }, 0);
+          if (maxLen > 8) { document.body.classList.add('c4-longname'); }
           /* 筛选下拉的类型分组在 boot() 里补（chromeHTML 注入后才能找到 #c4-filter） */
           boot();
         })
