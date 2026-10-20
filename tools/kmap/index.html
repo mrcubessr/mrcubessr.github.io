@@ -168,6 +168,25 @@ body{
 .formula-grid .fg-item .fg-form{color:var(--fg-2);font-size:15px}
 .fg-hard code{color:var(--km-red)!important}
 
+/* 角块编码联想记忆图 */
+.cm-band{background:var(--surface);border-radius:0;border:1px solid var(--line);padding:22px;grid-column:1/-1}
+.cm-band .block-title{margin-bottom:12px}
+.cm-intro{font-size:13px;color:var(--fg-3);margin-bottom:18px;line-height:1.8}
+.cm-intro b{color:var(--fg-2)}
+.cm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cm-card{margin:0;background:var(--surface-2);border:1px solid var(--line);border-radius:0;overflow:hidden;transition:border-color .2s,transform .2s;cursor:zoom-in}
+.cm-card:hover{border-color:var(--km-teal-l);transform:translateY(-3px)}
+.cm-card img{width:100%;height:auto;display:block}
+.cm-cap{padding:11px 13px;display:flex;flex-direction:column;gap:7px}
+.cm-code{font-size:18px;font-weight:900;letter-spacing:3px;color:var(--fg)}
+.cm-dots{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-3)}
+.cm-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18);display:inline-block;flex-shrink:0}
+.cm-dot.w{border-color:rgba(0,0,0,.45)}
+.cm-arrow{color:var(--fg-3);font-size:11px;font-weight:700}
+.cm-obj{font-size:12px;color:var(--fg-2);line-height:1.55}
+@media(max-width:1100px){.cm-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.cm-grid{grid-template-columns:1fr}.cm-band{padding:16px 14px}}
+
 /* 响应式 */
 @media(max-width:1700px){
   .map{grid-template-columns:1fr;max-width:900px}
@@ -210,10 +229,6 @@ body{
   <div class="title-group">
     <h1>二阶魔方盲拧 · 教学内容知识地图</h1>
     <div class="sub">2×2 BLINDFOLDED SOLVING — 14步 · 4阶段 · 13课 · 17条公式</div>
-  </div>
-  <div class="meta">
-    定稿 2026.06.15 · 吴亦晨（优尔教育）<br>
-    小程序「魔族学堂」辅助训练
   </div>
 </div>
 
@@ -301,7 +316,7 @@ body{
 <!-- 公式推导思维导图（缩略图 + lightbox 大图） -->
   <div class="mindmap">
     <div class="block-title yellow" style="margin-bottom:20px">公式推导 · 字母变化思维导图</div>
-    <div class="mindmap-thumb" id="mindmapThumb" title="点击查看大图">
+    <div class="mindmap-thumb" id="mindmapThumb" title="点击查看大图" data-zoom-src="/assets/images/二阶盲拧公式推导思维导图.png">
       <img src="/assets/images/二阶盲拧公式推导思维导图.png" alt="公式推导思维导图">
     </div>
     <div class="mindmap-hint">点击图片查看大图</div>
@@ -428,6 +443,87 @@ body{
 
 </div>
 
+<!-- ======== 角块编码联想记忆图（全宽） ======== -->
+<div class="cm-band">
+  <div class="block-title teal">角块编码联想记忆图 · 8 组角块（24 字母）</div>
+  <p class="cm-intro">把抽象的 24 个角块字母变成可记忆的画面：每个角块 = <b>三面色</b>（顺时针顺序与真实魔方完全一致）+ <b>三字母</b> + <b>三实物联想</b>。配合左侧「角块编码图」对照记忆，点任意一张可放大。</p>
+  <div class="cm-grid">
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/ABC.png" title="ABC · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/ABC.png" alt="ABC 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">ABC</span>
+        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i></span>
+        <span class="cm-obj">苹果 · 蜜蜂 · 大嘴怪</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/DEF.png" title="DEF · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/DEF.png" alt="DEF 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">DEF</span>
+        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i></span>
+        <span class="cm-obj">菜刀 · 大鹅 · 斧头</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/GHI.png" title="GHI · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/GHI.png" alt="GHI 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">GHI</span>
+        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i></span>
+        <span class="cm-obj">狗 · 猴 · 绿铅笔</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/JKL.png" title="JKL · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/JKL.png" alt="JKL 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">JKL</span>
+        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i></span>
+        <span class="cm-obj">小钩子 · 钥匙 · 球杆</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/WMN.png" title="WMN · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/WMN.png" alt="WMN 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">WMN</span>
+        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i></span>
+        <span class="cm-obj">碗 · 麦当劳 · 门</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/XYZ.png" title="XYZ · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/XYZ.png" alt="XYZ 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">XYZ</span>
+        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i></span>
+        <span class="cm-obj">叉子 · 弹弓 · 斑马</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/OPQ.png" title="OPQ · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/OPQ.png" alt="OPQ 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">OPQ</span>
+        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i></span>
+        <span class="cm-obj">鸡蛋 · 球拍 · 蓝气球</span>
+      </figcaption>
+    </figure>
+
+    <figure class="cm-card" data-zoom-src="corner-mnemonic/RST.png" title="RST · 点击查看大图">
+      <img src="corner-mnemonic/thumbs/RST.png" alt="RST 角块联想记忆图" loading="lazy" decoding="async">
+      <figcaption class="cm-cap">
+        <span class="cm-code">RST</span>
+        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i></span>
+        <span class="cm-obj">滑梯 · 蛇 · 锤子</span>
+      </figcaption>
+    </figure>
+
+  </div>
+</div>
+
 <!-- ======== 底部 ======== -->
 <div class="panel-bottom">
   <div class="block">
@@ -471,12 +567,11 @@ body{
 
 <script>
 (function () {
-  var thumb = document.getElementById('mindmapThumb');
   var overlay = document.getElementById('mindmapLightbox');
   var closeBtn = document.getElementById('lightboxClose');
   var bigImg = document.getElementById('lightboxImg');
-  function openLightbox() {
-    bigImg.src = '/assets/images/二阶盲拧公式推导思维导图.png';
+  function openZoom(src) {
+    bigImg.src = src;
     overlay.classList.add('open');
     overlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -486,7 +581,10 @@ body{
     overlay.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
   }
-  if (thumb) thumb.addEventListener('click', openLightbox);
+  document.querySelectorAll('[data-zoom-src]').forEach(function (el) {
+    el.style.cursor = 'zoom-in';
+    el.addEventListener('click', function () { openZoom(el.getAttribute('data-zoom-src')); });
+  });
   if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
   if (overlay) overlay.addEventListener('click', function (e) { if (e.target === overlay) closeLightbox(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
