@@ -194,7 +194,12 @@
   function contactHTML() {
     return ''
       + '<div class="vip-contact">'
-      + '  <p class="vip-contact__lead">联系管理员开通：</p>'
+      + '  <p class="vip-contact__lead">微信扫码添加管理员：</p>'
+      + '  <div class="vip-qr">'
+      + '    <img class="vip-qr__img" src="/assets/images/wechat-qrcode.png" alt="微信二维码：魔方先生Jack，扫码添加" loading="lazy" decoding="async" width="180" height="180">'
+      + '    <span class="vip-qr__cap">魔方先生Jack</span>'
+      + '  </div>'
+      + '  <p class="vip-contact__lead vip-contact__lead--sub">或复制账号 / 邮箱联系：</p>'
       + '  <div class="vip-contact__row">'
       + '    <span class="vip-contact__k">微信</span>'
       + '    <code class="vip-contact__v" id="vipWx">' + esc(CONTACT.wechat) + '</code>'
