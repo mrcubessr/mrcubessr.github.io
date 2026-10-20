@@ -93,7 +93,18 @@
    由运行时 stale-while-revalidate 自动缓存，不进 APP_SHELL；
    ③ assets/data/announcements.json（全站公告）属"改完立即生效"内容，
    已加入 NO_CACHE_PREFIX 绕开缓存。 */
-const CACHE = 'fto-timer-v25';
+/* v26（2026-10-20）：首页导航修复 + 首页结构重排 ——
+   ① /assets/js/site-nav.js 在 APP_SHELL 内且已改动（侧栏收起状态从
+   localStorage 永久记忆改为 sessionStorage 会话级记忆，并清理旧键；
+   展开条改为带「导航」文字的明显标签），
+   ② /assets/css/site-shell.css 在 APP_SHELL 内且已改动（sr-only 规则
+   排除 .hero，恢复首页主视觉；展开条样式加宽加文字），
+   ①②都在 APP_SHELL 内，不递增的话已安装 PWA 用户会一直拿到旧版
+   侧栏逻辑与旧首页，按规矩递增；
+   ③ 新增 /index.html 与 /assets/css/pages/home.css 进 APP_SHELL：
+   首页是全站入口且本次整页重写，靠运行时 stale-while-revalidate 的话
+   用户第一次打开仍会看到旧首页、第二次刷新才变。 */
+const CACHE = 'fto-timer-v26';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate
@@ -103,6 +114,9 @@ const RT_MAX = 300; // 运行时缓存条目上限，超出后淘汰最早写入
 
 // 预缓存清单：计时器应用壳 + 全站共享的站点级资源（注入型 CSS 也在内）
 const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/assets/css/pages/home.css',
   '/tools/timer/',
   '/tools/timer/index.html',
   '/tools/timer/timer.js',

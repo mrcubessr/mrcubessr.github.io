@@ -57,6 +57,46 @@
   background:linear-gradient(135deg,var(--surface-2),var(--surface));
 }
 
+/* ---------- ③ 快速开始（v2.0.39）
+   最高频的四个入口，横向按钮条：位置紧跟 Hero/公告，
+   不做成大卡片网格 —— 那样会和下面「教程与公式库」「教练工具箱」
+   里的同一批工具重复两遍，用户会以为有两套东西。 */
+.quick-start{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:var(--s3);
+  margin-bottom:var(--s7);
+}
+
+/* ---------- 分组说明与副标题 ---------- */
+.group-lead{
+  margin:calc(-1 * var(--s2)) 0 var(--s4);
+  font-size:var(--fs-xs);
+  color:var(--fg-3);
+  line-height:var(--lh-base);
+}
+.group-sub{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:var(--s6) 0 var(--s3);
+  font-size:var(--fs-base);
+  font-weight:var(--fw-bold);
+  color:var(--fg);
+}
+.group-sub::before{
+  content:'';
+  flex:0 0 auto;
+  width:7px; height:7px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--brand),var(--violet));
+}
+/* 首个副标题紧跟区块标题时不要留大空隙 */
+.group > .group-sub:first-of-type{ margin-top:var(--s2); }
+.group-sub--vip{ color:var(--fg-2); }
+.group-sub--vip::before{ background:linear-gradient(135deg,#b8860b,#daa520); }
+
 /* ---------- ③ 分组卡片 ---------- */
 .group{ margin-bottom:var(--s7); }
 .card-grid{
@@ -140,4 +180,13 @@
 }
 @media (max-width:380px){
   .card-grid{ grid-template-columns:1fr; }
+}
+
+/* ---------- 窄屏下的首页公告区（v2.0.39）
+   公告全文很长，手机上会把首屏全占掉、真正的入口要往下滑很久。
+   折叠由 announce.css 的 .ann-item.is-clamped .ann-body 统一控制
+   （桌面 3 行 / 窄屏 2 行，可点「展开全文」看全文），这里只收紧内边距。 */
+@media (max-width:900px){
+  .home .ann-item{ padding:14px 16px 14px 18px; }
+  .home .ann-title{ font-size:15px; }
 }

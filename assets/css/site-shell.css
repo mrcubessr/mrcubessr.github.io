@@ -454,6 +454,11 @@ body{
       里也有一颗 <h1>（「二阶魔方盲拧练习」），那是**A4 纸面标题**，
       出纸时必须保留；`.container` 的顶距同样属于纸面版式。
       所以 ① 排除 .print-area，② 打印媒体一律不生效。
+   3. ⚠️ `> header:first-child` 必须排除 `.hero`（v2.0.39 修）：
+      首页的主视觉是 `<header class="hero">`，恰好也是容器的第一个
+      header 子元素 → 被本规则 sr-only 化后整个塌成 1×1，首页既没有
+      标题也没有入口按钮（用户报「主页导航不见了」）。首页 hero 是**内容**，
+      不是「工具页大标题横幅」，必须放行。
    ========================================================= */
 @media screen{
   .page-head,
@@ -467,7 +472,7 @@ body{
   .toolbar > h1,
   .toolbar > .h1-sub,
   .container:not(.print-area) > h1:first-child,
-  .container:not(.print-area) > header:first-child,
+  .container:not(.print-area) > header:not(.hero):first-child,
   .wrap > h1:first-child{
     position:absolute; width:1px; height:1px; padding:0; margin:-1px;
     overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
@@ -558,7 +563,10 @@ body{
   outline-offset:2px;
 }
 
-/* 收起后的「展开」悬浮条：贴在屏幕左缘，垂直居中 */
+/* 收起后的「展开」悬浮条：贴在屏幕左缘，垂直居中
+   ⚠️ v2.0.39 加文字：原来只有一条 24px 宽的 » 窄条，颜色又淡，
+   收起后几乎没人发现得了，表现为「导航不见了」且无从恢复。
+   改成 34px 宽的竖排「导航 »」标签，一眼可见、一点就回来。 */
 .nav-expand-tab{
   display:none;                      /* 仅桌面 + body.nav-hidden 时可见 */
   position:fixed;
@@ -566,24 +574,33 @@ body{
   top:50%;
   transform:translateY(-50%);
   z-index:1001;                      /* 高于侧栏(--z-nav)与内容 */
-  width:24px;
-  height:72px;
+  width:34px;
+  height:104px;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
+  gap:4px;
   padding:0;
   font:inherit;
-  font-size:14px;
+  font-size:13px;
   line-height:1;
-  color:var(--fg-3,#7C8798);
+  color:var(--fg-2,#b9c0cf);
   background:var(--nav-bg-solid,rgba(13,13,26,.97));
   border:1px solid var(--nav-line,rgba(100,180,255,.16));
   border-left:0;
   cursor:pointer;
-  transition:color .15s ease,background .15s ease;
+  transition:color .15s ease,background .15s ease,border-color .15s ease;
 }
+.nav-expand-tab__txt{
+  writing-mode:vertical-rl;
+  letter-spacing:.14em;
+  font-weight:600;
+}
+.nav-expand-tab__arrow{ font-size:12px; opacity:.8; }
 .nav-expand-tab:hover{
   color:var(--nav-accent,#64b4ff);
   background:var(--brand-soft,rgba(100,180,255,.14));
+  border-color:var(--nav-accent,#64b4ff);
 }
 .nav-expand-tab:focus-visible{
   outline:2px solid var(--nav-accent,#64b4ff);

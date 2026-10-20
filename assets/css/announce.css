@@ -81,6 +81,38 @@
   background: var(--brand-soft, rgba(88, 166, 255, .1));
 }
 
+/* ---------- 公告正文折叠（v2.0.39）
+   公告全文很长，首页首屏会被它整个占满。默认压到 3 行（窄屏 2 行），
+   点「展开全文」看完整内容。 */
+.ann-item.is-clamped .ann-body {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+.ann-toggle {
+  margin-top: 10px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--brand, #58a6ff);
+  background: transparent;
+  border: 1px solid var(--line-2, #30363d);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.ann-toggle:hover {
+  border-color: var(--brand, #58a6ff);
+  background: var(--brand-soft, rgba(88, 166, 255, .1));
+}
+.ann-toggle:focus-visible {
+  outline: 2px solid var(--brand, #58a6ff);
+  outline-offset: 2px;
+}
+
 /* ---------- 全站顶部横幅 ----------
    ⚠️ 位于普通文档流中（由 announce.js 插到导航占位符之后），
    不使用 fixed —— 避免与各页面五花八门的 fixed 元素抢层级。 */
@@ -150,4 +182,9 @@
 @media (max-width: 560px) {
   .ann-bar { padding: 7px 38px 7px 12px; font-size: 12.5px; }
   .ann-bar__more { display: none; }
+  /* 窄屏公告正文只留 2 行摘要 */
+  .ann-item.is-clamped .ann-body {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
 }

@@ -71,6 +71,12 @@
     if (it.cta && it.cta.href) {
       h += '<a class="ann-cta" href="' + esc(it.cta.href) + '">' + esc(it.cta.label || '了解详情') + '</a>';
     }
+    /* 折叠开关（v2.0.39）：公告全文很长，首页首屏会被它整个占满，
+       真正的入口（快速开始 / 工具分区）要往下滑很久。
+       只在首页完整区启用；顶部横幅只有一行标题，不需要。 */
+    if (opts.collapsible && body) {
+      h += '<button type="button" class="ann-toggle" aria-expanded="false">展开全文</button>';
+    }
     h += '</article>';
     return h;
   }
@@ -82,7 +88,20 @@
     nodes.forEach(function (n) {
       n.className = (n.className ? n.className + ' ' : '') + 'ann-list';
       if (!items.length) { n.innerHTML = ''; return; }
-      n.innerHTML = items.map(function (it) { return itemHTML(it); }).join('');
+      n.innerHTML = items.map(function (it) { return itemHTML(it, { collapsible: true }); }).join('');
+
+      /* 折叠 / 展开：默认压到 3 行（手机 2 行），点按钮看全文 */
+      n.querySelectorAll('.ann-item').forEach(function (card) {
+        var btn = card.querySelector('.ann-toggle');
+        if (!btn) return;
+        card.classList.add('is-clamped');
+        btn.addEventListener('click', function () {
+          var open = card.classList.toggle('is-open');
+          card.classList.toggle('is-clamped', !open);
+          btn.textContent = open ? '收起' : '展开全文';
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      });
     });
   }
 

@@ -239,17 +239,30 @@
      入口按钮在侧栏自身右上角（buildNav 注入的 #navCollapse）；
      收起后左侧边缘浮出「展开」条（#navExpandTab，由本文件注入到
      body，不属于任何页面内容 —— 页面零改动，全站一致）。
-     状态类 body.nav-hidden + localStorage 记忆；只在桌面断点生效
+     状态类 body.nav-hidden + 存储记忆；只在桌面断点生效
      （CSS 见 site-shell.css ⑪）：窄屏顶部条 + 抽屉不参与收起。
+
+     ⚠️ v2.0.39 记忆键从 localStorage 改为 sessionStorage：
+     原实现用 localStorage **永久**记住「收起」。一旦收起就再也回不来 ——
+     页面上只剩左缘一条 24px 的淡色窄条，几乎无人发现，
+     用户只能反馈「主页导航不见了」且无从自己恢复。
+     改为会话级后：本次浏览内保持收起（便于腾出内容宽度），
+     关掉标签页 / 重开网站自动恢复展开 —— 导航自己会回来。
+     同时启动时清掉旧的 localStorage 键，避免老用户继续被隐藏。
      --------------------------------------------------------- */
-  var NAV_HIDDEN_KEY = 'site_nav_hidden_v1';
+  var NAV_HIDDEN_KEY = 'site_nav_hidden_v2';
+  var NAV_HIDDEN_LEGACY_KEY = 'site_nav_hidden_v1';
 
   function isNavHidden() {
-    try { return localStorage.getItem(NAV_HIDDEN_KEY) === '1'; } catch (e) { return false; }
+    try {
+      /* 一次性清理旧版永久记忆键 */
+      try { localStorage.removeItem(NAV_HIDDEN_LEGACY_KEY); } catch (e2) {}
+      return sessionStorage.getItem(NAV_HIDDEN_KEY) === '1';
+    } catch (e) { return false; }      /* 隐私模式 / 禁用存储时静默降级 */
   }
 
   function setNavHidden(hidden) {
-    try { localStorage.setItem(NAV_HIDDEN_KEY, hidden ? '1' : '0'); } catch (e) {}
+    try { sessionStorage.setItem(NAV_HIDDEN_KEY, hidden ? '1' : '0'); } catch (e) {}
     if (document.body) { document.body.classList.toggle('nav-hidden', hidden); }
     var cb = document.getElementById('navCollapse');
     if (cb) {
@@ -268,7 +281,8 @@
       tab.className = 'nav-expand-tab';
       tab.setAttribute('aria-label', '展开侧栏');
       tab.title = '展开侧栏';
-      tab.innerHTML = '<span aria-hidden="true">&raquo;</span>';
+      tab.innerHTML = '<span class="nav-expand-tab__txt" aria-hidden="true">导航</span>'
+                    + '<span class="nav-expand-tab__arrow" aria-hidden="true">&raquo;</span>';
       tab.addEventListener('click', function () { setNavHidden(false); });
       document.body.appendChild(tab);
     }
