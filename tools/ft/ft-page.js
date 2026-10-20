@@ -277,6 +277,8 @@ window.FTPage = (function () {
 
     var TIMES_KEY = 'ft_times_' + sys;
     var SESSIONS_KEY = 'ft_sessions_' + sys;
+    var STARS_KEY = FT.starsKey(sys);      /* v2.0.40：星标标记（颜色+备注） */
+    var SWAPS_KEY = FT.swapsKey(sys);      /* v2.0.40：参考公式切换 / 路线C 手动补全 */
     var SYNC_ID = 'ft-' + sys;
 
     var GIDX_REF = state.GIDX;
@@ -1882,11 +1884,23 @@ window.FTPage = (function () {
       }
     });
 
-    /* ================= 账号同步（LSProvider） ================= */
+    /* ================= 账号同步（LSProvider） =================
+       v2.0.40 修复：此前 keys 只有 [times, sessions]，星标（ft_stars_<sys>）与
+       参考公式切换（ft_swaps_<sys>）这两类「逐格手配数据」从未进过快照——
+       本机标得再多也传不上云端，换设备后一个标记都不见。
+       现在四类数据一起同步；注意各键 JSON 结构不同，空判定必须分开处理：
+         times/sessions = { 码: [ms,...] }    → 数元素个数
+         stars          = { 码: {c,n} }       → 数 key 个数
+         swaps          = { 码: 公式串 }       → 数 key 个数 */
     window.addEventListener('sync:status', function (e) {
       var st = e && e.detail && e.detail[SYNC_ID];
       if (!st || !st.result || st.result.kind !== 'downloaded') { return; }
-      try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (err) { return; }
+      try {
+        times = load(TIMES_KEY, {});
+        sessions = load(SESSIONS_KEY, {});
+        stars = FT.getStars(sys);          /* 页面内缓存必须重取，否则矩阵不重绘星标 */
+        state.swaps = FT.getSwaps(sys);
+      } catch (err) { return; }
       renderCurrent();
       if (pmodal.classList.contains('is-open')) { pRefreshHistory(); }
     });
@@ -1897,7 +1911,7 @@ window.FTPage = (function () {
           id: SYNC_ID,
           label: '公式训练器 · ' + SYS.name,
           path: SYNC_ID + '.json',
-          keys: [TIMES_KEY, SESSIONS_KEY],
+          keys: [TIMES_KEY, SESSIONS_KEY, STARS_KEY, SWAPS_KEY],
           isEmptySnap: function (snap) {
             if (!snap) { return true; }
             var n = 0;
@@ -1908,6 +1922,11 @@ window.FTPage = (function () {
                 var o = JSON.parse(raw) || {};
                 Object.keys(o).forEach(function (c) { n += (o[c] || []).length; });
               } catch (err) {}
+            });
+            [STARS_KEY, SWAPS_KEY].forEach(function (k) {
+              var raw = snap[k];
+              if (raw == null || raw === '') { return; }
+              try { n += Object.keys(JSON.parse(raw) || {}).length; } catch (err) {}
             });
             return n === 0;
           }

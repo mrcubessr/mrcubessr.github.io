@@ -1456,8 +1456,10 @@ window.CFOP = (function () {
     }
 
     /* ================= 14) 启动 ================= */
+    var booted = false;
     function boot() {
       if (!mountBox) { return; }
+      booted = true;
       mountBox.innerHTML = chromeHTML();
       /* 重新拿注入后的节点 */
       board = $('c4-board');
@@ -1472,6 +1474,60 @@ window.CFOP = (function () {
       $('c4-sort').value = sortMode;
       $('c4-repmode').value = repMode;
       setTimeout(fitBoard, 0);
+    }
+
+    /* ================= 15) 账号同步（LSProvider，v2.0.40 新增） =================
+       此前 CFOP 训练器没有注册任何同步 Provider：成绩、星标、公式切换全部只存
+       本机浏览器，换设备（教室↔家里）后从零开始。现按盲拧公式训练器同款机制接入，
+       四类键一起进快照；JSON 结构不同，空判定分开处理：
+         times/sessions = { id: [ms,...] } → 数元素个数
+         swaps          = { id: {i,alg,k} } → 数 key 个数
+         stars          = { id: {c,n} }     → 数 key 个数 */
+    var SYNC_ID = 'cfop-' + SET;
+    var STARS_KEY = window.FT ? FT.starsKey(SET) : ('ft_stars_' + SET);
+    window.addEventListener('sync:status', function (e) {
+      var st = e && e.detail && e.detail[SYNC_ID];
+      if (!st || !st.result || st.result.kind !== 'downloaded') { return; }
+      /* boot 未完成（数据还在 fetch）时不用管：boot() 里的 renderBoard 会用
+         刚下载的数据重画，不存在「画了旧数据」的窗口 */
+      if (!booted) { return; }
+      try {
+        times = load(K('times'), {});
+        sessions = load(K('sessions'), {});
+        swaps = load(K('swaps'), {});
+        stars = window.FT ? FT.getStars(SET) : {};
+      } catch (err) { return; }
+      renderBoard();
+      if (pmodal && pmodal.classList.contains('is-open')) { pRefreshHistory(); }
+    });
+    if (window.SyncBoot) {
+      SyncBoot.ready(function () {
+        if (!window.LSProvider) { return; }
+        LSProvider.register({
+          id: SYNC_ID,
+          label: 'CFOP 训练器 · ' + S.name,
+          path: SYNC_ID + '.json',
+          keys: [K('times'), K('sessions'), K('swaps'), STARS_KEY],
+          isEmptySnap: function (snap) {
+            if (!snap) { return true; }
+            var n = 0;
+            [K('times'), K('sessions')].forEach(function (k) {
+              var raw = snap[k];
+              if (raw == null || raw === '') { return; }
+              try {
+                var o = JSON.parse(raw) || {};
+                Object.keys(o).forEach(function (c) { n += (o[c] || []).length; });
+              } catch (err) {}
+            });
+            [K('swaps'), STARS_KEY].forEach(function (k) {
+              var raw = snap[k];
+              if (raw == null || raw === '') { return; }
+              try { n += Object.keys(JSON.parse(raw) || {}).length; } catch (err) {}
+            });
+            return n === 0;
+          }
+        });
+      });
     }
 
     /* 数据加载 */

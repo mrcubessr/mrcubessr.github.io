@@ -9,6 +9,29 @@
 
 ---
 
+## [2.0.45] — 2026-10-20（修复 · 训练器星标/公式切换同步缺失）
+
+**1. 盲拧公式训练器（`tools/ft/ft-page.js`）—— 用户报障：翼棱页标好的星号换设备后一个都没有**
+
+- 根因：LSProvider 注册时 `keys` 只有 `[ft_times_<sys>, ft_sessions_<sys>]`，**星标 `ft_stars_<sys>`（五档颜色+备注）与参考公式切换 `ft_swaps_<sys>`（路线C 手动补全）从未进过快照** —— 本机标得再多也传不上云端，换设备后从零开始。
+- 修复：`keys` 补入这两类键；`isEmptySnap` 按结构分开计数（times/sessions 数元素个数，stars/swaps 数 key 个数）—— 否则「云端只有星号」会被误判为空而拒绝下载；`sync:status` 的 downloaded 分支重取 `stars`/`state.swaps` 页面缓存并 `renderCurrent()`，下载后矩阵立即重绘星标，无需手动刷新。
+
+**2. CFOP 训练器（`tools/cfop/js/cfop-trainer.js`）—— 同类缺口：此前完全没有注册同步**
+
+- OLL/PLL 两页的成绩、星标（`ft_stars_oll`/`ft_stars_pll`，与 ft 共用五档色）、公式切换（`cfop_<set>_swaps`）此前全部只存本机浏览器，教室↔家里换设备后从零开始。
+- 按同款机制补注册 `cfop-<set>` Provider（四类键一起进快照 + 结构化空判定 + 下载后 `renderBoard()` 重绘，boot 未完成时留到首绘统一画）。
+
+**3. 验证（CDP 端到端，本地服务 + 无头 Chrome）**
+
+- 翼棱页：快照含 `ft_stars_wing`（三色标记齐全）、`isEmpty_onlyStars=false`、`isEmpty_trulyEmpty=true`、`applySnapshot` 写回后 `.c-star` 重绘出 1 个、506 格矩阵正常、本地改动 `sync_mod_ft-wing` 触发（上传感知链路通）、0 JS 报错。
+- OLL 页：`cfop-oll` Provider 注册、快照含 `ft_stars_oll`、空判定三态正确、下载后星标重绘、上传感知触发、0 报错。
+
+**4. 存量数据说明（重要）**
+
+- 修复只让「今后的星标」进入同步。**此前在某一台设备上标好的星号不会自动出现在别的设备** —— 云端历史快照里从来没有这些数据。需要在原来那台设备上打开对应训练页并点一次账号同步（或任意改动一个星标触发自动上传），云端才有；其他设备再同步即可下载到。
+
+---
+
 ## [2.0.44] — 2026-10-20（首页 + 导航按「项目」重组：公式库与训练工具归入各项目）
 
 **1. 首页结构重组（`index.html`）**
