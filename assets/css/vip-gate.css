@@ -1,0 +1,311 @@
+/* =============================================================
+ * vip-gate.css — 教练专用功能门禁 / 联系我们 / 专用角标
+ * -------------------------------------------------------------
+ * 由 assets/js/vip-gate.js 动态注入，页面无需加 <link>。
+ * 全部走 tokens.css 变量，浅色/深色两套主题自动适配。
+ * ============================================================= */
+
+/* ---------- Gate 模式：命中私密页时先把内容藏起来 ----------
+   ⚠️ 关键点：用 visibility 而不是 display ——display:none 会让页面
+   布局彻底塌掉、部分脚本（依赖尺寸的 canvas / canvas 自适应）初始化失败；
+   visibility:hidden 保留布局，解除封锁后页面状态与正常加载一致。
+   ⚠️ .vip-gate 自身必须显式 visibility:visible，否则会被 body 的 hidden 继承。 */
+html.vip-locking > body {
+  visibility: hidden;
+  overflow: hidden;
+}
+html.vip-locking > body > .vip-gate {
+  visibility: visible;
+}
+
+/* ---------- 遮罩容器 ---------- */
+.vip-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--bg, #0d1117);
+  /* 无明显视觉品牌时用一层淡渐变，避免纯色死板 */
+  background-image: radial-gradient(1200px 600px at 50% -10%, var(--surface-2, #161b22) 0%, transparent 70%);
+}
+
+/* ---------- 主卡片 ---------- */
+.vip-card {
+  width: 100%;
+  max-width: 460px;
+  margin: auto;
+  padding: 28px 26px 24px;
+  border: 1px solid var(--line, #30363d);
+  border-radius: 14px;
+  background: var(--surface, #161b22);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .35);
+  text-align: center;
+}
+.vip-card--plain { padding: 34px 26px; }
+
+.vip-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  letter-spacing: .12em;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #b8860b, #daa520);
+  box-shadow: 0 2px 10px rgba(218, 165, 32, .28);
+}
+
+.vip-title {
+  margin: 0 0 10px;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--fg, #e6edf3);
+}
+
+.vip-desc {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--fg-2, #9aa4b2);
+}
+.vip-desc b { color: var(--fg, #e6edf3); }
+
+.vip-who {
+  margin: -6px 0 16px;
+  font-size: 13px;
+  color: var(--fg-3, #6e7681);
+  word-break: break-all;
+}
+.vip-who code {
+  padding: 2px 7px;
+  font-size: 12.5px;
+  border-radius: 5px;
+  background: var(--surface-2, #21262d);
+  color: var(--fg, #e6edf3);
+}
+
+.vip-err {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  text-align: left;
+  word-break: break-all;
+  border-left: 3px solid var(--amber, #d29922);
+  background: var(--surface-2, #21262d);
+  color: var(--fg-2, #9aa4b2);
+}
+
+/* ---------- 登录表单 ---------- */
+.vip-form { margin-bottom: 18px; }
+.vip-form__row { display: flex; gap: 8px; margin-top: 8px; }
+.vip-form__row .vip-input { flex: 1 1 auto; min-width: 0; }
+
+.vip-input {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--fg, #e6edf3);
+  background: var(--surface-2, #21262d);
+  border: 1px solid var(--line-2, #30363d);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color .15s;
+}
+.vip-input:focus { border-color: var(--brand, #58a6ff); }
+.vip-input::placeholder { color: var(--fg-3, #6e7681); }
+
+.vip-btn {
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: opacity .15s, transform .08s;
+}
+.vip-btn:active { transform: translateY(1px); }
+.vip-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.vip-btn--primary {
+  width: 100%;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand, #1f6feb);
+  border-color: var(--brand, #1f6feb);
+}
+.vip-btn--ghost {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--fg, #e6edf3);
+  background: var(--surface-2, #21262d);
+  border-color: var(--line-2, #30363d);
+}
+
+.vip-hint {
+  min-height: 18px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--fg-3, #6e7681);
+}
+.vip-hint.is-bad { color: var(--red, #f85149); }
+
+/* ---------- 联系方式 ---------- */
+.vip-contact {
+  padding: 14px 16px;
+  margin: 4px 0 16px;
+  text-align: left;
+  border: 1px dashed var(--line-2, #30363d);
+  border-radius: 10px;
+  background: var(--surface-2, #21262d);
+}
+.vip-contact__lead {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--fg-2, #9aa4b2);
+}
+.vip-contact__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.vip-contact__k {
+  flex: 0 0 34px;
+  font-size: 12.5px;
+  color: var(--fg-3, #6e7681);
+}
+.vip-contact__v {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: "Consolas", "SF Mono", monospace;
+  font-size: 13.5px;
+  color: var(--fg, #e6edf3);
+  text-decoration: none;
+  word-break: break-all;
+}
+a.vip-contact__v:hover { color: var(--brand, #58a6ff); }
+
+.vip-copy {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--brand, #58a6ff);
+  background: transparent;
+  border: 1px solid var(--line-2, #30363d);
+  border-radius: 6px;
+}
+.vip-copy:hover { border-color: var(--brand, #58a6ff); }
+
+.vip-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.vip-acts .vip-btn { flex: 1 1 auto; margin-top: 0; }
+
+.vip-back {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--fg-3, #6e7681);
+  text-decoration: none;
+}
+.vip-back:hover { color: var(--brand, #58a6ff); }
+
+/* ---------- 链接角标（指向私密工具的 <a>）---------- */
+.is-vip-link { position: relative; }
+
+.vip-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 10.5px;
+  line-height: 1.6;
+  vertical-align: middle;
+  white-space: nowrap;
+  border-radius: 4px;
+  color: #fff;
+  background: linear-gradient(135deg, #b8860b, #daa520);
+}
+
+/* ---------- 轻量提示浮层（普通页点击专用链接时）---------- */
+.vip-teaser {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(3px);
+}
+.vip-teaser__box {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 26px 24px 20px;
+  text-align: center;
+  border: 1px solid var(--line, #30363d);
+  border-radius: 14px;
+  background: var(--surface, #161b22);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .4);
+}
+.vip-teaser__x {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--fg-3, #6e7681);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+.vip-teaser__x:hover { color: var(--fg, #e6edf3); background: var(--surface-2, #21262d); }
+.vip-teaser__t { margin: 0 0 10px; font-size: 19px; color: var(--fg, #e6edf3); }
+.vip-teaser__d {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--fg-2, #9aa4b2);
+}
+.vip-teaser__d b { color: var(--fg, #e6edf3); }
+
+/* ---------- 联系我们区块（页面里放 [data-contact]）---------- */
+.vip-contactbox {
+  padding: 18px 20px;
+  margin: 0 0 18px;
+  border: 1px solid var(--line, #30363d);
+  border-radius: 12px;
+  background: var(--surface, #161b22);
+}
+.vip-contactbox__h {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: var(--fg, #e6edf3);
+}
+.vip-contactbox__lead {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--fg-2, #9aa4b2);
+}
+.vip-contactbox .vip-contact { margin-bottom: 0; }
+
+/* ---------- 窄屏微调 ---------- */
+@media (max-width: 480px) {
+  .vip-card { padding: 22px 18px 20px; }
+  .vip-title { font-size: 19px; }
+  .vip-contact__k { flex-basis: 30px; }
+}

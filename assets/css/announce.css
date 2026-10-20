@@ -1,0 +1,153 @@
+/* =============================================================
+ * announce.css — 公告栏（首页公告区 + 全站顶部横幅）
+ * 由 assets/js/announce.js 动态注入。
+ * ============================================================= */
+
+/* ---------- 首页公告区 ---------- */
+.ann-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.ann-item {
+  position: relative;
+  padding: 16px 18px 16px 20px;
+  border: 1px solid var(--line, #30363d);
+  border-left-width: 4px;
+  border-radius: 10px;
+  background: var(--surface, #161b22);
+}
+
+.ann-item--highlight { border-left-color: #daa520; }
+.ann-item--info      { border-left-color: var(--brand, #58a6ff); }
+.ann-item--warn      { border-left-color: var(--amber, #d29922); }
+
+.ann-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ann-level {
+  padding: 1px 9px;
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--fg-3, #6e7681);
+}
+.ann-item--highlight .ann-level { background: linear-gradient(135deg, #b8860b, #daa520); }
+.ann-item--info .ann-level      { background: var(--brand, #1f6feb); }
+.ann-item--warn .ann-level      { background: var(--amber, #9e6a03); }
+
+.ann-date {
+  font-size: 12px;
+  color: var(--fg-3, #6e7681);
+}
+
+.ann-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg, #e6edf3);
+}
+
+.ann-body { margin: 0; }
+
+.ann-p {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--fg-2, #9aa4b2);
+  white-space: pre-line;
+}
+.ann-p:last-child { margin-bottom: 0; }
+
+.ann-cta {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 14px;
+  font-size: 13px;
+  text-decoration: none;
+  border-radius: 8px;
+  color: var(--brand, #58a6ff);
+  border: 1px solid var(--line-2, #30363d);
+  transition: border-color .15s, background .15s;
+}
+.ann-cta:hover {
+  border-color: var(--brand, #58a6ff);
+  background: var(--brand-soft, rgba(88, 166, 255, .1));
+}
+
+/* ---------- 全站顶部横幅 ----------
+   ⚠️ 位于普通文档流中（由 announce.js 插到导航占位符之后），
+   不使用 fixed —— 避免与各页面五花八门的 fixed 元素抢层级。 */
+.ann-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 42px 8px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  border-bottom: 1px solid var(--line, #30363d);
+  background: var(--surface-2, #21262d);
+}
+.ann-bar--highlight {
+  background: linear-gradient(90deg, rgba(218, 165, 32, .14), var(--surface-2, #21262d) 70%);
+}
+
+.ann-bar__badge {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  font-size: 11.5px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #b8860b, #daa520);
+}
+
+.ann-bar__t {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--fg, #e6edf3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ann-bar__more {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  color: var(--brand, #58a6ff);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ann-bar__more:hover { text-decoration: underline; }
+
+.ann-bar__x {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--fg-3, #6e7681);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+.ann-bar__x:hover {
+  color: var(--fg, #e6edf3);
+  background: var(--surface, #161b22);
+}
+
+@media (max-width: 560px) {
+  .ann-bar { padding: 7px 38px 7px 12px; font-size: 12.5px; }
+  .ann-bar__more { display: none; }
+}

@@ -84,7 +84,16 @@
    assets/vendor/bt/*.esm.js（协议库+rxjs+aes-js+tslib，约 137KB）都是
    「用户点连接才动态 import」的按需资源，预缓存只会拖慢安装，
    交由运行时 stale-while-revalidate 缓存即可（.js 命中 STATIC_RE）。 */
-const CACHE = 'fto-timer-v24';
+/* v25（2026-10-20）：工具箱权限划分 ——
+   ① /assets/js/site-nav.js 在 APP_SHELL 内且已改动（「魔方教练工具箱」下拉
+   新增「教练专用 · 需开通」分组，10 项专项工具从原位置移入），
+   不递增的话已安装 PWA 用户会一直拿到旧菜单、看不到这个分组，按规矩递增；
+   ② 新增 assets/js/vip-gate.js、assets/js/announce.js、
+   assets/css/vip-gate.css、assets/css/announce.css 均位于 /assets/ 下，
+   由运行时 stale-while-revalidate 自动缓存，不进 APP_SHELL；
+   ③ assets/data/announcements.json（全站公告）属"改完立即生效"内容，
+   已加入 NO_CACHE_PREFIX 绕开缓存。 */
+const CACHE = 'fto-timer-v25';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate
@@ -121,7 +130,14 @@ const APP_SHELL = [
 ];
 
 /* 不接管的路径前缀：这些是动态接口，缓存会返回脏数据 */
-const NO_CACHE_PREFIX = ['/api/', '/vercel-proxy/api/'];
+const NO_CACHE_PREFIX = [
+  '/api/',
+  '/vercel-proxy/api/',
+  /* v2.0.37：全站公告数据。它是"改完就想让用户立刻看到"的内容，
+     而 .json 命中 STATIC_RE 会走 stale-while-revalidate —— 用户第一次
+     拿到旧副本，要点第二次刷新才看得见新公告。这里放行让它每次走网络。 */
+  '/assets/data/announcements.json'
+];
 
 /* 按扩展名判定为「静态资源」→ 走 stale-while-revalidate */
 const STATIC_RE = /\.(?:css|js|mjs|json|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|otf|mp3|mp4|wasm)$/i;

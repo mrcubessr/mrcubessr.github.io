@@ -33,6 +33,13 @@
   </header>
 
   <!-- ② 常用工具 -->
+  <!-- ① 站点公告（数据来自 assets/data/announcements.json，改那个文件即可更新） -->
+  <section class="group" aria-labelledby="announce-title">
+    <h2 class="section-title" id="announce-title">站点公告</h2>
+    <div data-announce></div>
+  </section>
+
+  <!-- ② 常用工具 -->
   <section class="quick" aria-labelledby="quick-title">
     <h2 class="section-title" id="quick-title">常用工具</h2>
     <div class="quick__grid">
@@ -217,6 +224,9 @@
     </div>
   </section>
 
+  <!-- ⑥ 联系管理员（内容由 assets/js/vip-gate.js 注入，联系方式与之共用单一来源） -->
+  <div data-contact="card"></div>
+
 </main>
 
 <footer class="site-footer">
@@ -224,6 +234,8 @@
   <p class="site-footer__meta">© 2026 mrcubessr</p>
 </footer>
 
+<script src="/assets/js/vip-gate.js"></script>
+<script src="/assets/js/announce.js"></script>
 <script src="/assets/js/site-nav.js"></script>
 </body>
 </html>

@@ -140,6 +140,31 @@
   background: transparent;
 }
 
+/* v2.0.37：「教练专用 · 需开通」分组小标题
+   把专项功能与公开工具在视觉上切开。不可点击、不参与 hover 态。
+   ⚠️ 侧栏模式下 .nav-links 有最大高度并会滚动，这里加 sticky 会在部分浏览器
+      引发跳动，故不做吸顶，跟随菜单整体滚动即可。 */
+.site-nav .nav-menu .nav-menu-sep {
+  margin: 6px 0 2px;
+  padding: 7px 14px 5px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--fg-3, #7C8798);
+  white-space: nowrap;
+  border-top: 1px dashed var(--brand-line, rgba(100, 180, 255, 0.22));
+  /* 首个可见分隔其上不再重复描边（由 :not 处理） */
+}
+.site-nav .nav-menu .nav-menu-sep::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #b8860b, #daa520);
+}
+
 /* 二级下拉菜单 */
 .site-nav .nav-drop.sub {
   position: relative;
