@@ -103,17 +103,55 @@
     });
   }
 
-  /** 序列号加载脚本（依赖有先后：cb-config → sdk → cb-auth） */
-  function loadScript(src) {
-    return new Promise(function (resolve, reject) {
-      if (doc.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+  /** 轮询等待某个全局符号出现（带超时），返回 Promise<boolean> */
+  function waitGlobal(test, timeoutMs) {
+    return new Promise(function (resolve) {
+      var deadline = Date.now() + (timeoutMs || 15000);
+      (function tick() {
+        var ok = false;
+        try { ok = !!test(); } catch (e) { ok = false; }
+        if (ok) { resolve(true); return; }
+        if (Date.now() > deadline) { resolve(false); return; }
+        setTimeout(tick, 80);
+      })();
+    });
+  }
+
+  /**
+   * 确保某个依赖就绪：已就绪直接通过；否则按需插入 <script> 并**等待符号出现**。
+   *
+   * ⚠️ 关键教训（v2.0.37 实测踩到）：
+   *   不能把「<script> 标签已在 DOM 里」当作「脚本已执行完」。
+   *   sync-boot.js 会在 DOMContentLoaded 前后按序动态插入 cb-config / cb-auth 等标签，
+   *   两个加载器同时存在时，`querySelector('script[src=...]')` 会命中**正在下载中**的标签，
+   *   一旦据此提前 resolve，鉴权就会在 CB_CONFIG 尚未定义时抢跑 ——
+   *   表现为 configured() 返回 false、浮层误报「站点未配置账号服务」。
+   *   唯一可靠的判据是「全局符号是否已存在」。
+   */
+  function waitOrLoad(test, src) {
+    if (test()) return Promise.resolve(true);
+    if (!doc.querySelector('script[src="' + src + '"]')) {
       var el = doc.createElement('script');
       el.src = src;
       el.async = false;
-      el.onload = function () { resolve(); };
-      el.onerror = function () { reject(new Error('加载失败: ' + src)); };
       (doc.head || doc.documentElement).appendChild(el);
-    });
+    }
+    /* 标签已由别人插入时不再重复插入，只等它就位 */
+    return waitGlobal(test, 15000);
+  }
+
+  /** 按需加载登录依赖（cb-config → supabase SDK → cb-auth），逐项确认符号就绪 */
+  function loadAuthDeps() {
+    return waitOrLoad(function () { return !!global.CB_CONFIG; }, '/assets/js/cb-config.js')
+      .then(function () {
+        var sdk = (global.CB_CONFIG && global.CB_CONFIG.sdkUrl) || '/assets/js/supabase-2.117.1.min.js';
+        return waitOrLoad(function () { return !!global.supabase; }, sdk);
+      })
+      .then(function () {
+        return waitOrLoad(function () {
+          return !!(global.CBAuth && global.CBAuth.configured);
+        }, '/assets/js/cb-auth.js');
+      });
   }
 
   function ensureCSS() {
@@ -418,20 +456,11 @@
     });
   }
 
-  /** 按需加载登录依赖（cb-config → supabase SDK → cb-auth） */
-  function loadAuthDeps() {
-    if (global.CBAuth && global.CBAuth.configured) return Promise.resolve();
-    var steps = ['/assets/js/cb-config.js'];
-    if (!global.supabase) steps.push((global.CBConfig && global.CBConfig.sdkUrl) || '/assets/js/supabase-2.117.1.min.js');
-    steps.push('/assets/js/cb-auth.js');
+  /* ---------------------------------------------------------
+     模式 ②：链接增强（给指向私密页的链接加角标并拦截）
+     --------------------------------------------------------- */
 
-    return steps.reduce(function (p, src) {
-      return p.then(function () { return loadScript(src); });
-    }, Promise.resolve()).catch(function (e) {
-      throw e;
-    });
-  }
-
+  /** 私密页入口：先加锁 → 显示 loading → 等登录依赖就位 → 判定 */
   function startGate() {
     var root = doc.documentElement;
     if (root) root.classList.add('vip-locking');
@@ -439,15 +468,16 @@
     renderLoading(name);
 
     loadAuthDeps().then(function () {
+      /* loadAuthDeps 只负责"尽量等就位"、不抛错；这里统一兜底判定 */
+      if (!global.CBAuth || !global.CB_CONFIG) {
+        renderError(name, '登录组件加载失败或超时，请检查网络后重试。');
+        return false;
+      }
       return judge();
     }, function (e) {
       renderError(name, '登录组件加载失败：' + ((e && e.message) || String(e)) + '。请检查网络后重试。');
     });
   }
-
-  /* ---------------------------------------------------------
-     模式 ②：链接增强（给指向私密页的链接加角标并拦截）
-     --------------------------------------------------------- */
 
   var BADGE_TEXT = '专用';
 
