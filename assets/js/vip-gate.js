@@ -39,7 +39,7 @@
 
   /** 站长邮箱：命中即本地放行（不查表、不依赖网络），
       保证 Supabase 故障或离线时站长自己仍能使用全部工具。 */
-  var OWNER_EMAILS = ['380972743@qq.com'];
+  var OWNER_EMAILS = ['380972743@qq.com', 'gamejia@qq.com'];
 
   /** Supabase 白名单表名（建表 SQL 见 docs/vip-access.sql） */
   var ACCESS_TABLE = 'vip_access';

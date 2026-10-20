@@ -85,5 +85,5 @@ create policy vip_access_read_own
 
 -- 现象：所有人都打不开（包括你自己）
 --   原因可能是 RLS 策略没生效或表没建成。
---   注意：站长邮箱 380972743@qq.com 已在 vip-gate.js 里做了本地豁免，
+--   注意：站长邮箱 380972743@qq.com、gamejia@qq.com 已在 vip-gate.js 的 OWNER_EMAILS 里做了本地豁免，
 --   即使这张表完全不可用，你用这个邮箱登录仍可正常使用全部工具。
