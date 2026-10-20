@@ -177,13 +177,15 @@ body{
 .cm-card{margin:0;background:var(--surface-2);border:1px solid var(--line);border-radius:0;overflow:hidden;transition:border-color .2s,transform .2s;cursor:zoom-in}
 .cm-card:hover{border-color:var(--km-teal-l);transform:translateY(-3px)}
 .cm-card img{width:100%;height:auto;display:block}
-.cm-cap{padding:11px 13px;display:flex;flex-direction:column;gap:7px}
-.cm-code{font-size:18px;font-weight:900;letter-spacing:3px;color:var(--fg)}
-.cm-dots{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-3)}
+.cm-cap{padding:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.cm-letters{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.cm-sticker{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:900;line-height:1;border-radius:7px;font-style:normal;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.12)}
+.cm-meta{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cm-dots{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-3)}
 .cm-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18);display:inline-block;flex-shrink:0}
 .cm-dot.w{border-color:rgba(0,0,0,.45)}
 .cm-arrow{color:var(--fg-3);font-size:11px;font-weight:700}
-.cm-obj{font-size:12px;color:var(--fg-2);line-height:1.55}
+.cm-obj{font-size:13px;color:var(--fg-2);font-weight:500}
 @media(max-width:1100px){.cm-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:640px){.cm-grid{grid-template-columns:1fr}.cm-band{padding:16px 14px}}
 
@@ -452,72 +454,120 @@ body{
     <figure class="cm-card" data-zoom-src="corner-mnemonic/ABC.png" title="ABC · 点击查看大图">
       <img src="corner-mnemonic/thumbs/ABC.png" alt="ABC 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">ABC</span>
-        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i></span>
-        <span class="cm-obj">苹果 · 蜜蜂 · 大嘴怪</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#F4C20D;color:#2b2b2b">A</span>
+          <span class="cm-sticker" style="background:#D62828;color:#fff">B</span>
+          <span class="cm-sticker" style="background:#1D4E89;color:#fff">C</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i></span>
+          <span class="cm-obj">苹果 · 蜜蜂 · 大嘴怪</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/DEF.png" title="DEF · 点击查看大图">
       <img src="corner-mnemonic/thumbs/DEF.png" alt="DEF 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">DEF</span>
-        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i></span>
-        <span class="cm-obj">菜刀 · 大鹅 · 斧头</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#F4C20D;color:#2b2b2b">D</span>
+          <span class="cm-sticker" style="background:#1D4E89;color:#fff">E</span>
+          <span class="cm-sticker" style="background:#F77F00;color:#2b2b2b">F</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i></span>
+          <span class="cm-obj">菜刀 · 大鹅 · 斧头</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/GHI.png" title="GHI · 点击查看大图">
       <img src="corner-mnemonic/thumbs/GHI.png" alt="GHI 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">GHI</span>
-        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i></span>
-        <span class="cm-obj">狗 · 猴 · 绿铅笔</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#F4C20D;color:#2b2b2b">G</span>
+          <span class="cm-sticker" style="background:#F77F00;color:#2b2b2b">H</span>
+          <span class="cm-sticker" style="background:#2A9D4A;color:#fff">I</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i></span>
+          <span class="cm-obj">狗 · 猴 · 绿铅笔</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/JKL.png" title="JKL · 点击查看大图">
       <img src="corner-mnemonic/thumbs/JKL.png" alt="JKL 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">JKL</span>
-        <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i></span>
-        <span class="cm-obj">小钩子 · 钥匙 · 球杆</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#F4C20D;color:#2b2b2b">J</span>
+          <span class="cm-sticker" style="background:#2A9D4A;color:#fff">K</span>
+          <span class="cm-sticker" style="background:#D62828;color:#fff">L</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot" style="background:#F4C20D"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i></span>
+          <span class="cm-obj">小钩子 · 钥匙 · 球杆</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/WMN.png" title="WMN · 点击查看大图">
       <img src="corner-mnemonic/thumbs/WMN.png" alt="WMN 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">WMN</span>
-        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i></span>
-        <span class="cm-obj">碗 · 麦当劳 · 门</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#FFFFFF;color:#2b2b2b">W</span>
+          <span class="cm-sticker" style="background:#1D4E89;color:#fff">M</span>
+          <span class="cm-sticker" style="background:#D62828;color:#fff">N</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i></span>
+          <span class="cm-obj">碗 · 麦当劳 · 门</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/XYZ.png" title="XYZ · 点击查看大图">
       <img src="corner-mnemonic/thumbs/XYZ.png" alt="XYZ 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">XYZ</span>
-        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i></span>
-        <span class="cm-obj">叉子 · 弹弓 · 斑马</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#FFFFFF;color:#2b2b2b">X</span>
+          <span class="cm-sticker" style="background:#D62828;color:#fff">Y</span>
+          <span class="cm-sticker" style="background:#2A9D4A;color:#fff">Z</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#D62828"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i></span>
+          <span class="cm-obj">叉子 · 弹弓 · 斑马</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/OPQ.png" title="OPQ · 点击查看大图">
       <img src="corner-mnemonic/thumbs/OPQ.png" alt="OPQ 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">OPQ</span>
-        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i></span>
-        <span class="cm-obj">鸡蛋 · 球拍 · 蓝气球</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#FFFFFF;color:#2b2b2b">O</span>
+          <span class="cm-sticker" style="background:#F77F00;color:#2b2b2b">P</span>
+          <span class="cm-sticker" style="background:#1D4E89;color:#fff">Q</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#1D4E89"></i></span>
+          <span class="cm-obj">鸡蛋 · 球拍 · 蓝气球</span>
+        </span>
       </figcaption>
     </figure>
 
     <figure class="cm-card" data-zoom-src="corner-mnemonic/RST.png" title="RST · 点击查看大图">
       <img src="corner-mnemonic/thumbs/RST.png" alt="RST 角块联想记忆图" loading="lazy" decoding="async">
       <figcaption class="cm-cap">
-        <span class="cm-code">RST</span>
-        <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i></span>
-        <span class="cm-obj">滑梯 · 蛇 · 锤子</span>
+        <span class="cm-letters">
+          <span class="cm-sticker" style="background:#FFFFFF;color:#2b2b2b">R</span>
+          <span class="cm-sticker" style="background:#2A9D4A;color:#fff">S</span>
+          <span class="cm-sticker" style="background:#F77F00;color:#2b2b2b">T</span>
+        </span>
+        <span class="cm-meta">
+          <span class="cm-dots"><i class="cm-dot w" style="background:#FFFFFF"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#2A9D4A"></i><span class="cm-arrow">→</span><i class="cm-dot" style="background:#F77F00"></i></span>
+          <span class="cm-obj">滑梯 · 蛇 · 锤子</span>
+        </span>
       </figcaption>
     </figure>
 
