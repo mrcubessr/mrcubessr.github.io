@@ -7,7 +7,7 @@
 <script src="/assets/js/theme.js"></script>
 <script src="/assets/js/palette.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
-<title>三盲训练中心 · 公式库 + 全套盲拧工具 · 魔方先生SSR魔方训练中心</title>
+<title>盲拧训练中心 · 棱/角公式库 + 全套盲拧工具 · 魔方先生SSR魔方训练中心</title>
 <link rel="stylesheet" href="/assets/css/tokens.css">
 <link rel="stylesheet" href="/assets/css/base.css">
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -23,6 +23,11 @@
     font-size: 12px; letter-spacing: .08em; border-radius: 0;
     color: var(--brand); border: 1px solid var(--brand);
   }
+  /* 公式库分组小标题（角块查询 / 棱块查询 / 高级） */
+  .blddb__grp {
+    align-self: center; padding: 0 2px; white-space: nowrap;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--fg-3);
+  }
 </style>
 </head>
 <body data-nav="3bld">
@@ -34,36 +39,39 @@
 
   <!-- 页头 -->
   <div class="bld-hero page-head">
-    <span class="bld-hero__tag">3×3 BLINDFOLD</span>
-    <h1 class="page-head__title">三盲训练中心</h1>
-    <p class="page-head__sub">blddb.net 盲拧公式库全量搬运 · 全套盲拧训练工具一处直达</p>
+    <span class="bld-hero__tag">3×3 / 2×2 / 4×4 BLINDFOLD</span>
+    <h1 class="page-head__title">盲拧训练中心</h1>
+    <p class="page-head__sub">blddb.net 盲拧公式库全量搬运（棱 / 角查询）· 全套盲拧训练工具一处直达</p>
   </div>
 
   <!-- ============ 公式库（blddb.net 搬运） ============ -->
   <section class="group" aria-labelledby="blddb-h">
-    <h2 class="section-title" id="blddb-h">盲拧公式库 · blddb.net</h2>
+    <h2 class="section-title" id="blddb-h">盲拧公式库 · 按棱 / 角查询</h2>
     <p class="x3-path">
-      输入字母对即可查询 3-Style 等算法：角块如 <span class="formula">JAD</span>、棱块如 <span class="formula">ACG</span>。
-      支持梦魇 / 平衡 / 原子 / 人造 多种风格切换，数据由 blddb.net 全量搬运、完整保留。
+      输入字母对即可查询 3-Style 等算法：<b>角块</b>如 <span class="formula">JAD</span>、<b>棱块</b>如 <span class="formula">ACG</span>。
+      公式库按「角块 / 棱块」分组，查完公式再进下方训练。数据由 blddb.net 全量搬运、完整保留。
     </p>
 
     <div class="blddb">
       <div class="blddb__tabs" role="tablist" aria-label="公式库模块">
-        <button class="blddb__tab is-active" type="button" data-src="/tools/3bld/blddb/corner.html" role="tab" aria-selected="true">角块 3-Style</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/edge.html" role="tab" aria-selected="false">棱块 3-Style</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/2e2e.html" role="tab" aria-selected="false">2e2e</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/2flips.html" role="tab" aria-selected="false">棱翻转</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/twists.html" role="tab" aria-selected="false">角扭转</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/ltct.html" role="tab" aria-selected="false">LTCT</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/ltef.html" role="tab" aria-selected="false">LTEF</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/parity.html" role="tab" aria-selected="false">奇偶</button>
-        <button class="blddb__tab" type="button" data-src="/tools/3bld/blddb/index.html" role="tab" aria-selected="false">总览</button>
+        <span class="blddb__grp">角块查询</span>
+        <button class="blddb__tab is-active" type="button" data-key="corner" data-src="/tools/3bld/blddb/corner.html" role="tab" aria-selected="true">角块 3-Style</button>
+        <button class="blddb__tab" type="button" data-key="twists" data-src="/tools/3bld/blddb/twists.html" role="tab" aria-selected="false">角扭转</button>
+        <span class="blddb__grp">棱块查询</span>
+        <button class="blddb__tab" type="button" data-key="edge" data-src="/tools/3bld/blddb/edge.html" role="tab" aria-selected="false">棱块 3-Style</button>
+        <button class="blddb__tab" type="button" data-key="2e2e" data-src="/tools/3bld/blddb/2e2e.html" role="tab" aria-selected="false">2e2e</button>
+        <button class="blddb__tab" type="button" data-key="2flips" data-src="/tools/3bld/blddb/2flips.html" role="tab" aria-selected="false">棱翻转</button>
+        <span class="blddb__grp">高级 / 其他</span>
+        <button class="blddb__tab" type="button" data-key="ltct" data-src="/tools/3bld/blddb/ltct.html" role="tab" aria-selected="false">LTCT</button>
+        <button class="blddb__tab" type="button" data-key="ltef" data-src="/tools/3bld/blddb/ltef.html" role="tab" aria-selected="false">LTEF</button>
+        <button class="blddb__tab" type="button" data-key="parity" data-src="/tools/3bld/blddb/parity.html" role="tab" aria-selected="false">奇偶</button>
+        <button class="blddb__tab" type="button" data-key="index" data-src="/tools/3bld/blddb/index.html" role="tab" aria-selected="false">总览</button>
       </div>
       <div class="blddb__frame">
         <iframe id="blddbFrame" src="/tools/3bld/blddb/corner.html" title="blddb 盲拧公式库" loading="lazy"></iframe>
       </div>
       <p class="blddb__hint">
-        公式库为 blddb.net 全量搬运，含角块 / 棱块 3-Style、2e2e、棱翻转、角扭转、LTCT、LTEF、奇偶等全部模块。
+        公式库按「角块 / 棱块」分组查询，另含 2e2e、棱翻转、角扭转、LTCT、LTEF、奇偶等全部模块。
         移动端可横向查看；需要更大空间可 <a href="/tools/3bld/blddb/index.html" target="_blank" rel="noopener">在新标签打开完整站 ↗</a>。
       </p>
     </div>
@@ -73,6 +81,13 @@
   <section class="group" aria-labelledby="tools-h">
     <h2 class="section-title" id="tools-h">盲拧训练工具</h2>
     <div class="bld-tool-grid">
+
+      <a class="card card--train" href="/tools/ft/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5V16.5L12 21 4 16.5V7.5Z"/><path d="M12 12 4 7.5M12 12l8-4.5M12 12v9"/><path d="M9.33 4.5 17.33 9M6.67 6l8 4.5M14.67 4.5 6.67 9M17.33 6l-8 4.5"/><path d="M4 10.5 12 15M4 13.5 12 18M6.67 9v9M9.33 10.5v9"/><path d="M20 10.5 12 15M20 13.5 12 18M17.33 9v9M14.67 10.5v9"/></svg></div>
+        <div class="card-title">盲拧公式训练器</div>
+        <div class="card-desc">角 / 棱 + 高阶角心 / 翼棱 / 棱心 / 中棱六体系 · 自选缓冲矩阵展开</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">六体系</span></div>
+      </a>
 
       <a class="card card--print" href="/tools/3bld/level.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 5-7 4 4"/><path d="M3 21h18"/><path d="M3 3v18"/></svg></div>
@@ -185,19 +200,30 @@
 </footer>
 
 <script>
-  /* 公式库模块切换：点击 tab 切换 iframe 源 */
+  /* 公式库模块切换：点击 tab 切换 iframe 源；支持 #corner / #edge 等 hash 直达 */
   (function () {
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.blddb__tab'));
     var frame = document.getElementById('blddbFrame');
     if (!frame) return;
+    function activate(t) {
+      tabs.forEach(function (x) { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
+      t.classList.add('is-active');
+      t.setAttribute('aria-selected', 'true');
+      frame.src = t.getAttribute('data-src');
+    }
     tabs.forEach(function (t) {
-      t.addEventListener('click', function () {
-        tabs.forEach(function (x) { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
-        t.classList.add('is-active');
-        t.setAttribute('aria-selected', 'true');
-        frame.src = t.getAttribute('data-src');
-      });
+      t.addEventListener('click', function () { activate(t); });
     });
+    /* 从首页「公式库 · 角块/棱块查询」带 #corner / #edge 进来时，直达对应 tab */
+    function applyHash() {
+      var key = (location.hash || '').replace('#', '');
+      if (!key) return;
+      var hit = tabs.filter(function (t) { return t.getAttribute('data-key') === key; })[0];
+      if (hit) activate(hit);
+    }
+    applyHash();
+    /* 同页内再改 hash（如地址栏手改、锚点互跳）也要能跟上 */
+    window.addEventListener('hashchange', applyHash);
   })();
 </script>
 <script src="/assets/js/site-nav.js"></script>

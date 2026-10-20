@@ -48,13 +48,14 @@
 
   /* 私密页清单。键 = 规范化路径，值 = 展示名。
      ⚠️ 精确到具体页面，不要写目录前缀：
-        /tools/3bld/level.html（难度分级）与 association.html（联想词）仍为公开。 */
+        /tools/3bld/level.html（难度分级）与 association.html（联想词）仍为公开。
+        v2.0.44：/tools/3bld/index.html（三盲 / 盲拧项目页）已对外开放、移出本清单；
+        该页仍保留 vip-gate.js，用于给页内指向教练专用工具的链接加「专用」角标。 */
   var VIP_PAGES = {
     '/tools/srs/index.html':          '记忆卡片 SRS',
     '/tools/srs/review.html':         '记忆卡片 SRS',
     '/tools/srs/stats.html':          '记忆卡片 SRS',
     '/tools/srs/edit.html':           '记忆卡片 SRS',
-    '/tools/3bld/index.html':         '三盲总览',
     '/tools/bld-trainer/index.html':  '盲拧编码记忆',
     '/tools/edge-printout/index.html': '棱块出题器',
     '/tools/practice/index.html':     '练习题生成器',

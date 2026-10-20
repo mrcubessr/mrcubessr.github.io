@@ -104,7 +104,16 @@
    ③ 新增 /index.html 与 /assets/css/pages/home.css 进 APP_SHELL：
    首页是全站入口且本次整页重写，靠运行时 stale-while-revalidate 的话
    用户第一次打开仍会看到旧首页、第二次刷新才变。 */
-const CACHE = 'fto-timer-v26';
+/* v27（2026-10-20）：首页 + 导航按「项目」重组（v2.0.44）——
+   ① /index.html 在 APP_SHELL 内且已整节重写（Hero 去副标行、
+   删「快速开始」区、教程区删 PLL/OLL 卡、⑤区改「盲拧公式库与训练」
+   并加角/棱查询直链、工具箱删两张卡），
+   ② /assets/js/site-nav.js 在 APP_SHELL 内且已改（tutorial 组删
+   PLL/OLL、删顶层独立 ft、coach 组删 bld-level 与 3bld），
+   ③ /tools/timer/index.html 在 APP_SHELL 内且已改（三盲参数脚
+   加难度分级标准直链）。
+   三件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
+const CACHE = 'fto-timer-v27';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate
