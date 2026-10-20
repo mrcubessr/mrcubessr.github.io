@@ -9,6 +9,14 @@
 
 ---
 
+## [2.0.43] — 2026-10-20（教练专用门禁脚本强制刷新缓存）
+
+**1. 给 `vip-gate.js` / `vip-gate.css` 加版本号强制刷新**
+
+- 背景：家电脑等已安装 PWA / 旧 Service Worker 用户，反复打开仍拿到 v2.0.41 之前的旧 `vip-gate.js`（当时 `OWNER_EMAILS` 只有 380972743@qq.com），导致 gamejia@qq.com 等新增豁免账号被认成"无权限"。`/assets/` 下 JS/CSS 走 SW stale-while-revalidate，旧文件会一直命中缓存。
+- 改法：16 个加载 `vip-gate.js` 的页面（首页 + 15 个教练专用页）把 `<script src="/assets/js/vip-gate.js">` 改为 `?v=2.0.43`；`vip-gate.js` 内部 `CSS_URL` 也加 `?v=2.0.43`。导航 HTML 为 network-first，改后的引用会被立即拉取，新查询串是一个全新缓存键 → 强制避开旧缓存，单次刷新即生效。
+- ⚠️ 后续若再改 `vip-gate.js`/`vip-gate.css`，需同步把此版本号 +1。
+
 ## [2.0.42] — 2026-10-20（联系我们：加入管理员微信二维码）
 
 **1. 「联系管理员」加入微信二维码**

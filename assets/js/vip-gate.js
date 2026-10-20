@@ -44,7 +44,7 @@
   /** Supabase 白名单表名（建表 SQL 见 docs/vip-access.sql） */
   var ACCESS_TABLE = 'vip_access';
 
-  var CSS_URL = '/assets/css/vip-gate.css';
+  var CSS_URL = '/assets/css/vip-gate.css?v=2.0.43';
 
   /* 私密页清单。键 = 规范化路径，值 = 展示名。
      ⚠️ 精确到具体页面，不要写目录前缀：
