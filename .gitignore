@@ -14,3 +14,6 @@ tools/srs/scripts/raz-pipeline/montages/
 
 # OCR 管线临时渲染文件
 tools/srs/scripts/raz-pipeline/_ocr_tmp.png
+
+# 抓取类构建脚本的本地缓存（源站 html，可重新抓取）
+tools/cfop/scripts/.cache/

@@ -162,5 +162,19 @@
     return svg;
   }
 
-  window.CubeArt = { flatCase: flatCase, isoCube: isoCube, flatNet: flatNet };
+  window.CubeArt = { flatCase: flatCase, isoCube: isoCube, flatNet: flatNet, rawArt: rawArt };
+
+  /* 预渲染好的整段 SVG（SQ1 上下两层图 / 五魔方 4LLL 图）：
+     数据里存的是完整 <svg> 源码，直接解析成元素返回；旋转对其无意义。 */
+  function rawArt(html) {
+    if (!html) return null;
+    var box = document.createElement("div");
+    box.innerHTML = String(html);
+    var el = box.firstElementChild;
+    if (!el || el.tagName.toLowerCase() !== "svg") return null;
+    if (!/\bcfop-net\b/.test(el.getAttribute("class") || "")) {
+      el.setAttribute("class", (el.getAttribute("class") || "") + " cfop-net");
+    }
+    return el;
+  }
 })();

@@ -119,7 +119,7 @@ window.CFOP = (function () {
         });
         if (!algs.length) { return; }
         var cs = {
-          id: c.id, sub: c.subgroup || '其他', facelets: c.facelets, algs: algs,
+          id: c.id, sub: c.subgroup || '其他', facelets: c.facelets, art: c.art, algs: algs,
           num: parseFloat(String(c.id).replace(/[^\d.]/g, '')) || 0
         };
         CASES.push(cs);
@@ -397,7 +397,11 @@ window.CFOP = (function () {
       };
     }
     function netSvg(c, k) {
-      try { return window.CubeArt.flatCase(rotateFacelets(c.facelets, k || 0)); } catch (e) { return null; }
+      try {
+        /* SQ1 / 五魔方：数据里直接带预渲染好的整段 SVG（art），不走 facelets 旋转 */
+        if (c && c.art) { return window.CubeArt.rawArt(c.art); }
+        return window.CubeArt.flatCase(rotateFacelets(c.facelets, k || 0));
+      } catch (e) { return null; }
     }
 
     /* ================= 6) AUF（y 转体）解析与显示 =================
@@ -1053,7 +1057,7 @@ window.CFOP = (function () {
       $('c4-m-net').innerHTML = svg ? svg.outerHTML : '';
       $('c4-m-net').classList.toggle('is-empty', !svg);
       var rotBox = document.getElementById('c4-rot');
-      if (rotBox) { rotBox.classList.toggle('is-empty', !svg); }
+      if (rotBox) { rotBox.classList.toggle('is-empty', !svg || !!c.art); }
       /* 公式（rot≠0 且核纯净时 y 已被吸收进旋转，见 algParts） */
       $('c4-p-alg').innerHTML = fmtAlg(p.pre + p.text);
       $('c4-fs-alg').innerHTML = fmtAlg(p.pre + p.text);

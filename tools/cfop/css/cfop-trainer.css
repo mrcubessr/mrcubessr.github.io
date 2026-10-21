@@ -348,3 +348,26 @@ body.c4-longname .c4-bcell .c-code {
 body.c4-longname .c4-bcell .c-ms {
   font-size: min(1.15em, calc(var(--c4-cell-w, 82px) * .17));
 }
+
+/* ---------- ⑩ 预渲染整图（SQ1 上下两层 / 五魔方 4LLL） ----------------------------
+   数据 case.art 里存的是完整 <svg>，由 cube-art.js 的 rawArt 解析后塞进 #c4-m-net。
+   配色一律走 tokens 变量，深浅主题自动跟随；不参与 AUF 旋转（旋转控件会被收掉）。 */
+.cfop-net--sq1 { width: 100%; height: 100%; }
+.cfop-net--sq1 .sq1-sh {           /* 打方形：形状轮廓 */
+  fill: var(--face-u, #EFF2F7); fill-opacity: .5;
+  stroke: var(--fg-2, #5B6474); stroke-width: 1.3; stroke-linejoin: round;
+}
+.cfop-net--sq1 .sq1-ol {           /* 状态图：外轮廓 */
+  fill: none; stroke: var(--fg-2, #5B6474); stroke-width: 1.3; stroke-linejoin: round;
+}
+.cfop-net--sq1 .sq1-g { fill: var(--face-f, #2E9E4F); stroke: var(--fg-2, #5B6474); stroke-width: .45; stroke-linejoin: round; }
+.cfop-net--sq1 .sq1-y { fill: var(--face-d, #FFD500); stroke: var(--fg-2, #5B6474); stroke-width: .45; stroke-linejoin: round; }
+.cfop-net--sq1 .sq1-b { fill: var(--fg-3, #8A93A6); fill-opacity: .5; stroke: var(--fg-2, #5B6474); stroke-width: .45; stroke-linejoin: round; }
+.cfop-net--sq1 .sq1-n { fill: var(--fg-3, #8A93A6); fill-opacity: .14; stroke: var(--fg-3, #8A93A6); stroke-width: .4; stroke-linejoin: round; }
+
+/* 五魔方 4LLL：俯视十二边形 + 中央五边形 + 五个邻面。
+   原图两种颜色（亮米 = 顶色、深蓝灰 = 灰），这里换成主题变量。 */
+.cfop-net--mega { width: 100%; height: 100%; }
+.cfop-net--mega .mg-top { fill: var(--face-d, #FFD500); }
+.cfop-net--mega .mg-gray { fill: var(--fg-3, #8A93A6); fill-opacity: .3; }
+.cfop-net--mega .mg-line { fill: none; stroke: var(--fg-2, #5B6474); stroke-width: 1; stroke-linejoin: round; }
