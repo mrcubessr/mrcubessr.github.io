@@ -47,25 +47,11 @@
   var CSS_URL = '/assets/css/vip-gate.css?v=2.0.43';
 
   /* 私密页清单。键 = 规范化路径，值 = 展示名。
-     ⚠️ 精确到具体页面，不要写目录前缀：
-        /tools/3bld/level.html（难度分级）与 association.html（联想词）仍为公开。
-        v2.0.44：/tools/3bld/index.html（三盲 / 盲拧项目页）已对外开放、移出本清单；
-        该页仍保留 vip-gate.js，用于给页内指向教练专用工具的链接加「专用」角标。 */
-  var VIP_PAGES = {
-    '/tools/srs/index.html':          '记忆卡片 SRS',
-    '/tools/srs/review.html':         '记忆卡片 SRS',
-    '/tools/srs/stats.html':          '记忆卡片 SRS',
-    '/tools/srs/edit.html':           '记忆卡片 SRS',
-    '/tools/bld-trainer/index.html':  '盲拧编码记忆',
-    '/tools/edge-printout/index.html': '棱块出题器',
-    '/tools/practice/index.html':     '练习题生成器',
-    '/tools/kmap/index.html':         '二阶知识地图',
-    '/tools/bld-kmap/index.html':     '三阶知识地图',
-    '/tools/3x3teach/index.html':     '三阶趣味课堂',
-    '/tools/3x3teach/courseware.html': '三阶趣味课堂',
-    '/tools/class-teach/index.html':  '魔方课堂教学系统',
-    '/tools/2x2/index.html':          '二阶公式练习'
-  };
+     ⚠️ 精确到具体页面，不要写目录前缀。
+     v2.0.53：权限门槛已取消，所有原「教练专用」工具对全员开放，
+        故清单置空 —— 以下任何页面不再弹开通浮层、指向它们的链接不再被拦截。
+        （如需重新启用门禁，把页面路径填回此处即可，其余逻辑无需改动。） */
+  var VIP_PAGES = {};
 
   /* ---------------------------------------------------------
      工具函数

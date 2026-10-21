@@ -131,7 +131,19 @@
    公式库棱/角查询卡，并保留 v2.0.49 新增的角/棱训练器直链卡），
    ② /assets/js/site-nav.js 在 APP_SHELL 内且已改（coach 组恢复 sep + 9 个专用项）。
    两件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
-const CACHE = 'fto-timer-v31';
+/* v32（2026-10-21）：去掉「教练专用」权限门槛、保留全部功能（v2.0.53，用户：
+   「把教练专用的权限去掉，功能保留」）——
+   ① /assets/js/vip-gate.js 的 VIP_PAGES 置空，原 13 个教练专用页不再弹开通浮层、
+      指向它们的链接不再被拦截；boot/renderContactBlocks 逻辑保留，首页「联系管理员」
+      区块仍正常注入；
+   ② /assets/js/site-nav.js 在 APP_SHELL 内且已改（coach 组 sep 标签「教练专用 · 需开通」
+      →「教练专用」）；
+   ③ /index.html 在 APP_SHELL 内且已改（⑥区小标题「教练专用 · 需开通后使用」→「教练专用」）；
+   ④ /assets/data/announcements.json 移除已失效的 vip-tools-2026 公告、修正 server-fund
+      中「赞助者可以开通教练专用」的过时表述（该文件走 NO_CACHE_PREFIX，实际不受影响，
+      但文案需与新状态一致）。
+   ②③④均在 APP_SHELL 或需立即一致，按规矩递增。 */
+const CACHE = 'fto-timer-v32';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

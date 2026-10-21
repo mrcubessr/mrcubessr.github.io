@@ -47,7 +47,7 @@
          ⚠️ 这里**只做视觉分组与跳转目标**，真正的拦截在 assets/js/vip-gate.js：
          它按 VIP_PAGES 清单判定，目标页面会显示开通浮层（含联系方式）。
          新增/调整专用工具时，两边要同步改：这里决定展示，那边决定拦截。 */
-      { label: '教练专用 · 需开通', sep: true },
+      { label: '教练专用', sep: true },
       { id: '2x2',            label: '二阶公式练习',   href: '/tools/2x2/' },
       { id: 'bld-trainer',    label: '盲拧编码记忆',   href: '/tools/bld-trainer/' },
       { id: 'edge-printout',  label: '棱块出题器',     href: '/tools/edge-printout/' },
