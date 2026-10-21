@@ -524,15 +524,27 @@
 
   /* ---------- 主入口 ---------- */
   /* ---------- 难度量化 ----------
-     规则（与圈内习惯一致）：2 个编码 = 1 条公式
-       - 棱/角读码：ceil(字母数/2)
-       - 翻色 2 码 = 1 条；三角翻 3 码 = ceil(3/2) = 2 条（同一规则自动成立）
+     规则（与圈内习惯一致）：一条公式处理 2 个编码（块）
+       - 棱/角读码：每个字母 = 1 个块，公式数 = ceil(字母数/2)
+       - 翻色/扭角：每个块在角色行里占 2 个字母（一对，块间空格分隔），
+         公式数按「块数」计 = ceil(块数/2)。故 2 翻色 = 1 条；
+         三角翻（3 个角）= ceil(3/2) = 2 条；4 翻 = 2 条、5 翻 = 3 条，依此类推。
        - 奇偶：+1 条
      奇偶合并（重要）：奇偶=1 时，棱缓冲单步与角缓冲单步由同一条奇偶公式一并解决，
        不应各自单列。故当对应缓冲确实出单（字母数为奇）时，棱/角公式数各减 1，
        该合并步计入上面的「奇偶 +1」。例：棱 13 字母(含单步)→棱 7→6、角 9 字母(含单步)→角 5→4。
      借位次数 = 循环数 - 1（第一个循环无需借位），作为记忆难度参考指标 */
   function formulasOfLetters(n) { return Math.ceil((n || 0) / 2); }
+  /* 翻色/扭角色行：块与块之间以空格分隔，每块 2 个字母。
+     公式条数按「块数」计：一条公式处理 2 个块 → ceil(块数/2)。
+     （曾按字母数计，恰好等于块数，把三角翻 3 块算成 3 条、2 翻色算成 2 条，2026-10-21 修） */
+  function pairCount(s) {
+    return String(s || "").trim().split(/\s+/).filter(Boolean).length;
+  }
+  function formulasOfPieces(s) { return Math.ceil(pairCount(s) / 2); }
+  /* 由「翻色/扭角色母数」反推公式条数（每块 2 字母 → 块数 = 字母数/2 → ceil(块数/2)）。
+     历史成绩重算用：旧记录只存字母数时，按当前口径换算。 */
+  function formulasOfPieceLetters(n) { return Math.ceil((n || 0) / 4); }
 
   /* 三盲难度等级（由易到难，共五档）。复盘页分组 / 趋势图共用，保证口径一致。 */
   const BLD_LEVELS = ["入门", "初级", "中级", "高级", "专家"];
@@ -563,20 +575,23 @@
        · 翻色 / 扭角   每条额外 +3.0（setup 与额外记忆点，打断编码节奏）
        · 奇偶          额外 +2.5（一条固定公式，判断负担为主）
        · 借位          每处 +0.5（循环切换带来的记忆负担）
-     例（3000 打乱重采样标定）：11 条 + 奇偶 + 1 翻 → raw 17.5（高级）；
-     11 条 + 无奇偶 + 2 翻 → raw 18（高级，略高于前者）——与实战体感一致。 */
+     例（3000 打乱重采样标定）：11 条 + 奇偶 + 1 翻 → raw 17.5（专家）；
+     11 条 + 无奇偶 + 2 翻 → raw 18（专家，略高于前者）——与实战体感一致。 */
   var DIFF_WEIGHTS = { flip: 3.0, parity: 2.5, borrow: 0.5 };
 
   /* 加权分 → 难度分（0~100）的分段线性映射锚点。
      锚点取自实测分位（同权重下 3000 打乱重采样：p20/p40/p60/p80 取整），
-     使五档各占约 20%，实测占比 入门19/初级19/中级19/高级23/专家21。 */
+     使五档各占约 20%。
+     2026-10-21 随翻色/扭角改按「块数」计数（三角翻 3 块=2 条）重取：
+     新分布 raw 的 p20/p40/p60/p80 = 12/14/15.5/17（p99=21、max=24.5），
+     实测占比 入门19/初级21/中级18/高级22/专家21。 */
   var SCORE_ANCHORS = [
-    { raw: 7,   score: 0 },
-    { raw: 12,  score: 20 },
-    { raw: 14,  score: 40 },
-    { raw: 16,  score: 60 },
-    { raw: 18.5, score: 80 },
-    { raw: 27,  score: 100 }
+    { raw: 7,    score: 0 },
+    { raw: 12,   score: 20 },
+    { raw: 14,   score: 40 },
+    { raw: 15.5, score: 60 },
+    { raw: 17,   score: 80 },
+    { raw: 22,   score: 100 }
   ];
 
   /* 由难度明细算「加权分」（量纲≈条数，范围约 7~26） */
@@ -611,12 +626,28 @@
 
   /* 旧数据（或外部导入）按同一口径重算难度分与等级：
      只要还留着 edgeF/flipF/cornerF/twistF/parityF/borrow 这些分量，
-     就能换算成新尺子上的分数与档位，避免同一份历史成绩出现新旧两套等级名。 */
+     就能换算成新尺子上的分数与档位，避免同一份历史成绩出现新旧两套等级名。
+     翻色/扭角条数按「块数」计（一条公式处理 2 个块）：旧成绩里的 flipF/twistF
+     可能是旧口径（按字母数=块数直接计数）存的。只要记录带着 flipLetters/twistLetters
+     （每块 2 字母），就按当前口径重算这两项与总条数，新旧成绩落在同一把尺子上；
+     新口径成绩重算结果与原件一致（幂等）。 */
   function recalcDifficulty(d) {
     if (!d || typeof d !== "object") return null;
-    var raw = rawOfDiff(d);
+    var n = Object.assign({}, d);
+    var fL = +n.flipLetters || 0, tL = +n.twistLetters || 0;
+    if (fL > 0) {
+      n.flipF = formulasOfPieceLetters(fL);
+      n.total = (+n.edgeF || 0) + n.flipF + (+n.cornerF || 0) +
+                (+n.twistF || 0) + (+n.parityF || 0);
+    }
+    if (tL > 0) {
+      n.twistF = formulasOfPieceLetters(tL);
+      n.total = (+n.edgeF || 0) + (+n.flipF || 0) + (+n.cornerF || 0) +
+                n.twistF + (+n.parityF || 0);
+    }
+    var raw = rawOfDiff(n);
     var score = scoreOfRaw(raw);
-    return Object.assign({}, d, {
+    return Object.assign({}, n, {
       raw: raw, mem: raw, score: score, level: levelOfScore(score)
     });
   }
@@ -644,9 +675,9 @@
     const hasEdgeSingle = (eL % 2) === 1;
     const hasCornerSingle = (cL % 2) === 1;
     const edgeF = formulasOfLetters(eL) - (parityF && hasEdgeSingle ? 1 : 0);
-    const flipF = formulasOfLetters(fL);
+    const flipF = formulasOfPieces(flip);
     const cornerF = formulasOfLetters(cL) - (parityF && hasCornerSingle ? 1 : 0);
-    const twistF = formulasOfLetters(tL);
+    const twistF = formulasOfPieces(twist);
     const borrowEdge = Math.max(0, (eCycles || 1) - 1);
     const borrowCorner = Math.max(0, (cCycles || 1) - 1);
     const borrow = borrowEdge + borrowCorner;

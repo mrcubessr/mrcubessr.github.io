@@ -352,6 +352,13 @@
           o.score = r.score;
           o.level = r.level;
           o.levelCode = (typeof E.levelCodeOf === "function") ? E.levelCodeOf(r.level) : "";
+          /* 2026-10-21：翻色/扭角改按块数计后，recalc 会把 flipF/twistF/total
+             一并修正（历史记录存的是旧口径分量）。分量必须跟着换回来，
+             否则历史成绩的 chip / 主记法 / 分享海报会是「旧条数配新分数」。
+             旧引擎返回的分量与原值相同，拷贝为无操作，安全。 */
+          if (isFinite(+r.flipF)) o.flipF = +r.flipF;
+          if (isFinite(+r.twistF)) o.twistF = +r.twistF;
+          if (isFinite(+r.total)) o.total = +r.total;
         }
       } catch (e) { /* 降级：保留原值 */ }
     }
