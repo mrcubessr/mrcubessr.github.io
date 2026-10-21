@@ -32,7 +32,14 @@
     /* 魔方教练工具箱：原「个人训练工具」+「三盲训练」两个分组于 v2.0.26 合并为一处，
        页面上写 data-nav="coach"（旧值 tools / 3bld-tools 由 NAV_ALIAS 兜底映射）。
        v2.0.44：公开工具删除「难度分级标准」（相关说明并入三阶魔方盲拧计时器）；
-       教练专用移除「三盲总览」（三盲已对外开放，归入「教程 → 盲拧」）。 */
+       教练专用移除「三盲总览」（三盲已对外开放，归入「教程 → 盲拧」）。
+       v2.0.50：**「教练专用」整组暂时下线**（用户要求「先去掉，等之后再加」）——
+       下面的 sep 小标题与 9 个专用项已从导航移除，公开工具不受影响。
+       恢复方法：把注释块里那份清单原样贴回本 children 数组即可（顺序即原顺序），
+       同时记得恢复 index.html 首页⑥区与 tools/3bld/index.html 的对应卡片、
+       以及 assets/data/announcements.json 的 vip-tools 公告（git 历史可查）。
+       ⚠️ 真正的拦截一直在 assets/js/vip-gate.js（VIP_PAGES 清单），本次未动：
+       下线期间直链仍受门禁保护，不会出现「未开通也能用」的漏洞。 */
     { id: 'coach', label: '魔方教练工具箱', children: [
       /* —— 公开工具（任何人可直接使用） —— */
       { id: 'timer',            label: '计时器',           href: '/tools/timer' },
@@ -42,12 +49,8 @@
       { id: 'corner-trainer',   label: '角块训练',         href: '/tools/corner-trainer/' },
       { id: 'edge-trainer',     label: '棱块训练',         href: '/tools/edge-trainer/' },
       { id: 'bldscramble',      label: '定向打乱',         href: '/tools/bldscramble/' },
-      { id: 'nav',              label: '工具导航',         href: '/tools/nav' },
-      /* —— 教练专用（v2.0.37 权限划分）——
-         以下 9 项属于专项功能，需联系管理员开通后方可使用。
-         ⚠️ 这里**只做视觉分组与跳转目标**，真正的拦截在 assets/js/vip-gate.js：
-         它按 VIP_PAGES 清单判定，目标页面会显示开通浮层（含联系方式）。
-         新增/调整专用工具时，两边要同步改：这里决定展示，那边决定拦截。 */
+      { id: 'nav',              label: '工具导航',         href: '/tools/nav' }
+      /* —— v2.0.50 起暂时下线的「教练专用」9 项（恢复时贴回此处）——
       { label: '教练专用 · 需开通', sep: true },
       { id: '2x2',            label: '二阶公式练习',   href: '/tools/2x2/' },
       { id: 'bld-trainer',    label: '盲拧编码记忆',   href: '/tools/bld-trainer/' },
@@ -58,6 +61,7 @@
       { id: '3x3teach',       label: '三阶趣味课堂',   href: '/tools/3x3teach' },
       { id: 'class-teach',    label: '魔方课堂教学系统', href: '/tools/class-teach' },
       { id: 'srs',            label: '记忆卡片 SRS',   href: '/tools/srs/' }
+      —— 恢复提示：sep 与 9 项需一起贴回；vip-gate.js 的 VIP_PAGES 未动，无需改。 */
     ]}
   ];
 
