@@ -9,6 +9,20 @@
 
 ---
 
+## [2.0.48] — 2026-10-21（新功能 · 四阶 / 五阶 / 金字塔 公式库训练器）
+
+沿用 v2.0.47 的「案例预渲染图」通道（`case.art` 存整段 `<svg>`，`flatten` 透传、`netSvg` 优先取、`rawArt` 解析、`cfop-net--nxn/--pyra` 配色），新增三套训练器：
+
+**1. 四阶 `4x4.json`（25 条）**：源 Nexus Timer `parity-444.ts`，仅奇偶/公式子集。
+**2. 五阶 `5x5.json`（32 条）**：源 Nexus Timer `parity-555.ts` + `l2c-555.ts`（最后两层中心）+ `l2e-555.ts`（最后两层棱）。
+**3. 金字塔 `pyraminx.json`（109 条）**：源 `algs.pyraminx.tips` 开源算法集（L3E / L4E / ML4E-left / Top-First 四套）。
+
+**图的生成方式（与之前一致：公式同源、物理正确）**：用 cubing.js 权威引擎（`cubing` v0.66）对每个 case 套用 `setup` —— 无显式 setup 则取首条 `alg` 的逆序（该位置恰为 `alg` 要解的 case）—— 产出状态 SVG，再清洗（去内联 `<style>`、统一 `cfop-net` class、描边改站点 token）。按构造 `alg ∘ alg⁻¹ = 单位元`，图中状态必能被该 alg 复原。生成脚本：`tools/cfop/scripts/gen-extra.mjs`（自制，可复现）。
+
+**斜转（Skewb）暂未纳入**：Nexus Timer 的 `sarah.ts`（407 条）使用 Sarah 专用记号（`b/r/H/S/z`），cubing.js 的 skewb 只接受标准 `R/L/U/B/F`，直接套用 0/403 通过；暂未找到标准记号的开源数据集，留待下一轮补数据后上线（与本次改动互不耦合）。
+
+**其他**：`cfop-trainer.js` 的 `SETS` 增 `4x4 / 5x5 / pyraminx`；`cfop-trainer.css` 第 ⑩ 节加 `.cfop-net--nxn .sticker` / `.cfop-net--pyra use` 描边；九页训练页资源升 `?v=2.0.48`。sw.js `CACHE` 不变（APP_SHELL 未改）。
+
 ## [2.0.47] — 2026-10-21（新功能 · Square-1 / 五魔方 案例展示图补齐）
 
 **背景**：2.0.46 上线的四套公式库里，ZBLL / EG 有顶面图，SQ1 与五魔方两体系是 `facelets:null`（只有文字没有图）。本版把它们的案例图补齐 —— 这两套图**不能靠算法的通用派生生成**，必须按各自形状/面位单独画或直接取现成图。

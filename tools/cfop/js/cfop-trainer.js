@@ -90,6 +90,34 @@ window.CFOP = (function () {
       back: '/', backLabel: '← 返回首页',
       groupLabel: '步骤',
       minCell: 140, minFloor: 96, maxCell: 260, maxChars: 8   // "EP 5"
+    },
+    /* ---- v2.0.48 新增三套：四阶 / 五阶 / 金字塔 ----------------------------------
+       数据由 tools/cfop/scripts/gen-extra.mjs 生成：cubing.js 权威引擎套用每个 case
+       的 setup（无 setup 用 alg 逆序）产出状态图，与公式同源、物理正确。
+       四阶/五阶是标准 NxN 三维视图，金字塔是四面体视图。 */
+    '4x4': {
+      id: '4x4', name: '4×4', title: '四阶魔方 公式训练',
+      sub: '25 条四阶奇偶/公式 · 高阶还原最后收尾 · 卡片画出打乱后的状态',
+      data: '/tools/cfop/data/4x4.json',
+      back: '/', backLabel: '← 返回首页',
+      groupLabel: '阶段',
+      minCell: 140, minFloor: 96, maxCell: 240, maxChars: 14   // "OLL Parity"
+    },
+    '5x5': {
+      id: '5x5', name: '5×5', title: '五阶魔方 公式训练',
+      sub: '32 条五阶公式 · 最后两层中心/棱 · 卡片画出打乱后的状态',
+      data: '/tools/cfop/data/5x5.json',
+      back: '/', backLabel: '← 返回首页',
+      groupLabel: '阶段',
+      minCell: 140, minFloor: 96, maxCell: 240, maxChars: 16   // "Last Two Centers"
+    },
+    pyraminx: {
+      id: 'pyraminx', name: '金字塔', title: '金字塔魔方 公式训练',
+      sub: '109 条金字塔最后几条棱公式 · L3E / L4E / Top-First · 卡片画出该状态',
+      data: '/tools/cfop/data/pyraminx.json',
+      back: '/', backLabel: '← 返回首页',
+      groupLabel: '集合·子集',
+      minCell: 120, minFloor: 86, maxCell: 200, maxChars: 10   // "Sledge"
     }
   };
 

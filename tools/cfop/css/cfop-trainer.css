@@ -371,3 +371,14 @@ body.c4-longname .c4-bcell .c-ms {
 .cfop-net--mega .mg-top { fill: var(--face-d, #FFD500); }
 .cfop-net--mega .mg-gray { fill: var(--fg-3, #8A93A6); fill-opacity: .3; }
 .cfop-net--mega .mg-line { fill: none; stroke: var(--fg-2, #5B6474); stroke-width: 1; stroke-linejoin: round; }
+
+/* 高阶 NxN（四阶/五阶）：cubing.js 产出的三维视图，贴纸靠 class="sticker"，
+   描边交给我们；non-scaling-stroke 保证缩到卡片尺寸仍约 1px。填充用 cubing.js 物理色。 */
+.cfop-net--nxn .sticker {
+  stroke: var(--fg-2, #5B6474); stroke-width: 1.1px; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+/* 金字塔：cubing.js 用 <use> 引用 defs 内的三角形，描边已内联黑线（跨主题可见），
+   这里只保证填充跟随各自物理色、整体自适应。 */
+.cfop-net--pyra { width: 100%; height: 100%; }
+.cfop-net--pyra use { vector-effect: non-scaling-stroke; }

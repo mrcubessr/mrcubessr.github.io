@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五阶魔方 公式训练 · 32 条 - 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/ft/ft.css">
+<link rel="stylesheet" href="css/cfop-trainer.css?v=2.0.48">
+</head>
+<body data-nav="3x3">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="c4-wrap">
+
+  <div class="c4-head">
+    <h1>五阶魔方 公式训练</h1>
+    <div class="sub">
+      32 条五阶公式 · 最后两层中心/棱 · 卡片画出打乱后的状态 · 点卡片进练习浮层
+      <span class="c4-mx-hint">· 卡片颜色越绿越快、越红越慢 · 按住空格 0.3s 松开起表 · 支持单次 / 连做三次取平均</span>
+    </div>
+    <a class="c4-back" href="/">← 返回首页</a>
+  </div>
+
+  <!-- 工具条 / 训练总览 / 看板 / 练习浮层 / 全屏计时 / toast 全部由 cfop-trainer.js 注入 -->
+  <div id="cfop-mount"></div>
+
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">五阶数据本地化自 Nexus Timer 开源算法库 · 状态图由 cubing.js 引擎生成 · 仅供学习训练使用</p>
+</footer>
+
+<script src="/assets/js/site-nav.js"></script>
+<script src="js/cube-art.js?v=2.0.48"></script>
+<script src="/tools/ft/ft-core.js"></script>
+<script src="/tools/_shared/train-matrix/train-matrix.js"></script>
+<script src="js/cfop-trainer.js?v=2.0.48"></script>
+<script type="module" src="/assets/js/bt-cube.js"></script>
+<script src="js/cfop-bt.js"></script>
+<script>
+CFOP.mount({ set: '5x5' });
+</script>
+
+</body>
+</html>
