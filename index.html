@@ -20,7 +20,7 @@
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
 <!-- ⚠️ 本页分区顺序与全站导航（assets/js/site-nav.js 的 NAV_DATA）对应：
-     ① 魔方教程与公式库（三阶 / 盲拧 / FTO 等项目）→ ② 盲拧公式训练 → ③ 魔方教练工具箱。
+     ① 魔方教程与公式库（三阶 / 盲拧 / FTO 等项目）→ ② 盲拧公式库与训练 → ③ 魔方教练工具箱。
      v2.0.44 起「盲拧公式训练器」并入盲拧项目、三盲对外开放并改名「盲拧」。
      导航增减时，这里也要同步改，两边对不上就会出现「导航有、首页没有」的空档。 -->
 <main class="container home">
@@ -55,7 +55,7 @@
       <a class="card card--tutorial" href="/tools/3bld/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-5 10-5 10 5 10 5-3.5 5-10 5-10-5-10-5z"/><circle cx="12" cy="12" r="2.2"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
         <div class="card-title">盲拧</div>
-        <div class="card-desc">三阶 / 高阶盲拧 · 全套训练工具</div>
+        <div class="card-desc">棱 / 角公式库 + 全套盲拧训练工具</div>
       </a>
       <a class="card card--tutorial" href="/fto/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5L21 12l-9 9.5L3 12z"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="2.5" x2="12" y2="21.5"/><line x1="3" y1="12" x2="12" y2="7.5"/><line x1="12" y1="7.5" x2="21" y2="12"/><line x1="3" y1="12" x2="12" y2="16.5"/><line x1="12" y1="16.5" x2="21" y2="12"/></svg></div>
@@ -100,16 +100,25 @@
     </div>
   </section>
 
-  <!-- ⑤ 盲拧项目：三阶盲拧棱 / 角训练器直链 + 其余盲拧训练工具。
+  <!-- ⑤ 盲拧项目：公式库（棱 / 角查询）+ 训练器。
        v2.0.44：原独立顶层「盲拧公式训练器」并入「盲拧」项目下方 ——
        公式库与训练工具归到一处，按项目组织（每个项目 = 公式库 + 训练工具）。
-       v2.0.49：blddb 公式库查询界面整体移除（用户不需要查询界面）——
-         首页两张公式库卡改为「三阶盲拧角块 / 棱块训练器」直链，tools/3bld/ 页
-         同步删除 iframe 嵌入区；blddb 数据文件保留（srs / gen-data.py 仍在用）。 -->
+       v2.0.49 曾删公式库界面改直链、v2.0.52 应用户要求恢复：公式库查询卡回归，
+       同时保留当时新增的「三阶盲拧角 / 棱训练」直链卡（查询 + 直练并存）。 -->
   <section class="group" aria-labelledby="g-ft">
-    <h2 class="section-title" id="g-ft">盲拧公式训练</h2>
-    <p class="group-lead">三阶盲拧 <b>角块 / 棱块</b>训练直通；另有高阶角心 / 翼棱 / 棱心 / 中棱体系，自选缓冲 → 矩阵自动展开，公式可按五种标记筛选。</p>
+    <h2 class="section-title" id="g-ft">盲拧公式库与训练</h2>
+    <p class="group-lead">公式库按 <b>棱 / 角</b> 查询；训练含角块 / 棱块 + 高阶角心 / 翼棱 / 棱心 / 中棱六体系，自选缓冲 → 矩阵自动展开，公式可按五种标记筛选。</p>
     <div class="card-grid">
+      <a class="card card--tutorial" href="/tools/3bld/#corner">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5.5v5.5H4zM13 13h7v7h-7z"/><path d="M9.5 6.75h4.25A3.75 3.75 0 0 1 17.5 10.5v2.5"/><circle cx="18" cy="6" r="2.6"/></svg></div>
+        <div class="card-title">公式库 · 角块查询</div>
+        <div class="card-desc">角块 3-Style / 角扭转，输入字母对即查</div>
+      </a>
+      <a class="card card--tutorial" href="/tools/3bld/#edge">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="12" height="6" rx="1"/><circle cx="18" cy="6" r="2.6"/><path d="M3 12h3"/></svg></div>
+        <div class="card-title">公式库 · 棱块查询</div>
+        <div class="card-desc">棱块 3-Style / 2e2e / 棱翻转，输入字母对即查</div>
+      </a>
       <a class="card card--train" href="/tools/ft/corner.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5.5v5.5H4zM13 13h7v7h-7z"/><path d="M9.5 6.75h4.25A3.75 3.75 0 0 1 17.5 10.5v2.5"/><circle cx="18" cy="6" r="2.6"/></svg></div>
         <div class="card-title">三阶盲拧 · 角块训练</div>
@@ -144,10 +153,9 @@
   </section>
 
   <!-- ⑥ 魔方教练工具箱（导航第 ② 项）
-       v2.0.50：原「教练专用 · 需开通」专区（9 项）随功能一同暂时下线，
-       本区只保留公开工具；卡片清单仍与 site-nav.js 的 coach 分组对齐。
-       恢复「教练专用」时：把 git 历史里这 9 张卡 + subheading 贴回本区即可
-       （提交 b1830f4 之前的版本可见原结构）。 -->
+       分组与侧栏一致：公开工具 8 项 / 教练专用 9 项。
+       ⚠️ 卡片清单必须与 assets/js/site-nav.js 的 NAV_DATA 里 coach 分组对齐，
+          两边对不上就会出现「侧栏有、首页没有」的空档。 -->
   <section class="group" aria-labelledby="g2">
     <h2 class="section-title" id="g2">魔方教练工具箱</h2>
 
@@ -192,6 +200,55 @@
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
         <div class="card-title">工具导航</div>
         <div class="card-desc">常用魔方工具外链汇总</div>
+      </a>
+    </div>
+
+    <h3 class="group-sub group-sub--vip">教练专用 · 需开通后使用</h3>
+    <div class="card-grid">
+      <a class="card card--train" href="/tools/2x2/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
+        <div class="card-title">二阶公式练习</div>
+        <div class="card-desc">二阶盲拧公式练习</div>
+      </a>
+      <a class="card card--train" href="/tools/bld-trainer/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></svg></div>
+        <div class="card-title">盲拧编码记忆</div>
+        <div class="card-desc">编码联想记忆与间隔提取</div>
+      </a>
+      <a class="card card--print" href="/tools/edge-printout/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></div>
+        <div class="card-title">棱块出题器</div>
+        <div class="card-desc">生成 A4 练习纸，支持打印和 PDF 导出</div>
+      </a>
+      <a class="card card--print" href="/tools/practice/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div class="card-title">练习题生成器</div>
+        <div class="card-desc">公式练习纸生成打印</div>
+      </a>
+      <a class="card card--tutorial" href="/tools/kmap/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>
+        <div class="card-title">二阶知识地图</div>
+        <div class="card-desc">二阶盲拧教学体系全景</div>
+      </a>
+      <a class="card card--tutorial" href="/tools/bld-kmap/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/><path d="M1 12l7-4 8 4 7-4"/></svg></div>
+        <div class="card-title">三阶知识地图</div>
+        <div class="card-desc">三阶魔方教学体系全景</div>
+      </a>
+      <a class="card card--teach" href="/tools/3x3teach/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 3l-3.5 6.5M12 3l3.5 6.5M12 19l-3.5-6.5M12 19l3.5-6.5M5 9.5h14M5 15.5h14"/></svg></div>
+        <div class="card-title">三阶趣味课堂</div>
+        <div class="card-desc">12课 · 动态3D趣味课堂</div>
+      </a>
+      <a class="card card--teach" href="/tools/class-teach/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
+        <div class="card-title">魔方课堂教学系统</div>
+        <div class="card-desc">班级学生管理 · 计分雷达 · 知识图谱</div>
+      </a>
+      <a class="card card--train" href="/tools/srs/">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="16" rx="1"/><path d="M16 8h5v10h-5"/><line x1="6" y1="9" x2="12" y2="9"/><line x1="6" y1="13" x2="12" y2="13"/></svg></div>
+        <div class="card-title">记忆卡片 SRS</div>
+        <div class="card-desc">间隔重复 · 联想词与公式记忆</div>
       </a>
     </div>
   </section>

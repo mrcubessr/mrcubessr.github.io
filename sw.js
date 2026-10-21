@@ -125,7 +125,13 @@
    ② /assets/js/site-nav.js 在 APP_SHELL 内且已改（coach 组删 sep 小标题
    与 9 个专用项；vip-gate.js 的 VIP_PAGES 门禁未动，直链仍受保护）。
    两件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
-const CACHE = 'fto-timer-v30';
+/* v31（2026-10-21）：恢复「教练专用」与盲拧公式库界面（v2.0.52，用户：「发现好几个
+   功能都不见了，帮我恢复过来」）—— 把 v2.0.49 / v2.0.50 摘掉的入口全部加回：
+   ① /index.html 在 APP_SHELL 内且已改（⑥区恢复小标题 + 9 张专用卡；⑤区恢复
+   公式库棱/角查询卡，并保留 v2.0.49 新增的角/棱训练器直链卡），
+   ② /assets/js/site-nav.js 在 APP_SHELL 内且已改（coach 组恢复 sep + 9 个专用项）。
+   两件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
+const CACHE = 'fto-timer-v31';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

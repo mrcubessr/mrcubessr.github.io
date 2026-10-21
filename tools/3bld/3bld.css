@@ -3,9 +3,68 @@
    直角风、令牌化、与全站组件库一致
    ========================================================= */
 
-/* v2.0.49：blddb 公式库嵌入区（.blddb*）整体移除，样式一并删除；
-   blddb 数据文件仍保留在 tools/3bld/blddb/（srs / gen-data.py 在用），
-   但站内不再提供该查询界面。 */
+/* ---------- 公式库（blddb.net 搬运）嵌入区 ---------- */
+.blddb {
+  border: 1px solid var(--line, rgba(255,255,255,.10));
+  background: var(--surface-2, #1A2130);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 模块切换：分段按钮，等宽网格，直角 */
+.blddb__tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-bottom: 1px solid var(--line, rgba(255,255,255,.10));
+}
+@media (min-width: 560px) { .blddb__tabs { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 900px) { .blddb__tabs { grid-template-columns: repeat(9, 1fr); } }
+
+.blddb__tab {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid var(--line, rgba(255,255,255,.10));
+  background: transparent;
+  color: var(--fg-2, #AEB8CA);
+  font: inherit;
+  font-size: 13px;
+  padding: 11px 6px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.blddb__tab:last-child { border-right: 0; }
+.blddb__tab:hover { background: rgba(91,141,239,.10); color: var(--fg, #EEF2F8); }
+.blddb__tab.is-active {
+  background: var(--brand, #5B8DEF);
+  color: var(--fg-inverse, #FFFFFF);
+  font-weight: 600;
+}
+
+/* iframe 容器：响应式高度，直角、无内边距 */
+.blddb__frame {
+  background: #fff;            /* blddb 站为浅色主题，iframe 内保持原样 */
+  line-height: 0;
+}
+.blddb__frame iframe {
+  display: block;
+  width: 100%;
+  height: 72vh;
+  min-height: 460px;
+  max-height: 820px;
+  border: 0;
+  background: #fff;
+}
+.blddb__hint {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--fg-3, #7C8798);
+  border-top: 1px solid var(--line, rgba(255,255,255,.10));
+  background: var(--surface-2, #1A2130);
+}
+.blddb__hint a { color: var(--brand, #5B8DEF); }
 
 /* ---------- 工具卡片网格：统一对齐 ---------- */
 .bld-tool-grid {
