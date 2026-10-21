@@ -113,7 +113,13 @@
    ③ /tools/timer/index.html 在 APP_SHELL 内且已改（三盲参数脚
    加难度分级标准直链）。
    三件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
-const CACHE = 'fto-timer-v28';
+/* v29（2026-10-21）：移除 blddb 公式库查询界面（v2.0.49）——
+   ① /index.html 在 APP_SHELL 内且已改（⑤区改「盲拧公式训练」，
+   两张公式库查询卡换成三阶盲拧角/棱训练器直链，盲拧卡文案同步），
+   ② /assets/js/site-nav.js 在 APP_SHELL 内且已改（盲拧项注释口径更新，
+   公式库查询入口已不存在）。
+   两件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
+const CACHE = 'fto-timer-v29';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

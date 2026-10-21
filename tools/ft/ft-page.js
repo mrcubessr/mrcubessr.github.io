@@ -46,7 +46,9 @@ window.FTPage = (function () {
     + '    <option value="todo">只看未练</option>'
     + '    <option value="weak">只看需关注+不合格</option>'
     + '    <option value="starred">★ 只看已标记</option>'
-    + '    <option value="mother">只看母公式</option>'
+    + FT.STAR_COLORS.map(function (o) {
+          return '<option value="star-' + o.k + '" title="' + o.tip + '">★ 只看「' + o.name + '」标记</option>';
+        }).join('')
     + '    <option value="done">只看已练</option>'
     + '  </select>'
     + '  <span class="c4-bo">'
@@ -498,8 +500,8 @@ window.FTPage = (function () {
     }
 
     /* ---------- 搜索 + 筛选 ---------- */
-    /* ---------- 筛选（v2.0.26 扩展，v2.0.28 收简）----------
-       ① 下拉：全部 / 未练 / 需关注 / 已标记 / 母公式 / 已练
+    /* ---------- 筛选（v2.0.26 扩展，v2.0.28 收简，v2.0.49 加五档标记）----------
+       ① 下拉：全部 / 未练 / 需关注 / 已标记 / 五种标记逐档（母公式·重点练·易错·已掌握·自定义）/ 已练
        ② 矩阵行列坐标点击：点左侧行标 / 顶部列标做整行整列锁定，
           命中 = 选中行 ∪ 选中列（任一命中即保留），两集合皆空 = 全选
           （v2.0.28 起字母筛选行删除，坐标点击是唯一的行列筛选入口）
@@ -531,6 +533,11 @@ window.FTPage = (function () {
         return st.n > 0 && (t === 't-bad' || t === 't-warn');
       }
       if (filterMode === 'starred') { return !!stars[c]; }
+      /* v2.0.49：按五种标记逐档筛选（star-gold/red/blue/green/purple）——
+         星标未显式存颜色时默认 gold（与 toggleStar 口径一致）。 */
+      if (filterMode.indexOf('star-') === 0) {
+        return !!stars[c] && (stars[c].c || 'gold') === filterMode.slice(5);
+      }
       if (filterMode === 'mother') { return !!stars[c] && (stars[c].c || 'gold') === 'gold'; }
       return true;
     }
@@ -1731,6 +1738,11 @@ window.FTPage = (function () {
         var cs = Object.keys(axisCols).filter(function (k) { return axisCols[k]; });
         hint.textContent = '已锁定 行 ' + (rs.join('') || '—') + ' · 列 ' + (cs.join('') || '—')
           + '（点矩阵行/列标增减）';
+      } else if (filterMode.indexOf('star-') === 0) {
+        var sk = filterMode.slice(5);
+        var so = null;
+        FT.STAR_COLORS.forEach(function (o) { if (o.k === sk) { so = o; } });
+        hint.textContent = '★ ' + (so ? so.name : sk) + ' 标记筛选中，点「清空筛选」复位';
       } else if (hasAnyFilter()) {
         hint.textContent = '筛选生效中（搜索 / 下拉），点「清空筛选」复位';
       } else {

@@ -20,7 +20,7 @@
 <noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
 
 <!-- ⚠️ 本页分区顺序与全站导航（assets/js/site-nav.js 的 NAV_DATA）对应：
-     ① 魔方教程与公式库（三阶 / 盲拧 / FTO 等项目）→ ② 盲拧公式库与训练 → ③ 魔方教练工具箱。
+     ① 魔方教程与公式库（三阶 / 盲拧 / FTO 等项目）→ ② 盲拧公式训练 → ③ 魔方教练工具箱。
      v2.0.44 起「盲拧公式训练器」并入盲拧项目、三盲对外开放并改名「盲拧」。
      导航增减时，这里也要同步改，两边对不上就会出现「导航有、首页没有」的空档。 -->
 <main class="container home">
@@ -55,7 +55,7 @@
       <a class="card card--tutorial" href="/tools/3bld/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-5 10-5 10 5 10 5-3.5 5-10 5-10-5-10-5z"/><circle cx="12" cy="12" r="2.2"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
         <div class="card-title">盲拧</div>
-        <div class="card-desc">棱 / 角公式库 + 全套盲拧训练工具</div>
+        <div class="card-desc">三阶 / 高阶盲拧 · 全套训练工具</div>
       </a>
       <a class="card card--tutorial" href="/fto/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5L21 12l-9 9.5L3 12z"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="2.5" x2="12" y2="21.5"/><line x1="3" y1="12" x2="12" y2="7.5"/><line x1="12" y1="7.5" x2="21" y2="12"/><line x1="3" y1="12" x2="12" y2="16.5"/><line x1="12" y1="16.5" x2="21" y2="12"/></svg></div>
@@ -100,22 +100,25 @@
     </div>
   </section>
 
-  <!-- ⑤ 盲拧项目：公式库（棱 / 角查询）+ 训练器。
+  <!-- ⑤ 盲拧项目：三阶盲拧棱 / 角训练器直链 + 其余盲拧训练工具。
        v2.0.44：原独立顶层「盲拧公式训练器」并入「盲拧」项目下方 ——
-       公式库与训练工具归到一处，按项目组织（每个项目 = 公式库 + 训练工具）。 -->
+       公式库与训练工具归到一处，按项目组织（每个项目 = 公式库 + 训练工具）。
+       v2.0.49：blddb 公式库查询界面整体移除（用户不需要查询界面）——
+         首页两张公式库卡改为「三阶盲拧角块 / 棱块训练器」直链，tools/3bld/ 页
+         同步删除 iframe 嵌入区；blddb 数据文件保留（srs / gen-data.py 仍在用）。 -->
   <section class="group" aria-labelledby="g-ft">
-    <h2 class="section-title" id="g-ft">盲拧公式库与训练</h2>
-    <p class="group-lead">公式库按 <b>棱 / 角</b> 查询；训练含角块 / 棱块 + 高阶角心 / 翼棱 / 棱心 / 中棱六体系，自选缓冲 → 矩阵自动展开。</p>
+    <h2 class="section-title" id="g-ft">盲拧公式训练</h2>
+    <p class="group-lead">三阶盲拧 <b>角块 / 棱块</b>训练直通；另有高阶角心 / 翼棱 / 棱心 / 中棱体系，自选缓冲 → 矩阵自动展开，公式可按五种标记筛选。</p>
     <div class="card-grid">
-      <a class="card card--tutorial" href="/tools/3bld/#corner">
+      <a class="card card--train" href="/tools/ft/corner.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5.5v5.5H4zM13 13h7v7h-7z"/><path d="M9.5 6.75h4.25A3.75 3.75 0 0 1 17.5 10.5v2.5"/><circle cx="18" cy="6" r="2.6"/></svg></div>
-        <div class="card-title">公式库 · 角块查询</div>
-        <div class="card-desc">角块 3-Style / 角扭转，输入字母对即查</div>
+        <div class="card-title">三阶盲拧 · 角块训练</div>
+        <div class="card-desc">3-Style 噩梦风格 · 自选缓冲 · 矩阵展开计时统计</div>
       </a>
-      <a class="card card--tutorial" href="/tools/3bld/#edge">
+      <a class="card card--train" href="/tools/ft/edge.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="12" height="6" rx="1"/><circle cx="18" cy="6" r="2.6"/><path d="M3 12h3"/></svg></div>
-        <div class="card-title">公式库 · 棱块查询</div>
-        <div class="card-desc">棱块 3-Style / 2e2e / 棱翻转，输入字母对即查</div>
+        <div class="card-title">三阶盲拧 · 棱块训练</div>
+        <div class="card-desc">3-Style 噩梦风格 · 自选缓冲 · 矩阵展开计时统计</div>
       </a>
       <a class="card card--train" href="/tools/ft/">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5V16.5L12 21 4 16.5V7.5Z"/><path d="M12 12 4 7.5M12 12l8-4.5M12 12v9"/><path d="M9.33 4.5 17.33 9M6.67 6l8 4.5M14.67 4.5 6.67 9M17.33 6l-8 4.5"/><path d="M4 10.5 12 15M4 13.5 12 18M6.67 9v9M9.33 10.5v9"/><path d="M20 10.5 12 15M20 13.5 12 18M17.33 9v9M14.67 10.5v9"/></svg></div>

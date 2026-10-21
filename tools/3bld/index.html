@@ -41,41 +41,8 @@
   <div class="bld-hero page-head">
     <span class="bld-hero__tag">3×3 / 2×2 / 4×4 BLINDFOLD</span>
     <h1 class="page-head__title">盲拧训练中心</h1>
-    <p class="page-head__sub">blddb.net 盲拧公式库全量搬运（棱 / 角查询）· 全套盲拧训练工具一处直达</p>
+    <p class="page-head__sub">三阶 / 高阶盲拧全套训练工具一处直达</p>
   </div>
-
-  <!-- ============ 公式库（blddb.net 搬运） ============ -->
-  <section class="group" aria-labelledby="blddb-h">
-    <h2 class="section-title" id="blddb-h">盲拧公式库 · 按棱 / 角查询</h2>
-    <p class="x3-path">
-      输入字母对即可查询 3-Style 等算法：<b>角块</b>如 <span class="formula">JAD</span>、<b>棱块</b>如 <span class="formula">ACG</span>。
-      公式库按「角块 / 棱块」分组，查完公式再进下方训练。数据由 blddb.net 全量搬运、完整保留。
-    </p>
-
-    <div class="blddb">
-      <div class="blddb__tabs" role="tablist" aria-label="公式库模块">
-        <span class="blddb__grp">角块查询</span>
-        <button class="blddb__tab is-active" type="button" data-key="corner" data-src="/tools/3bld/blddb/corner.html" role="tab" aria-selected="true">角块 3-Style</button>
-        <button class="blddb__tab" type="button" data-key="twists" data-src="/tools/3bld/blddb/twists.html" role="tab" aria-selected="false">角扭转</button>
-        <span class="blddb__grp">棱块查询</span>
-        <button class="blddb__tab" type="button" data-key="edge" data-src="/tools/3bld/blddb/edge.html" role="tab" aria-selected="false">棱块 3-Style</button>
-        <button class="blddb__tab" type="button" data-key="2e2e" data-src="/tools/3bld/blddb/2e2e.html" role="tab" aria-selected="false">2e2e</button>
-        <button class="blddb__tab" type="button" data-key="2flips" data-src="/tools/3bld/blddb/2flips.html" role="tab" aria-selected="false">棱翻转</button>
-        <span class="blddb__grp">高级 / 其他</span>
-        <button class="blddb__tab" type="button" data-key="ltct" data-src="/tools/3bld/blddb/ltct.html" role="tab" aria-selected="false">LTCT</button>
-        <button class="blddb__tab" type="button" data-key="ltef" data-src="/tools/3bld/blddb/ltef.html" role="tab" aria-selected="false">LTEF</button>
-        <button class="blddb__tab" type="button" data-key="parity" data-src="/tools/3bld/blddb/parity.html" role="tab" aria-selected="false">奇偶</button>
-        <button class="blddb__tab" type="button" data-key="index" data-src="/tools/3bld/blddb/index.html" role="tab" aria-selected="false">总览</button>
-      </div>
-      <div class="blddb__frame">
-        <iframe id="blddbFrame" src="/tools/3bld/blddb/corner.html" title="blddb 盲拧公式库" loading="lazy"></iframe>
-      </div>
-      <p class="blddb__hint">
-        公式库按「角块 / 棱块」分组查询，另含 2e2e、棱翻转、角扭转、LTCT、LTEF、奇偶等全部模块。
-        移动端可横向查看；需要更大空间可 <a href="/tools/3bld/blddb/index.html" target="_blank" rel="noopener">在新标签打开完整站 ↗</a>。
-      </p>
-    </div>
-  </section>
 
   <!-- ============ 盲拧训练工具 ============ -->
   <section class="group" aria-labelledby="tools-h">
@@ -199,33 +166,6 @@
   <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
 </footer>
 
-<script>
-  /* 公式库模块切换：点击 tab 切换 iframe 源；支持 #corner / #edge 等 hash 直达 */
-  (function () {
-    var tabs = Array.prototype.slice.call(document.querySelectorAll('.blddb__tab'));
-    var frame = document.getElementById('blddbFrame');
-    if (!frame) return;
-    function activate(t) {
-      tabs.forEach(function (x) { x.classList.remove('is-active'); x.setAttribute('aria-selected', 'false'); });
-      t.classList.add('is-active');
-      t.setAttribute('aria-selected', 'true');
-      frame.src = t.getAttribute('data-src');
-    }
-    tabs.forEach(function (t) {
-      t.addEventListener('click', function () { activate(t); });
-    });
-    /* 从首页「公式库 · 角块/棱块查询」带 #corner / #edge 进来时，直达对应 tab */
-    function applyHash() {
-      var key = (location.hash || '').replace('#', '');
-      if (!key) return;
-      var hit = tabs.filter(function (t) { return t.getAttribute('data-key') === key; })[0];
-      if (hit) activate(hit);
-    }
-    applyHash();
-    /* 同页内再改 hash（如地址栏手改、锚点互跳）也要能跟上 */
-    window.addEventListener('hashchange', applyHash);
-  })();
-</script>
 <script src="/assets/js/site-nav.js"></script>
 </body>
 </html>
