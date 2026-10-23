@@ -55,6 +55,25 @@ window.CFOP = (function () {
       maxCell: function () { return Math.max(240, Math.min(460, Math.round(window.innerWidth * 0.17))); },
       maxChars: 2                    // 最长名称（"Gb"）
     },
+    /* ---- 三阶 F2L / 进阶 F2L（v2.0.54）：原静态公式库并入训练器 ----
+       数据用 fl（54 字平面串）存整盒状态，卡片/浮层走 isoCube 立体图；
+       每个 case 含 FR/FL/BL/BR 多朝向候选公式，摊平后按「朝向 · 公式 N」标记。 */
+    f2l: {
+      id: 'f2l', name: 'F2L', title: 'F2L 公式训练',
+      sub: '41 个前两层配对 · 含 FR / FL / BL / BR 四朝向 · 点卡片进练习',
+      data: '/tools/cfop/data/f2l.json',
+      back: '/tools/3x3/', backLabel: '← 返回三阶',
+      groupLabel: '配对类型',
+      minCell: 120, minFloor: 82, maxCell: 180, maxChars: 6   // "F2L 41"
+    },
+    af2l: {
+      id: 'af2l', name: '进阶 F2L', title: '进阶 F2L 公式训练',
+      sub: '54 个角块 / 棱块被困时的直接解法 · 点卡片进练习',
+      data: '/tools/cfop/data/advanced_f2l.json',
+      back: '/tools/3x3/', backLabel: '← 返回三阶',
+      groupLabel: '卡块类型',
+      minCell: 120, minFloor: 82, maxCell: 176, maxChars: 8   // "AF2L 12a"
+    },
     /* ---- v2.0.46 新增四套：三阶 ZBLL / 二阶 EG / Square-1 / 五魔方 4LLL ----
        数据由 tools/cfop/scripts/gen-algsets.js 生成（源：Nexus Timer 开源算法库，
        逐条用魔方模型模拟校验，保证页面显示的案例能被默认公式复原）。
@@ -147,7 +166,7 @@ window.CFOP = (function () {
         });
         if (!algs.length) { return; }
         var cs = {
-          id: c.id, sub: c.subgroup || '其他', facelets: c.facelets, art: c.art, algs: algs,
+          id: c.id, sub: c.subgroup || '其他', facelets: c.facelets, art: c.art, fl: c.fl, algs: algs,
           num: parseFloat(String(c.id).replace(/[^\d.]/g, '')) || 0
         };
         CASES.push(cs);
@@ -428,6 +447,9 @@ window.CFOP = (function () {
       try {
         /* SQ1 / 五魔方：数据里直接带预渲染好的整段 SVG（art），不走 facelets 旋转 */
         if (c && c.art) { return window.CubeArt.rawArt(c.art); }
+        /* F2L / 进阶 F2L（v2.0.54）：数据用 fl（54 字平面串）存整盒前两层状态，
+           走 isoCube 立体图（与静态公式库同源），无旋转概念，忽略 k。 */
+        if (c && c.fl) { return window.CubeArt.isoCube(c.fl); }
         return window.CubeArt.flatCase(rotateFacelets(c.facelets, k || 0));
       } catch (e) { return null; }
     }
@@ -1085,7 +1107,7 @@ window.CFOP = (function () {
       $('c4-m-net').innerHTML = svg ? svg.outerHTML : '';
       $('c4-m-net').classList.toggle('is-empty', !svg);
       var rotBox = document.getElementById('c4-rot');
-      if (rotBox) { rotBox.classList.toggle('is-empty', !svg || !!c.art); }
+      if (rotBox) { rotBox.classList.toggle('is-empty', !svg || !!c.art || !!c.fl); }
       /* 公式（rot≠0 且核纯净时 y 已被吸收进旋转，见 algParts） */
       $('c4-p-alg').innerHTML = fmtAlg(p.pre + p.text);
       $('c4-fs-alg').innerHTML = fmtAlg(p.pre + p.text);

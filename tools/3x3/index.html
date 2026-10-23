@@ -6,7 +6,7 @@
 <script src="/assets/js/palette.js"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三阶魔方 · 教程与公式库 · 魔方先生SSR魔方训练中心</title>
+<title>三阶魔方 · 教程与公式训练 · 魔方先生SSR魔方训练中心</title>
 <link rel="stylesheet" href="/assets/css/tokens.css">
 <link rel="stylesheet" href="/assets/css/base.css">
 <link rel="stylesheet" href="/assets/css/site-nav.css">
@@ -32,7 +32,7 @@
   <!-- 页头 -->
   <div class="page-head">
     <h1 class="page-head__title">三阶魔方</h1>
-    <p class="page-head__sub">CFOP 完整体系 · 公式库 + 十字训练</p>
+    <p class="page-head__sub">CFOP 完整体系 · 公式训练一站在手</p>
   </div>
 
   <!-- CFOP 方法简介（教程） -->
@@ -44,84 +44,55 @@
       <span class="formula">F2L</span> 前两层 →
       <span class="formula">OLL</span> 顶层朝向 →
       <span class="formula">PLL</span> 顶层归位。<br>
-      下面按学习顺序整理了三阶的全部公式库与配套训练，全部支持深/浅主题、点击复制算法与掌握进度记录。
+      全部公式已整合为公式训练器：选公式、背公式、计时练习一站完成，卡片颜色越绿越快、越红越慢，支持深/浅主题、公式点选与掌握进度记录。
     </p>
   </section>
 
-  <!-- 公式库 -->
-  <section class="group" aria-labelledby="x3-formula">
-    <h2 class="section-title" id="x3-formula">公式库</h2>
+  <!-- 公式训练（v2.0.54：原「公式库」+「训练」两区合并，全部指向训练器） -->
+  <section class="group" aria-labelledby="x3-train">
+    <h2 class="section-title" id="x3-train">公式训练</h2>
     <div class="card-grid">
 
-      <a class="card card--tutorial" href="/tools/cfop/f2l.html">
+      <a class="card card--train" href="/tools/cfop/f2l-trainer.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
         <div class="card-title">F2L · 前两层</div>
-        <div class="card-desc">角块与棱块配对，同时完成第一、二层</div>
+        <div class="card-desc">角块与棱块配对，同时完成第一、二层，立体图看状态</div>
         <div class="x3-card__badges"><span class="badge badge--brand">41 Case</span><span class="badge badge--mono">FR/FL/BL/BR</span></div>
       </a>
 
-      <a class="card card--tutorial" href="/tools/cfop/advanced-f2l.html">
+      <a class="card card--train" href="/tools/cfop/advanced-f2l-trainer.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><polyline points="2 15.5 12 22 22 15.5"/><polyline points="2 12 12 18.5 22 12"/></svg></div>
         <div class="card-title">进阶 F2L</div>
         <div class="card-desc">角块或棱块卡在槽内的直接解法</div>
         <div class="x3-card__badges"><span class="badge badge--brand">54 Case</span><span class="badge badge--mono">Trapped</span></div>
       </a>
 
-      <a class="card card--tutorial" href="/tools/cfop/oll.html">
+      <a class="card card--train" href="/tools/cfop/oll-trainer.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></div>
         <div class="card-title">OLL · 顶层朝向</div>
-        <div class="card-desc">一步把顶层颜色统一，按形状分类</div>
-        <div class="x3-card__badges"><span class="badge badge--brand">57 Case</span><span class="badge badge--mono">Top Face</span></div>
+        <div class="card-desc">一步把顶层颜色统一，按形状分类，顶面图 + 计时</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">57 Case</span><span class="badge badge--mono">预览图</span><span class="badge badge--mono">计时</span></div>
       </a>
 
-      <a class="card card--tutorial" href="/tools/cfop/pll.html">
+      <a class="card card--train" href="/tools/cfop/pll-trainer.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></div>
         <div class="card-title">PLL · 顶层归位</div>
-        <div class="card-desc">顶层棱角全部归位，含 AUF 调整</div>
-        <div class="x3-card__badges"><span class="badge badge--brand">21 Case</span><span class="badge badge--mono">Permute</span></div>
+        <div class="card-desc">顶层棱角全部归位，含 AUF 调整，顶面图 + 计时</div>
+        <div class="x3-card__badges"><span class="badge badge--brand">21 Case</span><span class="badge badge--mono">预览图</span><span class="badge badge--mono">计时</span></div>
       </a>
 
-      <a class="card card--tutorial" href="/tools/cfop/zbll-trainer.html">
+      <a class="card card--train" href="/tools/cfop/zbll-trainer.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><path d="M3 15h18M15 3v18" opacity=".45"/><circle cx="12" cy="12" r="2.4"/></svg></div>
         <div class="card-title">ZBLL · 最后一层一步到位</div>
         <div class="card-desc">顶面棱块朝向已定，一条公式同时完成 OLL + PLL，按 7 个形状子集分组</div>
-        <div class="x3-card__badges"><span class="badge badge--brand">472 Case</span><span class="badge badge--mono">1LLL</span></div>
+        <div class="x3-card__badges"><span class="badge badge--brand">472 Case</span><span class="badge badge--mono">1LLL</span><span class="badge badge--mono">计时</span></div>
       </a>
-
-    </div>
-  </section>
-
-  <!-- 训练 -->
-  <section class="group" aria-labelledby="x3-train">
-    <h2 class="section-title" id="x3-train">训练</h2>
-    <div class="card-grid">
 
       <a class="card card--train" href="/tools/cfop/cross-trainer.html">
         <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></div>
         <div class="card-title">十字训练 · Cross</div>
-        <div class="card-desc">自选颜色与目标步数，生成十字最优解恰为 N 步的打乱（≤10 步）+ 空格计时 + 3D 立体视图</div>
+        <div class="card-desc">自选颜色与目标步数，生成十字最优解恰为 N 步的打乱 + 空格计时 + 3D 视图</div>
         <div class="x3-card__badges"><span class="badge badge--amber">交互</span><span class="badge badge--mono">计时</span><span class="badge badge--mono">1~8 步</span></div>
-      </a>
-
-      <a class="card card--train" href="/tools/cfop/pll-trainer.html">
-        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><path d="M3 15h18M15 3v18" opacity=".45"/></svg></div>
-        <div class="card-title">PLL 公式训练</div>
-        <div class="card-desc">21 条顶层归位公式看板式训练：大图预览 + 空格计时 + 进度记录 + 换公式标记，横屏铺满</div>
-        <div class="x3-card__badges"><span class="badge badge--brand">21 Case</span><span class="badge badge--mono">预览图</span><span class="badge badge--mono">计时</span></div>
-      </a>
-
-      <a class="card card--train" href="/tools/cfop/oll-trainer.html">
-        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><path d="M3 15h18M15 3v18" opacity=".45"/></svg></div>
-        <div class="card-title">OLL 公式训练</div>
-        <div class="card-desc">57 条顶层朝向公式看板式训练：大图预览 + 空格计时 + 进度记录 + 换公式标记 + 方向旋转，横屏铺满</div>
-        <div class="x3-card__badges"><span class="badge badge--brand">57 Case</span><span class="badge badge--mono">预览图</span><span class="badge badge--mono">计时</span></div>
-      </a>
-
-      <a class="card card--train" href="/tools/cfop/zbll-trainer.html">
-        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><circle cx="12" cy="12" r="2.4"/></svg></div>
-        <div class="card-title">ZBLL 公式训练</div>
-        <div class="card-desc">472 条 1LLL 看板式训练：按形状子集筛选 + 顶面预览图 + 空格计时 + 进度记录 + 换公式标记</div>
-        <div class="x3-card__badges"><span class="badge badge--brand">472 Case</span><span class="badge badge--mono">预览图</span><span class="badge badge--mono">计时</span></div>
       </a>
 
     </div>
@@ -133,7 +104,7 @@
 
 <footer class="site-footer">
   <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
-  <p class="site-footer__meta">© 2026 mrcubessr</p>
+  <p class="site-footer__meta">© 2026 mrcubersr</p>
 </footer>
 
 <script src="/assets/js/site-nav.js"></script>
