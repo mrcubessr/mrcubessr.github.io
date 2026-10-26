@@ -127,7 +127,14 @@ function _tokenize(str) {
   while (i < s.length) {
     const ch = s[i];
     if (!_BASE_RE.test(ch)) { i++; continue; }
-    const base = ch; i++;
+    let base = ch; i++;
+    /* 宽层记法「Rw / Lw / Uw / Dw / Fw / Bw」（四阶 / 五阶打乱用）：
+       必须把紧跟的 'w' 吃掉并转成内部小写宽层记号（Rw → r）。
+       否则 'w' 会被当作非面字母跳过，Rw 退化成 R —— 少转一层，
+       4x4/5x5 的展开图会与公式对不上。'W' 同样接受（部分题库写法）。 */
+    if (i < s.length && (s[i] === 'w' || s[i] === 'W') && 'RULDFB'.indexOf(base) >= 0) {
+      base = base.toLowerCase(); i++;
+    }
     let dir = 1;
     if (s[i] === '2') { dir = 2; i++; }
     else if (_PRIMES.has(s[i])) { dir = -1; i++; }
@@ -204,7 +211,7 @@ class Cube {
     this._refresh();
   }
 }
-// 公式解析：支持 R L U D F B M E S r l u d f b x y z + ' 2
+// 公式解析：支持 R L U D F B M E S r l u d f b x y z + Rw/Lw/Uw/Dw/Fw/Bw（宽层） + ' 2
 function parseScrambleNet(str){
     // 去掉所有空白后按字符流式解析，支持“D'F”“R2U”这类无空格紧邻写法
     // （旧实现按空白切词，D'F 会被当成一个无法匹配的词而被整体丢弃，导致少算转动）
@@ -216,7 +223,12 @@ function parseScrambleNet(str){
     while(i < s.length){
         const ch = s[i];
         if(!BASE_RE.test(ch)){ i++; continue; } // 跳过非面字母（括号/数字序号等）
-        const base = ch; i++;
+        let base = ch; i++;
+        /* 宽层记法 Rw/Lw/Uw/Dw/Fw/Bw（四阶/五阶打乱）→ 内部小写宽层记号。
+           必须吃掉 'w'，否则 Rw 退化成 R（少转一层，展开图与公式对不上）。 */
+        if(i < s.length && (s[i] === 'w' || s[i] === 'W') && 'RULDFB'.indexOf(base) >= 0){
+            base = base.toLowerCase(); i++;
+        }
         let dir = 1;
         if(s[i] === '2'){ dir = 2; i++; }
         else if(PRIMES.has(s[i])){ dir = -1; i++; }

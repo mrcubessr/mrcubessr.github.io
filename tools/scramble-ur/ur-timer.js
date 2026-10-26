@@ -172,20 +172,23 @@
     });
   }
   // 空格键触发：按住进入准备（红）→ 3秒变绿 → 松开开始；计时中按空格停止。全局监听一次，输入类元素与长按重复跳过
+  // 焦点在按钮/链接上时让位给原生行为（v2.0.55）：否则点过「复制」等按钮后按空格会被计时器劫走
+  function uiBlocker(t) {
+    return !!(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' ||
+                    t.tagName === 'BUTTON' || t.tagName === 'A' || t.isContentEditable));
+  }
   document.addEventListener('keydown', function (e) {
     if (e.repeat) return;
     var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
     if (!isSpace) return;
-    var t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (uiBlocker(e.target)) return;
     e.preventDefault();
     if (activeCtrl) activeCtrl.keydownSpace(e);
   });
   document.addEventListener('keyup', function (e) {
     var isSpace = (e.code === 'Space') || (e.key === ' ') || (e.key === 'Spacebar');
     if (!isSpace) return;
-    var t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (uiBlocker(e.target)) return;
     if (activeCtrl) activeCtrl.keyupSpace(e);
   });
 
@@ -194,4 +197,55 @@
     render(b);
     bind(b);
   });
+})();
+
+/* ---------- 打乱公式增强（v2.0.55）----------
+   ① 按转法拆 token：公式字号加大后也能整齐换行，不会把 "R'" 拆成两截
+   ② 公式卡右上角加「复制」按钮：一键复制，方便粘到计时器里对照
+   ③ MutationObserver 监听：切换拿法坐标系时页内脚本会整块重置公式文本，自动重新分词 */
+(function () {
+  var code = document.getElementById('scramble-formula');
+  if (!code) return;
+  function spansText() {
+    var spans = code.querySelectorAll('.mv'), t = '';
+    for (var i = 0; i < spans.length; i++) t += (i ? ' ' : '') + spans[i].textContent;
+    return t;
+  }
+  /* ⚠️ 分词后 code.textContent 会把 token 间的空格吃掉（span 拼接无分隔），
+     所以「是否已是分词状态」必须两侧都折叠空白再比较，否则 observer 会被
+     自己触发的 mutation 再次唤醒，把整条公式并成一个 token（历史bug）。 */
+  function squash(s) { return String(s || '').replace(/\s+/g, ''); }
+  function tokenize() {
+    var txt = (code.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!txt) return;
+    if (squash(spansText()) === squash(txt)) return;   /* 已是分词状态，别重刷 */
+    code.textContent = '';
+    txt.split(' ').forEach(function (m) {
+      var s = document.createElement('span');
+      s.className = 'mv';
+      s.textContent = m;
+      code.appendChild(s);
+    });
+  }
+  function addCopy() {
+    var card = code.closest('.pc-card');
+    if (!card || card.querySelector('.pc-formula-copy')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pc-formula-copy timer-btn';
+    btn.textContent = '复制';
+    btn.title = '复制打乱公式';
+    btn.addEventListener('click', function () {
+      var t = spansText() || (code.textContent || '');
+      if (navigator.clipboard) navigator.clipboard.writeText(t).catch(function () {});
+      btn.textContent = '已复制 ✓';
+      setTimeout(function () { btn.textContent = '复制'; }, 1200);
+    });
+    card.appendChild(btn);
+  }
+  tokenize();
+  addCopy();
+  if (typeof MutationObserver === 'function') {
+    new MutationObserver(tokenize).observe(code, { childList: true, characterData: true, subtree: true });
+  }
 })();

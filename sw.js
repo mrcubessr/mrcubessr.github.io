@@ -143,7 +143,14 @@
       中「赞助者可以开通教练专用」的过时表述（该文件走 NO_CACHE_PREFIX，实际不受影响，
       但文案需与新状态一致）。
    ②③④均在 APP_SHELL 或需立即一致，按规矩递增。 */
-const CACHE = 'fto-timer-v32';
+/* v33（2026-10-26）：计时器加四阶 / 五阶 + 复盘打乱 + UF/UR 桌面重设计（v2.0.55）——
+   ① /tools/timer/timer.js、/tools/timer/scramble.js、/tools/timer/timer.css
+      均在 APP_SHELL 内且已改（新增 4x4/5x5 项目与打乱、成绩存档打乱公式并支持回放、
+      长按起表进度反馈、修计时区内按钮 click 被 pointerdown 吞掉 / 焦点在按钮上时空格误起表）；
+   ② /assets/js/cube-net.js 在 APP_SHELL 内且已改（词法支持 Rw/Lw/Uw/Dw/Fw/Bw 宽层记法，
+      四阶 / 五阶展开图的关键缺口；UF/UR 组页共用此文件）。
+   两件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
+const CACHE = 'fto-timer-v33';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

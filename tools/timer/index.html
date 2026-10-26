@@ -29,7 +29,7 @@
   <div class="tm-hero">
     <div>
       <h1 class="tm-hero__title">计时器 · Timer</h1>
-      <p class="tm-hero__sub">二阶 / 三阶 / 三盲 WCA 风格打乱 · 观察可选 · 长按空格计时 · 分组（会话）式成绩列表 · 5 / 12 / 100 次平均 · 三盲自动算解法 + 专项分析 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
+      <p class="tm-hero__sub">二阶 / 三阶 / 四阶 / 五阶 / 三盲 WCA 风格打乱 · 观察可选 · 长按空格计时 · 分组（会话）式成绩列表 · 5 / 12 / 100 次平均 · 三盲自动算解法 + 专项分析 · 成绩 TXT / JSON 导入导出 · 逐日统计</p>
     </div>
     <div class="tm-hero__spacer">
       <button id="themeBtn" class="btn btn--sm" type="button">☀ 浅色</button>
@@ -516,7 +516,7 @@
 <script src="/tools/timer/bt-timer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>
 <script src="/assets/js/sync-boot.js"></script>
-<script>SyncBoot.ready(function(){LSProvider.register({id:'timer',label:'计时成绩',path:'timer.json',keys:['timer_data_v2','timer_options_v1'],isEmptySnap:function(snap){if(!snap)return true;var raw=snap.timer_data_v2;if(raw==null||raw==='')return true;try{var o=JSON.parse(raw),n=0;['3x3','2x2','bld'].forEach(function(e){var b=o&&o[e];((b&&b.groups)||[]).forEach(function(g){n+=((g&&g.solves)||[]).length;});});return n===0;}catch(e){return false;}}});});</script>
+<script>SyncBoot.ready(function(){LSProvider.register({id:'timer',label:'计时成绩',path:'timer.json',keys:['timer_data_v2','timer_options_v1'],isEmptySnap:function(snap){if(!snap)return true;var raw=snap.timer_data_v2;if(raw==null||raw==='')return true;try{var o=JSON.parse(raw),n=0;['3x3','2x2','bld','4x4','5x5'].forEach(function(e){var b=o&&o[e];((b&&b.groups)||[]).forEach(function(g){n+=((g&&g.solves)||[]).length;});});return n===0;}catch(e){return false;}}});});</script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {

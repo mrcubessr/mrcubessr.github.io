@@ -58,29 +58,53 @@ body { margin: 0; padding: 0; }
   background: var(--surface); border: 1px solid var(--line);
 }
 .pc-card--diagram { align-items: center; justify-content: center; padding: 16px; }
-.pc-card--diagram canvas.ur-cube { width: 100%; max-width: 360px; height: auto; display: block; }
 
-/* ---------- 打乱公式 ---------- */
+/* 展开图画布：尺寸由 cube-net.js 按容器宽高算（上限 1.1×基准 = 贴纸 ≤37px），
+   这里只保证不溢出。⚠️ 不要再加 px 级 max-width：canvas 的 style.width/height
+   是 JS 写死的内联值，CSS 只钳宽度不钳高度会把图压扁（历史bug）。 */
+.pc-card--diagram canvas.ur-cube { width: 100%; max-width: 100%; height: auto; display: block; }
+
+/* ---------- 打乱公式（v2.0.55 重设计：大而醒目）----------
+   练习时第一眼要看的就是它：金色、加粗、大字号，按转法拆 token 后整齐换行。
+   桌面端还把它排在展开图上面（见下方 order 规则）。 */
+.pc-card:has(#scramble-formula) { position: relative; }
 .pc-formula {
-  display: block;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
   font-family: var(--font-mono, Consolas, monospace);
-  font-size: 14px; letter-spacing: 1px; line-height: 1.8;
-  color: var(--fg); background: var(--bg-soft);
-  border: 1px solid var(--line); border-left: 3px solid var(--gold);
-  padding: 10px 14px; word-break: normal; overflow-wrap: anywhere;
+  font-size: clamp(18px, 1.45vw, 25px); font-weight: 700;
+  letter-spacing: .5px; line-height: 1.45;
+  color: var(--gold-ink); background: var(--bg-soft);
+  border: 1px solid var(--line); border-left: 4px solid var(--gold);
+  padding: 14px 18px; word-break: normal; overflow-wrap: anywhere;
 }
+/* 单个转法 token（由 uf-timer.js / ur-timer.js 拆分注入） */
+.pc-formula .mv {
+  white-space: nowrap;
+  padding: 1px 7px;
+  background: var(--gold-soft); border: 1px solid transparent;
+}
+.pc-formula .mv:hover { border-color: var(--gold); }
+/* 公式卡右上角：复制按钮（JS 注入，避免改 40 个生成页） */
+.pc-formula-copy { position: absolute; top: 10px; right: 12px; }
 
 /* ---------- 练习顺序链（令牌化，覆盖 uf-common 的硬编码蓝） ---------- */
 .order-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .order-tag {
   font-family: var(--font-mono, Consolas, monospace);
-  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  font-size: 14px; font-weight: 700; letter-spacing: 1px;
   color: var(--brand); background: var(--brand-soft);
   border: 1px solid var(--brand-line); border-radius: 0;
-  padding: 4px 9px;
+  padding: 5px 10px;
 }
 .order-tag.current { color: var(--gold-ink); background: var(--gold-soft); border-color: var(--gold); }
 .arrow { color: var(--fg-3); font-size: 11px; }
+
+/* 桌面/窄屏统一把「打乱公式」排在展开图上面：公式是练习时读得最多的东西，
+   展开图是参照。用 order 调整，不动 HTML（40 个组页共用）。
+   第三个卡片（练习顺序）要显式给 order:3，否则默认 0 会跑到最前面。 */
+.pc-main > .pc-card--diagram { order: 2; }
+.pc-main > .pc-card:has(#scramble-formula) { order: 1; }
+.pc-main > :nth-child(3) { order: 3; }
 
 /* ---------- 大号计时舞台（uf-timer.js / ur-timer.js 注入内容） ---------- */
 .timer-block {
@@ -204,11 +228,14 @@ body { margin: 0; padding: 0; }
   .pc-wrap { max-width: min(100%, 1800px); padding: 20px 24px 48px; }
   .pc {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(320px, 32%, 430px);
-    gap: 12px; align-items: start;
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 30%, 420px);
+    gap: 14px; align-items: start;
   }
   /* 计时舞台吃满右栏首屏高度，操作区始终在拇指/视线可达处 */
-  .timer-block { min-height: 300px; }
+  .timer-block { min-height: 320px; }
+  /* 展开图卡片给足高度：drawScrambleNet 的上限由「容器高」决定
+     （availH = max(卡片高, 280)），卡片高 ≥ 430px 时贴纸才能到 37px 上限。 */
+  .pc-card--diagram { min-height: 430px; padding: 20px; }
 }
 
 /* ---------- 手机端 ---------- */

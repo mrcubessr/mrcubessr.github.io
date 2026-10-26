@@ -73,12 +73,21 @@
     try { localStorage.setItem(STYLE_STORAGE_KEY, s); } catch (e) {}
   }
 
+  /* 组名（ selections 的分组键）。新版组页没有 .entry-header，
+     标题在 .pc-hero__title（且不在 .pc.entry 容器内），所以按以下顺序兜底：
+     ① .entry-header h2（旧版结构）② #timer-group[data-group]（新版组页）③ 空串。
+     之前只认 ①，导致新版组页所有组共用一个 '' 桶 —— 靠 code 唯一性侥幸不出错，
+     但换组时旧组的选择会被当成同组的显示出来（v2.0.55 修）。 */
   function getGroupName(entry) {
     var h2 = entry.querySelector('.entry-header h2');
-    if (!h2) return '';
-    var t = h2.textContent.trim();
-    var m = t.match(/^([A-Za-z]+)组/);
-    return m ? m[1] : t;
+    if (h2) {
+      var t = h2.textContent.trim();
+      var m = t.match(/^([A-Za-z]+)组/);
+      return m ? m[1] : t;
+    }
+    var tg = entry.querySelector('#timer-group') || document.getElementById('timer-group');
+    var g = tg && tg.getAttribute('data-group');
+    return g || '';
   }
 
   function loadSelections() {
@@ -166,6 +175,11 @@
           if (item.source) label += '<span class="ref-opt-src">（' + escapeHtml(item.source) + '）</span>';
           html += '<button type="button" class="' + cls + '" data-alg="' + escapeHtml(item.text) + '">' + label + '</button>';
         });
+        if (!items.length) {
+          /* 该编码在当前风格没有收录（人造库缺 A*G / A*H 一族键）：
+             给一句明确提示，别让人对着一行只有「手动输入」的空下拉发懵 */
+          html += '<div class="ref-empty">该编码在当前风格下没有收录，可点下方「手动输入」</div>';
+        }
         if (items.length > 5) {
           html += '<button type="button" class="ref-more-btn">展开更多（共 ' + items.length + ' 条）</button>';
         }

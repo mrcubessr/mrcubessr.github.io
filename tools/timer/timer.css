@@ -109,6 +109,10 @@ body { margin: 0; }
 .tm-bld-net-side canvas { display: block; max-width: 100%; height: auto; background: var(--surface); }
 .tm-bld__net-cap { font-size: 11px; color: var(--fg-3); }
 
+/* 四阶 / 五阶（v2.0.55）：每面 16 / 25 格贴纸，图区加宽一档。
+   drawScrambleNet 是按容器宽等比缩放的，容器宽了单张贴纸才看得清。 */
+.tm-scramble-block.is-big .tm-bld-net-side { width: 360px; }
+
 .tm-manual-box { display: flex; gap: 8px; }
 .tm-manual-box .input { flex: 1 1 auto; min-width: 0; font-family: var(--font-mono); }
 
@@ -439,6 +443,16 @@ body { margin: 0; }
 /* 计时长按时反馈：提示“保持按住” */
 .tm-stage.is-holding { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
 
+/* 长按启动的进度反馈（v2.0.55）：保持窗口内底部进度条从 0 涨到 100%，
+   把"要按多久才起表"变成看得见的东西 —— 之前只有边框变色，
+   新手短按没反应也不知道原因。时长必须与 timer.js 的 ARM_MS(350) 一致。 */
+.tm-stage.is-holding::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: var(--brand); transform: scaleX(0); transform-origin: left center;
+  animation: tm-hold-progress 350ms linear forwards;
+}
+@keyframes tm-hold-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
 /* ---------- 成绩列表：三盲复杂度角标 ---------- */
 .tm-list__cmplx { display: block; font-size: 10px; font-weight: 600; color: var(--fg-3); margin-top: 2px; }
 
@@ -571,6 +585,8 @@ body { margin: 0; }
   .tm-scramble { flex-basis: auto; }
   .tm-bld-net-side { width: auto; max-width: 180px; margin: 0 auto; }
   .tm-bld-net-side canvas { width: 170px; max-width: 100%; height: auto; }
+  .tm-scramble-block.is-big .tm-bld-net-side { max-width: 240px; }
+  .tm-scramble-block.is-big .tm-bld-net-side canvas { width: 230px; }
   /* 窄屏解法改回一竖列：两列会挤掉编码 */
   .tm-bld__rows { grid-template-columns: 1fr; }
 }
@@ -645,6 +661,9 @@ body { margin: 0; }
   /* 展开图：固定小方块贴在右侧（有图时才有内容） */
   .tm-bld-net-side { flex: 0 0 auto; width: auto; max-width: 45vw; margin: 0; align-self: center; }
   .tm-bld-net-side canvas { width: min(30vw, 108px) !important; height: min(30vw, 108px) !important; }
+  /* 四阶 / 五阶贴纸多，方块放大一档（否则单格只有几像素，等于没有） */
+  .tm-scramble-block.is-big .tm-bld-net-side { max-width: 52vw; }
+  .tm-scramble-block.is-big .tm-bld-net-side canvas { width: min(40vw, 148px) !important; height: min(40vw, 148px) !important; }
   .tm-bld__net-cap { display: none; }
   .tm-manual-box { margin-top: 4px; }
   .tm-manual-box .input { padding: 5px 7px; font-size: 12px; }
@@ -1032,6 +1051,19 @@ body { margin: 0; }
 .tm-solve__bld-row span { color: var(--fg-3); }
 .tm-solve__bld-row b { color: var(--fg); font-family: var(--font-mono); font-weight: 700; }
 .tm-solve__replay { margin-top: 10px; }
+/* 速拧成绩详情的「打乱公式」块（v2.0.55）：大号等宽、按转法上色块换行 */
+.tm-solve__scr {
+  margin: 4px 0 12px; padding: 12px 14px;
+  background: var(--surface-2); border: 1px solid var(--line);
+}
+.tm-solve__scr .tm-h3 { margin: 0 0 8px; }
+.tm-solve__scr-text {
+  font-family: var(--font-mono); font-size: 16px; font-weight: 600; letter-spacing: .5px;
+  line-height: 1.7; color: var(--gold);
+  display: flex; flex-wrap: wrap; gap: 3px 9px;
+  user-select: all;
+}
+.tm-solve__scr--empty { font-size: 12px; color: var(--fg-3); }
 .tm-solve__btns { display: flex; gap: 10px; margin-top: 4px; }
 
 /* ---------- 三盲参数：迁进「设置」弹窗后的形态 ----------

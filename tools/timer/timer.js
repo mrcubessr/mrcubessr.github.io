@@ -38,13 +38,15 @@
   var EVENTS = [
     { key: "3x3", label: "三阶", len: 20 },
     { key: "2x2", label: "二阶", len: 11 },
-    { key: "bld", label: "三盲", len: 20 }
+    { key: "bld", label: "三盲", len: 20 },
+    { key: "4x4", label: "四阶", len: 40 },
+    { key: "5x5", label: "五阶", len: 60 }
   ];
   /* 项目键清单：导入/导出/统计等「遍历所有项目」的地方一律用它派生，
      不要再写死 ["3x3","2x2"]——漏掉 bld 会让三盲成绩静默丢失（导入 JSON 时尤其致命）。 */
   var EVENT_KEYS = EVENTS.map(function (e) { return e.key; });
   /* 各项目在 csTimer 中的打乱类型标识（TXT 导入导出映射用）；三盲无对应类型，不进 csTimer TXT */
-  var SCR_TYPE = { "3x3": "333", "2x2": "222" };
+  var SCR_TYPE = { "3x3": "333", "2x2": "222", "4x4": "444", "5x5": "555" };
   var LS_DATA = "timer_data_v2";      /* 分组模型 */
   var LS_DATA_V1 = "timer_data_v1";   /* 旧版扁平模型（只读，用于迁移） */
   var LS_OPT = "timer_options_v1";
@@ -105,7 +107,10 @@
   }
 
   /* ---------- 数据模型 ---------- */
-  var data = { "3x3": null, "2x2": null, "bld": null };
+  /* 由 EVENT_KEYS 派生（不要再写死 ["3x3","2x2","bld"]）——
+     新增项目时只改 EVENTS，数据容器 / 导入导出 / 统计全部自动跟上。 */
+  var data = {};
+  EVENT_KEYS.forEach(function (k) { data[k] = null; });
 
   function uid(p) {
     return (p || "g") + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -167,6 +172,10 @@
     if (typeof s.src === "string" && s.src) o.src = s.src;
     /* 练习备注（可与成绩一并导出/导入，旧数据无此字段则留空） */
     if (typeof s.note === "string" && s.note.trim()) o.note = s.note.trim();
+    /* 打乱公式（v2.0.55 起所有项目都记录）：复盘时要把这把的打乱显示出来，
+       并且 csTimer TXT 导出的「打乱」槽位一直声明了却从来是空串——存下来才真能用。
+       旧成绩没有该字段，导入/迁移后保持缺失，UI 按「未记录打乱」降级。 */
+    if (typeof s.scramble === "string" && s.scramble.trim()) o.scramble = s.scramble.trim();
     /* 三盲成绩携带解法（解法由 BLDEngine 计算，结构固定，原样保留） */
     if (s.bld && typeof s.bld === "object") {
       o.bld = {
@@ -389,10 +398,18 @@
     }
   }
 
-  /* 速拧（三阶 / 二阶）的展开图：直接画当前打乱本身，不涉及坐标朝向换算。
+  /* 速拧（三阶 / 二阶 / 四阶 / 五阶）的展开图：直接画当前打乱本身，不涉及坐标朝向换算。
      二阶用 Cube(2)：WCA 二阶打乱只用 R/U/F，没有中层和宽层，2 阶展开图即可正确表达。
+     四阶 / 五阶用 Cube(4) / Cube(5)：打乱含 Rw 宽层记法，cube-net.js 的词法已支持
+     （Rw → 内部小写宽层 r = 外 2 层），宽层在 4/5 阶上取的正是外 2 层。
      ⚠️ 三盲不在这里画 —— 它要画的是「按用户坐标系预摆后的打乱」orientedScramble，
         直接画 curScramble 会与读码口径对不上（见 renderBldNet / renderBldNetFrom）。 */
+  function netSizeOf(evKey) {
+    if (evKey === "2x2") return 2;
+    if (evKey === "4x4") return 4;
+    if (evKey === "5x5") return 5;
+    return 3;
+  }
   function renderSpeedNet() {
     if (!els.bldNet) return;
     var cap = els.bldNetCap;
@@ -403,7 +420,7 @@
     }
     if (!curScramble) { if (cap) cap.textContent = "展开图"; return; }
     try {
-      window.drawScrambleNet(curScramble, els.bldNet, "white-green", opt.event === "2x2" ? 2 : 3);
+      window.drawScrambleNet(curScramble, els.bldNet, "white-green", netSizeOf(opt.event));
       if (cap) cap.textContent = def.label + "打乱展开图";
     } catch (e) {
       if (cap) cap.textContent = "展开图渲染失败";
@@ -541,38 +558,51 @@
   }
 
   /* 点击历史成绩 → 整块打乱区（公式 + 展开图）切换为该把的打乱，解法面板同步显示那一把的解法。
-     顶部出现「正在回放 #N · 返回当前」条；退出后打乱区还原为当前打乱。 */
-  function viewSolveBld(rec, num) {
-    if (!rec || !rec.bld) return;
-    var b = rec.bld;
-    var oriented = "";
-    if (window.BLDEngine && window.BLDEngine.CUBE_ORIENTATIONS) {
-      var idx = b.orientation | 0;
-      var pre = (window.BLDEngine.CUBE_ORIENTATIONS[idx] || {}).prefix || "";
-      oriented = (pre + " " + (b.scramble || "")).trim().replace(/\s+/g, " ");
-    }
-    var viewObj = {
-      edge: b.edge, flip: b.flip, corner: b.corner, twist: b.twist, parity: b.parity,
-      orientationLabel: b.orientationLabel, complexity: b.complexity,
-      difficulty: b.difficulty, orientedScramble: oriented
-    };
+     顶部出现「正在回放 #N · 返回当前」条；退出后打乱区还原为当前打乱。
+     v2.0.55：三盲沿用原逻辑（解法 + 预摆展开图）；速拧也能回放了 ——
+     打乱公式 + 按当前项目阶数绘制的展开图，解法面板不涉及。 */
+  function viewSolve(rec, num) {
+    if (!rec) return;
+    var scr = (rec.bld && rec.bld.scramble) || rec.scramble || "";
     viewingSolve = true; viewingSolveNum = num;
-    viewingScramble = b.scramble || "";
-    /* ① 顶部打乱公式整块换成那一把（走同一套 render，换行/配色一致） */
-    curScramble = viewingScramble;
+    viewingScramble = scr;
+    /* ① 顶部打乱公式整块换成那一把（走同一套 render，换行/配色一致）；
+         非三盲时 renderScramble 内部会按当前项目阶数重画展开图 */
+    curScramble = scr;
     renderScramble();
-    /* ② 解法面板显示那一把的解法（内部会一并重绘展开图），并强制展开 */
-    renderBldFrom(viewObj);
-    if (els.bld) els.bld.hidden = false;
-    /* ③ 打乱区置为回放态：出返回条、把「换打乱」换成「换这一把」 */
-    setReplayUI(true, num, b.dnfReason);
+    if (rec.bld) {
+      /* ② 解法面板显示那一把的解法（内部会一并重绘展开图），并强制展开 */
+      var b = rec.bld;
+      var oriented = "";
+      if (window.BLDEngine && window.BLDEngine.CUBE_ORIENTATIONS) {
+        var idx = b.orientation | 0;
+        var pre = (window.BLDEngine.CUBE_ORIENTATIONS[idx] || {}).prefix || "";
+        oriented = (pre + " " + (b.scramble || "")).trim().replace(/\s+/g, " ");
+      }
+      var viewObj = {
+        edge: b.edge, flip: b.flip, corner: b.corner, twist: b.twist, parity: b.parity,
+        orientationLabel: b.orientationLabel, complexity: b.complexity,
+        difficulty: b.difficulty, orientedScramble: oriented
+      };
+      renderBldFrom(viewObj);
+      if (els.bld) els.bld.hidden = false;
+      /* ③ 打乱区置为回放态：出返回条、把「换打乱」换成「换这一把」 */
+      setReplayUI(true, num, b.dnfReason, true);
+    } else {
+      /* 速拧：只回放打乱与展开图，解法面板收起 */
+      if (els.bld) els.bld.hidden = true;
+      setReplayUI(true, num, "", false);
+    }
   }
-  /* 打乱区的回放态 / 当前态切换 */
-  function setReplayUI(on, num, dnfReason) {
+  /* 旧调用名兼容（内部/历史代码里可能还写着 viewSolveBld） */
+  var viewSolveBld = viewSolve;
+  /* 打乱区的回放态 / 当前态切换；withSolution = 是否连解法一起回放（三盲） */
+  function setReplayUI(on, num, dnfReason, withSolution) {
     var blk = els.scrambleBlock || els.scramble;
     if (els.replayBar) els.replayBar.hidden = !on;
     if (on && els.replayTxt) {
-      els.replayTxt.innerHTML = "正在回放 <b>#" + num + "</b> 的打乱与解法" +
+      els.replayTxt.innerHTML = "正在回放 <b>#" + num + "</b> 的打乱" +
+        (withSolution ? "与解法" : "") +
         (dnfReason ? '<span class="tm-replay-bar__dnf">DNF</span>' : "");
     }
     if (blk && blk.classList) blk.classList.toggle("is-replaying", !!on);
@@ -582,11 +612,14 @@
       els.copyBtn.title = on ? "复制该把成绩的打乱公式" : "复制当前打乱公式";
     }
   }
-  /* 仅复位回放状态（不还原打乱），用于「接下来马上就要换新打乱」的场景 */
+  /* 仅复位回放状态（不重新渲染），用于「接下来马上就要换新打乱」的场景。
+     同时把打乱区还原成「当前这一把」（liveScramble）——
+     手动输入模式下 newScramble 会原样返回，不还原的话画面会一直停在回放的那把历史上。 */
   function clearSolveView() {
     if (!viewingSolve) return;
     viewingSolve = false; viewingSolveNum = 0;
     viewingScramble = "";
+    curScramble = liveScramble;
     setReplayUI(false);
   }
   /* 退出回放并把打乱区还原为「当前这一把」（不重新生成打乱，避免看一眼历史就丢掉当前打乱） */
@@ -627,6 +660,10 @@
     /* 展开图：所有项目都显示（v2.0.26 —— 之前只有三盲有）。
        三盲画「按坐标系预摆后的打乱」，速拧画当前打乱本身（二阶用 2 阶展开图）。 */
     if (els.bldNetSide) els.bldNetSide.hidden = false;
+    /* 四阶 / 五阶：每面 16/25 格贴纸，图区加宽一档，保证单张贴纸仍看得清 */
+    if (els.scrambleBlock) {
+      els.scrambleBlock.classList.toggle("is-big", opt.event === "4x4" || opt.event === "5x5");
+    }
     if (!isBld) renderSpeedNet();
     if (isBld && els.manualBox) els.manualBox.hidden = true;
     /* 三盲不需要 15 秒观察（盲拧靠记忆，观察无意义）→ 隐藏该选项并强制关闭；
@@ -934,11 +971,19 @@
     var note = els.noteDraft ? els.noteDraft.value.trim() : "";
     var entry = { ms: Math.round(rawMs), pen: pendingPenalty || "", date: Date.now() };
     if (note) entry.note = note;
-    /* 三盲：把当前打乱对应的解法 + 指标一并存入成绩（分析用） */
+    /* 打乱公式随成绩一起存档（v2.0.55：所有项目）。
+       之前只有三盲在 bld.scramble 里带了打乱，速拧成绩完全不记 ——
+       复盘时想看这把用的什么打乱只能干瞪眼，csTimer 导出的打乱槽位也一直是空串。
+       注意必须在 next() 生成新打乱之前取；回放历史时 curScramble 是那把历史的，
+        pending 的这一把属于 liveScramble（不能张冠李戴）。 */
+    var myScramble = viewingSolve ? liveScramble : curScramble;
+    if (myScramble) entry.scramble = myScramble;
+    /* 三盲：把当前打乱对应的解法 + 指标一并存入成绩（分析用）。
+       同样按「pending 的这一把」取打乱：回放历史时 curScramble 是那把历史的。 */
     if (opt.event === "bld" && curBld && opt.bld) {
       var b = opt.bld;
       entry.bld = {
-        scramble: curScramble,
+        scramble: myScramble,
         orientation: b.orientation,
         orientationLabel: curBld.orientationLabel,
         edgeBuffer: b.edgeBuffer, edgeOrder: b.edgeOrder,
@@ -1101,6 +1146,15 @@
     var tag = t && t.tagName ? t.tagName.toLowerCase() : "";
     return tag === "input" || tag === "select" || tag === "textarea";
   }
+  /* 焦点在普通按钮 / 链接上时，空格与回车交给元素本身（按钮默认就响应这两个键）。
+     否则：用鼠标点过「换打乱」等按钮后（按钮保持焦点），再按空格会莫名其妙起表，
+     而且按钮从此没法用键盘激活。计时舞台自身也是按钮，排除在外——
+     舞台获得焦点时按空格仍然要起表。 */
+  function isBtnTarget(t) {
+    var tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+    if (tag !== "button" && tag !== "a") return false;
+    return !(els.stage && (t === els.stage || els.stage.contains(t)));
+  }
 
   /* 统计弹窗 / 导入映射弹窗打开时，主键盘逻辑让位给弹窗 */
   function strictModalOpen() {
@@ -1119,6 +1173,12 @@
         if (code === "Escape" || k === "Escape") e.target.blur();
         return;
       }
+      /* Esc 全局兜底：不管焦点在哪儿（含按钮）都要能作废当前把 */
+      if (code === "Escape" || k === "Escape" || k === "Esc") { e.preventDefault(); abortKey(); return; }
+      /* 焦点在按钮 / 链接上：空格与回车交给元素原生行为，别拿去起表 ——
+         否则鼠标点过「换打乱」后按钮仍持焦点，按空格会莫名其妙开始计时，
+         且按钮从此无法用键盘激活（计时舞台自身除外，见 isBtnTarget）。 */
+      if (isBtnTarget(e.target)) return;
       if (code === "Space" || code === "Spacebar" || k === " " || k === "Spacebar" ||
           code === "Enter" || k === "Enter") {
         e.preventDefault();
@@ -1126,7 +1186,6 @@
         press();
         return;
       }
-      if (code === "Escape" || k === "Escape" || k === "Esc") { e.preventDefault(); abortKey(); return; }
       /* M 键不再参与分段（用户要求全用空格）；旧键位彻底移除，避免误触 */
       if ((k === "n" || k === "N") && (state === "idle" || state === "confirm")) {
         e.preventDefault();
@@ -1147,6 +1206,12 @@
 
     els.stage.addEventListener("pointerdown", function (e) {
       if (e.button != null && e.button !== 0 && e.pointerType === "mouse") return;
+      /* 计时区内的按钮（右上角全屏 ⛶ 等）必须能正常点击：
+         pointerdown 上调 preventDefault 会抑制后续兼容鼠标事件，
+         按钮上的 click 再也不触发（表现为"点全屏没反应"）。
+         命中交互元素时整体让位，不起表、不阻止默认行为。 */
+      if (e.target && e.target.closest &&
+          e.target.closest("button, a, input, select, textarea")) return;
       e.preventDefault();
       pressX = e.clientX; pressY = e.clientY;
       press();
@@ -1483,6 +1548,9 @@
           " · 棱 " + (rec.bld.edge || "") + " · 翻 " + (rec.bld.flip || "") +
           " · 角 " + (rec.bld.corner || "") + " · 扭 " + (rec.bld.twist || "") +
           " · 复杂度 " + rec.bld.complexity;
+      } else if (rec.scramble) {
+        /* 速拧：悬停即见这把的打乱公式（复盘时不用逐条点开） */
+        li.title = "打乱 " + rec.scramble;
       }
 
       li.appendChild(idx);
@@ -1602,6 +1670,7 @@
     if (rec.bld) {
       var b = rec.bld;
       html += '<div class="tm-solve__bld"><div class="tm-h3">三盲解法（只读）</div>';
+      html += '<div class="tm-solve__bld-row"><span>打乱</span><b>' + S.escapeHtml(b.scramble || "（未记录）") + "</b></div>";
       html += '<div class="tm-solve__bld-row"><span>坐标</span><b>' + S.escapeHtml(b.orientationLabel || "") + "</b></div>";
       html += '<div class="tm-solve__bld-row"><span>棱</span><b>' + S.escapeHtml(b.edge || "") + "</b><span>翻色</span><b>" + S.escapeHtml(b.flip || "") + "</b></div>";
       html += '<div class="tm-solve__bld-row"><span>角</span><b>' + S.escapeHtml(b.corner || "") + "</b><span>扭</span><b>" + S.escapeHtml(b.twist || "") + "</b></div>";
@@ -1617,6 +1686,16 @@
       }
       html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button>';
       html += '<button type="button" class="btn btn--sm btn--ghost tm-solve__share" id="tm-solve-share">生成分享海报</button></div>';
+    } else {
+      /* 速拧（v2.0.55）：打乱公式独立展示 + 回放入口 —— 复盘核心诉求 */
+      var scrTxt = rec.scramble || "";
+      if (scrTxt) {
+        html += '<div class="tm-solve__scr"><div class="tm-h3">打乱公式</div>' +
+                '<div class="tm-solve__scr-text">' + fmtMoves(scrTxt) + "</div>" +
+                '<button type="button" class="btn btn--sm btn--ghost tm-solve__replay" id="tm-solve-replay">在主舞台回放这把打乱</button></div>';
+      } else {
+        html += '<div class="tm-solve__scr tm-solve__scr--empty">这条成绩还没有记录打乱公式（旧版本记录的数据）</div>';
+      }
     }
     html += '<div class="tm-solve__btns">' +
             '<button type="button" class="btn btn--sm btn--primary" id="tm-solve-save">保存</button>' +
@@ -1642,7 +1721,7 @@
       if (els.modal && !els.modal.hidden) openStats();
     });
     var replay = els.solveBody.querySelector("#tm-solve-replay");
-    if (replay) replay.addEventListener("click", function () { closeSolveModal(); if (rec.bld) viewSolveBld(rec, num); });
+    if (replay) replay.addEventListener("click", function () { closeSolveModal(); viewSolve(rec, num); });
     var shareBtn = els.solveBody.querySelector("#tm-solve-share");
     if (shareBtn) shareBtn.addEventListener("click", function () { shareBldPoster(rec, num); });
 
@@ -2617,7 +2696,8 @@
   }
   function csTimerPayload() {
     var sessions = [];
-    ["3x3", "2x2"].forEach(function (k) {
+    /* 有 csTimer 打乱类型的项目才进 TXT（三盲没有对应类型，不进） */
+    EVENT_KEYS.filter(function (k) { return !!SCR_TYPE[k]; }).forEach(function (k) {
       groupsOf(k).forEach(function (g) {
         if (!g.solves.length) return;
         sessions.push({ event: k, name: g.name, solves: g.solves.slice().sort(newestFirst) });
@@ -2688,7 +2768,7 @@
     if (!arr || !arr.length) return [];
     var out = [];
     for (var i = 0; i < arr.length; i++) {
-      var e = arr[i], inner = null, ts = null, note = "";
+      var e = arr[i], inner = null, ts = null, note = "", scr = "";
       if (typeof e === "number") inner = [0, e];
       else if (Array.isArray(e)) {
         if (Array.isArray(e[0])) {
@@ -2696,6 +2776,7 @@
           if (typeof e[3] === "number") {                 /* 官方 4 元素：打乱/备注/时间戳 */
             ts = e[3];
             if (typeof e[2] === "string") note = e[2];
+            if (typeof e[1] === "string") scr = e[1];    /* 打乱槽位：以前被丢掉了，白存 */
           } else if (typeof e[2] === "number") {          /* 历史 3 元素：备注/时间戳 */
             ts = e[2];
             if (typeof e[1] === "string") note = e[1];
@@ -2712,7 +2793,7 @@
       if (!inner || typeof inner[1] !== "number" || !isFinite(inner[1])) continue;
       var p = inner[0], t = inner[1];
       if (isPenCode(t) && isPlausibleMs(p)) { var tmp = p; p = t; t = tmp; }   /* 防御：两字段颠倒 */
-      var s = normSolve({ ms: t, pen: penOf(p), date: tsToMs(ts), note: note });
+      var s = normSolve({ ms: t, pen: penOf(p), date: tsToMs(ts), note: note, scramble: scr });
       if (s) out.push(s);
     }
     return out;
@@ -2779,10 +2860,14 @@
     var s = String(scrType || "").toLowerCase(), n = String(name || "");
     if (!s) {
       if (/2x2|二阶/.test(n)) return "2x2";
+      if (/4x4|四阶/.test(n)) return "4x4";
+      if (/5x5|五阶/.test(n)) return "5x5";
       if (/3x3|三阶/.test(n)) return "3x3";
       return "";
     }
     if (/^222/.test(s) || /2x2|二阶/.test(n)) return "2x2";
+    if (/^444/.test(s) || /4x4|四阶/.test(n)) return "4x4";
+    if (/^555/.test(s) || /5x5|五阶/.test(n)) return "5x5";
     if (/^333/.test(s) || /3x3|三阶/.test(n)) return "3x3";
     if (/^(ll|oll|pll|zbl?|cmll|coll|lse|2gen|3gen|f2l|lsll|ls|roux|eoline|eocross|sbrx|mt|cross|edges|corners|half|easy|rru|ni|oh|fm|zb|wv|eo|dr)/.test(s)) return "3x3";
     return "";
