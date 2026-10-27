@@ -9,17 +9,15 @@
 
 ---
 
-## [2.0.56] — 2026-10-27（导航默认收起 + 悬停展开 · 组页/计时器单屏铺满）
+## [2.0.58] — 2026-10-27（组页三栏网格重排 · 展开图中栏化 · 成绩统计置顶 · 参考整列一屏全显）
 
-用户诉求：「整个页面不能滚动、一个页面装满铺满，左侧的导航可以自动收起来，要大气整洁」。
+用户诉求（组页再次微调）：「打乱公式/练习顺序右侧空白太多，把魔方展开图挪到它右侧；下方计时器与上方对齐；最右竖条上方放成绩统计、下方放参考公式，整列一屏全显、不要单独拖动滚动」。
 
-- **导航悬停展开 + 默认收起（全站，零 HTML 改动）**：
-  - `assets/js/site-nav.js`：`isNavHidden()` 默认返回 true —— 进入任意页面侧栏即收起（仅在用户曾固定展开并写 storage='0' 时才常驻）。新增 `initNavPeek()`：鼠标移到左缘「导航」竖条（`#navExpandTab`）或侧栏上即临时滑出（`body.nav-peek`），离开 160ms 后自动收回；想固定常驻展开就点侧栏内收起按钮（钉住，写 storage='0'）。
-  - `assets/css/site-shell.css` ⑪：侧栏收起从 `display:none` 改为 `transform: translateX(-100%)` + `pointer-events:none`，peek 时滑回 `translateX(0)`，带 0.2s 过渡动画；内容区在 `nav-hidden` 时本就不占左边框，侧栏移出后主体自动全宽、最大气。窄屏维持顶部条 + 抽屉不变。
-- **组页单屏铺满（仅 UF/UR 练习页，对齐计时器）**：`assets/css/practice.css` 新增 `@media (min-width:1025px) and (min-height:660px)`：`.pc-wrap` 锁高 `100dvh`、`body{overflow:hidden}`，两栏 grid 占满剩余高度、各自内部滚动（外部不滚）；页脚让位；展开图卡高度收一档（360，仍清晰）避免必滚。矮屏/分屏正确回退为可滚动（不裁切）。
-- **计时器**：沿用 v2.0.55 已有的桌面单屏锁高，`nav-hidden` 下内容自动更宽、真正铺满。
-- `sw.js` CACHE `fto-timer-v33 → v34`：`site-nav.js` 与 `site-shell.css` 均在 APP_SHELL 内且已改；`practice.css` 是页面级 CSS，走运行时 SWR 自动缓存，不进 APP_SHELL，无需递增。
-- 验证：本地 Playwright 实测 16 项全过（导航默认收起 / hover 滑出 / 离开自动收回 / 组页·计时器单屏不滚且占满视口高 / 矮屏回退可滚动）。
+- **组页桌面布局改为三栏网格（仅 UF/UR 练习页，零 HTML 改动，覆盖 40 个生成页）**：`assets/css/practice.css` 桌面 `≥1025` 块把网格从两栏（scramble/order/timer 左 + diagram/stats/ref 右）改为三栏——左栏=打乱公式(上)/练习顺序(中)/大计时器(下)，中栏=魔方展开图（紧贴打乱公式/练习顺序右侧、占上两行，吃掉原空白），右竖条=成绩统计(上)/参考公式(下，占满整条)。`grid-template-areas` 重排为 `scramble diagram stats / order diagram ref / timer timer ref`；实测落位：展开图 x 介于打乱公式与成绩统计之间且与打乱公式同顶，成绩统计在参考公式上方且同列，计时器占左下并横跨中栏底部。
+- **参考公式整列一屏全显（不再单独滚动）**：桌面端对 `.pc-ref` 紧凑化——`ref-table` 锁 `grid-auto-rows:22px`，代码列改 12px、公式框 11px、收紧内边距，隐藏单行风格提示；原每行 46px（代码列继承 16px 大字所致）压到 22px，20 行实测整列 497px 恰好等于右竖条可用高度、内部零滚动。`overflow-y:auto` 保留为极端分组（行数远多）时的兜底。
+- **成绩统计列保持**：`#timer-score` 竖向数列（本次/最快/平均/Ao5/Ao12/次数，`avgOfN` 速拧标准均值）仍注入右竖条顶部，位于参考公式之上。
+- `sw.js` 不递增（`practice.css` 不在 APP_SHELL，走运行时 SWR 自动缓存，改动后下次访问即更新）。
+- 验证：本地 Playwright 实测 32 项全过（三列网格落位 / 单屏不滚且占满视口高 / 展开图在中栏不压右竖条 / 成绩统计在参考上方 / 参考整列一屏全显 scrollH=497=clientH / 成绩卡 6 项齐全 / 注入 12 次后 Ao5=12.375、Ao12=11.500 / 矮屏回退可滚动 / 窄屏正常堆叠）。
 
 ---
 
@@ -32,6 +30,20 @@
 - **参考公式默认展开**：`tools/scramble-uf/uf-ref.js` 与 `tools/scramble-ur/ur-ref.js` 去掉「点击切换」逻辑，加载即渲染并隐藏 `.ref-toggle` 按钮，参考公式面板（`ref-panel`）默认 `display:block` 直接展开。
 - `sw.js` 不递增（`practice.css` / `uf-timer.js` / `ur-timer.js` / `uf-ref.js` / `ur-ref.js` 均不在 APP_SHELL，走运行时 SWR 自动缓存，改动后下次访问即更新）。
 - 验证：本地 Playwright 实测 27 项全过（display:contents 生效 / 五区网格落位 / 单屏不滚且占满视口高 / 成绩卡 6 项齐全 / 注入 12 次后 Ao5=12.375、Ao12=11.500 / 参考公式默认展开 20 行已加载 / 矮屏回退可滚动 / 窄屏正常堆叠）。
+
+---
+
+## [2.0.56] — 2026-10-27（导航默认收起 + 悬停展开 · 组页/计时器单屏铺满）
+
+用户诉求：「整个页面不能滚动、一个页面装满铺满，左侧的导航可以自动收起来，要大气整洁」。
+
+- **导航悬停展开 + 默认收起（全站，零 HTML 改动）**：
+  - `assets/js/site-nav.js`：`isNavHidden()` 默认返回 true —— 进入任意页面侧栏即收起（仅在用户曾固定展开并写 storage='0' 时才常驻）。新增 `initNavPeek()`：鼠标移到左缘「导航」竖条（`#navExpandTab`）或侧栏上即临时滑出（`body.nav-peek`），离开 160ms 后自动收回；想固定常驻展开就点侧栏内收起按钮（钉住，写 storage='0'）。
+  - `assets/css/site-shell.css` ⑪：侧栏收起从 `display:none` 改为 `transform: translateX(-100%)` + `pointer-events:none`，peek 时滑回 `translateX(0)`，带 0.2s 过渡动画；内容区在 `nav-hidden` 时本就不占左边框，侧栏移出后主体自动全宽、最大气。窄屏维持顶部条 + 抽屉不变。
+- **组页单屏铺满（仅 UF/UR 练习页，对齐计时器）**：`assets/css/practice.css` 新增 `@media (min-width:1025px) and (min-height:660px)`：`.pc-wrap` 锁高 `100dvh`、`body{overflow:hidden}`，两栏 grid 占满剩余高度、各自内部滚动（外部不滚）；页脚让位；展开图卡高度收一档（360，仍清晰）避免必滚。矮屏/分屏正确回退为可滚动（不裁切）。
+- **计时器**：沿用 v2.0.55 已有的桌面单屏锁高，`nav-hidden` 下内容自动更宽、真正铺满。
+- `sw.js` CACHE `fto-timer-v33 → v34`：`site-nav.js` 与 `site-shell.css` 均在 APP_SHELL 内且已改；`practice.css` 是页面级 CSS，走运行时 SWR 自动缓存，不进 APP_SHELL，无需递增。
+- 验证：本地 Playwright 实测 16 项全过（导航默认收起 / hover 滑出 / 离开自动收回 / 组页·计时器单屏不滚且占满视口高 / 矮屏回退可滚动）。
 
 ---
 

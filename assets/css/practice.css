@@ -243,25 +243,23 @@ body { margin: 0; padding: 0; }
 }
 .ref-style-hint { font-size: 12px; color: var(--fg-3); }
 
-/* ---------- 桌面横版：五区网格铺满（与侧栏模式同断点 1025） ----------
-   新布局（v2.0.57）：把 .pc-main / .pc-side 设 display:contents，让 5 张卡片
-   直接成为 .pc.entry 的网格项，用 grid-template-areas 排成：
-     左上=打乱公式  右上=展开图
-     左中=练习顺序  右中=成绩统计
-     左下=大计时器  右下=参考公式
+/* ---------- 桌面横版：三栏网格铺满（v2.0.58） ----------
+   把 .pc-main / .pc-side 设 display:contents，让卡片直接成为 .pc.entry 的网格项：
+     左栏（宽）= 打乱公式(上) / 练习顺序(中) / 大计时器(下)
+     中栏      = 魔方展开图（占上两行，紧贴打乱公式/练习顺序右侧，吃掉原空白）
+     右栏(竖条)= 成绩统计(上) / 参考公式(下，占满整条不再单独滚动)
    —— 零 HTML 改动即可覆盖 40 个生成页。 */
 @media (min-width: 1025px) {
   .pc-wrap { max-width: min(100%, 1800px); padding: 20px 24px 48px; }
   .pc-main, .pc-side { display: contents; }     /* 拆空容器，卡片上提到 .pc.entry 网格 */
   .pc.entry {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(340px, 28%, 400px);
-    grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.1fr) clamp(320px, 30%, 440px) clamp(280px, 23%, 360px);
+    grid-template-rows: auto auto minmax(0, 1fr);
     grid-template-areas:
-      "scramble  diagram"
-      "order     diagram"
-      "timer     stats"
-      "timer     ref";
+      "scramble  diagram  stats"
+      "order     diagram  ref"
+      "timer     timer    ref";
     gap: 14px; align-items: stretch;
   }
   .pc-card:has(#scramble-formula) { grid-area: scramble; }
@@ -272,12 +270,20 @@ body { margin: 0; padding: 0; }
   .pc-ref                         { grid-area: ref; }
 
   /* 展开图跟随容器尺寸（cube-net 读父卡 getBoundingClientRect；height:auto 保比例） */
-  .pc-card--diagram { min-height: 0; padding: 16px; }
+  .pc-card--diagram { min-height: 0; padding: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
   /* 计时舞台占满左下大区 */
   .timer-block { min-height: 0; }
   /* 参考公式区：标题常驻 + 公式表内部滚动（内容超高时），外部锁死不滚 */
   .pc-ref { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
   .pc-ref .ref-panel { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  /* 参考公式紧凑化：使整条在右竖条一屏全显（不再单独滚动）。
+     代码列原继承 16px 大字导致每行 46px；下拉按钮列也偏矮胖。直接锁行高 22px。 */
+  .pc-ref .ref-style-bar { margin-bottom: 3px; gap: 6px; }
+  .pc-ref .ref-style-hint { display: none; }            /* 单行精简，省出高度 */
+  .pc-ref .ref-table { grid-auto-rows: 22px; }
+  .pc-ref .ref-code-col { min-height: 0; padding: 2px 8px; font-size: 12px; line-height: 1.2; }
+  .pc-ref .ref-sel-col { min-height: 0; padding: 2px 8px; }
+  .pc-ref .ref-sel-box { min-height: 0; padding: 2px 8px; font-size: 11px; line-height: 1.2; }
   /* 成绩卡：紧凑数列，自然高度 */
   .timer-score { min-height: 0; }
 }
@@ -300,12 +306,12 @@ body { margin: 0; padding: 0; }
 }
 
 /* =========================================================
-   组页桌面单屏（v2.0.57）：一屏装下，不滚动（仅 group 练习页加载本文件）
+   组页桌面单屏（v2.0.58）：一屏装下，不滚动（仅 group 练习页加载本文件）
    ─ 断点对齐计时器：宽≥1025 且高≥660；矮屏/分屏退回原可滚动布局。
-   ─ 五区网格（定义见 ≥1025 块，此处仅接管高度铺满）：
-     左上=打乱公式 右上=展开图 / 左中=练习顺序 右中=成绩统计 /
-     左下=大计时器 右下=参考公式。
-   ─ 全页唯一可滚的是「参考公式」内部（内容超高时），外部锁死。
+   ─ 三栏网格（定义见 ≥1025 块，此处仅接管高度铺满）：
+     左=打乱公式/练习顺序/大计时器  中=魔方展开图（上两行）
+     右竖条=成绩统计(上)/参考公式(下，占满整条)。
+   ─ 参考公式区占满右竖条，典型分组一屏可全显；内容极高时内部滚动兜底。
    ─ 配合全站「导航默认收起」：侧栏退场后内容占满整宽，最大气。
    ========================================================= */
 @media (min-width: 1025px) and (min-height: 660px) {
