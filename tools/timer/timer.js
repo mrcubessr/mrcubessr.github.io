@@ -70,7 +70,9 @@
   var lastBldView = null;             /* 最近一次渲染进解法面板的数据（当前或历史回放）；
                                          resize/缩放后重绘展开图要用（canvas 宽是画死的） */
 
-  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true, scrambleScale: 1, timeScale: 1 };
+  /* personal（v2.0.60）：个性化设置（配色 / 字体 / 密度 / 动效），由 tools/timer/personal.js
+     读写；整存整取，具体字段的解释与默认值都在 personal.js 里。 */
+  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true, scrambleScale: 1, timeScale: 1, personal: null };
   /* 速拧的「观察」偏好：三盲会临时把 opt.inspect 压成 0，切回速拧时用它还原 */
   var speedInspect = 15;
 
@@ -277,6 +279,9 @@
       /* 字体缩放：打乱公式 / 计时数字，取值范围 0.8~2.5（默认 1） */
       if (typeof o.scrambleScale === "number" && isFinite(o.scrambleScale)) opt.scrambleScale = clamp(o.scrambleScale, 0.8, 2.5);
       if (typeof o.timeScale === "number" && isFinite(o.timeScale)) opt.timeScale = clamp(o.timeScale, 0.8, 2.5);
+      /* 个性化：整存整取。**必须在这里回读** —— saveOpt() 是整对象覆盖，
+         不回读的话定时器任意一次 saveOpt 都会把已存的个性化配置抹成 null。 */
+      if (o.personal && typeof o.personal === "object") opt.personal = o.personal;
     } catch (e) {
       opt.bld = defaultBld();
     }
@@ -2365,6 +2370,8 @@
     if (els.fontScramble) els.fontScramble.value = String(opt.scrambleScale);
     if (els.fontTime) els.fontTime.value = String(opt.timeScale);
     applyFontScale();
+    /* 个性化面板：每次打开设置都把控件同步成当前配置（换设备同步下来后尤其重要） */
+    if (window.TimerPersonal && window.TimerPersonal.sync) window.TimerPersonal.sync();
     els.settingsModal.hidden = false;
     if (els.settingsBtn) els.settingsBtn.blur();
   }
@@ -3759,6 +3766,15 @@
     mapSum: function () { return els.mapSum.textContent; },
     confirmMap: confirmMapImport,
     toggleExportMenu: toggleExportMenu
+  };
+
+  /* 个性化设置（tools/timer/personal.js）的读写入口：它直接改 opt 并复用 saveOpt，
+     因此个性化跟着 timer_options_v1 一起云同步 —— 不必新增 localStorage 键
+     （新键必须进 LSProvider 同步清单，漏一个 = 该类数据永不进快照）。 */
+  window.TimerOpt = {
+    get: function () { return opt; },
+    save: saveOpt,
+    applyFontScale: applyFontScale
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

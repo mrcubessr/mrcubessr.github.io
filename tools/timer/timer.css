@@ -7,6 +7,30 @@
    各断点的 font-size 都包了 calc(... * var(...))，改这里或 JS 即整体生效。 */
 :root { --tm-scramble-scale: 1; --tm-time-scale: 1; }
 
+/* =========================================================
+   个性化变量（v2.0.60）· 由 tools/timer/personal.js 写入
+   ---------------------------------------------------------
+   默认值一律回落到设计令牌 var(--token)：未做任何个性化设置时，
+   本页观感与 v2.0.59 及之前**完全一致**，不会出现「没设置却变了样」。
+   JS 只写 :root 上的这几个变量 + --tm-scramble-scale / --tm-time-scale，
+   不逐元素改样式，因此所有断点（手机单屏 / 平板 / 桌面 / 全屏）自动继承。
+   ========================================================= */
+:root {
+  --tm-accent: var(--brand);          /* 强调色：计时中边框 / 长按反馈 / 选中态 */
+  --tm-time-color: var(--fg);         /* 计时数字（待机 / 计时中 / 停表） */
+  --tm-stage-bg: var(--surface);      /* 舞台底色 */
+  --tm-stage-bg2: var(--surface);     /* 舞台渐变第二色；与底色相同时视觉为纯色 */
+  --tm-state-ready: var(--green);     /* 就绪（可以起表） */
+  --tm-state-warn: var(--amber);      /* 观察剩 3 秒 */
+  --tm-state-danger: var(--red);      /* 观察超时 / DNF */
+  --tm-ui-scale: 1;                   /* 界面文字缩放（列表 / 标签 / 提示 / KPI） */
+  --tm-time-weight: 800;              /* 计时数字字重 */
+  --tm-time-track: 2px;               /* 计时数字字距 */
+  --tm-time-font: var(--font-mono);   /* 计时数字字体 */
+  --tm-gap: 14px;                     /* 主区纵向间距（密度） */
+  --tm-stage-minh: 220px;             /* 舞台最小高度（密度） */
+}
+
 .tm-wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 28px 16px 64px; }
 
 /* 作者样式（.tm-confirm{display:flex} 等）优先级高于 UA 的 [hidden]{display:none}，
@@ -56,16 +80,16 @@ body { margin: 0; }
 /* ---------- 页头 ---------- */
 .tm-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .tm-hero__title { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: .5px; color: var(--fg); }
-.tm-hero__sub { margin: 0; font-size: 13px; line-height: 1.6; color: var(--fg-3); }
+.tm-hero__sub { margin: 0; font-size: calc(13px * var(--tm-ui-scale)); line-height: 1.6; color: var(--fg-3); }
 .tm-hero__spacer { flex: 0 0 auto; }
 
-.tm { display: flex; flex-direction: column; gap: 14px; }
+.tm { display: flex; flex-direction: column; gap: var(--tm-gap); }
 
 /* ---------- 打乱区 ---------- */
 .tm-bar { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 0; }
 .tm-bar__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.tm-label { font-size: 12px; letter-spacing: 1px; color: var(--fg-3); flex: 0 0 auto; }
+.tm-label { font-size: calc(12px * var(--tm-ui-scale)); letter-spacing: 1px; color: var(--fg-3); flex: 0 0 auto; }
 
 /* 打乱公式 + 展开图 并排（三盲时展开图显示，其余项目只占一列） */
 .tm-scramble-block { display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap; }
@@ -120,19 +144,23 @@ body { margin: 0; }
 .tm-stage {
   position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-  min-height: 220px; padding: 26px 20px;
-  background: var(--surface);
+  min-height: var(--tm-stage-minh); padding: 26px 20px;
+  /* 底色 + 渐变：两色相同时视觉即纯色，故无需额外的「纯色/渐变」开关 */
+  background-color: var(--tm-stage-bg);
+  background-image: linear-gradient(165deg, var(--tm-stage-bg), var(--tm-stage-bg2));
   border: 2px solid var(--line);
   border-radius: 0;
   cursor: pointer; user-select: none; touch-action: manipulation;
   transition: border-color .1s linear, background-color .1s linear;
 }
-.tm-stage:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* 状态态（就绪 / 观察告警）关掉自定义渐变，沿用令牌软底，避免出现脏色叠加 */
+.tm-stage.is-ready, .tm-stage.is-inspect.is-warn, .tm-stage.is-inspect.is-danger { background-image: none; }
+.tm-stage:focus-visible { outline: 2px solid var(--tm-accent); outline-offset: 2px; }
 .tm-stage.is-inspect { border-color: var(--brand-line); }
-.tm-stage.is-inspect.is-warn { border-color: var(--amber); }
-.tm-stage.is-inspect.is-danger { border-color: var(--red); background: var(--red-soft); }
-.tm-stage.is-ready { border-color: var(--green); background: var(--green-soft); }
-.tm-stage.is-running { border-color: var(--brand); }
+.tm-stage.is-inspect.is-warn { border-color: var(--tm-state-warn); }
+.tm-stage.is-inspect.is-danger { border-color: var(--tm-state-danger); background-color: var(--red-soft); }
+.tm-stage.is-ready { border-color: var(--tm-state-ready); background-color: var(--green-soft); }
+.tm-stage.is-running { border-color: var(--tm-accent); }
 .tm-stage.is-stopped { border-color: var(--line-2); }
 
 /* 计时数字禁止选中（v2.0.26）：
@@ -146,17 +174,17 @@ body { margin: 0; }
 }
 
 .tm-time {
-  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
-  font-weight: 800; font-size: calc(clamp(52px, 13vw, 132px) * var(--tm-time-scale)); line-height: 1;
-  letter-spacing: 2px; color: var(--fg); max-width: 100%;
+  font-family: var(--tm-time-font); font-variant-numeric: tabular-nums;
+  font-weight: var(--tm-time-weight); font-size: calc(clamp(52px, 13vw, 132px) * var(--tm-time-scale)); line-height: 1;
+  letter-spacing: var(--tm-time-track); color: var(--tm-time-color); max-width: 100%;
 }
 /* ≥60s（M:SS.xx）长格式：缩小字号并收紧字距，避免窄屏/放大时撑破舞台 */
 .tm-time.is-long { font-size: calc(clamp(38px, 11vw, 96px) * var(--tm-time-scale)); letter-spacing: 1px; }
-.tm-stage.is-ready .tm-time { color: var(--green); }
-.tm-stage.is-inspect.is-warn .tm-time { color: var(--amber); }
-.tm-stage.is-inspect.is-danger .tm-time { color: var(--red); }
+.tm-stage.is-ready .tm-time { color: var(--tm-state-ready); }
+.tm-stage.is-inspect.is-warn .tm-time { color: var(--tm-state-warn); }
+.tm-stage.is-inspect.is-danger .tm-time { color: var(--tm-state-danger); }
 
-.tm-state { font-size: 13px; letter-spacing: .5px; color: var(--fg-3); text-align: center; }
+.tm-state { font-size: calc(13px * var(--tm-ui-scale)); letter-spacing: .5px; color: var(--fg-3); text-align: center; }
 .tm-state b { color: var(--fg-2); }
 .tm-pen {
   position: absolute; top: 12px; right: 14px;
@@ -188,8 +216,8 @@ body { margin: 0; }
 }
 .tm-kpi { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-right: 1px solid var(--line); }
 .tm-kpi:last-child { border-right: 0; }
-.tm-kpi__k { font-size: 11px; letter-spacing: 1px; color: var(--fg-3); }
-.tm-kpi__v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 19px; font-weight: 800; color: var(--fg); }
+.tm-kpi__k { font-size: calc(11px * var(--tm-ui-scale)); letter-spacing: 1px; color: var(--fg-3); }
+.tm-kpi__v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: calc(19px * var(--tm-ui-scale)); font-weight: 800; color: var(--fg); }
 .tm-kpi__v.is-best { color: var(--green); }
 .tm-kpi__v.is-dnf { color: var(--red); }
 
@@ -255,15 +283,15 @@ body { margin: 0; }
 .tm-list__item { border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .tm-list__item:last-child { border-bottom: 0; }
 .tm-list__item:hover { background: var(--surface-2); }
-.tm-list__item.is-viewing { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
-.tm-list__more { padding: 10px 14px; font-size: 12px; color: var(--fg-3); text-align: center; background: var(--surface-2); }
-.tm-list__idx { font-size: 12px; color: var(--fg-3); }
-.tm-list__t { font-size: 16px; font-weight: 800; color: var(--fg); text-align: right; }
+.tm-list__item.is-viewing { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--tm-accent); }
+.tm-list__more { padding: 10px 14px; font-size: calc(12px * var(--tm-ui-scale)); color: var(--fg-3); text-align: center; background: var(--surface-2); }
+.tm-list__idx { font-size: calc(12px * var(--tm-ui-scale)); color: var(--fg-3); }
+.tm-list__t { font-size: calc(16px * var(--tm-ui-scale)); font-weight: 800; color: var(--fg); text-align: right; }
 .tm-list__t.is-best { color: var(--green); }
 .tm-list__t.is-worst { color: var(--red); }
 .tm-list__t.is-dnf { color: var(--red); }
 .tm-list__t.is-plus { color: var(--amber); }
-.tm-list__a { font-size: 12px; color: var(--fg-2); text-align: right; }
+.tm-list__a { font-size: calc(12px * var(--tm-ui-scale)); color: var(--fg-2); text-align: right; }
 .tm-list__a.is-dnf { color: var(--red); }
 .tm-list__a.is-best { color: var(--green); }
 .tm-list__a.is-worst { color: var(--red); }
@@ -441,14 +469,14 @@ body { margin: 0; }
 .tm-bld__empty { font-size: 13px; color: var(--fg-3); }
 
 /* 计时长按时反馈：提示“保持按住” */
-.tm-stage.is-holding { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.tm-stage.is-holding { border-color: var(--tm-accent); box-shadow: 0 0 0 3px var(--brand-soft); }
 
 /* 长按启动的进度反馈（v2.0.55）：保持窗口内底部进度条从 0 涨到 100%，
    把"要按多久才起表"变成看得见的东西 —— 之前只有边框变色，
    新手短按没反应也不知道原因。时长必须与 timer.js 的 ARM_MS(350) 一致。 */
 .tm-stage.is-holding::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-  background: var(--brand); transform: scaleX(0); transform-origin: left center;
+  background: var(--tm-accent); transform: scaleX(0); transform-origin: left center;
   animation: tm-hold-progress 350ms linear forwards;
 }
 @keyframes tm-hold-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }

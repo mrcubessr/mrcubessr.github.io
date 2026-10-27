@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
 <link rel="stylesheet" href="/tools/timer/timer.css">
+<link rel="stylesheet" href="/tools/timer/personal.css">
 </head>
 <body data-nav="timer">
 <div data-site-nav></div>
@@ -481,6 +482,10 @@
         </div>
       </div>
       <span class="tm-bld-params__hint">拖动滑块调整大小，实时预览，自动保存到本机。</span>
+      <h3 class="tm-h3">个性化</h3>
+      <!-- 个性化（配色 / 字体 / 密度 / 动效）由 tools/timer/personal.js 渲染到这里，
+           配置存在与成绩同一个 localStorage 键里，随成绩一起云同步。 -->
+      <div id="tm-personal-host"></div>
       <h3 class="tm-h3">数据</h3>
       <div class="tm-settings-row">
         <button class="btn btn--sm btn--secondary" id="tm-settings-import" type="button">导入成绩</button>
@@ -512,6 +517,7 @@
 <script src="/tools/timer/stats.js"></script>
 <script src="/tools/timer/bld-stats.js"></script>
 <script src="/tools/timer/timer.js"></script>
+<script src="/tools/timer/personal.js"></script>
 <script type="module" src="/assets/js/bt-cube.js"></script>
 <script src="/tools/timer/bt-timer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>

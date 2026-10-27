@@ -1,0 +1,83 @@
+/* =========================================================
+   tools/timer/personal.css — 个性化设置面板外观（v2.0.60）
+   ---------------------------------------------------------
+   只管面板本身（.tm-p*）与两个全局开关（body.tm-p-*）。
+   计时器本体的观感由 timer.css 通过 --tm-* 变量消费，不写在这里。
+   本页不加载 base.css（见 timer.css 顶部说明），故样式需自足。
+   ========================================================= */
+
+/* ---------- 容器与分组 ---------- */
+.tm-p { display: flex; flex-direction: column; gap: 16px; }
+.tm-p-grp { border: 1px solid var(--line); background: var(--surface); padding: 12px 14px 14px; }
+.tm-p-grp__hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.tm-p-grp__t { font-size: 13px; font-weight: 800; letter-spacing: 1px; color: var(--brand); }
+.tm-p-grp__h { font-size: 11px; color: var(--fg-3); line-height: 1.5; }
+
+/* ---------- 配色预设：色卡 ---------- */
+/* 固定 4 列：8 套预设正好两行 4 列，避免 auto-fill 排成 5+3 留下半行空白 */
+.tm-p-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tm-p-preset {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 8px 4px 7px; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 0; cursor: pointer;
+  transition: border-color .12s linear, background-color .12s linear;
+}
+.tm-p-preset:hover { border-color: var(--line-2); background: var(--surface-3); }
+.tm-p-preset.is-active { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+.tm-p-preset__sw { display: flex; gap: 3px; }
+.tm-p-preset__sw i {
+  width: 18px; height: 18px; display: block;
+  border: 1px solid rgba(127, 127, 127, .35);
+}
+.tm-p-preset__sw i:nth-child(1) { background: var(--sw1); }
+.tm-p-preset__sw i:nth-child(2) { background: var(--sw2); }
+.tm-p-preset__sw i:nth-child(3) { background: var(--sw3); }
+.tm-p-preset__nm { font-size: 11px; color: var(--fg-2); letter-spacing: .5px; }
+.tm-p-preset.is-active .tm-p-preset__nm { color: var(--fg); font-weight: 700; }
+
+/* ---------- 行：名称 + 控件 ---------- */
+.tm-p-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; border-bottom: 1px dashed var(--line);
+}
+.tm-p-row:last-child { border-bottom: 0; }
+.tm-p-row__k { flex: 0 0 84px; font-size: 12px; color: var(--fg-2); }
+.tm-p-row__v { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* 取色器：把浏览器默认的那圈装饰去掉，做成与本站一致的直角色块 */
+/* 取色器列宽写死：否则各浏览器给 input[type=color] 的固有宽度不同，七行会参差 */
+.tm-p-color {
+  flex: 0 0 52px; width: 52px; height: 28px; padding: 0;
+  border: 1px solid var(--line-2); border-radius: 0; background: transparent; cursor: pointer;
+}
+.tm-p-color::-webkit-color-swatch-wrapper { padding: 2px; }
+.tm-p-color::-webkit-color-swatch { border: 0; border-radius: 0; }
+.tm-p-color::-moz-color-swatch { border: 0; border-radius: 0; }
+/* 「自动」紧跟取色器（色块列宽写死，按钮自然成列对齐），空白留在行尾而非中间 */
+.tm-p-auto { margin-left: 0; padding: 3px 8px; font-size: 11px; }
+.tm-p-auto:disabled { opacity: .45; cursor: default; }
+
+/* 分段按钮：复用 .seg，只在窄屏允许换行 */
+.tm-p-seg { flex-wrap: wrap; }
+.tm-p-seg .seg__btn { padding: 5px 10px; font-size: 12px; }
+
+/* 界面文字滑块：与「字体大小」两个滑块同一套外观 */
+.tm-p-row .tm-font-field__range { flex: 1 1 auto; min-width: 120px; }
+.tm-p-row .tm-font-field__v { flex: 0 0 46px; }
+
+/* ---------- 全局开关（由 body class 驱动，全站/全断点生效） ---------- */
+/* 隐藏打乱展开图：省出的空间归计时舞台 */
+body.tm-p-hide-net #tm-bld-net-side { display: none !important; }
+
+/* 减少动效：保留长按进度反馈（它承担「要按多久」的功能提示），只做快放 */
+body.tm-p-reduce-motion *,
+body.tm-p-reduce-motion *::before,
+body.tm-p-reduce-motion *::after { transition-duration: .06s !important; }
+body.tm-p-reduce-motion .tm-stage.is-holding::after { animation-duration: .12s !important; }
+
+/* ---------- 窄屏：名称不占固定宽，改为上下两行 ---------- */
+@media (max-width: 560px) {
+  .tm-p-row { flex-direction: column; align-items: stretch; gap: 4px; }
+  .tm-p-row__k { flex: none; }
+  .tm-p-presets { grid-template-columns: repeat(2, 1fr); }
+}

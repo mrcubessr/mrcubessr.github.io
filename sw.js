@@ -155,7 +155,13 @@
    全站统一的大气流导航体验）；② /assets/css/site-shell.css 在 APP_SHELL 内且已改
    （侧栏收起从 display:none 改为 transform 滑出，支持 peek 滑入动画）。
    两件均在 APP_SHELL 内，不递增已安装 PWA 用户会一直拿到旧版布局，按规矩递增。 */
-const CACHE = 'fto-timer-v34';
+/* v35（2026-10-27）：/tools/timer/index.html + timer.js + timer.css 三件均在 APP_SHELL 内且已改
+   （计时器新增「个性化」设置：index.html 多出面板挂载点与 personal.js/personal.css 引用，
+   timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增一组 --tm-* 变量）。
+   新增的 personal.js / personal.css 不在 APP_SHELL，走运行时 SWR 缓存自动获得；
+   但 index.html 在壳内，不递增的话已安装用户拿到的旧壳根本不会去请求 personal.js，
+   个性化入口直接缺失 —— 按规矩递增。 */
+const CACHE = 'fto-timer-v35';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate
