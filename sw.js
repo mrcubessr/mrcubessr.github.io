@@ -150,7 +150,12 @@
    ② /assets/js/cube-net.js 在 APP_SHELL 内且已改（词法支持 Rw/Lw/Uw/Dw/Fw/Bw 宽层记法，
       四阶 / 五阶展开图的关键缺口；UF/UR 组页共用此文件）。
    两件均在 APP_SHELL 内，不递增已安装用户拿旧结构，按规矩递增。 */
-const CACHE = 'fto-timer-v33';
+/* v34（2026-10-27）：① /assets/js/site-nav.js 在 APP_SHELL 内且已改（侧栏默认收起 + 悬停展开：
+   进入页面即 nav-hidden，鼠标移到左缘『导航』条临时滑出、离开自动收回；
+   全站统一的大气流导航体验）；② /assets/css/site-shell.css 在 APP_SHELL 内且已改
+   （侧栏收起从 display:none 改为 transform 滑出，支持 peek 滑入动画）。
+   两件均在 APP_SHELL 内，不递增已安装 PWA 用户会一直拿到旧版布局，按规矩递增。 */
+const CACHE = 'fto-timer-v34';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

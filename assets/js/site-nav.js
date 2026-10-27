@@ -261,8 +261,10 @@
     try {
       /* 一次性清理旧版永久记忆键 */
       try { localStorage.removeItem(NAV_HIDDEN_LEGACY_KEY); } catch (e2) {}
-      return sessionStorage.getItem(NAV_HIDDEN_KEY) === '1';
-    } catch (e) { return false; }      /* 隐私模式 / 禁用存储时静默降级 */
+      /* v2.0.56：默认收起 —— 无记录或 '1' 都视为收起，仅 '0'（用户曾固定展开）才展开。
+         配合下方悬停展开：进入任意页面侧栏都是收起的，鼠标移到左缘『导航』条才临时滑出。 */
+      return sessionStorage.getItem(NAV_HIDDEN_KEY) !== '0';
+    } catch (e) { return true; }      /* 隐私模式 / 禁用存储时静默降级：保守收起 */
   }
 
   function setNavHidden(hidden) {
@@ -293,6 +295,29 @@
     return tab;
   }
 
+  /* 悬停展开（v2.0.56）：默认收起时，鼠标移到左缘『导航』条或侧栏上即临时滑出，离开自动收回。
+     不写 storage —— 纯临时态；想固定常驻展开就点侧栏内的收起按钮（钉住，写 '0'）。 */
+  var navPeekTimer = null;
+  function openNavPeek() {
+    if (!isDesktop()) return;                   /* 窄屏是顶部条 + 抽屉，不收起、不 peek */
+    if (!isNavHidden()) return;                 /* 已固定展开则无需 peek */
+    if (navPeekTimer) { clearTimeout(navPeekTimer); navPeekTimer = null; }
+    document.body.classList.add('nav-peek');
+  }
+  function closeNavPeek() {
+    if (navPeekTimer) clearTimeout(navPeekTimer);
+    navPeekTimer = setTimeout(function () {
+      document.body.classList.remove('nav-peek');
+      navPeekTimer = null;
+    }, 160);
+  }
+  function initNavPeek() {
+    var tab = document.getElementById('navExpandTab');
+    var nav = document.getElementById('siteNav');
+    if (tab) { tab.addEventListener('mouseenter', openNavPeek); tab.addEventListener('mouseleave', closeNavPeek); }
+    if (nav) { nav.addEventListener('mouseenter', openNavPeek); nav.addEventListener('mouseleave', closeNavPeek); }
+  }
+
   function initNavCollapse() {
     ensureExpandTab();
     setNavHidden(isNavHidden());
@@ -304,6 +329,8 @@
         setNavHidden(!isNavHidden());
       });
     }
+    /* 悬停展开：仅桌面（tab 与 peek 态都在 min-width:1025 内生效） */
+    initNavPeek();
   }
 
   function closeAllDrops(nav) {

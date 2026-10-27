@@ -9,6 +9,20 @@
 
 ---
 
+## [2.0.56] — 2026-10-27（导航默认收起 + 悬停展开 · 组页/计时器单屏铺满）
+
+用户诉求：「整个页面不能滚动、一个页面装满铺满，左侧的导航可以自动收起来，要大气整洁」。
+
+- **导航悬停展开 + 默认收起（全站，零 HTML 改动）**：
+  - `assets/js/site-nav.js`：`isNavHidden()` 默认返回 true —— 进入任意页面侧栏即收起（仅在用户曾固定展开并写 storage='0' 时才常驻）。新增 `initNavPeek()`：鼠标移到左缘「导航」竖条（`#navExpandTab`）或侧栏上即临时滑出（`body.nav-peek`），离开 160ms 后自动收回；想固定常驻展开就点侧栏内收起按钮（钉住，写 storage='0'）。
+  - `assets/css/site-shell.css` ⑪：侧栏收起从 `display:none` 改为 `transform: translateX(-100%)` + `pointer-events:none`，peek 时滑回 `translateX(0)`，带 0.2s 过渡动画；内容区在 `nav-hidden` 时本就不占左边框，侧栏移出后主体自动全宽、最大气。窄屏维持顶部条 + 抽屉不变。
+- **组页单屏铺满（仅 UF/UR 练习页，对齐计时器）**：`assets/css/practice.css` 新增 `@media (min-width:1025px) and (min-height:660px)`：`.pc-wrap` 锁高 `100dvh`、`body{overflow:hidden}`，两栏 grid 占满剩余高度、各自内部滚动（外部不滚）；页脚让位；展开图卡高度收一档（360，仍清晰）避免必滚。矮屏/分屏正确回退为可滚动（不裁切）。
+- **计时器**：沿用 v2.0.55 已有的桌面单屏锁高，`nav-hidden` 下内容自动更宽、真正铺满。
+- `sw.js` CACHE `fto-timer-v33 → v34`：`site-nav.js` 与 `site-shell.css` 均在 APP_SHELL 内且已改；`practice.css` 是页面级 CSS，走运行时 SWR 自动缓存，不进 APP_SHELL，无需递增。
+- 验证：本地 Playwright 实测 16 项全过（导航默认收起 / hover 滑出 / 离开自动收回 / 组页·计时器单屏不滚且占满视口高 / 矮屏回退可滚动）。
+
+---
+
 ## [2.0.55] — 2026-10-26（计时器加四阶 / 五阶 · 复盘显示速拧打乱 · UF/UR 电脑版重设计）
 
 用户诉求（睡前交代、次日验收）：

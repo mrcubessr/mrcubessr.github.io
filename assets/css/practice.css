@@ -254,3 +254,47 @@ body { margin: 0; padding: 0; }
   .timer-block, .pc-toolbar, .pc-hero__side { display: none; }
   .pc { display: block; }
 }
+
+/* =========================================================
+   组页桌面单屏（v2.0.56）：一屏装下，不滚动（仅 group 练习页加载本文件）
+   ─ 断点对齐计时器：宽≥1025 且高≥660；矮屏/分屏退回原可滚动布局。
+   ─ 左栏 = 打乱公式 + 展开图 + 顺序链；右栏 = 计时器 + 参考公式。
+   ─ 全页唯一可滚的是两栏各自内部（内容超高时），外部锁死。
+   ─ 配合全站「导航默认收起」：侧栏退场后内容占满整宽，最大气。
+   ========================================================= */
+@media (min-width: 1025px) and (min-height: 660px) {
+  body { overflow: hidden; }
+
+  .pc-wrap {
+    height: 100dvh; min-height: 0;
+    max-width: 100%;
+    padding: 12px 20px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  /* 单屏下页脚让位（练习页无需要它的内容） */
+  body > .site-footer { display: none !important; }
+
+  .pc-hero { flex: 0 0 auto; margin-bottom: 8px; }
+  .pc-hero__sub { display: none; }          /* 省掉说明，首屏更短（与计时器一致） */
+  .pc-toolbar { flex: 0 0 auto; margin-bottom: 10px; }
+
+  /* 两栏占满剩余高度 */
+  .pc.entry {
+    flex: 1 1 auto; min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 30%, 420px);
+    gap: 14px; align-items: stretch;
+  }
+  /* 两栏各自内部滚动（内容超高时），外部不滚 */
+  .pc-main, .pc-side {
+    min-height: 0; overflow-y: auto; overscroll-behavior-y: contain;
+  }
+  /* 左栏三卡尽量一屏：展开图卡高度收一档（仍 ≥360，贴纸足够清晰），避免固定 430 必滚 */
+  .pc-main > .pc-card--diagram { min-height: 360px; }
+
+  /* 右栏：计时器吃满高度，参考公式在下方（默认折叠仅按钮，不挤计时区） */
+  .pc-side { display: flex; flex-direction: column; gap: 14px; }
+  .pc-side > .timer-block { flex: 1 1 auto; min-height: 220px; }
+  .pc-side > .pc-ref { flex: 0 0 auto; }
+}

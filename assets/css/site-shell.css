@@ -609,8 +609,21 @@ body{
 
 @media (min-width:1025px){
   .site-nav .nav-collapse-btn{ display:inline-flex; }
-  /* 收起：侧栏整体退场；主体让出的 240px 还回去（与 ② 同特异性、后置 + !important） */
+  /* 收起：侧栏整体滑出视口（transform 而非 display:none，才能有滑入动画）；
+     内容区本就在 nav-hidden 时不占左边框，因此侧栏移出后主体自动全宽。
+     pointer-events:none 双保险：移出视口的侧栏即便残留也不挡点击。 */
+  .site-nav{ transition: transform .2s ease; }
+  body.nav-hidden .site-nav{
+    transform: translateX(-100%);
+    pointer-events:none;
+  }
+  /* 悬停展开（v2.0.56）：默认收起时临时滑回，离开自动收起（由 site-nav.js 切 nav-peek） */
+  body.nav-hidden.nav-peek .site-nav{
+    transform: translateX(0);
+    pointer-events:auto;
+  }
   body.nav-hidden{ border-left-width:0 !important; }
-  body.nav-hidden .site-nav{ display:none !important; }
   body.nav-hidden .nav-expand-tab{ display:inline-flex; }
+  /* peek 时侧栏已滑入，左缘『导航』条让位，避免盖在侧栏上面 */
+  body.nav-hidden.nav-peek .nav-expand-tab{ display:none; }
 }
