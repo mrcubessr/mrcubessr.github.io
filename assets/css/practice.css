@@ -275,15 +275,45 @@ body { margin: 0; padding: 0; }
   .timer-block { min-height: 0; }
   /* 参考公式区：标题常驻 + 公式表内部滚动（内容超高时），外部锁死不滚 */
   .pc-ref { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-  .pc-ref .ref-panel { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
-  /* 参考公式紧凑化：使整条在右竖条一屏全显（不再单独滚动）。
-     代码列原继承 16px 大字导致每行 46px；下拉按钮列也偏矮胖。直接锁行高 22px。 */
-  .pc-ref .ref-style-bar { margin-bottom: 3px; gap: 6px; }
+  .pc-ref .ref-panel {
+    overflow-y: auto; min-height: 0; flex: 1 1 auto;
+    /* 面板级两行网格：风格栏按内容高，公式表占满剩余高度。
+       不用 flex + 内在尺寸（grid-auto-rows 的 max-content 会被当基准高度撑爆容器）。 */
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  /* 参考公式紧凑化（v2.0.59 排版优化）：
+     ① 风格栏做成独立小工具条，下拉高度与表格行高对齐（原来 31px 比行高 22px 还高，显突兀）
+     ② 编码列 76px → 42px（2 字母只需 ~16px），公式框不再像一排空输入框
+     ③ 行高 minmax(22px,1fr) 自适应填满整列，消除底部空洞；编码/公式两列垂直居中对齐 */
+  .pc-ref .ref-style-bar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px; padding: 4px 8px;
+    background: var(--bg-soft); border: 1px solid var(--line);
+  }
+  .pc-ref .ref-style-label { font-size: 12px; line-height: 1.2; }
+  .pc-ref .ref-style-select { font-size: 12px; line-height: 1.2; height: 22px; min-width: 60px; padding: 2px 6px; }
   .pc-ref .ref-style-hint { display: none; }            /* 单行精简，省出高度 */
-  .pc-ref .ref-table { grid-auto-rows: 22px; }
-  .pc-ref .ref-code-col { min-height: 0; padding: 2px 8px; font-size: 12px; line-height: 1.2; }
-  .pc-ref .ref-sel-col { min-height: 0; padding: 2px 8px; }
-  .pc-ref .ref-sel-box { min-height: 0; padding: 2px 8px; font-size: 11px; line-height: 1.2; }
+  .pc-ref .ref-table {
+    grid-template-columns: 42px 1fr;
+    grid-auto-rows: minmax(22px, 1fr);
+  }
+  .pc-ref .ref-code-col { justify-content: center; padding: 2px 4px; font-size: 11.5px; line-height: 1.2; }
+  .pc-ref .ref-sel-col { display: flex; align-items: center; padding: 2px 4px; }
+  .pc-ref .ref-sel-box {
+    display: flex; align-items: center; gap: 6px;
+    height: 18px; padding: 0 6px;
+    font-size: 11px; line-height: 1;
+    background: var(--surface); border: 1px solid transparent;
+  }
+  .pc-ref .ref-sel-box::after {            /* 右侧下拉箭头（CSS 三角，不依赖字体字形） */
+    content: ''; margin-left: auto; flex: 0 0 auto; opacity: .5;
+    width: 0; height: 0;
+    border-left: 3.5px solid transparent; border-right: 3.5px solid transparent;
+    border-top: 4px solid currentColor;
+  }
+  .pc-ref .ref-sel-box:hover { border-color: var(--brand-line); }
+  .pc-ref .ref-sel-box.ref-selected { color: var(--fg); background: var(--brand-soft); border-color: var(--brand-line); }
   /* 成绩卡：紧凑数列，自然高度 */
   .timer-score { min-height: 0; }
 }

@@ -287,9 +287,11 @@
   var toggles = document.querySelectorAll('.ref-toggle');
   Array.prototype.forEach.call(toggles, function (btn) {
     var panel = btn.nextElementSibling;
-    /* 组页新布局（v2.0.57）：参考公式默认直接展开——隐藏切换按钮，加载即渲染 */
+    /* 组页新布局（v2.0.57）：参考公式默认直接展开——隐藏切换按钮，加载即渲染。
+       v2.0.59：display 交回 CSS 控制（清掉内联 block），否则桌面端 .ref-panel
+       无法用 flex 布局，公式表撑不满右竖条、行高无法自适应。 */
     btn.style.display = 'none';
-    panel.style.display = 'block';
+    panel.style.display = '';
     if (panel.getAttribute('data-loaded') !== '1') {
       renderPanel(btn, panel);
     }
