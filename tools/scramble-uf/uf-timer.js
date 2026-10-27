@@ -30,6 +30,51 @@
     for (var i = 0; i < arr.length; i++) s += arr[i];
     return s / arr.length;
   }
+  /* 速拧标准均值：取最近 n 次，去掉一个最快 + 一个最慢后平均（n<3 不裁剪）。
+     Ao5→中间 3 次、Ao12→中间 10 次；次数不足返回 NaN（界面显示 —）。 */
+  function avgOfN(arr, n) {
+    if (!arr || arr.length < n) return NaN;
+    var s = arr.slice(-n).slice().sort(function (a, b) { return a - b; });
+    var lo = (n >= 3) ? 1 : 0, hi = s.length - ((n >= 3) ? 1 : 0);
+    var sum = 0, cnt = 0;
+    for (var i = lo; i <= hi; i++) { sum += s[i]; cnt++; }
+    return cnt ? sum / cnt : NaN;
+  }
+  /* 成绩统计卡：注入到 .pc-side（计时器之后、参考公式之前），
+     竖向数列展示 本次/最快/平均/Ao5/Ao12/次数。 */
+  function renderScore() {
+    var group = getGroup();
+    var all = loadAll();
+    var arr = (all[group] || []).filter(function (v) { return isFinite(v) && v > 0; });
+    var last = arr.length ? arr[arr.length - 1] : NaN;
+    var best = arr.length ? Math.min.apply(null, arr) : NaN;
+    var avgV = avg(arr);
+    var ao5 = avgOfN(arr, 5);
+    var ao12 = avgOfN(arr, 12);
+    var side = document.querySelector('.pc-side');
+    if (!side) return;
+    var card = document.getElementById('timer-score');
+    if (!card) {
+      card = document.createElement('div');
+      card.id = 'timer-score';
+      card.className = 'pc-card timer-score';
+      var timer = side.querySelector('.timer-block');
+      if (timer && timer.nextSibling) side.insertBefore(card, timer.nextSibling);
+      else side.appendChild(card);
+    }
+    function r(k, v) {
+      var na = !isFinite(v);
+      return '<div class="timer-score__row"><span class="k">' + k + '</span>' +
+        '<span class="v' + (na ? ' is-na' : '') + '">' + (na ? '—' : fmt(v)) + '</span></div>';
+    }
+    card.innerHTML =
+      '<div class="timer-score__title">成绩统计</div>' +
+      '<div class="timer-score__list">' +
+        r('本次', last) + r('最快', best) + r('平均', avgV) +
+        r('Ao5', ao5) + r('Ao12', ao12) +
+        '<div class="timer-score__row"><span class="k">次数</span><span class="v">' + arr.length + '</span></div>' +
+      '</div>';
+  }
   function render(block) {
     var group = getGroup();
     var all = loadAll();
@@ -39,16 +84,12 @@
     var avgV = avg(arr);
     block.innerHTML =
       '<div class="timer-display" data-state="idle">' + fmt(last) + '</div>' +
-      '<div class="timer-stats">' +
-        '<span>最快 <b>' + fmt(best) + '</b></span>' +
-        '<span>平均 <b>' + fmt(avgV) + '</b></span>' +
-        '<span>次数 <b>' + arr.length + '</b></span>' +
-      '</div>' +
       '<div class="timer-recent"><span class="timer-recent-label">最近5次</span>' + recentHtml(arr) + '</div>' +
       '<div class="timer-actions">' +
         '<button type="button" class="timer-btn timer-btn-del">删除最近一次</button>' +
         '<button type="button" class="timer-btn timer-btn-clear">清空该组</button>' +
       '</div>';
+    renderScore();
   }
   function recentHtml(arr) {
     if (!arr.length) return '<span class="timer-empty">暂无记录</span>';

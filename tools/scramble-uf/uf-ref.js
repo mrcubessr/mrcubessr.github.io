@@ -286,18 +286,13 @@
 
   var toggles = document.querySelectorAll('.ref-toggle');
   Array.prototype.forEach.call(toggles, function (btn) {
-    btn.addEventListener('click', function () {
-      var panel = btn.nextElementSibling;
-      var isOpen = panel.style.display !== 'none';
-      if (isOpen) {
-        panel.style.display = 'none';
-        return;
-      }
-      panel.style.display = 'block';
-      if (panel.getAttribute('data-loaded') !== '1') {
-        renderPanel(btn, panel);
-      }
-    });
+    var panel = btn.nextElementSibling;
+    /* 组页新布局（v2.0.57）：参考公式默认直接展开——隐藏切换按钮，加载即渲染 */
+    btn.style.display = 'none';
+    panel.style.display = 'block';
+    if (panel.getAttribute('data-loaded') !== '1') {
+      renderPanel(btn, panel);
+    }
   });
 
   // 拿法切换后，若参考面板已打开则按新拿法重绘

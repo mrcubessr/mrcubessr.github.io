@@ -148,6 +148,26 @@ body { margin: 0; padding: 0; }
 }
 .timer-btn:hover { background: var(--surface-3, var(--surface-2)); color: var(--fg); border-color: var(--brand-line); }
 
+/* ---------- 成绩统计卡（v2.0.57：右列竖向数列）----------
+   由 uf-timer.js / ur-timer.js 注入到 .pc-side，承载 本次/最快/平均/Ao5/Ao12/次数。 */
+.pc-card.timer-score { gap: 8px; }
+.timer-score__title {
+  font-size: 12px; letter-spacing: 2px; color: var(--fg-3);
+  border-bottom: 1px solid var(--line); padding-bottom: 6px;
+}
+.timer-score__list { display: flex; flex-direction: column; gap: 7px; }
+.timer-score__row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font-size: 13px;
+}
+.timer-score__row .k { color: var(--fg-3); letter-spacing: 1px; }
+.timer-score__row .v {
+  font-family: var(--font-mono, Consolas, monospace);
+  font-variant-numeric: tabular-nums; color: var(--fg);
+  font-weight: 600; font-size: 15px;
+}
+.timer-score__row .v.is-na { color: var(--fg-3); font-weight: 400; }
+
 /* ---------- 参考公式面板（令牌化，覆盖 uf-common 的硬编码蓝） ---------- */
 .ref-toggle {
   display: inline-block; align-self: flex-start; border-radius: 0;
@@ -223,19 +243,43 @@ body { margin: 0; padding: 0; }
 }
 .ref-style-hint { font-size: 12px; color: var(--fg-3); }
 
-/* ---------- 桌面横版：两栏铺满（与侧栏模式同断点 1025） ---------- */
+/* ---------- 桌面横版：五区网格铺满（与侧栏模式同断点 1025） ----------
+   新布局（v2.0.57）：把 .pc-main / .pc-side 设 display:contents，让 5 张卡片
+   直接成为 .pc.entry 的网格项，用 grid-template-areas 排成：
+     左上=打乱公式  右上=展开图
+     左中=练习顺序  右中=成绩统计
+     左下=大计时器  右下=参考公式
+   —— 零 HTML 改动即可覆盖 40 个生成页。 */
 @media (min-width: 1025px) {
   .pc-wrap { max-width: min(100%, 1800px); padding: 20px 24px 48px; }
-  .pc {
+  .pc-main, .pc-side { display: contents; }     /* 拆空容器，卡片上提到 .pc.entry 网格 */
+  .pc.entry {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(340px, 30%, 420px);
-    gap: 14px; align-items: start;
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 28%, 400px);
+    grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "scramble  diagram"
+      "order     diagram"
+      "timer     stats"
+      "timer     ref";
+    gap: 14px; align-items: stretch;
   }
-  /* 计时舞台吃满右栏首屏高度，操作区始终在拇指/视线可达处 */
-  .timer-block { min-height: 320px; }
-  /* 展开图卡片给足高度：drawScrambleNet 的上限由「容器高」决定
-     （availH = max(卡片高, 280)），卡片高 ≥ 430px 时贴纸才能到 37px 上限。 */
-  .pc-card--diagram { min-height: 430px; padding: 20px; }
+  .pc-card:has(#scramble-formula) { grid-area: scramble; }
+  .pc-main > :nth-child(3)         { grid-area: order; }   /* 练习顺序卡 */
+  .pc-card--diagram               { grid-area: diagram; }
+  .timer-block                    { grid-area: timer; }
+  .timer-score                    { grid-area: stats; }
+  .pc-ref                         { grid-area: ref; }
+
+  /* 展开图跟随容器尺寸（cube-net 读父卡 getBoundingClientRect；height:auto 保比例） */
+  .pc-card--diagram { min-height: 0; padding: 16px; }
+  /* 计时舞台占满左下大区 */
+  .timer-block { min-height: 0; }
+  /* 参考公式区：标题常驻 + 公式表内部滚动（内容超高时），外部锁死不滚 */
+  .pc-ref { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .pc-ref .ref-panel { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+  /* 成绩卡：紧凑数列，自然高度 */
+  .timer-score { min-height: 0; }
 }
 
 /* ---------- 手机端 ---------- */
@@ -256,10 +300,12 @@ body { margin: 0; padding: 0; }
 }
 
 /* =========================================================
-   组页桌面单屏（v2.0.56）：一屏装下，不滚动（仅 group 练习页加载本文件）
+   组页桌面单屏（v2.0.57）：一屏装下，不滚动（仅 group 练习页加载本文件）
    ─ 断点对齐计时器：宽≥1025 且高≥660；矮屏/分屏退回原可滚动布局。
-   ─ 左栏 = 打乱公式 + 展开图 + 顺序链；右栏 = 计时器 + 参考公式。
-   ─ 全页唯一可滚的是两栏各自内部（内容超高时），外部锁死。
+   ─ 五区网格（定义见 ≥1025 块，此处仅接管高度铺满）：
+     左上=打乱公式 右上=展开图 / 左中=练习顺序 右中=成绩统计 /
+     左下=大计时器 右下=参考公式。
+   ─ 全页唯一可滚的是「参考公式」内部（内容超高时），外部锁死。
    ─ 配合全站「导航默认收起」：侧栏退场后内容占满整宽，最大气。
    ========================================================= */
 @media (min-width: 1025px) and (min-height: 660px) {
@@ -279,22 +325,9 @@ body { margin: 0; padding: 0; }
   .pc-hero__sub { display: none; }          /* 省掉说明，首屏更短（与计时器一致） */
   .pc-toolbar { flex: 0 0 auto; margin-bottom: 10px; }
 
-  /* 两栏占满剩余高度 */
-  .pc.entry {
-    flex: 1 1 auto; min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(340px, 30%, 420px);
-    gap: 14px; align-items: stretch;
-  }
-  /* 两栏各自内部滚动（内容超高时），外部不滚 */
-  .pc-main, .pc-side {
-    min-height: 0; overflow-y: auto; overscroll-behavior-y: contain;
-  }
-  /* 左栏三卡尽量一屏：展开图卡高度收一档（仍 ≥360，贴纸足够清晰），避免固定 430 必滚 */
-  .pc-main > .pc-card--diagram { min-height: 360px; }
+  /* 网格已在 ≥1025 块定义，这里只让它占满剩余高度 */
+  .pc.entry { flex: 1 1 auto; min-height: 0; }
 
-  /* 右栏：计时器吃满高度，参考公式在下方（默认折叠仅按钮，不挤计时区） */
-  .pc-side { display: flex; flex-direction: column; gap: 14px; }
-  .pc-side > .timer-block { flex: 1 1 auto; min-height: 220px; }
-  .pc-side > .pc-ref { flex: 0 0 auto; }
+  /* 参考公式区：仅它内部滚动，其余区内容均能一屏装下 */
+  .pc-ref { overflow: hidden; }
 }
