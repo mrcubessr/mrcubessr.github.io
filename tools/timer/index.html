@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script src="/assets/js/theme.js"></script>
-<script src="/assets/js/palette.js"></script>
-<script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+<script src="/assets/js/sync-boot.js"></script>
+
 <title>计时器 · Timer · 魔方先生SSR训练中心</title>
 <link rel="manifest" href="/tools/timer/manifest.webmanifest">
 <meta name="theme-color" content="#0d1118">
@@ -521,7 +521,6 @@
 <script type="module" src="/assets/js/bt-cube.js"></script>
 <script src="/tools/timer/bt-timer.js"></script>
 <script>CFOP.bindTheme("themeBtn");</script>
-<script src="/assets/js/sync-boot.js"></script>
 <script>SyncBoot.ready(function(){LSProvider.register({id:'timer',label:'计时成绩',path:'timer.json',keys:['timer_data_v2','timer_options_v1'],isEmptySnap:function(snap){if(!snap)return true;var raw=snap.timer_data_v2;if(raw==null||raw==='')return true;try{var o=JSON.parse(raw),n=0;['3x3','2x2','bld','4x4','5x5'].forEach(function(e){var b=o&&o[e];((b&&b.groups)||[]).forEach(function(g){n+=((g&&g.solves)||[]).length;});});return n===0;}catch(e){return false;}}});});</script>
 <script>
   if ('serviceWorker' in navigator) {
@@ -532,5 +531,7 @@
     });
   }
 </script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
 </body>
 </html>

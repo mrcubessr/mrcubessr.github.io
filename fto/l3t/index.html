@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script src="/assets/js/theme.js"></script>
-<script src="/assets/js/palette.js"></script>
-<script src="/assets/js/sync-boot.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+<script src="/assets/js/sync-boot.js"></script>
+
 <title>1L3T — 1-Look Last 3T</title>
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
@@ -563,5 +563,7 @@
   <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
   <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
 </footer>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
 </body>
 </html>

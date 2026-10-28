@@ -7,10 +7,11 @@
 <html>
 
 <head>
-  <script src="/assets/js/theme.js"></script>
   <title class="lang" key="title"></title>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+  
   <meta name="description"
     content="BLDDB is a 3x3x3 Rubik's cube blindfolded algorithms database, including 3-style corner (all buffers), 3-style edge (all buffers), corner twist, edge flip, and so on.">
   <meta name="keywords" content="bld, algorithm, db, database, blindfolded, cube">
@@ -287,6 +288,7 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
       }
     });
   </script>
+<script src="/assets/js/theme.js"></script>
 </body>
 
 </html>

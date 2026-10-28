@@ -14,6 +14,19 @@
  *         getSnapshot: ..., applySnapshot: ..., subscribe: ... });
  *     });
  *   </script>
+ *
+ * 【2026-10-28 首屏优化】
+ *   ① 原实现用 `chain = chain.then(loadScript)` 逐个串行加载，8 个文件
+ *      = 8 次串行往返。弱网下光排队就 1 秒以上，且这些请求会跟首屏的
+ *      CSS/字体抢带宽。现改为「并行下载 + 按序执行」：
+ *      动态插入的 <script> 设 async=false 即按插入顺序执行（in-order），
+ *      下载却是并行的 —— 8 次往返压成 1 次，执行顺序与原来完全一致。
+ *   ② 启动时机从「立即」改为「DOMContentLoaded 后的空闲时段」。
+ *      同步模块（账号按钮、云同步引擎）不在首屏关键路径上，
+ *      没必要跟首页内容抢带宽。SyncBoot.ready() 在此之前就已可用，
+ *      回调照常排队，flush 时统一执行 —— 对页面侧完全透明。
+ *   ⚠️ 本文件必须继续留在 <head> 同步引入：页面内的 SyncBoot.ready(...)
+ *      是紧跟着它执行的内联脚本，延后到 body 末尾会 ReferenceError。
  * ============================================================= */
 (function (global) {
   'use strict';
@@ -30,20 +43,43 @@
   ];
 
   var loaded = false;
+  var started = false;
   var queue = [];
   var err = null;
 
-  function loadScript(src) {
-    return new Promise(function (res, rej) {
-      // 已存在同名脚本（页面手动引入过）则跳过
-      var exist = document.querySelector('script[src="' + src + '"]');
-      if (exist) return res();
-      var s = document.createElement('script');
-      s.src = src;
-      s.async = false;
-      s.onload = function () { res(); };
-      s.onerror = function () { rej(new Error('加载失败：' + src)); };
-      document.head.appendChild(s);
+  /* 并行下载、按插入顺序执行。任何单个失败都记下来，但不阻断其余文件
+     —— 原来一失败整条链就断，账号按钮等其余能力跟着一起没。 */
+  function loadAll() {
+    return new Promise(function (resolve, reject) {
+      var left = 0;
+      var failed = null;
+      var scheduled = 0;
+
+      function tick() {
+        left--;
+        if (left === 0) {
+          if (failed) reject(failed);
+          else resolve();
+        }
+      }
+
+      FILES.forEach(function (src) {
+        /* 页面已手动引入过同名脚本则跳过（沿用原行为） */
+        if (document.querySelector('script[src="' + src + '"]')) return;
+        scheduled++;
+        var s = document.createElement('script');
+        s.src = src;
+        s.async = false;   /* in-order：并行下载，按插入顺序执行 */
+        s.onload = tick;
+        s.onerror = function () {
+          failed = failed || new Error('加载失败：' + src);
+          tick();
+        };
+        document.head.appendChild(s);
+      });
+
+      left = scheduled;
+      if (left === 0) resolve();
     });
   }
 
@@ -54,11 +90,34 @@
     q.forEach(function (fn) { try { fn(err); } catch (e) { console.error(e); } });
   }
 
-  var chain = Promise.resolve();
-  FILES.forEach(function (f) {
-    chain = chain.then(function () { return loadScript(f); });
-  });
-  chain.then(flush, function (e) { err = e; console.error('[sync-boot]', e); flush(); });
+  function start() {
+    if (started) return;
+    started = true;
+    loadAll().then(flush, function (e) {
+      err = e;
+      console.error('[sync-boot]', e);
+      flush();
+    });
+  }
+
+  /* 首屏优先：DOM 就绪后再挑空闲时段启动，不跟首屏资源抢带宽。
+     requestIdleCallback 的 timeout 兜底 2s，保证慢设备/后台标签页也会跑。 */
+  function schedule() {
+    var kick = function () {
+      if ('requestIdleCallback' in global) {
+        global.requestIdleCallback(start, { timeout: 2000 });
+      } else {
+        setTimeout(start, 200);
+      }
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', kick);
+    } else {
+      kick();
+    }
+  }
+
+  schedule();
 
   global.SyncBoot = {
     /** 模块就绪后回调；已就绪则立即执行 */
