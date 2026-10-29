@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+<script src="/assets/js/sync-boot.js" defer></script>
+
+<title>二阶盲拧 · 编码转打乱</title>
+<meta name="description" content="输入二阶盲拧编码（位置循环 + 扭角），生成对应的打乱公式。按公式打乱后，读码正好是你输入的编码。">
+
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg-2);
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  .intro-head { text-align: center; padding: 26px 16px 4px; }
+  .intro-head .badge {
+    display: inline-block; font-size: .7rem; letter-spacing: 2px;
+    color: var(--brand); border: 1px solid var(--brand);
+    padding: 2px 12px; border-radius: 999px; margin-bottom: 12px;
+  }
+  .intro-head h1 { color: var(--fg); font-size: 1.65rem; font-weight: 800; letter-spacing: 1px; }
+  .page-sub { color: var(--fg-3); font-size: .85rem; margin-top: 8px; line-height: 1.7; }
+
+  .wrap { max-width: 1080px; margin: 22px auto 56px; padding: 0 16px;
+          display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+
+  .card { background: var(--card, var(--bg-2)); border: 1px solid var(--line);
+          border-radius: 14px; padding: 18px; }
+  .card-title { font-size: .82rem; font-weight: 700; color: var(--fg);
+                letter-spacing: 1px; margin-bottom: 14px; display: flex;
+                align-items: center; gap: 8px; }
+  .card-title::before { content: ''; width: 3px; height: 14px; border-radius: 2px;
+                        background: var(--brand); }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: .8rem; color: var(--fg-2);
+                 margin-bottom: 7px; font-weight: 600; }
+  .field .hint { font-size: .72rem; color: var(--fg-3); font-weight: 400;
+                 margin-left: 6px; }
+  .field input {
+    width: 100%; padding: 11px 13px; font-size: 1.05rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 3px; text-transform: uppercase;
+    background: var(--bg); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 9px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
+  .field input::placeholder { color: var(--fg-3); letter-spacing: 1px; font-size: .88rem; }
+
+  /* 勾选项：要覆盖上面 .field input 的整宽输入框样式 */
+  .field label.chk { display: flex; align-items: flex-start; gap: 9px;
+                     font-size: .8rem; font-weight: 500; color: var(--fg-2);
+                     cursor: pointer; line-height: 1.45; margin-bottom: 0; }
+  .field label.chk input[type="checkbox"] {
+    width: 15px; height: 15px; flex: 0 0 15px; margin: 2px 0 0;
+    padding: 0; letter-spacing: 0; border-radius: 4px;
+    accent-color: var(--brand); cursor: pointer;
+  }
+
+  .gbtn-row { display: flex; gap: 10px; margin-top: 4px; }
+  .gbtn { flex: 1; padding: 12px; border: 0; border-radius: 9px; cursor: pointer;
+         font-size: .95rem; font-weight: 700; font-family: inherit;
+         transition: transform .1s, opacity .15s; }
+  .gbtn:active { transform: scale(.98); }
+  .gbtn--primary { background: var(--brand); color: #fff; }
+  .gbtn--primary:disabled { opacity: .55; cursor: default; }
+  .gbtn--ghost { background: var(--bg-3, rgba(127,127,127,.12)); color: var(--fg-2);
+               border: 1px solid var(--line); flex: 0 0 auto; padding: 12px 18px; }
+
+  .err { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: .82rem;
+         background: color-mix(in srgb, var(--red, #e5484d) 12%, transparent);
+         color: var(--red, #e5484d); border: 1px solid color-mix(in srgb, var(--red, #e5484d) 30%, transparent);
+         display: none; line-height: 1.6; }
+  .err.show { display: block; }
+
+  /* 结果 */
+  .result { min-height: 200px; }
+  .empty { color: var(--fg-3); font-size: .88rem; text-align: center; padding: 56px 20px; line-height: 1.9; }
+
+  .scramble-box { margin-bottom: 18px; }
+  .scramble-head { display: flex; align-items: center; justify-content: space-between;
+                   margin-bottom: 10px; }
+  .scramble-label { font-size: .74rem; color: var(--fg-3); letter-spacing: 1px; }
+  .gbtn--copy { padding: 5px 13px; font-size: .74rem; font-family: inherit; cursor: pointer;
+              background: transparent; color: var(--fg-3); border: 1px solid var(--line);
+              border-radius: 999px; transition: color .15s, border-color .15s; }
+  .gbtn--copy:hover { color: var(--brand); border-color: var(--brand); }
+  .moves { display: flex; flex-wrap: wrap; gap: 7px; }
+  .move { display: inline-flex; align-items: center; justify-content: center;
+          min-width: 42px; height: 42px; padding: 0 10px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+          font-size: 1.15rem; font-weight: 700; color: var(--fg);
+          background: var(--bg-3, rgba(127,127,127,.1));
+          border: 1px solid var(--line); border-radius: 9px; }
+  .moves.plain { font-family: ui-monospace, monospace; font-size: 1.1rem;
+                 letter-spacing: 2px; color: var(--brand); font-weight: 700; }
+
+  .verify { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+            padding: 12px 14px; border-radius: 10px; font-size: .82rem;
+            background: color-mix(in srgb, var(--green, #30a46c) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--green, #30a46c) 28%, transparent);
+            color: var(--fg-2); line-height: 1.7; }
+  .verify b { color: var(--green, #30a46c); }
+  .verify code { font-family: ui-monospace, monospace; color: var(--fg);
+                 background: rgba(127,127,127,.14); padding: 2px 7px; border-radius: 5px;
+                 letter-spacing: 2px; }
+
+  .meta { margin-top: 14px; font-size: .76rem; color: var(--fg-3); line-height: 1.8; }
+
+  /* 字母表 */
+  .alpha-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .alpha-cell { text-align: center; padding: 9px 4px; border-radius: 8px;
+                background: var(--bg-3, rgba(127,127,127,.08)); border: 1px solid var(--line); }
+  .alpha-cell .pos { font-size: .66rem; color: var(--fg-3); letter-spacing: .5px; }
+  .alpha-cell .ltr { font-family: ui-monospace, monospace; font-size: .95rem;
+                     font-weight: 700; color: var(--brand); letter-spacing: 2px; margin-top: 3px; }
+  .alpha-cell.buf { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
+
+  .note { font-size: .76rem; color: var(--fg-3); line-height: 1.9; margin-top: 12px; }
+  .note code { font-family: ui-monospace, monospace; color: var(--fg-2);
+               background: rgba(127,127,127,.14); padding: 1px 5px; border-radius: 4px; }
+  .note b { color: var(--fg-2); }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .step { display: flex; gap: 10px; align-items: flex-start;
+          font-size: .82rem; color: var(--fg-2); line-height: 1.75; }
+  .step .n { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+             background: color-mix(in srgb, var(--brand) 14%, transparent);
+             color: var(--brand); font-size: .74rem; font-weight: 700;
+             display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+  .ex { padding: 6px 11px; font-size: .76rem; cursor: pointer; font-family: inherit;
+        background: var(--bg-3, rgba(127,127,127,.1)); color: var(--fg-2);
+        border: 1px solid var(--line); border-radius: 999px; transition: all .15s; }
+  .ex:hover { border-color: var(--brand); color: var(--brand); }
+
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; }
+    .alpha-grid { grid-template-columns: repeat(4, 1fr); }
+    .steps { grid-template-columns: 1fr; gap: 11px; }
+  }
+  @media (max-width: 420px) {
+    .alpha-cell .ltr { font-size: .82rem; letter-spacing: 1px; }
+    .move { min-width: 36px; height: 36px; font-size: 1rem; }
+  }
+</style>
+</head>
+<body data-nav="bld2" style="padding-top:60px">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<header class="intro-head">
+  <span class="badge">2×2 BLIND</span>
+  <h1>二阶盲拧 · 编码转打乱</h1>
+  <p class="page-sub">输入你想要的编码，生成一条打乱公式<br>照着打乱后，读码正好就是你输入的内容</p>
+</header>
+
+<main class="wrap">
+  <!-- 输入 -->
+  <section class="card">
+    <div class="card-title">编码</div>
+
+    <div class="field">
+      <label for="posCode">位置编码 <span class="hint">循环，多段用 - 分隔</span></label>
+      <input id="posCode" type="text" placeholder="例如 XRG 或 X-D" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="field">
+      <label for="twistCode">扭角 <span class="hint">可选，留空表示不扭</span></label>
+      <input id="twistCode" type="text" placeholder="例如 G1 J2 X1 R2" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="field">
+      <label class="chk" for="bufSolved">
+        <input id="bufSolved" type="checkbox">
+        <span>这一把的缓冲块 J 已经归位（编码从别的角起笔）</span>
+      </label>
+    </div>
+
+    <div class="gbtn-row">
+      <button class="gbtn gbtn--primary" id="btnGen">生成打乱</button>
+      <button class="gbtn gbtn--ghost" id="btnClear">清空</button>
+    </div>
+
+    <div class="err" id="errBox"></div>
+
+    <div class="note" style="margin-top:18px">
+      <b>示例</b>
+      <div class="examples">
+        <button class="ex" data-pos="XRG" data-tw="">纯位置</button>
+        <button class="ex" data-pos="XRG" data-tw="G1 J2 X1 R2">带扭角</button>
+        <button class="ex" data-pos="X-D" data-tw="">两段循环</button>
+        <button class="ex" data-pos="GDA" data-tw="">GDA</button>
+        <button class="ex" data-pos="GDA" data-tw="" data-buf="1">缓冲已归位</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 结果 -->
+  <section class="card result">
+    <div class="card-title">打乱公式</div>
+    <div id="out">
+      <div class="empty">
+        填好编码后点「生成打乱」<br>
+        公式会显示在这里，并自动验证读码
+      </div>
+    </div>
+  </section>
+
+  <!-- 怎么用 -->
+  <section class="card" style="grid-column: 1 / -1">
+    <div class="card-title">怎么用</div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div>填入位置编码，有扭角就一并写上。</div></div>
+      <div class="step"><span class="n">2</span><div>拿一个复原的二阶，照着公式打乱。</div></div>
+      <div class="step"><span class="n">3</span><div>开始读码，读出来应该正好是输入的编码。</div></div>
+    </div>
+    <div class="note">
+      <b>为什么位置和扭角要分开写？</b>
+      如果直接按贴纸读循环，一次扭角就会把链拉得很长（实测同一个状态要 15 个字母）。
+      本工具先把每个角在位置上「摆正」再读位置循环，长度必然 ≤ 7；扭角另外用字母对标出。
+      两段合起来才是完整编码，打乱后你按自己的习惯读，两段都会对上。
+    </div>
+  </section>
+
+  <!-- 字母表 -->
+  <section class="card" style="grid-column: 1 / -1">
+    <div class="card-title">字母表 <span style="font-weight:400;color:var(--fg-3);font-size:.74rem;letter-spacing:0">缓冲块 UFR（J）</span></div>
+    <div class="alpha-grid" id="alphaGrid"></div>
+    <div class="note">
+      <b>位置编码</b>：从缓冲 J 开始追踪，每遇到一个块就记下它高色贴纸的字母。例如 <code>XRG</code> 表示
+      UFR → DFR → DBR → UBR → 回到 UFR。多段循环用 <code>-</code> 隔开。<br>
+      缓冲块自己归位时，循环从下一个未读的块起笔——这种编码和「缓冲参与」的编码写法会撞车
+      （<code>D</code> 既可能是 J↔D，也可能是 G↔D），所以请勾选输入框下的
+      <b>「这一把的缓冲块 J 已经归位」</b>，工具才知道该按哪种读法解。<br>
+      <b>扭角</b>：写成「角位字母 + 扭数」，<code>J1</code> 表示 UFR 位置的角扭了 1 次，<code>J2</code> 是 2 次。
+      也可以写角位名 <code>UFR1</code>，或用字母对 <code>JK</code>（等价于 <code>J1</code>）。
+      二阶的扭角总和必须是 3 的倍数，所以单个角扭 1 次是不成立的，工具会直接提示。
+    </div>
+  </section>
+</main>
+
+<script src="/assets/js/bld2-core.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var out = $('out'), errBox = $('errBox');
+
+  // 字母表：按 U 层 / D 层排布
+  var ORDER = [
+    ['UFL','ABC'], ['UFR','JKL'], ['UBR','GHI'], ['UBL','DEF'],
+    ['DFL','WMN'], ['DFR','XYZ'], ['DBR','RST'], ['DBL','OPQ']
+  ];
+  $('alphaGrid').innerHTML = ORDER.map(function (p) {
+    return '<div class="alpha-cell' + (p[0] === 'UFR' ? ' buf' : '') + '">' +
+           '<div class="pos">' + p[0] + '</div><div class="ltr">' + p[1] + '</div></div>';
+  }).join('');
+
+  function showErr(msg) {
+    errBox.textContent = msg;
+    errBox.classList.add('show');
+  }
+  function clearErr() { errBox.classList.remove('show'); }
+
+  function render(r, posStr, twStr) {
+    var twistDetail = '';
+    try {
+      twistDetail = Bld2.parseTwistString(twStr)
+        .map(function (t) { return t.pos + ' 扭 ' + t.n + ' 次'; }).join('、');
+    } catch (e) { /* 解析失败时忽略，不影响主流程 */ }
+
+    if (!r.moves.length) {
+      out.innerHTML = '<div class="empty">这是复原态，不需要打乱<br><span style="font-size:.78rem">换一个编码试试</span></div>';
+      return;
+    }
+    var movesHtml = r.moves.map(function (m) {
+      return '<span class="move">' + m.replace("'", '&prime;') + '</span>';
+    }).join('');
+
+    // 反向验证：把打乱跑一遍，重新读码
+    var back = Bld2.scrambleToCode(r.moves.join(' '));
+    var backPos = back.pos.join('-') || '（空）';
+    var backTw = back.twist.map(function (t) { return t.pair; }).join(' ');
+
+    // 读回用的是工具自己的规范写法，和你输入的写法可能不同（起笔位置、是否把
+    // 起笔/终点字母写全），置换本身是同一个 —— 只作说明，不当成错误提示。
+    var normIn = String(posStr || '').toUpperCase()
+      .replace(/\s+/g, '').replace(/[^A-Z\-,]/g, '')
+      .replace(/,+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    var hint = (normIn && normIn !== backPos)
+      ? '<span style="color:var(--fg-3)">（循环起笔位置/写法不同，置换相同）</span>'
+      : '';
+
+    out.innerHTML =
+      '<div class="scramble-box">' +
+        '<div class="scramble-head">' +
+          '<div class="scramble-label">' + r.moves.length + ' 步 · 最优解</div>' +
+          '<button class="gbtn--copy" id="btnCopy">复制公式</button>' +
+        '</div>' +
+        '<div class="moves">' + movesHtml + '</div>' +
+      '</div>' +
+      '<div class="verify">' +
+        '<span><b>✓ 已验证</b>：按此打乱后读码为</span>' +
+        '<code>' + backPos + (backTw ? ' ' + backTw : '') + '</code>' + hint +
+      '</div>' +
+      '<div class="meta">' +
+        '输入的编码：<code style="font-family:ui-monospace,monospace;letter-spacing:2px">' +
+          (posStr || '（空）') + (twStr ? ' ' + twStr : '') + '</code>' +
+        (twistDetail ? '<br>扭角明细：' + twistDetail : '') +
+        ($('bufSolved').checked ? '<br>读法：缓冲块 J 已归位，循环从其他角起笔' : '') +
+      '</div>';
+
+    var copyBtn = $('btnCopy');
+    if (copyBtn) copyBtn.addEventListener('click', function () {
+      var txt = r.moves.join(' ');
+      var done = function () {
+        copyBtn.textContent = '已复制';
+        setTimeout(function () { copyBtn.textContent = '复制公式'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
+      } else fallbackCopy(txt, done);
+    });
+  }
+
+  // 剪贴板被拒（非 https / 无权限）时的兜底：临时 textarea + execCommand
+  function fallbackCopy(txt, cb) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      cb && cb();
+    } catch (e) { /* 静默失败，用户仍可手动选中公式 */ }
+  }
+
+  function gen() {
+    clearErr();
+    var posStr = $('posCode').value.trim().toUpperCase();
+    var twStr = $('twistCode').value.trim().toUpperCase();
+    if (!posStr && !twStr) { showErr('请先填写位置编码，或至少填一个扭角'); return; }
+
+    var btn = $('btnGen');
+    btn.disabled = true; btn.textContent = '计算中…';
+    // 让按钮文案先渲染出来，再跑求解（首次会建剪枝表，约 200ms）
+    setTimeout(function () {
+      try {
+        var r = Bld2.codeToScramble(posStr, twStr, { bufferSolved: $('bufSolved').checked });
+        render(r, posStr, twStr);
+      } catch (e) {
+        var msg = e.message || String(e);
+        // 位置编码解析不出来、且没勾「缓冲块已归位」时，补一句排查方向
+        if (!$('bufSolved').checked && /无法解析为合法状态/.test(msg)) {
+          msg += '另外，如果你的编码不是从 J 起笔的（这一把缓冲块已经归位），请勾选下面的选项再试。';
+        }
+        showErr(msg);
+        out.innerHTML = '<div class="empty">生成失败，请按提示修改编码</div>';
+      } finally {
+        btn.disabled = false; btn.textContent = '生成打乱';
+      }
+    }, 20);
+  }
+
+  $('btnGen').addEventListener('click', gen);
+  $('btnClear').addEventListener('click', function () {
+    $('posCode').value = ''; $('twistCode').value = '';
+    $('bufSolved').checked = false;
+    clearErr();
+    out.innerHTML = '<div class="empty">填好编码后点「生成打乱」<br>公式会显示在这里，并自动验证读码</div>';
+    $('posCode').focus();
+  });
+  // 勾选/取消「缓冲已归位」时，若已有编码就直接重算，省一次点按钮
+  $('bufSolved').addEventListener('change', function () {
+    if ($('posCode').value.trim() || $('twistCode').value.trim()) gen();
+  });
+  ['posCode', 'twistCode'].forEach(function (id) {
+    $(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') gen(); });
+    $(id).addEventListener('input', clearErr);
+  });
+  document.querySelectorAll('.ex').forEach(function (b) {
+    b.addEventListener('click', function () {
+      $('posCode').value = b.dataset.pos || '';
+      $('twistCode').value = b.dataset.tw || '';
+      $('bufSolved').checked = b.dataset.buf === '1';
+      gen();
+    });
+  });
+
+  // 预热：空闲时建剪枝表，用户点按钮时就不用等
+  var warm = function () {
+    try { Bld2.buildTables(); } catch (e) {}
+  };
+  if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2500 });
+  else setTimeout(warm, 800);
+})();
+</script>
+<script src="/assets/js/site-nav.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+</body>
+</html>

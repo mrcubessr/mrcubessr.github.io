@@ -41,6 +41,7 @@
       { id: 'corner-trainer',   label: '角块训练',         href: '/tools/corner-trainer/' },
       { id: 'edge-trainer',     label: '棱块训练',         href: '/tools/edge-trainer/' },
       { id: 'bldscramble',      label: '定向打乱',         href: '/tools/bldscramble/' },
+      { id: 'bld2',             label: '二阶盲拧打乱',     href: '/tools/2bld/' },
       { id: 'nav',              label: '工具导航',         href: '/tools/nav' },
       /* —— 教练专用（v2.0.37 权限划分）——
          以下 9 项属于专项功能，需联系管理员开通后方可使用。
