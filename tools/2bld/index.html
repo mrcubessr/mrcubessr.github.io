@@ -88,6 +88,44 @@
           border-top: 1px solid var(--line); padding-top: 13px; }
   .note b { color: var(--fg-2); display: block; margin-bottom: 4px; font-size: .78rem; }
   .note b.i { display: inline; margin: 0; font-size: inherit; }
+
+  /* 模式切换 */
+  .modes { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--line);
+           border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+  .mode { flex: 1; padding: 7px 10px; border: none; border-radius: 7px; cursor: pointer;
+          background: transparent; color: var(--fg-3); font-size: .8rem; font-weight: 700;
+          font-family: inherit; transition: background .15s, color .15s; }
+  .mode.is-on { background: var(--brand); color: #fff; }
+  .mode:not(.is-on):hover { color: var(--fg-2); }
+
+  /* 批量出题 */
+  .batch-opts { display: flex; gap: 10px; margin-bottom: 14px; }
+  .batch-opts .bo { flex: 1; min-width: 0; }
+  .batch-opts label { display: block; font-size: .78rem; color: var(--fg-2);
+                      margin-bottom: 6px; font-weight: 600; }
+  .batch-opts select { width: 100%; padding: 9px 10px; font-size: .84rem; font-family: inherit;
+                       background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+                       border-radius: 9px; outline: none; cursor: pointer; }
+  .batch-opts select:focus { border-color: var(--brand); }
+
+  .bhead { font-size: .8rem; color: var(--fg-3); margin-bottom: 12px; line-height: 2.1; }
+  .bhead b { color: var(--fg); }
+  .bhead .chip { margin: 0 2px; }
+  .bnote { font-size: .74rem; color: var(--fg-3); margin-bottom: 12px; line-height: 1.8;
+           padding: 8px 11px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
+  .qlist { display: flex; flex-direction: column; gap: 9px; }
+  .q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); }
+  .qrow { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
+  .qn { flex: none; min-width: 21px; height: 21px; padding: 0 5px; border-radius: 6px;
+        background: var(--brand); color: #fff; font-size: .68rem; font-weight: 700;
+        display: inline-flex; align-items: center; justify-content: center; }
+  .qcode { font-family: ui-monospace, monospace; font-size: .82rem; letter-spacing: 1.5px;
+           color: var(--fg-3); flex: 1; min-width: 0; word-break: break-all; }
+  .qcode em.hl { font-style: normal; color: var(--brand); font-weight: 700; }
+  .qlen { flex: none; font-size: .72rem; color: var(--fg-3); }
+  .qmoves { font-family: ui-monospace, monospace; font-size: .96rem; font-weight: 700;
+            color: var(--fg); letter-spacing: .5px; word-spacing: 5px; line-height: 1.65; }
+  .prog { text-align: center; color: var(--fg-3); font-size: .85rem; padding: 64px 10px; }
   .note code { font-family: ui-monospace, monospace; background: var(--bg);
                padding: 1px 5px; border-radius: 4px; color: var(--fg-2); letter-spacing: 1px; }
 
@@ -175,11 +213,11 @@
 
 <main class="wrap">
   <section class="card">
-    <div class="card-title">盲拧编码</div>
+    <div class="card-title">出题</div>
 
-    <div class="field">
-      <label for="code">编码 <span class="hint">字母，可用空格或 - 分隔</span></label>
-      <input id="code" type="text" placeholder="例如 HRCWFO 或 GHDEAB" autocomplete="off" spellcheck="false">
+    <div class="modes">
+      <button class="mode is-on" type="button" data-mode="one">单个编码</button>
+      <button class="mode" type="button" data-mode="batch">批量出题</button>
     </div>
 
     <div class="orient">
@@ -188,27 +226,79 @@
       打乱过程中<b>不要整体转动魔方</b>。
     </div>
 
-    <div class="gbtn-row">
-      <button class="gbtn gbtn--primary" id="btnGen">生成打乱</button>
-      <button class="gbtn gbtn--ghost" id="btnClear">清空</button>
+    <div class="pane" data-pane="one">
+      <div class="field">
+        <label for="code">编码 <span class="hint">字母，可用空格或 - 分隔</span></label>
+        <input id="code" type="text" placeholder="例如 HRCWFO 或 GHDEAB" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="gbtn-row">
+        <button class="gbtn gbtn--primary" id="btnGen">生成打乱</button>
+        <button class="gbtn gbtn--ghost" id="btnClear">清空</button>
+      </div>
+
+      <div class="err" id="errBox"></div>
+
+      <div class="note">
+        <b>示例</b>
+        <div class="examples">
+          <button class="ex" data-code="HRCWFO">6 循环</button>
+          <button class="ex" data-code="GHDEAB">三个翻角</button>
+          <button class="ex" data-code="AWGD">5 循环</button>
+          <button class="ex" data-code="G">单个交换</button>
+          <button class="ex" data-code="KLDF">缓冲翻角</button>
+        </div>
+      </div>
     </div>
 
-    <div class="err" id="errBox"></div>
+    <div class="pane" data-pane="batch" hidden>
+      <div class="field">
+        <label for="tokens">要练的字母 <span class="hint">空格分隔，单个字母或字母对</span></label>
+        <input id="tokens" type="text" placeholder="例如 M T FC" autocomplete="off" spellcheck="false">
+      </div>
 
-    <div class="note">
-      <b>示例</b>
-      <div class="examples">
-        <button class="ex" data-code="HRCWFO">6 循环</button>
-        <button class="ex" data-code="GHDEAB">三个翻角</button>
-        <button class="ex" data-code="AWGD">5 循环</button>
-        <button class="ex" data-code="G">单个交换</button>
-        <button class="ex" data-code="KLDF">缓冲翻角</button>
+      <div class="batch-opts">
+        <div class="bo">
+          <label for="cnt">数量</label>
+          <select id="cnt">
+            <option value="5">5 条</option>
+            <option value="10" selected>10 条</option>
+            <option value="15">15 条</option>
+            <option value="20">20 条</option>
+          </select>
+        </div>
+        <div class="bo">
+          <label for="cap">码长上限</label>
+          <select id="cap">
+            <option value="0">不限</option>
+            <option value="12" selected>≤ 12</option>
+            <option value="10">≤ 10</option>
+            <option value="8">≤ 8</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="gbtn-row">
+        <button class="gbtn gbtn--primary" id="btnBatch">批量生成</button>
+        <button class="gbtn gbtn--ghost" id="btnBatchClear">清空</button>
+      </div>
+
+      <div class="err" id="errBox2"></div>
+
+      <div class="note">
+        <b>示例</b>
+        <div class="examples">
+          <button class="ex exb" data-tokens="M T FC">M T FC</button>
+          <button class="ex exb" data-tokens="FC AK">FC AK</button>
+          <button class="ex exb" data-tokens="GD WH OP">GD WH OP</button>
+          <button class="ex exb" data-tokens="A B C">A B C</button>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="card result">
-    <div class="card-title">打乱公式</div>
+    <div class="card-title" id="outTitle">打乱公式</div>
     <div id="out">
       <div class="empty">
         填好编码后点「生成打乱」<br>
@@ -408,6 +498,146 @@
     }
   }
 
+  // ===== 批量出题 =====
+  var errBox2 = $('errBox2'), outTitle = $('outTitle');
+  var EMPTY_ONE = '<div class="empty">填好编码后点「生成打乱」<br>公式会显示在这里，并自动读回验证</div>';
+  var EMPTY_BATCH = '<div class="empty">填好要练的字母后点「批量生成」<br>每一条的编码里都会包含这些字母</div>';
+
+  function clearErr2() { errBox2.className = 'err'; errBox2.textContent = ''; }
+  function showErr2(msg) { errBox2.textContent = msg; errBox2.className = 'err show'; }
+  function fmtMove(m) { return m.replace("'", '′'); }
+
+  // 把编码里命中的字母组合标出来
+  function markCode(code, tokens) {
+    var mark = [], i, k, t, from, p;
+    for (i = 0; i < code.length; i++) mark[i] = false;
+    for (i = 0; i < tokens.length; i++) {
+      t = tokens[i]; from = 0;
+      while ((p = code.indexOf(t, from)) >= 0) {
+        for (k = 0; k < t.length; k++) mark[p + k] = true;
+        from = p + 1;
+      }
+    }
+    var html = '', on = false;
+    for (i = 0; i < code.length; i++) {
+      if (mark[i] !== on) { html += on ? '</em>' : '<em class="hl">'; on = mark[i]; }
+      html += code.charAt(i);
+    }
+    return html + (on ? '</em>' : '');
+  }
+
+  function copyText(text, btn, idle) {
+    var done = function (ok) {
+      btn.textContent = ok ? '已复制' : '复制失败，请手动选择';
+      setTimeout(function () { btn.textContent = idle; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); },
+        function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  var batchBusy = false;
+
+  function runBatch() {
+    if (batchBusy) return;
+    var raw = $('tokens').value;
+    var count = parseInt($('cnt').value, 10) || 10;
+    var cap = parseInt($('cap').value, 10) || 0;
+    var tokens = B.parseTokens(raw);
+    clearErr2();
+    if (!tokens.length) { showErr2('先填要练的字母，例如 M T FC'); return; }
+
+    var btn = $('btnBatch');
+    btn.disabled = true; btn.textContent = '生成中…';
+    batchBusy = true;
+    out.innerHTML = '<div class="prog">正在凑题…</div>';
+
+    setTimeout(function () {
+      var res;
+      try {
+        res = B.batchGenerate(raw, count, { maxLen: cap });
+      } catch (e) {
+        showErr2(e.message || String(e));
+        out.innerHTML = '<div class="empty">生成失败<br>按左侧提示改一下字母组合</div>';
+        btn.disabled = false; btn.textContent = '批量生成'; batchBusy = false;
+        return;
+      }
+
+      var items = res.items, done = [], i = 0;
+      function step() {
+        if (i >= items.length) {
+          renderBatch(done, tokens, res);
+          btn.disabled = false; btn.textContent = '批量生成'; batchBusy = false;
+          return;
+        }
+        try {
+          var r = B.codeToScramble(items[i].code);
+          done.push({ code: items[i].code, moves: r.moves });
+        } catch (e) {}
+        i++;
+        out.innerHTML = '<div class="prog">正在求解 ' + i + ' / ' + items.length + ' …</div>';
+        setTimeout(step, 0);
+      }
+      step();
+    }, 20);
+  }
+
+  function renderBatch(items, tokens, res) {
+    if (!items.length) {
+      out.innerHTML = '<div class="empty">没解出来<br>换个字母组合试试</div>';
+      return;
+    }
+    var html = '<div class="bhead">共 <b>' + items.length + '</b> 条，每条编码都包含 ' +
+      tokens.map(function (t) { return '<span class="chip grp">' + t + '</span>'; }).join('') + '</div>';
+
+    if (res.relaxed) {
+      html += '<div class="bnote">为了把这些字母都放进去，码长上限放宽到了 '
+        + (res.capUsed ? '≤ ' + res.capUsed : '不限') + '。</div>';
+    }
+
+    html += '<div class="qlist">';
+    for (var i = 0; i < items.length; i++) {
+      html += '<div class="q">' +
+        '<div class="qrow"><span class="qn">' + (i + 1) + '</span>' +
+        '<span class="qcode">' + markCode(items[i].code, tokens) + '</span>' +
+        '<span class="qlen">' + items[i].moves.length + ' 步</span></div>' +
+        '<div class="qmoves">' + (items[i].moves.map(fmtMove).join(' ') || '（复原态）') + '</div>' +
+        '</div>';
+    }
+    html += '</div>';
+    html += '<div class="row-actions"><button class="gbtn gbtn--copy" id="btnCopyAll">复制全部</button></div>';
+    out.innerHTML = html;
+
+    var btnCopyAll = $('btnCopyAll');
+    if (btnCopyAll) {
+      btnCopyAll.addEventListener('click', function () {
+        copyText(items.map(function (it, n) {
+          return (n + 1) + '. ' + it.moves.join(' ') + '    # ' + it.code;
+        }).join('\n'), btnCopyAll, '复制全部');
+      });
+    }
+  }
+
+  // ===== 模式切换 =====
+  function setMode(m) {
+    document.querySelectorAll('.mode').forEach(function (b) {
+      b.classList.toggle('is-on', b.dataset.mode === m);
+    });
+    document.querySelectorAll('.pane').forEach(function (p) {
+      p.hidden = p.dataset.pane !== m;
+    });
+    outTitle.textContent = m === 'batch' ? '题目列表' : '打乱公式';
+    clearErr(); clearErr2();
+    out.innerHTML = m === 'batch' ? EMPTY_BATCH : EMPTY_ONE;
+  }
+
+  document.querySelectorAll('.mode').forEach(function (b) {
+    b.addEventListener('click', function () { setMode(b.dataset.mode); });
+  });
+
   $('btnGen').addEventListener('click', gen);
   $('code').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); gen(); }
@@ -417,14 +647,32 @@
   $('btnClear').addEventListener('click', function () {
     $('code').value = '';
     clearErr();
-    out.innerHTML = '<div class="empty">填好编码后点「生成打乱」<br>公式会显示在这里，并自动读回验证</div>';
+    out.innerHTML = EMPTY_ONE;
     $('code').focus();
+  });
+
+  $('btnBatch').addEventListener('click', runBatch);
+  $('tokens').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); runBatch(); }
+  });
+  $('tokens').addEventListener('input', clearErr2);
+
+  $('btnBatchClear').addEventListener('click', function () {
+    $('tokens').value = '';
+    clearErr2();
+    out.innerHTML = EMPTY_BATCH;
+    $('tokens').focus();
   });
 
   document.querySelectorAll('.ex').forEach(function (b) {
     b.addEventListener('click', function () {
-      $('code').value = b.dataset.code || '';
-      gen();
+      if (b.classList.contains('exb')) {
+        $('tokens').value = b.dataset.tokens || '';
+        runBatch();
+      } else {
+        $('code').value = b.dataset.code || '';
+        gen();
+      }
     });
   });
 

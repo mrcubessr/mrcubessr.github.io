@@ -601,53 +601,46 @@
 
   // ===== 对外 =====
 
-  /* codeToScramble(code, opts)
-     opts.keepAnchor === true：打乱后 XYZ 仍在原位（不练「找 XYZ」）
-     否则在 23 个把 XYZ 挪走的整体旋转里挑解最短的那个 */
-  function codeToScramble(code, opts) {
+  /* 给定「锚点坐标系里的状态」，找一条最短打乱（把状态解出来再反过来）。
+     opts.keepAnchor === true 时不整体转动；否则在 23 个把 XYZ 挪走的
+     整体旋转里按剪枝下界排序，只解最靠前的 4 个。 */
+  function solveStateToScramble(target, opts) {
     opts = opts || {};
-    var dec = decodeCode(code, { bufferSolved: opts.bufferSolved });
-    var target = dec.corner;
-    var groups = dec.groups;
-    var want = groups.join('');
-
     buildTables();
-
-    // 先用剪枝表给 24 个整体旋转各估一个下界，按下界排序后只解最靠前的几个
-    var cand = [];
-    for (var r = 0; r < ROTS.length; r++) {
+    var cand = [], r, rot, cc, cpi, coi;
+    for (r = 0; r < ROTS.length; r++) {
       if (isIdentityPerm(ROTS[r]) && !opts.keepAnchor) continue;
-      var rot = applyPerm(target, ROTS[r]);
-      var cc = toCubie(rot);
-      var cpi = cpIdx(cc.cp), coi = coIdx(cc.co);
-      if (cpi === 0 && coi === 0) {
-        return { moves: [], corner: rot, anchorCorner: target, code: want,
-                 groups: groups, rot: r, empty: true };
-      }
+      rot = applyPerm(target, ROTS[r]);
+      cc = toCubie(rot);
+      cpi = cpIdx(cc.cp); coi = coIdx(cc.co);
+      if (cpi === 0 && coi === 0) return { moves: [], rot: r, state: rot, empty: true };
       cand.push({ r: r, rot: rot, lb: Math.max(CP_PRUN[cpi], CO_PRUN[coi]) });
     }
     cand.sort(function (a, b) { return a.lb - b.lb; });
-
-    var best = null;
     for (var i = 0; i < cand.length && i < 4; i++) {
       var sol = solveCorner(cand[i].rot);
       if (sol === null) continue;
-      var scramble = invertMoves(sol);
-      var chk = codeOf(applyMoves(idState(), scramble));
-      if (chk.code !== want) continue;
-      best = { sol: sol, scramble: scramble, rot: cand[i].r, state: cand[i].rot };
-      break;
+      return { moves: invertMoves(sol), rot: cand[i].r, state: cand[i].rot, empty: false };
     }
-    if (!best) throw new Error('求解失败：这个状态在二阶上不可达');
+    return null;
+  }
 
+  /* codeToScramble(code, opts)
+     opts.keepAnchor === true：打乱后 XYZ 仍在原位（不练「找 XYZ」） */
+  function codeToScramble(code, opts) {
+    opts = opts || {};
+    var dec = decodeCode(code, { bufferSolved: opts.bufferSolved });
+    var target = dec.corner, groups = dec.groups, want = groups.join('');
+    var res = solveStateToScramble(target, opts);
+    if (!res) throw new Error('求解失败：这个状态在二阶上不可达');
+    // 整条链路再验一次：照着这条打乱，读出来必须还是 want
+    if (!res.empty) {
+      var chk = codeOf(applyMoves(idState(), res.moves));
+      if (chk.code !== want) throw new Error('求解失败：打乱读回来和编码不一致');
+    }
     return {
-      moves: best.scramble,
-      corner: best.state,
-      anchorCorner: target,
-      code: want,
-      groups: groups,
-      rot: best.rot,
-      empty: best.scramble.length === 0
+      moves: res.moves, corner: res.state, anchorCorner: target,
+      code: want, groups: groups, rot: res.rot, empty: res.empty
     };
   }
 
@@ -659,6 +652,183 @@
     var groups = [];
     try { groups = encodeGroups(anchor); } catch (e) { groups = []; }
     return { code: groups.join(''), groups: groups, corner: raw, anchorCorner: anchor, rot: r, anchorOk: r >= 0 };
+  }
+
+  // ===== 批量出题：让编码里必须出现指定的字母组合 =====
+  /* 关键性质：编码里「X 后面紧跟 Y」⟺ 贴纸 Y 落在贴纸位 L2S[X] 上。
+     所以一个字母组合 token = t0 t1 … 可以翻译成 (len-1) 条硬约束：
+         t[i-1] 的老家所在的角位，必须放 t[i] 那个角块，且朝向为 o。
+     把约束固定住、其余角位随机填、最后把扭角和调成 3 的倍数，
+     就能造出「编码必然包含这些组合」的状态——不用靠随机撞。 */
+
+  function rnd3() { return Math.floor(Math.random() * 3); }
+  function shuffleInPlace(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // 编码里可能出现的字母：去掉缓冲 J 和定位 X/Y/Z
+  function usableLetters() {
+    var out = {};
+    for (var i = 0; i < 8; i++) {
+      if (i === ANCHOR) continue;
+      for (var k = 0; k < 3; k++) out[CW[i][k]] = true;
+    }
+    delete out['J'];
+    return out;
+  }
+
+  function parseTokens(str) {
+    var raw = String(str || '').toUpperCase().split(/[\s,，、;；\/|+]+/).filter(Boolean);
+    var out = [], seen = {}, i, t;
+    for (i = 0; i < raw.length; i++) {
+      t = raw[i].replace(/[^A-Z]/g, '');
+      if (!t || seen[t]) continue;
+      seen[t] = true;
+      out.push(t);
+    }
+    return out;
+  }
+
+  function checkTokens(tokens) {
+    var ok = usableLetters();
+    for (var i = 0; i < tokens.length; i++) {
+      var t = tokens[i], local = {};
+      for (var k = 0; k < t.length; k++) {
+        var ch = t.charAt(k);
+        if (L2S[ch] === undefined) throw new Error('不认识的字母「' + ch + '」');
+        if (ch === 'J') throw new Error('缓冲块 J 不会被写进编码，练不了 J；换一个字母吧');
+        if (LPC[ch] === ANCHOR) throw new Error('X / Y / Z 是定位块，摆正之后不会出现在编码里');
+        if (local[ch]) throw new Error('「' + t + '」里字母 ' + ch + ' 重复了，一个字母在一把里只会出现一次');
+        local[ch] = true;
+        if (!ok[ch]) throw new Error('字母「' + ch + '」不会出现在编码里');
+      }
+    }
+  }
+
+  /* 把 token 翻译成「角位 → (块, 朝向)」的硬约束。
+     冲突的两种情况：同一个角位要求放两个不同的块 / 同一个块要求出现在两个角位。 */
+  function planFixes(tokens) {
+    var fixes = [], byPos = {}, byCo = {}, byBlk = {}, i, k, t, prev, cur, slot, p, u, b, o;
+    for (i = 0; i < tokens.length; i++) {
+      t = tokens[i];
+      for (k = 1; k < t.length; k++) {
+        prev = t.charAt(k - 1); cur = t.charAt(k);
+        slot = L2S[prev];
+        p = Math.floor(slot / 3); u = slot % 3;
+        b = LPC[cur];
+        o = ((LK[cur] - CS_INV[p][u]) % 3 + 3) % 3;
+        if (byPos[p] !== undefined) {
+          if (byPos[p] !== b || byCo[p] !== o)
+            throw new Error('「' + t + '」和另一组字母在同一个角位上打架了，这两组没法同时出现');
+        } else {
+          byPos[p] = b; byCo[p] = o;
+          fixes.push({ pos: p, blk: b, co: o });
+        }
+        if (byBlk[b] !== undefined && byBlk[b] !== p)
+          throw new Error('「' + t + '」要求同一个角块出现在两个角位上，和其他字母组合冲突了');
+        byBlk[b] = p;
+      }
+    }
+    return fixes;
+  }
+
+  // 按约束造一个随机状态
+  function stateFromFixes(fixes) {
+    var cp = [-1,-1,-1,-1,-1,-1,-1,-1], co = [-1,-1,-1,-1,-1,-1,-1,-1];
+    var usedB = {}, i, p;
+    cp[ANCHOR] = ANCHOR; co[ANCHOR] = 0; usedB[ANCHOR] = true;
+
+    for (i = 0; i < fixes.length; i++) {
+      var f = fixes[i];
+      if (cp[f.pos] >= 0 && cp[f.pos] !== f.blk) return null;
+      cp[f.pos] = f.blk; co[f.pos] = f.co; usedB[f.blk] = true;
+    }
+    var freePos = [], freeBlk = [];
+    for (p = 0; p < 8; p++) if (cp[p] < 0) freePos.push(p);
+    for (var b = 0; b < 8; b++) if (!usedB[b]) freeBlk.push(b);
+    if (freePos.length !== freeBlk.length) return null;
+    shuffleInPlace(freePos); shuffleInPlace(freeBlk);
+    for (i = 0; i < freePos.length; i++) { cp[freePos[i]] = freeBlk[i]; co[freePos[i]] = rnd3(); }
+
+    // 扭角和必须是 3 的倍数：拿一个自由角位来凑
+    if (freePos.length) {
+      var adj = freePos[0], s = 0;
+      for (p = 0; p < 8; p++) if (p !== adj) s += co[p];
+      co[adj] = (3 - s % 3) % 3;
+    } else {
+      var s2 = 0;
+      for (p = 0; p < 8; p++) s2 += co[p];
+      if (s2 % 3 !== 0) return null;
+    }
+    return fromCubie(cp, co);
+  }
+
+  // 组合必须落在同一段循环里（跨段拼出来的不算数）
+  function tokensOk(groups, tokens) {
+    for (var i = 0; i < tokens.length; i++) {
+      var t = tokens[i], found = false;
+      for (var g = 0; g < groups.length; g++) if (groups[g].indexOf(t) >= 0) { found = true; break; }
+      if (!found) return false;
+    }
+    return true;
+  }
+
+  /* 生成 count 条「编码里包含全部 tokens」的题目。
+     opts.maxLen：码长上限（0 = 不限）。凑不够时自动逐级放宽，保证能出题，
+     放宽了几级会通过 relaxed / capUsed 告诉调用方。
+     返回 { items: [{code, groups, corner}], capUsed, relaxed } */
+  function batchGenerate(tokenStr, count, opts) {
+    opts = opts || {};
+    var tokens = parseTokens(tokenStr);
+    if (!tokens.length) throw new Error('先填要练的字母组合，例如 M T FC');
+    checkTokens(tokens);
+    var fixes = planFixes(tokens);
+    var want = Math.max(1, Math.min(50, count | 0 || 1));
+    var base = opts.maxLen || 0;
+
+    // 先按用户给的上限试，凑不够再一级一级放宽，最后一级是不限
+    var caps = base ? [base, base + 2, base + 4, base + 6, base + 8, 0] : [0];
+    var out = [], seen = {}, seenCp = {}, capUsed = base;
+    var BUDGET = 40000;
+
+    /* strictCp：先要求「角块排列也不重复」，避免出现只差朝向的近似重复题；
+       实在凑不够再放开这层限制。 */
+    function fill(cap, strictCp) {
+      var tries = 0, got = 0;
+      while (out.length < want && tries++ < BUDGET) {
+        var c = stateFromFixes(fixes);
+        if (!c) continue;
+        var groups;
+        try { groups = encodeGroups(c); } catch (e) { continue; }
+        var code = groups.join('');
+        if (cap && code.length > cap) continue;
+        if (seen[code]) continue;
+        if (!tokensOk(groups, tokens)) continue;
+        var key = toCubie(c).cp.join('');
+        if (strictCp && seenCp[key]) continue;
+        seen[code] = true; seenCp[key] = true;
+        out.push({ code: code, groups: groups, corner: c });
+        got++;
+      }
+      return got;
+    }
+
+    var ci;
+    for (ci = 0; ci < caps.length && out.length < want; ci++) {
+      if (fill(caps[ci], true)) capUsed = caps[ci];
+    }
+    for (ci = 0; ci < caps.length && out.length < want; ci++) {
+      if (fill(caps[ci], false)) capUsed = caps[ci];
+    }
+
+    if (out.length < want)
+      throw new Error('只凑出 ' + out.length + ' 条（要 ' + want + ' 条）。少选几个字母再试。');
+
+    return { items: out, capUsed: capUsed, relaxed: !!base && capUsed !== base };
   }
 
   // 字母 → 所在面 → 中文颜色（页面展示用）
@@ -674,6 +844,9 @@
   global.Bld2 = {
     codeToScramble: codeToScramble,
     scrambleToCode: scrambleToCode,
+    solveStateToScramble: solveStateToScramble,
+    batchGenerate: batchGenerate,
+    parseTokens: parseTokens,
     encodeState: encodeState,
     encodeGroups: encodeGroups,
     decodeCode: decodeCode,
