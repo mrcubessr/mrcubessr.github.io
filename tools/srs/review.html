@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
-<link rel="stylesheet" href="/tools/srs/srs.css?v=2.1.0">
+<link rel="stylesheet" href="/tools/srs/srs.css?v=2.1.1">
 </head>
 <body data-nav="srs">
 <div data-site-nav></div>
@@ -63,7 +63,7 @@
 <script src="js/db.js"></script>
 <script src="data/assoc-words.js?v=2.1.0"></script>
 <script src="data/raz-aa.js?v=2.1.0"></script>
-<script src="js/app.js?v=2.1.0"></script>
+<script src="js/app.js?v=2.1.1"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script src="js/sync-provider.js"></script>
 <script>
@@ -130,11 +130,12 @@
     if (!img) { showEmoji(el, emoji); return; }
     var i = document.createElement('img');
     // 统一转绝对路径：避免在不同层级的页面（index.html / review.html）
-    // 解析相对路径时产生歧义，导致图片 404
-    var src = img.charAt(0) === '/'
-      ? img
-      : new URL(img, location.href.replace(/[^/]*$/, '')).href;
-    if (src.indexOf('?') < 0) { src += '?v=' + IMG_VER; }   // 图片内容更新后靠这个绕缓存
+    // 解析相对路径时产生歧义，导致图片 404。data: 内嵌图（用户上传的 base64）直接当 src
+    var isData = img.indexOf('data:') === 0;
+    var src = isData ? img
+      : (img.charAt(0) === '/' ? img
+        : new URL(img, location.href.replace(/[^/]*$/, '')).href);
+    if (!isData && src.indexOf('?') < 0) { src += '?v=' + IMG_VER; }   // 图片内容更新后靠这个绕缓存
     i.src = src;
     i.alt = '';
     i.loading = 'eager';
@@ -172,27 +173,44 @@
       ? '看字母，回忆联想词'
       : (deck && deck.type === 'raz' ? '看图片，说出单词' : '看这边');
 
-    // RAZ 卡：正面只出图，不显示英文单词（看图说单词）；其他卡种照旧
+    // 注入牌组级呈现变量：字号 / 文字颜色（缺省回退 CSS 默认）
+    var quiz = $('quiz');
+    quiz.style.setProperty('--srs-q-font', (cfg.qFont || 56) + 'px');
+    quiz.style.setProperty('--srs-a-font', (cfg.aFont || 32) + 'px');
+    if (cfg.frontColor) quiz.style.setProperty('--srs-front-color', cfg.frontColor);
+    else quiz.style.removeProperty('--srs-front-color');
+    if (cfg.backColor) quiz.style.setProperty('--srs-back-color', cfg.backColor);
+    else quiz.style.removeProperty('--srs-back-color');
+
+    // 正面：RAZ 卡或卡片标注"正面=图片"时出图，否则出大词文字
     var isRaz = deck && deck.type === 'raz';
     var t = String(cur.front || '');
     var qt = $('qText');
-    if (isRaz) {
-      qt.textContent = '';
-      qt.className = 'srs-quiz__q';
+    var frontImg = isRaz || cur.frontType === 'image';
+    if (frontImg) {
+      qt.hidden = true;
+      // 正面图来源：normal 卡优先 frontImg；RAZ 卡或旧数据落在 img 字段；统一兜底
+      renderPic($('qPic'), cur.frontType === 'image' ? (cur.frontImg || cur.img) : cur.img, cur.emoji);
     } else {
+      qt.hidden = false;
       qt.textContent = t;
-      qt.className = 'srs-quiz__q' + (t.length > 6 ? ' srs-quiz__q--sm' : '');
+      renderPic($('qPic'), '', '');
     }
-
-    renderPic($('qPic'), cur.img, cur.emoji);
 
     var hint = cfg.showHint && cur.hint ? cur.hint : '';
     $('qHint').textContent = hint;
 
-    // 答案区：RAZ 卡先给英文，再给中文
+    // 背面：卡片标注"背面=图片"且有图时出大图，否则出答案文字
     var a = String(cur.back || '');
-    $('aText').textContent = a || '（空）';
-    $('aText').className = 'srs-quiz__a' + (a.length > 12 ? ' srs-quiz__a--sm' : '');
+    var aText = $('aText');
+    if (cur.backType === 'image' && cur.backImg) {
+      aText.hidden = true;
+      renderPic($('aPic'), cur.backImg, '');
+    } else {
+      aText.hidden = false;
+      aText.textContent = a || '（空）';
+      renderPic($('aPic'), '', '');
+    }
     var aEn = $('aEn');
     if (isRaz) {
       aEn.textContent = t;
@@ -201,8 +219,6 @@
       aEn.textContent = '';
       aEn.hidden = true;
     }
-    // 答案区不再重复显示配图（题面的大图仍可见），避免一屏出现两张同样的图
-    renderPic($('aPic'), '', '');
 
     buildGrades();
     updateProg();

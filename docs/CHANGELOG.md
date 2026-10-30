@@ -9,6 +9,20 @@
 
 ---
 
+## [2.0.62] — 2026-10-30（SRS 联想词训练：单卡正/背图片 · 字号可调 · 文字颜色）
+
+用户诉求：「SRS 联想词训练，编辑每张卡片时背面可以加入一张图片（现在只有字），整个卡面在训练时点开时字太小，要能调字体大小、文字可设颜色，正反面都要支持图片」。
+
+- **单卡正/背图片（本地选图内嵌 base64）**：编辑每张卡时，正面、背面各自可在「文字 / 图片」间切换。选图片后本地选图，图片以 data URL（base64）直接内嵌进卡片数据，**随账号云同步**（不依赖外部文件、换设备也在）。正反面都支持图片。
+- **字号可调（默认已拉到超级大）**：原训练卡正面写死 40px、偏小；现默认 **56px**，并在牌组「设置」里加正面 / 背面字号滑块，联想词可直接拉到满屏大字。字号、颜色**按牌组分别设置**（不同组可不同大小/配色，互不干扰）。
+- **文字颜色可设**：设置面板加正面色、背面色，缺省回落 CSS 默认，不影响未设置时的观感。
+- **数据模型**：单卡新增 `frontType`/`backType`（`'text'|'image'`）、`frontImg`/`backImg`（base64）；牌组 `config` 新增 `qFont`/`aFont`/`frontColor`/`backColor`，`DEFAULT_DECK_CFG` 自动补全旧牌组，存量数据零迁移。
+- 实现要点：`review.html` 的 `next()` 按 `frontType`/`backType` 渲染，注入 `--srs-q-font`/`--srs-a-font`/`--srs-front-color`/`--srs-back-color` 变量；`renderPic` 支持 data URL（RAZ 沿用 `img` 字段，已用 `cur.frontType==='image' ? (cur.frontImg||cur.img) : cur.img` 兜底，曾漏 `frontImg` 致正面图不显，已修）；`edit.html` 单卡编辑改 modal，支持正/背图文切换 + 本地选图 + 预览 + 清除，保存落 `DB.putCard`。
+- **缓存戳**：`index/edit/review/stats` 四页 `srs.css`/`app.js` 统一 `?v=2.1.1`。SRS 走 query-string 绕缓存，**不进 `sw.js` APP_SHELL，故不递增 sw CACHE**。
+- 验证：Playwright 端到端全过 —— 默认 56px、设 100px 生效、正面红色生效、背面/正面图片 data URL 渲染、真实选图上传内嵌落库、全程 0 pageerror。
+
+---
+
 ## [2.0.61] — 2026-10-29（首屏优化一期 · 二阶盲拧「编码转打乱」工具 · sw 注释外迁）
 
 - **二阶盲拧「编码转打乱」工具（全新页 `tools/2bld/`）**：新增页面 `tools/2bld/index.html` 与核心模块 `assets/js/bld2-core.js`，并在 `assets/js/site-nav.js`（在 `APP_SHELL` 清单内）「魔方教练工具箱 → 公开工具」中 bldscramble 之后挂上入口「二阶盲拧打乱」。与已有 `tools/bldscramble/` 的 2×2 能力互补：那个工具按「错位角块数 k + 翻色数 f」参数化**随机生成**，本工具按用户给的具体编码**精确反解**打乱。

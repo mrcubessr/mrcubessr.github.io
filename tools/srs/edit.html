@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
-<link rel="stylesheet" href="/tools/srs/srs.css">
+<link rel="stylesheet" href="/tools/srs/srs.css?v=2.1.1">
 </head>
 <body data-nav="srs">
 <div data-site-nav></div>
@@ -66,6 +66,35 @@
           </select>
         </div>
       </div>
+
+      <div style="margin-top:16px">
+        <h4 style="font-size:13px;color:var(--fg-2);margin:0 0 10px;font-weight:700">卡片呈现（训练时的大小与文字颜色）</h4>
+        <div class="srs-grid2">
+          <div class="field">
+            <label class="field__label" for="fQFont">正面大字字号 <span id="qFontVal" style="color:var(--brand)"></span></label>
+            <input type="range" id="fQFont" min="24" max="160" step="2">
+          </div>
+          <div class="field">
+            <label class="field__label" for="fAFont">背面字号 <span id="aFontVal" style="color:var(--brand)"></span></label>
+            <input type="range" id="fAFont" min="16" max="120" step="2">
+          </div>
+          <div class="field">
+            <label class="field__label" for="fFrontColor">正面文字颜色</label>
+            <div class="srs-colorrow">
+              <input type="color" id="fFrontColor" value="#222222">
+              <label><input type="checkbox" id="fFrontDef" checked> 用主题默认色</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="fBackColor">背面文字颜色</label>
+            <div class="srs-colorrow">
+              <input type="color" id="fBackColor" value="#222222">
+              <label><input type="checkbox" id="fBackDef" checked> 用主题默认色</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="field" id="headField" style="margin-top:12px">
         <label class="field__label">字头范围（不选 = 全部）</label>
         <div class="srs-chips" id="headChips"></div>
@@ -156,10 +185,61 @@
   </div>
 </div>
 
+<!-- ============ 卡片编辑弹窗 ============ -->
+<div class="srs-modal-mask" id="cardModal" hidden>
+  <div class="srs-modal">
+    <h3 class="srs-modal__title" id="mTitle">编辑卡片</h3>
+
+    <div class="srs-modal__sec">
+      <div class="srs-modal__seclabel">正面（问题）</div>
+      <div class="srs-seg" id="mFrontSeg">
+        <button type="button" data-v="text" class="is-on">文字</button>
+        <button type="button" data-v="image">图片</button>
+      </div>
+      <div id="mFrontTextWrap">
+        <input class="input" id="mFrontText" placeholder="正面文字，如 PA">
+      </div>
+      <div id="mFrontImgWrap" hidden>
+        <input type="file" id="mFrontFile" accept="image/*">
+        <div class="srs-imgprev" id="mFrontPrev"></div>
+        <button type="button" class="btn btn--sm btn--ghost" id="mFrontClear">清除图片</button>
+        <span class="srs-note">建议图片小于 2MB，会随卡片一起保存与云同步</span>
+      </div>
+    </div>
+
+    <div class="srs-modal__sec">
+      <div class="srs-modal__seclabel">背面（答案）</div>
+      <div class="srs-seg" id="mBackSeg">
+        <button type="button" data-v="text" class="is-on">文字</button>
+        <button type="button" data-v="image">图片</button>
+      </div>
+      <div id="mBackTextWrap">
+        <input class="input" id="mBackText" placeholder="背面文字，如 苹果">
+      </div>
+      <div id="mBackImgWrap" hidden>
+        <input type="file" id="mBackFile" accept="image/*">
+        <div class="srs-imgprev" id="mBackPrev"></div>
+        <button type="button" class="btn btn--sm btn--ghost" id="mBackClear">清除图片</button>
+        <span class="srs-note">建议图片小于 2MB，会随卡片一起保存与云同步</span>
+      </div>
+    </div>
+
+    <div class="srs-modal__sec">
+      <div class="srs-modal__seclabel">提示（可选）</div>
+      <input class="input" id="mHint" placeholder="如拼音">
+    </div>
+
+    <div class="srs-modal__acts">
+      <button class="btn btn--ghost" id="mCancel">取消</button>
+      <button class="btn btn--primary" id="mSave">保存</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/sm2.js"></script>
 <script src="js/db.js"></script>
 <script src="data/assoc-words.js?v=2.1.0"></script>
-<script src="js/app.js"></script>
+<script src="js/app.js?v=2.1.1"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script src="js/sync-provider.js"></script>
 <script>
@@ -193,6 +273,18 @@
     $('fNew').value = deck.config.dailyNew;
     $('fRev').value = deck.config.dailyReview;
     $('fHint').value = deck.config.showHint ? '1' : '0';
+
+    // 卡片呈现：字号 / 颜色
+    $('fQFont').value = deck.config.qFont || 56;
+    $('fAFont').value = deck.config.aFont || 32;
+    $('qFontVal').textContent = ($('fQFont').value) + 'px';
+    $('aFontVal').textContent = ($('fAFont').value) + 'px';
+    var fc = deck.config.frontColor || '';
+    $('fFrontColor').value = fc || '#222222';
+    $('fFrontDef').checked = !fc;
+    var bc = deck.config.backColor || '';
+    $('fBackColor').value = bc || '#222222';
+    $('fBackDef').checked = !bc;
 
     var isAssoc = deck.type === 'assoc';
     $('dirField').hidden = !isAssoc;
@@ -253,6 +345,10 @@
     deck.config.dailyNew = Math.max(0, parseInt($('fNew').value, 10) || 0);
     deck.config.dailyReview = Math.max(0, parseInt($('fRev').value, 10) || 0);
     deck.config.showHint = $('fHint').value === '1';
+    deck.config.qFont = Math.max(24, parseInt($('fQFont').value, 10) || 56);
+    deck.config.aFont = Math.max(16, parseInt($('fAFont').value, 10) || 32);
+    deck.config.frontColor = $('fFrontDef').checked ? '' : $('fFrontColor').value;
+    deck.config.backColor = $('fBackDef').checked ? '' : $('fBackColor').value;
     deck.config.heads = Object.keys(headsSel).filter(function (h) { return headsSel[h]; });
     DB.putDeck(deck).then(function () {
       alert('已保存'); location.reload();
@@ -292,8 +388,8 @@
 
   function cardRow(c) {
     var tr = document.createElement('tr');
-    tr.appendChild(td(c.front, 'mono'));
-    tr.appendChild(td(c.back || ''));
+    tr.appendChild(td(c.frontType === 'image' ? '［图片］' : c.front, 'mono'));
+    tr.appendChild(td(c.backType === 'image' ? '［图片］' : (c.back || '')));
     tr.appendChild(td(c.hint || ''));
     var act = document.createElement('td');
     var st = document.createElement('span');
@@ -326,29 +422,100 @@
     return d;
   }
 
-  function editRow(tr, c) {
-    tr.innerHTML = '';
-    var iF = document.createElement('input'); iF.className = 'input'; iF.value = c.front;
-    var iB = document.createElement('input'); iB.className = 'input'; iB.value = c.back || '';
-    var iH = document.createElement('input'); iH.className = 'input'; iH.value = c.hint || '';
-    [iF, iB, iH].forEach(function (i) {
-      var t = td(''); t.appendChild(i); tr.appendChild(t);
-    });
-    var act = td('');
-    var bs = document.createElement('button');
-    bs.className = 'btn btn--sm btn--primary'; bs.textContent = '保存';
-    bs.addEventListener('click', function () {
-      c.front = iF.value.trim(); c.back = iB.value.trim(); c.hint = iH.value.trim();
-      DB.putCard(c).then(function () { renderCards(); });
-    });
-    var bx = document.createElement('button');
-    bx.className = 'btn btn--sm btn--ghost'; bx.textContent = '取消';
-    bx.addEventListener('click', function () { renderCards(); });
-    var w = document.createElement('div'); w.className = 'srs-list__acts';
-    w.appendChild(bs); w.appendChild(bx);
-    act.appendChild(w);
-    tr.appendChild(act);
+  function editRow(tr, c) { openCardModal(c); }
+
+  /* ---------- 卡片编辑弹窗 ---------- */
+  var mCard = null, mFrontData = '', mBackData = '';
+
+  function segVal(segId) {
+    return $(segId).querySelector('.is-on').getAttribute('data-v');
   }
+  function setSeg(segId, v) {
+    Array.prototype.forEach.call($(segId).children, function (b) {
+      b.classList.toggle('is-on', b.getAttribute('data-v') === v);
+    });
+  }
+  function fileToData(file, cb) {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert('图片超过 2MB，请压缩后再添加'); return; }
+    var r = new FileReader();
+    r.onload = function () { cb(r.result); };
+    r.readAsDataURL(file);
+  }
+  function renderPrev(boxId, data) {
+    var box = $(boxId);
+    box.innerHTML = '';
+    if (!data) return;
+    var i = document.createElement('img');
+    i.src = data;
+    box.appendChild(i);
+  }
+
+  function openCardModal(c) {
+    mCard = c; mFrontData = ''; mBackData = '';
+    $('mTitle').textContent = '编辑卡片' + (c.front ? '：' + c.front : '');
+    var ft = c.frontType === 'image' ? 'image' : 'text';
+    setSeg('mFrontSeg', ft);
+    $('mFrontTextWrap').hidden = ft !== 'text';
+    $('mFrontImgWrap').hidden = ft !== 'image';
+    $('mFrontText').value = ft === 'text' ? (c.front || '') : '';
+    mFrontData = ft === 'image' ? (c.img || '') : '';
+    renderPrev('mFrontPrev', mFrontData);
+    var bt = c.backType === 'image' ? 'image' : 'text';
+    setSeg('mBackSeg', bt);
+    $('mBackTextWrap').hidden = bt !== 'text';
+    $('mBackImgWrap').hidden = bt !== 'image';
+    $('mBackText').value = bt === 'text' ? (c.back || '') : '';
+    mBackData = bt === 'image' ? (c.backImg || '') : '';
+    renderPrev('mBackPrev', mBackData);
+    $('mHint').value = c.hint || '';
+    $('cardModal').hidden = false;
+  }
+  function closeCardModal() { $('cardModal').hidden = true; mCard = null; }
+
+  function saveCardModal() {
+    if (!mCard) return;
+    var ft = segVal('mFrontSeg'), bt = segVal('mBackSeg');
+    mCard.frontType = ft; mCard.backType = bt;
+    mCard.front = $('mFrontText').value.trim();
+    mCard.back = $('mBackText').value.trim();
+    mCard.hint = $('mHint').value.trim();
+    mCard.img = (ft === 'image') ? (mFrontData || mCard.img || '') : '';
+    mCard.backImg = (bt === 'image') ? (mBackData || mCard.backImg || '') : '';
+    DB.putCard(mCard).then(function () { closeCardModal(); renderCards(); });
+  }
+
+  $('mFrontSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    setSeg('mFrontSeg', b.getAttribute('data-v'));
+    var v = b.getAttribute('data-v');
+    $('mFrontTextWrap').hidden = v !== 'text';
+    $('mFrontImgWrap').hidden = v !== 'image';
+  });
+  $('mBackSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    setSeg('mBackSeg', b.getAttribute('data-v'));
+    var v = b.getAttribute('data-v');
+    $('mBackTextWrap').hidden = v !== 'text';
+    $('mBackImgWrap').hidden = v !== 'image';
+  });
+  $('mFrontFile').addEventListener('change', function () {
+    fileToData(this.files[0], function (d) { mFrontData = d; renderPrev('mFrontPrev', d); });
+  });
+  $('mBackFile').addEventListener('change', function () {
+    fileToData(this.files[0], function (d) { mBackData = d; renderPrev('mBackPrev', d); });
+  });
+  $('mFrontClear').addEventListener('click', function () {
+    mFrontData = ''; $('mFrontFile').value = ''; renderPrev('mFrontPrev', '');
+  });
+  $('mBackClear').addEventListener('click', function () {
+    mBackData = ''; $('mBackFile').value = ''; renderPrev('mBackPrev', '');
+  });
+  $('mCancel').addEventListener('click', closeCardModal);
+  $('mSave').addEventListener('click', saveCardModal);
+  $('cardModal').addEventListener('click', function (e) {
+    if (e.target === this) closeCardModal();
+  });
 
   $('fSearch').addEventListener('input', function () { shown = 120; renderCards(); });
   $('btnMore').addEventListener('click', function () { shown += 200; renderCards(); });

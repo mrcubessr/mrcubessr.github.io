@@ -17,7 +17,12 @@
     heads: [],           // 空 = 全部字头
     dailyNew: 20,
     dailyReview: 200,
-    showHint: true
+    showHint: true,
+    // 卡片呈现：字号（px）与文字颜色。留空颜色 = 使用主题默认 token
+    qFont: 56,           // 正面大词字号
+    aFont: 32,           // 背面答案字号（RAZ 英文也用此值）
+    frontColor: '',      // 正面文字颜色（hex 或空）
+    backColor: ''        // 背面文字颜色（hex 或空）
   };
 
   function deckCfg(d) {

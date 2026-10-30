@@ -66,25 +66,31 @@
   border-radius: 0; padding: 28px 20px; text-align: center;
   min-height: 220px; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 14px;
+  /* 卡片呈现变量：字号 / 文字颜色（可被牌组设置或训练页内联覆盖） */
+  --srs-q-font: 56px;
+  --srs-a-font: 32px;
+  --srs-front-color: var(--fg);
+  --srs-back-color: var(--gold-ink);
 }
 .srs-quiz__meta {
   font-size: 11px; color: var(--fg-3); letter-spacing: .06em;
   display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
 }
 .srs-quiz__q {
-  font-size: 40px; font-weight: 700; line-height: 1.25;
+  font-size: var(--srs-q-font); font-weight: 700; line-height: 1.25;
   word-break: break-word; font-variant-numeric: tabular-nums;
+  max-width: 100%; overflow-wrap: anywhere; color: var(--srs-front-color);
 }
-.srs-quiz__q--sm { font-size: 26px; }
 .srs-quiz__label { font-size: 12px; color: var(--fg-3); }
 .srs-quiz__a {
-  font-size: 24px; font-weight: 600; color: var(--gold-ink);
+  font-size: var(--srs-a-font); font-weight: 600;
+  color: var(--srs-back-color);
   word-break: break-word; line-height: 1.4;
+  max-width: 100%; overflow-wrap: anywhere;
 }
-.srs-quiz__a--sm { font-size: 18px; }
 /* RAZ 答案区的英文单词：醒目大字，孩子先看词再看中文 */
 .srs-quiz__en {
-  font-size: 40px; font-weight: 700; color: var(--fg-1);
+  font-size: var(--srs-a-font); font-weight: 700; color: var(--fg-1);
   word-break: break-word; line-height: 1.2; margin: 2px 0 6px;
   letter-spacing: .5px;
 }
@@ -98,13 +104,37 @@
 }
 .srs-quiz__pic img {
   display: block;
-  max-width: min(100%, 420px);
-  max-height: 320px;
+  max-width: min(100%, 600px);
+  max-height: 62vh;
   object-fit: contain;
   margin: 0 auto;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
 }
+
+/* ---------- 卡片编辑弹窗 ---------- */
+.srs-modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 60; padding: 16px;
+}
+.srs-modal {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 0; width: 100%; max-width: 560px; max-height: 90vh;
+  overflow: auto; padding: 20px;
+}
+.srs-modal__title { font-size: 16px; font-weight: 700; margin: 0 0 14px; }
+.srs-modal__sec { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
+.srs-modal__seclabel { font-size: 13px; font-weight: 700; color: var(--fg-2); margin-bottom: 8px; }
+.srs-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 0; overflow: hidden; margin-bottom: 8px; }
+.srs-seg button { border: 0; background: var(--surface); color: var(--fg-2); padding: 6px 14px; cursor: pointer; font-family: inherit; font-size: 13px; }
+.srs-seg button.is-on { background: var(--brand); color: #fff; }
+.srs-imgprev { margin-top: 8px; }
+.srs-imgprev img { max-width: 130px; max-height: 130px; border: 1px solid var(--line); border-radius: 8px; display: block; }
+.srs-modal__acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.srs-colorrow { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.srs-colorrow input[type="color"] { width: 40px; height: 30px; padding: 0; border: 1px solid var(--line); background: none; cursor: pointer; }
+.srs-colorrow label { font-size: 13px; color: var(--fg-2); cursor: pointer; }
 .srs-quiz__rule { width: 64px; height: 1px; background: var(--line-2); }
 
 .srs-grades {
