@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+
+<title>联想词卡库 · 记忆卡片 · 魔方先生SSR魔方训练中心</title>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/tools/srs/srs.css?v=2.1.1">
+<style>
+/* ===== 联想词卡库 · 角心训练同款配色（红/橙/绿/蓝） ===== */
+:root{
+  --ct-red:#A31229;      /* 深酒红：待复习 / 忘了 */
+  --ct-orange:#FF8A1F;   /* 亮橙：学习中 */
+  --ct-green:#009E60;    /* 绿：已掌握 */
+  --ct-blue:#0051BA;     /* 蓝：未学 */
+  --ct-yellow:#FFD500;
+}
+* { box-sizing: border-box; }
+.gal-wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 40px; }
+
+.gal-head { text-align: center; margin: 18px 0 14px; }
+.gal-head h1 { font-size: 26px; font-weight: 800; color: var(--fg); letter-spacing: 1px; }
+.gal-head p { color: var(--fg-3); font-size: 13px; margin-top: 6px; }
+
+/* 概览条（对齐角心训练 overview） */
+.gal-overview { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 8px 0 16px; }
+.gal-ov { background: var(--surface); border-radius: 0; padding: 12px 6px; text-align: center; box-shadow: 0 2px 10px rgba(31,45,61,.06); }
+.gal-ov .n { font-size: 22px; font-weight: 800; color: var(--fg); }
+.gal-ov .k { font-size: 12px; color: var(--fg-3); margin-top: 3px; }
+.gal-ov.is-red .n{color:var(--ct-red)} .gal-ov.is-orange .n{color:var(--ct-orange)}
+.gal-ov.is-green .n{color:var(--ct-green)} .gal-ov.is-blue .n{color:var(--ct-blue)}
+
+/* 工具条 */
+.gal-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.gal-tools .input { max-width: 240px; }
+.gal-famfilter { display: flex; gap: 6px; flex-wrap: wrap; }
+.gal-famfilter button {
+  border: 1.5px solid var(--surface-2); background: var(--surface); color: var(--fg-2);
+  padding: 6px 12px; font-size: 13px; cursor: pointer; border-radius: 0; font-family: inherit;
+}
+.gal-famfilter button.is-on { color: #fff; border-color: transparent; }
+.gal-famfilter button[data-f="all"].is-on{ background: var(--brand); }
+.gal-famfilter button[data-f="red"].is-on{ background: var(--ct-red); }
+.gal-famfilter button[data-f="orange"].is-on{ background: var(--ct-orange); }
+.gal-famfilter button[data-f="green"].is-on{ background: var(--ct-green); }
+.gal-famfilter button[data-f="blue"].is-on{ background: var(--ct-blue); }
+.gal-famfilter button[data-p="all"].is-on{ background: var(--brand); }
+.gal-famfilter button[data-p="nopy"].is-on{ background: var(--ct-orange); }
+.gal-famfilter button[data-p="dup"].is-on{ background: var(--ct-red); }
+.gal-famfilter button[data-p="noimg"].is-on{ background: var(--ct-blue); }
+
+/* 读音体检条 */
+.gal-health {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  margin: 0 0 14px; padding: 10px 12px;
+  background: var(--surface); box-shadow: 0 2px 10px rgba(31,45,61,.06);
+}
+.gal-hpill {
+  border: 1.5px solid var(--surface-2); background: transparent; color: var(--fg-2);
+  padding: 5px 11px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.gal-hpill b { font-size: 15px; font-weight: 800; }
+.gal-hpill.is-nopy b { color: var(--ct-orange); }
+.gal-hpill.is-dup  b { color: var(--ct-red); }
+.gal-hpill.is-noimg b { color: var(--ct-blue); }
+.gal-hpill.is-ok   b { color: var(--ct-green); }
+.gal-hpill:hover { border-color: var(--brand); color: var(--brand); }
+
+/* 重复读音明细行 */
+.gal-dups {
+  flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-top: 4px; padding-top: 8px; border-top: 1px dashed var(--surface-2);
+  font-size: 12.5px; color: var(--fg-2);
+}
+.gal-dups__t { font-weight: 800; color: var(--ct-red); }
+.gal-dups button {
+  border: 1px solid var(--ct-red); background: transparent; color: var(--ct-red);
+  padding: 2px 8px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.gal-dups button:hover { background: var(--ct-red); color: #fff; }
+
+
+/* 字头分组 */
+.gal-group { margin-bottom: 26px; }
+.gal-group__title {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 12px;
+  font-size: 17px; font-weight: 800; color: var(--brand);
+  border-left: 5px solid var(--brand); padding-left: 10px;
+}
+.gal-group__title .cnt { font-size: 12px; font-weight: 600; color: var(--fg-3); }
+.gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+
+/* 卡片（翻面） */
+.gal-card {
+  perspective: 900px; cursor: pointer; min-height: 148px;
+  border-left: 5px solid var(--fam, var(--ct-blue));
+}
+.gal-card__inner {
+  position: relative; width: 100%; height: 100%; min-height: 148px;
+  transition: transform .45s ease; transform-style: preserve-3d;
+}
+.gal-card.is-flipped .gal-card__inner { transform: rotateY(180deg); }
+.gal-card__face {
+  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--surface); box-shadow: 0 3px 14px rgba(31,45,61,.08);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 12px 10px; text-align: center;
+}
+.gal-card__front { border-radius: 0; }
+.gal-card__word { font-size: 22px; font-weight: 800; color: var(--fg); line-height: 1.2; word-break: break-all; }
+.gal-card__code {
+  position: absolute; top: 6px; left: 8px; font-size: 12px; font-weight: 800;
+  color: var(--fg-3); letter-spacing: .5px;
+}
+.gal-card__badge {
+  margin-top: 8px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 0;
+  color: #fff; background: var(--fam, var(--ct-blue));
+}
+.gal-card__nopy {
+  position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 800;
+  color: var(--ct-orange); background: rgba(255,138,31,.14); padding: 2px 6px;
+}
+.gal-card__back { transform: rotateY(180deg); background: var(--on-brand); }
+.gal-card__pinyin { font-size: 30px; font-weight: 800; color: var(--fg); line-height: 1.1; }
+.gal-card__pyempty { font-size: 13px; color: var(--fg-3); }
+.gal-card__img { max-width: 90%; max-height: 78px; margin-top: 6px; object-fit: contain; }
+.gal-card__imgph { font-size: 11px; color: var(--fg-3); margin-top: 6px; }
+.gal-card__edit {
+  position: absolute; bottom: 5px; right: 6px; font-size: 11px; font-weight: 700;
+  color: var(--brand); background: rgba(58,124,240,.10); border: none; padding: 3px 8px;
+  cursor: pointer; border-radius: 0; font-family: inherit;
+}
+
+/* 编辑弹窗（复用站点 modal 风格） */
+.gal-modal-mask { position: fixed; inset: 0; background: rgba(20,28,40,.45); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+.gal-modal { background: var(--surface); width: 100%; max-width: 420px; padding: 20px; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.gal-modal h3 { font-size: 18px; margin: 0 0 14px; color: var(--fg); }
+.gal-modal .field { margin-bottom: 12px; }
+.gal-modal label { display: block; font-size: 13px; color: var(--fg-2); margin-bottom: 5px; font-weight: 600; }
+.gal-modal .input { width: 100%; }
+.gal-modal .gal-pywarn { color: var(--ct-orange); font-size: 12px; margin-top: 4px; display:none; }
+.gal-modal .gal-pywarn.show { display:block; }
+.gal-modal .gal-pynote { color: var(--fg-3); font-size: 12px; margin-top: 4px; display:none; }
+.gal-modal .gal-pynote.show { display:block; }
+
+.gal-modal__preview { margin-top: 6px; }
+.gal-modal__preview img { max-width: 100%; max-height: 120px; object-fit: contain; }
+.gal-modal__acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.gal-hidden { display: none !important; }
+
+@media (max-width: 640px){
+  .gal-overview { grid-template-columns: repeat(5,1fr); gap:6px; }
+  .gal-ov{ padding:8px 2px } .gal-ov .n{ font-size:17px }
+  .gal-grid{ grid-template-columns: repeat(auto-fill, minmax(108px,1fr)); gap:8px; }
+  .gal-card__word{ font-size:18px } .gal-card__pinyin{ font-size:24px }
+}
+</style>
+</head>
+<body data-nav="srs">
+<div data-site-nav></div>
+
+<div class="gal-wrap">
+  <div class="gal-head">
+    <h1>联想词卡库</h1>
+    <p>三盲联想词全量词库 · 点卡片翻面看拼音与配图 · 可直接改背面（拼音 / 图片）· 颜色 = 熟悉度</p>
+  </div>
+
+  <div class="gal-overview" id="ov"></div>
+
+  <div class="gal-health" id="health"></div>
+
+  <div class="gal-tools">
+    <input class="input" id="search" placeholder="搜索 词 / 拼音 / 代码…">
+    <div class="gal-famfilter" id="famFilter">
+      <button data-f="all" class="is-on">全部</button>
+      <button data-f="blue">未学</button>
+      <button data-f="orange">学习中</button>
+      <button data-f="red">待复习</button>
+      <button data-f="green">已掌握</button>
+    </div>
+    <div class="gal-famfilter" id="pyFilter">
+      <button data-p="all" class="is-on">读音不限</button>
+      <button data-p="nopy">无读音</button>
+      <button data-p="dup">重复读音</button>
+      <button data-p="noimg">无配图</button>
+    </div>
+    <span class="srs-note" id="galCount"></span>
+  </div>
+
+  <div id="groups"></div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="gal-modal-mask gal-hidden" id="modal">
+  <div class="gal-modal">
+    <h3 id="mTitle">编辑卡片</h3>
+    <div class="field">
+      <label>正面（联想词）</label>
+      <input class="input" id="mWord" placeholder="联想词">
+    </div>
+    <div class="field">
+      <label>背面 · 单音节读音（拼音）</label>
+      <input class="input" id="mPy" placeholder="如 bō">
+      <div class="gal-pywarn" id="mPyWarn"></div>
+      <div class="gal-pynote" id="mPyNote"></div>
+    </div>
+    <div class="field">
+      <label>背面 · 配图（选填，建议 &lt; 2MB）</label>
+      <input type="file" id="mImg" accept="image/*">
+      <div class="gal-modal__preview" id="mPrev"></div>
+      <button type="button" class="btn btn--sm btn--ghost" id="mImgClear" style="margin-top:6px">清除图片</button>
+      <span class="srs-note">默认显示表格抽取的配图；本地上传的图优先，两者互不影响。</span>
+    </div>
+    <div class="gal-modal__acts">
+      <button class="btn btn--ghost" id="mCancel">取消</button>
+      <button class="btn btn--primary" id="mSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/sm2.js"></script>
+<script src="js/db.js"></script>
+<script src="data/assoc-words.js?v=2.1.0"></script>
+<script src="data/assoc-img-map.js?v=2.1.1"></script>
+<script src="js/app.js?v=2.1.1"></script>
+<script src="/assets/js/sync-boot.js"></script>
+<script src="js/sync-provider.js"></script>
+<script>
+(function () {
+  var DB = window.SRSDB, SRS = window.SRS, SM2 = window.SM2;
+  var IMG_VER = '20261030';
+  var IMG_MAP = window.ASSOC_IMG_MAP || {};
+  var $ = function (id) { return document.getElementById(id); };
+
+  // 熟悉度 → 颜色 + 文案（角心训练配色）
+  function famOf(card) {
+    if (!card) return { key: 'blue', color: 'var(--ct-blue)', label: '未学' };
+    var st = card.state, due = card.due || 0, now = Date.now();
+    if (st === 'learning' || st === 'relearning') return { key: 'orange', color: 'var(--ct-orange)', label: '学习中' };
+    if (st === 'review') {
+      return due <= now
+        ? { key: 'red', color: 'var(--ct-red)', label: '待复习' }
+        : { key: 'green', color: 'var(--ct-green)', label: '已掌握' };
+    }
+    return { key: 'blue', color: 'var(--ct-blue)', label: '未学' };
+  }
+
+  var ASSOC = (window.SRS_ASSOC || []);
+  var assocByCode = {};
+  ASSOC.forEach(function (w) { assocByCode[w.c] = w; });
+
+  var byCode = {};          // code -> card（来自 SRS DB）
+  var pyIndex = {};         // 规范化读音 -> {raw, codes[]}，用于重复校验
+  var dupSet = {};          // code -> 重复读音键（仅重复的）
+  var sylIndex = {};        // 音节键（去声调）-> [codes]，用于同音软提醒
+  var allCards = [];
+  var picSrcs = [];         // 背面配图源（索引对应 DOM data-pi）
+  var curFilter = 'all', curKw = '', curPyFilter = 'all';
+  var mCode = null, mImgData = '';
+
+  // 读音规范化（用于「重复读音」判定）：小写 + 去首尾空白 + 合并中间空白。
+  // 注意：声调是读音的一部分 —— 『chún』与『chún』是不同的读音，不算重复。
+  // 词库本身就存在大量仅声调不同的词（ā/á/à…），按整音节判定会把近半数词判成重复。
+  function normPy(s) {
+    if (!s) return '';
+    return String(s).trim().toLowerCase().replace(/\s+/g, '');
+  }
+  // 音节键（去声调）：仅用于「同音不同调」的软提醒，不拦截保存
+  function syllKey(s) {
+    var t = normPy(s);
+    if (!t) return '';
+    if (t.normalize) t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return t;
+  }
+
+  // 生效读音：卡片存在时以卡片为准（允许被清空），否则回落到种子数据
+  function effPy(code) {
+    var card = byCode[code];
+    if (card) return card.hint || '';
+    var w = assocByCode[code];
+    return w ? (w.p || '') : '';
+  }
+  // 生效联想词：同上，卡片存在时以卡片为准
+  function wordOf(code) {
+    var card = byCode[code];
+    if (card) return card.back || '';
+    var w = assocByCode[code];
+    return w ? (w.w || '') : '';
+  }
+  // 生效配图：用户上传优先，其次 Excel 抽取的图
+  function imgOf(code) {
+    var card = byCode[code];
+    if (card && card.backImg) return card.backImg;
+    return IMG_MAP[code] || '';
+  }
+
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function renderPic(el, img) {
+    el.innerHTML = '';
+    if (!img) { el.className = 'gal-card__pic gal-card__imgph'; el.textContent = '（无图）'; return; }
+    var i = document.createElement('img');
+    var isData = img.indexOf('data:') === 0;
+    var src = isData ? img : (img.charAt(0) === '/' ? img : new URL(img, location.href.replace(/[^/]*$/, '')).href);
+    if (!isData && src.indexOf('?') < 0) src += '?v=' + IMG_VER;
+    i.src = src; i.alt = ''; i.className = 'gal-card__img'; i.loading = 'lazy';
+    i.onerror = function () { el.className = 'gal-card__pic gal-card__imgph'; el.textContent = '（图缺失）'; };
+    el.className = 'gal-card__pic'; el.appendChild(i);
+  }
+
+  function buildIndex(cards) {
+    byCode = {}; pyIndex = {}; dupSet = {}; sylIndex = {};
+    allCards = cards || [];
+    allCards.forEach(function (c) {
+      if (String(c.deckId || '').indexOf('assoc-3bld-') !== 0) return;
+      byCode[c.front] = c;
+      var raw = (c.hint || '').trim();
+      var k = normPy(raw);
+      if (!k) return;
+      if (!pyIndex[k]) pyIndex[k] = { raw: raw, codes: [] };
+      pyIndex[k].codes.push(c.front);
+      var sk = syllKey(raw);
+      if (sk) (sylIndex[sk] = sylIndex[sk] || []).push(c.front);
+    });
+    // 标记重复读音（完全相同的读音挂了多个词）
+    Object.keys(pyIndex).forEach(function (k) {
+      if (pyIndex[k].codes.length > 1) {
+        pyIndex[k].codes.forEach(function (c) { dupSet[c] = k; });
+      }
+    });
+  }
+
+  function computeOverview() {
+    var stat = { blue: 0, orange: 0, red: 0, green: 0 };
+    ASSOC.forEach(function (w) {
+      var f = famOf(byCode[w.c]);
+      stat[f.key]++;
+    });
+    var total = ASSOC.length;
+    var ov = $('ov');
+    ov.innerHTML = '';
+    var items = [
+      { n: total, k: '总词数', cls: '' },
+      { n: stat.red, k: '待复习', cls: 'is-red' },
+      { n: stat.orange, k: '学习中', cls: 'is-orange' },
+      { n: stat.green, k: '已掌握', cls: 'is-green' },
+      { n: stat.blue, k: '未学', cls: 'is-blue' }
+    ];
+    items.forEach(function (it) {
+      var d = document.createElement('div');
+      d.className = 'gal-ov ' + it.cls;
+      d.innerHTML = '<div class="n">' + it.n + '</div><div class="k">' + it.k + '</div>';
+      ov.appendChild(d);
+    });
+  }
+
+  function matchFilter(w) {
+    var card = byCode[w.c];
+    var f = famOf(card);
+    if (curFilter !== 'all' && f.key !== curFilter) return false;
+    if (curPyFilter === 'nopy' && effPy(w.c).trim()) return false;
+    if (curPyFilter === 'dup' && !dupSet[w.c]) return false;
+    if (curPyFilter === 'noimg' && imgOf(w.c)) return false;
+    if (curKw) {
+      var hay = (wordOf(w.c) + ' ' + effPy(w.c) + ' ' + (w.c || '')).toLowerCase();
+      if (hay.indexOf(curKw) < 0) return false;
+    }
+    return true;
+  }
+
+  /* ---------- 读音体检 ---------- */
+  function computeHealth() {
+    var h = { nopy: [], dup: [], noimg: [] };
+    ASSOC.forEach(function (w) {
+      if (!effPy(w.c).trim()) h.nopy.push(w.c);
+      if (dupSet[w.c]) h.dup.push(w.c);
+      if (!imgOf(w.c)) h.noimg.push(w.c);
+    });
+    return h;
+  }
+
+  function renderHealth() {
+    var h = computeHealth();
+    var box = $('health');
+    box.innerHTML = '';
+    function pill(cls, n, label, p) {
+      var b = document.createElement('button');
+      b.className = 'gal-hpill ' + cls;
+      b.setAttribute('data-p', p);
+      b.innerHTML = '<b>' + n + '</b>' + label;
+      box.appendChild(b);
+    }
+    pill('is-nopy', h.nopy.length, ' 词无读音', 'nopy');
+    pill('is-dup', h.dup.length, ' 词读音重复', 'dup');
+    pill('is-noimg', h.noimg.length, ' 词无配图', 'noimg');
+    pill('is-ok', ASSOC.length - h.nopy.length, ' 词读音齐全', 'all');
+
+    if (h.dup.length) {
+      var groups = {};
+      h.dup.forEach(function (c) { (groups[dupSet[c]] = groups[dupSet[c]] || []).push(c); });
+      var d = document.createElement('div');
+      d.className = 'gal-dups';
+      d.innerHTML = '<span class="gal-dups__t">重复读音明细（点任一条去改）：</span>';
+      Object.keys(groups).forEach(function (k) {
+        var cs = groups[k];
+        var raw = (pyIndex[k] && pyIndex[k].raw) || k;
+        var b = document.createElement('button');
+        b.setAttribute('data-code', cs[0]);
+        b.textContent = '『' + raw + '』' + cs.map(function (c) {
+          return c + ' ' + wordOf(c);
+        }).join('、');
+        d.appendChild(b);
+      });
+      box.appendChild(d);
+    }
+  }
+
+  function cardHTML(w) {
+    var card = byCode[w.c];
+    var f = famOf(card);
+    var word = wordOf(w.c);
+    var py = effPy(w.c);
+    var imgSrc = imgOf(w.c);
+    var pyHTML = py
+      ? '<div class="gal-card__pinyin">' + escapeHtml(py) + '</div>'
+      : '<div class="gal-card__pyempty">（无读音）</div>';
+    // 配图源放进 picSrcs，用索引回填，避免把 base64 塞进 DOM 属性
+    var pi = -1;
+    if (imgSrc) { pi = picSrcs.length; picSrcs.push(imgSrc); }
+    var backInner = pyHTML +
+      (imgSrc ? '<div class="gal-card__pic" data-pi="' + pi + '"></div>'
+              : '<div class="gal-card__imgph">（无图）</div>') +
+      '<button class="gal-card__edit" data-edit="' + escapeHtml(w.c) + '">改背面</button>';
+    // 正面也放一个编辑入口：不翻面即可改背面（拼音/图），提升可达性
+    var frontInner =
+        '<span class="gal-card__code">' + escapeHtml(w.c) + '</span>' +
+        (py ? '' : '<span class="gal-card__nopy">无读音</span>') +
+        '<div class="gal-card__word">' + escapeHtml(word) + '</div>' +
+        '<span class="gal-card__badge">' + f.label + '</span>' +
+        '<button class="gal-card__edit gal-card__edit--front" data-edit="' + escapeHtml(w.c) + '">改背面</button>';
+    return '<div class="gal-card" data-code="' + escapeHtml(w.c) + '" style="--fam:' + f.color + '">' +
+      '<div class="gal-card__inner">' +
+        '<div class="gal-card__face gal-card__front">' + frontInner + '</div>' +
+        '<div class="gal-card__face gal-card__back">' + backInner + '</div>' +
+      '</div></div>';
+  }
+
+  function renderGroups() {
+    var box = $('groups');
+    box.innerHTML = '';
+    picSrcs = [];
+    var letters = SRS.assocLetters();
+    var shown = 0;
+    letters.forEach(function (L) {
+      var words = ASSOC.filter(function (w) { return w.h === L; });
+      var matched = words.filter(matchFilter);
+      if (!matched.length) return;
+      shown += matched.length;
+      var sec = document.createElement('section');
+      sec.className = 'gal-group';
+      sec.innerHTML = '<div class="gal-group__title">' + L + ' 组 <span class="cnt">' + matched.length + ' 词</span></div>';
+      var grid = document.createElement('div');
+      grid.className = 'gal-grid';
+      grid.innerHTML = matched.map(cardHTML).join('');
+      sec.appendChild(grid);
+      box.appendChild(sec);
+    });
+    $('galCount').textContent = '显示 ' + shown + ' / ' + ASSOC.length + ' 词';
+    // 回填背面配图（懒渲染，避免一次性 552 张）
+    box.querySelectorAll('.gal-card__pic').forEach(function (el) {
+      renderPic(el, picSrcs[+el.getAttribute('data-pi')]);
+    });
+  }
+
+  function render() { computeOverview(); renderHealth(); renderGroups(); }
+
+  /* ---------- 编辑弹窗 ---------- */
+  function fileToData(file, cb) {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert('图片超过 2MB，请压缩后再添加'); return; }
+    var r = new FileReader();
+    r.onload = function () { cb(r.result); };
+    r.readAsDataURL(file);
+  }
+  function openModal(code) {
+    mCode = code; mImgData = '';
+    var card = byCode[code] || {};
+    var w = assocByCode[code] || {};
+    $('mTitle').textContent = '编辑卡片 ' + code + '（' + (card.back || w.w || '') + '）';
+    $('mWord').value = card.back != null ? card.back : (w.w || '');
+    $('mPy').value = card.hint != null ? card.hint : (w.p || '');
+    mImgData = card.backImg || '';
+    renderPrev();
+    $('mPyWarn').className = 'gal-pywarn'; $('mPyWarn').textContent = '';
+    $('mPyNote').className = 'gal-pynote'; $('mPyNote').textContent = '';
+    $('modal').classList.remove('gal-hidden');
+  }
+  function renderPrev() {
+    var box = $('mPrev'); box.innerHTML = '';
+    var src = '', label = '';
+    if (mImgData) {
+      src = mImgData;
+      label = '本地上传（保存后随卡片存本机并云同步）';
+    } else if (mCode && IMG_MAP[mCode]) {
+      src = IMG_MAP[mCode];
+      label = '表格配图（来自 联想词.xlsx）';
+    }
+    if (!src) {
+      var none = document.createElement('div');
+      none.className = 'srs-note';
+      none.textContent = '暂无配图，可在下方选择图片上传。';
+      box.appendChild(none);
+      return;
+    }
+    var i = document.createElement('img');
+    var isData = src.indexOf('data:') === 0;
+    i.src = isData ? src : (new URL(src, location.href.replace(/[^/]*$/, '')).href + '?v=' + IMG_VER);
+    box.appendChild(i);
+    var note = document.createElement('div');
+    note.className = 'srs-note';
+    note.style.marginTop = '4px';
+    note.textContent = label + (mImgData ? '；点「清除图片」可退回表格配图' : '');
+    box.appendChild(note);
+  }
+  function closeModal() { $('modal').classList.add('gal-hidden'); mCode = null; }
+
+  function saveModal() {
+    if (!mCode) return;
+    var word = $('mWord').value.trim();
+    var py = $('mPy').value.trim();
+    // 重复读音校验：完全相同的读音一律禁止保存（这是硬约束）
+    if (py) {
+      var k = normPy(py);
+      var hit = pyIndex[k];
+      var others = hit ? hit.codes.filter(function (c) { return c !== mCode; }) : [];
+      if (others.length) {
+        var warn = $('mPyWarn');
+        warn.className = 'gal-pywarn show';
+        warn.textContent = '读音重复：『' + py + '』已用于 ' + others.map(function (c) {
+          return c + ' ' + wordOf(c);
+        }).join('、') + '，请改成不同读音后再保存。';
+        return; // 禁止保存
+      }
+      // 同音不同调：只提醒，不拦截（词库里这类词很多，属正常设计）
+      var note = $('mPyNote');
+      note.className = 'gal-pynote';
+      var sk = syllKey(py);
+      var same = (sylIndex[sk] || []).filter(function (c) { return c !== mCode; });
+      if (sk && same.length) {
+        note.className = 'gal-pynote show';
+        note.textContent = '提示：『' + py + '』与 ' + same.map(function (c) {
+          return c + ' ' + wordOf(c) + '『' + (byCode[c] ? byCode[c].hint : '') + '』';
+        }).join('、') + ' 同音（仅声调不同），可以保存。';
+      } else {
+        note.textContent = '';
+      }
+    } else {
+      $('mPyNote').className = 'gal-pynote';
+      $('mPyNote').textContent = '';
+    }
+    var card = byCode[mCode];
+    if (!card) { alert('未找到该词的卡片，请刷新重试'); return; }
+    var next = Object.assign({}, card, { back: word, hint: py, backImg: mImgData });
+    DB.putCard(next).then(function () {
+      // ⚠️ 必须先回写 allCards 再重建索引：
+      // buildIndex 是从 allCards 重建 byCode 的，若不回写，刚保存的新值会被旧数据冲掉。
+      replaceInAll(next);
+      buildIndex(allCards);
+      closeModal();
+      render();
+    }).catch(function (e) { alert('保存失败：' + e.message); });
+  }
+  // 把更新后的卡片写回 allCards（allCards 是 buildIndex 的唯一数据源）
+  function replaceInAll(c) {
+    for (var i = 0; i < allCards.length; i++) {
+      if (allCards[i].id === c.id) { allCards[i] = c; return; }
+    }
+    allCards.push(c);
+  }
+
+  /* ---------- 事件 ---------- */
+  $('groups').addEventListener('click', function (e) {
+    var editBtn = e.target.closest('.gal-card__edit');
+    if (editBtn) { e.stopPropagation(); openModal(editBtn.getAttribute('data-edit')); return; }
+    var card = e.target.closest('.gal-card');
+    if (card) card.classList.toggle('is-flipped');
+  });
+  $('search').addEventListener('input', function () {
+    curKw = ($('search').value || '').trim().toLowerCase(); renderGroups();
+  });
+  $('famFilter').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    $('famFilter').querySelectorAll('button').forEach(function (x) { x.classList.remove('is-on'); });
+    b.classList.add('is-on'); curFilter = b.getAttribute('data-f'); renderGroups();
+  });
+  // 读音体检筛选（无读音 / 重复读音 / 无配图），与熟悉度筛选正交
+  function setPyFilter(p) {
+    curPyFilter = p;
+    $('pyFilter').querySelectorAll('button').forEach(function (x) {
+      x.classList.toggle('is-on', x.getAttribute('data-p') === p);
+    });
+    renderGroups();
+  }
+  $('pyFilter').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    setPyFilter(b.getAttribute('data-p'));
+  });
+  $('health').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.hasAttribute('data-code')) { openModal(b.getAttribute('data-code')); return; }
+    var p = b.getAttribute('data-p');
+    if (p) setPyFilter(p);
+  });
+  $('mCancel').addEventListener('click', closeModal);
+  $('mSave').addEventListener('click', saveModal);
+  $('modal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+  $('mImg').addEventListener('change', function () {
+    fileToData(this.files[0], function (d) { mImgData = d; renderPrev(); });
+  });
+  $('mImgClear').addEventListener('click', function () {
+    mImgData = ''; $('mImg').value = ''; renderPrev();
+  });
+
+  /* ---------- 启动 ---------- */
+  function fail(msg) {
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div style="padding:12px 16px;background:#fff3cd;color:#8a6d3b">' +
+      '联想词卡库加载失败：' + msg + '</div>');
+  }
+  function start() {
+    // 依赖检查：db.js / app.js 任一没加载成功都会静默失败，这里要显式报错
+    if (!DB || !SRS) {
+      fail('数据模块未加载（db.js / app.js），请刷新页面重试。');
+      return;
+    }
+    SRS.ensurePresets().then(function () { return DB.getAllCards(); })
+      .then(function (cards) {
+        buildIndex(cards);
+        render();
+      })
+      .catch(function (e) {
+        fail(e.message);
+        console.error(e);
+      });
+  }
+  start();
+})();
+</script>
+<script src="/assets/js/site-nav.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+<script src="/assets/js/vip-gate.js?v=2.1.0"></script>
+</body>
+</html>
