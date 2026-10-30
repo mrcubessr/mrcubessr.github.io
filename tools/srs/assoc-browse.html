@@ -121,8 +121,47 @@
   color: #fff; background: var(--fam, var(--ct-blue));
 }
 .gal-card__nopy {
-  position: absolute; top: 4px; right: 4px; font-size: 9.5px; font-weight: 800;
+  position: absolute; bottom: 3px; left: 4px; font-size: 9.5px; font-weight: 800;
   color: var(--ct-orange); background: rgba(255,138,31,.14); padding: 1px 5px;
+}
+/* 手动标记星（5 色，参考公式训练 ft 的 STAR_COLORS） */
+.gal-card__star {
+  position: absolute; top: 3px; right: 3px; z-index: 3;
+  font-size: 17px; line-height: 1; cursor: pointer; padding: 1px 3px;
+  background: transparent; border: none; color: var(--fg-3); opacity: .5;
+  text-shadow: 0 0 2px rgba(255,255,255,.75);
+}
+.gal-card__star:hover { opacity: 1; }
+.gal-card__star.is-on { opacity: 1; }
+/* 标记浮层（点星号弹出，选 5 色之一 / 清除） */
+.gal-markpop {
+  position: fixed; z-index: 60; display: flex; gap: 6px; align-items: center;
+  background: var(--surface); padding: 8px; box-shadow: 0 8px 28px rgba(0,0,0,.22);
+  border: 1px solid var(--surface-2);
+}
+.gal-markpop .gal-mk {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+  color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25); font-family: inherit;
+}
+.gal-markpop .gal-mk:hover { transform: scale(1.12); }
+.gal-markpop .gal-mk--clear {
+  background: var(--surface-2); color: var(--fg-2); border-color: var(--fg-3); font-size: 12px;
+}
+/* 标记筛选 */
+.gal-markfilter { display: flex; align-items: center; gap: 6px; }
+.gal-markfilter label { font-size: 13px; color: var(--fg-2); }
+/* 弹窗内标记选择行 */
+.gal-markrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.gal-markrow .gal-mk {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--surface-2);
+  color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-family: inherit;
+}
+.gal-markrow .gal-mk.is-sel { border-color: var(--fg); box-shadow: 0 0 0 2px var(--brand); }
+.gal-markrow .gal-mk--clear {
+  width: 30px; height: 30px; background: var(--surface-2); color: var(--fg-2);
+  border: 2px solid var(--surface-2); font-size: 13px; border-radius: 50%;
 }
 .gal-card__back { transform: rotateY(180deg); background: var(--on-brand); }
 .gal-card__pinyin { font-size: 23px; font-weight: 800; color: var(--fg); line-height: 1.1; }
@@ -167,7 +206,7 @@
 <div class="gal-wrap">
   <div class="gal-head">
     <h1>联想词卡库</h1>
-    <p>三盲联想词全量词库 · 一页铺满 552 词 · 点卡片翻面看拼音与配图 · 可直接改背面（拼音 / 图片）· 颜色 = 熟悉度</p>
+    <p>三盲联想词全量词库 · 一页铺满 552 词 · 点卡片翻面看拼音与配图 · 点右上角 ★ 可手动标记 5 色（覆盖熟悉度配色，随账号云同步）· 可直接改背面（拼音 / 图片）</p>
   </div>
 
   <div class="gal-overview" id="ov"></div>
@@ -188,6 +227,13 @@
       <button data-p="nopy">无读音</button>
       <button data-p="dup">重复读音</button>
       <button data-p="noimg">无配图</button>
+    </div>
+    <div class="gal-markfilter">
+      <label for="markFilter">标记</label>
+      <select class="input" id="markFilter">
+        <option value="all">全部</option>
+        <option value="marked">仅已标记</option>
+      </select>
     </div>
     <span class="srs-note" id="galCount"></span>
   </div>
@@ -216,12 +262,19 @@
       <button type="button" class="btn btn--sm btn--ghost" id="mImgClear" style="margin-top:6px">清除图片</button>
       <span class="srs-note">默认显示表格抽取的配图；本地上传的图优先，两者互不影响。</span>
     </div>
+    <div class="field">
+      <label>手动标记（5 色，覆盖熟悉度配色）</label>
+      <div class="gal-markrow" id="mMarkRow"></div>
+    </div>
     <div class="gal-modal__acts">
       <button class="btn btn--ghost" id="mCancel">取消</button>
       <button class="btn btn--primary" id="mSave">保存</button>
     </div>
   </div>
 </div>
+
+<!-- 标记浮层（点卡片右上角星号弹出） -->
+<div class="gal-markpop gal-hidden" id="markPop"></div>
 
 <script src="js/sm2.js"></script>
 <script src="js/db.js"></script>
@@ -250,6 +303,22 @@
     return { key: 'blue', color: 'var(--ct-blue)', label: '未学' };
   }
 
+  // 手动标记（5 色，参考公式训练 ft STAR_COLORS；与熟悉度配色共用角心训练 5 色）。
+  // 标记存在 SRS 卡片的 mark 字段上 → 随账号云同步，分组训练里也能看到。
+  var MARKS = [
+    { k: 'red',    name: '重点',   color: 'var(--ct-red)' },
+    { k: 'orange', name: '需巩固', color: 'var(--ct-orange)' },
+    { k: 'yellow', name: '一般',   color: 'var(--ct-yellow)' },
+    { k: 'green',  name: '已掌握', color: 'var(--ct-green)' },
+    { k: 'blue',   name: '易错',   color: 'var(--ct-blue)' }
+  ];
+  var MARK_MAP = {};
+  MARKS.forEach(function (m) { MARK_MAP[m.k] = m; });
+  function markOf(code) {
+    var c = byCode[code];
+    return (c && c.mark) ? c.mark : '';
+  }
+
   var ASSOC = (window.SRS_ASSOC || []);
   var assocByCode = {};
   ASSOC.forEach(function (w) { assocByCode[w.c] = w; });
@@ -260,8 +329,8 @@
   var sylIndex = {};        // 音节键（去声调）-> [codes]，用于同音软提醒
   var allCards = [];
   var picSrcs = [];         // 背面配图源（索引对应 DOM data-pi）
-  var curFilter = 'all', curKw = '', curPyFilter = 'all';
-  var mCode = null, mImgData = '';
+  var curFilter = 'all', curKw = '', curPyFilter = 'all', curMark = 'all';
+  var mCode = null, mImgData = '', mMark = '';
 
   // 读音规范化（用于「重复读音」判定）：小写 + 去首尾空白 + 合并中间空白。
   // 注意：声调是读音的一部分 —— 『chún』与『chún』是不同的读音，不算重复。
@@ -368,6 +437,8 @@
     var card = byCode[w.c];
     var f = famOf(card);
     if (curFilter !== 'all' && f.key !== curFilter) return false;
+    if (curMark === 'marked' && !markOf(w.c)) return false;
+    if (curMark !== 'all' && curMark !== 'marked' && markOf(w.c) !== curMark) return false;
     if (curPyFilter === 'nopy' && effPy(w.c).trim()) return false;
     if (curPyFilter === 'dup' && !dupSet[w.c]) return false;
     if (curPyFilter === 'noimg' && imgOf(w.c)) return false;
@@ -431,6 +502,11 @@
     var word = wordOf(w.c);
     var py = effPy(w.c);
     var imgSrc = imgOf(w.c);
+    var mark = markOf(w.c);
+    var mk = mark ? MARK_MAP[mark] : null;
+    // 标记优先：设了手动标记就用标记色/名覆盖熟悉度配色，否则退回熟悉度
+    var showColor = mk ? mk.color : f.color;
+    var badgeLabel = mk ? mk.name : f.label;
     var pyHTML = py
       ? '<div class="gal-card__pinyin">' + escapeHtml(py) + '</div>'
       : '<div class="gal-card__pyempty">（无读音）</div>';
@@ -442,13 +518,18 @@
               : '<div class="gal-card__imgph">（无图）</div>') +
       '<button class="gal-card__edit" data-edit="' + escapeHtml(w.c) + '">改背面</button>';
     // 正面也放一个编辑入口：不翻面即可改背面（拼音/图），提升可达性
+    var starHTML = '<button class="gal-card__star' + (mk ? ' is-on' : '') + '"' +
+      ' data-star="' + escapeHtml(w.c) + '"' +
+      (mk ? ' style="color:' + mk.color + '"' : '') +
+      ' title="标记此词（5 色）">★</button>';
     var frontInner =
         '<span class="gal-card__code">' + escapeHtml(w.c) + '</span>' +
+        starHTML +
         (py ? '' : '<span class="gal-card__nopy">无读音</span>') +
         '<div class="gal-card__word">' + escapeHtml(word) + '</div>' +
-        '<span class="gal-card__badge">' + f.label + '</span>' +
+        '<span class="gal-card__badge">' + escapeHtml(badgeLabel) + '</span>' +
         '<button class="gal-card__edit gal-card__edit--front" data-edit="' + escapeHtml(w.c) + '">改背面</button>';
-    return '<div class="gal-card" data-code="' + escapeHtml(w.c) + '" style="--fam:' + f.color + '">' +
+    return '<div class="gal-card" data-code="' + escapeHtml(w.c) + '" style="--fam:' + showColor + '">' +
       '<div class="gal-card__inner">' +
         '<div class="gal-card__face gal-card__front">' + frontInner + '</div>' +
         '<div class="gal-card__face gal-card__back">' + backInner + '</div>' +
@@ -472,7 +553,7 @@
     });
   }
 
-  function render() { computeOverview(); renderHealth(); renderGrid(); }
+  function render() { closeMarkPop(); computeOverview(); renderHealth(); renderGrid(); }
 
   /* ---------- 编辑弹窗 ---------- */
   function fileToData(file, cb) {
@@ -483,6 +564,7 @@
     r.readAsDataURL(file);
   }
   function openModal(code) {
+    closeMarkPop();
     mCode = code; mImgData = '';
     var card = byCode[code] || {};
     var w = assocByCode[code] || {};
@@ -490,10 +572,32 @@
     $('mWord').value = card.back != null ? card.back : (w.w || '');
     $('mPy').value = card.hint != null ? card.hint : (w.p || '');
     mImgData = card.backImg || '';
+    mMark = card.mark || '';
+    renderMarkRow();
     renderPrev();
     $('mPyWarn').className = 'gal-pywarn'; $('mPyWarn').textContent = '';
     $('mPyNote').className = 'gal-pynote'; $('mPyNote').textContent = '';
     $('modal').classList.remove('gal-hidden');
+  }
+  // 弹窗内标记选择行
+  function renderMarkRow() {
+    var box = $('mMarkRow'); box.innerHTML = '';
+    MARKS.forEach(function (m) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'gal-mk' + (mMark === m.k ? ' is-sel' : '');
+      b.style.background = m.color; b.title = m.name; b.textContent = '★';
+      b.addEventListener('click', function () {
+        mMark = (mMark === m.k) ? '' : m.k;   // 再点同色 = 取消
+        renderMarkRow();
+      });
+      box.appendChild(b);
+    });
+    var clr = document.createElement('button');
+    clr.type = 'button';
+    clr.className = 'gal-mk gal-mk--clear'; clr.title = '清除标记'; clr.textContent = '✕';
+    clr.addEventListener('click', function () { mMark = ''; renderMarkRow(); });
+    box.appendChild(clr);
   }
   function renderPrev() {
     var box = $('mPrev'); box.innerHTML = '';
@@ -560,7 +664,7 @@
     }
     var card = byCode[mCode];
     if (!card) { alert('未找到该词的卡片，请刷新重试'); return; }
-    var next = Object.assign({}, card, { back: word, hint: py, backImg: mImgData });
+    var next = Object.assign({}, card, { back: word, hint: py, backImg: mImgData, mark: mMark });
     DB.putCard(next).then(function () {
       // ⚠️ 必须先回写 allCards 再重建索引：
       // buildIndex 是从 allCards 重建 byCode 的，若不回写，刚保存的新值会被旧数据冲掉。
@@ -578,12 +682,58 @@
     allCards.push(c);
   }
 
+  /* ---------- 手动标记（5 色星标） ---------- */
+  var markPop = $('markPop');
+  function closeMarkPop() { if (markPop) markPop.classList.add('gal-hidden'); }
+  function openMarkPop(code, anchor) {
+    if (!markPop) return;
+    markPop.innerHTML = '';
+    MARKS.forEach(function (m) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'gal-mk';
+      b.style.background = m.color; b.title = m.name; b.textContent = '★';
+      b.addEventListener('click', function (e) { e.stopPropagation(); setMark(code, m.k); });
+      markPop.appendChild(b);
+    });
+    var clr = document.createElement('button');
+    clr.type = 'button'; clr.className = 'gal-mk gal-mk--clear'; clr.title = '清除标记'; clr.textContent = '✕';
+    clr.addEventListener('click', function (e) { e.stopPropagation(); setMark(code, ''); });
+    markPop.appendChild(clr);
+    var r = anchor.getBoundingClientRect();
+    var left = Math.min(r.left, window.innerWidth - 170);
+    if (left < 6) left = 6;
+    markPop.style.top = (r.bottom + 6) + 'px';
+    markPop.style.left = left + 'px';
+    markPop.classList.remove('gal-hidden');
+  }
+  function setMark(code, k) {
+    var card = byCode[code];
+    if (!card) { alert('未找到该词的卡片，请刷新重试'); return; }
+    var next = Object.assign({}, card, { mark: k || '' });
+    DB.putCard(next).then(function () {
+      replaceInAll(next);
+      buildIndex(allCards);
+      closeMarkPop();
+      render();
+    }).catch(function (e) { alert('保存标记失败：' + e.message); });
+  }
+
   /* ---------- 事件 ---------- */
   $('cardGrid').addEventListener('click', function (e) {
+    var starBtn = e.target.closest('.gal-card__star');
+    if (starBtn) { e.stopPropagation(); openMarkPop(starBtn.getAttribute('data-star'), starBtn); return; }
     var editBtn = e.target.closest('.gal-card__edit');
     if (editBtn) { e.stopPropagation(); openModal(editBtn.getAttribute('data-edit')); return; }
     var card = e.target.closest('.gal-card');
     if (card) card.classList.toggle('is-flipped');
+  });
+  // 点空白处关闭标记浮层
+  document.addEventListener('click', function (e) {
+    if (markPop && !markPop.classList.contains('gal-hidden')) {
+      if (!markPop.contains(e.target) && !(e.target.closest && e.target.closest('.gal-card__star'))) {
+        closeMarkPop();
+      }
+    }
   });
   $('search').addEventListener('input', function () {
     curKw = ($('search').value || '').trim().toLowerCase(); renderGrid();
@@ -604,6 +754,17 @@
   $('pyFilter').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     setPyFilter(b.getAttribute('data-p'));
+  });
+  // 标记筛选：下拉动态注入 5 色选项
+  (function buildMarkOptions() {
+    var sel = $('markFilter');
+    MARKS.forEach(function (m) {
+      var o = document.createElement('option');
+      o.value = m.k; o.textContent = m.name; sel.appendChild(o);
+    });
+  })();
+  $('markFilter').addEventListener('change', function () {
+    curMark = this.value; renderGrid();
   });
   $('health').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
