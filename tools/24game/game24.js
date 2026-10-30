@@ -45,6 +45,18 @@
   }
   function $(id) { return document.getElementById(id); }
 
+  /* 分数运算（精确，支持分数中间值，如 8/(3-8/3)） */
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a || 1; }
+  function mkF(n, d) { if (d === 0) return null; if (d < 0) { n = -n; d = -d; } var g = gcd(n, d); return { n: n / g, d: d / g }; }
+  function addF(a, b) { return mkF(a.n * b.d + b.n * a.d, a.d * b.d); }
+  function subF(a, b) { return mkF(a.n * b.d - b.n * a.d, a.d * b.d); }
+  function mulF(a, b) { return mkF(a.n * b.n, a.d * b.d); }
+  function divF(a, b) { if (b.n === 0) return null; return mkF(a.n * b.d, a.d * b.n); }
+  function applyOp(a, op, b) { return op === '+' ? addF(a, b) : op === '-' ? subF(a, b) : op === '*' ? mulF(a, b) : divF(a, b); }
+  function fracStr(f) { return f.d === 1 ? String(f.n) : (f.n + '/' + f.d); }
+  function is24(f) { return f.d === 1 && f.n === 24; }
+  var OP_SYM = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
   /* ---------------- 题库加载 ---------------- */
   function loadBank(cb) {
     fetch('data/levels.json').then(function (r) { return r.json(); }).then(function (j) {
@@ -204,13 +216,15 @@
   function startTraining() {
     if (!BANK && tCfg.source !== 'wrong') { alert('题库未加载，请用本地服务器(http)打开本页。'); return; }
     if (timerId) { clearInterval(timerId); timerId = null; }
+    stopDemo();
     var pool = buildPool();
     if (tCfg.source === 'wrong' && pool.length === 0) { alert('当前范围/难度下没有错题，先去系统题库练练吧。'); return; }
 
     S = {
       range: tCfg.range, level: tCfg.level, mode: tCfg.mode, source: tCfg.source, mixNoSol: tCfg.mixNoSol,
       pool: pool, queue: [], idx: 0, score: 0, correct: 0, wrongOutcomes: 0,
-      wrongPuzzles: [], startTime: Date.now(), threeEnd: 0
+      wrongPuzzles: [], startTime: Date.now(), threeEnd: 0,
+      demoing: false, hintA: null, hintB: null, demoTimer: null, hintTimer: null
     };
 
     if (S.mode === 'ten') {
@@ -239,9 +253,10 @@
     drawNext();
   }
 
-  function onAnswerKey(e) { if (e.key === 'Enter') submitAnswer(); }
+  /* 点击式递交，不再需要输入框回车提交 */
 
   function drawNext() {
+    stopDemo();
     if (S.mode === 'ten') {
       if (S.idx >= S.queue.length) return endSession();
       S.current = S.queue[S.idx];
@@ -262,48 +277,215 @@
 
   function renderPuzzle() {
     var c = S.current;
+    S.cards = c.nums.map(function (v) { return { n: v, d: 1, used: false, expr: null }; });
+    S.selA = null; S.selOp = null; S.history = []; S.locked = false;
+    S.hintA = null; S.hintB = null;
     $('playLevelTag').textContent = c.noSolution ? '（判断是否有解）' : ('（' + (LEVEL_NAMES[c.level] || c.level) + '）');
-    var row = $('playCards'); row.innerHTML = '';
-    c.nums.forEach(function (v) {
-      var d = document.createElement('div'); d.className = 'pcard'; d.textContent = v; row.appendChild(d);
-    });
-    $('answerInput').value = ''; $('answerInput').disabled = false;
-    $('playFeedback').textContent = ''; $('playFeedback').className = 'feedback';
+    renderRangeTag();
+    renderCards();
+    $('playFeedback').textContent = c.noSolution
+      ? '这组数可能有解也可能无解，用数字和运算符合并，若确实凑不出 24 请点「此题无解」。'
+      : '点数字 → 点运算符 → 点数字，依次合并直到得到 24。';
+    $('playFeedback').className = 'feedback info';
     $('noSolBtn').style.display = c.noSolution ? 'inline-block' : 'none';
     if (S.mode === 'ten') $('playProgress').textContent = '第 ' + (S.idx + 1) + ' / ' + S.queue.length + ' 题';
     else $('playProgress').textContent = '已答 ' + (S.correct + S.wrongOutcomes);
     $('playScore').textContent = '答对 ' + S.score;
   }
 
-  function submitAnswer() {
-    var c = S.current; if (!c) return;
-    if (c.noSolution) {
-      $('playFeedback').textContent = '这组数经求解无解，请点「此题无解」确认。';
-      $('playFeedback').className = 'feedback bad'; return;
+  function renderCards() {
+    var row = $('playCards'); row.innerHTML = '';
+    S.cards.forEach(function (cd, i) {
+      var d = document.createElement('div');
+      d.className = 'pcard' + (cd.used ? ' used' : '') + (S.selA === i ? ' sel' : '') +
+                    (S.hintA === i ? ' hint-a' : '') + (S.hintB === i ? ' hint-b' : '');
+      d.setAttribute('data-idx', i);
+      var pv = document.createElement('div'); pv.className = 'pv'; pv.textContent = cd.used ? '' : fracStr(cd);
+      var pe = document.createElement('div'); pe.className = 'pe'; pe.textContent = cd.expr || '';
+      d.appendChild(pv); d.appendChild(pe);
+      row.appendChild(d);
+    });
+  }
+
+  /* 训练进行中显示「范围 · 难度 · 模式」 */
+  function renderRangeTag() {
+    if (!S) return;
+    var levelName = LEVEL_NAMES[S.level] ||
+      (S.level === 'all' ? '全部难度' : (S.level === 'random' ? '随机难度' : '判断无解'));
+    if (S.current && S.current.noSolution) levelName = '判断无解';
+    var modeText = (S.mode === 'ten') ? '十题计时' : '三分钟挑战';
+    $('playRangeTag').textContent = '1–' + S.range + ' · ' + levelName + ' · ' + modeText;
+  }
+
+  /* 清理演示/提示定时器与高亮状态（不动 S.locked，避免破坏答错锁定） */
+  function stopDemo() {
+    if (!S) return;
+    if (S.demoTimer) { clearTimeout(S.demoTimer); S.demoTimer = null; }
+    if (S.hintTimer) { clearTimeout(S.hintTimer); S.hintTimer = null; }
+    S.demoing = false;
+    S.hintA = null; S.hintB = null;
+  }
+
+  /* 在未 used 的卡片中定位某个步骤的 a / b 两个不同下标；找不到返回 null */
+  function locateStep(step) {
+    var aIdx = -1, bIdx = -1;
+    for (var j = 0; j < S.cards.length; j++) {
+      if (S.cards[j].used) continue;
+      if (aIdx === -1 && fracStr(S.cards[j]) === step.a) { aIdx = j; continue; }
+      if (bIdx === -1 && fracStr(S.cards[j]) === step.b) { bIdx = j; }
     }
-    var expr = $('answerInput').value.trim();
-    if (!expr) { $('playFeedback').textContent = '请输入算式'; $('playFeedback').className = 'feedback info'; return; }
-    var r = Suan24.checkAnswer(c.nums, expr);
-    if (r.ok) {
-      $('playFeedback').textContent = '✓ 正确！'; $('playFeedback').className = 'feedback ok';
+    if (aIdx === -1 || bIdx === -1 || aIdx === bIdx) return null;
+    return { a: aIdx, b: bIdx };
+  }
+
+  /* 「提示」：给出下一步该合并哪两个数、用什么运算，不改变任何题目状态 */
+  function onHintClick() {
+    if (!S || !S.current || S.demoing) return;
+    if (S.current.noSolution) { feedback('这组数确实无解，可以点「此题无解」确认', 'info'); return; }
+    var plan = Suan24.planSteps(S.current.nums);
+    if (!plan) { feedback('这组数确实凑不出 24', 'bad'); return; }
+    if (S.hintTimer) { clearTimeout(S.hintTimer); S.hintTimer = null; }
+    S.hintA = null; S.hintB = null;
+    for (var i = 0; i < plan.length; i++) {
+      var at = locateStep(plan[i]);
+      if (at) {
+        S.hintA = at.a; S.hintB = at.b;
+        renderCards();
+        feedback('提示：把 ' + plan[i].a + ' 和 ' + plan[i].b + ' 用 ' + OP_SYM[plan[i].op] + ' 合并', 'info');
+        S.hintTimer = setTimeout(function () {
+          S.hintA = null; S.hintB = null; renderCards();
+        }, 3000);
+        return;
+      }
+    }
+    renderCards();
+    var chain = [];
+    for (var k = 0; k < plan.length; k++) chain.push(plan[k].expr);
+    feedback('提示顺序：' + chain.join(' → '), 'info');
+  }
+
+  function onCardClick(i) {
+    if (!S || S.locked || !S.current) return;
+    var cd = S.cards[i];
+    if (!cd || cd.used) return;
+    if (S.selA === null) {
+      S.selA = i;
+    } else if (S.selOp === null) {
+      S.selA = (S.selA === i) ? null : i;
+    } else {
+      if (S.selA === i) { S.selA = null; }
+      else { merge(S.selA, i, S.selOp); return; }
+    }
+    renderCards();
+  }
+  function onOpClick(op) {
+    if (!S || S.locked || !S.current) return;
+    if (S.selA === null) { feedback('请先点一个数字', 'info'); return; }
+    S.selOp = op;
+    renderCards();
+  }
+  function merge(a, b, op) {
+    var A = S.cards[a], B = S.cards[b];
+    var res = applyOp({ n: A.n, d: A.d }, op, { n: B.n, d: B.d });
+    if (!res) { feedback('不能除以 0', 'bad'); S.selOp = null; renderCards(); return; }
+    var expr = fracStr(A) + ' ' + OP_SYM[op] + ' ' + fracStr(B) + ' = ' + fracStr(res);
+    var bBefore = { n: B.n, d: B.d, expr: B.expr };
+    S.cards[a].used = true; S.cards[a].expr = null;
+    S.cards[b] = { n: res.n, d: res.d, used: false, expr: expr };
+    S.history.push({ a: a, b: b, bBefore: bBefore, op: op });
+    S.selA = null; S.selOp = null;
+    renderCards();
+    checkComplete();
+  }
+  function undo() {
+    if (!S || S.locked) return;
+    if (!S.history.length) { feedback('没有可撤销的步骤', 'info'); return; }
+    var h = S.history.pop();
+    S.cards[h.a].used = false; S.cards[h.a].expr = null;
+    S.cards[h.b] = { n: h.bBefore.n, d: h.bBefore.d, used: false, expr: h.bBefore.expr };
+    S.selA = null; S.selOp = null;
+    renderCards();
+    feedback('已撤销上一步', 'info');
+  }
+  function feedback(msg, cls) { $('playFeedback').textContent = msg; $('playFeedback').className = 'feedback ' + (cls || ''); }
+  function checkComplete() {
+    var left = S.cards.filter(function (c) { return !c.used; });
+    if (left.length !== 1) return;
+    var v = left[0];
+    if (S.demoing) {           // 演示中只提示，不计分、不 advance
+      feedback(is24(v) ? '✓ 正确，结果是 24！' : ('结果是 ' + fracStr(v) + '，还差一点。'), is24(v) ? 'ok' : 'bad');
+      return;
+    }
+    if (S.current.noSolution) {
+      feedback('这组数凑不出 24，若确认无解请点「此题无解」。或撤销重来。', 'info');
+      return;
+    }
+    if (is24(v)) {
+      feedback('✓ 正确，结果是 24！', 'ok');
       S.correct++; S.score++;
-      recordResolve(c, true);
+      S.locked = true;
+      recordResolve(S.current, true);
       advance(550);
     } else {
-      $('playFeedback').textContent = '✗ ' + r.reason; $('playFeedback').className = 'feedback bad';
+      feedback('结果是 ' + fracStr(v) + '，还差一点，可撤销重来或看答案。', 'bad');
+      S.locked = true;
     }
   }
 
   function revealAnswer() {
-    var c = S.current; if (!c) return;
-    var ans = '(看答案)';
-    if (!c.noSolution) {
-      var r = Suan24.solve(c.nums);
-      ans = r.hasSolution ? ('答案：' + r.solutions[0].text + ' = 24') : '无解';
-    } else ans = '这组数无解';
-    $('playFeedback').textContent = ans; $('playFeedback').className = 'feedback info';
-    recordResolve(c, false, '(看答案)');
-    advance(900);
+    var c = S.current;
+    if (!c || S.demoing) return;
+    var plan = Suan24.planSteps(c.nums);
+    if (!plan || c.noSolution) {
+      var ans = '(看答案)';
+      if (!c.noSolution) {
+        var r = Suan24.solve(c.nums);
+        ans = r.hasSolution ? ('答案：' + r.solutions[0].text + ' = 24') : '无解';
+      } else ans = '这组数无解';
+      $('playFeedback').textContent = ans; $('playFeedback').className = 'feedback info';
+      recordResolve(c, false, '(看答案)');
+      advance(900);
+      return;
+    }
+    // 分步演示：重置本题 → 逐步自动合并
+    S.cards = c.nums.map(function (v) { return { n: v, d: 1, used: false, expr: null }; });
+    S.history = []; S.selA = null; S.selOp = null; S.locked = true;
+    S.hintA = null; S.hintB = null;
+    renderCards();
+    S.demoing = true;
+    var stepIdx = 0;
+    function demoNext() {
+      if (!S || !S.current) return;
+      if (stepIdx >= plan.length) {
+        var rr = Suan24.solve(c.nums);
+        feedback('答案：' + rr.solutions[0].text + ' = 24', 'ok');
+        recordResolve(c, false, '(看答案)');
+        S.demoing = false; S.locked = false;
+        advance(900);
+        return;
+      }
+      var step = plan[stepIdx];
+      var at = locateStep(step);
+      if (!at) {
+        var chain = [];
+        for (var k = 0; k < plan.length; k++) chain.push(plan[k].expr);
+        feedback('提示顺序：' + chain.join(' → '), 'info');
+        recordResolve(c, false, '(看答案)');
+        S.demoing = false; S.locked = false;
+        advance(900);
+        return;
+      }
+      S.hintA = at.a; S.hintB = at.b;
+      renderCards();
+      feedback(step.expr, 'info');
+      stepIdx++;
+      S.demoTimer = setTimeout(function () {
+        if (!S || !S.demoing) return;
+        merge(at.a, at.b, step.op);
+        demoNext();
+      }, 900);
+    }
+    demoNext();
   }
   function skipPuzzle() { revealAnswer(); }
 
@@ -337,7 +519,7 @@
       var w = loadWrong();
       var k = sig(c.nums);
       var rec = w[k] || { nums: c.nums.slice(), level: c.level, range: c.range, attempts: 0, wrong: 0, lastWrong: '', lastWrongAt: 0 };
-      rec.attempts++; rec.wrong++; rec.lastWrong = userAns || $('answerInput').value.trim() || '(跳过)';
+      rec.attempts++; rec.wrong++; rec.lastWrong = userAns || '(未作答)';
       rec.lastWrongAt = Date.now(); rec.level = c.level; rec.range = c.range;
       w[k] = rec; saveWrong(w);
       S.wrongPuzzles.push({ nums: c.nums.slice(), answer: rec.lastWrong, noSolution: !!c.noSolution });
@@ -362,10 +544,12 @@
   }
 
   function quitSession() {
+    stopDemo();
     if (confirm('确定结束本次训练？')) endSession();
   }
 
   function endSession() {
+    stopDemo();
     clearInterval(timerId); timerId = null;
     S.current = null;
     // 最佳记录 + 总练习次数（按"次"计）
@@ -485,8 +669,16 @@
 
   /* ---------------- 绑定 ---------------- */
   function bindPlayButtons() {
-    $('answerInput').addEventListener('keydown', onAnswerKey);
-    $('submitAnswerBtn').addEventListener('click', submitAnswer);
+    $('playCards').addEventListener('click', function (e) {
+      var el = e.target.closest('.pcard'); if (!el) return;
+      onCardClick(parseInt(el.getAttribute('data-idx'), 10));
+    });
+    $('playOps').addEventListener('click', function (e) {
+      var el = e.target.closest('.op'); if (!el) return;
+      onOpClick(el.getAttribute('data-op'));
+    });
+    $('undoBtn').addEventListener('click', undo);
+    $('hintBtn').addEventListener('click', onHintClick);
     $('revealBtn').addEventListener('click', revealAnswer);
     $('skipBtn').addEventListener('click', skipPuzzle);
     $('noSolBtn').addEventListener('click', declareNoSolution);

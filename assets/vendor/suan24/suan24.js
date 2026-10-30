@@ -152,7 +152,7 @@
       if (!mf) integerOnly = true;
       if (!md) noDivision = true;
       if (mn) anyNeg = true;
-      sols.push({ text: c.disp, requiresFraction: mf, usesDivision: md, anyNegative: mn });
+      sols.push({ text: c.disp, requiresFraction: mf, usesDivision: md, anyNegative: mn, tree: tree });
     }
     return {
       hasSolution: sols.length > 0,
@@ -164,6 +164,30 @@
       anyNegative: anyNeg,
       maxDigit: Math.max.apply(null, nums)
     };
+  }
+
+  /* ---------------- 可分步复现的合并步骤（供 UI 提示 / 分步演示） ---------------- */
+  var OP_SYM24 = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+  // 后序遍历表达式树：子步骤在前，最后是本次合并
+  function collectSteps(node, steps) {
+    if (!node || node.t !== 'op') return;                 // 数字节点没有步骤
+    collectSteps(node.l, steps);
+    collectSteps(node.r, steps);
+    var lv = evalNode(node.l), rv = evalNode(node.r), vv = evalNode(node);
+    if (!lv || !rv || !vv) return;
+    var a = fracStr(lv), b = fracStr(rv), result = fracStr(vv);
+    steps.push({ op: node.op, a: a, b: b, result: result, expr: a + ' ' + OP_SYM24[node.op] + ' ' + b + ' = ' + result });
+  }
+
+  // 返回"按点击顺序可复现"的合并步骤；无解返回 null
+  function planSteps(nums, target) {
+    target = (target === undefined || target === null) ? 24 : target;
+    var r = solve(nums, target);
+    if (!r.hasSolution) return null;
+    var steps = [];
+    collectSteps(r.solutions[0].tree, steps);
+    return steps;
   }
 
   /* ---------------- 用户答案校验 ---------------- */
@@ -234,7 +258,7 @@
     return { ok: false, reason: '结果 = ' + fracStr(r.val) + ' ≠ 24' };
   }
 
-  var API = { solve: solve, checkAnswer: checkAnswer, fracStr: fracStr, F: F, version: '1.0.0' };
+  var API = { solve: solve, checkAnswer: checkAnswer, fracStr: fracStr, F: F, planSteps: planSteps, version: '1.0.1' };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   global.Suan24 = API;
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));

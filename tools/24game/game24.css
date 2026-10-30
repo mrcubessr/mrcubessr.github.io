@@ -76,13 +76,30 @@ header .subtitle { margin-top: 8px; font-size: 0.9rem; color: var(--fg-3); }
 .num-in { max-width: 90px; }
 .answer-in { font-size: 1.1rem; font-weight: 600; }
 .num-in:focus, .answer-in:focus { border-color: var(--brand-line); }
-.cards-row { display: flex; gap: 12px; margin-bottom: 14px; }
+.cards-row { display: flex; gap: 12px; margin-bottom: 14px; justify-content: center; }
 .pcard {
-  flex: 1; aspect-ratio: 3/4; max-width: 110px; margin: 0 auto; border-radius: 12px;
+  flex: 1; aspect-ratio: 3/4; max-width: 92px; margin: 0; border-radius: 12px;
   background: linear-gradient(135deg, var(--brand), var(--violet)); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: 800;
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-weight: 800; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  cursor: pointer; transition: transform .12s, box-shadow .12s, opacity .2s;
+  user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
 }
+.pcard:active { transform: scale(.96); }
+.pcard .pv { font-size: 2.4rem; line-height: 1.1; }
+.pcard .pe { font-size: 0.72rem; font-weight: 600; opacity: .85; margin-top: 4px; max-width: 96%; word-break: break-word; text-align: center; }
+.pcard.sel { outline: 3px solid #fff; box-shadow: 0 0 0 4px var(--brand), 0 6px 18px rgba(0,0,0,.25); transform: translateY(-3px); }
+.pcard.used { opacity: .14; cursor: default; box-shadow: none; pointer-events: none; }
+.pcard.used .pv, .pcard.used .pe { visibility: hidden; }
+.ops-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+.op {
+  flex: 1; max-width: 84px; padding: 14px 0; font-size: 1.7rem; font-weight: 800;
+  border: 1px solid var(--line-2); background: var(--surface-2); color: var(--fg-2);
+  border-radius: 12px; cursor: pointer; transition: all .15s;
+  user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.op:active { transform: scale(.95); }
+.op.sel { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
 
 /* 求解结果 */
 .solve-result { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow: auto; }
@@ -144,4 +161,16 @@ header .subtitle { margin-top: 8px; font-size: 0.9rem; color: var(--fg-3); }
   .pcard { font-size: 2rem; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .bar-row .name { width: 70px; }
+}
+
+/* 提示高亮：a = 第一个数（橙），b = 第二个数（蓝） */
+.pcard.hint-a {
+  box-shadow: 0 0 0 3px #f59e0b, 0 6px 18px rgba(0, 0, 0, .25);
+  transform: translateY(-4px);
+  transition: transform .15s, box-shadow .15s;
+}
+.pcard.hint-b {
+  box-shadow: 0 0 0 3px #60a5fa, 0 6px 18px rgba(0, 0, 0, .25);
+  transform: translateY(-4px);
+  transition: transform .15s, box-shadow .15s;
 }

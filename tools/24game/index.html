@@ -112,6 +112,7 @@
     <div id="trainPlay" style="display:none">
       <div class="play-top">
         <div class="play-stat" id="playProgress">第 1 / 10 题</div>
+        <div class="play-stat" id="playRangeTag"></div>
         <div class="play-stat" id="playTimer">⏱ 00:00</div>
         <div class="play-stat" id="playScore">答对 0</div>
       </div>
@@ -119,11 +120,15 @@
       <div class="card">
         <div class="card__title">用这四个数算出 24 <span id="playLevelTag" class="meta"></span></div>
         <div class="cards-row" id="playCards"></div>
-        <div class="answer-row">
-          <input class="answer-in" id="answerInput" placeholder="例如 (8/(3-8/3)) 或 8/(3-8/3)" autocomplete="off">
-          <button class="btn btn--primary" id="submitAnswerBtn">提交</button>
+        <div class="ops-row" id="playOps">
+          <button type="button" class="op" data-op="+">＋</button>
+          <button type="button" class="op" data-op="-">−</button>
+          <button type="button" class="op" data-op="*">×</button>
+          <button type="button" class="op" data-op="/">÷</button>
         </div>
         <div class="btn-row">
+          <button class="btn btn--ghost" id="hintBtn">💡 提示</button>
+          <button class="btn btn--ghost" id="undoBtn">↶ 撤销</button>
           <button class="btn btn--ghost" id="noSolBtn" style="display:none">此题无解</button>
           <button class="btn btn--ghost" id="revealBtn">看答案</button>
           <button class="btn btn--ghost" id="skipBtn">跳过</button>
