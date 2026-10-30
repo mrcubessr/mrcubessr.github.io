@@ -22,11 +22,12 @@
   --ct-yellow:#FFD500;
 }
 * { box-sizing: border-box; }
-.gal-wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px 40px; }
+/* 一页铺满：不分字头组，整页一张连续网格 */
+.gal-wrap { max-width: 1760px; margin: 0 auto; padding: 0 16px 40px; }
 
-.gal-head { text-align: center; margin: 18px 0 14px; }
-.gal-head h1 { font-size: 26px; font-weight: 800; color: var(--fg); letter-spacing: 1px; }
-.gal-head p { color: var(--fg-3); font-size: 13px; margin-top: 6px; }
+.gal-head { text-align: center; margin: 12px 0 10px; }
+.gal-head h1 { font-size: 24px; font-weight: 800; color: var(--fg); letter-spacing: 1px; }
+.gal-head p { color: var(--fg-3); font-size: 12.5px; margin-top: 5px; }
 
 /* 概览条（对齐角心训练 overview） */
 .gal-overview { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 8px 0 16px; }
@@ -87,23 +88,19 @@
 .gal-dups button:hover { background: var(--ct-red); color: #fff; }
 
 
-/* 字头分组 */
-.gal-group { margin-bottom: 26px; }
-.gal-group__title {
-  display: flex; align-items: center; gap: 10px; margin: 0 0 12px;
-  font-size: 17px; font-weight: 800; color: var(--brand);
-  border-left: 5px solid var(--brand); padding-left: 10px;
+/* 单词网格：整页一张，不分字头组 */
+.gal-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 8px; align-content: start;
 }
-.gal-group__title .cnt { font-size: 12px; font-weight: 600; color: var(--fg-3); }
-.gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 
-/* 卡片（翻面） */
+/* 卡片（翻面）—— 紧凑排布，整页尽量多显示 */
 .gal-card {
-  perspective: 900px; cursor: pointer; min-height: 148px;
-  border-left: 5px solid var(--fam, var(--ct-blue));
+  perspective: 900px; cursor: pointer; min-height: 116px;
+  border-left: 4px solid var(--fam, var(--ct-blue));
 }
 .gal-card__inner {
-  position: relative; width: 100%; height: 100%; min-height: 148px;
+  position: relative; width: 100%; height: 100%; min-height: 116px;
   transition: transform .45s ease; transform-style: preserve-3d;
 }
 .gal-card.is-flipped .gal-card__inner { transform: rotateY(180deg); }
@@ -114,27 +111,27 @@
   padding: 12px 10px; text-align: center;
 }
 .gal-card__front { border-radius: 0; }
-.gal-card__word { font-size: 22px; font-weight: 800; color: var(--fg); line-height: 1.2; word-break: break-all; }
+.gal-card__word { font-size: 17px; font-weight: 800; color: var(--fg); line-height: 1.22; word-break: break-all; }
 .gal-card__code {
-  position: absolute; top: 6px; left: 8px; font-size: 12px; font-weight: 800;
+  position: absolute; top: 4px; left: 6px; font-size: 11px; font-weight: 800;
   color: var(--fg-3); letter-spacing: .5px;
 }
 .gal-card__badge {
-  margin-top: 8px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 0;
+  margin-top: 5px; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 0;
   color: #fff; background: var(--fam, var(--ct-blue));
 }
 .gal-card__nopy {
-  position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 800;
-  color: var(--ct-orange); background: rgba(255,138,31,.14); padding: 2px 6px;
+  position: absolute; top: 4px; right: 4px; font-size: 9.5px; font-weight: 800;
+  color: var(--ct-orange); background: rgba(255,138,31,.14); padding: 1px 5px;
 }
 .gal-card__back { transform: rotateY(180deg); background: var(--on-brand); }
-.gal-card__pinyin { font-size: 30px; font-weight: 800; color: var(--fg); line-height: 1.1; }
-.gal-card__pyempty { font-size: 13px; color: var(--fg-3); }
-.gal-card__img { max-width: 90%; max-height: 78px; margin-top: 6px; object-fit: contain; }
-.gal-card__imgph { font-size: 11px; color: var(--fg-3); margin-top: 6px; }
+.gal-card__pinyin { font-size: 23px; font-weight: 800; color: var(--fg); line-height: 1.1; }
+.gal-card__pyempty { font-size: 12px; color: var(--fg-3); }
+.gal-card__img { max-width: 92%; max-height: 56px; margin-top: 4px; object-fit: contain; }
+.gal-card__imgph { font-size: 10px; color: var(--fg-3); margin-top: 4px; }
 .gal-card__edit {
-  position: absolute; bottom: 5px; right: 6px; font-size: 11px; font-weight: 700;
-  color: var(--brand); background: rgba(58,124,240,.10); border: none; padding: 3px 8px;
+  position: absolute; bottom: 3px; right: 4px; font-size: 10px; font-weight: 700;
+  color: var(--brand); background: rgba(58,124,240,.10); border: none; padding: 2px 6px;
   cursor: pointer; border-radius: 0; font-family: inherit;
 }
 
@@ -158,8 +155,9 @@
 @media (max-width: 640px){
   .gal-overview { grid-template-columns: repeat(5,1fr); gap:6px; }
   .gal-ov{ padding:8px 2px } .gal-ov .n{ font-size:17px }
-  .gal-grid{ grid-template-columns: repeat(auto-fill, minmax(108px,1fr)); gap:8px; }
-  .gal-card__word{ font-size:18px } .gal-card__pinyin{ font-size:24px }
+  .gal-grid{ grid-template-columns: repeat(auto-fill, minmax(96px,1fr)); gap:6px; }
+  .gal-card__word{ font-size:15px } .gal-card__pinyin{ font-size:19px }
+  .gal-card{ min-height: 104px; } .gal-card__inner{ min-height: 104px; }
 }
 </style>
 </head>
@@ -169,7 +167,7 @@
 <div class="gal-wrap">
   <div class="gal-head">
     <h1>联想词卡库</h1>
-    <p>三盲联想词全量词库 · 点卡片翻面看拼音与配图 · 可直接改背面（拼音 / 图片）· 颜色 = 熟悉度</p>
+    <p>三盲联想词全量词库 · 一页铺满 552 词 · 点卡片翻面看拼音与配图 · 可直接改背面（拼音 / 图片）· 颜色 = 熟悉度</p>
   </div>
 
   <div class="gal-overview" id="ov"></div>
@@ -194,7 +192,7 @@
     <span class="srs-note" id="galCount"></span>
   </div>
 
-  <div id="groups"></div>
+  <div id="cardGrid"></div>
 </div>
 
 <!-- 编辑弹窗 -->
@@ -457,34 +455,24 @@
       '</div></div>';
   }
 
-  function renderGroups() {
-    var box = $('groups');
+  /* 一页铺满：不分字头组，整页一张连续网格 */
+  function renderGrid() {
+    var box = $('cardGrid');
     box.innerHTML = '';
     picSrcs = [];
-    var letters = SRS.assocLetters();
-    var shown = 0;
-    letters.forEach(function (L) {
-      var words = ASSOC.filter(function (w) { return w.h === L; });
-      var matched = words.filter(matchFilter);
-      if (!matched.length) return;
-      shown += matched.length;
-      var sec = document.createElement('section');
-      sec.className = 'gal-group';
-      sec.innerHTML = '<div class="gal-group__title">' + L + ' 组 <span class="cnt">' + matched.length + ' 词</span></div>';
-      var grid = document.createElement('div');
-      grid.className = 'gal-grid';
-      grid.innerHTML = matched.map(cardHTML).join('');
-      sec.appendChild(grid);
-      box.appendChild(sec);
-    });
-    $('galCount').textContent = '显示 ' + shown + ' / ' + ASSOC.length + ' 词';
+    var matched = ASSOC.filter(matchFilter);
+    var grid = document.createElement('div');
+    grid.className = 'gal-grid';
+    grid.innerHTML = matched.map(cardHTML).join('');
+    box.appendChild(grid);
+    $('galCount').textContent = '显示 ' + matched.length + ' / ' + ASSOC.length + ' 词';
     // 回填背面配图（懒渲染，避免一次性 552 张）
     box.querySelectorAll('.gal-card__pic').forEach(function (el) {
       renderPic(el, picSrcs[+el.getAttribute('data-pi')]);
     });
   }
 
-  function render() { computeOverview(); renderHealth(); renderGroups(); }
+  function render() { computeOverview(); renderHealth(); renderGrid(); }
 
   /* ---------- 编辑弹窗 ---------- */
   function fileToData(file, cb) {
@@ -591,19 +579,19 @@
   }
 
   /* ---------- 事件 ---------- */
-  $('groups').addEventListener('click', function (e) {
+  $('cardGrid').addEventListener('click', function (e) {
     var editBtn = e.target.closest('.gal-card__edit');
     if (editBtn) { e.stopPropagation(); openModal(editBtn.getAttribute('data-edit')); return; }
     var card = e.target.closest('.gal-card');
     if (card) card.classList.toggle('is-flipped');
   });
   $('search').addEventListener('input', function () {
-    curKw = ($('search').value || '').trim().toLowerCase(); renderGroups();
+    curKw = ($('search').value || '').trim().toLowerCase(); renderGrid();
   });
   $('famFilter').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     $('famFilter').querySelectorAll('button').forEach(function (x) { x.classList.remove('is-on'); });
-    b.classList.add('is-on'); curFilter = b.getAttribute('data-f'); renderGroups();
+    b.classList.add('is-on'); curFilter = b.getAttribute('data-f'); renderGrid();
   });
   // 读音体检筛选（无读音 / 重复读音 / 无配图），与熟悉度筛选正交
   function setPyFilter(p) {
@@ -611,7 +599,7 @@
     $('pyFilter').querySelectorAll('button').forEach(function (x) {
       x.classList.toggle('is-on', x.getAttribute('data-p') === p);
     });
-    renderGroups();
+    renderGrid();
   }
   $('pyFilter').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
