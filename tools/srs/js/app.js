@@ -103,7 +103,35 @@
             .then(function () { return DB.putCards(buildAssocCards(L, now)); });
         });
       }));
+    }).then(function () {
+      // 3) 读音去重订正（2026-10-30）：修掉历史遗留的 3 组重复读音。
+      //    仅当卡片读音「仍等于旧值」时才改，避免覆盖用户已自行修改过的读音；幂等。
+      return fixDuplicatePinyin();
     });
+  }
+
+  /** 读音去重订正表：code -> [旧读音, 新读音]。新读音取自该词自身的字且声调正确。 */
+  var PY_DEDUP_FIX = {
+    GD: ['gāo', 'dá'],   // 高达 → 达
+    CG: ['chún', 'gāo'], // 唇膏 → 膏（原与鹌鹑蛋 chún 重复）
+    FL: ['fèng', 'lí'],  // 凤梨 → 梨（原与凤凰 fèng 重复）
+    FG: ['fà', 'gū'],    // 发箍 → 箍（原 fà 让位给润发）
+    RF: ['rùn', 'fà']    // 润发 → 发（原与润滑油 rùn 重复）
+  };
+
+  function fixDuplicatePinyin() {
+    if (!DB.getAllCards) return Promise.resolve();
+    return DB.getAllCards().then(function (cards) {
+      var ups = [];
+      cards.forEach(function (c) {
+        var f = PY_DEDUP_FIX[c.front];
+        if (f && c.hint === f[0]) {
+          var n = Object.assign({}, c, { hint: f[1] });
+          ups.push(n);
+        }
+      });
+      return ups.length ? DB.putCards(ups) : null;
+    }).catch(function () { /* 订正失败不阻断主流程 */ });
   }
 
   /** 重置全部联想词子牌组（含卡片与复习记录） */
