@@ -87,6 +87,7 @@
   .note { margin-top: 16px; font-size: .76rem; color: var(--fg-3); line-height: 1.9;
           border-top: 1px solid var(--line); padding-top: 13px; }
   .note b { color: var(--fg-2); display: block; margin-bottom: 4px; font-size: .78rem; }
+  .note b.i { display: inline; margin: 0; font-size: inherit; }
   .note code { font-family: ui-monospace, monospace; background: var(--bg);
                padding: 1px 5px; border-radius: 4px; color: var(--fg-2); letter-spacing: 1px; }
 
@@ -178,7 +179,7 @@
 
     <div class="field">
       <label for="code">编码 <span class="hint">字母，可用空格或 - 分隔</span></label>
-      <input id="code" type="text" placeholder="例如 GWDOA 或 JKDEAB" autocomplete="off" spellcheck="false">
+      <input id="code" type="text" placeholder="例如 HRCWFO 或 GHDEAB" autocomplete="off" spellcheck="false">
     </div>
 
     <div class="orient">
@@ -197,11 +198,11 @@
     <div class="note">
       <b>示例</b>
       <div class="examples">
-        <button class="ex" data-code="GWDOA">GWDOA</button>
-        <button class="ex" data-code="JKDEAB">三个翻角</button>
-        <button class="ex" data-code="SOEI">4 循环</button>
-        <button class="ex" data-code="R">单个 2 循环</button>
-        <button class="ex" data-code="DHAO">5 循环</button>
+        <button class="ex" data-code="HRCWFO">6 循环</button>
+        <button class="ex" data-code="GHDEAB">三个翻角</button>
+        <button class="ex" data-code="AWGD">5 循环</button>
+        <button class="ex" data-code="G">单个交换</button>
+        <button class="ex" data-code="KLDF">缓冲翻角</button>
       </div>
     </div>
   </section>
@@ -225,9 +226,11 @@
     </div>
     <div class="note">
       <b>读码规则</b>
-      在角位的高位（U/D 面）看贴纸是哪个字母，就走到那个字母所属的角位继续读；
+      看当前贴纸上是哪个字母，就走到<b class="i">那个字母自己的老家</b>继续读 —— 不是走到那个角块的高位贴纸。
+      比如读到 <code>H</code>：H 是 UBR 的<b class="i">橘面</b>字母，所以要去读 UBR 的橘面，而不是 UBR 的黄面。
       读到缓冲块 <code>J</code> 就收尾，不写这个字母。
-      循环断了按 <b>G → D → A → W → O → R</b> 的顺序借位。
+      循环断了按 <b class="i">G → D → A → W → O → R</b> 的顺序借位，排头字母写一个；
+      循环绕回排头时，这个字母不再写第二遍。
       角块原位但翻了要写两个字母：<code>DE</code> 表示 DEF 那个角的高位显示 E（顺翻），
       <code>DF</code> 表示显示 F（逆翻）。
     </div>
@@ -324,7 +327,7 @@
     clearErr();
 
     if (!code) {
-      out.innerHTML = '<div class="empty">先填一个编码<br>例如 <code style="font-family:ui-monospace,monospace">GWDOA</code></div>';
+      out.innerHTML = '<div class="empty">先填一个编码<br>例如 <code style="font-family:ui-monospace,monospace">HRCWFO</code></div>';
       return;
     }
 

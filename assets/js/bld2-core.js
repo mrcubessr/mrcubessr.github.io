@@ -7,12 +7,14 @@
  *    UBL 黄蓝橘 DEF   UBR 黄橘绿 GHI   UFR 黄绿红 JKL(缓冲)   UFL 黄红蓝 ABC
  *    DFL 白蓝红 WMN   DFR 白红绿 XYZ(定位)  DBR 白绿橘 RST   DBL 白橘蓝 OPQ
  *
- * ② 编码就是「直接读高位贴纸」，不做 untwist：
- *    在角位 p 读高位（U/D 面）贴纸得字母 L，L 属于哪个角块就走到那个角位继续读。
- *    读到缓冲块 J 时循环结束，不写这个字母。
- *    一个角块「原位但翻了」时高位读到的是它自己的另一个字母：
- *        顺翻 → 位置字母 + 第 2 个字母（DEF → DE）
- *        逆翻 → 位置字母 + 第 3 个字母（DEF → DF）
+ * ② 编码是「贴纸级」的：一个字母代表一张贴纸，它的老家在贴纸位 L2S[字母]。
+ *    在某个贴纸位读到字母 L，就跳到 L2S[L] 再读那里的字母，如此往复。
+ *    **不是**「跳到那个角块的高位贴纸」——第一版就错在这里：
+ *      读到 H（H 是 UBR 的橘面字母），要去读 UBR 的**橘面**，不是 UBR 的黄面。
+ *    读到缓冲块 J 时循环结束，这个字母不写。
+ *    一个角块「原位但翻了」时写两个字母：
+ *        位置字母 + 该位置高位贴纸上的字母
+ *        顺翻 → DEF 写作 DE，逆翻 → DF
  *    这条在 8 个角上统一成立。
  *
  * ③ 定位块 XYZ（白红绿 / DFR）是坐标锚点：
@@ -22,15 +24,19 @@
  *    这样才练得到「找 XYZ 并摆正」这一步。
  *
  * ④ 借位顺序：G → D → A → W → O → R。
+ *    借位时先写排头字母，再逐个读老家；循环绕回排头时，
+ *    那个字母（等于排头）不再写第二遍 —— 否则每段都多一个字母。
  *
  * ⑤ 扭角定义：co = 高位贴纸上是该角块的第几个字母（0/1/2）。
  *    注意不能沿用站点三阶那套 CS 表 —— 那张表在 4 个角上是反的，
  *    用它算跨角位的朝向会把扭角读成另一个字母。
  *
- * ⑥ 两处记法固有的歧义（编码本身看不出来，只能靠枚举 + 反向验收）：
- *    · 缓冲块是否已经复原（复原了就不写它的字母）；
- *    · 缓冲循环在哪一位结束（闭合字母不写，没有分隔符）。
- *    另外缓冲块所在角位的朝向也读不出来，用「扭角总和 ≡ 0」反推。
+ * ⑥ 记法固有的歧义只有一处：缓冲循环在哪一位收尾
+ *    （闭合字母 J 不写，所以没有分隔符，只能靠枚举 + 反向验收）。
+ *    缓冲块是否已复原不再需要单独枚举 —— 「在贴纸位 6 上放缓冲块」
+ *    就是「循环在这里收尾」，两者是同一件事。
+ *    缓冲块所在角位的朝向也不用反推了：它的贴纸一旦被放到某个角位上，
+ *    块和朝向就同时确定了。
  *
  * ⑦ 贴纸位布局是「面索引」：贴纸位 3i+t 就是位置 i 的面 FACES[i][t]。
  *    复原态不是 [0..23]，而是 3i+CS_INV[i][t] —— 直接写 [0..23] 会得到
@@ -171,51 +177,79 @@
     return -1;
   }
 
-  // ===== 状态 → 编码 =====
-  function nextBreak(assigned) {
-    for (var bi = 0; bi < BREAK_ORDER.length; bi++) {
-      if (!assigned[BREAK_ORDER[bi]]) return BREAK_ORDER[bi];
-    }
-    return -1;
+  // ===== 贴纸位工具 =====
+  /* 读到贴纸位 s 上的字母：贴纸值 v = 3*块号 + 该块第几个字母 */
+  function readSlot(corner, s) {
+    var v = corner[s];
+    return CW[Math.floor(v / 3)][v % 3];
   }
 
+  /* 每个角位的三张贴纸一旦有一张落定，块号和朝向就同时确定了。
+     所以「这个角位处理过了吗」只要看它有没有贴纸被读过。 */
+  function posTaken(taken, p) {
+    return taken[3*p] || taken[3*p+1] || taken[3*p+2];
+  }
+
+  // ===== 状态 → 编码 =====
+  /* 令 f(s) = L2S[读到 s 上的字母]，f 是 24 元置换，编码就是 f 的循环分解：
+       · 缓冲循环从贴纸位 6（UFR 的 U 面 = J）起笔，读到 J 收尾、不写 J；
+       · 其余循环按 G → D → A → W → O → R 找排头，排头字母先写一个，再逐个读老家；
+       · 原位翻角只写两个字母：位置字母 + 该位置高位贴纸上的字母。 */
   function encodeGroups(corner) {
     var cc = toCubie(corner);
     if (cc.cp[ANCHOR] !== ANCHOR || cc.co[ANCHOR] !== 0)
       throw new Error('定位块 XYZ 不在原位，无法在锚点坐标系里读码');
 
-    var assigned = [false,false,false,false,false,false,false,false];
-    assigned[ANCHOR] = true;
-    if (cc.cp[BUFFER] === BUFFER && cc.co[BUFFER] === 0) assigned[BUFFER] = true;
+    var s, p, taken = new Array(24), done = new Array(8);
+    for (s = 0; s < 24; s++) taken[s] = false;
+    for (p = 0; p < 8; p++) done[p] = (cc.cp[p] === p && cc.co[p] === 0);
 
-    var groups = [], buf = [];
-    var flush = function () { if (buf.length) { groups.push(buf.join('')); buf = []; } };
-    var cur = assigned[BUFFER] ? nextBreak(assigned) : BUFFER;
-    var guard = 0;
+    var groups = [], guard;
 
-    while (cur >= 0 && guard++ < 80) {
-      var q = cc.cp[cur], o = cc.co[cur];
-      if (q === cur) {
-        // 原位：翻角写「位置字母 + 高位读到的字母」，没翻就跳过
-        if (o !== 0) { buf.push(CW[cur][0]); buf.push(CW[cur][o]); }
-        assigned[cur] = true;
-        flush();
-        cur = nextBreak(assigned);
-        continue;
+    // ① 缓冲循环
+    if (!done[BUFFER]) {
+      var buf = [], cur = 6, g1 = 0;
+      while (g1++ < 40) {
+        var ch = readSlot(corner, cur);
+        taken[cur] = true; done[Math.floor(cur / 3)] = true;
+        if (ch === 'J') break;                 // 走回缓冲块，这个字母不写
+        buf.push(ch);
+        cur = L2S[ch];
+        if (taken[cur]) break;
       }
-      if (q === BUFFER) {
-        // 下一个就是缓冲块：这个字母不写，循环到此结束
-        assigned[cur] = true;
-        flush();
-        cur = nextBreak(assigned);
-        continue;
-      }
-      buf.push(readLetter(corner, cur));
-      assigned[cur] = true;
-      cur = q;
-      if (assigned[cur]) { flush(); cur = nextBreak(assigned); }   // 回到本循环起点
+      if (buf.length) groups.push(buf.join(''));
     }
-    flush();
+
+    // ② 其余循环
+    guard = 0;
+    while (guard++ < 40) {
+      p = -1;
+      for (var bi = 0; bi < BREAK_ORDER.length; bi++) {
+        if (!done[BREAK_ORDER[bi]]) { p = BREAK_ORDER[bi]; break; }
+      }
+      if (p < 0) break;
+
+      // 原位翻角：位置字母 + 高位贴纸上的字母，两个字母写完整个角位
+      if (cc.cp[p] === p && cc.co[p] !== 0) {
+        groups.push(CW[p][0] + readSlot(corner, 3 * p));
+        taken[3*p] = taken[3*p+1] = taken[3*p+2] = true;
+        done[p] = true;
+        continue;
+      }
+
+      var seg = [CW[p][0]], c2 = 3 * p, g2 = 0;
+      while (g2++ < 40) {
+        var ch2 = readSlot(corner, c2);
+        taken[c2] = true; done[Math.floor(c2 / 3)] = true;
+        if (ch2 === 'J') break;                // 走回缓冲块
+        var nx = L2S[ch2];
+        if (nx === 3 * p) break;               // 走回本循环起点，闭合字母不写
+        seg.push(ch2);
+        c2 = nx;
+        if (taken[c2]) break;
+      }
+      groups.push(seg.join(''));
+    }
     return groups;
   }
 
@@ -226,85 +260,10 @@
     return String(str || '').toUpperCase().replace(/[^A-Z]/g, '').split('');
   }
 
-  var MASK_POS = [0,1,2,3,4,6,7];
-
-  /* 码里不写「已复原」的角，所以解码端得自己推断哪些角位被跳过：
-     枚举跳过集（7 个非锚点角，128 种），逐个确定性解码，
-     再要求「跳过的角恰好就是解完后复原的角」——不动点条件。 */
-  function decodeCore(letters, skipMask, splitAt) {
-    var cp = [0,1,2,3,4,5,6,7], co = [0,0,0,0,0,0,0,0];
-    var pre = [], assigned = [], used = [], p;
-    for (p = 0; p < 8; p++) {
-      pre[p] = (p === ANCHOR) || !!(skipMask & (1 << p));
-      assigned[p] = pre[p];
-      used[p] = pre[p];
-    }
-    var groups = [], i = 0, ok = true, guard = 0;
-    var bufCycle = !pre[BUFFER];          // 缓冲块没复原 → 第一段是缓冲循环
-
-    function place(pos, ch) {
-      var q = LPC[ch];
-      if (used[q]) { ok = false; return; }
-      cp[pos] = q; co[pos] = LK[ch];
-      used[q] = true; assigned[pos] = true;
-    }
-    var bufPos = -1;
-    function closeBufferCycle() {
-      // 缓冲循环的最后一块：该位置上放的是缓冲块，编码里没写它的字母，
-      // 所以它的朝向也读不出来 —— 先记下位置，最后用「扭角总和 ≡ 0」补。
-      if (cur < 0 || assigned[cur] || used[BUFFER]) { ok = false; return; }
-      cp[cur] = BUFFER; co[cur] = 0;
-      assigned[cur] = true; used[BUFFER] = true;
-      bufPos = cur;
-      cur = nextBreak(assigned);
-    }
-
-    var cur = pre[BUFFER] ? nextBreak(assigned) : BUFFER;
-
-    while (i < letters.length) {
-      if (!ok) return null;
-      if (bufCycle && i === splitAt) { closeBufferCycle(); bufCycle = false; }
-      if (!ok) return null;
-      if (cur < 0 || guard++ > 60) return null;
-
-      var ch = letters[i];
-      var isTwist = (i + 1 < letters.length) && LPC[letters[i+1]] === LPC[ch];
-      if (isTwist) {
-        if (LPC[ch] !== cur) return null;
-        if (ch !== CW[cur][0]) return null;
-        place(cur, letters[i+1]);
-        if (!ok) return null;
-        groups.push(ch + letters[i+1]);
-        i += 2;
-        cur = nextBreak(assigned);
-        bufCycle = false;               // 翻角一定结束当前段
-        if (pre[BUFFER] === false && splitAt === i) { /* 已自然结束 */ }
-      } else {
-        if (LPC[ch] === cur) return null;   // 原位翻角必须写两个字母
-        place(cur, ch);
-        if (!ok) return null;
-        groups.push(ch);
-        i += 1;
-        var nx = LPC[ch];
-        if (nx === BUFFER || assigned[nx]) { cur = nextBreak(assigned); bufCycle = false; }
-        else cur = nx;
-      }
-    }
-    if (bufCycle) { closeBufferCycle(); if (!ok) return null; }
-
-    // 缓冲块所在角位的朝向：由「扭角总和必须是 3 的倍数」反推
-    if (bufPos >= 0) {
-      var s2 = 0;
-      for (p = 0; p < 8; p++) if (p !== bufPos) s2 += co[p];
-      co[bufPos] = (3 - s2 % 3) % 3;
-    }
-
-    // 不动点条件：假定跳过的角 ⇔ 解完之后真的复原的角
-    for (p = 0; p < 8; p++) {
-      if ((cp[p] === p && co[p] === 0) !== pre[p]) return null;
-    }
-    return { cp: cp, co: co, groups: groups };
-  }
+  var STICKER = {};
+  (function () {
+    for (var i = 0; i < 8; i++) for (var k = 0; k < 3; k++) STICKER[CW[i][k]] = 3*i + k;
+  })();
 
   function sortLetters(str) { return String(str).split('').sort().join(''); }
   function sameCode(a, b) {
@@ -312,10 +271,10 @@
   }
 
   /* 编码 → 状态。
-     记法本身有两处不确定：
-       ① 缓冲块是否已经复原（复原了就不写它的字母，编码看不出区别）；
-       ② 缓冲循环在哪一位结束（不写闭合字母，所以没有分隔符）。
-     两处都枚举，最后用「把解出的状态重新读一遍码，必须和输入一致」来验收。 */
+     走法完全由字母决定：读到 L 就跳到 L2S[L]。唯一不确定的是
+     缓冲循环在哪一位收尾（J 不写，没有分隔符），于是逐位试「在这里收尾」。
+     翻角简写（DE）与完整循环（DEF）也在这里一并接受。
+     每个走通的候选都用「把状态重新读一遍码，必须和输入一致」验收。 */
   function decodeCode(str, opts) {
     opts = opts || {};
     var letters = parseCode(str), t;
@@ -327,38 +286,134 @@
     if (!letters.length) return { corner: idState(), groups: [] };
     var want = letters.join('');
 
-    var bufferModes = opts.bufferSolved === true ? [true] : (opts.bufferSolved === false ? [false] : [false, true]);
-    var splits = [-1];
-    for (var k = 1; k <= letters.length; k++) splits.push(k);
+    var stick = new Array(24), seenS = new Array(24), usedS = new Array(24);
+    for (t = 0; t < 24; t++) { stick[t] = -1; seenS[t] = false; usedS[t] = false; }
+    var hit = null, nodes = 0, NODE_MAX = 60000;
 
-    for (var bm = 0; bm < bufferModes.length; bm++) {
-      var bufSolved = bufferModes[bm];
-      for (var m = 0; m < 128; m++) {
-        var skip = 0;
-        for (var b = 0; b < 7; b++) if (m & (1 << b)) skip |= (1 << MASK_POS[b]);
-        if (bufSolved) skip |= (1 << BUFFER);
-        else skip &= ~(1 << BUFFER);
+    function put(s, v) {
+      if (seenS[s] || usedS[v]) return false;
+      stick[s] = v; seenS[s] = true; usedS[v] = true;
+      return true;
+    }
+    function drop(s) {
+      usedS[stick[s]] = false; seenS[s] = false; stick[s] = -1;
+    }
 
-        for (var si = 0; si < splits.length; si++) {
-          var r = decodeCore(letters, skip, splits[si]);
-          if (!r) continue;
-          var seen = [], p, bad = false;
-          for (p = 0; p < 8; p++) seen[p] = false;
-          for (p = 0; p < 8; p++) { if (seen[r.cp[p]]) { bad = true; break; } seen[r.cp[p]] = true; }
-          if (bad) continue;
-          var sum = 0;
-          for (p = 0; p < 8; p++) sum += r.co[p];
-          if (sum % 3 !== 0) continue;
-          var corner = fromCubie(r.cp, r.co);
-          var got;
-          try { got = encodeState(corner); } catch (e) { continue; }
-          if (!sameCode(got, want)) continue;
-          return { corner: corner, groups: r.groups, code: got, bufferSolved: bufSolved };
+    // 由已落定的贴纸反推 cp/co，未涉及的角位按「复原」补全，再整体校验
+    function build() {
+      var cp = [], co = [], p, t2, s, v, b, j, o, got;
+      for (p = 0; p < 8; p++) { cp.push(p); co.push(0); }
+      for (p = 0; p < 8; p++) {
+        got = false;
+        for (t2 = 0; t2 < 3; t2++) {
+          s = 3*p + t2;
+          if (stick[s] < 0) continue;
+          v = stick[s]; b = Math.floor(v / 3); j = v % 3;
+          o = ((j - CS_INV[p][t2]) % 3 + 3) % 3;
+          if (got && (cp[p] !== b || co[p] !== o)) return null;
+          cp[p] = b; co[p] = o; got = true;
         }
       }
+      var seen = [false,false,false,false,false,false,false,false];
+      for (p = 0; p < 8; p++) { if (seen[cp[p]]) return null; seen[cp[p]] = true; }
+      var sum = 0;
+      for (p = 0; p < 8; p++) sum += co[p];
+      if (sum % 3 !== 0) return null;
+      var c = fromCubie(cp, co);
+      for (s = 0; s < 24; s++) if (stick[s] >= 0 && stick[s] !== c[s]) return null;
+      return c;
     }
-    throw new Error('这串编码解不出合法的二阶状态。常见原因：某个循环漏写了字母、'
+
+    function finish() {
+      var c = build();
+      if (!c) return false;
+      var groups;
+      try { groups = encodeGroups(c); } catch (e) { return false; }
+      var code = groups.join('');
+      if (code !== want && !sameCode(code, want)) return false;
+      hit = { corner: c, groups: groups, code: code };
+      return true;
+    }
+
+    /* mode：'buf' 缓冲循环中（cur = 下一个要读的贴纸位）
+             'start' 一段循环刚结束，下一个字母是排头
+             'walk' 循环中（cur = 下一个要读的贴纸位）
+       head：本段循环的排头贴纸值（'walk' 用；闭合时它落回某个贴纸位） */
+    function dfs(i, cur, mode, head) {
+      if (hit) return true;
+      if (++nodes > NODE_MAX) return false;
+
+      if (i >= letters.length) {
+        if (mode === 'start') return finish();
+        if (mode === 'buf') {                 // 缓冲循环在这里收尾
+          if (!put(cur, 6)) return false;
+          var r0 = finish();
+          drop(cur);
+          return r0;
+        }
+        return false;                          // 循环悬空
+      }
+
+      var L = letters[i], X = STICKER[L], next, ok, n2;
+
+      if (mode === 'start') {
+        var hs = L2S[L];                       // 排头字母的老家
+        if (seenS[hs]) return false;
+        return dfs(i + 1, hs, 'walk', X);
+      }
+
+      if (mode === 'buf') {
+        if (put(cur, X)) {                     // A：继续读下一个
+          ok = dfs(i + 1, L2S[L], 'buf', -1);
+          drop(cur);
+          if (ok) return true;
+        }
+        if (put(cur, 6)) {                     // B：循环到此收尾，转排头
+          ok = dfs(i, cur, 'start', -1);
+          drop(cur);
+          if (ok) return true;
+        }
+        return false;
+      }
+
+      // mode === 'walk'
+      if (seenS[cur]) return false;
+      if (put(cur, X)) {
+        next = L2S[L];
+        if (seenS[next]) {
+          ok = dfs(i + 1, next, 'start', -1);   // 自然闭合（回到起点）
+        } else {
+          ok = dfs(i + 1, next, 'walk', head);  // A：继续读
+          if (!ok && head >= 0 && put(next, head)) {
+            ok = dfs(i + 1, next, 'start', -1); // B：闭合字母 = 排头，不写
+            drop(next);
+          }
+        }
+        drop(cur);
+        if (ok) return true;
+      }
+      // 翻角简写：排头 + 高位字母，两个字母就把整个角位定死
+      if (cur % 3 === 0 && Math.floor(X / 3) === Math.floor(cur / 3) && (X % 3) !== 0) {
+        var pp = Math.floor(cur / 3), oo = X % 3, marks = [], good = true, jj, ss, vv;
+        if (put(cur, X)) marks.push(cur);
+        else good = false;
+        for (jj = 0; good && jj < 3; jj++) {
+          ss = 3*pp + CS[pp][((jj - oo) % 3 + 3) % 3];
+          vv = 3*pp + jj;
+          if (ss === cur) continue;
+          if (!put(ss, vv)) { good = false; break; }
+          marks.push(ss);
+        }
+        if (good && dfs(i + 1, -1, 'start', -1)) return true;
+        for (var m = 0; m < marks.length; m++) drop(marks[m]);
+      }
+      return false;
+    }
+
+    dfs(0, 6, 'buf', -1);
+    if (!hit) throw new Error('这串编码解不出合法的二阶状态。常见原因：某个循环漏写了字母、'
       + '翻角没有成对出现（二阶扭角总和必须是 3 的倍数）、或者字母写重复了。');
+    return hit;
   }
 
   // ===== 二阶求解器（cp/co + IDA*） =====
