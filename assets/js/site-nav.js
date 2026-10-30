@@ -57,7 +57,8 @@
       { id: 'bld-kmap',       label: '三阶知识地图',   href: '/tools/bld-kmap/' },
       { id: '3x3teach',       label: '三阶趣味课堂',   href: '/tools/3x3teach' },
       { id: 'class-teach',    label: '魔方课堂教学系统', href: '/tools/class-teach' },
-      { id: 'srs',            label: '记忆卡片 SRS',   href: '/tools/srs/' }
+      { id: 'srs',            label: '记忆卡片 SRS',   href: '/tools/srs/' },
+      { id: '24game',         label: '24点训练',        href: '/tools/24game/' }
     ]}
   ];
 

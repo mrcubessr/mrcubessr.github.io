@@ -20,7 +20,7 @@
    docs/sw-changelog.md（原来把 150 行 changelog 堆在这里，代码要到第 164 行才开始）。
    规则不变：**凡是改动 APP_SHELL 清单里的文件，都要递增下面的 CACHE 常量**，
    否则已安装的 PWA 用户会一直拿到旧缓存。 */
-const CACHE = 'fto-timer-v37';
+const CACHE = 'fto-timer-v38';
 
 /* 运行时缓存：装「用户实际访问过」的页面与资源，与版本化的外壳缓存分开。
    分开的理由：外壳缓存按版本整批作废，运行时缓存靠 stale-while-revalidate

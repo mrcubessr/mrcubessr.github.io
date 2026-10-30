@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+<script src="/assets/js/sync-boot.js"></script>
+<title>24点训练 · 魔方先生SSR</title>
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="game24.css">
+</head>
+<body data-nav="24game">
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+<div class="container">
+
+  <header>
+    <h1>24 点训练</h1>
+    <p class="subtitle">给定四个数，用 + − × ÷ 与括号凑出 24 · 求解 / 训练 / 统计</p>
+  </header>
+
+  <!-- 页签 -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="solver">求解</button>
+    <button class="tab" data-tab="train">训练</button>
+    <button class="tab" data-tab="stats">统计与错题</button>
+  </div>
+
+  <!-- ===== 求解 ===== -->
+  <section class="panel" id="panel-solver">
+    <div class="card">
+      <div class="card__title">输入四个数（1 – <span id="solverRangeLabel">13</span>）</div>
+      <div class="range-toggle" id="solverRange">
+        <button class="rt active" data-range="13">1–13</button>
+        <button class="rt" data-range="10">1–10</button>
+      </div>
+      <div class="nums-row" id="solverInputs">
+        <input class="num-in" type="number" min="1" max="13" value="3">
+        <input class="num-in" type="number" min="1" max="13" value="3">
+        <input class="num-in" type="number" min="1" max="13" value="8">
+        <input class="num-in" type="number" min="1" max="13" value="8">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn--primary" id="solveBtn">求解</button>
+        <button class="btn btn--ghost" id="randomSolveBtn">随机一组</button>
+        <button class="btn btn--ghost" id="clearSolveBtn">清空</button>
+      </div>
+      <div class="hint">提示：经典怪题 3,3,8,8 → 8 ÷ (3 − 8 ÷ 3) = 24。有些组合无解。</div>
+    </div>
+    <div class="card" id="solveResultCard" style="display:none">
+      <div class="card__title">结果 <span id="solveMeta" class="meta"></span></div>
+      <div id="solveResult" class="solve-result"></div>
+    </div>
+  </section>
+
+  <!-- ===== 训练 ===== -->
+  <section class="panel" id="panel-train" hidden>
+    <!-- 设置 -->
+    <div class="card" id="trainSetup">
+      <div class="card__title">训练设置</div>
+
+      <div class="field">
+        <label>数字范围</label>
+        <div class="range-toggle" id="trainRange">
+          <button class="rt active" data-range="13">1–13</button>
+          <button class="rt" data-range="10">1–10</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>难度</label>
+        <div class="chip-row" id="trainLevel">
+          <button class="chip" data-level="random">随机</button>
+          <button class="chip active" data-level="L1">初级</button>
+          <button class="chip" data-level="L2">中级</button>
+          <button class="chip" data-level="L3">高级</button>
+          <button class="chip" data-level="L4">专家级</button>
+          <button class="chip" data-level="L5">超级专家级</button>
+          <button class="chip" data-level="all">全部</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>模式</label>
+        <div class="chip-row" id="trainMode">
+          <button class="chip active" data-mode="ten">十题计时</button>
+          <button class="chip" data-mode="three">三分钟挑战</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>题库来源</label>
+        <div class="chip-row" id="trainSource">
+          <button class="chip active" data-source="bank">系统题库</button>
+          <button class="chip" data-source="wrong">只刷错题</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="chk"><input type="checkbox" id="mixNoSol"> 混入无解题（需判断"此题无解"）</label>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn--primary btn--lg" id="startTrainBtn">开始训练</button>
+      </div>
+      <div class="hint" id="setupHint"></div>
+    </div>
+
+    <!-- 进行中 -->
+    <div id="trainPlay" style="display:none">
+      <div class="play-top">
+        <div class="play-stat" id="playProgress">第 1 / 10 题</div>
+        <div class="play-stat" id="playTimer">⏱ 00:00</div>
+        <div class="play-stat" id="playScore">答对 0</div>
+      </div>
+
+      <div class="card">
+        <div class="card__title">用这四个数算出 24 <span id="playLevelTag" class="meta"></span></div>
+        <div class="cards-row" id="playCards"></div>
+        <div class="answer-row">
+          <input class="answer-in" id="answerInput" placeholder="例如 (8/(3-8/3)) 或 8/(3-8/3)" autocomplete="off">
+          <button class="btn btn--primary" id="submitAnswerBtn">提交</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn--ghost" id="noSolBtn" style="display:none">此题无解</button>
+          <button class="btn btn--ghost" id="revealBtn">看答案</button>
+          <button class="btn btn--ghost" id="skipBtn">跳过</button>
+          <button class="btn btn--ghost" id="quitBtn">结束</button>
+        </div>
+        <div class="feedback" id="playFeedback"></div>
+      </div>
+    </div>
+
+    <!-- 结算 -->
+    <div class="card" id="trainResult" style="display:none">
+      <div class="card__title" id="resultTitle">训练结束</div>
+      <div id="resultBody" class="result-body"></div>
+      <div class="btn-row">
+        <button class="btn btn--primary" id="againBtn">再来一组</button>
+        <button class="btn btn--ghost" id="backSetupBtn">返回设置</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 统计 ===== -->
+  <section class="panel" id="panel-stats" hidden>
+    <div class="card">
+      <div class="card__title">总览</div>
+      <div class="stat-grid" id="statGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card__title">各级正确率</div>
+      <div id="levelBars"></div>
+    </div>
+    <div class="card">
+      <div class="card__title">错题题库 <span id="wrongCount" class="meta"></span></div>
+      <div id="wrongList" class="wrong-list"></div>
+      <div class="btn-row">
+        <button class="btn btn--ghost" id="clearWrongBtn">清空错题</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24</p>
+</footer>
+
+<script src="/assets/vendor/suan24/suan24.js"></script>
+<script src="game24.js"></script>
+<script src="/assets/js/site-nav.js"></script>
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+</body>
+</html>

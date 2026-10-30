@@ -300,3 +300,14 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 
 仅 `site-nav.js` 在 `APP_SHELL` 内，故 `CACHE` 递增至 `fto-timer-v37`。
 新页面与 `bld2-core.js` 不进预缓存清单，走运行时缓存（stale-while-revalidate）。
+
+## v38（2026-10-30）
+
+新增「24点训练」工具（`tools/24game/`），并在 `site-nav.js`（APP_SHELL 内）「魔方教练工具箱」
+分组新增入口「24点训练」、在 `index.html`（APP_SHELL 内）首页教练区块新增「24点训练」卡片。
+两处均在 APP_SHELL 预缓存清单内，故 `CACHE` 递增至 `fto-timer-v38`，
+避免已安装 PWA 用户首屏拿到旧导航 / 旧首页而看不到新入口。
+
+24点功能本身（求解器内核 `assets/vendor/suan24/suan24.js`、题库 `tools/24game/data/levels.json`、
+页面与脚本 `tools/24game/{index.html,game24.js,game24.css}`）均为新增目录，
+不进预缓存清单，走运行时缓存（stale-while-revalidate），首次访问即最新。
