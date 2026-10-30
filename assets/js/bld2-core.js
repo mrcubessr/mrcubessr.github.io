@@ -1,55 +1,90 @@
 /*!
  * 二阶盲拧：编码 ⇄ 状态 ⇄ 打乱
  * ------------------------------------------------------------------
- * 设计要点
- * 1) 编码分两部分：**位置循环** + **扭角**。
- *    直接把贴纸循环读出来会因为翻色把链拉得很长（实测 15 字母），
- *    所以先按朝向把每个角"摆正"（untwist），得到纯置换再读码，
- *    循环长度必然 ≤ 7；扭角单独用「字母+扭数」标注。
- * 2) 状态用 24 个贴纸位表示（与站点 bld-scramble-core 的 corner 数组同构），
- *    贴纸位编号：UBL(0-2) UBR(3-5) UFR(6-8) UFL(9-11) DFL(12-14) DFR(15-17) DBR(18-20) DBL(21-23)
- * 3) 求解用二阶专用 IDA*（cp/co 双剪枝表），最优解 ≤ 11 步，实测 < 10ms。
- *    不用三阶 min2phase：它要求棱块状态合法，二阶角状态为奇置换时要人为交换两条棱，
- *    解会从 1 步膨胀到 18 步。
- * 4) 字母表沿用站点 Speffz 变体（缓冲 UFR，J = UFR 的 U 面贴纸）。
+ * 固定持握：黄顶（U）红前（F）绿右（R），白底（D）橘后（B）蓝左（L）。
+ *
+ * ① 字母表（每个角按「从角外侧看绕角一圈」排，第 0 个落在 U/D 面）
+ *    UBL 黄蓝橘 DEF   UBR 黄橘绿 GHI   UFR 黄绿红 JKL(缓冲)   UFL 黄红蓝 ABC
+ *    DFL 白蓝红 WMN   DFR 白红绿 XYZ(定位)  DBR 白绿橘 RST   DBL 白橘蓝 OPQ
+ *
+ * ② 编码就是「直接读高位贴纸」，不做 untwist：
+ *    在角位 p 读高位（U/D 面）贴纸得字母 L，L 属于哪个角块就走到那个角位继续读。
+ *    读到缓冲块 J 时循环结束，不写这个字母。
+ *    一个角块「原位但翻了」时高位读到的是它自己的另一个字母：
+ *        顺翻 → 位置字母 + 第 2 个字母（DEF → DE）
+ *        逆翻 → 位置字母 + 第 3 个字母（DEF → DF）
+ *    这条在 8 个角上统一成立。
+ *
+ * ③ 定位块 XYZ（白红绿 / DFR）是坐标锚点：
+ *    打乱后先把它摆回 DFR（白朝下、红朝前、绿朝右），再从这个坐标系读码。
+ *    所以锚点坐标系里 XYZ 永远在原位未翻，编码里不会出现 X/Y/Z。
+ *    打乱本身在固定「黄顶红前」坐标系里做，故打乱态 = 锚点态整体旋转一次，
+ *    这样才练得到「找 XYZ 并摆正」这一步。
+ *
+ * ④ 借位顺序：G → D → A → W → O → R。
+ *
+ * ⑤ 扭角定义：co = 高位贴纸上是该角块的第几个字母（0/1/2）。
+ *    注意不能沿用站点三阶那套 CS 表 —— 那张表在 4 个角上是反的，
+ *    用它算跨角位的朝向会把扭角读成另一个字母。
+ *
+ * ⑥ 两处记法固有的歧义（编码本身看不出来，只能靠枚举 + 反向验收）：
+ *    · 缓冲块是否已经复原（复原了就不写它的字母）；
+ *    · 缓冲循环在哪一位结束（闭合字母不写，没有分隔符）。
+ *    另外缓冲块所在角位的朝向也读不出来，用「扭角总和 ≡ 0」反推。
+ *
+ * ⑦ 贴纸位布局是「面索引」：贴纸位 3i+t 就是位置 i 的面 FACES[i][t]。
+ *    复原态不是 [0..23]，而是 3i+CS_INV[i][t] —— 直接写 [0..23] 会得到
+ *    一个「角块全部扭转」的状态，这是上一版读码全错的根因。
  */
 (function (global) {
   'use strict';
 
-  // ===== 字母 ↔ 贴纸位 =====
-  var L2S = { J:6,K:7,L:8, G:3,H:4,I:5, A:9,B:10,C:11, D:0,E:1,F:2,
-              X:15,Y:16,Z:17, W:12,M:13,N:14, R:18,S:19,T:20, O:21,P:22,Q:23 };
-  var S2L = {}; for (var k in L2S) S2L[L2S[k]] = k;
-
-  // 追踪顺序：缓冲 UFR 在前，其余按站点 CORNER_ORDER
-  var CH = 'JKLGHIABCDEFXYZWMNRSTOPQ';
-  var STARTS = ['J','G','A','D','X','W','R','O'];       // 8 个角块的高色字母
   var POSNAME = ['UBL','UBR','UFR','UFL','DFL','DFR','DBR','DBL'];
-  var BLOCK_OF_POS = { UBL:0, UBR:1, UFR:2, UFL:3, DFL:4, DFR:5, DBR:6, DBL:7 };
+  var BUFFER = 2;   // UFR，缓冲块 J
+  var ANCHOR = 5;   // DFR，定位块 XYZ
 
-  /* 角位内三个贴纸位的「顺时针序号」。
-     面序固定为 (U/D, B|F, R|L)，但从角外侧看顺时针排列有两种：
-     UBL U→L→B、UBR U→B→R、UFR U→R→F、UFL U→F→L、
-     DFL D→L→F、DFR D→F→R、DBR D→R→B、DBL D→B→L
-     故偶数位（UBL/UFR/DFL/DBR）是 [0,2,1]，奇数位是 [0,1,2]。
-     这张表必须与站点 corner 数组一致，否则扭角会算反。 */
+  var CW = [
+    ['D','E','F'], ['G','H','I'], ['J','K','L'], ['A','B','C'],
+    ['W','M','N'], ['X','Y','Z'], ['R','S','T'], ['O','P','Q']
+  ];
+
+  /* 角位内三个贴纸位。slot = 3*i + CS[i][k]，其中 3*i+k 对应面 FACES[i][k]。
+     UBL=[U,B,L] UBR=[U,B,R] UFR=[U,F,R] UFL=[U,F,L]
+     DFL=[D,F,L] DFR=[D,F,R] DBR=[D,B,R] DBL=[D,B,L] */
   var CS = [[0,2,1],[0,1,2],[0,2,1],[0,1,2],[0,2,1],[0,1,2],[0,2,1],[0,1,2]];
+
+  var L2S = {}, S2L = {}, LPC = {}, LK = {};
+  (function () {
+    for (var i = 0; i < 8; i++) {
+      for (var k = 0; k < 3; k++) {
+        var slot = 3 * i + CS[i][k];
+        var ch = CW[i][k];
+        L2S[ch] = slot; S2L[slot] = ch; LPC[ch] = i; LK[ch] = k;
+      }
+    }
+  })();
+
+  var BREAK_ORDER = [1, 0, 3, 4, 7, 6];   // G, D, A, W, O, R
+
   var CS_INV = CS.map(function (a) { var v=[0,0,0]; a.forEach(function (x,i){ v[x]=i; }); return v; });
 
-  // 块 → 高色字母（用于把扭角写成 JK 这种字母对）
-  var BLOCK_LETTER = ['D','G','J','A','W','X','R','O'];  // UBL,UBR,UFR,UFL,DFL,DFR,DBR,DBL
-  // 块 → 三个贴纸字母（顺序与贴纸位一致）
-  var BLOCK_LETTERS = ['DEF','GHI','JKL','ABC','WMN','XYZ','RST','OPQ'];
-
-  var idState = function () { var a = new Array(24); for (var i=0;i<24;i++) a[i]=i; return a; };
+  /* 复原态：贴纸位 3i+t 上是「位置 i 的角块中、贴在面 FACES[i][t] 上的那个字母」。
+     所以不是简单的 [0..23] —— 那会把角块摆成扭转状态。 */
+  var idState = function () {
+    var a = new Array(24);
+    for (var i = 0; i < 8; i++) for (var t = 0; t < 3; t++) a[3*i + t] = 3*i + CS_INV[i][t];
+    return a;
+  };
 
   // ===== 状态 ↔ cp/co =====
+  /* co[i] = 位置 i 高位贴纸上是本块的第几个字母。
+     块 b 的第 j 个字母放在位置 i 的第 (j - co) 个字母位（mod 3）。 */
   function toCubie(corner) {
     var cp = [], co = [];
     for (var i = 0; i < 8; i++) {
-      var s = corner[3*i], b = Math.floor(s/3), j0 = s - 3*b;
-      cp.push(b);
-      co.push(((CS[i][0] - CS[b][j0]) % 3 + 3) % 3);
+      var s = corner[3*i];
+      cp.push(Math.floor(s/3));
+      co.push(s % 3);
     }
     return { cp: cp, co: co };
   }
@@ -57,149 +92,273 @@
     var c = new Array(24);
     for (var i = 0; i < 8; i++) {
       var b = cp[i], o = co[i] || 0;
-      for (var j = 0; j < 3; j++) c[3*i + CS_INV[i][(CS[b][j] + o) % 3]] = 3*b + j;
+      for (var j = 0; j < 3; j++) {
+        var k = ((j - o) % 3 + 3) % 3;
+        c[3*i + CS[i][k]] = 3*b + j;
+      }
     }
     return c;
   }
-
-  // 摆正：清掉所有扭角，只留位置置换
-  function untwist(corner) {
-    var cp = toCubie(corner).cp, c = idState();
-    for (var i = 0; i < 8; i++) {
-      var b = cp[i];
-      for (var j = 0; j < 3; j++) c[3*i + CS_INV[i][CS[b][j]]] = 3*b + j;
-    }
-    return c;
-  }
-  // 在摆正状态上施加扭角
-  function applyTwist(flat, co) {
-    var c = idState();
-    for (var i = 0; i < 8; i++) {
-      var o = co[i] || 0, b = Math.floor(flat[3*i]/3);
-      for (var j = 0; j < 3; j++) c[3*i + CS_INV[i][(CS[b][j] + o) % 3]] = 3*b + j;
-    }
-    return c;
+  // 位置 p 高位贴纸上的字母（贴纸值是 3*块号 + 该块第几个字母）
+  function readLetter(corner, p) {
+    var v = corner[3*p];
+    return CW[Math.floor(v / 3)][v % 3];
   }
 
-  // ===== 位置循环编码 =====
-  function encodePos(flat) {
-    var tk = {}, k;
-    for (k in L2S) tk[k] = S2L[flat[L2S[k]]];
-    var read = {}, cycles = [];
-    for (var i = 0; i < CH.length; i += 3) {
-      var start = CH[i];
-      if (read[start] || read[CH[i+1]] || read[CH[i+2]]) continue;
-      var chain = [start], cur = start, g = 0;
-      while (tk[cur] !== start && g++ < 8) { cur = tk[cur]; chain.push(cur); }
-      if (chain.length === 1) { read[CH[i]] = read[CH[i+1]] = read[CH[i+2]] = 1; continue; }
-      for (var j = 0; j < chain.length; j++) read[chain[j]] = 1;
-      cycles.push(chain.slice(1).join(''));
+  // ===== 24 个整体旋转 =====
+  var PXYZ = [[-1,1,-1],[1,1,-1],[1,1,1],[-1,1,1],[-1,-1,1],[1,-1,1],[1,-1,-1],[-1,-1,-1]];
+  var FACES = [['U','B','L'],['U','B','R'],['U','F','R'],['U','F','L'],
+               ['D','F','L'],['D','F','R'],['D','B','R'],['D','B','L']];
+  var FVEC = { U:[0,1,0], D:[0,-1,0], R:[1,0,0], L:[-1,0,0], F:[0,0,1], B:[0,0,-1] };
+  var FKEYS = ['U','D','R','L','F','B'];
+
+  function buildPerm(M) {
+    var mul = function (v) {
+      return [ M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],
+               M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],
+               M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2] ];
+    };
+    var same = function (a, b) { return a[0]===b[0] && a[1]===b[1] && a[2]===b[2]; };
+    var pOf = [], fOf = {}, perm = new Array(24), p, q, k, fi, gi;
+    for (p = 0; p < 8; p++) {
+      var v = mul(PXYZ[p]);
+      for (q = 0; q < 8; q++) if (same(PXYZ[q], v)) { pOf[p] = q; break; }
     }
-    return cycles;
+    for (fi = 0; fi < 6; fi++) {
+      var w = mul(FVEC[FKEYS[fi]]);
+      for (gi = 0; gi < 6; gi++) if (same(FVEC[FKEYS[gi]], w)) { fOf[FKEYS[fi]] = FKEYS[gi]; break; }
+    }
+    for (p = 0; p < 8; p++) {
+      q = pOf[p];
+      for (k = 0; k < 3; k++) perm[3*p + k] = 3*q + FACES[q].indexOf(fOf[FACES[p][k]]);
+    }
+    return perm;
   }
 
-  /* 位置编码 → 摆正状态。
-     首段不一定从缓冲块起（缓冲归位时循环从别处开始），
-     所以每段都回溯尝试 8 个起点，取第一个能补成合法状态的分法。
-
-     ⚠ 记法本身是有歧义的：缓冲块 J 归位时，剩下的循环从别的角起笔，
-     同一个字符串（如 "D"）既可能读成「J↔D」（缓冲参与），
-     也可能读成「G↔D」（缓冲已归位）。两种读法都能补成合法状态。
-     默认按标准盲拧习惯优先「缓冲参与」；用户若明确知道自己这一把
-     缓冲块已归位，传 opts.bufferSolved 即可把 J 排除出候选起点。 */
-  function decodePos(segments, opts) {
-    var segs = segments.map(function (s) { return String(s).toUpperCase().replace(/[^A-Z]/g,''); })
-                       .filter(Boolean);
-    var starts = (opts && opts.bufferSolved)
-      ? STARTS.filter(function (s) { return s !== 'J'; })
-      : STARTS;
-
-    function build(p2s) {
-      var c = idState(), done = new Array(8).fill(false), i, k;
-      for (i = 0; i < 8; i++) {
-        var f = null;
-        for (k = 0; k < 3; k++) if (p2s[3*i+k] !== undefined) { f = { k: k, s: p2s[3*i+k] }; break; }
-        if (!f) continue;
-        var b = Math.floor(f.s/3), j0 = f.s - 3*b;
-        var o = ((CS[i][f.k] - CS[b][j0]) % 3 + 3) % 3;
-        for (var j = 0; j < 3; j++) c[3*i + CS_INV[i][(CS[b][j] + o) % 3]] = 3*b + j;
-        done[i] = true;
+  var ROTS = (function () {
+    var out = [];
+    var perms = [[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];
+    var sgn = [1,-1,-1,1,1,-1];
+    for (var a = 0; a < 6; a++) {
+      for (var b = 0; b < 8; b++) {
+        var prod = 1;
+        for (var j = 0; j < 3; j++) if ((b >> j) & 1) prod = -prod;
+        if (sgn[a] * prod !== 1) continue;
+        var M = [[0,0,0],[0,0,0],[0,0,0]];
+        for (var j2 = 0; j2 < 3; j2++) M[j2][perms[a][j2]] = ((b >> j2) & 1) ? -1 : 1;
+        out.push(buildPerm(M));
       }
-      var used = {};
-      for (i = 0; i < 8; i++) if (done[i]) used[Math.floor(c[3*i]/3)] = 1;
-      for (i = 0; i < 8; i++) if (!done[i] && !used[i]) { for (k=0;k<3;k++) c[3*i+k]=3*i+k; used[i]=1; }
-      return c;
     }
-    function valid(c) {
-      var seen = {}, i;
-      for (i = 0; i < 8; i++) {
-        var g0 = Math.floor(c[3*i]/3), g1 = Math.floor(c[3*i+1]/3), g2 = Math.floor(c[3*i+2]/3);
-        if (g0 !== g1 || g1 !== g2 || seen[g0]) return false;
-        seen[g0] = 1;
+    return out;
+  })();
+
+  // 贴纸位 s 上的东西搬到 perm[s]
+  function applyPerm(corner, perm) {
+    var out = new Array(24);
+    for (var s = 0; s < 24; s++) out[perm[s]] = corner[s];
+    return out;
+  }
+  function isIdentityPerm(perm) {
+    for (var s = 0; s < 24; s++) if (perm[s] !== s) return false;
+    return true;
+  }
+  // 把 XYZ 摆回 DFR 且不翻的那一次整体旋转
+  function findAnchorRot(corner) {
+    for (var r = 0; r < ROTS.length; r++) {
+      var cc = toCubie(applyPerm(corner, ROTS[r]));
+      if (cc.cp[ANCHOR] === ANCHOR && cc.co[ANCHOR] === 0) return r;
+    }
+    return -1;
+  }
+
+  // ===== 状态 → 编码 =====
+  function nextBreak(assigned) {
+    for (var bi = 0; bi < BREAK_ORDER.length; bi++) {
+      if (!assigned[BREAK_ORDER[bi]]) return BREAK_ORDER[bi];
+    }
+    return -1;
+  }
+
+  function encodeGroups(corner) {
+    var cc = toCubie(corner);
+    if (cc.cp[ANCHOR] !== ANCHOR || cc.co[ANCHOR] !== 0)
+      throw new Error('定位块 XYZ 不在原位，无法在锚点坐标系里读码');
+
+    var assigned = [false,false,false,false,false,false,false,false];
+    assigned[ANCHOR] = true;
+    if (cc.cp[BUFFER] === BUFFER && cc.co[BUFFER] === 0) assigned[BUFFER] = true;
+
+    var groups = [], buf = [];
+    var flush = function () { if (buf.length) { groups.push(buf.join('')); buf = []; } };
+    var cur = assigned[BUFFER] ? nextBreak(assigned) : BUFFER;
+    var guard = 0;
+
+    while (cur >= 0 && guard++ < 80) {
+      var q = cc.cp[cur], o = cc.co[cur];
+      if (q === cur) {
+        // 原位：翻角写「位置字母 + 高位读到的字母」，没翻就跳过
+        if (o !== 0) { buf.push(CW[cur][0]); buf.push(CW[cur][o]); }
+        assigned[cur] = true;
+        flush();
+        cur = nextBreak(assigned);
+        continue;
       }
-      return true;
+      if (q === BUFFER) {
+        // 下一个就是缓冲块：这个字母不写，循环到此结束
+        assigned[cur] = true;
+        flush();
+        cur = nextBreak(assigned);
+        continue;
+      }
+      buf.push(readLetter(corner, cur));
+      assigned[cur] = true;
+      cur = q;
+      if (assigned[cur]) { flush(); cur = nextBreak(assigned); }   // 回到本循环起点
+    }
+    flush();
+    return groups;
+  }
+
+  function encodeState(corner) { return encodeGroups(corner).join(''); }
+
+  // ===== 编码 → 状态 =====
+  function parseCode(str) {
+    return String(str || '').toUpperCase().replace(/[^A-Z]/g, '').split('');
+  }
+
+  var MASK_POS = [0,1,2,3,4,6,7];
+
+  /* 码里不写「已复原」的角，所以解码端得自己推断哪些角位被跳过：
+     枚举跳过集（7 个非锚点角，128 种），逐个确定性解码，
+     再要求「跳过的角恰好就是解完后复原的角」——不动点条件。 */
+  function decodeCore(letters, skipMask, splitAt) {
+    var cp = [0,1,2,3,4,5,6,7], co = [0,0,0,0,0,0,0,0];
+    var pre = [], assigned = [], used = [], p;
+    for (p = 0; p < 8; p++) {
+      pre[p] = (p === ANCHOR) || !!(skipMask & (1 << p));
+      assigned[p] = pre[p];
+      used[p] = pre[p];
+    }
+    var groups = [], i = 0, ok = true, guard = 0;
+    var bufCycle = !pre[BUFFER];          // 缓冲块没复原 → 第一段是缓冲循环
+
+    function place(pos, ch) {
+      var q = LPC[ch];
+      if (used[q]) { ok = false; return; }
+      cp[pos] = q; co[pos] = LK[ch];
+      used[q] = true; assigned[pos] = true;
+    }
+    var bufPos = -1;
+    function closeBufferCycle() {
+      // 缓冲循环的最后一块：该位置上放的是缓冲块，编码里没写它的字母，
+      // 所以它的朝向也读不出来 —— 先记下位置，最后用「扭角总和 ≡ 0」补。
+      if (cur < 0 || assigned[cur] || used[BUFFER]) { ok = false; return; }
+      cp[cur] = BUFFER; co[cur] = 0;
+      assigned[cur] = true; used[BUFFER] = true;
+      bufPos = cur;
+      cur = nextBreak(assigned);
     }
 
-    var res = null;
-    (function rec(si, p2s, used) {
-      if (res) return;
-      if (si === segs.length) {
-        var c = build(p2s);
-        if (!valid(c)) return;
-        for (var kk in p2s) if (c[+kk] !== p2s[kk]) return;
-        res = c; return;
-      }
-      var seg = segs[si];
-      for (var si2 = 0; si2 < starts.length; si2++) {
-        var start = starts[si2];
-        if (used[start]) continue;
-        // 两种写法都要认：
-        //   "XRG" 省略起笔（J→X→R→G），"GDA" 把起笔也写全（G→D→A）。
-        // 判据是段首字母是否正好等于候选起点。
-        var chain = seg.charAt(0) === start
-          ? seg.split('')
-          : [start].concat(seg.split(''));
-        // 用户可能把「终点」也写回来（如 "JDJ" / "XRG…G"），去重
-        if (chain.length > 1 && chain[chain.length-1] === chain[0]) chain.pop();
-        if (chain.length < 2) continue;
-        var bad = false, ii;
-        for (ii = 0; ii < chain.length; ii++) {
-          if (used[chain[ii]] || L2S[chain[ii]] === undefined) { bad = true; break; }
-        }
-        // 位置循环里相邻两个字母必须来自不同的角块：同一个角的三个字母
-        // 连起来（如 "ABC"、"JK"）其实是「扭角」，不是位置置换 —— 放行的话
-        // 会被解成一个只带朝向、位置全对的假状态，最后被扭角栏清零，
-        // 结果是「输入 ABC 却提示这是复原态」，非常误导。
-        if (!bad) {
-          for (ii = 0; ii < chain.length; ii++) {
-            var pA = Math.floor(L2S[chain[ii]] / 3);
-            var pB = Math.floor(L2S[chain[(ii + 1) % chain.length]] / 3);
-            if (pA === pB) { bad = true; break; }
-          }
-        }
-        if (bad) continue;
-        var p2 = {}, key;
-        for (key in p2s) p2[key] = p2s[key];
-        for (ii = 0; ii < chain.length - 1; ii++) {
-          var a = L2S[chain[ii]], b = L2S[chain[ii+1]];
-          if (p2[a] !== undefined && p2[a] !== b) { bad = true; break; }
-          p2[a] = b;
-        }
-        if (bad) continue;
-        var a0 = L2S[chain[chain.length-1]], b0 = L2S[start];
-        if (p2[a0] !== undefined && p2[a0] !== b0) continue;
-        p2[a0] = b0;
-        var u2 = {}, k2;
-        for (k2 in used) u2[k2] = used[k2];
-        for (ii = 0; ii < chain.length; ii++) u2[chain[ii]] = 1;
-        rec(si + 1, p2, u2);
-        if (res) return;
-      }
-    })(0, {}, {});
+    var cur = pre[BUFFER] ? nextBreak(assigned) : BUFFER;
 
-    if (!res) throw new Error('编码无法解析为合法状态：位置循环里相邻的两个字母必须来自不同的角块。'
-      + '同一个角的三个字母连在一起（如 ABC、JK）属于扭角，请写到扭角栏。');
-    return res;
+    while (i < letters.length) {
+      if (!ok) return null;
+      if (bufCycle && i === splitAt) { closeBufferCycle(); bufCycle = false; }
+      if (!ok) return null;
+      if (cur < 0 || guard++ > 60) return null;
+
+      var ch = letters[i];
+      var isTwist = (i + 1 < letters.length) && LPC[letters[i+1]] === LPC[ch];
+      if (isTwist) {
+        if (LPC[ch] !== cur) return null;
+        if (ch !== CW[cur][0]) return null;
+        place(cur, letters[i+1]);
+        if (!ok) return null;
+        groups.push(ch + letters[i+1]);
+        i += 2;
+        cur = nextBreak(assigned);
+        bufCycle = false;               // 翻角一定结束当前段
+        if (pre[BUFFER] === false && splitAt === i) { /* 已自然结束 */ }
+      } else {
+        if (LPC[ch] === cur) return null;   // 原位翻角必须写两个字母
+        place(cur, ch);
+        if (!ok) return null;
+        groups.push(ch);
+        i += 1;
+        var nx = LPC[ch];
+        if (nx === BUFFER || assigned[nx]) { cur = nextBreak(assigned); bufCycle = false; }
+        else cur = nx;
+      }
+    }
+    if (bufCycle) { closeBufferCycle(); if (!ok) return null; }
+
+    // 缓冲块所在角位的朝向：由「扭角总和必须是 3 的倍数」反推
+    if (bufPos >= 0) {
+      var s2 = 0;
+      for (p = 0; p < 8; p++) if (p !== bufPos) s2 += co[p];
+      co[bufPos] = (3 - s2 % 3) % 3;
+    }
+
+    // 不动点条件：假定跳过的角 ⇔ 解完之后真的复原的角
+    for (p = 0; p < 8; p++) {
+      if ((cp[p] === p && co[p] === 0) !== pre[p]) return null;
+    }
+    return { cp: cp, co: co, groups: groups };
+  }
+
+  function sortLetters(str) { return String(str).split('').sort().join(''); }
+  function sameCode(a, b) {
+    return a === b || (a.length === b.length && sortLetters(a) === sortLetters(b));
+  }
+
+  /* 编码 → 状态。
+     记法本身有两处不确定：
+       ① 缓冲块是否已经复原（复原了就不写它的字母，编码看不出区别）；
+       ② 缓冲循环在哪一位结束（不写闭合字母，所以没有分隔符）。
+     两处都枚举，最后用「把解出的状态重新读一遍码，必须和输入一致」来验收。 */
+  function decodeCode(str, opts) {
+    opts = opts || {};
+    var letters = parseCode(str), t;
+    for (t = 0; t < letters.length; t++) {
+      if (L2S[letters[t]] === undefined) throw new Error('不认识的字母「' + letters[t] + '」');
+      if (LPC[letters[t]] === ANCHOR)
+        throw new Error('编码里不应该出现 X / Y / Z：XYZ 是定位块，摆正之后它已经在原位了');
+    }
+    if (!letters.length) return { corner: idState(), groups: [] };
+    var want = letters.join('');
+
+    var bufferModes = opts.bufferSolved === true ? [true] : (opts.bufferSolved === false ? [false] : [false, true]);
+    var splits = [-1];
+    for (var k = 1; k <= letters.length; k++) splits.push(k);
+
+    for (var bm = 0; bm < bufferModes.length; bm++) {
+      var bufSolved = bufferModes[bm];
+      for (var m = 0; m < 128; m++) {
+        var skip = 0;
+        for (var b = 0; b < 7; b++) if (m & (1 << b)) skip |= (1 << MASK_POS[b]);
+        if (bufSolved) skip |= (1 << BUFFER);
+        else skip &= ~(1 << BUFFER);
+
+        for (var si = 0; si < splits.length; si++) {
+          var r = decodeCore(letters, skip, splits[si]);
+          if (!r) continue;
+          var seen = [], p, bad = false;
+          for (p = 0; p < 8; p++) seen[p] = false;
+          for (p = 0; p < 8; p++) { if (seen[r.cp[p]]) { bad = true; break; } seen[r.cp[p]] = true; }
+          if (bad) continue;
+          var sum = 0;
+          for (p = 0; p < 8; p++) sum += r.co[p];
+          if (sum % 3 !== 0) continue;
+          var corner = fromCubie(r.cp, r.co);
+          var got;
+          try { got = encodeState(corner); } catch (e) { continue; }
+          if (!sameCode(got, want)) continue;
+          return { corner: corner, groups: r.groups, code: got, bufferSolved: bufSolved };
+        }
+      }
+    }
+    throw new Error('这串编码解不出合法的二阶状态。常见原因：某个循环漏写了字母、'
+      + '翻角没有成对出现（二阶扭角总和必须是 3 的倍数）、或者字母写重复了。');
   }
 
   // ===== 二阶求解器（cp/co + IDA*） =====
@@ -277,7 +436,6 @@
       }
     }
 
-    // BFS 剪枝表
     CO_PRUN = new Uint8Array(2187).fill(255); CO_PRUN[0] = 0;
     var frontier = [0], depth = 0;
     while (frontier.length) {
@@ -309,16 +467,38 @@
   var OPP = { U:'D', D:'U', R:'L', L:'R', F:'B', B:'F' };
   function ida(cpI, coI, maxDepth) {
     var path = [];
+    // 每层单独一套缓冲，递归时不会互相覆盖
+    var kidsD = [], coD = [], mvD = [];
+    for (var d0 = 0; d0 <= maxDepth + 2; d0++) {
+      kidsD.push(new Array(18)); coD.push(new Array(18)); mvD.push(new Array(18));
+    }
+
     function dfs(cp, co, depth, limit, lastFace) {
+      var kids = kidsD[depth], hbuf = coD[depth], mbuf = mvD[depth];
       var h = Math.max(CP_PRUN[cp], CO_PRUN[co]);
       if (depth + h > limit) return false;
       if (h === 0 && depth > 0) return true;
+      // 按子节点启发值排序，优先走离目标近的分支
+      var n = 0;
       for (var mi = 0; mi < 18; mi++) {
         var f = MOVE_FACE[mi];
         if (f === lastFace) continue;
         if (lastFace && OPP[lastFace] === f && f < lastFace) continue;
-        path.push(MOVES[mi]);
-        if (dfs(CP_MOVE[cp*18+mi], CO_MOVE[co*18+mi], depth+1, limit, f)) return true;
+        var ncp = CP_MOVE[cp*18+mi], nco = CO_MOVE[co*18+mi];
+        var nh = CP_PRUN[ncp] > CO_PRUN[nco] ? CP_PRUN[ncp] : CO_PRUN[nco];
+        if (depth + 1 + nh > limit) continue;
+        kids[n] = ncp; hbuf[n] = nco; mbuf[n] = mi; n++;
+      }
+      for (var a = 1; a < n; a++) {
+        var kc = kids[a], kh = hbuf[a], km = mbuf[a], b = a - 1;
+        while (b >= 0 && (CP_PRUN[kids[b]] > CO_PRUN[hbuf[b]] ? CP_PRUN[kids[b]] : CO_PRUN[hbuf[b]]) > (CP_PRUN[kc] > CO_PRUN[kh] ? CP_PRUN[kc] : CO_PRUN[kh])) {
+          kids[b+1] = kids[b]; hbuf[b+1] = hbuf[b]; mbuf[b+1] = mbuf[b]; b--;
+        }
+        kids[b+1] = kc; hbuf[b+1] = kh; mbuf[b+1] = km;
+      }
+      for (var j = 0; j < n; j++) {
+        path.push(MOVES[mbuf[j]]);
+        if (dfs(kids[j], hbuf[j], depth+1, limit, MOVE_FACE[mbuf[j]])) return true;
         path.pop();
       }
       return false;
@@ -343,115 +523,114 @@
     });
   };
 
-  // ===== 对外：编码 ↔ 打乱 =====
-  // 位置编码串：'-' 或 ',' 分隔多个循环；空格只作视觉分隔，不参与切分
-  // （否则用户写 "X R G" 会被当成三个循环）
-  function parsePosString(str) {
-    return String(str || '').toUpperCase()
-      .replace(/[^A-Z\-,]/g, '')
-      .split(/[-,]+/)
-      .map(function (s) { return s.replace(/[^A-Z]/g, ''); })
-      .filter(Boolean);
-  }
-  // 扭角串：支持 "J1 G2"（字母+扭数）、"JK GH"（字母对）、"UFR1 UBR2"（角位+扭数）
-  function parseTwistString(str) {
-    var out = [], s = String(str || '').toUpperCase().replace(/[，,、]/g, ' ').trim();
-    if (!s) return out;
-    var toks = s.split(/\s+/).filter(Boolean);
-    for (var i = 0; i < toks.length; i++) {
-      var t = toks[i];
-      var mPos = t.match(/^(UBL|UBR|UFR|UFL|DFL|DFR|DBR|DBL)\s*([+-]?\d)$/);
-      if (mPos) { out.push({ pos: mPos[1], n: ((+mPos[2]) % 3 + 3) % 3 }); continue; }
-      var mNum = t.match(/^([A-Z])([+-]?\d)$/);
-      if (mNum) {
-        var pi = posOfLetter(mNum[1]);
-        if (pi < 0) throw new Error('未知字母 ' + mNum[1]);
-        out.push({ pos: POSNAME[pi], n: ((+mNum[2]) % 3 + 3) % 3 });
-        continue;
-      }
-      var mPair = t.match(/^([A-Z])([A-Z])$/);
-      if (mPair) {
-        var p1 = posOfLetter(mPair[1]), p2 = posOfLetter(mPair[2]);
-        if (p1 < 0 || p1 !== p2) throw new Error('扭角「' + t + '」两个字母必须属于同一个角位');
-        var kk = L2S[mPair[1]] - 3*p1;        // 第一个字母 = 该角位的第几号贴纸位
-        var jj = L2S[mPair[2]] - 3*p1;        // 第二个字母 = 落在该位的贴纸在本块的序号
-        var nn = ((CS[p1][kk] - CS[p1][jj]) % 3 + 3) % 3;
-        out.push({ pos: POSNAME[p1], n: nn });
-        continue;
-      }
-      throw new Error('无法识别的扭角写法「' + t + '」');
+  function applyMoves(corner, list) {
+    var c = corner;
+    for (var i = 0; i < list.length; i++) {
+      var m = String(list[i]).trim(), f = m.charAt(0);
+      if (!MAP[f]) continue;
+      var last = m.charAt(m.length-1);
+      var cnt = last === "'" ? 3 : (last === '2' ? 2 : 1);
+      for (var t = 0; t < cnt; t++) c = applyMap(c, MAP[f]);
     }
-    return out;
-  }
-  function blockOfLetter(ch) {
-    for (var i = 0; i < 8; i++) if (BLOCK_LETTERS[i].indexOf(ch) >= 0) return i;
-    return -1;
-  }
-  // 字母 → 贴纸位所属的「角位」索引（扭角是位置的属性，不是块的属性）
-  function posOfLetter(ch) {
-    var s = L2S[ch];
-    return s === undefined ? -1 : Math.floor(s / 3);
+    return c;
   }
 
-  function codeToScramble(posStr, twistStr, opts) {
+  function codeOf(corner) {
+    var r = findAnchorRot(corner);
+    if (r < 0) return { code: '', groups: [], rot: -1, ok: false };
+    var anchor = applyPerm(corner, ROTS[r]);
+    var groups;
+    try { groups = encodeGroups(anchor); } catch (e) { return { code: '', groups: [], rot: r, ok: false }; }
+    return { code: groups.join(''), groups: groups, rot: r, ok: true };
+  }
+
+  // ===== 对外 =====
+
+  /* codeToScramble(code, opts)
+     opts.keepAnchor === true：打乱后 XYZ 仍在原位（不练「找 XYZ」）
+     否则在 23 个把 XYZ 挪走的整体旋转里挑解最短的那个 */
+  function codeToScramble(code, opts) {
     opts = opts || {};
-    var segs = parsePosString(posStr);
-    var twists = parseTwistString(twistStr);
-    if (!segs.length && !twists.length) return { moves: [], corner: idState(), empty: true };
-    var corner = decodePos(segs, opts);
-    var co = [0,0,0,0,0,0,0,0], sumCo = 0;
-    for (var i = 0; i < twists.length; i++) {
-      var idx = BLOCK_OF_POS[twists[i].pos];
-      // 同一角位写了多次时累加（模 3）：写「J1 J1」应理解为扭 2 次，
-      // 而不是被后一次覆盖成 1 次 —— 否则报错里的「共扭几次」会数错。
-      co[idx] = (co[idx] + twists[i].n) % 3;
+    var dec = decodeCode(code, { bufferSolved: opts.bufferSolved });
+    var target = dec.corner;
+    var groups = dec.groups;
+    var want = groups.join('');
+
+    buildTables();
+
+    // 先用剪枝表给 24 个整体旋转各估一个下界，按下界排序后只解最靠前的几个
+    var cand = [];
+    for (var r = 0; r < ROTS.length; r++) {
+      if (isIdentityPerm(ROTS[r]) && !opts.keepAnchor) continue;
+      var rot = applyPerm(target, ROTS[r]);
+      var cc = toCubie(rot);
+      var cpi = cpIdx(cc.cp), coi = coIdx(cc.co);
+      if (cpi === 0 && coi === 0) {
+        return { moves: [], corner: rot, anchorCorner: target, code: want,
+                 groups: groups, rot: r, empty: true };
+      }
+      cand.push({ r: r, rot: rot, lb: Math.max(CP_PRUN[cpi], CO_PRUN[coi]) });
     }
-    for (i = 0; i < 8; i++) sumCo += co[i];
-    if (sumCo % 3 !== 0) {
-      throw new Error('扭角总和不成立：当前共扭 ' + sumCo + ' 次，必须是 3 的倍数。'
-        + '二阶里单个角扭 1 次或 2 次都不可达，至少要三个角一起扭。');
+    cand.sort(function (a, b) { return a.lb - b.lb; });
+
+    var best = null;
+    for (var i = 0; i < cand.length && i < 4; i++) {
+      var sol = solveCorner(cand[i].rot);
+      if (sol === null) continue;
+      var scramble = invertMoves(sol);
+      var chk = codeOf(applyMoves(idState(), scramble));
+      if (chk.code !== want) continue;
+      best = { sol: sol, scramble: scramble, rot: cand[i].r, state: cand[i].rot };
+      break;
     }
-    corner = applyTwist(corner, co);
-    var sol = solveCorner(corner);
-    if (sol === null) throw new Error('求解失败（状态不可达）');
-    return { moves: invertMoves(sol), corner: corner, empty: sol.length === 0 };
+    if (!best) throw new Error('求解失败：这个状态在二阶上不可达');
+
+    return {
+      moves: best.scramble,
+      corner: best.state,
+      anchorCorner: target,
+      code: want,
+      groups: groups,
+      rot: best.rot,
+      empty: best.scramble.length === 0
+    };
   }
 
   function scrambleToCode(moves) {
-    var corner = idState(), list = String(moves || '').trim().split(/\s+/).filter(Boolean);
-    for (var i = 0; i < list.length; i++) {
-      var m = list[i], f = m.charAt(0);
-      if (!MAP[f]) continue;
-      var cnt = m.charAt(m.length-1) === "'" ? 3 : (m.charAt(m.length-1) === '2' ? 2 : 1);
-      for (var t = 0; t < cnt; t++) corner = applyMap(corner, MAP[f]);
-    }
-    var code = stateToCode(corner);
-    code.corner = corner;   // 同时给出状态本体，便于做「状态级」自检（字符串相同≠状态相同）
-    return code;
+    var list = typeof moves === 'string' ? String(moves).trim().split(/\s+/).filter(Boolean) : moves.slice();
+    var raw = applyMoves(idState(), list);
+    var r = findAnchorRot(raw);
+    var anchor = r < 0 ? raw : applyPerm(raw, ROTS[r]);
+    var groups = [];
+    try { groups = encodeGroups(anchor); } catch (e) { groups = []; }
+    return { code: groups.join(''), groups: groups, corner: raw, anchorCorner: anchor, rot: r, anchorOk: r >= 0 };
   }
 
-  function stateToCode(corner) {
-    var flat = untwist(corner), cc = toCubie(corner);
-    var pos = encodePos(flat), twist = [];
+  // 字母 → 所在面 → 中文颜色（页面展示用）
+  var LCOLOR = {}, FCOLOR = { U:'黄', D:'白', F:'红', B:'橘', R:'绿', L:'蓝' };
+  var FACES2 = [['U','B','L'],['U','B','R'],['U','F','R'],['U','F','L'],
+                ['D','F','L'],['D','F','R'],['D','B','R'],['D','B','L']];
+  (function () {
     for (var i = 0; i < 8; i++) {
-      if (cc.co[i]) {
-        // 用「角位的高色字母 + 扭数」标注，如 G1 = UBR 位置的角扭 1 次。
-        // 不用字母对：角块被置换后，位置字母和块字母不是一回事，混用会标错。
-        twist.push({ pos: POSNAME[i], n: cc.co[i], pair: BLOCK_LETTER[i] + cc.co[i] });
-      }
+      for (var k = 0; k < 3; k++) LCOLOR[CW[i][k]] = FACES2[i][CS[i][k]];
     }
-    return { pos: pos, twist: twist };
-  }
+  })();
 
   global.Bld2 = {
     codeToScramble: codeToScramble,
     scrambleToCode: scrambleToCode,
-    stateToCode: stateToCode,
+    encodeState: encodeState,
+    encodeGroups: encodeGroups,
+    decodeCode: decodeCode,
+    parseCode: parseCode,
     solveCorner: solveCorner,
     buildTables: buildTables,
-    parsePosString: parsePosString,
-    parseTwistString: parseTwistString,
-    // 供页面展示
-    L2S: L2S, S2L: S2L, POSNAME: POSNAME, BLOCK_LETTERS: BLOCK_LETTERS, BLOCK_LETTER: BLOCK_LETTER
+    toCubie: toCubie,
+    fromCubie: fromCubie,
+    findAnchorRot: findAnchorRot,
+    CW: CW, POSNAME: POSNAME, BREAK_ORDER: BREAK_ORDER,
+    L2S: L2S, S2L: S2L, LPC: LPC, LK: LK,
+    LCOLOR: LCOLOR, FCOLOR: FCOLOR,
+    BUFFER: BUFFER, ANCHOR: ANCHOR, ROTS: ROTS
   };
 })(typeof window !== 'undefined' ? window : this);
