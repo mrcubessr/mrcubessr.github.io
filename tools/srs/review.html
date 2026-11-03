@@ -61,9 +61,10 @@
 
 <script src="js/sm2.js"></script>
 <script src="js/db.js"></script>
-<script src="data/assoc-words.js?v=2.1.2"></script>
+<script src="data/assoc-words.js?v=2.1.3"></script>
+<script src="data/assoc-img-map.js?v=2.1.1"></script>
 <script src="data/raz-aa.js?v=2.1.0"></script>
-<script src="js/app.js?v=2.1.2"></script>
+<script src="js/app.js?v=2.1.3"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script src="js/sync-provider.js"></script>
 <script>
@@ -72,6 +73,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var q = new URLSearchParams(location.search);
   var deckId = q.get('deck');
+  var mode = q.get('mode') || '';
   // 配图缓存戳：data/img 下的图片文件名固定，内容更新后必须递增此值，
   // 否则浏览器/GitHub Pages 会继续用旧缓存图（红线上「字节数同≠内容已更新」同理）。
   var IMG_VER = '20261013';
@@ -82,6 +84,8 @@
 
   function start() {
     if (!deckId) { location.href = 'index.html'; return; }
+    var isMark = deckId.indexOf('mark:') === 0;
+    var mark = isMark ? deckId.slice(5) : '';
     // 自检：RAZ 词表是否加载成功（未加载会导致所有卡无图）
     if (deckId.indexOf('raz-aa') === 0 && !(window.RAZ_AA && window.RAZ_AA.length)) {
       document.body.insertAdjacentHTML('afterbegin',
@@ -91,17 +95,27 @@
       return;
     }
     SRS.ensurePresets().then(function () {
-      return Promise.all([DB.getDeck(deckId), DB.getCards(deckId)]);
-    }).then(function (r) {
-      deck = r[0]; allCards = r[1];
-      if (!deck) { location.href = 'index.html'; return; }
-      $('deckName').textContent = deck.name;
+      // 虚拟牌组：跨所有联想词字母组收集某标记色的卡（用于"按标记练习"），默认反复练习
+      if (isMark) {
+        return SRS.buildMarkDeck(mark).then(function (md) {
+          deck = { id: deckId, name: md.name, type: 'assoc', config: md.config, _virtual: true };
+          allCards = md.cards;
+        });
+      }
+      return Promise.all([DB.getDeck(deckId), DB.getCards(deckId)]).then(function (r) {
+        deck = r[0]; allCards = r[1];
+        if (!deck) { location.href = 'index.html'; return; }
+      });
+    }).then(function () {
+      if (!deck) return;
+      var realMode = isMark ? 'practice' : mode;
+      $('deckName').textContent = deck.name + (realMode === 'practice' ? '（反复练习）' : '');
       var dt = $('deckType');
       if (deck.type === 'assoc') dt.innerHTML = '<span class="badge badge--assoc">联想</span>';
       else if (deck.type === 'raz') dt.innerHTML = '<span class="badge badge--raz">英文</span>';
       else dt.innerHTML = '<span class="badge badge--custom">自建</span>';
-      $('btnStat').href = 'stats.html?deck=' + encodeURIComponent(deck.id);
-      return SRS.buildQueue(deck, allCards);
+      $('btnStat').href = deck._virtual ? 'stats.html' : ('stats.html?deck=' + encodeURIComponent(deck.id));
+      return SRS.buildQueue(deck, allCards, undefined, { mode: realMode });
     }).then(function (res) {
       if (!res) return;
       queue = res.cards.slice();
@@ -209,7 +223,9 @@
     } else {
       aText.hidden = false;
       aText.textContent = a || '（空）';
-      renderPic($('aPic'), '', '');
+      // 配图统一：上传图优先，否则共享表格图（与浏览页一致），训练端也能看到图
+      var backImg = cur.backImg || (window.ASSOC_IMG_MAP && window.ASSOC_IMG_MAP[cur.front]) || '';
+      renderPic($('aPic'), backImg, '');
     }
     var aEn = $('aEn');
     if (isRaz) {

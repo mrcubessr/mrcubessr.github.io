@@ -49,6 +49,11 @@
   <section class="srs-tabpanel" data-panel="assoc">
     <p class="srs-tabpanel__hint"><span class="badge badge--assoc">联想</span> 代码 → 联想词，单向记忆：看到字母代码，在脑中回忆联想词，翻面核对。</p>
     <div class="srs-decks" id="assocList"></div>
+    <div class="srs-markpractice" id="markPractice" style="margin-top:22px;padding:16px;background:var(--card,#fff);border:1px solid var(--line,#e6e6e6);border-radius:12px">
+      <h4 style="margin:0 0 4px;font-size:15px">按标记练习 · 把某一颜色的卡整合到一个牌组反复练</h4>
+      <p style="margin:0 0 12px;font-size:13px;color:var(--fg-2,#666)">在卡库页（联想词卡库）给卡片标色后，这里会按颜色汇总，点下面按钮即可只练该颜色的卡（默认反复练习）。</p>
+      <div class="srs-markpractice__row" id="markRow" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
   </section>
 
   <section class="srs-tabpanel" data-panel="raz" hidden>
@@ -75,9 +80,9 @@
 
 <script src="js/sm2.js"></script>
 <script src="js/db.js"></script>
-<script src="data/assoc-words.js?v=2.1.2"></script>
+<script src="data/assoc-words.js?v=2.1.3"></script>
 <script src="data/raz-aa.js?v=2.1.0"></script>
-<script src="js/app.js?v=2.1.2"></script>
+<script src="js/app.js?v=2.1.3"></script>
 <script src="/assets/js/sync-boot.js"></script>
 <script src="js/sync-provider.js"></script>
 <script>
@@ -156,6 +161,14 @@
     var acts = el('div', 'srs-deck__acts');
     var bLearn = el('span', 'btn btn--sm btn--primary', s.due ? '开始学习 ' + s.due : '暂无到期');
     acts.appendChild(bLearn);
+    if (d.type === 'assoc') {
+      var bPrac = el('span', 'btn btn--sm btn--ghost', '反复练习');
+      acts.appendChild(bPrac);
+      bPrac.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        location.href = 'review.html?deck=' + encodeURIComponent(d.id) + '&mode=practice';
+      });
+    }
     var bEdit = el('span', 'btn btn--sm btn--ghost', '编辑');
     acts.appendChild(bEdit);
     var bStat = el('span', 'btn btn--sm btn--ghost', '统计');
@@ -179,6 +192,28 @@
     w.appendChild(el('span', 'srs-num__v', String(v)));
     w.appendChild(el('span', 'srs-num__k', k));
     return w;
+  }
+
+  // 按标记练习：统计各标记色卡数，渲染成可点的练习入口（跨所有联想词字母组）
+  var MARK_NAMES = { red: '重点', orange: '需巩固', yellow: '一般', green: '已掌握', blue: '易错' };
+  var MARK_COLORS = { red: '#A31229', orange: '#FF8A1F', yellow: '#F2C200', green: '#009E60', blue: '#0051BA' };
+  function renderMarkPractice(cards) {
+    var counts = { red: 0, orange: 0, yellow: 0, green: 0, blue: 0 };
+    cards.forEach(function (c) {
+      if (c.deckId && c.deckId.indexOf('assoc-3bld') === 0 && c.mark && counts.hasOwnProperty(c.mark)) counts[c.mark]++;
+    });
+    var row = $('markRow'); row.innerHTML = '';
+    Object.keys(MARK_NAMES).forEach(function (k) {
+      var b = el('span', 'btn btn--sm btn--ghost', '');
+      b.style.display = 'inline-flex'; b.style.alignItems = 'center'; b.style.gap = '6px';
+      var dot = document.createElement('span');
+      dot.style.cssText = 'width:10px;height:10px;border-radius:50%;display:inline-block;background:' + MARK_COLORS[k];
+      b.appendChild(dot);
+      b.appendChild(document.createTextNode(MARK_NAMES[k] + ' ' + counts[k]));
+      if (!counts[k]) b.style.opacity = '0.5';
+      b.addEventListener('click', function () { location.href = 'review.html?deck=mark:' + k; });
+      row.appendChild(b);
+    });
   }
 
   function load() {
@@ -206,6 +241,7 @@
 
       var al = $('assocList'); al.innerHTML = '';
       assocDecks.forEach(function (d) { al.appendChild(deckCard(d)); });
+      renderMarkPractice(cards);
       var rl = $('razList'); rl.innerHTML = '';
       razDecks.forEach(function (d) { rl.appendChild(deckCard(d)); });
       var dl = $('deckList'); dl.innerHTML = '';

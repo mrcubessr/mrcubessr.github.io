@@ -107,6 +107,10 @@
       // 3) 读音去重订正（2026-10-30）：修掉历史遗留的 3 组重复读音。
       //    仅当卡片读音「仍等于旧值」时才改，避免覆盖用户已自行修改过的读音；幂等。
       return fixDuplicatePinyin();
+    }).then(function () {
+      // 4) 读音回填（2026-11-03）：词表已用 pinyin-pro 给 89 个空读音词补读音，
+      //    把旧卡中 hint 仍为空者补上；幂等、不覆盖用户已填值。
+      return fillEmptyHint();
     });
   }
 
@@ -132,6 +136,31 @@
       });
       return ups.length ? DB.putCards(ups) : null;
     }).catch(function () { /* 订正失败不阻断主流程 */ });
+  }
+
+  /** 2026-11-03：把词表里已有读音、但旧卡 hint 为空的卡片补上读音（幂等）。
+   *  词表（SRS_ASSOC）已用 pinyin-pro 给 89 个空读音词补了首字读音；存量卡创建时
+   *  hint 取自当时的空 p，故需回填。仅当 card.hint 为空且词表有 p 时才补，不覆盖用户已填值。 */
+  var _assocByCode = null;
+  function assocByCodeMap() {
+    if (_assocByCode) return _assocByCode;
+    _assocByCode = {};
+    (root.SRS_ASSOC || []).forEach(function (w) { _assocByCode[w.c] = w; });
+    return _assocByCode;
+  }
+  function fillEmptyHint() {
+    if (!DB.getAllCards) return Promise.resolve();
+    var map = assocByCodeMap();
+    return DB.getAllCards().then(function (cards) {
+      var ups = [];
+      cards.forEach(function (c) {
+        if (c.deckId && c.deckId.indexOf(PRESET_PREFIX) === 0 &&
+            (!c.hint || !c.hint.trim()) && map[c.front] && map[c.front].p) {
+          ups.push(Object.assign({}, c, { hint: map[c.front].p }));
+        }
+      });
+      return ups.length ? DB.putCards(ups) : null;
+    }).catch(function () { /* 回填失败不阻断主流程 */ });
   }
 
   /** 重置全部联想词子牌组（含卡片与复习记录） */
@@ -244,15 +273,26 @@
   }
 
   /**
-   * 构建今日学习队列
+   * 构建学习队列
+   * @param {Object} opts {mode:'due'|'practice'}  practice=忽略到期与每日上限，全组可反复练
    * @returns {Promise<{cards:Array, newCount:number, reviewCount:number, learnCount:number}>}
    */
-  function buildQueue(deck, allCards, now) {
+  function buildQueue(deck, allCards, now, opts) {
+    opts = opts || {};
     now = now || Date.now();
     var cfg = deckCfg(deck);
     var pool = allCards.filter(function (c) {
       return matchDir(c, cfg.dirMode) && matchHead(c, cfg.heads);
     });
+    // 反复练习模式：不打到期/每日上限，全组可反复练；打乱顺序避免与上次雷同
+    if (opts.mode === 'practice') {
+      var pq = pool.slice();
+      for (var s = pq.length - 1; s > 0; s--) {
+        var r = Math.floor(Math.random() * (s + 1));
+        var tmp = pq[s]; pq[s] = pq[r]; pq[r] = tmp;
+      }
+      return Promise.resolve({ cards: pq, newCount: 0, reviewCount: pq.length, learnCount: 0 });
+    }
     var due = pool.filter(function (c) { return SM2.isDue(c, now); });
     due.sort(function (a, b) { return (a.due || 0) - (b.due || 0); });
 
@@ -275,6 +315,25 @@
       return {
         cards: q, newCount: newTake.length, reviewCount: rev.length, learnCount: learn.length
       };
+    });
+  }
+
+  /** 标记名（与浏览页 MARKS 保持一致） */
+  var MARK_NAMES = { red: '重点', orange: '需巩固', yellow: '一般', green: '已掌握', blue: '易错' };
+
+  /** 跨所有联想词字母组，收集 mark===mark 的卡，组成一个虚拟牌组（用于"按标记练习"） */
+  function buildMarkDeck(mark, now) {
+    var c = deckCfg();
+    c.dirMode = 'c2w'; c.heads = [];
+    var letters = assocLetters();
+    return Promise.all(letters.map(function (L) {
+      return DB.getCards(assocDeckId(L));
+    })).then(function (lists) {
+      var cards = [];
+      lists.forEach(function (l) {
+        (l || []).forEach(function (card) { if (card.mark === mark) cards.push(card); });
+      });
+      return { cards: cards, config: c, name: '标记·' + (MARK_NAMES[mark] || mark) };
     });
   }
 
@@ -426,6 +485,7 @@
     ensureRazPresets: ensureRazPresets, resetRazPreset: resetRazPreset,
     razThemes: razThemes, razDeckId: razDeckId,
     buildQueue: buildQueue, answer: answer,
+    buildMarkDeck: buildMarkDeck, MARK_NAMES: MARK_NAMES,
     todayNewCount: todayNewCount, todayReviewCount: todayReviewCount,
     deckStats: deckStats, dailyCounts: dailyCounts, forecast: forecast, accuracy: accuracy,
     loadBlddbIndex: loadBlddbIndex, codesInRange: codesInRange, loadAlgs: loadAlgs,
