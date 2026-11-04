@@ -39,15 +39,17 @@ window.CFOPPrint = (function () {
     cols: 4, rows: 6, landscape: false,
     showArt: true, showName: true, showSub: true, showAlg: true, showHead: true,
     zoom: 'fit',
-    sel: {},        // { id: { on:bool, alg:int } }  alg = -1 表示留空
+    sel: {},        // { id: { on:bool, alg:int, rot:0..3 } }  alg = -1 表示留空
     order: []
   };
 
-  var ctx = null;             // { set, name, groupLabel, cases }
+  var ctx = null;             // { set, name, groupLabel, cases, helpers }
   var cfg = null;
   var cases = [];             // 当前排序后的案例副本
+  var helpers = null;         // { rotateFacelets, algForRot } —— 由训练器注入，避免重复实现
   var modal = null, printStyle = null, ui = null;
   var listEl, pagesEl, stageEl, countEl;
+  var MM = 96 / 25.4;         // 1mm = 3.7795 CSS px
 
   /* ---------- 小工具 ---------- */
   function el(tag, cls, html) {
@@ -63,8 +65,10 @@ window.CFOPPrint = (function () {
   }
   function key() { return 'cfop-print-v1:' + (ctx ? ctx.set : 'x'); }
   function pick(id) {
-    if (!cfg.sel[id]) { cfg.sel[id] = { on: true, alg: 0 }; }
-    return cfg.sel[id];
+    if (!cfg.sel[id]) { cfg.sel[id] = { on: true, alg: 0, rot: 0 }; }
+    var s = cfg.sel[id];
+    if (s.rot == null) { s.rot = 0; }
+    return s;
   }
   function algsOf(c) { return c.algs || []; }
   /* 该案例打印用的公式序号：-1 = 留空 */
@@ -74,6 +78,7 @@ window.CFOPPrint = (function () {
     if (i === -1) { return -1; }
     return Math.max(0, Math.min(i, Math.max(0, n - 1)));
   }
+  function rotOf(c) { return ((pick(c.id).rot || 0) % 4 + 4) % 4; }
   function subs() {
     var seen = {}, out = [];
     cases.forEach(function (c) {
@@ -83,13 +88,21 @@ window.CFOPPrint = (function () {
   }
   function chosen() { return cases.filter(function (c) { return pick(c.id).on; }); }
 
-  /* 配图：顶面平面图 → 等轴立体图 → 预渲染 SVG */
-  function artNode(c) {
+  /* 配图：顶面平面图 → 等轴立体图 → 预渲染 SVG。
+     rot = 图案顺时针旋转量 0..3，走训练器注入的 rotateFacelets，
+     保证与练习浮层里「转了 90°」看到的是同一张图。 */
+  function artNode(c, rot) {
     if (!window.CubeArt) { return null; }
+    var k = ((rot || 0) % 4 + 4) % 4;
     if (c.facelets && window.CubeArt.flatCase) {
-      var a = window.CubeArt.flatCase(c.facelets);
+      var fl = c.facelets;
+      if (k && helpers && helpers.rotateFacelets) {
+        fl = helpers.rotateFacelets(fl, k);
+      }
+      var a = window.CubeArt.flatCase(fl);
       if (a) { return a; }
     }
+    /* 立体图（F2L 系）与预渲染 SVG（SQ1 / 五魔方）没有旋转概念，忽略 k */
     if (c.fl && window.CubeArt.isoCube) {
       var b = window.CubeArt.isoCube(c.fl);
       if (b) { return b; }
@@ -98,6 +111,24 @@ window.CFOPPrint = (function () {
       return window.CubeArt.rawArt(c.art);
     }
     return null;
+  }
+
+  /* 该格要印的公式文本（含旋转后的 AUF 前缀）；留空返回 null。
+     ⚠️ 图转了公式必须跟着转，否则学生照着纸做会做错 —— 这里复用训练器的
+     algForRot，与练习浮层的 AUF 规则同源。 */
+  function algTextFor(c) {
+    var i = algIdx(c);
+    if (i < 0) { return null; }
+    var txt = algsOf(c)[i] || '';
+    var k = rotOf(c);
+    if (!k) { return txt; }
+    if (helpers && helpers.algForRot) {
+      var baseK = (c.algK && c.algK[i]) || 0;
+      var isCustom = !!(c.algCustom && c.algCustom[i]);
+      var p = helpers.algForRot(txt, baseK, k, isCustom);
+      return (p.pre || '') + p.text;
+    }
+    return txt;
   }
 
   /* ---------- 持久化 ---------- */
@@ -118,12 +149,15 @@ window.CFOPPrint = (function () {
     cases.forEach(function (cs) {
       var s = out.sel[cs.id];
       if (!s || typeof s !== 'object') {
-        out.sel[cs.id] = { on: true, alg: (cs.cur || 0) };
+        out.sel[cs.id] = { on: true, alg: (cs.cur || 0), rot: 0 };
       } else {
         s.on = s.on !== false;
         var v = parseInt(s.alg, 10);
         if (isNaN(v)) { v = (cs.cur || 0); }
         s.alg = Math.max(-1, Math.min(v, Math.max(0, algsOf(cs).length - 1)));
+        /* rot 是 v2.0.70 新增字段，旧配置没有 → 补 0 */
+        var r = parseInt(s.rot, 10);
+        s.rot = isNaN(r) ? 0 : (((r % 4) + 4) % 4);
       }
     });
     return out;
@@ -213,6 +247,22 @@ window.CFOPPrint = (function () {
     add('全填公式', '所有公式位恢复成公式', function () {
       cases.forEach(function (c) { var s = pick(c.id); if (s.alg === -1) { s.alg = (c.cur || 0); } });
     });
+    /* 批量旋转：只作用于「能旋转的图案」，立体图 / 预渲染图不受影响 */
+    var canRotAny = cases.some(function (c) { return c.facelets && helpers && helpers.rotateFacelets; });
+    if (canRotAny) {
+      add('全部转90°', '把所有图案统一顺时针转 90°（公式同步补 AUF）', function () {
+        cases.forEach(function (c) {
+          if (c.facelets && helpers && helpers.rotateFacelets) {
+            var s = pick(c.id); s.rot = ((s.rot || 0) + 1) % 4;
+          }
+        });
+        buildList();          /* 重建列表：按钮角度与缩略图一起刷新 */
+      });
+      add('全部归零', '把所有图案朝向恢复成 0°', function () {
+        cases.forEach(function (c) { pick(c.id).rot = 0; });
+        buildList();
+      });
+    }
     subs().forEach(function (s) {
       var n = cases.filter(function (c) { return c.sub === s; }).length;
       add(s + ' ' + n, '整组勾选 / 取消', function () {
@@ -290,7 +340,7 @@ window.CFOPPrint = (function () {
       item.appendChild(chk);
 
       var artBox = el('div', 'pp-item__art');
-      var svg = artNode(c);
+      var svg = artNode(c, rotOf(c));
       if (svg) { artBox.appendChild(svg); }
       item.appendChild(artBox);
 
@@ -298,6 +348,37 @@ window.CFOPPrint = (function () {
       var row = el('div', 'pp-item__row');
       row.appendChild(el('span', 'pp-item__name', esc(c.id)));
       if (c.sub) { row.appendChild(el('span', 'badge badge--mono', esc(c.sub))); }
+
+      /* 旋转按钮：图与公式一起转，点击顺时针 +90°、Shift + 点击逆时针。
+         只有能旋转的图案（有 facelets 且训练器注入了 rotateFacelets）才出这个按钮。 */
+      var canRot = !!(c.facelets && helpers && helpers.rotateFacelets);
+      var rotBtn = null;
+      if (canRot) {
+        rotBtn = el('button', 'pp-rot');
+        rotBtn.type = 'button';
+        rotBtn.setAttribute('draggable', 'false');
+        rotBtn.setAttribute('aria-label', c.id + ' 图案朝向');
+        rotBtn.title = '图案朝向：点击顺时针转 90°（Shift 点击逆时针）\n公式会同步补 AUF 前缀，保证图与公式对应';
+        rotBtn.textContent = (rotOf(c) * 90) + '°';
+        if (rotOf(c)) { rotBtn.classList.add('is-on'); }
+        rotBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var step = e.shiftKey ? 3 : 1;
+          s.rot = ((rotOf(c) + step) % 4 + 4) % 4;
+          rotBtn.textContent = (s.rot * 90) + '°';
+          rotBtn.classList.toggle('is-on', !!s.rot);
+          /* 左侧缩略图也跟着转，避免「按钮显示 90° 但小图没动」 */
+          var thumb = item.querySelector('.pp-item__art');
+          if (thumb) {
+            thumb.innerHTML = '';
+            var ns = artNode(c, s.rot);
+            if (ns) { thumb.appendChild(ns); }
+          }
+          save(); renderPreview();
+        });
+        row.appendChild(rotBtn);
+      }
       main.appendChild(row);
 
       var list = algsOf(c);
@@ -480,9 +561,10 @@ window.CFOPPrint = (function () {
   }
 
   /* ---------- 单元格缩放系数 ----------
-     基准：一个 44mm 见方、3×7 版式下的单元格 = 1.0。
+     基准：一个 44mm 见方的格子 = 1.0（4×6 标准版式）。
      行列变多 → k 变小（字和配图一起缩）；行列变少 → k 变大（放大占满纸面）。
-     上下限 0.36 / 2.0 防止极端行列下字看不清或大到溢出。 */
+     上限收到 1.5：k=2 时编号字号到 21pt，文字会吃掉一半格高、把图挤小，
+     与「大图版式」的目的相反。下限 0.36 防止超密版式下字看不清。 */
   function pageScale() {
     var isLand = !!cfg.landscape;
     var pw = isLand ? 297 : 210, ph = isLand ? 210 : 297;
@@ -493,10 +575,47 @@ window.CFOPPrint = (function () {
     var cw = (pw - padX) / cfg.cols - gap;
     var ch = (ph - padY - headH) / cfg.rows - gap;
     var unit = Math.min(cw, ch * 1.12);
-    return Math.max(0.36, Math.min(2, unit / 44));
+    return Math.max(0.36, Math.min(1.5, unit / 44));
   }
 
-  /* ---------- A4 排版 ---------- */
+  /* ---------- 配图等大：测量后统一写入 --pp-art ----------
+     问题根源：单元格是 flex 列，若配图用 flex:1 / max-height 参与「剩余空间分配」，
+     公式换行成 2 行的格子剩余空间更少 → 图被压扁，同一页里图大小不一致。
+     做法：先按最小可用值渲染，量出所有格子里「除配图外内容」的最大自然高度
+     与格子的最小宽高，算出唯一一个正方形边长，写进 --pp-art 让全页共用。 */
+  function fitArt() {
+    if (!pagesEl || !cfg) { return; }
+    pagesEl.style.removeProperty('--pp-art');
+    if (!cfg.showArt) { return; }
+
+    var cells = pagesEl.querySelectorAll('.pp-cell');
+    if (!cells.length) { return; }
+
+    var maxText = 0, minInnerW = Infinity, minInnerH = Infinity;
+    Array.prototype.forEach.call(cells, function (cell) {
+      /* 用 clientWidth / clientHeight（不含 1px 边框）：配图边长若按含边框的
+         rect 尺寸算，内容会比可用空间多出 2px，单元格出现 2px 溢出。 */
+      var cw = cell.clientWidth, chh = cell.clientHeight;
+      if (!cw || !chh) { return; }
+      var cs = window.getComputedStyle(cell);
+      var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+      var padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+      var gap = parseFloat(cs.rowGap) || 0;
+      var kids = cell.children, th = padY + gap * Math.max(0, kids.length - 1);
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i].classList.contains('pp-cell__art')) { continue; }
+        th += kids[i].getBoundingClientRect().height;
+      }
+      if (th > maxText) { maxText = th; }
+      if (cw - padX < minInnerW) { minInnerW = cw - padX; }
+      if (chh < minInnerH) { minInnerH = chh; }
+    });
+
+    if (!isFinite(minInnerW) || !isFinite(minInnerH)) { return; }
+    var size = Math.min(minInnerW, minInnerH - maxText);
+    size = Math.floor(size) - 1;               /* 再留 1px 余量，防止亚像素四舍五入溢出 */
+    pagesEl.style.setProperty('--pp-art', Math.max(6, size) + 'px');
+  }
   function buildPage(chunk, idx, total, n, k) {
     var page = el('div', 'pp-page');
     page.style.setProperty('--pp-k', String(Math.round(k * 1000) / 1000));
@@ -523,18 +642,18 @@ window.CFOPPrint = (function () {
 
       if (cfg.showArt) {
         var a = el('div', 'pp-cell__art');
-        var svg = artNode(c);
+        var svg = artNode(c, rotOf(c));
         if (svg) { a.appendChild(svg); }
         cell.appendChild(a);
       }
       if (cfg.showName) { cell.appendChild(el('div', 'pp-cell__name', esc(c.id))); }
       if (cfg.showSub && c.sub) { cell.appendChild(el('div', 'pp-cell__sub', esc(c.sub))); }
       if (cfg.showAlg) {
-        var i = algIdx(c);
-        if (i < 0) {
+        var txt = algTextFor(c);
+        if (txt == null) {
           cell.appendChild(el('div', 'pp-cell__alg pp-cell__alg--blank'));
         } else {
-          cell.appendChild(el('div', 'pp-cell__alg', esc(algsOf(c)[i] || '')));
+          cell.appendChild(el('div', 'pp-cell__alg', esc(txt)));
         }
       }
       grid.appendChild(cell);
@@ -558,10 +677,18 @@ window.CFOPPrint = (function () {
     pages.forEach(function (chunk, pi) {
       pagesEl.appendChild(buildPage(chunk, pi + 1, total, n, k));
     });
+    /* 配图等大：必须在 zoom=1 下测量（zoom 会缩放 getBoundingClientRect） */
+    var prevZoom = pagesEl.style.zoom;
+    pagesEl.style.zoom = '1';
+    fitArt();
+    pagesEl.style.zoom = prevZoom || '';
+
     if (countEl) {
       var blank = list.filter(function (c) { return algIdx(c) < 0; }).length;
+      var rotated = list.filter(function (c) { return rotOf(c) > 0; }).length;
       countEl.textContent = '已选 ' + n + ' / ' + cases.length + ' 例' +
         (blank ? '（留空 ' + blank + ' 条）' : '') +
+        (rotated ? '（旋转 ' + rotated + ' 条）' : '') +
         ' · 每页 ' + per + ' 格 · 共 ' + total + ' 页';
     }
     applyZoom();
@@ -600,7 +727,7 @@ window.CFOPPrint = (function () {
     var keepTitle = cfg.title;
     cfg = JSON.parse(JSON.stringify(DEFAULTS));
     cfg.title = keepTitle;
-    cases.forEach(function (c) { cfg.sel[c.id] = { on: true, alg: (c.cur || 0) }; });
+    cases.forEach(function (c) { cfg.sel[c.id] = { on: true, alg: (c.cur || 0), rot: 0 }; });
     buildList(); buildQuick(); syncOpts(); refresh();
   }
   function sortCasesByOrder() {
@@ -617,11 +744,14 @@ window.CFOPPrint = (function () {
 
   function open(opt) {
     ctx = opt || {};
+    helpers = ctx.helpers || null;
     /* 深拷贝一份，排序不影响训练器里的原始数组 */
     cases = (ctx.cases || []).map(function (c) {
       return {
         id: c.id, sub: c.sub || '', facelets: c.facelets, fl: c.fl, art: c.art,
-        algs: (c.algs || []).slice(), cur: c.cur || 0
+        algs: (c.algs || []).slice(),
+        algK: (c.algK || []).slice(), algCustom: (c.algCustom || []).slice(),
+        cur: c.cur || 0
       };
     });
     if (!cases.length) { return; }
@@ -638,6 +768,14 @@ window.CFOPPrint = (function () {
     modal.hidden = false;
     document.body.classList.add('pp-open');
     applyZoom();
+    /* 字体还没就绪时文字高度会变，配图边长是按文字高度算的 →
+       就绪后重算一次，避免首次打开时图偏小。只挂一次。 */
+    if (!open.fontsBound && document.fonts && document.fonts.ready) {
+      open.fontsBound = true;
+      document.fonts.ready.then(function () {
+        if (modal && !modal.hidden) { renderPreview(); }
+      });
+    }
   }
   function close() {
     if (modal) { modal.hidden = true; }

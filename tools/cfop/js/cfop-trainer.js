@@ -489,14 +489,20 @@ window.CFOP = (function () {
        rot=0 仍显库原式（带 y），与候选列表里的原式一致。
        核不纯 / 自定义公式走老规则：aufPrefix(rot - k) + 原公式（恒视觉正确，
        见 .workbuddy/outputs/audit4_final.py 的全量 pycuber 审计）。 */
-    function algParts(c, rot) {
-      var cur = curAlg(c);
-      var s = splitAuf(cur.text);
-      if (!cur.isCustom && rot !== 0 && s.k && corePure(s.rest)) {
+    /* 打印模块共用：给定公式文本与其基准角度，返回在 rot 角度下应显示的公式。
+       规则与 algParts 完全同源（复用同一组 splitAuf / aufPrefix / corePure），
+       避免打印出来的图和公式对不上 —— 图转了、公式必须同步加 AUF 前缀。 */
+    function algForRot(text, baseK, rot, isCustom) {
+      var s = splitAuf(text);
+      if (!isCustom && rot !== 0 && s.k && corePure(s.rest)) {
         return { pre: aufPrefix(rot - s.k), text: s.rest };
       }
-      var need = ((rot - cur.k) % 4 + 4) % 4;
-      return { pre: aufPrefix(need), text: cur.text };
+      var need = ((rot - (baseK || 0)) % 4 + 4) % 4;
+      return { pre: aufPrefix(need), text: text };
+    }
+    function algParts(c, rot) {
+      var cur = curAlg(c);
+      return algForRot(cur.text, cur.k, rot, cur.isCustom);
     }
     function displayedAlg(c, rot) {
       var p = algParts(c, rot);
@@ -1540,28 +1546,33 @@ window.CFOP = (function () {
     /* ================= 13) 打印公式（v2.0.69） =================
        交给 cfop-print.js 生成 A4 打印页。数据直接复用已加载的 CASES，
        不再二次 fetch；公式顺序取「当前实际在练的那条」（老师换过公式就打印
-       换过的那条，自定义公式排第一位），避免打印出来的和课上讲的不一致。 */
+       换过的那条，自定义公式排第一位），避免打印出来的和课上讲的不一致。
+       algK / algCustom 让打印面板在旋转图案时能按「每条公式自己的基准角度」
+       补 AUF 前缀（自定义公式保存时带过角度，候选公式恒为 0）。 */
     function printCases() {
       return CASES.map(function (c) {
-        var list = c.algs.map(function (a) { return a.alg; });
+        var list = [], ks = [], cs = [];
+        c.algs.forEach(function (a) { list.push(a.alg); ks.push(0); cs.push(false); });
         var cur = curAlg(c);
         var idx = 0;
         if (cur.isCustom) {
-          list.unshift(cur.text);
+          list.unshift(cur.text); ks.unshift(cur.k || 0); cs.unshift(true);
           idx = 0;
         } else if (cur.vi >= 0 && cur.vi < list.length) {
           idx = cur.vi;
         }
         return {
           id: c.id, sub: c.sub, facelets: c.facelets, fl: c.fl, art: c.art,
-          algs: list, cur: idx
+          algs: list, algK: ks, algCustom: cs, cur: idx
         };
       });
     }
     function openPrint() {
       if (!window.CFOPPrint) { toast('打印模块没加载成功，刷新页面再试'); return; }
       window.CFOPPrint.open({
-        set: SET, name: S.name, groupLabel: S.groupLabel, cases: printCases()
+        set: SET, name: S.name, groupLabel: S.groupLabel, cases: printCases(),
+        /* 图案旋转与 AUF 换算复用本文件的实现，保证与练习浮层所见一致 */
+        helpers: { rotateFacelets: rotateFacelets, algForRot: algForRot }
       });
     }
 
