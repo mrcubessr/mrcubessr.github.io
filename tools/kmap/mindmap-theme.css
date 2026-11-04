@@ -1,0 +1,126 @@
+/* =========================================================
+   公式推导 · 字母变化思维导图 —— 六套配色适配层
+   ---------------------------------------------------------
+   与 palettes.css 的 6 套 data-palette、theme.js 的 data-theme 联动。
+   设计要点：
+   ① 中性色（底 / 线 / 公式字 / 字母描边）直接复用站点语义 token，
+      任意「配色 × 明暗」组合下自动可读，不写死任何底色；
+   ② 6 类大字母保留原图色相语义（蓝 / 黄 / 绿 / 红 / 橙 / 墨），
+      只按底色调明度与饱和度：浅底压深、深底提亮；
+   ③ 每套配色另给专属色板，贴合各自调性（投屏高对比、纸感省墨、
+      经典六色呼应标准魔方六面、暖夜墨低蓝光）；
+   ④ SVG 必须内联才能吃到这些变量 —— 外链 <img src=*.svg> 是独立文档，
+      页面 CSS 变量传不进去，这是本页把图改成内联 SVG 的原因。
+   ========================================================= */
+
+/* ---------- 颜色映射：所有硬编码色已换成 class ---------- */
+.mm-svg { display: block; width: 100%; height: auto; }
+.mm-svg .mm-bg      { fill:   var(--mm-bg); }
+.mm-svg .mm-arrow   { stroke: var(--mm-line); }
+.mm-svg .mm-lines   { stroke: var(--mm-line); }
+.mm-svg .mm-formula { fill:   var(--mm-text); }
+.mm-svg .mm-letters { stroke: var(--mm-stroke); }
+.mm-svg .mm-c1 { fill: var(--mm-c1); }
+.mm-svg .mm-c2 { fill: var(--mm-c2); }
+.mm-svg .mm-c3 { fill: var(--mm-c3); }
+.mm-svg .mm-c4 { fill: var(--mm-c4); }
+.mm-svg .mm-c5 { fill: var(--mm-c5); }
+.mm-svg .mm-c6 { fill: var(--mm-c6); }
+
+/* ---------- 中性色：交给站点语义 token ---------- */
+.mm-svg {
+  --mm-bg:     var(--surface);   /* 图底 = 卡片面，深色配色下自动变深 */
+  --mm-line:   var(--fg-3);      /* 双向箭头 / 连线 */
+  --mm-text:   var(--fg-2);      /* L、B、D、B2 等公式字 */
+  --mm-stroke: var(--surface);   /* 大字母描边与底色同色 = 干净的挖空轮廓 */
+}
+
+/* ---------- 字母色基线（曜石蓝 / 未选配色，以及任意配色的兜底）---------- */
+/* 浅底：压深保证对比度 */
+.mm-svg {
+  --mm-c1: #1D5FA8;  /* 蓝 */
+  --mm-c2: #9A6B00;  /* 黄 */
+  --mm-c3: #137A45;  /* 绿 */
+  --mm-c4: #B32D22;  /* 红 */
+  --mm-c5: #A85A00;  /* 橙 */
+  --mm-c6: #2F3438;  /* 墨（中性字母 O/X/R/W） */
+}
+/* 深底：提亮，避免深色字糊在深底上 */
+html[data-theme="dark"] .mm-svg {
+  --mm-c1: #7DB8F0;
+  --mm-c2: #FFD84A;
+  --mm-c3: #4FDB8E;
+  --mm-c4: #FF7B6B;
+  --mm-c5: #FFB03A;
+  --mm-c6: #E8EDF5;
+}
+
+/* ---------- 课堂白 classroom：白天 / 教室电脑 ---------- */
+html[data-palette="classroom"][data-theme="light"] .mm-svg {
+  --mm-c1:#2F57AE; --mm-c2:#9A7000; --mm-c3:#0F7A38;
+  --mm-c4:#B3261E; --mm-c5:#A34A0A; --mm-c6:#232329;
+}
+html[data-palette="classroom"][data-theme="dark"] .mm-svg {
+  --mm-c1:#6E9BFF; --mm-c2:#FFD06A; --mm-c3:#5FDDA4;
+  --mm-c4:#FF8B80; --mm-c5:#FF9F45; --mm-c6:#EDF1F8;
+}
+
+/* ---------- 暖夜墨 inknight：低蓝光暖调，压低冷色饱和度 ---------- */
+html[data-palette="inknight"][data-theme="light"] .mm-svg {
+  --mm-c1:#4A7FA8; --mm-c2:#9A6410; --mm-c3:#1B7A4B;
+  --mm-c4:#AC3520; --mm-c5:#BE7028; --mm-c6:#2A2114;
+}
+html[data-palette="inknight"][data-theme="dark"] .mm-svg {
+  --mm-c1:#8FC4E8; --mm-c2:#F6CE86; --mm-c3:#7FD3A6;
+  --mm-c4:#F09282; --mm-c5:#E09A52; --mm-c6:#F7F0E4;
+}
+
+/* ---------- 投屏高对比 projector：投影 / 电视大屏，色值压到极深或极亮 ---------- */
+html[data-palette="projector"][data-theme="light"] .mm-svg {
+  --mm-c1:#0032A0; --mm-c2:#7A5600; --mm-c3:#0D6B2C;
+  --mm-c4:#B0001F; --mm-c5:#A33A00; --mm-c6:#000000;
+}
+html[data-palette="projector"][data-theme="dark"] .mm-svg {
+  --mm-c1:#4DA3FF; --mm-c2:#FFD24A; --mm-c3:#3BF07F;
+  --mm-c4:#FF6B5E; --mm-c5:#FF9A3D; --mm-c6:#FFFFFF;
+}
+
+/* ---------- 纸感米黄 paper：出卷 / 打印，墨色沉稳省墨 ---------- */
+html[data-palette="paper"][data-theme="light"] .mm-svg {
+  --mm-c1:#2B5F8F; --mm-c2:#8A6100; --mm-c3:#17734A;
+  --mm-c4:#A32D1E; --mm-c5:#9A3E12; --mm-c6:#2B2318;
+}
+html[data-palette="paper"][data-theme="dark"] .mm-svg {
+  --mm-c1:#8FB8E0; --mm-c2:#E8C46A; --mm-c3:#7FCBA0;
+  --mm-c4:#E5907E; --mm-c5:#E0A24A; --mm-c6:#F2EADB;
+}
+
+/* ---------- 经典六色 classic：直接取标准魔方六面色 ---------- */
+html[data-palette="classic"][data-theme="light"] .mm-svg {
+  --mm-c1:#1565C0; --mm-c2:#8A6A00; --mm-c3:#1E8E4A;
+  --mm-c4:#C0392B; --mm-c5:#B34700; --mm-c6:#0F1724;
+}
+html[data-palette="classic"][data-theme="dark"] .mm-svg {
+  --mm-c1:#3B8CE8; --mm-c2:#FFD500; --mm-c3:#3FA95E;
+  --mm-c4:#E4572E; --mm-c5:#FF8A00; --mm-c6:#F6F8FB;
+}
+
+/* ---------- 缩略图 / 放大舞台 ---------- */
+/* SVG 放大时会被移出缩略图容器，用 aspect-ratio 撑住占位，避免页面跳动 */
+.mindmap-thumb { aspect-ratio: 680 / 403; }
+.mindmap-thumb .mm-svg { width: 100%; height: 100%; }
+
+/* 放大时按 SVG 宽高比（680/403 ≈ 1.687）反推最大宽度，保证 88vh 内完整显示；
+   stage 不铺满整屏，留出遮罩空白处供「点遮罩关闭」命中 */
+.lightbox-stage {
+  display: none; align-items: center; justify-content: center;
+}
+.lightbox-stage.is-on { display: flex; }
+.lightbox-stage[hidden] { display: none !important; }
+.lightbox-stage .mm-svg {
+  width: min(94vw, 148vh); height: auto; max-height: 88vh;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 60px rgba(0,0,0,.5);
+}
+/* 暗遮罩上用白字，避免 var(--on-brand) 在浅色主题下变深色看不清 */
+.lightbox-close { color: #fff; }

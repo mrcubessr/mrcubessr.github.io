@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="664" viewBox="0 0 680 403">
+  <rect x="0" y="0" width="680" height="403" fill="#FFFFFF"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 26 26" refX="23" refY="13" markerWidth="26" markerHeight="26" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M3 3 L23 13 L3 23" fill="none" stroke="#565B61" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <g transform="scale(0.169322709)">
+    <g fill="none" stroke="#565B61" stroke-width="2.5">
+      <line x1="621" y1="548" x2="621" y2="792" marker-end="url(#ar)"/>
+      <line x1="640" y1="792" x2="640" y2="548" marker-end="url(#ar)"/>
+      <line x1="714" y1="888" x2="1070" y2="888" marker-end="url(#ar)"/>
+      <line x1="1070" y1="906" x2="714" y2="906" marker-end="url(#ar)"/>
+      <line x1="1657" y1="888" x2="1300" y2="888" marker-end="url(#ar)"/>
+      <line x1="1300" y1="906" x2="1657" y2="906" marker-end="url(#ar)"/>
+      <line x1="621" y1="1003" x2="621" y2="1248" marker-end="url(#ar)"/>
+      <line x1="640" y1="1248" x2="640" y2="1003" marker-end="url(#ar)"/>
+      <line x1="1720" y1="1003" x2="1720" y2="1248" marker-end="url(#ar)"/>
+      <line x1="1739" y1="1248" x2="1739" y2="1003" marker-end="url(#ar)"/>
+      <line x1="1177" y1="1003" x2="1177" y2="1487" marker-end="url(#ar)"/>
+      <line x1="1195" y1="1487" x2="1195" y2="1003" marker-end="url(#ar)"/>
+      <line x1="855" y1="1569" x2="1099" y2="1569" marker-end="url(#ar)"/>
+      <line x1="1099" y1="1588" x2="855" y2="1588" marker-end="url(#ar)"/>
+      <line x1="1521" y1="1569" x2="1277" y2="1569" marker-end="url(#ar)"/>
+      <line x1="1277" y1="1588" x2="1521" y2="1588" marker-end="url(#ar)"/>
+      <line x1="1182" y1="1666" x2="1182" y2="1911" marker-end="url(#ar)"/>
+      <line x1="1200" y1="1911" x2="1200" y2="1666" marker-end="url(#ar)"/>
+      <line x1="1536" y1="1906" x2="1276" y2="1647" marker-end="url(#ar)"/>
+      <line x1="1262" y1="1659" x2="1523" y2="1919" marker-end="url(#ar)"/>
+      <line x1="2258" y1="882" x2="2503" y2="882" marker-end="url(#ar)"/>
+      <line x1="2503" y1="900" x2="2258" y2="900" marker-end="url(#ar)"/>
+      <line x1="2692" y1="882" x2="2936" y2="882" marker-end="url(#ar)"/>
+      <line x1="2936" y1="900" x2="2692" y2="900" marker-end="url(#ar)"/>
+      <line x1="3399" y1="882" x2="3154" y2="882" marker-end="url(#ar)"/>
+      <line x1="3154" y1="900" x2="3399" y2="900" marker-end="url(#ar)"/>
+      <line x1="3031" y1="1013" x2="3031" y2="1367" marker-end="url(#ar)"/>
+      <line x1="3049" y1="1367" x2="3049" y2="1013" marker-end="url(#ar)"/>
+      <line x1="2757" y1="598" x2="2930" y2="771" marker-end="url(#ar)"/>
+      <line x1="2917" y1="783" x2="2743" y2="610" marker-end="url(#ar)"/>
+      <line x1="3276" y1="625" x2="3103" y2="799" marker-end="url(#ar)"/>
+      <line x1="3116" y1="811" x2="3289" y2="638" marker-end="url(#ar)"/>
+      <line x1="2917" y1="984" x2="2744" y2="1158" marker-end="url(#ar)"/>
+      <line x1="2757" y1="1170" x2="2930" y2="997" marker-end="url(#ar)"/>
+      <line x1="3301" y1="1218" x2="3128" y2="1391" marker-end="url(#ar)"/>
+      <line x1="3141" y1="1403" x2="3314" y2="1230" marker-end="url(#ar)"/>
+      <line x1="3141" y1="1458" x2="3314" y2="1632" marker-end="url(#ar)"/>
+      <line x1="3301" y1="1644" x2="3128" y2="1471" marker-end="url(#ar)"/>
+    </g>
+    <g font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="#262A2E">
+      <text x="553" y="687" font-size="60">L′</text>
+      <text x="673" y="687" font-size="60">L</text>
+      <text x="872" y="869" font-size="60">B′</text>
+      <text x="875" y="974" font-size="60">B</text>
+      <text x="1452" y="868" font-size="60">B</text>
+      <text x="1450" y="974" font-size="60">B′</text>
+      <text x="513" y="1145" font-size="60">L2</text>
+      <text x="680" y="1145" font-size="60">L2</text>
+      <text x="1641" y="1157" font-size="60">D′</text>
+      <text x="1754" y="1157" font-size="60">D</text>
+      <text x="1064" y="1260" font-size="60">B2</text>
+      <text x="1231" y="1260" font-size="60">B2</text>
+      <text x="981" y="1539" font-size="60">L</text>
+      <text x="981" y="1675" font-size="60">L′</text>
+      <text x="1379" y="1547" font-size="60">L′</text>
+      <text x="1379" y="1666" font-size="60">L</text>
+      <text x="1099" y="1812" font-size="60">L2</text>
+      <text x="1217" y="1812" font-size="60">L2</text>
+      <text x="1485" y="1806" font-size="42">D2</text>
+      <text x="1388" y="1914" font-size="42">D2</text>
+      <text x="2364" y="860" font-size="42">D2</text>
+      <text x="2364" y="955" font-size="42">D2</text>
+      <text x="2791" y="863" font-size="60">B′</text>
+      <text x="2794" y="973" font-size="60">B</text>
+      <text x="3253" y="870" font-size="60">B2</text>
+      <text x="3253" y="959" font-size="60">B2</text>
+      <text x="2852" y="667" font-size="60">L</text>
+      <text x="2769" y="735" font-size="60">L′</text>
+      <text x="3138" y="713" font-size="60">B′</text>
+      <text x="3224" y="766" font-size="60">B</text>
+      <text x="2713" y="1100" font-size="60">L2</text>
+      <text x="2807" y="1179" font-size="60">L2</text>
+      <text x="2991" y="1168" font-size="60">L</text>
+      <text x="3069" y="1168" font-size="60">L′</text>
+      <text x="3174" y="1285" font-size="42">B2</text>
+      <text x="3246" y="1358" font-size="42">B2</text>
+      <text x="3237" y="1535" font-size="42">B′</text>
+      <text x="3182" y="1605" font-size="42">B</text>
+    </g>
+    <g font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" text-anchor="middle" paint-order="stroke fill" stroke="#2F3438" stroke-width="2" stroke-linejoin="round">
+      <text transform="translate(627 512) scale(0.72 1)" font-size="131" fill="#458CC5">C</text>
+      <text transform="translate(630 950) scale(0.72 1)" font-size="151" fill="#458CC5">E</text>
+      <text transform="translate(1186 965) scale(0.72 1)" font-size="194" fill="#E8BE00">G</text>
+      <text transform="translate(1729 952) scale(0.72 1)" font-size="156" fill="#32AB67">S</text>
+      <text transform="translate(630 1378) scale(0.72 1)" font-size="127" fill="#458CC5">M</text>
+      <text transform="translate(1729 1377) scale(0.72 1)" font-size="126" fill="#E7493B">Y</text>
+      <text transform="translate(1191 1632) scale(0.72 1)" font-size="153" fill="#2F3438">O</text>
+      <text transform="translate(790 1622) scale(0.72 1)" font-size="126" fill="#E7493B">N</text>
+      <text transform="translate(1584 1622) scale(0.72 1)" font-size="126" fill="#E09B00">F</text>
+      <text transform="translate(1190 2046) scale(0.72 1)" font-size="127" fill="#E8BE00">A</text>
+      <text transform="translate(1584 2054) scale(0.72 1)" font-size="124" fill="#2F3438">X</text>
+      <text transform="translate(2677 617) scale(0.72 1)" font-size="151" fill="#E7493B">B</text>
+      <text transform="translate(3363 617) scale(0.72 1)" font-size="151" fill="#32AB67">I</text>
+      <text transform="translate(2195 935) scale(0.72 1)" font-size="127" fill="#E09B00">Z</text>
+      <text transform="translate(2588 958) scale(0.72 1)" font-size="174" fill="#458CC5">Q</text>
+      <text transform="translate(3047 963) scale(0.72 1)" font-size="188" fill="#E8BE00">D</text>
+      <text transform="translate(3471 949) scale(0.72 1)" font-size="149" fill="#2F3438">R</text>
+      <text transform="translate(2662 1289) scale(0.72 1)" font-size="148" fill="#2F3438">W</text>
+      <text transform="translate(3410 1269) scale(0.72 1)" font-size="127" fill="#E09B00">H</text>
+      <text transform="translate(3054 1508) scale(0.72 1)" font-size="151" fill="#E09B00">P</text>
+      <text transform="translate(3409 1695) scale(0.72 1)" font-size="126" fill="#E09B00">T</text>
+    </g>
+  </g>
+</svg>

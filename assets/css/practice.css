@@ -318,13 +318,161 @@ body { margin: 0; padding: 0; }
   .timer-score { min-height: 0; }
 }
 
-/* ---------- 手机端 ---------- */
+/* ---------- 手机端注入控件（assets/js/practice-mobile.js）----------
+   基线放在媒体查询外：默认一律隐藏，只有 ≤640px 才显示。
+   → 横屏/平板/桌面自动隐身，绝不会漏进桌面三栏布局。
+   ⚠️ .diagram-stage 例外：它是 canvas 的容器，桌面端必须可见（只居中，不改尺寸）。 */
+.diagram-stage { display: flex; align-items: center; justify-content: center; width: 100%; }
+.diagram-toggle, .order-more, .ref-sheet-bar { display: none; }
+
+/* ---------- 手机端：单屏计时器（cstimer 式，主屏只计时、不上下滚动） ----------
+   自上而下：打乱公式 → 展开图(可收展) → 练习顺序(可折叠) → 计时(占满) → 成绩 → 参考公式(浮层)
+   ⚠️ 本块只作用于 ≤640px；桌面端（含 v2.0.58 三栏单屏）完全不受影响。 */
 @media (max-width: 640px) {
-  .pc-wrap { padding: 16px 12px 40px; }
-  .pc-hero__title { font-size: 22px; }
-  .pc-toolbar { gap: 8px; padding: 10px 12px; }
-  .timer-block { min-height: 200px; padding: 18px 14px; }
-  .timer-display { font-size: clamp(36px, 13vw, 56px); }
+  /* 单屏：禁滚动，页脚让位
+     ⚠️ 站点导航在手机端是「在流」的 60px 顶栏（不是 fixed），若给 .pc-wrap
+        写死 height:100dvh 就会顶部溢出 60px、页面又能滚了（实测 904>844）。
+        故 body 用 flex 纵向铺满 100dvh，导航自然占位，.pc-wrap 只吃剩下的。 */
+  html { height: 100%; }
+  body {
+    height: 100dvh; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  body > .site-footer { display: none !important; }
+  body > [data-site-nav] { flex: 0 0 auto; }
+
+  .pc-wrap {
+    flex: 1 1 auto; min-height: 0; max-width: 100%;
+    padding: 8px 10px 10px;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* 页头 / 工具栏：只留必要信息 */
+  .pc-hero { flex: 0 0 auto; gap: 6px; margin-bottom: 6px; }
+  .pc-hero__title { font-size: 17px; margin: 0; }
+  .pc-hero__sub { display: none; }
+  .pc-hero__badge, .pc-hero__side .btn { font-size: 11px; padding: 3px 8px; }
+  .pc-toolbar { flex: 0 0 auto; gap: 6px; padding: 6px 8px; margin-bottom: 8px; }
+  .pc-toolbar__hint { display: none; }
+  .pc-toolbar .select { min-width: 118px; font-size: 12px; }
+  .pc-label { font-size: 11px; }
+
+  /* 工作区：卡片直接参与纵向 flex，计时区吃掉剩余高度 */
+  .pc.entry { flex: 1 1 auto; min-height: 0; gap: 8px; }
+  .pc-main, .pc-side { display: contents; }
+  .pc-card { flex: 0 0 auto; padding: 8px 10px; gap: 6px; }
+
+  .pc-card:has(#scramble-formula) { order: 1; }
+  .pc-card--diagram               { order: 2; }
+  .pc-main > :nth-child(3)        { order: 3; }   /* 练习顺序卡 */
+  .timer-block                    { order: 4; }
+  .timer-score                    { order: 5; }
+  .pc-ref                         { order: 6; }
+
+  /* ① 打乱公式：置顶、醒目、限高（右侧留出让位给复制按钮） */
+  .pc-card:has(#scramble-formula) .pc-label { display: none; }
+  /* ⚠️ 别给 .pc-formula 加 max-height：全局是 box-sizing:border-box，
+     限高会把内边距算进去，实测 3.4em 只剩 ~1.8 行 → 公式第二行被上下裁切。
+     公式自然高度就 2 行，计时区是 flex:1 会自适应吸收，不会因此产生滚动。 */
+  .pc-formula {
+    font-size: clamp(15px, 4.4vw, 19px); line-height: 1.4;
+    padding: 8px 52px 8px 10px;
+  }
+  .pc-formula .mv { padding: 1px 4px; }
+  .pc-formula-copy { top: 6px; right: 8px; }
+
+  /* ② 展开图：默认收起成一条按钮，.is-open 时才出现舞台 */
+  .pc-card--diagram { padding: 0; border: none; background: none; gap: 6px; }
+  .pc-card--diagram.is-open {
+    padding: 6px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .pc-card--diagram .diagram-stage { display: none; }
+  /* 展开态舞台高度：cube-net.js 里 availH = Math.max(容器高, 280) 有 280px 下限，
+     容器不足 280 时会按 280 算、画出来比容器高（实测 282>253 被切边）。
+     故高度取 clamp(240px, 34vh, 300px)，让下限尽量不触发；少量溢出也只是
+     切掉 canvas 自带的 16px 留白，不会切到魔方色块。 */
+  .pc-card--diagram.is-open .diagram-stage {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: clamp(240px, 34vh, 300px); overflow: hidden;
+  }
+
+  /* 折叠切换按钮（展开图 / 展开全部）：整条可点，禁文本选择 */
+  .diagram-toggle, .order-more {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 7px 10px; border-radius: 0; cursor: pointer;
+    background: var(--surface-2); color: var(--fg-2);
+    border: 1px solid var(--line-2);
+    -webkit-user-select: none; user-select: none; touch-action: manipulation;
+  }
+  .diagram-toggle:active, .order-more:active {
+    background: var(--brand-soft); color: var(--brand);
+  }
+
+  /* ③ 练习顺序：默认只显示 当前 + 后 2 个，一行放下 */
+  .order-card { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .order-card .pc-label { display: none; }
+  .order-card .order-list { flex: 1 1 auto; min-width: 0; gap: 4px; }
+  .order-tag { font-size: 12px; padding: 3px 7px; }
+  .order-card.order-collapsed .is-far { display: none; }
+  .order-more { width: auto; flex: 0 0 auto; padding: 4px 8px; font-size: 11px; }
+
+  /* ④ 计时区：占满剩余高度；次要信息让位 */
+  .timer-block {
+    flex: 1 1 auto; min-height: 0;
+    padding: 12px 14px; gap: 8px; justify-content: center;
+  }
+  .timer-display { font-size: clamp(44px, 15vw, 88px); }
+  .timer-recent { display: none; }
+  .timer-actions { margin-top: 0; gap: 6px; }
+  .timer-btn { font-size: 11px; padding: 5px 10px; }
+
+  /* ⑤ 成绩统计：横排紧凑，尽量一行 */
+  .timer-score { padding: 7px 10px; gap: 2px; }
+  .timer-score__title { display: none; }
+  .timer-score__list { flex-direction: row; flex-wrap: wrap; gap: 2px 14px; }
+  .timer-score__row { flex: 0 0 auto; justify-content: flex-start; gap: 5px; font-size: 12px; }
+  .timer-score__row .v { font-size: 13px; }
+
+  /* ⑥ 参考公式：默认收起，点开为全屏浮层（顶栏带关闭） */
+  .pc-ref { padding: 0; border: none; background: none; gap: 0; }
+  .pc-ref .ref-toggle {
+    /* uf-ref.js 为桌面写死了 inline display:none，手机端用 !important 抢回来 */
+    display: block !important;
+    width: 100%; text-align: center;
+    padding: 8px 10px; font-size: 12px; font-weight: 600;
+    background: var(--brand-soft); color: var(--brand);
+    border: 1px solid var(--brand-line); border-radius: 0;
+    -webkit-user-select: none; user-select: none; touch-action: manipulation;
+  }
+  .pc-ref .ref-panel { display: none; }
+  .pc-ref.is-open .ref-panel {
+    display: block; position: fixed; inset: 0; z-index: 1200;
+    background: var(--surface); overflow-y: auto;
+    padding: 52px 12px 20px;
+  }
+  .pc-ref.is-open .ref-sheet-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1250;
+    height: 44px; padding: 0 12px;
+    background: var(--surface); border-bottom: 1px solid var(--line);
+  }
+  .ref-sheet-title { font-size: 14px; font-weight: 700; color: var(--fg); letter-spacing: 1px; }
+  .ref-sheet-close {
+    font-family: inherit; font-size: 12px; padding: 5px 10px; border-radius: 0;
+    background: var(--brand-soft); color: var(--brand);
+    border: 1px solid var(--brand-line); cursor: pointer;
+  }
+  /* 浮层里恢复宽松行高（桌面紧凑化只为把 20 行塞进右竖条） */
+  .pc-ref.is-open .ref-table { grid-template-columns: 62px 1fr; grid-auto-rows: auto; }
+  .pc-ref.is-open .ref-code-col { padding: 8px 10px; font-size: 12px; }
+  .pc-ref.is-open .ref-sel-col { padding: 6px 8px; }
+  .pc-ref.is-open .ref-sel-box {
+    display: block; height: auto; padding: 6px 8px; font-size: 12px; line-height: 1.5;
+  }
+  .pc-ref.is-open .ref-sel-box::after { display: none; }
+  .pc-ref.is-open .ref-style-bar { margin-bottom: 10px; }
+  .pc-ref.is-open .ref-style-hint { display: block; }
 }
 
 /* ---------- 打印：练习页按需打印顺序链与公式 ---------- */
