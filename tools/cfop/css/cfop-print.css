@@ -228,13 +228,28 @@
 .pp-page__meta{ font-size:8.5pt; color:var(--pp-ink-3,#667085); text-align:right; line-height:1.5; white-space:nowrap; }
 .pp-page__meta b{ color:var(--pp-ink-2,#475467); font-weight:600; }
 
+/* 行高由 JS 测量后写成显式 grid-template-rows（文字多的行更高）。
+   这里的 grid-auto-rows 只作兜底：万一 JS 没写出行高（例如空页），
+   就退回按 --pp-row 的最小高度排版。
+   ⚠️ 不要指望 `grid-auto-rows: minmax(x, auto)` 自己按内容撑高 ——
+   实测在这个结构下不生效（std 4×6 内容需 190px，行高停在 160px，
+   文字溢出到相邻行），所以改由 JS 显式控制。 */
 .pp-grid{
   flex:1; min-height:0;
   display:grid; gap:2.5mm;
+  grid-auto-rows: minmax(var(--pp-row, 0px), auto);
+  align-content:start;
 }
 
 .pp-cell{
-  min-height:0; min-width:0; overflow:hidden;
+  /* ⚠️ min-height 必须是 auto，且 overflow 必须是 visible，两者缺一不可。
+     · min-height:0 —— grid 项收缩到 0，auto 行按最小尺寸而非内容撑开；
+     · overflow:hidden —— 按 CSS 规范，grid/flex 项的 automatic minimum size
+       只在 overflow:visible 时按内容计算，一旦 hidden 就退化为 0。
+     两者任一命中，文字换行变多时单元格都不会变高、内容被悄悄裁掉
+     （v2.0.73 实测 std 4×6：文字区 58px，行高却停在 155px、裁掉 11px）。
+     裁切职责下放到 .pp-cell__alg（见其 overflow:hidden）。 */
+  min-height:auto; min-width:0; overflow:visible;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:calc(1mm * var(--pp-k,1)); padding:calc(1.6mm * var(--pp-k,1)) calc(1.2mm * var(--pp-k,1));
   border:1px solid var(--pp-rule,rgba(16,24,40,.14));
@@ -250,8 +265,7 @@
   flex:0 0 auto; min-height:0; min-width:0;
   width:var(--pp-art,40mm); height:var(--pp-art,40mm);
   position:relative; margin:0 auto;
-}
-.pp-cell__art svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+}.pp-cell__art svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
 .pp-cell--noart .pp-cell__art{ display:none; }
 
 /* 保证文字行对齐整齐：分类行始终占位，名/公式居中统一 */
@@ -273,6 +287,7 @@
   font-size:calc(8pt * var(--pp-k,1)); line-height:1.4; letter-spacing:.02em;
   color:var(--pp-ink,#101828); text-align:center;
   word-break:break-word; overflow-wrap:normal;
+  overflow:hidden;   /* 裁切职责放在这里：.pp-cell 必须保持 overflow:visible 才能被内容撑高 */
 }
 /* 留空（手写）：画一条书写横线，比纯空白更好用。
    固定 2 行公式的高度，让「留空格」与「有公式格」占用同一份文字空间，
@@ -282,12 +297,12 @@
   height:calc(2.8em);
   min-height:0;
 }
-/* 留空但老师自己写了字（v2.0.71）：用正文字体（可能是中文），允许换行。
-   --pp-tk 是「文字太长把图挤小」时的降档系数，由 JS 在 fitArt() 里设置，
-   没有自定义文字时恒为 1，公式格不受影响。 */
+/* 留空但老师自己写了字（v2.0.71 起）：用正文字体（可能是中文），允许换行。
+   字号与公式格同一套 --pp-k，**不随文字多少缩小** —— 文字多了改为撑高行
+   （见 .pp-grid 的 grid-auto-rows），图的大小保持不变。 */
 .pp-cell__alg--text{
   font-family:var(--font-sans,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif);
-  font-size:calc(8pt * var(--pp-k,1) * var(--pp-tk,1));
+  font-size:calc(8pt * var(--pp-k,1));
   line-height:1.35; letter-spacing:0;
   white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere;
   text-align:center;
@@ -295,6 +310,15 @@
 .pp-cell--noalg .pp-cell__alg{ display:none; }
 .pp-cell--noname .pp-cell__name{ display:none; }
 .pp-cell--nosub .pp-cell__sub{ display:none; }
+
+/* 离屏测量容器：按真实页宽/字号排一遍格子，量出每行实际高度用于分页。
+   必须完全不可见且不占布局，否则会把 .pp-stage 的滚动区撑长。 */
+.pp-probe{
+  position:absolute !important; left:-99999px !important; top:0 !important;
+  visibility:hidden !important; pointer-events:none !important;
+  box-shadow:none !important; height:auto !important; min-height:0 !important;
+  overflow:visible !important;
+}
 
 /* ---------- 响应式（屏幕） ---------- */
 @media (max-width:1000px){

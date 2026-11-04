@@ -663,89 +663,165 @@ window.CFOPPrint = (function () {
     return Math.max(0.36, Math.min(1.5, unit / 44));
   }
 
-  /* ---------- 配图等大：测量后统一写入 --pp-art ----------
-     问题根源：单元格是 flex 列，若配图用 flex:1 / max-height 参与「剩余空间分配」，
-     公式换行成 2 行的格子剩余空间更少 → 图被压扁，同一页里图大小不一致。
-     做法：先按最小可用值渲染，量出所有格子里「除配图外内容」的最大自然高度
-     与格子的最小宽高，算出唯一一个正方形边长，写进 --pp-art 让全页共用。 */
-  function measureCells() {
-    var cells = pagesEl.querySelectorAll('.pp-cell');
-    if (!cells.length) { return null; }
-    var maxText = 0, minInnerW = Infinity, minInnerH = Infinity;
-    Array.prototype.forEach.call(cells, function (cell) {
-      /* 用 clientWidth / clientHeight（不含 1px 边框）：配图边长若按含边框的
-         rect 尺寸算，内容会比可用空间多出 2px，单元格出现 2px 溢出。 */
-      var cw = cell.clientWidth, chh = cell.clientHeight;
-      if (!cw || !chh) { return; }
-      var cs = window.getComputedStyle(cell);
-      var padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
-      var padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-      var gap = parseFloat(cs.rowGap) || 0;
-      var kids = cell.children, th = padY + gap * Math.max(0, kids.length - 1);
-      for (var i = 0; i < kids.length; i++) {
-        if (kids[i].classList.contains('pp-cell__art')) { continue; }
-        th += kids[i].getBoundingClientRect().height;
+  /* ---------- 版面几何（mm → px） ----------
+     一页的可用绘图区：页高减去上下内边距与页眉。
+     这里的数字必须与 cfop-print.css 的 .pp-page padding / .pp-page__head 保持一致，
+     否则算出来的基准行高与实际渲染不符。 */
+  function pageBox() {
+    var isLand = !!cfg.landscape;
+    var pwMm = isLand ? 297 : 210;
+    /* ⚠️ 页高必须用「打印时的实际高度」而不是 297/210：
+       print 媒体下 .pp-page 被收紧到 295mm / 208mm（各留 2mm，否则满页时
+       最后一行边框落在页底、被判溢出、多出一张空白纸）。
+       行高现在是由 JS 写死的 px，不会像 1fr 那样自动收缩，
+       所以分页必须按 295mm 来算，否则满页会挤到第二页去。 */
+    var phMm = isLand ? 208 : 295;
+    var padXMm = 22;                                   /* 左右各 11mm */
+    var padYMm = isLand ? (9 + 8) : (12 + 9);          /* 上下内边距 */
+    var headMm = cfg.showHead ? 16 : 0;                /* 页眉 + 分隔线占高 */
+    var gapMm = 2.5;
+    var w = (pwMm - padXMm) * MM;                      /* 内容区宽（px） */
+    var h = (phMm - padYMm - headMm) * MM;             /* 内容区高（px） */
+    var gap = gapMm * MM;
+    return {
+      w: w, h: h, gap: gap,
+      colW: (w - gap * (cfg.cols - 1)) / cfg.cols,     /* 单列宽 */
+      baseRow: (h - gap * Math.max(0, cfg.rows - 1)) / Math.max(1, cfg.rows)
+    };
+  }
+
+  /* ---------- 统一测量：单格自然高度 ----------
+     ⚠️ 为什么不用 grid 的 `grid-auto-rows: minmax(x, auto)` 让浏览器自己撑：
+     实测该写法在这个结构下不会撑（std 4×6 内容需要 190px，行高却停在 160px，
+     文字溢出到相邻行）。所以改成 JS 显式测量 + 渲染时写死 grid-template-rows，
+     行高完全可控。
+     测量方式：探针容器宽度 = 单列宽，每格独占一行（不排网格），
+     这样每格的 offsetHeight 就是它的真实内容高度。
+     singleText=true 时把自定义文字按单字占位，用于「图尺寸不该被文字影响」的测量。 */
+  function measureHeights(list, artPx, k, singleText) {
+    var box = pageBox();
+    var host = el('div', 'pp-probe');
+    host.style.setProperty('--pp-k', String(Math.round(k * 1000) / 1000));
+    host.style.setProperty('--pp-art', artPx + 'px');
+    host.style.setProperty('--pp-row', '0px');
+    host.style.width = box.colW + 'px';
+    list.forEach(function (c) {
+      var cell = buildCell(c);
+      if (singleText) {
+        var t = cell.querySelector('.pp-cell__alg--text');
+        if (t) { t.textContent = '测'; }
       }
-      if (th > maxText) { maxText = th; }
-      if (cw - padX < minInnerW) { minInnerW = cw - padX; }
-      if (chh < minInnerH) { minInnerH = chh; }
+      host.appendChild(cell);
     });
-    if (!isFinite(minInnerW) || !isFinite(minInnerH)) { return null; }
-    return { text: maxText, innerW: minInnerW, innerH: minInnerH };
+    document.body.appendChild(host);
+    var hs = [];
+    Array.prototype.forEach.call(host.children, function (n) { hs.push(n.offsetHeight); });
+    document.body.removeChild(host);
+    return hs;
   }
 
-  /* 所有格子里最严重的内容溢出（px）。0 = 没溢出。
-     直接查 scrollHeight - clientHeight，比「估算」可靠：边框、行高取整、
-     亚像素累加都算进去。 */
-  function overflowCells() {
-    var worst = 0;
-    Array.prototype.forEach.call(pagesEl.querySelectorAll('.pp-cell'), function (cell) {
-      var d = cell.scrollHeight - cell.clientHeight;
-      if (d > worst) { worst = d; }
-    });
-    return worst;
+  /* 文字区高度：art 传 0，量出来的就是「除图以外」的高度。
+     自定义文字按单行计 —— 图的大小只由公式长度决定，用户填多少字都不缩图。
+     ⚠️ 必须全量测量：早先只取前 24 条，漏掉了「公式占 2 行」的格子，
+     导致基准行高容不下它、无文字时那一行也被撑高，横版 4×4 因此从 4 页变 5 页。 */
+  var _tbCache = {};
+  function textBlockH(k) {
+    var key = [k, cfg.cols, cfg.rows, cfg.showArt ? 1 : 0, cfg.showName ? 1 : 0,
+               cfg.showSub ? 1 : 0, cfg.showAlg ? 1 : 0].join('|');
+    if (_tbCache[key] != null) { return _tbCache[key]; }
+
+    var hs = measureHeights(cases, 0, k, true);
+    var max = 0;
+    hs.forEach(function (h) { if (h > max) { max = h; } });
+    _tbCache[key] = max;
+    return max;
   }
 
-  /* 配图等大的定尺寸入口。
-     策略（v2.0.71 调整）：① 先按「文字以外的内容」算出唯一的正方形边长；
-     ② 设进去后检查，满足任一条件就把自定义文字缩一档重算：
-        · 单元格真的溢出（scrollHeight > clientHeight）
-        · 图被文字挤到不足格高 26%（大图版式下写几百字会把图压没）
-     旧策略是「图小于格高 34% 才缩字」，实测漏判：std 4×6 下长文字把整格
-     顶出 1px、xs 6×9 下顶出 6px 都不会触发，图上看着还正常，实际已被裁掉。
-     没有自定义文字的页面永远不会进缩字分支，公式格排版与之前完全一致。 */
-  function fitArt() {
-    if (!pagesEl || !cfg) { return; }
-    pagesEl.style.removeProperty('--pp-art');
-    pagesEl.style.removeProperty('--pp-tk');
-    if (!cfg.showArt) { return; }
-    if (!pagesEl.querySelector('.pp-cell')) { return; }
-
-    var hasOwnText = customTextCount() > 0;
-    var round = 0, size = 6, need = false;
-    for (;;) {
-      var m = measureCells();
-      if (!m) { return; }
-      size = Math.min(m.innerW, m.innerH - m.text) - 2;   /* 留 2px 余量 */
-      if (size < 6) { size = 6; }
-      size = Math.floor(size);                            /* 取整，避免亚像素 */
-      pagesEl.style.setProperty('--pp-art', size + 'px');
-      need = overflowCells() > 0 || size < m.innerH * 0.26;
-      if (!need) { break; }
-      if (!hasOwnText || round >= 8) { break; }
-      round++;
-      pagesEl.style.setProperty('--pp-tk', String(Math.max(0.3, 1 - round * 0.1)));
-    }
+  /* ---------- 配图边长：只由版式与公式长度决定，与用户填多少字无关 ----------
+     v2.0.73 的核心改动。旧版「溢出就缩字、缩字就挤图」，用户明确要求
+     图不缩、改为撑高行。现在：
+       边长 = min(列内宽, 基准行高 − 文字区高 − 2)
+     文字再多也不改变这个值；多出来的文字高度由 .pp-grid 的
+     grid-auto-rows: minmax(--pp-row, auto) 撑开，再靠分页顺延到下一页。 */
+  function artSize() {
+    if (!cfg.showArt) { return 0; }
+    var k = pageScale();
+    var box = pageBox();
+    var colInner = box.colW - (1.2 * 2 * k) * MM / 2.834645;   /* 扣左右内边距 */
+    var vAvail = box.baseRow - textBlockH(k) - 2;
+    return Math.max(6, Math.floor(Math.min(colInner, vAvail)));
   }
 
-  /* 配图尺寸重算的统一入口：必须在 zoom=1 下测量，否则 rect 被 zoom 缩放，
-     算出的边长会偏小/偏大。改文字、切版式、换角度后都走这里。 */
-  function relayoutArt() {
+  /* 基准行高写进 --pp-row：这是「没有额外文字时」每行应有的高度，
+     相当于把内容区按用户设定的行数均分。文字撑高时实际行高会大于它。 */
+  function applyGeometry() {
     if (!pagesEl) { return; }
-    var prevZoom = pagesEl.style.zoom;
-    pagesEl.style.zoom = '1';
-    fitArt();
-    pagesEl.style.zoom = prevZoom || '';
+    var box = pageBox();
+    pagesEl.style.setProperty('--pp-art', artSize() + 'px');
+    pagesEl.style.setProperty('--pp-row', Math.floor(box.baseRow) + 'px');
+  }
+
+  /* ---------- 版面几何重算 ----------
+     v2.0.73 起图边长只依赖版式与字号，不再有「测量—缩放」循环，
+     所以这里就是把 --pp-art / --pp-row 重新写一遍。保留这个函数名，
+     避免调用点散落。 */
+  function relayoutArt() {
+    applyGeometry();
+  }
+
+  /* ---------- 按实际行高分页 ----------
+     文字撑高行之后，一页能放几行不再是固定的（用户设定的 rows 只是上限）。
+     做法：先在离屏容器里按真实列宽把所有格子排一遍，量出每行实际高度，
+     再按「累加不超内容区高」贪心装页。
+     离屏容器的宽度/字号必须与真实页一致，否则文字换行数不同、行高测不准。 */
+  /* ---------- 按实际内容高分页 ----------
+     文字撑高行之后，一页能放几行不再是固定的（用户设定的 rows 只是「基准行高」
+     的来源，也就是上限）。这里用 measureHeights 拿到每格真实高度 →
+     每 cols 个归一行取最大值 → 贪心装页。
+     返回 [{ ids: [...], heights: [行高...] }]；heights 会在渲染时直接写成
+     grid-template-rows，保证屏幕上/打印出来的行高与分页时算的一致。 */
+  function packRows(list, k, artPx) {
+    var box = pageBox();
+    var hs = measureHeights(list, artPx, k, false);
+
+    /* 按列分组取行高；下限取基准行高 —— 这样「没有额外文字」时行高一律等于
+       按「列×行」均分出来的高度（版面整齐、铺满一页），只有内容真的更高时
+       才把那一行撑起来。 */
+    var rows = [];
+    for (var i = 0; i < list.length; i += cfg.cols) {
+      var ids = [], h = 0;
+      for (var j = i; j < Math.min(i + cfg.cols, list.length); j++) {
+        ids.push(list[j].id);
+        if (hs[j] > h) { h = hs[j]; }
+      }
+      rows.push({ ids: ids, h: Math.max(h, Math.floor(box.baseRow)) });
+    }
+    if (!rows.length) { return [{ ids: [], heights: [] }]; }
+
+    /* 贪心装页：累计「行高 + 行间距」不超过内容区高 */
+    var pages = [], cur = [], used = 0;
+    rows.forEach(function (row) {
+      var need = row.h + (cur.length ? box.gap : 0);
+      /* 单行比整页还高（极端长文本）：独占一页，否则永远装不下会死循环 */
+      if (row.h > box.h && !cur.length) {
+        pages.push([row]);
+        return;
+      }
+      if (used + need > box.h + 0.5 && cur.length) {
+        pages.push(cur); cur = []; used = 0;
+        need = row.h;
+      }
+      cur.push(row);
+      used += need;
+    });
+    if (cur.length) { pages.push(cur); }
+
+    return pages.map(function (p) {
+      return {
+        ids: [].concat.apply([], p.map(function (r) { return r.ids; })),
+        heights: p.map(function (r) { return r.h; })
+      };
+    });
   }
 
   /* 把某个节点完整滚进 .pp-list 的可视区。
@@ -765,8 +841,13 @@ window.CFOPPrint = (function () {
     }
   }
 
-  /* 只刷新某一格的文字（改文字时用）——不重建整页，避免输入框失焦、
-     也避免整页重绘闪烁。 */
+  /* 改文字时的即时反馈：只替换那一格的文字节点。
+     行高由 CSS 的 grid-auto-rows: minmax(--pp-row, auto) 自动撑开，所以
+     这里不用重排就能立刻看到「行变高、图不变小」。
+     但文字多到把这一页顶出去时，需要重新分页 —— 那会重建 pagesEl，
+     打字过程中频繁重建会闪，故用防抖（停顿 360ms 后重排）。
+     注意：左侧输入框不在 pagesEl 里，重建不会让它失焦。 */
+  var repagTimer = 0;
   function updateCellContent(id) {
     if (!pagesEl) { return; }
     var c = null;
@@ -776,20 +857,53 @@ window.CFOPPrint = (function () {
     Array.prototype.forEach.call(pagesEl.querySelectorAll('.pp-cell'), function (n) {
       if (n.getAttribute('data-id') === id) { cell = n; }
     });
-    if (!cell || !cfg.showAlg) { return; }
-    var cc = cellContentFor(c);
-    var cls = 'pp-cell__alg';
-    if (cc.kind === 'line') { cls += ' pp-cell__alg--blank'; }
-    else if (cc.kind === 'text') { cls += ' pp-cell__alg--text'; }
-    var node = el('div', cls);
-    if (cc.kind !== 'line') { node.textContent = cc.text; }
-    var old = cell.querySelector('.pp-cell__alg');
-    if (old && old.parentNode) { old.parentNode.replaceChild(node, old); }
-    else { cell.appendChild(node); }
-    relayoutArt();
+    if (cell && cfg.showAlg) {
+      var cc = cellContentFor(c);
+      var cls = 'pp-cell__alg';
+      if (cc.kind === 'line') { cls += ' pp-cell__alg--blank'; }
+      else if (cc.kind === 'text') { cls += ' pp-cell__alg--text'; }
+      var node = el('div', cls);
+      if (cc.kind !== 'line') { node.textContent = cc.text; }
+      var old = cell.querySelector('.pp-cell__alg');
+      if (old && old.parentNode) { old.parentNode.replaceChild(node, old); }
+      else { cell.appendChild(node); }
+    }
+    clearTimeout(repagTimer);
+    repagTimer = setTimeout(function () { renderPreview(); }, 360);
   }
 
-  function buildPage(chunk, idx, total, n, k) {
+  /* 单个格子。抽出来是为了「离屏测量」和「正式渲染」共用同一份 DOM 结构，
+     否则两边结构一旦有差，测出来的行高就不等于真实行高。 */
+  function buildCell(c) {
+    var cell = el('div', 'pp-cell');
+    cell.setAttribute('data-id', c.id);   /* 供「改文字」时局部刷新，不重建整页 */
+    if (!cfg.showArt) { cell.classList.add('pp-cell--noart'); }
+    if (!cfg.showName) { cell.classList.add('pp-cell--noname'); }
+    if (!cfg.showSub) { cell.classList.add('pp-cell--nosub'); }
+    if (!cfg.showAlg) { cell.classList.add('pp-cell--noalg'); }
+
+    if (cfg.showArt) {
+      var a = el('div', 'pp-cell__art');
+      var svg = artNode(c, rotOf(c));
+      if (svg) { a.appendChild(svg); }
+      cell.appendChild(a);
+    }
+    if (cfg.showName) { cell.appendChild(el('div', 'pp-cell__name', esc(c.id))); }
+    if (cfg.showSub && c.sub) { cell.appendChild(el('div', 'pp-cell__sub', esc(c.sub))); }
+    if (cfg.showAlg) {
+      var cc = cellContentFor(c);
+      if (cc.kind === 'line') {
+        cell.appendChild(el('div', 'pp-cell__alg pp-cell__alg--blank'));
+      } else if (cc.kind === 'text') {
+        cell.appendChild(el('div', 'pp-cell__alg pp-cell__alg--text', esc(cc.text)));
+      } else {
+        cell.appendChild(el('div', 'pp-cell__alg', esc(cc.text)));
+      }
+    }
+    return cell;
+  }
+
+  function buildPage(chunk, idx, total, n, k, heights) {
     var page = el('div', 'pp-page');
     page.style.setProperty('--pp-k', String(Math.round(k * 1000) / 1000));
 
@@ -804,36 +918,14 @@ window.CFOPPrint = (function () {
 
     var grid = el('div', 'pp-grid');
     grid.style.gridTemplateColumns = 'repeat(' + cfg.cols + ', minmax(0,1fr))';
-    grid.style.gridTemplateRows = 'repeat(' + cfg.rows + ', minmax(0,1fr))';
+    /* 行高由测量结果写死：文字多的行今天要更高，就真的更高，不依赖 CSS auto */
+    if (heights && heights.length) {
+      grid.style.gridTemplateRows = heights.map(function (h) {
+        return Math.max(1, Math.round(h)) + 'px';
+      }).join(' ');
+    }
 
-    chunk.forEach(function (c) {
-      var cell = el('div', 'pp-cell');
-      cell.setAttribute('data-id', c.id);   /* 供「改文字」时局部刷新，不重建整页 */
-      if (!cfg.showArt) { cell.classList.add('pp-cell--noart'); }
-      if (!cfg.showName) { cell.classList.add('pp-cell--noname'); }
-      if (!cfg.showSub) { cell.classList.add('pp-cell--nosub'); }
-      if (!cfg.showAlg) { cell.classList.add('pp-cell--noalg'); }
-
-      if (cfg.showArt) {
-        var a = el('div', 'pp-cell__art');
-        var svg = artNode(c, rotOf(c));
-        if (svg) { a.appendChild(svg); }
-        cell.appendChild(a);
-      }
-      if (cfg.showName) { cell.appendChild(el('div', 'pp-cell__name', esc(c.id))); }
-      if (cfg.showSub && c.sub) { cell.appendChild(el('div', 'pp-cell__sub', esc(c.sub))); }
-      if (cfg.showAlg) {
-        var cc = cellContentFor(c);
-        if (cc.kind === 'line') {
-          cell.appendChild(el('div', 'pp-cell__alg pp-cell__alg--blank'));
-        } else if (cc.kind === 'text') {
-          cell.appendChild(el('div', 'pp-cell__alg pp-cell__alg--text', esc(cc.text)));
-        } else {
-          cell.appendChild(el('div', 'pp-cell__alg', esc(cc.text)));
-        }
-      }
-      grid.appendChild(cell);
-    });
+    chunk.forEach(function (c) { grid.appendChild(buildCell(c)); });
 
     page.appendChild(grid);
     return page;
@@ -841,38 +933,44 @@ window.CFOPPrint = (function () {
 
   function renderPreview() {
     var list = chosen();
-    var per = Math.max(1, cfg.cols * cfg.rows);
-    var pages = [];
-    for (var i = 0; i < list.length; i += per) { pages.push(list.slice(i, i + per)); }
-    if (!pages.length) { pages.push([]); }
-
     var k = pageScale();
+    var artPx = artSize();
     pagesEl.className = 'pp-pages' + (cfg.landscape ? ' pp-land' : '');
-    pagesEl.innerHTML = '';
-    var total = pages.length, n = list.length;
-    pages.forEach(function (chunk, pi) {
-      pagesEl.appendChild(buildPage(chunk, pi + 1, total, n, k));
-    });
-    /* 配图等大：必须在 zoom=1 下测量（zoom 会缩放 getBoundingClientRect） */
-    relayoutArt();
+    /* 先写几何变量，离屏测量与正式渲染都依赖它 */
+    applyGeometry();
 
-    refreshCount();
+    /* 按实际内容高分页：文字撑高的行会让这一页少放几行，多出来的顺延到下一页 */
+    var groups = list.length ? packRows(list, k, artPx) : [{ ids: [], heights: [] }];
+    if (!groups.length) { groups = [{ ids: [], heights: [] }]; }
+
+    var byId = {};
+    list.forEach(function (c) { byId[c.id] = c; });
+
+    pagesEl.innerHTML = '';
+    var total = groups.length, n = list.length;
+    groups.forEach(function (g, pi) {
+      var chunk = [];
+      g.ids.forEach(function (id) { if (byId[id]) { chunk.push(byId[id]); } });
+      pagesEl.appendChild(buildPage(chunk, pi + 1, total, n, k, g.heights));
+    });
+
+    refreshCount(total);
     applyZoom();
   }
 
   /* 底部统计：单独抽出来，改文字时可以只刷这一行（不必整页重绘） */
-  function refreshCount() {
+  function refreshCount(totalPages) {
     if (!countEl) { return; }
     var list = chosen();
     var per = Math.max(1, cfg.cols * cfg.rows);
-    var total = Math.max(1, Math.ceil(list.length / per));
+    var total = totalPages || Math.max(1, Math.ceil(list.length / per));
     var blank = list.filter(function (c) { return algIdx(c) < 0; }).length;
     var rotated = list.filter(function (c) { return rotOf(c) > 0; }).length;
     var own = customTextCount();
     countEl.textContent = '已选 ' + list.length + ' / ' + cases.length + ' 例' +
       (blank ? '（留空 ' + blank + ' 条' + (own ? '，其中 ' + own + ' 条有文字' : '') + '）' : '') +
       (rotated ? '（旋转 ' + rotated + ' 条）' : '') +
-      ' · 每页 ' + per + ' 格 · 共 ' + total + ' 页';
+      ' · 每页最多 ' + per + ' 格 · 共 ' + total + ' 页';
   }
 
   function applyZoom() {
