@@ -137,6 +137,21 @@
   font-family:var(--font-mono,"SF Mono",Consolas,monospace);
   font-size:var(--fs-xs,.75rem);
 }
+/* 留空时可写的文字框（v2.0.71）：只在选「留空」时出现，不填就打印手写线 */
+.pp-item__text{
+  width:100%; box-sizing:border-box;
+  min-height:44px; max-height:130px; resize:vertical;
+  padding:5px 8px;
+  font-family:inherit; font-size:var(--fs-xs,.75rem); line-height:1.45;
+  color:var(--fg,#EEF2F8);
+  background:var(--bg-soft,#0F131C);
+  border:1px solid var(--line,rgba(255,255,255,.12));
+  border-radius:var(--r-sm,6px);
+  outline:none;
+}
+.pp-item__text:focus{ border-color:var(--brand,#5B8DEF); }
+.pp-item__text::placeholder{ color:var(--fg-3,#7C8798); }
+.pp-item__text[hidden]{ display:none; }
 
 /* =========================================================
    3. 右：排版选项 + A4 预览
@@ -250,6 +265,16 @@
   border-bottom:1px solid var(--pp-rule-strong,rgba(16,24,40,.34));
   height:calc(2.8em);
   min-height:0;
+}
+/* 留空但老师自己写了字（v2.0.71）：用正文字体（可能是中文），允许换行。
+   --pp-tk 是「文字太长把图挤小」时的降档系数，由 JS 在 fitArt() 里设置，
+   没有自定义文字时恒为 1，公式格不受影响。 */
+.pp-cell__alg--text{
+  font-family:var(--font-sans,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif);
+  font-size:calc(8pt * var(--pp-k,1) * var(--pp-tk,1));
+  line-height:1.35; letter-spacing:0;
+  white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere;
+  text-align:center;
 }
 .pp-cell--noalg .pp-cell__alg{ display:none; }
 .pp-cell--noname .pp-cell__name{ display:none; }
