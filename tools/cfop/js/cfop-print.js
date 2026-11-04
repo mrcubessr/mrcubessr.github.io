@@ -190,7 +190,7 @@ window.CFOPPrint = (function () {
       '<div class="pp-panel" role="dialog" aria-modal="true" aria-label="公式打印页生成器">' +
         '<div class="pp-head">' +
           '<span class="pp-head__title" id="pp-title">公式打印页生成器</span>' +
-          '<span class="pp-head__hint">勾选要打印的公式 · 每条可选公式或留空手写 · 自动排版 A4</span>' +
+          '<span class="pp-head__hint">勾选要打印的公式 · 下拉选「留空」就能填文字 · 自动排版 A4</span>' +
           '<span class="pp-head__actions">' +
             '<button type="button" class="btn btn--sm" data-act="reset">恢复默认</button>' +
             '<button type="button" class="btn btn--sm btn--ghost" data-act="close">关闭</button>' +
@@ -199,6 +199,7 @@ window.CFOPPrint = (function () {
         '<div class="pp-body">' +
           '<aside class="pp-side">' +
             '<div class="pp-side__bar" id="pp-quick"></div>' +
+            '<div class="pp-side__groups" id="pp-groups"></div>' +
             '<div class="pp-list" id="pp-list"></div>' +
           '</aside>' +
           '<section class="pp-main">' +
@@ -232,8 +233,24 @@ window.CFOPPrint = (function () {
       }
       if (e.target === modal) { close(); }
     });
+    /* Esc 关闭。⚠️ 但输入框里按 Esc 不能直接关整个面板：
+       中文输入法取消候选词、用户想退出输入，都会顺手按 Esc —— 一按就把
+       面板关了，体验上等同于「字打不进去、白写了」。所以：
+       ① 正在输入法组合（isComposing）→ 完全忽略，交给输入法；
+       ② 焦点在输入框 / 下拉里 → 只退出焦点（blur），不关面板；
+       ③ 再按一次（焦点已不在表单里）才真正关闭。 */
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal && !modal.hidden) { close(); }
+      if (e.key !== 'Escape' || !modal || modal.hidden) { return; }
+      if (e.isComposing) { return; }
+      var t = e.target;
+      var inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' ||
+                          t.tagName === 'SELECT' || t.isContentEditable);
+      if (inField) {
+        e.stopPropagation();
+        t.blur();
+        return;
+      }
+      close();
     });
     window.addEventListener('resize', function () {
       if (modal && !modal.hidden) { applyZoom(); }
@@ -243,14 +260,22 @@ window.CFOPPrint = (function () {
   /* ---------- 快捷选择条 ---------- */
   function buildQuick() {
     var box = modal.querySelector('#pp-quick');
+    var groups = modal.querySelector('#pp-groups');
     box.innerHTML = '';
-    function add(label, title, fn) {
+    if (groups) { groups.innerHTML = ''; }
+    /* 操作按钮与「分类」按钮分成两栏：手机上分类按钮有十几个，全挤在一个
+       换行容器里会把下面的列表压到只剩 36px（实测 390×844 快捷条占 301px，
+       列表仅 36px），用户根本看不到条目和文字框。分开后分类栏在窄屏横向
+       滚动、只占一行。 */
+    function make(label, title, fn, into) {
       var b = el('button', 'seg__btn', esc(label));
       b.type = 'button';
       if (title) { b.title = title; }
       b.addEventListener('click', function () { fn(); refresh(); });
-      box.appendChild(b);
+      into.appendChild(b);
     }
+    function add(label, title, fn) { make(label, title, fn, box); }
+    function addGroup(label, title, fn) { make(label, title, fn, groups || box); }
     add('全选', '勾选全部公式', function () {
       cases.forEach(function (c) { pick(c.id).on = true; });
     });
@@ -286,7 +311,7 @@ window.CFOPPrint = (function () {
     }
     subs().forEach(function (s) {
       var n = cases.filter(function (c) { return c.sub === s; }).length;
-      add(s + ' ' + n, '整组勾选 / 取消', function () {
+      addGroup(s + ' ' + n, '整组勾选 / 取消', function () {
         var group = cases.filter(function (c) { return c.sub === s; });
         var allOn = group.every(function (c) { return pick(c.id).on; });
         group.forEach(function (c) { pick(c.id).on = !allOn; });
@@ -408,7 +433,7 @@ window.CFOPPrint = (function () {
       sel.setAttribute('draggable', 'false');
       var oBlank = document.createElement('option');
       oBlank.value = '-1';
-      oBlank.textContent = '— 留空（手写）—';
+      oBlank.textContent = '— 留空（手写 / 填文字）—';
       sel.appendChild(oBlank);
       list.forEach(function (a, i) {
         var o = document.createElement('option');
@@ -424,6 +449,16 @@ window.CFOPPrint = (function () {
         /* 切到「留空」时把文字框露出来，切回公式就收起（保留已输入的文字） */
         if (ta) { ta.hidden = s.alg !== -1; }
         refresh();
+        /* 刚切到「留空」→ 直接把光标放进输入框并滚到可见。
+           不加这一步，用户切了留空也常以为「没有地方能写字」（框在可视区外）。 */
+        if (s.alg === -1 && ta) {
+          requestAnimationFrame(function () {
+            try {
+              ta.focus();
+              revealInList(ta);
+            } catch (e) {}
+          });
+        }
       });
       main.appendChild(sel);
 
@@ -711,6 +746,23 @@ window.CFOPPrint = (function () {
     pagesEl.style.zoom = '1';
     fitArt();
     pagesEl.style.zoom = prevZoom || '';
+  }
+
+  /* 把某个节点完整滚进 .pp-list 的可视区。
+     不用 scrollIntoView({block:'nearest'})：它认为「部分可见」就够了，
+     实测手机上输入框底部仍被裁掉 11px（框在列表区外看不见）。
+     这里按 rect 精确补差，并留 8px 余量。 */
+  function revealInList(node) {
+    if (!node || !node.closest) { return; }
+    var list = node.closest('.pp-list');
+    if (!list) { return; }
+    var lr = list.getBoundingClientRect();
+    var nr = node.getBoundingClientRect();
+    if (nr.bottom > lr.bottom - 8) {
+      list.scrollTop += Math.ceil(nr.bottom - (lr.bottom - 8));
+    } else if (nr.top < lr.top + 8) {
+      list.scrollTop -= Math.ceil((lr.top + 8) - nr.top);
+    }
   }
 
   /* 只刷新某一格的文字（改文字时用）——不重建整页，避免输入框失焦、

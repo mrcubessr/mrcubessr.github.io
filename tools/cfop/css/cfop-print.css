@@ -72,6 +72,15 @@
   padding:var(--s2,8px) var(--s3,12px);
   border-bottom:1px solid var(--line,rgba(255,255,255,.08));
 }
+/* 分类按钮单独一栏。窄屏下**不换行、横向滚动**，只占一行：
+   十几个分类按钮若都换行，会把下面的列表压到只剩几十像素
+   （实测 390×844：快捷条 301px、列表仅 36px，条目和文字框都看不见）。 */
+.pp-side__groups{
+  flex:0 0 auto; display:flex; flex-wrap:wrap; gap:var(--s1,4px);
+  padding:0 var(--s3,12px) var(--s2,8px);
+  border-bottom:1px solid var(--line,rgba(255,255,255,.08));
+}
+.pp-side__groups:empty{ display:none; }
 .pp-side__bar .seg__btn{
   padding:3px 8px; font-size:var(--fs-xs,.75rem);
   background:var(--surface-3,rgba(255,255,255,.06));
@@ -79,6 +88,13 @@
   border-radius:var(--r-sm,6px); color:var(--fg-2,#AEB8CA); cursor:pointer;
 }
 .pp-side__bar .seg__btn:hover{ border-color:var(--brand,#5B8DEF); color:var(--brand,#5B8DEF); }
+.pp-side__groups .seg__btn{
+  padding:3px 8px; font-size:var(--fs-xs,.75rem); white-space:nowrap;
+  background:var(--surface-3,rgba(255,255,255,.06));
+  border:1px solid var(--line,rgba(255,255,255,.08));
+  border-radius:var(--r-sm,6px); color:var(--fg-2,#AEB8CA); cursor:pointer;
+}
+.pp-side__groups .seg__btn:hover{ border-color:var(--brand,#5B8DEF); color:var(--brand,#5B8DEF); }
 .pp-list{
   flex:1; min-height:0; overflow:auto;
   padding:var(--s2,8px); display:flex; flex-direction:column; gap:var(--s2,8px);
@@ -285,6 +301,17 @@
   .pp-body{ grid-template-columns:1fr; grid-template-rows:minmax(0,40vh) minmax(0,1fr); }
   .pp-side{ border-right:0; border-bottom:1px solid var(--line,rgba(255,255,255,.08)); }
   .pp-panel{ height:96vh; }
+  /* 分类按钮横排滚动、只占一行，把高度让给列表 */
+  .pp-side__groups{
+    flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
+    -webkit-overflow-scrolling:touch; scrollbar-width:thin;
+  }
+  .pp-side__groups::-webkit-scrollbar{ height:4px; }
+  .pp-side__groups::-webkit-scrollbar-thumb{
+    background:var(--line-2,rgba(255,255,255,.14)); border-radius:2px;
+  }
+  /* 列表保底高度：即使头尾都换行很凶，也要能看见至少两条 */
+  .pp-list{ min-height:88px; }
 }
 @media (max-width:640px){
   .pp-modal{ padding:0; }
