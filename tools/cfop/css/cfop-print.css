@@ -1,9 +1,11 @@
 /* =========================================================
-   pll-print.css — PLL 打印页生成器
+   cfop-print.css — 公式打印页生成器（OLL / PLL 及后续公式库通用）
    · 弹窗（配置 + A4 预览）走 tokens 变量，随深浅主题切换
    · A4 纸张恒为白底黑字，故用页面私有变量 --pp-ink* / --pp-paper / --pp-rule
-     （前缀私有，非 §4.2.2 禁用名，保证深浅主题下打印结果一致）
-   加载顺序：… → cfop.css → pll-print.css
+     （前缀私有，非禁用名，保证深浅主题下打印结果一致）
+   · 单元格内字号 / 配图尺寸由 --pp-k 驱动（JS 按「列数 × 行数」算出的缩放系数），
+     所以改行列数量时内容自动跟着放大缩小，不会溢出或挤成一行
+   加载顺序：cfop.css → cfop-trainer.css → cfop-print.css
    ========================================================= */
 
 /* ---------- 纸张专属语义色（与主题无关，恒定白纸黑字） ---------- */
@@ -14,6 +16,7 @@
   --pp-rule:rgba(16,24,40,.14);
   --pp-rule-strong:rgba(16,24,40,.34);
   --pp-paper:#FFFFFF;
+  --pp-k:1;                  /* 单元格缩放系数，JS 写入 */
 }
 
 /* =========================================================
@@ -69,7 +72,13 @@
   padding:var(--s2,8px) var(--s3,12px);
   border-bottom:1px solid var(--line,rgba(255,255,255,.08));
 }
-.pp-side__bar .btn{ margin-left:auto; }
+.pp-side__bar .seg__btn{
+  padding:3px 8px; font-size:var(--fs-xs,.75rem);
+  background:var(--surface-3,rgba(255,255,255,.06));
+  border:1px solid var(--line,rgba(255,255,255,.08));
+  border-radius:var(--r-sm,6px); color:var(--fg-2,#AEB8CA); cursor:pointer;
+}
+.pp-side__bar .seg__btn:hover{ border-color:var(--brand,#5B8DEF); color:var(--brand,#5B8DEF); }
 .pp-list{
   flex:1; min-height:0; overflow:auto;
   padding:var(--s2,8px); display:flex; flex-direction:column; gap:var(--s2,8px);
@@ -86,7 +95,6 @@
   cursor:grab;
 }
 .pp-item:hover{ border-color:var(--line-2,rgba(255,255,255,.14)); }
-.pp-item.is-dragging{ cursor:grabbing; }
 .pp-item.is-off{ opacity:.42; }
 .pp-item__check{ display:flex; align-items:center; }
 .pp-item__check input{
@@ -103,7 +111,7 @@
 .pp-item__art svg{ width:100%; height:100%; display:block; }
 
 /* 拖拽排序状态 */
-.pp-item.is-dragging{ opacity:.45; border-style:dashed; }
+.pp-item.is-dragging{ opacity:.45; border-style:dashed; cursor:grabbing; }
 .pp-item.is-over{ border-color:var(--brand,#5B8DEF); box-shadow:0 0 0 1px var(--brand,#5B8DEF) inset; }
 .pp-item__main{ min-width:0; display:flex; flex-direction:column; gap:4px; }
 .pp-item__row{ display:flex; align-items:center; gap:var(--s2,8px); flex-wrap:wrap; }
@@ -169,7 +177,7 @@
   padding-bottom:3mm; margin-bottom:3.5mm;
   border-bottom:1.4px solid var(--pp-rule-strong,#3A4356);
 }
-.pp-page__title{ font-size:17pt; font-weight:800; letter-spacing:.08em; color:var(--pp-ink,#101828); line-height:1.15; }
+.pp-page__title{ font-size:15pt; font-weight:800; letter-spacing:.08em; color:var(--pp-ink,#101828); line-height:1.15; }
 .pp-page__meta{ font-size:8.5pt; color:var(--pp-ink-3,#667085); text-align:right; line-height:1.5; white-space:nowrap; }
 .pp-page__meta b{ color:var(--pp-ink-2,#475467); font-weight:600; }
 
@@ -181,17 +189,17 @@
 .pp-cell{
   min-height:0; min-width:0; overflow:hidden;
   display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  gap:1mm; padding:1.6mm 1.2mm;
+  gap:calc(1mm * var(--pp-k,1)); padding:calc(1.6mm * var(--pp-k,1)) calc(1.2mm * var(--pp-k,1));
   border:1px solid var(--pp-rule,rgba(16,24,40,.14));
   border-radius:0;
 }
 /* 配图容器：宽高双向受限于单元格（同步缩放），尽量保持正方形，避免不同单元
-   因公式长度不同导致展开图大小不一。行高不足（如 3×5 密集版式）时自动收缩，
+   因公式长度不同导致展开图大小不一。行高不足（如 5×8 密集版式）时自动收缩，
    由内部 svg 等比 letterbox 居中绘制 → 展开图始终完整可见、不溢出重叠。
    svg 绝对定位填充，不参与普通流，避免 Chrome 分页多出空白页。 */
 .pp-cell__art{
   flex:0 1 auto; min-height:0;
-  width:min(100%, 42mm); max-height:100%; aspect-ratio:1/1;
+  width:min(100%, calc(42mm * var(--pp-k,1))); max-height:100%; aspect-ratio:1/1;
   position:relative; margin:0 auto;
 }
 .pp-cell__art svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
@@ -204,19 +212,25 @@
 .pp-cell__alg{ min-height:1.4em; }
 
 .pp-cell__name{
-  flex:0 0 auto; font-size:10.5pt; font-weight:800; letter-spacing:.02em;
-  color:var(--pp-ink,#101828); line-height:1.2; text-align:center;
+  flex:0 0 auto; font-size:calc(10.5pt * var(--pp-k,1)); font-weight:800; letter-spacing:.02em;
+  color:var(--pp-ink,#101828); line-height:1.2; text-align:center; white-space:nowrap;
 }
 .pp-cell__sub{
-  flex:0 0 auto; font-size:7pt; letter-spacing:.04em;
-  color:var(--pp-ink-3,#667085); text-transform:uppercase;
+  flex:0 0 auto; font-size:calc(7pt * var(--pp-k,1)); letter-spacing:.04em;
+  color:var(--pp-ink-3,#667085); text-transform:uppercase; text-align:center;
 }
 .pp-cell__alg{
   flex:0 0 auto; width:100%;
   font-family:var(--font-mono,"SF Mono","Cascadia Code","Consolas",monospace);
-  font-size:8pt; line-height:1.4; letter-spacing:.02em;
+  font-size:calc(8pt * var(--pp-k,1)); line-height:1.4; letter-spacing:.02em;
   color:var(--pp-ink,#101828); text-align:center;
   word-break:break-word; overflow-wrap:normal;
+}
+/* 留空（手写）：画一条书写横线，比纯空白更好用 */
+.pp-cell__alg--blank{
+  border-bottom:1px solid var(--pp-rule-strong,rgba(16,24,40,.34));
+  height:calc(5mm * var(--pp-k,1)); min-height:0;
+  margin-top:auto; margin-bottom:auto;
 }
 .pp-cell--noalg .pp-cell__alg{ display:none; }
 .pp-cell--noname .pp-cell__name{ display:none; }
@@ -238,11 +252,13 @@
    5. 打印
    ========================================================= */
 @media print{
-  html,body{ background:#fff !important; }
+  /* 纸张由 @page margin:0 控制，body 默认 8px 外边距会把整页内容顶下去，
+     导致满页时溢出到第二张空白纸 —— 这里必须清零 */
+  html,body{ background:#fff !important; margin:0 !important; padding:0 !important; }
   body.pp-open{ overflow:visible !important; }
 
   /* 隐藏站点外壳与本工具的所有交互界面 */
-  [data-site-nav], .site-nav, .cfop-wrap, .site-footer, .no-print{ display:none !important; }
+  [data-site-nav], .site-nav, .cfop-wrap, .c4-wrap, .site-footer, .no-print{ display:none !important; }
   .pp-head, .pp-foot, .pp-side, .pp-opts{ display:none !important; }
 
   .pp-modal{
@@ -263,13 +279,23 @@
   .pp-pages{ display:block !important; margin:0 !important; }
   .pp-pages{ zoom:1 !important; }
 
-  /* 高度各留 1mm 余量：与纸张“恰好等高的整页元素”会被分页判定为溢出，多出空白页 */
+  /* 魔方色块是 SVG 填充色，但部分驱动 / 「省墨」模式下仍会淡化，
+     这里显式要求精确打印颜色 */
+  .pp-page, .pp-page *{
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
+
+  /* 高度各留 2mm 余量：与纸张“恰好等高的整页元素”（满页时最后一行单元格的
+     1px 边框正好落在页底）会被分页判定为溢出，多出一张空白页 */
   .pp-page{
-    width:210mm !important; height:296mm !important;
+    width:210mm !important; height:295mm !important;
     margin:0 !important; box-shadow:none !important;
     break-inside:auto; page-break-inside:auto;
+    overflow:hidden !important;
   }
-  .pp-land .pp-page{ width:296mm !important; height:209mm !important; }
+  .pp-grid{ overflow:hidden; }
+  .pp-land .pp-page{ width:296mm !important; height:208mm !important; }
   /* 第 2 页起强制换页；不用 break-inside:avoid，否则整页高的元素会被判定放不下而多出空白页 */
   .pp-page + .pp-page{ break-before:page; page-break-before:always; }
 }

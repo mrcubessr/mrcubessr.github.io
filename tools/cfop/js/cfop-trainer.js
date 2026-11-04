@@ -39,7 +39,8 @@ window.CFOP = (function () {
       groupLabel: '形状类型',
       minCell: 132, minFloor: 88,   // 理想卡宽 / 硬下限（57 卡一屏只有 ~97px 可用）
       maxCell: 180,                  // 卡片宽度上限（57 张要挤一屏，卡不能太肥）
-      maxChars: 6                    // 最长名称字符数（"OLL 57"）
+      maxChars: 6,                   // 最长名称字符数（"OLL 57"）
+      print: true                    // 工具条出「打印公式」入口（cfop-print.js）
     },
     pll: {
       id: 'pll', name: 'PLL', title: 'PLL 公式训练',
@@ -53,7 +54,8 @@ window.CFOP = (function () {
          「正方形兜底」，1920 宽就出现 101px 小卡 + 下方大片空白。
          改成随视口放大 → 1920 选 7×3 的 224px、2560 选 7×3 的 319px。 */
       maxCell: function () { return Math.max(240, Math.min(460, Math.round(window.innerWidth * 0.17))); },
-      maxChars: 2                    // 最长名称（"Gb"）
+      maxChars: 2,                   // 最长名称（"Gb"）
+      print: true                    // 工具条出「打印公式」入口（cfop-print.js）
     },
     /* ---- 三阶 F2L / 进阶 F2L（v2.0.54）：原静态公式库并入训练器 ----
        数据用 fl（54 字平面串）存整盒状态，卡片/浮层走 isoCube 立体图；
@@ -535,6 +537,10 @@ window.CFOP = (function () {
         + '  <input type="search" id="c4-q" placeholder="编号 / 公式" autocomplete="off">'
         + '  <button type="button" id="c4-clear" class="c4-navbtn"'
         + '          title="清空筛选：下拉筛选 + 搜索，全部复位">清空筛选</button>'
+        + (S.print
+            ? '  <button type="button" id="c4-print" class="c4-navbtn"'
+              + '          title="挑公式、挑版本，排成 A4 打印；公式位也可以留空给学生手写">🖨 打印公式</button>'
+            : '')
         + '  <span class="c4-filter-hint" id="c4-filter-hint"></span>'
         + '</div>';
       /* ---------- 仪表盘 ---------- */
@@ -1364,6 +1370,11 @@ window.CFOP = (function () {
         $('c4-q').value = '';
         renderBoard();
       });
+      /* 打印公式（仅 print:true 的公式库出这个按钮） */
+      if (S.print) {
+        var printBtn = $('c4-print');
+        if (printBtn) { printBtn.addEventListener('click', openPrint); }
+      }
       /* 看板点击：星标优先（点在星上只切星标，不打开练习），否则打开练习浮层 */
       if (boardEl) {
         boardEl.addEventListener('click', function (e) {
@@ -1526,7 +1537,35 @@ window.CFOP = (function () {
       }
     }
 
-    /* ================= 13) 案例下拉（按类型分组） ================= */
+    /* ================= 13) 打印公式（v2.0.69） =================
+       交给 cfop-print.js 生成 A4 打印页。数据直接复用已加载的 CASES，
+       不再二次 fetch；公式顺序取「当前实际在练的那条」（老师换过公式就打印
+       换过的那条，自定义公式排第一位），避免打印出来的和课上讲的不一致。 */
+    function printCases() {
+      return CASES.map(function (c) {
+        var list = c.algs.map(function (a) { return a.alg; });
+        var cur = curAlg(c);
+        var idx = 0;
+        if (cur.isCustom) {
+          list.unshift(cur.text);
+          idx = 0;
+        } else if (cur.vi >= 0 && cur.vi < list.length) {
+          idx = cur.vi;
+        }
+        return {
+          id: c.id, sub: c.sub, facelets: c.facelets, fl: c.fl, art: c.art,
+          algs: list, cur: idx
+        };
+      });
+    }
+    function openPrint() {
+      if (!window.CFOPPrint) { toast('打印模块没加载成功，刷新页面再试'); return; }
+      window.CFOPPrint.open({
+        set: SET, name: S.name, groupLabel: S.groupLabel, cases: printCases()
+      });
+    }
+
+    /* ================= 14) 案例下拉（按类型分组） ================= */
     function fillCaseSelect() {
       var html = '';
       SUBGROUPS.forEach(function (s) {
@@ -1554,7 +1593,7 @@ window.CFOP = (function () {
       sel.appendChild(og);
     }
 
-    /* ================= 14) 启动 ================= */
+    /* ================= 15) 启动 ================= */
     var booted = false;
     function boot() {
       if (!mountBox) { return; }
@@ -1575,7 +1614,7 @@ window.CFOP = (function () {
       setTimeout(fitBoard, 0);
     }
 
-    /* ================= 15) 账号同步（LSProvider，v2.0.40 新增） =================
+    /* ================= 16) 账号同步（LSProvider，v2.0.40 新增） =================
        此前 CFOP 训练器没有注册任何同步 Provider：成绩、星标、公式切换全部只存
        本机浏览器，换设备（教室↔家里）后从零开始。现按盲拧公式训练器同款机制接入，
        四类键一起进快照；JSON 结构不同，空判定分开处理：

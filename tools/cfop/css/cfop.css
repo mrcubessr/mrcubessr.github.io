@@ -126,7 +126,7 @@ img,svg,video{ max-width:100%; height:auto; display:block; }
 .ct__solution{ display:flex; align-items:center; gap:var(--s3,12px); }
 /* 必须显式处理 hidden：上面的 display:flex 优先级高于 UA 的 [hidden]{display:none}，
    否则 hidden 属性失效、解法会一直可见（训练时等于直接给答案）。
-   同一约定见 pll-print.css 的 .pp-modal[hidden] 与 3x3teach 的 .modal[hidden]。 */
+   同一约定见 cfop-print.css 的 .pp-modal[hidden] 与 3x3teach 的 .modal[hidden]。 */
 .ct__solution[hidden]{ display:none; }
 .ct__sol-label{ flex:0 0 auto; font-size:var(--fs-base,1rem); color:var(--fg-3,#7C8798); }
 .ct__sol-text{ flex:1; min-width:0; margin:0; cursor:pointer; font-size:var(--fs-lg,1.15rem);

@@ -377,3 +377,16 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 24点功能本身（求解器内核 `assets/vendor/suan24/suan24.js`、题库 `tools/24game/data/levels.json`、
 页面与脚本 `tools/24game/{index.html,game24.js,game24.css}`）均为新增目录，
 不进预缓存清单，走运行时缓存（stale-while-revalidate），首次访问即最新。
+
+## v39（2026-11-04）
+
+`tools/cfop/js/cfop-ui.js`（APP_SHELL 内）删除了 PLL 打印页生成器的入口分支——
+该分支依赖的 `pll-print.js` 自 v2.0.54 公式库并入训练器后已无人加载
+（宿主 `pll.html` 改为跳转页），且所在 `render()` 函数已无任何调用者，
+属不可达死代码。v2.0.69 起打印功能统一由新增的 `cfop-print.js` 提供，
+入口在 OLL / PLL 公式训练器工具条。因改动落在预缓存清单内，`CACHE` 递增至
+`fto-timer-v39`，避免已安装 PWA 用户长期持有旧版 `cfop-ui.js`。
+
+被删除的 `tools/cfop/js/pll-print.js` 与 `tools/cfop/css/pll-print.css`
+本就不在 APP_SHELL 内，删除不影响缓存策略。
+新增的 `cfop-print.js` / `cfop-print.css` 同样不进预缓存清单，走运行时缓存。
