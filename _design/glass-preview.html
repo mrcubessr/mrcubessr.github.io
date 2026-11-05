@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>玻璃拟态主题 · 预览与调参</title>
+<script>
+  /* 主题 / 配色 / 玻璃开关：首帧之前写好属性，避免闪白 */
+  (function () {
+    try {
+      var d = document.documentElement;
+      var p = localStorage.getItem('theme');
+      if (p !== 'light' && p !== 'dark' && p !== 'auto') p = 'auto';
+      var m = p === 'auto'
+        ? ((window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light')
+        : p;
+      d.setAttribute('data-theme', m);
+      /* ?theme=dark|light 、?palette=inknight 供截图 / 分享固定场景用 */
+      var url = location.search || '';
+      var mt = /(?:^|[?&])theme=(dark|light)(?:&|$)/.exec(url);
+      if (mt) { m = mt[1]; p = mt[1]; }
+      d.setAttribute('data-theme', m);
+      var q = localStorage.getItem('mf_palette');
+      if (q && /^(classroom|inknight|projector|paper|classic)$/.test(q)) d.setAttribute('data-palette', q);
+      var mp = /(?:^|[?&])palette=([a-z]+)(?:&|$)/.exec(url);
+      if (mp) {
+        if (/^(classroom|inknight|projector|paper|classic)$/.test(mp[1])) d.setAttribute('data-palette', mp[1]);
+        else d.removeAttribute('data-palette');
+      }
+      /* 本页默认开玻璃；localStorage 里明确关过就尊重它 */
+      d.setAttribute('data-glass', localStorage.getItem('mf_glass') === 'off' ? 'off' : 'on');
+      /* 本页要展示玻璃侧栏，强制把导航展开（站点默认首次进入是收起的）。
+         注意：这会把展开状态记进本会话的 sessionStorage，看完本页后站点导航也是展开的。 */
+      try { sessionStorage.setItem('site_nav_hidden_v2', '0'); } catch (e) {}
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="/assets/css/tokens.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="/assets/css/pages/home.css">
+<!-- 玻璃材质层：必须排在全部站点样式之后 -->
+<link rel="stylesheet" href="/assets/css/glass.css" data-glass-css>
+<style>
+  /* 本页只是调参台，样式全部复用站点令牌，不引入新颜色 */
+  .gp-head{ padding:var(--s6) 0 var(--s4); }
+  .gp-head h1{ font-size:var(--fs-2xl); }
+  .gp-head p{ margin:var(--s2) 0 0; color:var(--fg-2); font-size:var(--fs-sm); }
+
+  /* 调参条：本身就是一块玻璃，顺便当验收样板 */
+  .gp-dock{
+    position:sticky; top:var(--s4); z-index:20;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:var(--s3) var(--s4);
+    padding:var(--s4);
+    margin:var(--s4) 0 var(--s6);
+    border:1px solid var(--g-edge,#fff2);
+    border-radius:var(--g-r,14px);
+    background:var(--g-panel-bg,rgba(20,24,38,.8));
+    background-image:var(--g-sheen,none);
+    box-shadow:0 18px 48px rgba(0,0,0,.28);
+    -webkit-backdrop-filter:var(--g-filter-panel,blur(24px));
+    backdrop-filter:var(--g-filter-panel,blur(24px));
+  }
+  .gp-dock__title{
+    grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+    gap:var(--s3); font-size:var(--fs-sm); font-weight:600; color:var(--fg);
+  }
+  .gp-dock__title span{ font-weight:400; color:var(--fg-3); font-size:var(--fs-xs); }
+  .gp-field{ display:flex; flex-direction:column; gap:6px; font-size:var(--fs-xs); color:var(--fg-2); }
+  .gp-field b{ color:var(--fg); font-variant-numeric:tabular-nums; font-weight:600; }
+  .gp-field input[type=range]{ width:100%; accent-color:var(--brand); }
+  .gp-field select{
+    padding:6px 8px; font:inherit; font-size:var(--fs-xs);
+    color:var(--fg); background:var(--g-inset-bg,var(--surface-2));
+    border:1px solid var(--g-edge,var(--line-2)); border-radius:var(--g-r-sm,10px);
+  }
+  .gp-row{ display:flex; gap:var(--s2); flex-wrap:wrap; }
+
+  /* 章节标题 */
+  .gp-sec{ margin:var(--s7) 0 var(--s3); }
+  .gp-sec h2{ font-size:var(--fs-lg); }
+  .gp-sec p{ margin:var(--s1) 0 0; color:var(--fg-3); font-size:var(--fs-xs); }
+
+  /* 按钮行 */
+  .gp-btns{ display:flex; flex-wrap:wrap; gap:var(--s3); align-items:center; }
+
+  /* 面板：文章 + 表格 */
+  .gp-grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--s4); }
+  .gp-panel{
+    padding:var(--s5);
+    border:1px solid var(--g-edge,var(--line));
+    border-radius:var(--g-r,14px);
+    background:var(--g-card-bg,var(--surface));
+    background-image:var(--g-sheen,none);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,var(--g-hi,.28)),
+      var(--g-shadow-card,0 8px 26px rgba(0,0,0,.26));
+  }
+  .gp-panel h3{ font-size:var(--fs-base); margin-bottom:var(--s2); }
+  .gp-panel p{ color:var(--fg-2); font-size:var(--fs-sm); margin:0 0 var(--s3); }
+  .gp-panel p:last-child{ margin-bottom:0; }
+  .gp-kv{ display:flex; justify-content:space-between; gap:var(--s3); padding:8px 0; border-bottom:1px solid var(--g-edge,var(--line)); font-size:var(--fs-sm); }
+  .gp-kv:last-child{ border-bottom:0; }
+  .gp-kv span{ color:var(--fg-3); }
+  .gp-kv b{ color:var(--fg); font-variant-numeric:tabular-nums; }
+
+  /* 真实弹窗演示 */
+  .gp-modal{ position:fixed; inset:0; z-index:var(--z-modal,1100); display:none; }
+  .gp-modal.is-open{ display:grid; place-items:center; }
+  .gp-modal__mask{
+    position:absolute; inset:0; background:rgba(0,0,0,.42);
+    -webkit-backdrop-filter:blur(10px) saturate(1.1); backdrop-filter:blur(10px) saturate(1.1);
+  }
+  .gp-modal__box{
+    position:relative; width:min(440px,92vw); padding:var(--s5);
+    border:1px solid var(--g-edge,var(--line-2));
+    border-radius:var(--g-r-lg,18px);
+    background:var(--g-panel-bg,var(--surface));
+    background-image:var(--g-sheen,none);
+    box-shadow:var(--g-shadow-panel,0 24px 70px rgba(0,0,0,.46));
+  }
+  .gp-modal__box h3{ margin:0 0 var(--s2); }
+  .gp-modal__box p{ color:var(--fg-2); font-size:var(--fs-sm); }
+  .gp-modal__acts{ display:flex; justify-content:flex-end; gap:var(--s2); margin-top:var(--s4); }
+
+  /* 预算提示 */
+  .gp-note{
+    display:flex; gap:var(--s3); align-items:flex-start;
+    padding:var(--s4); margin-top:var(--s3);
+    font-size:var(--fs-xs); color:var(--fg-2); line-height:var(--lh-base);
+    border-left:3px solid var(--brand);
+    background:var(--brand-soft);
+    border-radius:var(--g-r-sm,10px);
+  }
+  .gp-note b{ color:var(--fg); }
+
+  @media (max-width:640px){
+    .gp-dock{ position:static; }
+  }
+</style>
+</head>
+<body class="preview-page">
+<div data-site-nav></div>
+
+<main class="container home" style="max-width:var(--container-wide)">
+
+  <header class="gp-head">
+    <h1>玻璃拟态主题 · 预览与调参</h1>
+    <p>左边是真导航（玻璃侧栏），下面是真组件。拖滑块可以直接看到材质变化，满意了把数值写进 <code>glass.css</code> 即可。</p>
+  </header>
+
+  <!-- ===== 调参条 ===== -->
+  <div class="gp-dock" role="region" aria-label="材质调参">
+    <div class="gp-dock__title">
+      材质调参
+      <span>数值实时写入 &lt;html&gt; 的 --g-* 变量</span>
+    </div>
+
+    <label class="gp-field">雾化半径（侧栏）<b id="v-blur">20px</b>
+      <input type="range" id="s-blur" min="0" max="48" step="1" value="20" aria-label="雾化半径">
+    </label>
+
+    <label class="gp-field">玻璃浓度 α<b id="v-alpha">0.14</b>
+      <input type="range" id="s-alpha" min="0" max="45" step="1" value="14" aria-label="玻璃浓度">
+    </label>
+
+    <label class="gp-field">可读性下限 floor<b id="v-floor">0.42</b>
+      <input type="range" id="s-floor" min="0" max="100" step="1" value="42" aria-label="可读性下限">
+    </label>
+
+    <label class="gp-field">顶部高光<b id="v-hi">0.28</b>
+      <input type="range" id="s-hi" min="0" max="80" step="1" value="28" aria-label="顶部高光">
+    </label>
+
+    <label class="gp-field">暗化层 scrim<b id="v-scrim">0.22</b>
+      <input type="range" id="s-scrim" min="0" max="80" step="1" value="22" aria-label="暗化层">
+    </label>
+
+    <label class="gp-field">明度
+      <select id="sel-theme">
+        <option value="dark">深色</option>
+        <option value="light">浅色</option>
+      </select>
+    </label>
+
+    <label class="gp-field">配色方案
+      <select id="sel-palette">
+        <option value="">曜石蓝（默认）</option>
+        <option value="classroom">课堂白</option>
+        <option value="inknight">暖夜墨</option>
+        <option value="projector">投屏高对比</option>
+        <option value="paper">纸感米黄</option>
+        <option value="classic">经典六色</option>
+      </select>
+    </label>
+
+    <div class="gp-field">玻璃开关
+      <div class="gp-row">
+        <button class="btn btn--sm btn--ghost" id="btn-toggle">关闭玻璃</button>
+        <button class="btn btn--sm btn--ghost" id="btn-debug">层数描边</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gp-note">
+    <div>
+      <b>先看这一点：</b>把「雾化半径」拉到 0，玻璃立刻变成一层灰塑料；把「顶部高光」拉到 0，
+      面板边界会糊进背景。玻璃的三件套 —— <b>模糊 + 高光 + 发丝边</b> —— 缺一件就不成立。
+      这正是照搬半透明背景值做不出来的原因。
+    </div>
+  </div>
+
+  <!-- ===== 卡片 ===== -->
+  <section class="gp-sec">
+    <h2>① 卡片网格（首页主场景）</h2>
+    <p>卡片只吃「玻璃色 + 顶部高光」，不吃模糊 —— 一屏几十张卡，模糊会直接把帧率打下来。</p>
+  </section>
+  <div class="card-grid">
+    <a class="card card--tutorial" href="#">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5V16.5L12 21 4 16.5V7.5Z"/><path d="M12 12 4 7.5M12 12l8-4.5M12 12v9"/></svg></div>
+      <div class="card-title">三阶</div>
+      <div class="card-desc">CFOP + ZBLL 公式库</div>
+    </a>
+    <a class="card card--tutorial" href="#">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-5 10-5 10 5 10 5-3.5 5-10 5-10-5-10-5z"/><circle cx="12" cy="12" r="2.2"/></svg></div>
+      <div class="card-title">盲拧</div>
+      <div class="card-desc">棱 / 角公式库 + 全套训练</div>
+    </a>
+    <a class="card card--train" href="#">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <div class="card-title">计时器</div>
+      <div class="card-desc">打乱 · 分段 · 成绩曲线</div>
+    </a>
+    <a class="card card--print" href="#">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="7" rx="1"/><path d="M6 16h12v5H6z"/></svg></div>
+      <div class="card-title">出卷打印</div>
+      <div class="card-desc">公式单 · 公式卡 · 练习纸</div>
+    </a>
+    <a class="card card--teach" href="#">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H4z"/><path d="M9 20h6M12 16v4"/></svg></div>
+      <div class="card-title">课堂投屏</div>
+      <div class="card-desc">课件 · 学生端 · 分组</div>
+    </a>
+    <a class="card is-soon card--soon" href="#">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div class="card-title">更多工具</div>
+      <div class="card-desc">开发中</div>
+    </a>
+  </div>
+
+  <!-- ===== 控件 ===== -->
+  <section class="gp-sec">
+    <h2>② 按钮 / 徽标 / 输入 / 分段</h2>
+    <p>主按钮保留品牌色实底（玻璃会削弱它的「可点性」），次级与幽灵按钮走玻璃。</p>
+  </section>
+  <div class="gp-panel">
+    <div class="gp-btns" style="margin-bottom:var(--s4)">
+      <button class="btn btn--primary">开始训练</button>
+      <button class="btn btn--secondary">导入成绩</button>
+      <button class="btn btn--ghost">清空</button>
+      <button class="btn btn--danger">重置</button>
+    </div>
+    <div class="gp-btns" style="margin-bottom:var(--s4)">
+      <span class="badge badge--brand">品牌</span>
+      <span class="badge badge--gold">公式</span>
+      <span class="badge badge--green">已掌握</span>
+      <span class="badge badge--amber">待复习</span>
+      <span class="badge badge--red">易错</span>
+      <span class="badge badge--mono">R U R' U'</span>
+    </div>
+    <div class="gp-grid2">
+      <label class="field"><span class="field__label">打乱长度</span>
+        <input class="input" value="20" aria-label="打乱长度">
+        <span class="field__hint">建议 18–25 步</span>
+      </label>
+      <label class="field"><span class="field__label">训练模式</span>
+        <select class="select"><option>单次</option><option>AO5</option><option>AO12</option></select>
+        <span class="field__hint">AO5 取中间三次</span>
+      </label>
+    </div>
+    <div class="seg" style="margin-top:var(--s4)">
+      <button class="seg__btn is-active">全部</button>
+      <button class="seg__btn">已掌握</button>
+      <button class="seg__btn">待复习</button>
+    </div>
+    <div class="progress" style="margin-top:var(--s4)"><div class="progress__bar" style="width:62%"></div></div>
+  </div>
+
+  <!-- ===== 面板 / 表格 ===== -->
+  <section class="gp-sec">
+    <h2>③ 内容面板与数据表</h2>
+    <p>正文压在玻璃上时，靠「可读性下限」保住对比度，而不是靠把背景再调黑一点。</p>
+  </section>
+  <div class="gp-grid2">
+    <article class="gp-panel">
+      <h3>今天练什么</h3>
+      <p>先把 OLL 的 7 个「十字已好」形态刷一遍，再用 AO12 测一次稳定度。手感上来之后切 ZBLL 的前 20 条。</p>
+      <p style="color:var(--fg-3)">最近一次成绩 18.42s · 比上周快 1.3s</p>
+    </article>
+    <article class="gp-panel">
+      <h3>分段成绩</h3>
+      <div class="gp-kv"><span>Cross</span><b>2.14s</b></div>
+      <div class="gp-kv"><span>F2L</span><b>9.86s</b></div>
+      <div class="gp-kv"><span>OLL</span><b>3.22s</b></div>
+      <div class="gp-kv"><span>PLL</span><b>3.20s</b></div>
+    </article>
+  </div>
+
+  <div class="gp-panel" style="margin-top:var(--s4)">
+    <table class="table">
+      <thead><tr><th>公式</th><th>分组</th><th>状态</th><th>最佳</th></tr></thead>
+      <tbody>
+        <tr><td><code>R U R' U'</code></td><td>基础</td><td><span class="badge badge--green">已掌握</span></td><td>0.71s</td></tr>
+        <tr><td><code>F R U R' U' F'</code></td><td>OLL 45</td><td><span class="badge badge--amber">待复习</span></td><td>0.94s</td></tr>
+        <tr><td><code>R U R' F' R U R' U' R' F R2 U' R'</code></td><td>PLL T</td><td><span class="badge badge--red">易错</span></td><td>1.42s</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 弹窗 ===== -->
+  <section class="gp-sec">
+    <h2>④ 弹窗与浮层</h2>
+    <p>弹窗是少数「必须吃真模糊」的面：它浮在最上层，背后画面不糊就会和内容抢注意力。</p>
+  </section>
+  <div class="gp-btns">
+    <button class="btn btn--primary" id="btn-modal">打开弹窗</button>
+  </div>
+
+  <div class="gp-modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="gp-modal__mask" data-close></div>
+    <div class="gp-modal__box">
+      <h3 id="modal-title">确认重置本次成绩？</h3>
+      <p>这个操作只清除当前这一轮的计时记录，历史成绩与个人最佳不受影响。</p>
+      <div class="gp-modal__acts">
+        <button class="btn btn--ghost" data-close>取消</button>
+        <button class="btn btn--danger" data-close>确认重置</button>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin-top:var(--s8);padding-bottom:var(--s7);color:var(--fg-3);font-size:var(--fs-xs)">
+    玻璃拟态主题调参台 · 非站点正式页面 · 数值满意后写回 <code>assets/css/glass.css</code>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var d = document.documentElement;
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---- 滑块 → --g-* ----
+     注意：调参是把值写成 <html> 的内联样式，内联优先级高于样式表，
+     所以「投屏 / 纸感」这两套必须把内联值撤掉，否则会把 glass.css 里
+     禁用玻璃的护栏顶掉（演示页特有的问题，正式页面没有内联值）。 */
+  var KNOBS = ['--g-blur-bar', '--g-alpha', '--g-floor', '--g-hi', '--g-scrim'];
+  var setters = [];
+
+  function bind(sliderId, outId, fn) {
+    var s = $(sliderId), o = $(outId);
+    function run() {
+      var r = fn(+s.value);
+      o.textContent = r.label;
+      if (!d.hasAttribute('data-g-lock')) d.style.setProperty(r.name, r.value);
+    }
+    s.addEventListener('input', run);
+    setters.push(run);
+    run();
+  }
+  bind('s-blur',  'v-blur',  function (v) { return { name: '--g-blur-bar',   value: v + 'px', label: v + 'px' }; });
+  bind('s-alpha', 'v-alpha', function (v) { var a = v / 100; return { name: '--g-alpha', value: a, label: a.toFixed(2) }; });
+  bind('s-floor', 'v-floor', function (v) { var a = v / 100; return { name: '--g-floor', value: a, label: a.toFixed(2) }; });
+  bind('s-hi',    'v-hi',    function (v) { var a = v / 100; return { name: '--g-hi',    value: a, label: a.toFixed(2) }; });
+  bind('s-scrim', 'v-scrim', function (v) {
+    var a = v / 100;
+    /* 浅色主题下暗化层是"提亮层"，用白色，且强度只有深色的 6 成 ——
+       纯白压 0.22 会把极光直接洗掉，页面变成一张白纸。 */
+    var light = d.getAttribute('data-theme') === 'light';
+    return {
+      name: '--g-scrim',
+      value: (light ? 'rgba(255,255,255,' + (a * 0.55) : 'rgba(0,0,0,' + a) + ')',
+      label: a.toFixed(2)
+    };
+  });
+
+  /* ---- 明度 / 配色 ---- */
+  var selTheme = $('sel-theme'), selPal = $('sel-palette');
+  selTheme.value = d.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  selTheme.addEventListener('change', function () {
+    d.setAttribute('data-theme', selTheme.value);
+    try { d.style.colorScheme = selTheme.value; localStorage.setItem('theme', selTheme.value); } catch (e) {}
+    /* 重新套一遍 scrim 的深浅 */
+    var s = $('s-scrim'); s.dispatchEvent(new Event('input'));
+  });
+
+  var curPal = d.getAttribute('data-palette') || '';
+  selPal.value = curPal;
+
+  /* 投屏 / 纸感：撤掉内联调参值，让 glass.css 的"禁用玻璃"护栏生效 */
+  var LOCKED_PALETTES = { projector: 1, paper: 1 };
+  function syncPaletteLock() {
+    var locked = !!LOCKED_PALETTES[d.getAttribute('data-palette') || ''];
+    if (locked) {
+      d.setAttribute('data-g-lock', '');
+      KNOBS.forEach(function (k) { d.style.removeProperty(k); });
+    } else if (d.hasAttribute('data-g-lock')) {
+      d.removeAttribute('data-g-lock');
+      setters.forEach(function (f) { f(); });
+    }
+  }
+  syncPaletteLock();
+
+  selPal.addEventListener('change', function () {
+    if (selPal.value) d.setAttribute('data-palette', selPal.value);
+    else d.removeAttribute('data-palette');
+    try { localStorage.setItem('mf_palette', selPal.value); } catch (e) {}
+    syncPaletteLock();
+  });
+
+  /* ---- 玻璃开关 ---- */
+  var btnT = $('btn-toggle');
+  function syncT() {
+    var on = d.getAttribute('data-glass') !== 'off';
+    btnT.textContent = on ? '关闭玻璃' : '打开玻璃';
+    btnT.setAttribute('aria-pressed', String(on));
+  }
+  btnT.addEventListener('click', function () {
+    var on = d.getAttribute('data-glass') !== 'off';
+    d.setAttribute('data-glass', on ? 'off' : 'on');
+    try { localStorage.setItem('mf_glass', on ? 'off' : 'on'); } catch (e) {}
+    syncT();
+  });
+  syncT();
+
+  /* ---- 层数描边 ---- */
+  var btnD = $('btn-debug');
+  btnD.addEventListener('click', function () {
+    var on = d.getAttribute('data-g-debug') === '1';
+    if (on) d.removeAttribute('data-g-debug'); else d.setAttribute('data-g-debug', '1');
+    btnD.setAttribute('aria-pressed', String(!on));
+  });
+
+  /* ---- 弹窗 ---- */
+  var modal = $('modal');
+  $('btn-modal').addEventListener('click', function () { modal.classList.add('is-open'); });
+  modal.addEventListener('click', function (e) {
+    if (e.target.closest('[data-close]')) modal.classList.remove('is-open');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') modal.classList.remove('is-open');
+  });
+
+  /* ---- 侧栏演示：站点只在"当前页所在分组"自动展开，本页不在 NAV_DATA 里，
+         所以手动展开第一个分组，让侧栏展示出真实的两级菜单形态 ---- */
+  window.addEventListener('load', function () {
+    var drop = document.querySelector('.site-nav .nav-drop');
+    if (drop) {
+      drop.classList.add('open');
+      var t = drop.querySelector('.nav-drop-toggle');
+      if (t) t.setAttribute('aria-expanded', 'true');
+    }
+    /* ?modal=1 直接展开弹窗，方便截图看材质 */
+    if (/(?:^|[?&])modal=1(?:&|$)/.test(location.search)) modal.classList.add('is-open');
+  });
+})();
+</script>
+
+<script src="/assets/js/site-nav.js"></script>
+</body>
+</html>

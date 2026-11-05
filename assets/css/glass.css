@@ -1,0 +1,619 @@
+﻿/* =========================================================
+   玻璃拟态材质层 · glass.css  v0.1（原型）
+   ---------------------------------------------------------
+   本文件是「设计方案」的落地样板，**默认不生效**：
+   只有当 <html data-glass="on"> 时才接管外观。现阶段请只在
+   _design/glass-preview.html 里链接它，正式页面一律不引入。
+
+   ── 设计原则（借用 DSH 主题的材质配方，不借它的色号）───────────
+   ① 分层：底色 → 大气层(极光) → 暗化层(scrim) → 界面。
+      玻璃面板必须压在一张"有东西"的画面上，否则就是一片灰雾。
+      三层全部由 body::after 一张背景栈画完，零 DOM、零网络请求。
+   ② 玻璃 = 模糊 + 常量饱和 + 微提亮 + 顶部高光 + 发丝边 + 柔阴影。
+      只做"半透明"不叫玻璃，叫塑料片。缺高光/缺边框的玻璃会糊成一片。
+   ③ 可读性下限（readability floor）：
+      面板底 = 主题面 --surface 占 floor% + 玻璃色占 (1-floor)%，
+      用 color-mix 算出。floor 越高越实、越低越透；文字对比度由 floor 兜底，
+      而不是靠"再加深一点"调到能看。
+   ④ 面吃模糊、片吃颜色：
+      一屏同时存在 >6 个 backdrop-filter 层，中低端安卓会掉到 30fps 以下。
+      所以只有「侧栏 / 顶栏 / 弹窗 / 抽屉 / 悬浮工具条」吃真模糊，
+      卡片、徽标、输入框只吃"玻璃色 + 高光"，视觉上几乎无差，性能差一倍。
+   ⑤ 模糊半径（雾化）与饱和度解耦：饱和度是材料常量(1.3)，
+      不跟着半径一起涨 —— 否则半径一大，背后的文字残影会被染成一团彩雾。
+
+   ── 与 tokens.css 的关系 ───────────────────────────────────
+   只新增 --g-* 变量，**不改** 任何一个 --* 既有令牌；圆角单独一套
+   --g-r-*（玻璃面用 14px），保证「直角体系」的其他组件不受影响。
+   ========================================================= */
+
+/* ============ ① 变量：深色（默认） ============ */
+html[data-glass="on"]{
+  /* -- 模糊 / 雾化半径：三种面分档，数值越大越"雾"、越吃性能 -- */
+  --g-blur-bar:     20px;   /* 侧栏、顶栏          */
+  --g-blur-panel:   24px;   /* 弹窗、抽屉、浮层    */
+  --g-blur-card:    0px;    /* 卡片默认不模糊      */
+
+  /* -- 材料常量（不随滑块变化）-- */
+  --g-sat:        1.30;     /* 饱和度：DSH 用的就是 1.3 */
+  --g-bright:     1.04;     /* 提亮：让玻璃"发亮"而不是发灰 */
+  --g-contrast:   1.01;
+
+  /* -- 玻璃色：rgb 三元组 + 浓度（0~1）-- */
+  --g-tint-rgb:   255 255 255;
+  --g-alpha:      0.14;     /* 深色下白玻璃只要一点点，多了就发灰 */
+  --g-floor:      0.36;     /* 可读性下限：面板里实色占比（越高越实、越低越透） */
+
+  /* -- 边缘与高光 -- */
+  --g-edge:       rgba(255,255,255,.10);
+  --g-edge-strong:rgba(180,180,180,.28);
+  --g-hi:         0.28;     /* 顶部折射高光的不透明度 */
+  --g-hi-bottom:  0.06;
+  --g-hairline:   0.06;
+
+  /* -- 顶部高光渐变（"湿玻璃"的关键，不能省）-- */
+  --g-sheen: linear-gradient(180deg,
+              rgba(255,255,255,.10),
+              rgba(255,255,255,.035) 38%,
+              rgba(255,255,255,0) 100%);
+
+  /* -- 暗化层 --
+     数值越大越"压画面"：玻璃越实、文字越好读，但极光看不见了。
+     深色 0.18~0.28 是甜点区；这里给 0.22，配合下面的极光强度。 */
+  --g-scrim:      rgba(0,0,0,.22);
+  --g-aurora-a:   rgba(91,141,239,.50);
+  --g-aurora-b:   rgba(167,139,250,.36);
+  --g-aurora-c:   rgba(63,208,201,.24);
+  --g-aurora-d:   rgba(255,200,87,.14);
+
+  /* -- 极光几何：写成变量而不是写死在 body::after 里，
+        这样浅色主题能换一套尺寸（浅色下同一团颜色要铺得更开才看得见）。-- */
+  --g-atmo-1: radial-gradient(70% 62% at 16% -12%, var(--g-aurora-a), transparent 72%);
+  --g-atmo-2: radial-gradient(52% 50% at 92% 4%, var(--g-aurora-b), transparent 70%);
+  --g-atmo-3: radial-gradient(62% 58% at 84% 102%, var(--g-aurora-c), transparent 74%);
+  --g-atmo-4: radial-gradient(50% 46% at 28% 74%, var(--g-aurora-d), transparent 68%);
+
+  /* -- 胶片颗粒：一层极淡的 SVG 噪点，压掉大块渐变的色带。
+        抽成变量是为了让降级规则能整条拿掉它。-- */
+  --g-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+
+  /* -- 背景图片层（面板写入；缺省值 = 不模糊、不压暗、铺满）-- */
+  --g-wall-blur: 0px;
+  --g-wall-bright: 1;
+  --g-wall-contrast: 1;
+  --g-wall-sat: 1;
+  --g-wall-opacity: 1;
+  --g-wall-scale: 1.06;
+
+  /* -- 侧栏圆角（面板可调；默认 0 = 站点现行直角）-- */
+  --g-r-sidebar: 0px;
+
+  /* -- 阴影：玻璃的"厚度"来自外阴影，不是内阴影 -- */
+  --g-shadow-bar:   0 8px 40px rgba(0,0,0,.34);
+  --g-shadow-panel: 0 24px 70px rgba(0,0,0,.46);
+  --g-shadow-card:  0 8px 26px rgba(0,0,0,.26);
+  --g-shadow-lift:  0 14px 34px rgba(0,0,0,.38);
+
+  /* -- 圆角：只给玻璃面，不动 --r-* 直角体系 -- */
+  --g-r-sm: 10px;
+  --g-r:    14px;
+  --g-r-lg: 18px;
+
+  /* -- 三档合成变量（全部走 @supports 覆盖，旧浏览器取前面那条兜底）-- */
+  --g-bar-bg:   rgba(20,24,38,.76);
+  --g-panel-bg: rgba(20,24,38,.80);
+  --g-card-bg:  rgba(20,24,38,.62);
+  --g-inset-bg: rgba(11,13,20,.55);
+
+  /* -- 模糊滤镜串：集中定义，降级时只需把这三条改成 none -- */
+  --g-filter-bar:   blur(var(--g-blur-bar)) saturate(var(--g-sat)) brightness(var(--g-bright)) contrast(var(--g-contrast));
+  --g-filter-panel: blur(var(--g-blur-panel)) saturate(var(--g-sat)) brightness(var(--g-bright)) contrast(var(--g-contrast));
+
+  color-scheme: dark;
+}
+
+/* 支持 color-mix 时，用「主题面 × floor + 玻璃色 × (1-floor)」精确合成 */
+@supports (color: color-mix(in srgb, red 50%, blue)){
+  html[data-glass="on"]{
+    --g-bar-bg:   color-mix(in srgb, var(--surface) calc(var(--g-floor) * 100%), rgb(var(--g-tint-rgb) / var(--g-alpha)));
+    --g-panel-bg: color-mix(in srgb, var(--surface) calc((var(--g-floor) + .16) * 100%), rgb(var(--g-tint-rgb) / var(--g-alpha)));
+    --g-card-bg:  color-mix(in srgb, var(--surface) calc(var(--g-floor) * 100%), rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .8)));
+    --g-inset-bg: color-mix(in srgb, var(--bg-soft) calc((var(--g-floor) * .7) * 100%), rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .6)));
+  }
+}
+
+/* ============ ② 浅色主题 ============ */
+html[data-glass="on"][data-theme="light"]{
+  --g-alpha:     0.62;      /* 浅色下玻璃是"奶白"，需要更浓的白 */
+  --g-floor:     0.42;      /* 浅色下白玻璃本身就很"实"，floor 可以往下放一点 */
+
+  --g-edge:       rgba(16,24,40,.10);
+  --g-edge-strong:rgba(16,24,40,.14);
+  --g-hi:         0.55;
+  --g-hi-bottom:  0.22;
+  --g-hairline:   0.05;
+
+  --g-sheen: linear-gradient(180deg,
+              rgba(255,255,255,.62),
+              rgba(255,255,255,.24) 40%,
+              rgba(255,255,255,.06) 100%);
+
+  --g-scrim:    rgba(255,255,255,.10);
+  /* 浅底的"反差预算"比深底小得多：深色靠亮度差就能出层次，浅色只能靠**彩度**，
+     所以浅色下的极光必须比深色更浓，否则整页会平得像一张打印纸。 */
+  --g-aurora-a: rgba(91,141,239,.55);
+  --g-aurora-b: rgba(167,139,250,.42);
+  --g-aurora-c: rgba(63,208,201,.30);
+  --g-aurora-d: rgba(255,200,87,.30);
+
+  /* 浅色下同一团颜色要铺得更开、中心更靠内才看得见 ——
+     深色那套几何在浅底上会缩成一条几乎不可见的淡带。 */
+  --g-atmo-1: radial-gradient(92% 74% at 24% 6%, var(--g-aurora-a), transparent 78%);
+  --g-atmo-2: radial-gradient(62% 56% at 96% 28%, var(--g-aurora-b), transparent 74%);
+  --g-atmo-3: radial-gradient(72% 62% at 74% 106%, var(--g-aurora-c), transparent 78%);
+  --g-atmo-4: radial-gradient(56% 50% at 8% 84%, var(--g-aurora-d), transparent 72%);
+
+  --g-shadow-bar:   0 8px 32px rgba(16,24,40,.14);
+  --g-shadow-panel: 0 24px 64px rgba(16,24,40,.22);
+  --g-shadow-card:  0 8px 22px rgba(16,24,40,.14);
+  --g-shadow-lift:  0 14px 30px rgba(16,24,40,.18);
+
+  color-scheme: light;
+}
+
+/* ============ ③ 配色方案的玻璃色温（沿用 6 套方案各自的调性）============ */
+/* 暖夜墨：玻璃带一点暖白，才不会在暖底上显出一块冷灰 */
+html[data-glass="on"][data-palette="inknight"]{ --g-tint-rgb: 255 246 232; }
+html[data-glass="on"][data-palette="projector"],
+html[data-glass="on"][data-palette="paper"]{
+  /* 投屏 / 纸感：玻璃必须关掉。投影会吃掉对比度，纸感是给出卷打印用的。
+     两层保险：
+       ① 面板一律退回实底（--g-alpha 归零 = 玻璃色不参与合成）；
+       ② 大气层整块不画 —— 只关模糊是没用的，极光本身就会污染投屏画面。
+     （palette.js 也应在这两套方案下把 data-glass 置为 off，这里是双保险） */
+  --g-alpha: 0;
+  --g-floor: 1;
+  --g-filter-bar: none;
+  --g-filter-panel: none;
+  --g-blur-bar: 0px;
+  --g-blur-panel: 0px;
+  --g-sheen: none;
+}
+html[data-glass="on"][data-palette="projector"] body::after,
+html[data-glass="on"][data-palette="paper"] body::after{
+  display:none;
+}
+
+/* ============ ④ 大气层：一张 body::after 画完三层 ============
+   z-index:-2 的固定伪元素：压在所有内容之下、body 底色之上。
+   背景栈自上而下 = 颗粒 → 暗化层 → 4 团极光 → 底色。
+   暗化层必须排在极光**前面**（栈里靠上），它才能压暗极光 —— 这是
+   "壁纸 → 暗化 → 界面"的合成顺序，顺序写反会让玻璃背后过亮、字幕发飘。
+
+   ⚠️ 选了自己的背景图片时（html[data-g-wall="image"]），极光整组撤掉，
+   只留颗粒 + 暗化 —— 图片本身就是"底"，再叠极光会脏。图片画在
+   .gx-wall 这一层（见 ④b），因为只有真实元素才能挂 filter 做模糊。 */
+html[data-glass="on"] body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    /* ① 胶片颗粒：杀掉大块渐变的色带（banding），几乎没有体积 */
+    var(--g-grain),
+    /* ② 暗化层 */
+    linear-gradient(var(--g-scrim), var(--g-scrim)),
+    /* ③ 极光：左上品牌蓝 / 右上紫 / 右下青 / 左下金 —— 几何见 --g-atmo-* */
+    var(--g-atmo-1),
+    var(--g-atmo-2),
+    var(--g-atmo-3),
+    var(--g-atmo-4),
+    /* ④ 底色 */
+    var(--bg);
+}
+
+/* 换了自己的图片：极光退场，只留颗粒 + 暗化。
+   ⚠️ 这里**不能**再叠 var(--bg)：这一层是 z-index:-2，压在图片层(-3)上面，
+   一个不透明底色会把用户选的图片整张盖掉（表现为"图片没生效"）。 */
+html[data-glass="on"][data-g-wall="image"] body::after{
+  background:
+    var(--g-grain),
+    linear-gradient(var(--g-scrim), var(--g-scrim));
+}
+
+/* 关掉背景（纯色）：不要图片、不要极光，退到底色 */
+html[data-glass="on"][data-g-wall="none"] body::after{
+  background:
+    var(--g-grain),
+    linear-gradient(var(--g-scrim), var(--g-scrim)),
+    var(--bg);
+}
+
+/* 第二套极光（面板里的「极光 B」）：紫青为主，和 A 的蓝紫冷暖相反 */
+html[data-glass="on"][data-g-wall="aurora-b"]{
+  --g-atmo-1: radial-gradient(66% 58% at 82% -10%, var(--g-aurora-b), transparent 72%);
+  --g-atmo-2: radial-gradient(56% 54% at 10% 8%, var(--g-aurora-c), transparent 70%);
+  --g-atmo-3: radial-gradient(70% 64% at 32% 104%, var(--g-aurora-a), transparent 74%);
+  --g-atmo-4: radial-gradient(46% 44% at 90% 76%, var(--g-aurora-d), transparent 68%);
+}
+
+/* ============ ④b 自定义背景图片层 ============
+   一层真实元素（由 glass-theme.js 注入，position:fixed / z-index:-3），
+   因为 backdrop-filter 只能模糊"背后的东西"，而**背景图自己的模糊**
+   必须靠 filter —— 伪元素挂 filter 会把整层渐变一起糊掉，且边缘漏白。
+
+   transform: scale() 是为了藏住 blur 在视口四边留下的透明毛边：
+   模糊半径越大，毛边越宽，缩放系数由 --g-wall-scale 跟着半径走。 */
+html[data-glass="on"] .gx-wall{
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  pointer-events:none;
+  background-position:center center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  transform:scale(var(--g-wall-scale, 1.06));
+  transform-origin:center center;
+  opacity:var(--g-wall-opacity, 1);
+  filter:
+    blur(var(--g-wall-blur, 0px))
+    brightness(var(--g-wall-bright, 1))
+    contrast(var(--g-wall-contrast, 1))
+    saturate(var(--g-wall-sat, 1));
+  transition:opacity .35s ease;
+  will-change:filter, opacity;
+}
+/* 没选图片时这层不参与绘制（省一个合成层） */
+html[data-glass="on"][data-g-wall="none"] .gx-wall,
+html[data-glass="on"][data-g-wall="aurora"] .gx-wall,
+html[data-glass="on"][data-g-wall="aurora-b"] .gx-wall{
+  display:none;
+}
+
+/* 关键：body 必须成为独立的层叠上下文（isolation:isolate），
+   否则 z-index:-2 的伪元素会被"舞台绘制顺序"甩到 body 自己的背景**下面**，
+   表面上就是"极光完全没出现、但代码看着没错"。
+   加了这一行，伪元素的负 z-index 只在 body 内部生效，正好压在
+   body 背景之上、全部内容之下 —— 这就是我们想要的那一层。 */
+html[data-glass="on"] body{
+  isolation:isolate;
+  background-attachment:fixed;
+}
+
+/* ============ ⑤ 玻璃基元（给新组件用的工具类）============ */
+.g-glass{
+  background: var(--g-card-bg);
+  background-image: var(--g-sheen);
+  border:1px solid var(--g-edge);
+  border-radius: var(--g-r);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    inset 0 -1px 0 rgba(255,255,255,var(--g-hi-bottom)),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline)),
+    var(--g-shadow-card);
+  -webkit-backdrop-filter: var(--g-filter-panel);
+  backdrop-filter: var(--g-filter-panel);
+}
+/* 吃真模糊的那一档（弹窗 / 抽屉 / 悬浮条）*/
+.g-glass--blur{
+  background: var(--g-panel-bg);
+  -webkit-backdrop-filter: var(--g-filter-panel);
+  backdrop-filter: var(--g-filter-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    inset 0 -1px 0 rgba(255,255,255,var(--g-hi-bottom)),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline)),
+    var(--g-shadow-panel);
+}
+
+/* ============ ⑥ 站点骨架接管 ============ */
+
+/* 侧栏：从 --nav-bg-solid 实底改成玻璃面 */
+html[data-glass="on"] .site-nav{
+  background: var(--g-bar-bg);
+  background-image: var(--g-sheen);
+  border-right:1px solid var(--g-edge);
+  border-bottom:0;
+  border-radius: 0 var(--g-r-sidebar) var(--g-r-sidebar) 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    var(--g-shadow-bar);
+  -webkit-backdrop-filter: var(--g-filter-bar);
+  backdrop-filter: var(--g-filter-bar);
+}
+
+/* 侧栏内部的分隔线：玻璃上要更淡，否则像画上去的 */
+html[data-glass="on"] .site-nav .nav-logo,
+html[data-glass="on"] .site-nav .nav-inner{
+  border-color: var(--g-edge);
+}
+
+/* 当前项：从"左边一条 2px 竖线"升级成"一块玻璃药丸" */
+html[data-glass="on"] .site-nav .nav-link{
+  border-radius: var(--g-r-sm);
+  transition: background var(--t-fast), color var(--t-fast), box-shadow var(--t-fast);
+}
+html[data-glass="on"] .site-nav .nav-link:hover{
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .55));
+  border-left-color: transparent;
+}
+html[data-glass="on"] .site-nav .nav-link.active{
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .85));
+  border-left-color: transparent;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,calc(var(--g-hi) * .8)),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline)),
+    0 4px 14px rgba(0,0,0,.18);
+  color: var(--fg);
+}
+
+/* 窄屏抽屉 / 顶栏：同样吃玻璃，但半径只留右下角 */
+html[data-glass="on"] .site-nav.is-open,
+html[data-glass="on"] .site-topbar{
+  background: var(--g-bar-bg);
+  background-image: var(--g-sheen);
+  -webkit-backdrop-filter: var(--g-filter-bar);
+  backdrop-filter: var(--g-filter-bar);
+  border-color: var(--g-edge);
+}
+
+/* 下拉菜单 / 二级菜单 */
+html[data-glass="on"] .site-nav .nav-menu,
+html[data-glass="on"] .nav-menu{
+  background: var(--g-panel-bg);
+  border:1px solid var(--g-edge);
+  border-radius: var(--g-r);
+  box-shadow: var(--g-shadow-panel);
+  -webkit-backdrop-filter: var(--g-filter-panel);
+  backdrop-filter: var(--g-filter-panel);
+}
+
+/* ============ ⑦ 组件接管（首页 / 通用组件）============ */
+
+/* 卡片：不吃模糊，只吃玻璃色 + 顶部高光 —— 一个视口几十张卡，
+   每张都上 backdrop-filter 是最常见的性能自杀方式。 */
+html[data-glass="on"] .card{
+  background: var(--g-card-bg);
+  background-image: var(--g-sheen);
+  border:1px solid var(--g-edge);
+  border-radius: var(--g-r);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline)),
+    var(--g-shadow-card);
+  transition: transform var(--t-mid), box-shadow var(--t-mid), border-color var(--t-mid), background-color var(--t-mid);
+}
+html[data-glass="on"] .card:hover{
+  transform: translateY(-3px);
+  border-color: var(--g-edge-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    inset 0 0 0 .5px rgba(255,255,255,calc(var(--g-hairline) * 2)),
+    var(--g-shadow-lift);
+}
+/* 首页那批"卡片图标"：玻璃上的图标底再淡一层，别抢卡片的玻璃感 */
+html[data-glass="on"] .card-icon{
+  border-radius: var(--g-r-sm);
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .8));
+  border-color: var(--g-edge);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,calc(var(--g-hi) * .6));
+}
+
+/* 按钮：主按钮保留品牌色实底（玻璃会削弱它的可点性），
+   次级 / 幽灵按钮改成玻璃。 */
+html[data-glass="on"] .btn{
+  border-radius: var(--g-r-sm);
+}
+html[data-glass="on"] .btn--primary{
+  background-image: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 60%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    0 8px 22px rgba(91,141,239,.28);
+}
+html[data-glass="on"] .btn--ghost,
+html[data-glass="on"] .btn--secondary{
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .6));
+  background-image: var(--g-sheen);
+  border-color: var(--g-edge);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,calc(var(--g-hi) * .7));
+}
+html[data-glass="on"] .btn--ghost:hover,
+html[data-glass="on"] .btn--secondary:hover{
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .95));
+}
+
+/* 表单控件：凹陷的玻璃（内阴影朝上，形成"槽"） */
+html[data-glass="on"] .input,
+html[data-glass="on"] .select,
+html[data-glass="on"] .textarea{
+  background: var(--g-inset-bg);
+  border-color: var(--g-edge);
+  border-radius: var(--g-r-sm);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,.18),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline));
+}
+html[data-glass="on"] .input:focus,
+html[data-glass="on"] .select:focus,
+html[data-glass="on"] .textarea:focus{
+  border-color: var(--brand-line);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,.18),
+    0 0 0 3px var(--brand-soft);
+}
+
+/* 徽标 / 分段控件 */
+html[data-glass="on"] .badge{ border-radius: var(--g-r-sm); }
+html[data-glass="on"] .seg{
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .45));
+  border:1px solid var(--g-edge);
+  border-radius: var(--g-r-sm);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,calc(var(--g-hi) * .5));
+}
+
+/* 表格：玻璃面板里的表格不要再叠底，只留分隔线 */
+html[data-glass="on"] .table th{
+  background: rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .4));
+  border-color: var(--g-edge);
+}
+html[data-glass="on"] .table td{ border-color: var(--g-edge); }
+
+/* Toast / 提示条：吃模糊（数量少、浮在上层） */
+html[data-glass="on"] .toast{
+  background: var(--g-panel-bg);
+  border:1px solid var(--g-edge);
+  border-radius: var(--g-r);
+  box-shadow: var(--g-shadow-panel);
+  -webkit-backdrop-filter: var(--g-filter-panel);
+  backdrop-filter: var(--g-filter-panel);
+}
+
+/* 弹窗：全站工具页的弹窗类名各不相同，这里列的是出现频率最高的几族；
+   其余页面按《设计方案》阶段三逐页补一行选择器即可。 */
+html[data-glass="on"] .modal,
+html[data-glass="on"] [role="dialog"],
+html[data-glass="on"] .c4-pmodal__box,
+html[data-glass="on"] .a4-modal__box,
+html[data-glass="on"] .oll-modal__box{
+  background: var(--g-panel-bg);
+  background-image: var(--g-sheen);
+  border:1px solid var(--g-edge);
+  border-radius: var(--g-r-lg);
+  box-shadow: var(--g-shadow-panel);
+  -webkit-backdrop-filter: var(--g-filter-panel);
+  backdrop-filter: var(--g-filter-panel);
+}
+/* 遮罩层也要雾化，否则弹窗背后是一张没被模糊的清晰画面 */
+html[data-glass="on"] .modal-backdrop,
+html[data-glass="on"] .c4-pmodal,
+html[data-glass="on"] .a4-modal{
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  backdrop-filter: blur(10px) saturate(1.1);
+}
+
+/* ============ ⑧ 可读性护栏 ============
+   玻璃面板上的次要文字最容易掉对比度。这里把"最低可读档"
+   抬到 --fg-2，弱化文字在玻璃上不再用 --fg-3。 */
+html[data-glass="on"] .card-desc,
+html[data-glass="on"] .group-lead,
+html[data-glass="on"] .hint{
+  color: var(--fg-2);
+}
+
+/* ============ ⑨ 降级：三层兜底 ============ */
+
+/* ① 浏览器不支持 backdrop-filter（或用户关了硬件加速）：
+      退回「不透明一点的实底」，颜色与玻璃值一致，只是不模糊。 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+  html[data-glass="on"]{
+    --g-filter-bar: none;
+    --g-filter-panel: none;
+    --g-bar-bg: var(--surface);
+    --g-panel-bg: var(--surface);
+    --g-card-bg: var(--surface);
+    --g-alpha: 0;
+  }
+  html[data-glass="on"] body::after{ opacity:.55; }
+}
+
+/* ② 系统级「减少透明度」偏好（macOS / iOS / Windows 辅助功能） */
+@media (prefers-reduced-transparency: reduce){
+  html[data-glass="on"]{
+    --g-filter-bar: none;
+    --g-filter-panel: none;
+    --g-alpha: 0;
+    --g-scrim: transparent;
+  }
+  html[data-glass="on"] body::after{ display:none; }
+  html[data-glass="on"] .site-nav,
+  html[data-glass="on"] .card{ background: var(--surface); }
+}
+
+/* ③ 高对比度 / 强制配色（Windows 高对比模式） */
+@media (forced-colors: active){
+  html[data-glass="on"] body::after{ display:none; }
+  html[data-glass="on"] .site-nav,
+  html[data-glass="on"] .card,
+  html[data-glass="on"] .input{
+    background: Canvas;
+    border:1px solid CanvasText;
+    box-shadow:none;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+
+/* ④ 打印：一律实底、无阴影、无色块 */
+@media print{
+  html[data-glass="on"] body::after{ display:none; }
+  html[data-glass="on"] .site-nav,
+  html[data-glass="on"] .card,
+  html[data-glass="on"] .modal{
+    background:#fff;
+    border:1px solid #ccc;
+    box-shadow:none;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+
+/* ⑤ 弱设备 / 省流量：模糊半径砍半，颗粒直接不上 */
+@media (max-width:640px) and (pointer:coarse){
+  html[data-glass="on"]{
+    --g-blur-bar: 14px;
+    --g-blur-panel: 16px;
+  }
+}
+
+/* ============ ⑩ 调试辅助 ============
+   <html data-glass="on" data-g-debug="1"> 时给每个吃模糊的面描红边，
+   用来数一屏到底有几个 backdrop-filter 层（预算 ≤6）。 */
+html[data-glass="on"][data-g-debug="1"] .site-nav,
+html[data-glass="on"][data-g-debug="1"] .toast,
+html[data-glass="on"][data-g-debug="1"] .modal,
+html[data-glass="on"][data-g-debug="1"] [role="dialog"]{
+  outline:2px solid #ff5c5c;
+  outline-offset:-2px;
+}
+html[data-glass="on"][data-g-debug="1"] .card{ outline:1px dashed rgba(255,92,92,.45); outline-offset:-1px; }
+
+/* ============ ⑪ 入口按钮：侧栏底部「主题」下面 ============
+   样式放在这里（常驻的 glass.css）而不是按需加载的 glass-ui.css：
+   按钮从首屏就在，样式晚到就会先露一个裸按钮出来。
+   外观照抄 site-shell.css 的 .nav-theme-btn，保证两个按钮同一行对齐。 */
+.site-nav .nav-glass-btn{
+  flex:0 0 auto;
+  order:9;
+  display:flex;
+  align-items:center;
+  width:auto;
+  height:46px;
+  margin:0;
+  padding:0 18px;
+  gap:10px;
+  justify-content:flex-start;
+  background:none;
+  border:0;
+  border-top:1px solid var(--nav-line, rgba(100,180,255,.16));
+  color:var(--fg-2, #AEB8CA);
+  font:inherit;
+  cursor:pointer;
+  transition:background .15s ease, color .15s ease;
+}
+.site-nav .nav-glass-btn:hover{
+  background:var(--brand-soft, rgba(100,180,255,.10));
+  color:var(--fg, #E6EAF2);
+}
+.site-nav .nav-glass-btn:focus-visible{
+  outline:2px solid var(--nav-accent, #64b4ff);
+  outline-offset:-2px;
+}
+.site-nav .nav-glass-btn::after{
+  content:"玻璃外观";
+  font-size:.86rem;
+  font-weight:500;
+}
+/* 玻璃关闭时给个"关"的提示，一眼能看出当前状态 */
+.site-nav .nav-glass-btn[data-on="0"]{ color:var(--fg-3, #7C8798); }
+.site-nav .nav-glass-btn[data-on="0"]::after{ content:"玻璃外观 · 关"; }

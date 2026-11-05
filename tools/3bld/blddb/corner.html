@@ -19,6 +19,9 @@ if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function () {});
 }
 </script>
+<script>(function(){try{var d=document.documentElement,q=location.search;var off=/[?&]glass=off(?:&|$)/.test(q)||localStorage.getItem('mf_glass_on')==='0';d.setAttribute('data-glass',off?'off':'on');var w=localStorage.getItem('mf_glass_wall');d.setAttribute('data-g-wall',(w==='aurora'||w==='aurora-b'||w==='none'||w==='image')?w:'aurora');}catch(e){document.documentElement.setAttribute('data-glass','on');}})();</script>
+<link rel="stylesheet" href="/assets/css/glass.css" data-glass-css>
+<script src="/assets/js/glass-theme.js" defer></script>
 </head>
 <body>
   <div class="allscreen">

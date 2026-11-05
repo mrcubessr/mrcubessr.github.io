@@ -40,6 +40,9 @@
   .adm-empty { font-size: 13px; color: var(--fg-3); padding: 10px 0; }
   @media (max-width: 640px) { .adm-f input, .adm-f select { min-width: 0; width: 100%; } .adm-f { flex: 1 1 100%; } }
 </style>
+<script>(function(){try{var d=document.documentElement,q=location.search;var off=/[?&]glass=off(?:&|$)/.test(q)||localStorage.getItem('mf_glass_on')==='0';d.setAttribute('data-glass',off?'off':'on');var w=localStorage.getItem('mf_glass_wall');d.setAttribute('data-g-wall',(w==='aurora'||w==='aurora-b'||w==='none'||w==='image')?w:'aurora');}catch(e){document.documentElement.setAttribute('data-glass','on');}})();</script>
+<link rel="stylesheet" href="/assets/css/glass.css" data-glass-css>
+<script src="/assets/js/glass-theme.js" defer></script>
 </head>
 <body data-nav="help">
 <div data-site-nav></div>

@@ -1,0 +1,314 @@
+/* =========================================================
+   玻璃外观 · 设置面板样式 glass-ui.css
+   ---------------------------------------------------------
+   只负责「面板」的外观，材质在 glass.css。
+   由 assets/js/glass-theme.js 在**第一次打开面板时**按需注入：
+   首屏不加载，省一次请求，也避免面板样式在没开玻璃的页面上白跑。
+
+   ⚠️ 入口按钮（.nav-glass-btn）的样式**不在这里**，在 glass.css ——
+   按钮从页面加载起就存在，样式若放在本文件，首次打开面板之前它会是
+   一个没样式的裸按钮（实测踩到）。
+
+   类名前缀统一 gx-（glass-extended），与站点既有的 pal-（配色面板）
+   并存互不干扰：两个面板可以同时存在，谁打开谁在最上层。
+   ========================================================= */
+
+/* ---------- ② 遮罩 ---------- */
+.gx-mask{
+  position:fixed;
+  inset:0;
+  z-index:1300;
+  background:rgba(0,0,0,.42);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  animation:gxFade .16s ease both;
+}
+@keyframes gxFade{ from{opacity:0} to{opacity:1} }
+
+/* ---------- ③ 面板 ---------- */
+.gx-panel{
+  position:fixed;
+  z-index:1301;
+  top:16px;
+  right:16px;
+  bottom:16px;
+  width:392px;
+  max-width:calc(100vw - 32px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  color:var(--fg, #EEF2F8);
+  font-family:var(--font-sans, system-ui, sans-serif);
+  font-size:var(--fs-sm, .85rem);
+
+  background:var(--g-panel-bg, rgba(20,24,38,.92));
+  background-image:var(--g-sheen, none);
+  border:1px solid var(--g-edge, rgba(255,255,255,.1));
+  border-radius:var(--g-r-lg, 18px);
+  box-shadow:var(--g-shadow-panel, 0 24px 70px rgba(0,0,0,.46));
+  -webkit-backdrop-filter:var(--g-filter-panel, blur(24px));
+  backdrop-filter:var(--g-filter-panel, blur(24px));
+  animation:gxIn .18s ease both;
+}
+@keyframes gxIn{ from{opacity:0; transform:translateY(6px) scale(.995)} to{opacity:1; transform:none} }
+.gx-panel[hidden],
+.gx-mask[hidden]{ display:none !important; }
+
+.gx-hd{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:var(--s2, 8px);
+  padding:14px 16px;
+  border-bottom:1px solid var(--g-edge, rgba(255,255,255,.1));
+}
+.gx-hd__t{ font-size:var(--fs-base, 1rem); font-weight:600; }
+.gx-hd__s{ margin-left:auto; font-size:var(--fs-xs, .75rem); color:var(--fg-3, #7C8798); }
+.gx-x{
+  flex:0 0 auto;
+  width:30px; height:30px;
+  display:grid; place-items:center;
+  margin-left:8px;
+  background:none;
+  border:1px solid var(--g-edge, rgba(255,255,255,.12));
+  border-radius:8px;
+  color:var(--fg-2, #AEB8CA);
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+}
+.gx-x:hover{ color:var(--fg, #EEF2F8); border-color:var(--brand-line, rgba(91,141,239,.3)); }
+
+.gx-bd{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:6px 16px 16px;
+  /* 底部渐隐：提示"下面还有内容"，比露出一条被截断的滑块好得多 */
+  -webkit-mask-image:linear-gradient(180deg, #000 calc(100% - 22px), transparent);
+  mask-image:linear-gradient(180deg, #000 calc(100% - 22px), transparent);
+  scrollbar-width:thin;
+  scrollbar-color:var(--g-edge-strong, rgba(255,255,255,.22)) transparent;
+}
+
+/* ---------- ④ 分区 ---------- */
+.gx-sec{ padding:12px 0; border-bottom:1px solid var(--g-edge, rgba(255,255,255,.08)); }
+.gx-sec:last-child{ border-bottom:0; }
+.gx-sec__t{
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:10px;
+  font-size:var(--fs-xs, .75rem);
+  font-weight:600;
+  letter-spacing:.04em;
+  color:var(--fg-3, #7C8798);
+}
+.gx-sec__t::after{
+  content:"";
+  flex:1 1 auto;
+  height:1px;
+  background:var(--g-edge, rgba(255,255,255,.08));
+}
+
+/* ---------- ⑤ 滑块行 ---------- */
+.gx-row{ padding:7px 0; }
+.gx-row__h{
+  display:flex; align-items:baseline; gap:8px;
+  margin-bottom:5px;
+  font-size:var(--fs-xs, .75rem);
+  color:var(--fg-2, #AEB8CA);
+}
+.gx-row__h b{
+  margin-left:auto;
+  font-weight:600;
+  color:var(--fg, #EEF2F8);
+  font-variant-numeric:tabular-nums;
+}
+.gx-row input[type=range]{
+  width:100%;
+  height:18px;
+  margin:0;
+  accent-color:var(--brand, #5B8DEF);
+  cursor:pointer;
+}
+.gx-row__tip{
+  margin:6px 0 0;
+  font-size:var(--fs-xs, .75rem);
+  line-height:var(--lh-base, 1.6);
+  color:var(--fg-3, #7C8798);
+}
+
+/* ---------- ⑥ 色板 ---------- */
+.gx-sw{
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+  padding:4px 0 2px;
+}
+.gx-sw__b{
+  width:26px; height:26px;
+  padding:0;
+  border-radius:50%;
+  border:1px solid var(--g-edge-strong, rgba(255,255,255,.22));
+  background:var(--c, #fff);
+  cursor:pointer;
+  position:relative;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.gx-sw__b:hover{ transform:scale(1.08); }
+.gx-sw__b[aria-pressed="true"]{
+  box-shadow:0 0 0 2px var(--g-panel-bg, #141826), 0 0 0 4px var(--brand, #5B8DEF);
+}
+.gx-sw__pick{
+  position:relative;
+  width:26px; height:26px;
+  border-radius:50%;
+  border:1px dashed var(--g-edge-strong, rgba(255,255,255,.3));
+  overflow:hidden;
+  cursor:pointer;
+  /* 彩色环 = "自定义"，和左边一排固定色板区分开 */
+  background:conic-gradient(#f87171, #fbbf24, #34d399, #22d3ee, #818cf8, #f472b6, #f87171);
+}
+/* 中心挖空，只留一圈彩环；input 仍然覆盖整块可点 */
+.gx-sw__pick::after{
+  content:"";
+  position:absolute; inset:4px;
+  border-radius:50%;
+  background:var(--surface, #141826);
+  pointer-events:none;
+}
+.gx-sw__pick input[type=color]{
+  position:absolute; inset:-6px;
+  width:40px; height:40px;
+  padding:0; border:0; background:none;
+  cursor:pointer;
+}
+
+/* ---------- ⑦ 分段 / 开关 ---------- */
+.gx-seg{
+  display:flex;
+  gap:2px;
+  padding:2px;
+  background:var(--g-inset-bg, rgba(11,13,20,.5));
+  border:1px solid var(--g-edge, rgba(255,255,255,.1));
+  border-radius:9px;
+}
+.gx-seg__b{
+  flex:1 1 0;
+  padding:6px 4px;
+  background:none;
+  border:0;
+  border-radius:7px;
+  color:var(--fg-2, #AEB8CA);
+  font:inherit;
+  font-size:var(--fs-xs, .75rem);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.gx-seg__b:hover{ color:var(--fg, #EEF2F8); }
+.gx-seg__b[aria-pressed="true"]{
+  color:var(--on-brand, #fff);
+  background:var(--brand, #5B8DEF);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+/* ---------- ⑧ 背景图片 ---------- */
+.gx-imgrow{
+  display:flex; gap:10px; align-items:center;
+  padding:8px;
+  border:1px solid var(--g-edge, rgba(255,255,255,.1));
+  border-radius:10px;
+  background:var(--g-inset-bg, rgba(11,13,20,.45));
+}
+.gx-imgrow__pv{
+  flex:0 0 auto;
+  width:56px; height:40px;
+  border-radius:6px;
+  background:var(--surface-2, #1A2130) center/cover no-repeat;
+  border:1px solid var(--g-edge, rgba(255,255,255,.12));
+}
+.gx-imgrow__meta{ flex:1 1 auto; min-width:0; }
+.gx-imgrow__nm{
+  display:block;
+  font-size:var(--fs-xs, .75rem);
+  color:var(--fg-2, #AEB8CA);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.gx-imgrow__hint{ display:block; margin-top:2px; font-size:11px; color:var(--fg-3, #7C8798); }
+.gx-mini{
+  flex:0 0 auto;
+  padding:5px 9px;
+  background:var(--g-card-bg, rgba(20,24,38,.6));
+  border:1px solid var(--g-edge, rgba(255,255,255,.12));
+  border-radius:7px;
+  color:var(--fg, #EEF2F8);
+  font:inherit;
+  font-size:var(--fs-xs, .75rem);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.gx-mini:hover{ border-color:var(--brand-line, rgba(91,141,239,.3)); }
+.gx-mini:disabled{ opacity:.45; cursor:default; }
+
+.gx-url{
+  display:flex; gap:6px;
+  margin-top:8px;
+}
+.gx-url input[type=text]{
+  flex:1 1 auto;
+  min-width:0;
+  padding:7px 9px;
+  background:var(--g-inset-bg, rgba(11,13,20,.5));
+  border:1px solid var(--g-edge, rgba(255,255,255,.12));
+  border-radius:7px;
+  color:var(--fg, #EEF2F8);
+  font:inherit;
+  font-size:var(--fs-xs, .75rem);
+}
+.gx-url input[type=text]::placeholder{ color:var(--fg-3, #7C8798); }
+
+/* ---------- ⑨ 底部操作 ---------- */
+.gx-ft{
+  flex:0 0 auto;
+  display:flex;
+  gap:8px;
+  padding:12px 16px;
+  border-top:1px solid var(--g-edge, rgba(255,255,255,.1));
+}
+.gx-btn{
+  flex:1 1 0;
+  padding:9px 12px;
+  background:var(--g-card-bg, rgba(20,24,38,.7));
+  border:1px solid var(--g-edge, rgba(255,255,255,.12));
+  border-radius:8px;
+  color:var(--fg, #EEF2F8);
+  font:inherit;
+  font-size:var(--fs-sm, .85rem);
+  cursor:pointer;
+}
+.gx-btn:hover{ border-color:var(--brand-line, rgba(91,141,239,.3)); }
+.gx-btn--primary{
+  background:var(--brand, #5B8DEF);
+  border-color:transparent;
+  color:var(--on-brand, #fff);
+  font-weight:600;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24), var(--glow, 0 6px 22px rgba(91,141,239,.28));
+}
+
+/* ---------- ⑩ 窄屏：底部抽屉 ---------- */
+@media (max-width:640px){
+  .gx-panel{
+    top:auto;
+    left:8px;
+    right:8px;
+    bottom:8px;
+    width:auto;
+    max-height:86vh;
+    border-radius:16px;
+  }
+}
+
+/* 减少动效偏好：面板不要入场动画 */
+@media (prefers-reduced-motion:reduce){
+  .gx-mask, .gx-panel{ animation:none; }
+}
