@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    玻璃拟态材质层 · glass.css  v0.1（原型）
    ---------------------------------------------------------
    本文件是「设计方案」的落地样板，**默认不生效**：
@@ -112,14 +112,100 @@ html[data-glass="on"]{
   color-scheme: dark;
 }
 
-/* 支持 color-mix 时，用「主题面 × floor + 玻璃色 × (1-floor)」精确合成 */
+/* 支持 color-mix 时，用「主题面 × floor + 玻璃色 × (1-floor)」精确合成
+   ⚠️ 基底必须用 --*-solid（不透明实色副本），不能用 --surface —— 下面 ①b
+   会把 --surface 重定向成半透明玻璃色，若这里继续引用它会自引用、越叠越淡。 */
 @supports (color: color-mix(in srgb, red 50%, blue)){
   html[data-glass="on"]{
-    --g-bar-bg:   color-mix(in srgb, var(--surface) calc(var(--g-floor) * 100%), rgb(var(--g-tint-rgb) / var(--g-alpha)));
-    --g-panel-bg: color-mix(in srgb, var(--surface) calc((var(--g-floor) + .16) * 100%), rgb(var(--g-tint-rgb) / var(--g-alpha)));
-    --g-card-bg:  color-mix(in srgb, var(--surface) calc(var(--g-floor) * 100%), rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .8)));
-    --g-inset-bg: color-mix(in srgb, var(--bg-soft) calc((var(--g-floor) * .7) * 100%), rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .6)));
+    --g-bar-bg:   color-mix(in srgb, var(--surface-solid) calc(var(--g-floor) * 100%), rgb(var(--g-tint-rgb) / var(--g-alpha)));
+    --g-panel-bg: color-mix(in srgb, var(--surface-solid) calc((var(--g-floor) + .16) * 100%), rgb(var(--g-tint-rgb) / var(--g-alpha)));
+    --g-card-bg:  color-mix(in srgb, var(--surface-solid) calc(var(--g-floor) * 100%), rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .8)));
+    --g-inset-bg: color-mix(in srgb, var(--bg-soft-solid) calc((var(--g-floor) * .7) * 100%), rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .6)));
   }
+}
+
+/* ============ ①b 令牌层重定向：全站所有色块一次玻璃化 ============
+   全站约 400 处色块底色都取 var(--surface) / --surface-2 / --surface-3 /
+   --bg-soft，还有约 78 处语义软色（--brand-soft / --gold-soft …）。
+   逐个补选择器要覆盖几百个类名，且以后新增页面又会漏 —— 所以在这里
+   把这四个令牌本身重定向成"半透明玻璃色"，一次覆盖全站、包括所有工具页。
+
+   公式：color-mix(实色副本 × floor, 玻璃色 × (1-floor))
+   - floor 由面板「玻璃保真度」控制，保住文字对比度；
+   - surface-2 / -3 逐级多垫一点实色，维持原本的层级差（表头 > 卡片）；
+   - 语义软色改成"玻璃色 + 语义色"的淡染，保留状态识别；
+   - --glass 直接指向主玻璃面，原来的 var(--glass) 消费点也一起透。
+
+   副作用护栏见 ①c：正文/代码块等不该透的区域用不透明底色兜住。 */
+html[data-glass="on"]:root:root{
+  --surface:   var(--g-card-bg);
+  --surface-2: var(--g-inset-bg);
+  --surface-3: var(--g-bar-bg);
+  --bg-soft:   var(--g-inset-bg);
+  --glass:     var(--g-panel-bg);
+
+  --brand-soft:  color-mix(in srgb, rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .9)), var(--brand) 18%);
+  --violet-soft: color-mix(in srgb, rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .9)), var(--violet) 18%);
+  --gold-soft:   color-mix(in srgb, rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .9)), var(--gold) 18%);
+  --green-soft:  color-mix(in srgb, rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .9)), var(--green) 18%);
+  --amber-soft:  color-mix(in srgb, rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .9)), var(--amber) 18%);
+  --red-soft:    color-mix(in srgb, rgb(var(--g-tint-rgb) / calc(var(--g-alpha) * .9)), var(--red) 18%);
+}
+/* 不支持 color-mix 的旧浏览器：退回固定半透明值，至少不是实色 */
+@supports not (color: color-mix(in srgb, red 50%, blue)){
+  html[data-glass="on"]:root:root{
+    --surface:   var(--g-card-bg, rgba(20,24,38,.62));
+    --surface-2: var(--g-inset-bg, rgba(11,13,20,.55));
+    --surface-3: var(--g-bar-bg, rgba(20,24,38,.76));
+    --bg-soft:   var(--g-inset-bg, rgba(11,13,20,.55));
+  }
+}
+
+/* ============ ①c 全站色块的玻璃质感（顶部高光 + 发丝边）============
+   ①b 让底色透明了，但"透明"不等于"玻璃" —— 还差折射高光和那圈 0.5px 边。
+   全站几百个色块类名无法逐一枚举，所以用「属性含 var(--surface*) 」不可行，
+   改为按元素类型做通用匹配：
+
+   :where(...) 把整条规则的特异性压到 0，因此**不会**压过任何页面自己的
+   hover / active / 自定义 box-shadow，只给没有显式阴影的色块补一层默认质感。
+   有自己阴影的元素（如 .card:hover）由 ⑦ 节的组件接管负责，互不干扰。
+
+   排除名单：按钮/输入/表格单元/徽标等小元件本来就有各页样式，
+   全站铺高光反而会糊；真正需要的是"大面"（面板、卡片、区块）。 */
+html[data-glass="on"] :where(
+  .card, .ann-item, .group-card, .pal-card, .pc-card, .pc-ref, .ref-sel-box,
+  .tm-stage, .tm-bar, .tm-list-wrap, .tm-modal__panel, .tm-bld-params,
+  .c4-modal__box, .c4-pmodal__box, .c4-chain, .c4-matrix, .c4-board,
+  .c4-modal__acts, .c4-pmodal__bar, .sh-item, .c4-ref,
+  .srs-deck, .srs-panel, .srs-quiz, .srs-modal, .srs-group,
+  .ct__panel, .ct__scramble, .ct__batch, .ct__timer, .ct__net,
+  .panel, .g-card, .cw-card, .sidebar, .demo-zone, .freeplay,
+  .vip-card, .vip-gate, .vip-teaser__box, .vip-contactbox,
+  .formula-block, .toolbar, .toast, .empty, .card__head
+){
+  background-image: var(--g-sheen);
+  border-color: var(--g-edge);
+  border-radius: var(--g-r);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline)),
+    0 6px 20px rgba(0,0,0,.18);
+}
+/* 浅色下阴影改浅，别把玻璃压成脏灰 */
+html[data-glass="on"][data-theme="light"] :where(
+  .card, .ann-item, .tm-stage, .c4-modal__box, .srs-panel, .panel, .vip-card, .formula-block
+){
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,var(--g-hi)),
+    inset 0 0 0 .5px rgba(255,255,255,var(--g-hairline)),
+    0 6px 20px rgba(16,24,40,.08);
+}
+/* 投屏 / 纸感：撤掉这层质感，保持纯实底 */
+html[data-glass="on"][data-palette="projector"] :where(.card, .ann-item, .panel),
+html[data-glass="on"][data-palette="paper"] :where(.card, .ann-item, .panel){
+  background-image: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* ============ ② 浅色主题 ============ */
@@ -164,13 +250,10 @@ html[data-glass="on"][data-theme="light"]{
 /* ============ ③ 配色方案的玻璃色温（沿用 6 套方案各自的调性）============ */
 /* 暖夜墨：玻璃带一点暖白，才不会在暖底上显出一块冷灰 */
 html[data-glass="on"][data-palette="inknight"]{ --g-tint-rgb: 255 246 232; }
-html[data-glass="on"][data-palette="projector"],
-html[data-glass="on"][data-palette="paper"]{
-  /* 投屏 / 纸感：玻璃必须关掉。投影会吃掉对比度，纸感是给出卷打印用的。
-     两层保险：
-       ① 面板一律退回实底（--g-alpha 归零 = 玻璃色不参与合成）；
-       ② 大气层整块不画 —— 只关模糊是没用的，极光本身就会污染投屏画面。
-     （palette.js 也应在这两套方案下把 data-glass 置为 off，这里是双保险） */
+/* 特异性必须与 ①b 的 (0,3,1) 持平，否则投屏/纸感会被令牌重定向压过去。
+   两层保险外再加第三层：把 --surface 等显式钉回实色副本。 */
+html[data-glass="on"][data-palette="projector"]:root:root,
+html[data-glass="on"][data-palette="paper"]:root:root{
   --g-alpha: 0;
   --g-floor: 1;
   --g-filter-bar: none;
@@ -178,10 +261,49 @@ html[data-glass="on"][data-palette="paper"]{
   --g-blur-bar: 0px;
   --g-blur-panel: 0px;
   --g-sheen: none;
+  --surface: var(--surface-solid);
+  --surface-2: var(--surface-2-solid);
+  --surface-3: var(--surface-3-solid);
+  --bg-soft: var(--bg-soft-solid);
+  --glass: var(--surface-solid);
+  --brand-soft: var(--brand-soft-solid, transparent);
+  --violet-soft: var(--violet-soft-solid, transparent);
+  --gold-soft: var(--gold-soft-solid, transparent);
+  --green-soft: var(--green-soft-solid, transparent);
+  --amber-soft: var(--amber-soft-solid, transparent);
+  --red-soft: var(--red-soft-solid, transparent);
 }
 html[data-glass="on"][data-palette="projector"] body::after,
 html[data-glass="on"][data-palette="paper"] body::after{
   display:none;
+}
+/* ⑦ 节里那批「组件接管」直接给 background 赋了 --g-card-bg / --g-bar-bg，
+   优先级高于令牌，护栏必须再压一次，否则投屏/纸感下卡片仍是半透明。
+   ⚠️ 不用 :is() —— 旧版 Chromium 对 :is() 里含未知类名的整条规则会丢弃，
+   实测 paper 分支曾因此不生效。逐条列，冗长但可靠。 */
+html[data-glass="on"][data-palette="projector"] .card,
+html[data-glass="on"][data-palette="projector"] .btn--secondary,
+html[data-glass="on"][data-palette="projector"] .btn--ghost,
+html[data-glass="on"][data-palette="projector"] .seg,
+html[data-glass="on"][data-palette="projector"] .badge,
+html[data-glass="on"][data-palette="projector"] .table th,
+html[data-glass="on"][data-palette="projector"] .toast,
+html[data-glass="on"][data-palette="projector"] .site-nav,
+html[data-glass="on"][data-palette="projector"] .nav-menu,
+html[data-glass="on"][data-palette="paper"] .card,
+html[data-glass="on"][data-palette="paper"] .btn--secondary,
+html[data-glass="on"][data-palette="paper"] .btn--ghost,
+html[data-glass="on"][data-palette="paper"] .seg,
+html[data-glass="on"][data-palette="paper"] .badge,
+html[data-glass="on"][data-palette="paper"] .table th,
+html[data-glass="on"][data-palette="paper"] .toast,
+html[data-glass="on"][data-palette="paper"] .site-nav,
+html[data-glass="on"][data-palette="paper"] .nav-menu{
+  background: var(--surface-solid) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* ============ ④ 大气层：一张 body::after 画完三层 ============
@@ -506,28 +628,40 @@ html[data-glass="on"] .hint{
 /* ① 浏览器不支持 backdrop-filter（或用户关了硬件加速）：
       退回「不透明一点的实底」，颜色与玻璃值一致，只是不模糊。 */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
-  html[data-glass="on"]{
+  html[data-glass="on"]:root:root{
     --g-filter-bar: none;
     --g-filter-panel: none;
-    --g-bar-bg: var(--surface);
-    --g-panel-bg: var(--surface);
-    --g-card-bg: var(--surface);
+    --g-bar-bg: var(--surface-solid);
+    --g-panel-bg: var(--surface-solid);
+    --g-card-bg: var(--surface-solid);
+    --g-inset-bg: var(--bg-soft-solid);
     --g-alpha: 0;
+    /* 令牌层也退回实色 —— 不模糊的半透明片只会显脏 */
+    --surface: var(--surface-solid);
+    --surface-2: var(--surface-2-solid);
+    --surface-3: var(--surface-3-solid);
+    --bg-soft: var(--bg-soft-solid);
+    --glass: var(--surface-solid);
   }
   html[data-glass="on"] body::after{ opacity:.55; }
 }
 
 /* ② 系统级「减少透明度」偏好（macOS / iOS / Windows 辅助功能） */
 @media (prefers-reduced-transparency: reduce){
-  html[data-glass="on"]{
+  html[data-glass="on"]:root:root{
     --g-filter-bar: none;
     --g-filter-panel: none;
     --g-alpha: 0;
     --g-scrim: transparent;
+    --surface: var(--surface-solid);
+    --surface-2: var(--surface-2-solid);
+    --surface-3: var(--surface-3-solid);
+    --bg-soft: var(--bg-soft-solid);
+    --glass: var(--surface-solid);
   }
   html[data-glass="on"] body::after{ display:none; }
   html[data-glass="on"] .site-nav,
-  html[data-glass="on"] .card{ background: var(--surface); }
+  html[data-glass="on"] .card{ background: var(--surface-solid); }
 }
 
 /* ③ 高对比度 / 强制配色（Windows 高对比模式） */

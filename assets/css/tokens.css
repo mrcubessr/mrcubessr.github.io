@@ -12,10 +12,10 @@
 
   /* ---------- 底色 / 表面 ---------- */
   --bg:        #0B0D14;   /* 页面底色 */
-  --bg-soft:   #0F131C;   /* 次级底色（表单内底、代码块） */
-  --surface:   #141826;   /* 卡片 / 面板 */
-  --surface-2: #1A2130;   /* 卡片内次级块、表头 */
-  --surface-3: #232C3E;   /* 悬停 / 高亮块 */
+  --bg-soft:   #0F131C;   /* 次级底色（表单内底、代码块） */  /* 玻璃实色副本 */ --bg-soft-solid: #0F131C;
+  --surface:   #141826;   /* 卡片 / 面板 */  /* 玻璃实色副本 */ --surface-solid: #141826;
+  --surface-2: #1A2130;   /* 卡片内次级块、表头 */  /* 玻璃实色副本 */ --surface-2-solid: #1A2130;
+  --surface-3: #232C3E;   /* 悬停 / 高亮块 */  /* 玻璃实色副本 */ --surface-3-solid: #232C3E;
 
   /* ---------- 描边 ---------- */
   --line:   rgba(255,255,255,.08);
@@ -111,8 +111,8 @@
 
 /* ============ 浅色主题（课堂 / 投屏 / 打印场景）============ */
 [data-theme="light"]{
-  --bg:#F4F6FA;        --bg-soft:#EDF1F7;
-  --surface:#FFFFFF;   --surface-2:#E9EDF4;  --surface-3:#DDE3EC;
+  --bg:#F4F6FA;        --bg-soft:#EDF1F7;  /* 玻璃实色副本 */ --bg-soft-solid: #EDF1F7;
+  --surface:#FFFFFF;   --surface-2:#E9EDF4;  --surface-3:#DDE3EC;  /* 玻璃实色副本 */ --surface-solid: #FFFFFF; --surface-2-solid: #E9EDF4; --surface-3-solid: #DDE3EC;
 
   --line:rgba(16,24,40,.10);
   --line-2:rgba(16,24,40,.18);

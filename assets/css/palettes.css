@@ -21,8 +21,8 @@
 
 /* ---------- 暖夜墨 inknight：深色，低蓝光暖调 ---------- */
 html[data-palette="inknight"]{
-  --bg:#131009; --bg-soft:#1B1710;
-  --surface:#221D16; --surface-2:#2C261D; --surface-3:#3B3327;
+  --bg:#131009; --bg-soft:#1B1710;  /* 玻璃实色副本 */ --bg-soft-solid: #1B1710;
+  --surface:#221D16; --surface-2:#2C261D; --surface-3:#3B3327;  /* 玻璃实色副本 */ --surface-solid: #221D16; --surface-2-solid: #2C261D; --surface-3-solid: #3B3327;
 
   --line:rgba(255,232,200,.11); --line-2:rgba(255,232,200,.20); --line-3:rgba(255,232,200,.32);
   --glass:rgba(34,29,22,.76);
@@ -47,8 +47,8 @@ html[data-palette="inknight"]{
   --cat-teach:#8AD9C0;
 }
 html[data-palette="inknight"][data-theme="light"]{
-  --bg:#FBF5EA; --bg-soft:#F4EBDA;
-  --surface:#FFFCF6; --surface-2:#F0E6D2; --surface-3:#E5D8BF;
+  --bg:#FBF5EA; --bg-soft:#F4EBDA;  /* 玻璃实色副本 */ --bg-soft-solid: #F4EBDA;
+  --surface:#FFFCF6; --surface-2:#F0E6D2; --surface-3:#E5D8BF;  /* 玻璃实色副本 */ --surface-solid: #FFFCF6; --surface-2-solid: #F0E6D2; --surface-3-solid: #E5D8BF;
 
   --line:rgba(58,42,18,.13); --line-2:rgba(58,42,18,.22); --line-3:rgba(58,42,18,.34);
   --glass:rgba(255,252,246,.86);
@@ -76,8 +76,8 @@ html[data-palette="inknight"][data-theme="light"]{
 
 /* ---------- 投屏高对比 projector：白底纯黑字，投影/电视专用 ---------- */
 html[data-palette="projector"]{
-  --bg:#000000; --bg-soft:#0A0A0A;
-  --surface:#141414; --surface-2:#1D1D1D; --surface-3:#2C2C2C;
+  --bg:#000000; --bg-soft:#0A0A0A;  /* 玻璃实色副本 */ --bg-soft-solid: #0A0A0A;
+  --surface:#141414; --surface-2:#1D1D1D; --surface-3:#2C2C2C;  /* 玻璃实色副本 */ --surface-solid: #141414; --surface-2-solid: #1D1D1D; --surface-3-solid: #2C2C2C;
 
   --line:rgba(255,255,255,.22); --line-2:rgba(255,255,255,.36); --line-3:rgba(255,255,255,.52);
   --glass:rgba(0,0,0,.80);
@@ -103,8 +103,8 @@ html[data-palette="projector"]{
   --cat-teach:#0B6E66;
 }
 html[data-palette="projector"][data-theme="light"]{
-  --bg:#FFFFFF; --bg-soft:#F4F4F5;
-  --surface:#FFFFFF; --surface-2:#E9EAED; --surface-3:#D4D6DB;
+  --bg:#FFFFFF; --bg-soft:#F4F4F5;  /* 玻璃实色副本 */ --bg-soft-solid: #F4F4F5;
+  --surface:#FFFFFF; --surface-2:#E9EAED; --surface-3:#D4D6DB;  /* 玻璃实色副本 */ --surface-solid: #FFFFFF; --surface-2-solid: #E9EAED; --surface-3-solid: #D4D6DB;
 
   /* 投影下描边要够粗，细灰线会「糊没」 */
   --line:rgba(0,0,0,.26); --line-2:rgba(0,0,0,.42); --line-3:rgba(0,0,0,.58);
@@ -132,8 +132,8 @@ html[data-palette="projector"][data-theme="light"]{
 
 /* ---------- 纸感米黄 paper：出卷 / 打印 / 学员资料 ---------- */
 html[data-palette="paper"]{
-  --bg:#14120F; --bg-soft:#1C1915;
-  --surface:#1E1B17; --surface-2:#272320; --surface-3:#383229;
+  --bg:#14120F; --bg-soft:#1C1915;  /* 玻璃实色副本 */ --bg-soft-solid: #1C1915;
+  --surface:#1E1B17; --surface-2:#272320; --surface-3:#383229;  /* 玻璃实色副本 */ --surface-solid: #1E1B17; --surface-2-solid: #272320; --surface-3-solid: #383229;
 
   --line:rgba(238,226,204,.13); --line-2:rgba(238,226,204,.23); --line-3:rgba(238,226,204,.36);
   --glass:rgba(30,27,23,.78);
@@ -157,8 +157,8 @@ html[data-palette="paper"]{
   --cat-teach:#8FCFB0;
 }
 html[data-palette="paper"][data-theme="light"]{
-  --bg:#F7F3E9; --bg-soft:#EEE8D9;
-  --surface:#FFFCF5; --surface-2:#F1E9D8; --surface-3:#E3D8C2;
+  --bg:#F7F3E9; --bg-soft:#EEE8D9;  /* 玻璃实色副本 */ --bg-soft-solid: #EEE8D9;
+  --surface:#FFFCF5; --surface-2:#F1E9D8; --surface-3:#E3D8C2;  /* 玻璃实色副本 */ --surface-solid: #FFFCF5; --surface-2-solid: #F1E9D8; --surface-3-solid: #E3D8C2;
 
   --line:rgba(60,45,25,.15); --line-2:rgba(60,45,25,.24); --line-3:rgba(60,45,25,.36);
   --glass:rgba(255,252,245,.88);
@@ -184,8 +184,8 @@ html[data-palette="paper"][data-theme="light"]{
 
 /* ---------- 经典六色 classic：呼应标准魔方六面色，品牌 / 招生页 ---------- */
 html[data-palette="classic"]{
-  --bg:#0D1014; --bg-soft:#14181E;
-  --surface:#171C24; --surface-2:#20262F; --surface-3:#2C343F;
+  --bg:#0D1014; --bg-soft:#14181E;  /* 玻璃实色副本 */ --bg-soft-solid: #14181E;
+  --surface:#171C24; --surface-2:#20262F; --surface-3:#2C343F;  /* 玻璃实色副本 */ --surface-solid: #171C24; --surface-2-solid: #20262F; --surface-3-solid: #2C343F;
 
   --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18); --line-3:rgba(255,255,255,.28);
   --glass:rgba(23,28,36,.76);
@@ -210,8 +210,8 @@ html[data-palette="classic"]{
   --cat-teach:#3FD0C9;
 }
 html[data-palette="classic"][data-theme="light"]{
-  --bg:#F5F8FC; --bg-soft:#ECF2F9;
-  --surface:#FFFFFF; --surface-2:#E7EEF7; --surface-3:#D6E1EF;
+  --bg:#F5F8FC; --bg-soft:#ECF2F9;  /* 玻璃实色副本 */ --bg-soft-solid: #ECF2F9;
+  --surface:#FFFFFF; --surface-2:#E7EEF7; --surface-3:#D6E1EF;  /* 玻璃实色副本 */ --surface-solid: #FFFFFF; --surface-2-solid: #E7EEF7; --surface-3-solid: #D6E1EF;
 
   --line:rgba(15,23,36,.11); --line-2:rgba(15,23,36,.20); --line-3:rgba(15,23,36,.30);
   --glass:rgba(255,255,255,.86);
@@ -238,8 +238,8 @@ html[data-palette="classic"][data-theme="light"]{
 /* ---------- 课堂白 classroom：白天 / 教室电脑，浅色专用微调 ---------- */
 /* 默认浅色已接近目标，这里只把品牌色往「教室投影可读」再推深一档 */
 html[data-palette="classroom"]{
-  --bg:#F2F5FA; --bg-soft:#EAEFF6;
-  --surface:#FFFFFF; --surface-2:#E4EAF3; --surface-3:#D2DBE9;
+  --bg:#F2F5FA; --bg-soft:#EAEFF6;  /* 玻璃实色副本 */ --bg-soft-solid: #EAEFF6;
+  --surface:#FFFFFF; --surface-2:#E4EAF3; --surface-3:#D2DBE9;  /* 玻璃实色副本 */ --surface-solid: #FFFFFF; --surface-2-solid: #E4EAF3; --surface-3-solid: #D2DBE9;
   --nav-bg:rgba(255,255,255,.88);
   --nav-bg-solid:rgba(255,255,255,.98);
   --nav-line:rgba(47,87,174,.20);
@@ -255,8 +255,8 @@ html[data-palette="classroom"]{
   --red:#B3261E;  --red-soft:rgba(179,38,30,.12);
 }
 html[data-palette="classroom"][data-theme="dark"]{
-  --bg:#0A0D16; --bg-soft:#0E1220;
-  --surface:#141A29; --surface-2:#1B2334; --surface-3:#252F45;
+  --bg:#0A0D16; --bg-soft:#0E1220;  /* 玻璃实色副本 */ --bg-soft-solid: #0E1220;
+  --surface:#141A29; --surface-2:#1B2334; --surface-3:#252F45;  /* 玻璃实色副本 */ --surface-solid: #141A29; --surface-2-solid: #1B2334; --surface-3-solid: #252F45;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.16); --line-3:rgba(255,255,255,.26);
   --fg:#EDF1F8; --fg-2:#B0BACB; --fg-3:#7E8A9C;
   --brand:#6E9BFF; --brand-strong:#4F7FE8;

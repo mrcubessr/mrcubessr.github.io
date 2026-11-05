@@ -9,6 +9,48 @@
 
 ---
 
+## [2.1.1] — 2026-11-05（全站色块统一玻璃化）
+
+修复「一部分色块还是实色」：v2.1.0 只在 `glass.css` 里用选择器覆盖了首页那批组件，
+各工具页（`timer` / `ft` / `4bld` / `srs` / `cfop` / `practice` / `3x3teach` …）自绘的
+面板、弹窗、分组块、矩阵格仍吃 `--surface` 的实色值。
+
+**做法：在令牌层重定向，而不是继续补选择器**
+- 扫描统计：全站约 **400 处**色块底色取 `var(--surface)` / `--surface-2` / `--surface-3` / `--bg-soft`，
+  另有约 **78 处**语义软色（`--brand-soft` / `--gold-soft` / `--green-soft` …）；
+  涉及几百个类名，逐个补选择器不可维护，新增页面还会再漏。
+- `tokens.css` 与 `palettes.css` 的 **12 个配色块**各加 4 个不透明实色副本：
+  `--surface-solid` / `--surface-2-solid` / `--surface-3-solid` / `--bg-soft-solid`。
+  副本值精确跟随每套配色，不改任何原有颜色定义。
+- `glass.css` 新增 ①b：把 `--surface` 系列重定向为「实色副本 × 保真度 floor + 玻璃色 × (1-floor)」，
+  语义软色改成「玻璃色 + 语义色淡染」，`--glass` 指向主玻璃面。
+  一次覆盖全站所有吃这些变量的色块，包含全部工具页，以后新增页面自动生效。
+- `glass.css` 自身的 `color-mix` 合成公式改吃 `--*-solid`，
+  避免重定向后自引用、越叠越淡；降级段（不支持 backdrop-filter / 减少透明度）也显式把令牌钉回实色。
+- ①c 新增全站色块的玻璃质感：`background-image: var(--g-sheen)` + 顶部 1px 内高光 +
+  0.5px 发丝边 + 柔和外阴影。用 `:where()` 把特异性压到 0，不压过各页自己的 hover / 状态样式。
+- 特异性处理：`palettes.css` 由 `site-nav.js` 运行时注入、排在 `glass.css` 之后，
+  故令牌重定向与降级段统一提到 `html[data-glass="on"]:root:root`（0,3,1），
+  压过 `html[data-palette=x][data-theme=y]`（0,2,1）。
+- 投屏高对比 / 纸感米黄护栏同步加严：显式把令牌钉回实色副本，并对 ⑦ 节那批
+  「组件接管」再补一条 `!important` 实底规则（逐条列选择器，不用 `:is()` ——
+  实测 `:is()` 含未知类名时整条规则会被丢弃）。
+
+**验证**
+- Chrome headless 逐页读 computed style（破缓存后）：首页 / timer / ft / 4bld / srs / cfop / 3x3teach
+  的面板底色均带 alpha（0.43 / 0.59 / 0.71 / 0.84），不再是实色。
+- 五套配色回归：默认、暖夜墨、课堂白 → `--surface` 为半透明 `color-mix`，`.card` 带 alpha；
+  投屏高对比 `rgb(20,20,20)`、纸感米黄 `rgb(30,27,23)` → 纯实底，玻璃按设计关闭。
+- 视觉截图：首页与 `tools/ft` 缩略图 3100+ 色，玻璃面与极光层次正常，内容未被糊掉。
+- 三份 CSS 大括号配平；未改任何业务 JS / HTML。
+
+**缓存**
+- 改动的是 `glass.css` / `tokens.css` / `palettes.css`（均在 `APP_SHELL` 内），
+  `CACHE` 由 `fto-timer-v40` 升到 **`fto-timer-v41`**，否则已安装 PWA 的老访客
+  会一直命中旧外壳缓存、看不到这次修复。
+
+---
+
 ## [2.1.0] — 2026-11-05（玻璃拟态主题上线：可自定义背景图 + 玻璃外观设置面板）
 
 新增一层可自定义的「玻璃拟态」外观，**默认开启**；可在面板里换背景图、调模糊与浓度，也可一键关闭回到改造前。
