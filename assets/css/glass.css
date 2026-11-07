@@ -751,3 +751,55 @@ html[data-glass="on"][data-g-debug="1"] .card{ outline:1px dashed rgba(255,92,92
 /* 玻璃关闭时给个"关"的提示，一眼能看出当前状态 */
 .site-nav .nav-glass-btn[data-on="0"]{ color:var(--fg-3, #7C8798); }
 .site-nav .nav-glass-btn[data-on="0"]::after{ content:"玻璃外观 · 关"; }
+
+/* ---- ⑪b 窄屏：入口按钮从「文字条」收成方形图标（2026-11-08） ----
+   桌面侧栏宽，119×46 的「玻璃外观」文字按钮放得下；
+   窄屏（≤1024，顶栏改抽屉模式，断点见 site-shell.css ⑧）它把 60px 顶栏
+   挤爆 → 汉堡键被压到 22×40、logo 只剩 35px。
+   窄屏改成与 .nav-theme-btn 同尺寸的图标按钮，状态靠颜色 + aria-label 表达。 */
+@media (max-width:1024px){
+  .site-nav .nav-glass-btn{
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    border: 1px solid var(--line-2, rgba(255,255,255,.14));
+    border-top: 1px solid var(--line-2, rgba(255,255,255,.14));
+  }
+  .site-nav .nav-glass-btn::after{ content: none; }
+}
+
+/* ---- ⑪c 窄屏把顶栏模糊挪到 ::before（2026-11-08） ----
+   filter / backdrop-filter 会让元素成为 fixed 后代的包含块，
+   而手机抽屉（.nav-links）正是 .site-nav 的 position:fixed 子元素 ——
+   结果抽屉被按 60px 高的顶栏计算，高度塌成 26px、点汉堡等于没反应。
+   解法：模糊与玻璃底色一起搬到伪元素上（伪元素不是任何元素的祖先，
+   不会生成包含块），顶栏内容仍由 .nav-inner 压在上面。 */
+@media (max-width:1024px){
+  html[data-glass="on"] .site-nav{
+    background: transparent;
+    background-image: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  html[data-glass="on"] .site-nav::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: var(--g-bar-bg);
+    background-image: var(--g-sheen);
+    -webkit-backdrop-filter: var(--g-filter-bar);
+    backdrop-filter: var(--g-filter-bar);
+  }
+  html[data-glass="on"] .site-nav .nav-inner{
+    position: relative;
+    z-index: 1;
+  }
+  /* 抽屉面板自己带模糊，同样会在面板内部生成包含块 —— 但面板内没有
+     fixed 元素，无副作用；这里只是确保它盖在 ::before 之上。 */
+  html[data-glass="on"] .site-nav .nav-links{
+    z-index: 2;
+  }
+}

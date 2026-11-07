@@ -526,3 +526,197 @@ body {
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
 /* 锁定行/列后，非命中格更淡地虚化（聚焦；仍占网格位以保坐标完整） */
 .c4-matrix.is-axis .mx.dim { opacity: .15; }
+
+/* ================= 手机端单栏紧凑布局（v2.1.2） =================
+   起因：桌面这套「工具条 + 23×23 矩阵」直接落到手机上时，
+   ① 工具条在 360px 上折成 335px 高（标签与控件被换行拆散）；
+   ② 缓冲块 24 个按钮只有 24×22px，手指点不准；
+   ③ 矩阵被挤到首屏之外，fitMatrix 拿不到高度 → 23 列被压成 11px 一条；
+   ④ 练习浮层的公式选择器被同行按钮挤成 18px、编码行超出被裁。
+   处理原则：桌面端一个像素都不动 —— 分组容器用 display:contents 保持原
+   flex 流；所有压缩只在 ≤640px 生效。 */
+
+/* 桌面：两组容器透明化（子元素照旧直接参与 .c4-bar 的 flex 流），折叠按钮不出现 */
+.c4-bar__top, .c4-bar__more { display: contents; }
+.c4-bar__toggle { display: none; }
+
+@media (max-width: 640px) {
+  /* ① 头部：标题一行 + 缓冲/情况数一行；长提示（行=第二位置…）手机无空间，隐藏。
+     ⚠️ 选择器必须写到 .c4-wrap .c4-head .sub 三级：共享框架里有
+     `.c4-wrap.is-mx .c4-mx-hint { display: inline }`（特异性 0,3,0），
+     单写 .c4-mx-hint 会被它盖掉、怎么改都不生效（实测踩过）。 */
+  .c4-head { padding: 0 0 10px; margin-bottom: 10px; }
+  .c4-head h1 { font-size: 17px; letter-spacing: 1px; margin-bottom: 4px; }
+  .c4-head .sub { font-size: 12px; line-height: 1.5; letter-spacing: 0; }
+  .c4-wrap .c4-head .sub .c4-mx-hint { display: none; }
+  .c4-back { margin-top: 6px; font-size: 12px; }
+
+  /* ② 工具条两段式：常驻区 = 缓冲块 + 视图切换 + 「筛选」按钮 */
+  .c4-wrap.is-mx .c4-bar,
+  .c4-wrap.is-board .c4-bar { padding: 8px 10px; margin-bottom: 10px; }
+  .c4-bar { display: block; }
+  .c4-bar__top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .c4-bar__top .ft-buf { flex: 1 1 100%; }
+  .c4-bar__top .c4-seg { flex: 1 1 auto; }
+  .c4-bar__top .c4-seg button { flex: 1 1 0; padding: 8px 8px; }
+  .c4-bar .c4-spacer { display: none; }
+  .c4-bar__toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: 0 0 auto; height: 34px; padding: 0 14px;
+    appearance: none; cursor: pointer; font: inherit;
+    font-size: 13px; font-weight: 700;
+    background: var(--surface-3, #232C3E); color: var(--fg, #EEF2F8);
+    border: 1px solid var(--line-2, rgba(255,255,255,.18)); border-radius: 0;
+  }
+  .c4-bar.is-more .c4-bar__toggle {
+    border-color: var(--brand, #5B8DEF); color: var(--brand, #5B8DEF);
+  }
+
+  /* 折叠区：默认收起；展开后 2 列网格 —— label 永远跟它的控件同一行 */
+  .c4-bar__more { display: none; }
+  .c4-bar.is-more .c4-bar__more {
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    align-items: center; gap: 8px 10px;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px dashed var(--line-2, rgba(255,255,255,.18));
+  }
+  .c4-bar__more > label,
+  .c4-bar__more .c4-bo > label { font-size: 12px; white-space: nowrap; }
+  .c4-bar__more select,
+  .c4-bar__more input { width: 100%; }
+  .c4-bo { display: contents; }              /* 排序 = label + select，拆开进同一网格 */
+  .c4-bar__more .c4-navbtn { width: 100%; }
+  .c4-bar__more .c4-filter-hint { grid-column: 1 / -1; font-size: 12px; }
+
+  /* ③ 缓冲块：24 字母 8 列 × 3 行、按钮 34px 高（原 24×22 点不准）。
+     「缓冲块」标签与「当前 UFR（J）」并到同一行（order 重排），省掉一整行高度。 */
+  .ft-buf { gap: 6px; }
+  .ft-buf__label { font-size: 12px; order: 1; }
+  .ft-buf__cur { font-size: 12px; order: 2; }
+  .ft-buf__list,
+  .c4-wrap.is-mx .ft-buf__list {
+    display: grid; grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 4px; width: 100%; order: 3;
+  }
+  .ft-bufbtn,
+  .c4-wrap.is-mx .ft-bufbtn {
+    width: 100%; height: 32px; min-width: 0; font-size: 14px; font-weight: 700;
+  }
+
+  /* ④ 矩阵：横滚时行标粘住（否则滑到 D 列后不知道自己在哪一行）。
+     纵向只让「页面」滚 —— 矩阵自身不设 max-height、竖向 overflow:hidden，
+     避免手机上传屏里出现「页面 + 矩阵」双层竖向滚动（滑动会陷在矩阵里）。 */
+  .c4-matrix { padding: 6px; }
+  .c4-matrix.is-scroll {
+    overflow-y: hidden; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    /* 左侧内边距清零：不然横向滚动时格子会从粘性行标左边「露出半格」，
+       看起来像表头被星星/边框压住 */
+    padding-left: 0;
+  }
+  .c4-matrix.is-scroll .mx-rh,
+  .c4-matrix.is-scroll .mx-corner {
+    position: sticky; left: 0; z-index: 3;
+    /* ⚠️ 必须用 --surface-solid（不透明副本）：玻璃主题把 --surface 重定向成半透明，
+       用它做粘性表头底色会让滚过去的格子/星标透出来（实测过）。 */
+    background: var(--surface-solid, var(--surface, #141826));
+    overflow: hidden;
+  }
+  .c4-matrix.is-scroll .mx-rh { box-shadow: 1px 0 0 var(--line-2, rgba(255,255,255,.14)); }
+  .c4-matrix.is-scroll .mx-rh,
+  .c4-matrix.is-scroll .mx-ch { font-size: 11px; }
+  .c4-matrix.is-scroll .mx-ch {
+    position: sticky; top: 0; z-index: 2;
+    background: var(--surface-solid, var(--surface, #141826));
+  }
+  .c4-matrix.is-scroll .mx-corner { top: 0; z-index: 4; }
+
+  /* ⑤ 训练总览：渐变刻度条是装饰，手机上让位给矩阵/卡片；KPI 压紧省一行 */
+  .c4-gradbox { display: none; }
+  .c4-dash, .c4-mx-dash { padding: 8px 10px; gap: 6px; }
+  .c4-kpi { padding: 3px 7px; gap: 5px; }
+  .c4-kpi .k-label { font-size: 10px; }
+  .c4-kpi .k-value { font-size: 13px; }
+  .c4-dash__std { font-size: 12px; }
+  .c4-top > summary { padding: 4px 0; font-size: 12px; }
+
+  /* ⑥ 练习浮层：选择器不再被挤成 18px；编码行独立成行、折行不裁切 */
+  .c4-pmodal__bar { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .c4-pmodal__navbtn { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+  #c4-p-select { flex: 1 1 55%; min-width: 110px; font-size: 13px; }
+  #c4-pmodal .c4-spacer { display: none; }
+  /* 换行后关闭键靠右收尾，避免跟「参考公式」并排看不出是关闭 */
+  #c4-p-close { margin-left: auto; }
+  .c4-pmodal__body { gap: 10px; padding: 12px 14px; }
+  .c4-pmodal__headrow { flex-wrap: wrap; gap: 6px 8px; }
+  .c4-pmodal__headrow .c4-pmodal__code {
+    flex: 1 1 100%; font-size: 20px; letter-spacing: 1px; line-height: 1.35;
+    text-align: left; word-break: break-word;
+  }
+  .c4-pmodal__headrow .c4-pmodal__replab { margin-left: auto; }
+  .c4-pmodal__alg { font-size: 16px; line-height: 1.45; padding: 6px 0 8px; }
+  .c4-pmodal__starrow { gap: 6px; }
+  .c4-pmodal__note { flex: 1 1 100%; font-size: 12px; }
+  .c4-pmodal__timer { min-height: 34vh; }
+  .c4-pmodal__acts button { padding: 6px 10px; font-size: 12px; }
+  .c4-pmodal__refs .c4-modal__refslist { max-height: 22vh; }
+
+  /* ⑦ 全屏计时条：桌面的 clamp(48px,8vw,110px) 在手机上 8vw 只有 31px，
+     被下限顶到 48px —— 全屏模式数字反而比浮层里还小。手机按 22vw 走。 */
+  .c4-fs { padding: 16px 12px; gap: 14px; }
+  .c4-fs__bar { padding: 10px 12px; gap: 8px; }
+  .c4-fs__code { font-size: 18px; letter-spacing: 1px; }
+  .c4-fs__prog { font-size: 12px; }
+  .c4-fs__timer { padding: 16px 22px; font-size: clamp(64px, 22vw, 132px); }
+  .c4-fs__alg { font-size: 17px; }
+
+  /* ⑧ 详情浮层：标题栏压回一行、元信息改单列、底部按钮平分整宽
+     改前实测（390×844）：标题栏 107px（「← 上一式 / 下一式 →」被挤成一字一行竖排）、
+     元信息两列时每格仅 142px，`word-break:break-all` 把「UBL」劈成「U / BL」、
+     底部「去练习 / 关闭」只有 71×33 / 58×33。 */
+  .c4-modal__box { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); }
+  /* 位置串在标题里隐藏：单看「JAD」一行足够，位置在下面「位置」一项重复给出 */
+  .c4-modal__title .c4-mt__pos { display: none; }
+  .c4-modal__bar { padding: 9px 12px; gap: 6px; }
+  .c4-modal__bar .c4-spacer { display: none; }
+  .c4-modal__title {
+    font-size: 15px; letter-spacing: .5px;
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .c4-modal__star { width: 34px; height: 34px; }
+  .c4-modal__close { width: 34px; height: 34px; font-size: 18px; }
+  .c4-modal__nav { gap: 5px; margin-left: auto; }
+  .c4-modal__nav button { padding: 6px 8px; font-size: 12px; white-space: nowrap; }
+
+  .c4-modal__body { padding: 12px 12px 14px; }
+  .c4-modal__algbar { padding: 8px 10px; gap: 6px; }
+  .c4-modal__algbar .c4-seg--sm button { padding: 7px 9px; font-size: 12px; }
+  .c4-modal__mini { padding: 7px 10px; }
+  .c4-modal__alg { font-size: 17px; line-height: 1.5; padding: 10px 12px; margin-bottom: 10px; }
+  .c4-modal__alg--sub { font-size: 15px; }
+
+  /* 元信息：单列后每项一行读完（高度 164→约 200px，换来不再断词） */
+  .c4-modal__meta { grid-template-columns: minmax(0, 1fr); margin-bottom: 10px; }
+  .c4-meta { padding: 6px 10px; }
+  .c4-meta__v { word-break: break-word; }
+  .c4-modal__row { gap: 8px; margin-bottom: 8px; font-size: 12.5px; }
+  .c4-modal__row .k { min-width: 40px; }
+  .c4-modal__row .v { flex: 1 1 0; min-width: 0; word-break: break-word; }
+
+  .c4-modal__starbox { padding: 8px 10px; gap: 6px; margin: 8px 0; }
+  .ft-starc__b { padding: 6px 9px; }
+  .c4-modal__note { flex: 1 1 100%; }
+
+  /* 参考公式：说明文字挪到按钮之后（order），标题行只留「参考公式 + ✎ 手动输入」；
+     列表自身不限高、不内滚 —— 手机上只让浮层正文滚一层，避免双层竖向滚动 */
+  .c4-modal__refsbar { gap: 6px 8px; }
+  .c4-modal__refsbar .c4-spacer { display: none; }
+  .c4-modal__refsbar .k { min-width: 0; }
+  .c4-modal__refsman { margin-left: auto; }
+  .c4-modal__refsnote { flex: 1 1 100%; order: 3; font-size: 11.5px; line-height: 1.4; }
+  .c4-modal__refslist { max-height: none; overflow: visible; }
+
+  /* 底部操作：平分整宽、40px 高（原 71×33 / 58×33 拇指不好按） */
+  .c4-modal__acts { padding: 10px 12px; gap: 8px; }
+  .c4-modal__acts button { flex: 1 1 0; min-height: 40px; font-size: 14px; }
+}

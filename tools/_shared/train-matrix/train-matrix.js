@@ -250,7 +250,12 @@
     var padBottom = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
     var availW = wrap.clientWidth - padX - 4;
     var availH = window.innerHeight - wrap.getBoundingClientRect().top - padY - 2 - padBottom - 6;
-    if (availW < 240 || availH < 160) { return null; }
+    /* v2.1.2（手机端修复）：矩阵在窄屏上常被上面那堆工具条挤到首屏之外，availH 甚至为负。
+       旧写法直接 return null，于是 CSS 默认值就把 23 列按 1fr 压成 11px 一条 ——
+       既读不出字母组合也点不中。这里改成夹到最小可用空间，交给下面的
+       格宽/格高下限判定自动转成滚动布局（永不留下「未布局」的破格）。 */
+    availW = Math.max(availW, 240);
+    availH = Math.max(availH, 160);
 
     var cols = o.cols, rows = o.rows;          // 数据列数 / 数据行数（不含标签列与表头行）
     var gap = o.gap || MX_GAP, hh = o.hh || MX_HH;
@@ -258,9 +263,15 @@
     var cellW = (availW - lab - (cols - 1) * gap) / cols;
     var cellH = (availH - hh - (rows - 1) * gap) / rows;
 
+    /* 窄屏下限单独提高：桌面的 40×15 落到手机上是一条「40 宽 × 15 高」的细缝，
+       字母只有 10px、时间行被挤没。手机按 38×30 铺，宁可滚动也要可读可点。 */
+    var isNarrow = window.innerWidth < 640;
+    var minW = o.minW || (isNarrow ? 38 : MX_MIN_W);
+    var minH = o.minH || (isNarrow ? 30 : MX_MIN_H);
+
     var scroll = false;
-    if (cellW < (o.minW || MX_MIN_W)) { cellW = o.minW || MX_MIN_W; scroll = true; }
-    if (cellH < (o.minH || MX_MIN_H)) { cellH = o.minH || MX_MIN_H; scroll = true; }
+    if (cellW < minW) { cellW = minW; scroll = true; }
+    if (cellH < minH) { cellH = minH; scroll = true; }
 
     /* 字号从大到小试，两条约束都要满足：
        ① 宽度：典型较长段（p90）必须一行放得下；② 高度：两行文字要装进格子。

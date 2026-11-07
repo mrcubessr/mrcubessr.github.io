@@ -627,3 +627,38 @@ body{
   /* peek 时侧栏已滑入，左缘『导航』条让位，避免盖在侧栏上面 */
   body.nav-hidden.nav-peek .nav-expand-tab{ display:none; }
 }
+
+/* =========================================================
+   ⑧b 窄屏顶栏：可点区域撑到能按（2026-11-08）
+   实测 360px 宽：汉堡键被挤成 22×40、logo 只有 35×21、账号按钮 52×27。
+   根因是本文件 ⑧ 段里 `.nav-logo{flex:1 1 auto}` 会随空间压缩，
+   而按钮的 `flex-shrink` 仍是默认 1，一起被压扁。
+   处理：按钮组一律不可压缩，剩余宽度全给 logo（超出省略号收尾）；
+   logo 补上下内边距把 21px 文字撑成 33px 可点高度。
+   断点用 1024（与本文件 ⑧ 一致，不是 site-nav.css 的 900）。
+   ========================================================= */
+@media (max-width:1024px){
+  .site-nav .nav-toggle-btn{ flex: 0 0 auto; }
+  .site-nav .nav-theme-btn{ flex: 0 0 auto; }
+  .site-nav .nav-glass-btn{ flex: 0 0 auto; }
+  .site-nav .nav-logo{ padding: 6px 0; }
+  /* 抽屉里的菜单项 8px 内边距只有 35px 高，手指容易点错行 */
+  .site-nav .nav-menu a{ padding: 10px 12px; }
+  .site-nav .nav-drop-toggle{ padding: 10px 12px; }
+}
+
+/* =========================================================
+   ⑧c 窄屏抽屉被裁掉（2026-11-08 修）
+   现象：手机上点汉堡，页面几乎没反应，抽屉只露出 26px 高的一条。
+   根因两条，都在这条链上：
+     ① 本文件 ③ 给桌面侧栏写了 `.site-nav{overflow:hidden}`，
+        窄屏段 ⑧ 没重置 —— 而抽屉是 `.site-nav` 的 position:fixed 子元素，
+        于是被这个 60px 高的盒子直接裁掉；
+     ② 玻璃主题给 `.site-nav` 上了 backdrop-filter（glass.css ⑥），
+        filter/backdrop-filter 会把 fixed 子元素的包含块从视口改成自己，
+        抽屉的 top:60px/bottom:0 就算在 60px 高的父盒里 → 高度塌成 26px。
+   这里只解 ①（overflow）；② 由 glass.css ⑪c 把模糊挪到 ::before 上处理。
+   ========================================================= */
+@media (max-width:1024px){
+  .site-nav{ overflow: visible; }
+}

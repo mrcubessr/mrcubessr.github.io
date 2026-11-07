@@ -9,6 +9,67 @@
 
 ---
 
+## [2.1.2] — 2026-11-08（盲拧公式训练器手机端重做 + 全站导航窄屏可点区域）
+
+真机尺寸（390×844 / 360×740，明暗两套主题）逐页实测后修的一批手机端问题。
+
+### 一、盲拧公式训练器（`tools/ft`）
+
+**① 矩阵被压成 11px 一条（最严重）**
+`tools/_shared/train-matrix/train-matrix.js` 的 `fitMatrix()` 在空间不足时直接
+`return null` 提前退出，留下 CSS 默认的 `minmax(0,1fr)` —— 23 列被均分成 11px 宽，
+字母只有 5px，既读不出也点不中（360px 下首屏工具条吃掉 335px，`availH` 实测 **-56px**）。
+改为把 `availW/availH` 夹到下限（240/160）再交给格宽格高判定自动转成滚动布局，
+永不留下「未布局」的破格；窄屏（<640）格下限提到 **38×30**（桌面仍 40×15）。
+
+**② 工具条占满首屏**
+`ft-page.js` 把工具条拆成 `.c4-bar__top`（常驻）+ `.c4-bar__more`（折叠）两段，
+桌面两段都是 `display:contents`（子元素仍直接参与原 flex 流，逐像素不变），
+手机端其余选项收进「筛选」按钮（状态只存 DOM class，不写 localStorage）。
+工具条高度 **272/335px → 187px**；缓冲块改 8 列 × 32px（原 24×22）。
+
+**③ 矩阵滚动**
+横滚时行标/列标 `position:sticky` 粘住（底色必须用 `--surface-solid`——玻璃主题把
+`--surface` 重定向成了半透明，用它会让滚过去的格子透出来）；去掉矩阵自身
+`max-height` + 竖向 `overflow:hidden`，手机上只让页面滚一层（原先是「页面 + 矩阵」双层滚动）。
+
+**④ 详情浮层**
+标题栏「← 上一式 / 下一式 →」在 344px 里被挤成一字一行竖排、整栏涨到 107px；
+元信息两列时每格仅 142px，`word-break:break-all` 把「UBL」劈成「U / BL」；
+底部按钮只有 71×33。做法：标题拆成 `.c4-mt__code` / `.c4-mt__pos` 两个 span，
+手机只留编码（位置在下面「位置」一项已有）→ 标题栏回到 **53px**；
+元信息改单列每项一行（27px）；关闭键 34×34；底部按钮 `flex:1 1 0` + 40px；
+参考公式列表不再内滚（避免第二层滚动）。
+全屏计时数字 `clamp(48px, 8vw, 110px)` 在手机上 8vw 只有 31px、被下限顶住 → 改 `22vw`，**48 → 85.8px**。
+
+### 二、全站导航（`site-shell.css` / `site-nav.css` / `glass.css` / `account-ui.js`）
+
+**⑤ 手机顶栏按钮被挤扁**
+360px 宽实测：汉堡键 **22×40**、logo **35×21**、账号键 **52×27** —— 都够不着拇指。
+根因是 `.nav-inner` 的 flex 行里 logo 是 `flex:1 1 auto`，其余按钮默认 `flex-shrink:1`，
+再叠加玻璃外观按钮（桌面 119×46 的文字条）挤在 60px 顶栏里。改：
+- 玻璃外观按钮窄屏收成 38×38 图标（`::after` 文字标签 `content:none`，状态靠颜色 + aria-label）；
+- 全部按钮 `flex:0 0 auto`，剩余宽度让给 logo（超出省略号收尾），logo 补上下内边距到 33px 可点；
+- 账号键 `min-height:34px`；抽屉菜单项内边距 8→10px（35 → 39px 高）。
+实测：汉堡 **40×40**、主题/玻璃 **38×38**、logo **33px**、账号 **52×34**。
+
+**⑥ 手机抽屉根本打不开（同一批根因）**
+点汉堡后抽屉只露出 26px 高一条，看着像「点了没反应」：
+- `site-shell.css` ③ 给桌面侧栏写了 `.site-nav{overflow:hidden}`，窄屏段没重置 ——
+  而抽屉是它的 `position:fixed` 子元素，直接被 60px 高的盒子裁掉；
+- 玻璃主题给 `.site-nav` 上了 `backdrop-filter`，filter 会把 fixed 后代的包含块
+  从视口改成元素自己，抽屉的 `top:60px/bottom:0` 就在 60px 高的父盒里算 → 高度塌成 26px。
+修：窄屏 `.site-nav{overflow:visible}`；把顶栏模糊与玻璃底色一起搬到 `.site-nav::before`
+（伪元素不是任何元素的祖先，不生成包含块），`.nav-inner` 提到其上。抽屉恢复 **784px** 满高。
+
+### 三、缓存
+
+改了 `APP_SHELL` 里的 `site-nav.css` / `glass.css`（及运行时注入的 `site-shell.css`），
+`sw.js` 的 `CACHE` 递增 `fto-timer-v41 → v42`。
+`tools/ft/*` 与 `tools/_shared/train-matrix/*` 不在 APP_SHELL，走 SWR 按 URL 更新。
+
+---
+
 ## [2.1.1] — 2026-11-05（全站色块统一玻璃化）
 
 修复「一部分色块还是实色」：v2.1.0 只在 `glass.css` 里用选择器覆盖了首页那批组件，

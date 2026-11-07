@@ -390,3 +390,34 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 被删除的 `tools/cfop/js/pll-print.js` 与 `tools/cfop/css/pll-print.css`
 本就不在 APP_SHELL 内，删除不影响缓存策略。
 新增的 `cfop-print.js` / `cfop-print.css` 同样不进预缓存清单，走运行时缓存。
+
+## v40（2026-11-05）
+
+随 v2.1.0「玻璃拟态主题」递增。新增 `assets/css/glass.css`（常驻）与
+`assets/css/glass-ui.css`（按需加载的设置面板），并把 `assets/js/glass-theme.js`
+加进 `APP_SHELL`；`assets/css/glass.css` 同时被写入预缓存清单。
+不递增会导致已安装 PWA 继续用旧外壳，玻璃主题首屏出现「先实色再跳玻璃」的闪变。
+
+## v41（2026-11-05）
+
+随 v2.1.1「全站色块统一玻璃化」递增。`assets/css/tokens.css` / `palettes.css`
+在令牌层新增 `--surface-solid` / `--surface-2-solid` / `--surface-3-solid` /
+`--bg-soft-solid`（不透明副本），`glass.css` 把 `--surface` 系列重定向为玻璃合成色。
+两者都在 `APP_SHELL` 内，不递增会让老用户一直拿到旧令牌、色块保持实色。
+
+## v42（2026-11-08）
+
+随 v2.1.2「盲拧公式训练器手机端重做 + 全站导航窄屏可点区域」递增。
+改到的 `APP_SHELL` 成员：`assets/css/site-nav.css`、`assets/css/glass.css`。
+另有运行时注入的 `assets/css/site-shell.css`（由 `site-nav.js` 注入，
+不在预缓存清单内、走运行时缓存，但仍需靠本版本号触发一次外壳刷新，
+否则老用户会拿到「新 site-nav.css + 旧 site-shell.css」的错配组合）。
+
+本版修的两个手机端硬伤都出在 CSS 盒模型层面，值得记一笔：
+① `.site-nav{overflow:hidden}`（桌面侧栏规则）在窄屏没重置，把 `position:fixed`
+   的抽屉裁成 26px 高；
+② 玻璃主题给 `.site-nav` 的 `backdrop-filter` 把 fixed 后代的包含块从视口改成
+   元素自己，抽屉的 `top/bottom` 在 60px 高的父盒里算 → 高度塌陷。
+现在窄屏把模糊与玻璃底色搬到 `.nav-inner` 之前的 `.site-nav::before`，
+伪元素不是任何元素的祖先，不生成包含块，抽屉才能恢复满高。
+`tools/ft/*` 与 `tools/_shared/train-matrix/*` 不在 APP_SHELL，走运行时缓存。

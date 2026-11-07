@@ -20,8 +20,13 @@ window.FTPage = (function () {
   /* ================= 共用骨架（四页一致，JS 注入） ================= */
   function chromeHTML() {
     return ''
-    /* ---------- 工具条：缓冲选择 + 视图切换 + 指标/搜索/筛选/排序 ---------- */
+    /* ---------- 工具条：缓冲选择 + 视图切换 + 指标/搜索/筛选/排序 ----------
+       v2.1.2：拆成「常驻区 .c4-bar__top」+「折叠区 .c4-bar__more」两段。
+       桌面端两段都是 display:contents（子元素直接参与 .c4-bar 的 flex 流，
+       视觉与拆分前逐像素一致）；手机端只留常驻区，其余收进「筛选」按钮，
+       把首屏高度让给矩阵/卡片（旧版工具条在 360px 上占掉 335px）。 */
     + '<div class="c4-bar">'
+    + '<div class="c4-bar__top">'
     + '  <div class="ft-buf" id="ft-buf">'
     + '    <span class="ft-buf__label">缓冲块</span>'
     + '    <span class="ft-buf__list" id="ft-buf-list"><span style="font-size:12px;color:var(--fg-3)">加载中…</span></span>'
@@ -32,6 +37,10 @@ window.FTPage = (function () {
     + '    <button type="button" data-view="matrix" class="is-active" role="tab">矩阵总览</button>'
     + '    <button type="button" data-view="board" role="tab">练习总览</button>'
     + '  </div>'
+    + '  <button type="button" class="c4-bar__toggle" id="c4-more" aria-expanded="false"'
+    + '          aria-controls="c4-more-box" title="展开/收起指标、搜索、筛选、排序等选项">筛选</button>'
+    + '</div>'
+    + '<div class="c4-bar__more" id="c4-more-box">'
     + '  <label for="c4-metric">指标</label>'
     + '  <select id="c4-metric">'
     + '    <option value="session">最近一次</option>'
@@ -77,6 +86,7 @@ window.FTPage = (function () {
     + '  <button type="button" id="c4-comm" class="c4-navbtn" aria-pressed="false"'
     + '          title="快捷切换：公式显示为括号格式。[A,B] 交换子 = A B A⁻¹ B⁻¹；'
     + 'A:[B,C] 共轭 = A [B,C] A⁻¹。该条无括号数据（或你手动输入过公式）时仍显示展开式">括号格式</button>'
+    + '</div>'
     + '</div>'
     /* ---------- 练习总览仪表盘 ---------- */
     + '<section id="c4-dash" class="c4-dash">'
@@ -864,7 +874,10 @@ window.FTPage = (function () {
       var b = code.charAt(1), c3 = code.charAt(2);
       var t = document.getElementById('c4-m-title');
       t.className = 'c4-modal__title ' + gclass(b);
-      t.textContent = code + '　（' + posStr(code) + '）';
+      /* 编码与位置分两个 span：手机端 344px 宽放不下整串，会把「← 上一式 / 下一式 →」
+         挤成竖排（标题栏涨到 107px）。手机只留编码，位置在下面「位置」一项里已有。 */
+      t.innerHTML = '<span class="c4-mt__code">' + esc(code) + '</span>' +
+                    '<span class="c4-mt__pos">　（' + esc(posStr(code)) + '）</span>';
       renderModalAlg(code);
       var st = statsOf(code);
       var meta = document.getElementById('c4-m-meta');
@@ -1766,6 +1779,18 @@ window.FTPage = (function () {
       if (btn) { btn.addEventListener('click', clearAllFilters); }
       renderFilterHint();
     }
+    /* 手机端「筛选」折叠：桌面该按钮 display:none，点不到；展开状态只存在 DOM class
+       （.c4-bar.is-more），不写 localStorage —— 每次进页面都从收起开始，首屏留给矩阵。 */
+    function initBarToggle() {
+      var btn = document.getElementById('c4-more');
+      var bar = btn && btn.closest ? btn.closest('.c4-bar') : null;
+      if (!btn || !bar) { return; }
+      btn.addEventListener('click', function () {
+        var on = bar.classList.toggle('is-more');
+        btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+        btn.textContent = on ? '收起 ▴' : '筛选';
+      });
+    }
 
     /* ---------- 矩阵行列坐标点击筛选（v2.0.27 起为唯一行列筛选入口） ---------- */
     /* 高亮当前锁定行/列；每次矩阵重渲染后由 MutationObserver 自动重画 */
@@ -1880,6 +1905,7 @@ window.FTPage = (function () {
     initAlgView();
     initRepMode();
     initClear();
+    initBarToggle();
     initAxis();
     initStars();
     setView('matrix');

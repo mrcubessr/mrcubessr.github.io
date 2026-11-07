@@ -26,6 +26,9 @@
     '.acct-dot.is-ok{background:var(--green)}',
     '.acct-dot.is-sync{background:var(--amber)}',
     '.acct-dot.is-err{background:var(--red)}',
+    /* 手机端顶栏：账号按钮 52×27 拇指按不准，撑到 34px 高且不参与 flex 压缩
+       （2026-11-08 实测 360px 宽下被 logo 挤成 52×27） */
+    '@media (max-width:1024px){.acct-chip{flex:0 0 auto;min-height:34px;padding:0 12px}}',
     '.acct-fab{position:fixed;right:14px;bottom:14px;z-index:60;padding:9px 14px;font:inherit;font-size:13px;',
     'color:var(--on-brand);background:var(--brand);border:1px solid var(--brand);border-radius:0;cursor:pointer}',
     '.acct-mask{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:flex;',
