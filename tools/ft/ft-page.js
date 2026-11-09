@@ -191,17 +191,28 @@ window.FTPage = (function () {
     + '    </div>'
     + '  </div>'
     + '</div>'
-    /* ---------- 全屏沉浸计时 ---------- */
+    /* ---------- 全屏沉浸计时 v2.1.3 ----------
+       手机上整块屏幕就是「起表键」：按住 0.3s 变绿、松手起表；运行中点任意处停表。
+       另有一个「自动下一把」开关：开 = 停表后在屏内直接续练（不弹成绩确认）。 */
     + '<div class="c4-fs" id="c4-fs" hidden>'
     + '  <div class="c4-fs__bar">'
     + '    <span class="c4-fs__code" id="c4-fs-code">--</span>'
     + '    <span class="c4-fs__prog" id="c4-fs-prog"></span>'
     + '    <span class="c4-spacer"></span>'
-    + '    <span class="c4-fs__hint">按住空格 0.5s 松开起表 · 再按停表</span>'
+    + '    <button type="button" class="c4-fs__auto" id="c4-fs-auto" aria-pressed="true"'
+    + '            title="开启后：停表不出确认框，直接在全屏里长按开始下一把">自动下一把</button>'
     + '    <button type="button" class="c4-fs__close" id="c4-fs-close" aria-label="退出全屏">×</button>'
     + '  </div>'
     + '  <div class="c4-fs__timer" id="c4-fs-timer" data-state="idle">0.000</div>'
+    + '  <div class="c4-fs__sub" id="c4-fs-sub"></div>'
     + '  <div class="c4-fs__alg" id="c4-fs-alg"></div>'
+    + '  <div class="c4-fs__sheet" id="c4-fs-sheet" hidden>'
+    + '    <div class="c4-fs__sheet-t" id="c4-fs-sheet-t">--</div>'
+    + '    <div class="c4-fs__sheet-acts">'
+    + '      <button type="button" class="is-primary" id="c4-fs-next">下一把 →</button>'
+    + '      <button type="button" id="c4-fs-list">看成绩列表</button>'
+    + '    </div>'
+    + '  </div>'
     + '</div>'
     /* ---------- 详情浮层（v2.0.26 重做：更大更宽松，公式显示方式可三选，
            参考公式默认 5 条 + 折叠，带星标标记与备注） ---------- */
@@ -1019,10 +1030,13 @@ window.FTPage = (function () {
     var repMode = FT.repMode();
     var repIdx = 0;          /* avg3：已完成的次数 0~3 */
     var repList = [];        /* avg3：本轮三次的原始用时 */
+    /* 刚凑满三次并结算完：全屏连练时只有这个瞬间才允许切下一式
+       （否则每做一次就 pLoadCode 一次，repList 被清空、永远卡在「第 1/3 次」） */
+    var repSettled = false;
     function setRepMode(v) {
       repMode = v;
       FT.setRepMode(v);
-      repIdx = 0; repList = [];
+      repIdx = 0; repList = []; repSettled = false;
       var a = document.getElementById('c4-repmode');
       var b = document.getElementById('c4-p-repmode');
       if (a) { a.value = v; }
@@ -1103,11 +1117,14 @@ window.FTPage = (function () {
     function pStartTimer() {
       if (pState === 'running') return;
       pState = 'running';
+      repSettled = false;
       pStart = performance.now();
       pTimerEl.dataset.state = 'running';
       pSummaryEl.hidden = true;
       pTick = setInterval(pRenderTimer, 50);
       pSyncTimerEls();
+      fsSheetHide();
+      fsSub('running', '');
     }
     function pStopTimer() {
       if (pState !== 'running') return;
@@ -1124,13 +1141,19 @@ window.FTPage = (function () {
         repIdx = repList.length;
         renderRepProgress();
         if (repIdx >= 3) {
+          var a3 = avg(repList);          /* repFinish() 会把 repList 清空，先取平均 */
           repFinish();
+          /* 全屏时不在后台偷偷换公式：pLoadCode 会把计时数字清成 0.000，成绩一闪就没。
+             改为等用户长按起表的那一刻再切下一条（见 fsPointerDown）。 */
           clearTimeout(chainAdvTimer);
-          if (chainOn && chainList.length) { chainAdvTimer = setTimeout(chainNext, 800); }
+          if (chainOn && chainList.length && fsEl.hidden) { chainAdvTimer = setTimeout(chainNext, 800); }
+          repSettled = true;
+          fsSub('done', '三次平均 <b>' + fmtTime(a3) + '</b>');
         } else {
           pSummaryEl.hidden = false;
           pSummaryEl.innerHTML = '第 ' + repIdx + '/3 次 <b>' + fmtTime(total) + '</b> · 再按住空格做第 ' +
                                  (repIdx + 1) + ' 次';
+          fsSub('rep', '第 ' + repIdx + '/3 次 <b>' + pFmt(total) + '</b> · 继续按住做第 ' + (repIdx + 1) + ' 次');
         }
         return;
       }
@@ -1138,12 +1161,15 @@ window.FTPage = (function () {
       pushTimes(total);
       pSummaryEl.hidden = false;
       pSummaryEl.innerHTML = '本次用时 <b>' + fmtTime(total) + '</b>';
-      pRefreshHistory();
       try { times = load(TIMES_KEY, {}); sessions = load(SESSIONS_KEY, {}); } catch (e) {}
+      /* pRefreshHistory() 必须放在重取缓存之后：pushTimes() 只写 localStorage，
+         不更新闭包里的 sessions —— 先刷新会永远慢一把（旧坑，v2.1.3 修）。 */
+      pRefreshHistory();
       /* 必须重绘当前视图：只 renderBoard() 会在矩阵视图下成绩不刷新（旧坑） */
       renderCurrent();
+      fsAfterStop(total);
       clearTimeout(chainAdvTimer);
-      if (chainOn && chainList.length) { chainAdvTimer = setTimeout(chainNext, 800); }
+      if (chainOn && chainList.length && fsEl.hidden) { chainAdvTimer = setTimeout(chainNext, 800); }
     }
     function pResetTimer() {
       clearInterval(pTick); clearTimeout(pPrep);
@@ -1152,6 +1178,8 @@ window.FTPage = (function () {
       pTimerEl.textContent = '0.000';
       pSummaryEl.hidden = true;
       pSyncTimerEls();
+      fsSheetHide();
+      fsSub('idle', '');
     }
     function pKeydownHold() {
       if (pState === 'running') { pStopTimer(); return; }
@@ -1163,9 +1191,14 @@ window.FTPage = (function () {
       pTimerEl.dataset.state = 'prep';
       pTimerEl.textContent = '按住';
       pPrep = setTimeout(function () {
-        if (pState === 'prep') { pState = 'green'; pTimerEl.dataset.state = 'green'; pTimerEl.textContent = '松开'; }
+        if (pState === 'prep') {
+          pState = 'green'; pTimerEl.dataset.state = 'green'; pTimerEl.textContent = '松开';
+          fsSub('green', '松手起表');
+        }
       }, 300);
       pSyncTimerEls();
+      fsSheetHide();
+      fsSub('prep', '继续按住…');
     }
     function pKeyupHold() {
       clearTimeout(pPrep);
@@ -1196,7 +1229,7 @@ window.FTPage = (function () {
       var rs = document.getElementById('c4-p-repmode');
       if (rs) { rs.value = repMode; }
       /* 换公式 = 新一轮：三次平均的半途成绩作废，避免把別条的两次算进来 */
-      if (repList.length) { repList = []; repIdx = 0; }
+      if (repList.length) { repList = []; repIdx = 0; repSettled = false; }
       renderRepProgress();
     }
     function pLoadCode(code) {
@@ -1303,6 +1336,57 @@ window.FTPage = (function () {
 
     /* ---------- 全屏沉浸计时 ---------- */
     var fsEl = document.getElementById('c4-fs');
+    var fsSubEl = document.getElementById('c4-fs-sub');
+    var fsSheetEl = document.getElementById('c4-fs-sheet');
+    var FS_AUTO_KEY = 'ft_fs_auto';
+    /* 「自动下一把」= 停表之后不出成绩确认，直接留在全屏里长按开始下一把。
+       默认开（用户明确要求「不用每次都跳出去问成绩行不行」）；关掉则停表弹一枚
+       屏内小卡（本次成绩 + 下一把 / 看列表），注意这个小卡也不会退出全屏。 */
+    var fsAuto = true;
+    try { if (localStorage.getItem(FS_AUTO_KEY) === '0') { fsAuto = false; } } catch (e) {}
+
+    function fsAutoSync() {
+      var b = document.getElementById('c4-fs-auto');
+      if (!b) { return; }
+      b.setAttribute('aria-pressed', fsAuto ? 'true' : 'false');
+      b.textContent = fsAuto ? '自动下一把' : '每把确认';
+    }
+    function fsAutoSet(on) {
+      fsAuto = !!on;
+      try { localStorage.setItem(FS_AUTO_KEY, fsAuto ? '1' : '0'); } catch (e) {}
+      fsAutoSync();
+      toast(fsAuto ? '停表后直接留在全屏，长按开始下一把' : '停表后弹成绩确认卡（仍在全屏内）');
+    }
+    /* 全屏副行：唯一的状态提示位。kind 只用来上色（idle/prep/green/running/done/rep）。 */
+    function fsSub(kind, html) {
+      if (!fsSubEl) { return; }
+      var txt = html;
+      if (!txt) {
+        if (kind === 'idle') { txt = '按住屏幕 / 空格 0.3 秒，变绿后松手起表'; }
+        else if (kind === 'done') { txt = '按住屏幕任意位置开始下一把'; }
+      }
+      fsSubEl.dataset.kind = kind || '';
+      fsSubEl.innerHTML = txt || '';
+      /* ⚠️ 不要用 hidden 收起来：这一行的 min-height 撑着布局，隐藏会让计时数字
+         上下跳 17px（手机上很明显）。空内容就留空行。 */
+      fsSubEl.hidden = false;
+    }
+    function fsSheetShow() { if (fsSheetEl) { fsSheetEl.hidden = false; } }
+    function fsSheetHide() { if (fsSheetEl) { fsSheetEl.hidden = true; } }
+    /* 停表后（仅全屏内）：更新副行成绩、按 fsAuto 决定弹不弹确认卡。
+       注意「自动下一把」时连下面练习浮层的确认条也收掉 —— 否则退出全屏那一刻
+       会突然冒出一行「本次用时 X」，就是用户说的「跳出来问成绩行不行」。 */
+    function fsAfterStop(total) {
+      if (!fsEl || fsEl.hidden) { return; }
+      var s = sessions[pCurrent] || [];
+      var n = s.length, a = avg(s);
+      var info = (n > 1 ? ('第 ' + n + ' 次 · 平均 ' + fmtTime(a)) : ('第 ' + n + ' 次'));
+      fsSub('done', '已保存 · ' + info + ' · 按住继续');
+      var t = document.getElementById('c4-fs-sheet-t');
+      if (t) { t.innerHTML = '本次 <b>' + pFmt(total) + '</b>　' + info; }
+      if (fsAuto) { fsSheetHide(); pSummaryEl.hidden = true; }
+      else { fsSheetShow(); }
+    }
     function fsSyncAll() {
       var codeEl = document.getElementById('c4-fs-code');
       var algEl = document.getElementById('c4-fs-alg');
@@ -1320,14 +1404,58 @@ window.FTPage = (function () {
     }
     function fsOpen() {
       fsSyncAll();
+      fsAutoSync();
+      fsSheetHide();
+      fsSub(pState === 'running' ? 'running' : 'idle', '');
       fsEl.hidden = false;
       document.body.style.overflow = 'hidden';
     }
     function fsClose() {
+      fsSheetHide();
       fsEl.hidden = true;
       document.body.style.overflow = '';
+      /* 退出全屏 = 回到练习浮层：把被「自动下一把」收起来的确认条补回来 */
+      if (pState === 'done' && pSummaryEl.hidden) { pSummaryEl.hidden = false; }
     }
     function fsToggle() { if (fsEl.hidden) { fsOpen(); } else { fsClose(); } }
+
+    /* 整块全屏接管 pointer —— 手机端唯一可靠的起表方式。
+       v2.1.3 之前只有「点计时数字」能起表，点偏一点就没反应；而且 .c4-fs 没锁
+       文本选择，长按会弹「复制 / 粘贴」菜单把起表手势吃掉。
+       ⚠️ 不要再加 click：pointerdown 里 preventDefault() 会把 click 吞掉（旧坑）。 */
+    var fsPressed = false;
+    fsEl.addEventListener('pointerdown', function (e) {
+      var t = e.target;
+      if (t && t.closest && (t.closest('button') || t.closest('.c4-fs__sheet'))) { return; }
+      fsPressed = true;
+      if (e.cancelable) { e.preventDefault(); }                /* 禁掉长按选择 + 合成 click */
+      if (pState === 'running') { pStopTimer(); return; }
+      /* 上一把刚完 + 连练：先把公式切到下一式再进「按住」（pLoadCode 会清表，顺序不能反） */
+      if (pState === 'done' && chainOn && chainList.length &&
+          (repMode !== 'avg3' || repSettled)) { chainNext(); }
+      pKeydownHold();
+    });
+    function fsRelease(isMouse) {
+      fsPressed = false;
+      clearTimeout(pPrep);
+      if (pState === 'green') { pStartTimer(); return; }
+      if (pState === 'prep') {
+        /* 鼠标短按也算起表（桌面习惯）；触屏必须「按住 0.3s 再松」，防误触 */
+        if (isMouse) { pStartTimer(); return; }
+        pResetTimer();
+      }
+    }
+    /* 手指划出边界松手也要收尾，所以监听 window 而不是 fsEl */
+    window.addEventListener('pointerup', function (e) {
+      if (!fsPressed) { return; }
+      fsRelease(e.pointerType === 'mouse');
+    });
+    window.addEventListener('pointercancel', function () {
+      if (!fsPressed) { return; }
+      fsPressed = false;
+      if (pState === 'prep' || pState === 'green') { pResetTimer(); }
+    });
+    fsEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
     /* ---------- 成绩导出 CSV ---------- */
     function csvCell(v) {
@@ -1485,9 +1613,16 @@ window.FTPage = (function () {
       document.getElementById('c4-p-fs').addEventListener('click', fsToggle);
       document.getElementById('c4-p-export').addEventListener('click', exportCSV);
       document.getElementById('c4-fs-close').addEventListener('click', fsClose);
-      document.getElementById('c4-fs-timer').addEventListener('click', function () {
-        if (pState === 'running') { pStopTimer(); }
-        else if (pState === 'done' || pState === 'idle') { pStartTimer(); }
+      /* ⚠️ #c4-fs-timer 不再绑 click：起表/停表统一交给 fsEl 上的 pointer 手势
+         （同元素重复绑 click = 一次点击先起后停，旧坑；pointerdown 里 preventDefault
+         本来也会把 click 吞掉，留着只会让状态机打架）。 */
+      document.getElementById('c4-fs-auto').addEventListener('click', function () { fsAutoSet(!fsAuto); });
+      document.getElementById('c4-fs-next').addEventListener('click', function () {
+        fsSheetHide();
+        if (chainOn && chainList.length) { chainNext(); } else { pResetTimer(); }
+      });
+      document.getElementById('c4-fs-list').addEventListener('click', function () {
+        fsSheetHide(); fsClose();
       });
       document.getElementById('c4-p-del').addEventListener('click', function () {
         var s = (sessions[pCurrent] || []).slice();
@@ -1939,6 +2074,9 @@ window.FTPage = (function () {
         stars = FT.getStars(sys);          /* 页面内缓存必须重取，否则矩阵不重绘星标 */
         state.swaps = FT.getSwaps(sys);
       } catch (err) { return; }
+      /* 「自动下一把」也随快照走：手机上调好的手感，换到电脑上应该一样 */
+      try { fsAuto = localStorage.getItem(FS_AUTO_KEY) !== '0'; } catch (err2) {}
+      fsAutoSync();
       renderCurrent();
       if (pmodal.classList.contains('is-open')) { pRefreshHistory(); }
     });
@@ -1949,7 +2087,7 @@ window.FTPage = (function () {
           id: SYNC_ID,
           label: '公式训练器 · ' + SYS.name,
           path: SYNC_ID + '.json',
-          keys: [TIMES_KEY, SESSIONS_KEY, STARS_KEY, SWAPS_KEY],
+          keys: [TIMES_KEY, SESSIONS_KEY, STARS_KEY, SWAPS_KEY, FS_AUTO_KEY],
           isEmptySnap: function (snap) {
             if (!snap) { return true; }
             var n = 0;
