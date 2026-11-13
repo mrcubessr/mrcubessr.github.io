@@ -23,6 +23,11 @@
   /* 单屏布局：head + tabs 固定，board 吃掉剩余高度 */
   .c2-wrap { display: flex; flex-direction: column; }
 
+  /* 单屏工具页：这一页的卡片已经铺到视口底部，站点页脚留在文档末尾只会
+     多带出一段白滚（实测 390×844 下 board 底 830 仍在屏内，页脚 127px 把
+     scrollHeight 顶到 1045）。故本页不渲染页脚，回落入口在左上「返回」。 */
+  .site-footer { display: none; }
+
   .c2-head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; padding: 0 0 12px; }
   .c2-head__main { min-width: 0; flex: 1 1 auto; }
   .c2-head h1 {
@@ -314,7 +319,12 @@
     var w = window.innerWidth;
     board.style.setProperty('--c2-cols', String(colsFor(view, w)));
     var r = board.getBoundingClientRect();
-    var h = window.innerHeight - r.top - 14;
+    /* 底部留白取 body 的 padding-bottom，别再写死数字：
+       手机 24 / 桌面 64 不一样，写死 14 会永远多滚出 10–50px。 */
+    var padB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    var docTop = r.top + (window.pageYOffset || document.documentElement.scrollTop || 0);
+    var vh = document.documentElement.clientHeight || window.innerHeight;
+    var h = vh - docTop - padB;
     board.style.setProperty('--c2-h', Math.max(260, Math.round(h)) + 'px');
   }
 
