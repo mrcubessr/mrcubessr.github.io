@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var d=document.documentElement,p=localStorage.getItem('theme');if(p!=='light'&&p!=='dark'&&p!=='auto')p='auto';var m=p==='auto'?((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):p;d.setAttribute('data-theme',m);d.setAttribute('data-theme-pref',p);try{d.style.colorScheme=m}catch(e){}var q=localStorage.getItem('mf_palette');if(q&&/^(classroom|inknight|projector|paper|classic)$/.test(q))d.setAttribute('data-palette',q)}catch(e){}})();</script>
+<script src="/assets/js/sync-boot.js"></script>
+
+<title>公式训练器 · 二阶盲拧 - 魔方先生SSR魔方训练中心</title>
+<meta name="description" content="二阶盲拧公式训练：18 条单个公式 + 6 组组合公式，点卡片即计时，成绩本地保存并可云同步。">
+<link rel="stylesheet" href="/assets/css/site-nav.css">
+<link rel="stylesheet" href="/assets/css/components.css">
+<link rel="stylesheet" href="/assets/css/site-layout.css">
+<link rel="stylesheet" href="ft.css?v=2.1.3">
+<style>
+  /* =========================================================
+     二阶盲拧公式训练页（cube2.html）专属样式
+     与六个矩阵体系页不同：二阶只有 18 条单公式 / 6 组组合，
+     不是「缓冲 × 23 次位置」的矩阵结构，所以单独成页、卡片做大、铺满一屏。
+     全屏计时层直接复用 ft.css 的 .c4-fs（同一套手势与配色口径）。
+     ========================================================= */
+
+  /* 单屏布局：head + tabs 固定，board 吃掉剩余高度 */
+  .c2-wrap { display: flex; flex-direction: column; }
+
+  .c2-head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; padding: 0 0 12px; }
+  .c2-head__main { min-width: 0; flex: 1 1 auto; }
+  .c2-head h1 {
+    margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 2px;
+    color: var(--brand, #60a5fa); line-height: 1.3;
+  }
+  .c2-head__sub { margin: 5px 0 0; font-size: 12.5px; color: var(--fg-3, #7C8798); line-height: 1.7; }
+  .c2-head__sub b { color: var(--fg, #EEF2F8); font-weight: 600; }
+  .c2-back {
+    flex: 0 0 auto; font-size: 13px; color: var(--fg-3, #7C8798);
+    text-decoration: none; padding: 4px 0;
+  }
+  .c2-back:hover { color: var(--brand, #60a5fa); }
+
+  /* 两个训练项切换 */
+  .c2-tabs { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .c2-tab {
+    flex: 0 0 auto; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    font-size: 13.5px; font-weight: 700; letter-spacing: .5px;
+    padding: 9px 16px; min-height: 38px; border-radius: 0;
+    background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+    border: 1px solid var(--line-2, rgba(255,255,255,.14));
+  }
+  .c2-tab span {
+    font-family: "Consolas","SF Mono",monospace; font-size: 12px;
+    margin-left: 6px; opacity: .75;
+  }
+  .c2-tab[aria-selected="true"] {
+    color: var(--brand, #60a5fa); border-color: var(--brand, #60a5fa);
+    background: var(--brand-soft, rgba(91,141,239,.16));
+  }
+  .c2-tab:focus-visible { outline: 2px solid var(--brand, #60a5fa); outline-offset: 2px; }
+
+  .c2-tip { font-size: 12px; color: var(--fg-3, #7C8798); line-height: 1.6; margin-bottom: 10px; }
+
+  /* 卡片网格：列数由 JS 写 --c2-cols，行高 1fr 让卡片撑满整块 */
+  .c2-board {
+    display: grid; gap: 10px;
+    grid-template-columns: repeat(var(--c2-cols, 6), minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    min-height: var(--c2-h, 320px);
+  }
+
+  .c2-card {
+    position: relative; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 8px; min-height: 0; overflow: hidden;
+    cursor: pointer; text-align: center; border-radius: 0;
+    background: var(--surface, #141826);
+    border: 1px solid var(--line-2, rgba(255,255,255,.12));
+    color: var(--fg, #EEF2F8);
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 120ms ease, transform 120ms ease;
+  }
+  .c2-card:hover { border-color: var(--brand, #60a5fa); }
+  .c2-card:active { transform: scale(.985); }
+  .c2-card:focus-visible { outline: 2px solid var(--brand, #60a5fa); outline-offset: -2px; }
+
+  /* 公式名 = 卡片主体（用户要求：卡片上就写这条公式是什么）。
+     参考公式按需求先空着，所以卡片里不留占位行 —— 空着就真的空着，
+     只在全屏计时页面里保留一行极淡的占位，提示这里以后会填公式。 */
+  .c2-card__k {
+    font-family: "Consolas","SF Mono",monospace; font-weight: 900;
+    letter-spacing: 1px; line-height: 1; color: var(--fg, #EEF2F8);
+    font-size: clamp(30px, 3.4vw, 58px);
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .c2-board[data-view="combo"] .c2-card__k {
+    font-size: clamp(28px, 3.4vw, 60px); letter-spacing: 3px;
+  }
+  .c2-card__tag {
+    font-size: 11px; letter-spacing: 1px; color: var(--fg-3, #7C8798);
+  }
+  .c2-card__stat {
+    font-family: "Consolas","SF Mono",monospace; font-size: 11.5px;
+    color: var(--fg-3, #7C8798); white-space: nowrap;
+  }
+  .c2-card__stat b { color: var(--brand, #60a5fa); font-weight: 700; }
+  .c2-card.is-practiced { border-color: rgba(91,141,239,.45); }
+  .c2-card.is-practiced .c2-card__tag { color: var(--brand, #60a5fa); }
+
+  /* 手机：头部压缩到两行（标题 + 返回同排、副标单行），把高度让给卡片 */
+  @media (max-width: 640px) {
+    body { padding: 12px 12px 24px; }
+    .c2-head { align-items: center; gap: 8px; padding-bottom: 8px; flex-wrap: nowrap; }
+    .c2-head h1 { font-size: 18px; letter-spacing: 1px; }
+    .c2-head__sub {
+      font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .c2-back { font-size: 12px; white-space: nowrap; }
+    .c2-tabs { gap: 6px; margin-bottom: 8px; }
+    .c2-tab { flex: 1 1 0; padding: 9px 8px; font-size: 12.5px; min-height: 36px; }
+    .c2-tab span { display: none; }
+    .c2-tip { font-size: 11.5px; margin-bottom: 8px; line-height: 1.5; }
+    .c2-board { gap: 7px; }
+    .c2-card { padding: 8px 4px; gap: 5px; }
+    .c2-card__k { font-size: clamp(30px, 9vw, 44px); }
+    .c2-board[data-view="combo"] .c2-card__k { font-size: clamp(26px, 7.2vw, 38px); letter-spacing: 2px; }
+    .c2-card__tag { font-size: 10px; }
+    .c2-card__stat { font-size: 10.5px; }
+  }
+
+  /* ⚠️ 顺序有意义：必须排在 640 断点之后，同特异性才会盖住上面那档字号。
+     360–380 这类最窄机型上，卡片内容会顶高行高、把最后一行推到屏外，
+     这里再收一档内边距与字号，让 18 张 3×6 正好落在一屏里。 */
+  @media (max-width: 380px) {
+    .c2-card { padding: 6px 4px; gap: 4px; }
+    .c2-card__k { font-size: clamp(26px, 8vw, 38px); }
+    .c2-card__tag { font-size: 9.5px; }
+    .c2-card__stat { font-size: 10px; }
+  }
+</style>
+<script>(function(){try{var d=document.documentElement,q=location.search;var off=/[?&]glass=off(?:&|$)/.test(q)||localStorage.getItem('mf_glass_on')==='0';d.setAttribute('data-glass',off?'off':'on');var w=localStorage.getItem('mf_glass_wall');d.setAttribute('data-g-wall',(w==='aurora'||w==='aurora-b'||w==='none'||w==='image')?w:'aurora');}catch(e){document.documentElement.setAttribute('data-glass','on');}})();</script>
+<link rel="stylesheet" href="/assets/css/glass.css" data-glass-css>
+<script src="/assets/js/glass-theme.js" defer></script>
+</head>
+<body data-nav="ft">
+
+<div data-site-nav></div>
+<noscript><a href="/" style="display:block;padding:12px 20px">← 返回首页</a></noscript>
+
+<main class="c2-wrap">
+
+  <header class="c2-head">
+    <div class="c2-head__main">
+      <h1>公式训练器 · 二阶盲拧</h1>
+      <p class="c2-head__sub">
+        <b>18</b> 条单公式 · <b>6</b> 组组合公式 · 成绩随账号同步
+      </p>
+    </div>
+    <a class="c2-back" href="index.html">← 返回公式训练器</a>
+  </header>
+
+  <div class="c2-tabs" role="tablist" aria-label="训练项目">
+    <button type="button" class="c2-tab" id="c2-tab-single" role="tab"
+            aria-selected="true" aria-controls="c2-board" data-view="single">
+      单个公式训练<span>18</span>
+    </button>
+    <button type="button" class="c2-tab" id="c2-tab-combo" role="tab"
+            aria-selected="false" aria-controls="c2-board" data-view="combo">
+      公式组合训练<span>6</span>
+    </button>
+  </div>
+
+  <div class="c2-tip" id="c2-tip">点卡片开始计时：按住屏幕 0.3 秒变绿后松手起表，运行中点任意处停表。</div>
+
+  <div class="c2-board" id="c2-board" data-view="single" role="tabpanel"></div>
+
+</main>
+
+<footer class="site-footer">
+  <p class="site-footer__title">魔方先生SSR魔方训练中心</p>
+  <p class="site-footer__meta">制作人：B站博主：魔方先生SSR　WCAID : 2009ZHAN24　抖音ID : 魔方总动员</p>
+</footer>
+
+<!-- 全屏计时层：类名沿用 ft.css 的 .c4-fs（与六个矩阵页同一套手势与配色） -->
+<div class="c4-fs" id="c2-fs" hidden>
+  <div class="c4-fs__bar">
+    <span class="c4-fs__code" id="c2-fs-code">--</span>
+    <span class="c4-fs__prog" id="c2-fs-prog"></span>
+    <span class="c4-spacer"></span>
+    <button type="button" class="c4-fs__auto" id="c2-fs-auto" aria-pressed="true"
+            title="开启后：停表不出确认框，直接在全屏里长按开始下一把">自动下一把</button>
+    <button type="button" class="c4-fs__close" id="c2-fs-close" aria-label="退出全屏">×</button>
+  </div>
+  <div class="c4-fs__timer" id="c2-fs-timer" data-state="idle">0.000</div>
+  <div class="c4-fs__sub" id="c2-fs-sub"></div>
+  <div class="c4-fs__alg" id="c2-fs-alg"></div>
+  <div class="c4-fs__sheet" id="c2-fs-sheet" hidden>
+    <div class="c4-fs__sheet-t" id="c2-fs-sheet-t">--</div>
+    <div class="c4-fs__sheet-acts">
+      <button type="button" class="is-primary" id="c2-fs-next">下一把 →</button>
+      <button type="button" id="c2-fs-back">回卡片</button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/site-nav.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 数据 =================
+     二阶盲拧只用 18 个字母位：A–I + W + M–T（去掉 J K L X Y Z）。
+     组合公式 6 组，每组 4 个字母连做。
+     参考公式按需求先留空 —— 卡片与全屏内都只写「这条公式是什么」。 */
+  var SINGLES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
+                 'W', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'];
+  var COMBOS = ['ABCB', 'EFDF', 'GHIH', 'WMNM', 'OPQP', 'STRT'];
+
+  var TIMES_KEY = 'ft2x2_times_v1';
+  var SESSIONS_KEY = 'ft2x2_sessions_v1';
+  var FS_AUTO_KEY = 'ft_fs_auto';      /* 与六个矩阵页共用同一个手感偏好 */
+  var SYNC_ID = 'ft-cube2';
+
+  /* 参考公式：按需求**先留空**。
+     以后要填的时候只改这张表 —— 键是公式名（'A' / 'ABCB'），值是公式文本，
+     卡片与全屏页会自动显示；表里没有的键继续显示「参考公式待补充」。
+     例：ALGS = { A: "R U R' U'", ABCB: "…" }; */
+  var ALGS = {};
+  function algOf(k) { return ALGS[k] || ''; }
+  var ALG_PLACEHOLDER = '参考公式待补充';
+
+  var view = (location.hash === '#combo') ? 'combo' : 'single';
+
+  var board = document.getElementById('c2-board');
+  var tipEl = document.getElementById('c2-tip');
+  var fsEl = document.getElementById('c2-fs');
+  var fsCode = document.getElementById('c2-fs-code');
+  var fsProg = document.getElementById('c2-fs-prog');
+  var fsTimer = document.getElementById('c2-fs-timer');
+  var fsSub = document.getElementById('c2-fs-sub');
+  var fsAlg = document.getElementById('c2-fs-alg');
+  var fsSheet = document.getElementById('c2-fs-sheet');
+  var fsSheetT = document.getElementById('c2-fs-sheet-t');
+  var fsAutoBtn = document.getElementById('c2-fs-auto');
+
+  /* ================= 存取 ================= */
+  function load(k, dft) {
+    try {
+      var raw = localStorage.getItem(k);
+      if (!raw) { return dft; }
+      var o = JSON.parse(raw);
+      return (o && typeof o === 'object') ? o : dft;
+    } catch (e) { return dft; }
+  }
+  function save(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+  }
+
+  var times = load(TIMES_KEY, {});
+  var sessions = load(SESSIONS_KEY, {});
+
+  function statsOf(k) {
+    var a = times[k] || [];
+    if (!a.length) { return null; }
+    var best = a[0], sum = 0;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] < best) { best = a[i]; }
+      sum += a[i];
+    }
+    return { n: a.length, best: best, avg: sum / a.length, last: a[a.length - 1] };
+  }
+
+  function fmt(ms) { return (ms / 1000).toFixed(3); }
+
+  function keysOf(v) { return v === 'combo' ? COMBOS : SINGLES; }
+
+  /* ================= 卡片渲染 ================= */
+  function cardHTML(k, v) {
+    var st = statsOf(k);
+    var stat = st
+      ? ('最佳 <b>' + fmt(st.best) + '</b> · ' + st.n + ' 次')
+      : '未练习';
+    return '<button type="button" class="c2-card' + (st ? ' is-practiced' : '') + '"'
+      + ' data-k="' + k + '" aria-label="练习公式 ' + k + '">'
+      + '<span class="c2-card__k">' + k + '</span>'
+      + '<span class="c2-card__tag">' + (v === 'combo' ? '组合公式' : '单个公式') + '</span>'
+      + '<span class="c2-card__stat">' + stat + '</span>'
+      + '</button>';
+  }
+
+  function renderBoard() {
+    board.dataset.view = view;
+    board.innerHTML = keysOf(view).map(function (k) { return cardHTML(k, view); }).join('');
+    board.setAttribute('aria-label', view === 'combo' ? '公式组合训练卡片' : '单个公式训练卡片');
+  }
+
+  /* 只重画一张卡的成绩，避免整块 grid 重建导致焦点丢失 */
+  function refreshCard(k) {
+    var el = board.querySelector('.c2-card[data-k="' + k + '"]');
+    if (!el) { return; }
+    var st = statsOf(k);
+    el.classList.toggle('is-practiced', !!st);
+    var stat = el.querySelector('.c2-card__stat');
+    if (stat) {
+      stat.innerHTML = st ? ('最佳 <b>' + fmt(st.best) + '</b> · ' + st.n + ' 次') : '未练习';
+    }
+  }
+
+  /* ================= 单屏高度 =================
+     卡片少（18 / 6），按需求铺满一屏：列数按视口宽定，行高均分剩余高度。 */
+  function colsFor(v, w) {
+    if (v === 'combo') { return w >= 640 ? 3 : 2; }
+    return w >= 900 ? 6 : 3;
+  }
+
+  function layout() {
+    var w = window.innerWidth;
+    board.style.setProperty('--c2-cols', String(colsFor(view, w)));
+    var r = board.getBoundingClientRect();
+    var h = window.innerHeight - r.top - 14;
+    board.style.setProperty('--c2-h', Math.max(260, Math.round(h)) + 'px');
+  }
+
+  /* ================= 全屏计时 ================= */
+  var pState = 'idle';        /* idle | prep | green | running | done */
+  var pStart = 0;
+  var pTick = 0;
+  var pPrep = 0;
+  var fsPressed = false;
+  var curKey = '';
+  var fsAuto = true;
+
+  try { fsAuto = localStorage.getItem(FS_AUTO_KEY) !== '0'; } catch (e) {}
+
+  function fsAutoSync() {
+    fsAutoBtn.setAttribute('aria-pressed', fsAuto ? 'true' : 'false');
+    fsAutoBtn.textContent = fsAuto ? '自动下一把' : '每把确认';
+  }
+
+  function setTimerState(st, txt) {
+    fsTimer.dataset.state = st;
+    if (txt != null) { fsTimer.textContent = txt; }
+  }
+  function setSub(kind, txt) {
+    fsSub.dataset.kind = kind || '';
+    fsSub.innerHTML = txt || '';
+    fsSub.hidden = !txt;
+  }
+
+  function fsSync() {
+    fsCode.textContent = curKey || '--';
+    var list = keysOf(view);
+    var i = list.indexOf(curKey);
+    fsProg.textContent = i >= 0 ? ('第 ' + (i + 1) + ' / ' + list.length) : '';
+    fsAlg.textContent = algOf(curKey) || ALG_PLACEHOLDER;
+    fsAlg.style.opacity = algOf(curKey) ? '.85' : '.45';
+  }
+
+  function fsOpen(k) {
+    curKey = k;
+    fsSync();
+    pResetTimer();
+    setSub('', '');
+    fsSheet.hidden = true;
+    fsEl.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function fsClose() {
+    clearInterval(pTick);
+    clearTimeout(pPrep);
+    pState = 'idle';
+    fsEl.hidden = true;
+    fsSheet.hidden = true;
+    document.body.style.overflow = '';
+    layout();
+  }
+
+  function pResetTimer() {
+    clearInterval(pTick);
+    clearTimeout(pPrep);
+    pState = 'idle';
+    setTimerState('idle', '0.000');
+  }
+
+  function pRenderTimer() {
+    if (pState === 'running') { fsTimer.textContent = fmt(performance.now() - pStart); }
+  }
+
+  function pStartTimer() {
+    if (pState === 'running') { return; }
+    clearInterval(pTick);
+    pState = 'running';
+    pStart = performance.now();
+    fsSheet.hidden = true;
+    setTimerState('running', '0.000');
+    setSub('', '');
+    pTick = setInterval(pRenderTimer, 50);
+  }
+
+  function pushTime(k, ms) {
+    var t = load(TIMES_KEY, {});
+    if (!t[k]) { t[k] = []; }
+    t[k].push(ms);
+    save(TIMES_KEY, t);
+
+    var s = load(SESSIONS_KEY, {});
+    if (!s[k]) { s[k] = []; }
+    s[k].push(ms);
+    save(SESSIONS_KEY, s);
+
+    /* ⚠️ 闭包里的 times 必须重读：pushTime 只写 localStorage，
+       不重读就会一直用旧数组，卡片成绩停在上一把（ft 页踩过的老坑）。 */
+    times = t;
+    sessions = s;
+  }
+
+  function pStopTimer() {
+    if (pState !== 'running') { return; }
+    clearInterval(pTick);
+    var total = Math.round(performance.now() - pStart);
+    pState = 'done';
+    fsTimer.textContent = fmt(total);
+    setTimerState('done', fmt(total));
+
+    pushTime(curKey, total);
+    refreshCard(curKey);
+
+    var st = statsOf(curKey);
+    var bestTxt = st ? ('最佳 ' + fmt(st.best)) : '';
+    if (fsAuto) {
+      setSub('done', '已保存 · 本次 <b>' + fmt(total) + '</b>' +
+        (bestTxt ? ' · ' + bestTxt : '') + ' · 第 ' + st.n + ' 次 · 按住继续');
+    } else {
+      setSub('done', '已保存 · 本次 <b>' + fmt(total) + '</b>' + (bestTxt ? ' · ' + bestTxt : ''));
+      fsSheetT.innerHTML = '本次 <b>' + fmt(total) + '</b>' + (bestTxt ? ' · ' + bestTxt : '');
+      fsSheet.hidden = false;
+    }
+  }
+
+  /* 长按判定：0.3s 变绿（与 ft 页同一口径）；autorepeat 重复调用直接返回 */
+  function holdStart() {
+    if (pState === 'running') { pStopTimer(); return; }
+    if (pState === 'prep' || pState === 'green') { return; }
+    clearTimeout(pPrep);
+    pState = 'prep';
+    setTimerState('prep', '按住');
+    setSub('prep', '按住不放，变绿后松手');
+    pPrep = setTimeout(function () {
+      if (pState === 'prep') {
+        pState = 'green';
+        setTimerState('green', '松开');
+        setSub('green', '松手起表');
+      }
+    }, 300);
+  }
+
+  function holdRelease(isMouse) {
+    fsPressed = false;
+    clearTimeout(pPrep);
+    if (pState === 'green') { pStartTimer(); return; }
+    if (pState === 'prep') {
+      /* 鼠标短按直接起表（桌面习惯）；触屏必须按住 0.3s 再松，防误触 */
+      if (isMouse) { pStartTimer(); return; }
+      pResetTimer();
+      setSub('', '');
+    }
+  }
+
+  fsEl.addEventListener('pointerdown', function (e) {
+    var t = e.target;
+    if (t && t.closest && (t.closest('button') || t.closest('.c4-fs__sheet'))) { return; }
+    fsPressed = true;
+    if (e.cancelable) { e.preventDefault(); }   /* 吞掉长按选择 + 合成 click */
+    holdStart();
+  });
+  window.addEventListener('pointerup', function (e) {
+    if (!fsPressed) { return; }
+    holdRelease(e.pointerType === 'mouse');
+  });
+  window.addEventListener('pointercancel', function () {
+    if (!fsPressed) { return; }
+    fsPressed = false;
+    if (pState === 'prep' || pState === 'green') { pResetTimer(); setSub('', ''); }
+  });
+  fsEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  fsAutoBtn.addEventListener('click', function () {
+    fsAuto = !fsAuto;
+    try { localStorage.setItem(FS_AUTO_KEY, fsAuto ? '1' : '0'); } catch (e) {}
+    fsAutoSync();
+  });
+  document.getElementById('c2-fs-close').addEventListener('click', fsClose);
+  document.getElementById('c2-fs-next').addEventListener('click', function () {
+    pResetTimer();
+    setSub('', '');
+    fsSheet.hidden = true;
+  });
+  document.getElementById('c2-fs-back').addEventListener('click', fsClose);
+
+  /* ================= 卡片与切换 ================= */
+  board.addEventListener('click', function (e) {
+    var card = e.target.closest ? e.target.closest('.c2-card') : null;
+    if (!card) { return; }
+    fsOpen(card.dataset.k);
+  });
+
+  function setView(v) {
+    view = v;
+    document.getElementById('c2-tab-single').setAttribute('aria-selected', v === 'single' ? 'true' : 'false');
+    document.getElementById('c2-tab-combo').setAttribute('aria-selected', v === 'combo' ? 'true' : 'false');
+    tipEl.textContent = v === 'combo'
+      ? '点卡片计时 · 每组 4 个字母连做 · 按住 0.3 秒变绿松手起表'
+      : '点卡片计时 · 按住 0.3 秒变绿松手起表 · 运行中点任意处停表';
+    if (history.replaceState) {
+      history.replaceState(null, '', v === 'combo' ? '#combo' : location.pathname);
+    }
+    renderBoard();
+    layout();
+  }
+
+  document.getElementById('c2-tab-single').addEventListener('click', function () { setView('single'); });
+  document.getElementById('c2-tab-combo').addEventListener('click', function () { setView('combo'); });
+
+  /* ================= 启动 ================= */
+  fsAutoSync();
+  setView(view);          /* setView 内部已 renderBoard + layout，不要重复渲染 */
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', function () { setTimeout(layout, 120); });
+  /* 首屏 layout 会在 web 字体到位前算一次（那时 head 更高、board 偏矮），
+     字体加载完与 load 后再各校一次，卡片才能真正贴到屏底。 */
+  window.addEventListener('load', layout);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(layout).catch(function () {});
+  }
+
+  /* ================= 云同步 ================= */
+  if (window.SyncBoot) {
+    SyncBoot.ready(function () {
+      if (!window.LSProvider) { return; }
+      LSProvider.register({
+        id: SYNC_ID,
+        label: '公式训练器 · 二阶盲拧',
+        path: SYNC_ID + '.json',
+        keys: [TIMES_KEY, SESSIONS_KEY, FS_AUTO_KEY],
+        isEmptySnap: function (snap) {
+          if (!snap) { return true; }
+          var n = 0;
+          [TIMES_KEY, SESSIONS_KEY].forEach(function (k) {
+            var raw = snap[k];
+            if (raw == null || raw === '') { return; }
+            try {
+              var o = JSON.parse(raw) || {};
+              Object.keys(o).forEach(function (c) { n += (o[c] || []).length; });
+            } catch (err) {}
+          });
+          return n === 0;
+        }
+      });
+
+      /* 下载云快照后重取数据并重画 */
+      if (window.LSProvider.on) {
+        LSProvider.on('sync', function (st) {
+          if (!st || !st.result || st.result.kind !== 'downloaded') { return; }
+          times = load(TIMES_KEY, {});
+          sessions = load(SESSIONS_KEY, {});
+          try { fsAuto = localStorage.getItem(FS_AUTO_KEY) !== '0'; } catch (err) {}
+          fsAutoSync();
+          renderBoard();
+        });
+      }
+    });
+  }
+})();
+</script>
+
+<script src="/assets/js/theme.js"></script>
+<script src="/assets/js/palette.js"></script>
+</body>
+</html>

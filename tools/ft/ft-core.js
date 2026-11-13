@@ -11,7 +11,7 @@
  *   ④ 路线 C 手动补全 / 参考公式切换（localStorage ft_swaps_<sys>）
  *      —— 与 4bld 旧页同一套交互：点备选即切换、✎ 手动输入、恢复默认
  *   ⑤ 派生展示名（组名 / 来源标签 / 合法格判定）
- *   ⑥ 入口页分组字段 section：'3bld'（三阶）/ 'big'（高阶）；二阶盲拧为预留，暂无数据
+ *   ⑥ 入口页分组字段 section：'3bld'（三阶）/ 'big'（高阶）
  *
  * 数据格式（gen-data.py 生成，见该文件头注释）：
  *   { sys, buf, bufPos, order[23], pos{24}, groups, names?, blank[],
@@ -29,7 +29,9 @@ window.FT = (function () {
 
   /* ============ 体系注册表 ============ */
   /* cellsPerBuffer 等数字与 data/manifest.json 一致（改数据后同步改这里或跑 gen-data.py 对账）
-     section：入口页分组用 —— '3bld' 三阶 / 'big' 高阶（二阶盲拧预留，暂无注册项） */
+     section：入口页分组用 —— '3bld' 三阶 / 'big' 高阶。
+     ⚠️ 二阶盲拧（v2.1.4）不走这套注册表：它只有 18 个字位、不是「缓冲 × 23 次位置」的矩阵结构，
+     单独成页 cube2.html（18 条单公式 + 6 组组合），成绩键 ft2x2_times_v1 / ft2x2_sessions_v1。 */
   var SYSTEMS = {
     corner: {
       id: 'corner', name: '三盲 · 角块', short: '角块',
