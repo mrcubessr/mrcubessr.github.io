@@ -857,6 +857,23 @@
   }
 
   /* 长按判定：0.3s 变绿（与 ft 页同一口径）；autorepeat 重复调用直接返回 */
+  /* 选区守卫（v2.1.5 第 4 层）：个别国产内核无视 touchstart 的 preventDefault，
+     照样在 500ms 后起选区弹菜单。系统菜单没有选区就不会弹，所以按住期间
+     每 120ms 清一次 range —— 比和内核博弈 CSS 更直接。只在按住时跑，开销可忽略。 */
+  var selGuard = null;
+  function killSel() {
+    var s = window.getSelection && window.getSelection();
+    if (s && s.rangeCount) { try { s.removeAllRanges(); } catch (e) {} }
+  }
+  function startSelGuard() {
+    killSel();
+    if (!selGuard) { selGuard = setInterval(killSel, 120); }
+  }
+  function stopSelGuard() {
+    if (selGuard) { clearInterval(selGuard); selGuard = null; }
+    killSel();
+  }
+
   function holdStart() {
     if (pState === 'running') { pStopTimer(); return; }
     if (pState === 'prep' || pState === 'green') { return; }
@@ -875,6 +892,7 @@
 
   function holdRelease(isMouse) {
     fsPressed = false;
+    stopSelGuard();
     clearTimeout(pPrep);
     if (pState === 'green') { pStartTimer(); return; }
     if (pState === 'prep') {
@@ -890,6 +908,7 @@
     if (t && t.closest && (t.closest('button') || t.closest('.c4-fs__sheet'))) { return; }
     fsPressed = true;
     if (e.cancelable) { e.preventDefault(); }   /* 吞掉长按选择 + 合成 click */
+    startSelGuard();
     holdStart();
   });
   window.addEventListener('pointerup', function (e) {
@@ -899,6 +918,7 @@
   window.addEventListener('pointercancel', function () {
     if (!fsPressed) { return; }
     fsPressed = false;
+    stopSelGuard();
     if (pState === 'prep' || pState === 'green') { pResetTimer(); setSub('', ''); }
   });
   fsEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });

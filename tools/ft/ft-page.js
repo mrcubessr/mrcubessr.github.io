@@ -1424,11 +1424,28 @@ window.FTPage = (function () {
        文本选择，长按会弹「复制 / 粘贴」菜单把起表手势吃掉。
        ⚠️ 不要再加 click：pointerdown 里 preventDefault() 会把 click 吞掉（旧坑）。 */
     var fsPressed = false;
+    /* 选区守卫（v2.1.5）：个别国产内核无视 touchstart 的 preventDefault，照样在
+       500ms 后起选区弹菜单。系统菜单没有选区就不会弹 —— 按住期间每 120ms 清一次
+       range，比和内核博弈 CSS 更直接。只在按住时跑，开销可忽略。 */
+    var fsSelGuard = null;
+    function fsKillSel() {
+      var s = window.getSelection && window.getSelection();
+      if (s && s.rangeCount) { try { s.removeAllRanges(); } catch (err) {} }
+    }
+    function fsSelGuardOn() {
+      fsKillSel();
+      if (!fsSelGuard) { fsSelGuard = setInterval(fsKillSel, 120); }
+    }
+    function fsSelGuardOff() {
+      if (fsSelGuard) { clearInterval(fsSelGuard); fsSelGuard = null; }
+      fsKillSel();
+    }
     fsEl.addEventListener('pointerdown', function (e) {
       var t = e.target;
       if (t && t.closest && (t.closest('button') || t.closest('.c4-fs__sheet'))) { return; }
       fsPressed = true;
       if (e.cancelable) { e.preventDefault(); }                /* 禁掉长按选择 + 合成 click */
+      fsSelGuardOn();
       if (pState === 'running') { pStopTimer(); return; }
       /* 上一把刚完 + 连练：先把公式切到下一式再进「按住」（pLoadCode 会清表，顺序不能反） */
       if (pState === 'done' && chainOn && chainList.length &&
@@ -1437,6 +1454,7 @@ window.FTPage = (function () {
     });
     function fsRelease(isMouse) {
       fsPressed = false;
+      fsSelGuardOff();
       clearTimeout(pPrep);
       if (pState === 'green') { pStartTimer(); return; }
       if (pState === 'prep') {
@@ -1453,6 +1471,7 @@ window.FTPage = (function () {
     window.addEventListener('pointercancel', function () {
       if (!fsPressed) { return; }
       fsPressed = false;
+      fsSelGuardOff();
       if (pState === 'prep' || pState === 'green') { pResetTimer(); }
     });
     fsEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });

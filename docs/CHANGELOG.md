@@ -94,7 +94,7 @@
 `preventDefault()` 拦不住它；而部分国产内核把子元素「继承来的 `user-select:none`」
 当作 `auto` 处理，只认长按命中的那个元素自己声明的值。
 
-三层兜底：
+三层 CSS/事件兜底 + 一层运行时兜底：
 
 1. `ft.css` 把选择锁下放到每个后代（`.c4-fs, .c4-fs *` 显式声明，不靠继承），
    并给 `.c4-fs__code / __prog / __timer / __sub / __alg` 关掉 `pointer-events`，
@@ -102,6 +102,9 @@
 2. `ft-page.js` / `cube2.html` 在 `.c4-fs` 上补 `touchstart` 拦截（`passive:false`），
    按钮与确认卡放行（它们要靠合成 click）；再补 `selectstart` / `dragstart`。
 3. `.c2-wrap, .c2-wrap *` 同样锁掉，卡片区长按也不再弹菜单。
+4. 运行时选区守卫：按住期间每 120ms 调一次 `getSelection().removeAllRanges()`。
+   系统菜单没有选区就不弹 —— 万一某个内核连 `touchstart` 的 `preventDefault` 都无视，
+   这一层仍能把菜单逼回去。只在按住时跑，松手即停。
 
 `pointerdown` 早于 `touchstart` 派发，所以起表手感不受影响；实测 390×844 真实 touch：
 长按 0.9s 起表、点任意处停表、`getSelection()` 始终为空、自动开关与关闭键的触屏 click 正常。
