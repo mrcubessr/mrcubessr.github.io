@@ -961,6 +961,35 @@
   fsEl.addEventListener('selectstart', function (e) { e.preventDefault(); });
   fsEl.addEventListener('dragstart', function (e) { e.preventDefault(); });
 
+  /* ================= 键盘（桌面）：空格起表 / 停表 =================
+     三阶六个矩阵页和 CFOP 训练器都在 ft-page.js 里挂了全局键盘，这页是单文件
+     内联，之前整块漏掉 —— 电脑上按空格完全没反应（v2.1.7 补）。
+     口径：跑表时空格 = 停表；未跑表时空格先变红「按住」，0.3s 变绿后松手起表，
+     短按松手也直接起表（鼠标短按本来就直接起表，键盘沿用同一手感）。
+     按住期间的 autorepeat keydown 一律忽略，否则会把 prep 计时器反复重置。 */
+  function isFormFocus(t) {
+    if (!t) { return false; }
+    var tag = t.tagName;
+    return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || t.isContentEditable;
+  }
+  function isSpaceKey(e) {
+    return e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar';
+  }
+  document.addEventListener('keydown', function (e) {
+    if (fsEl.hidden) { return; }
+    if (e.key === 'Escape') { e.preventDefault(); fsClose(); return; }
+    if (!isSpaceKey(e) || isFormFocus(e.target)) { return; }
+    e.preventDefault();
+    if (e.repeat) { return; }
+    fsPressed = true;
+    holdStart();
+  });
+  document.addEventListener('keyup', function (e) {
+    if (!isSpaceKey(e) || !fsPressed) { return; }
+    e.preventDefault();
+    holdRelease(true);   /* true = 短按也起表（桌面手感，与鼠标一致） */
+  });
+
   fsAutoBtn.addEventListener('click', function () {
     fsAuto = !fsAuto;
     try { localStorage.setItem(FS_AUTO_KEY, fsAuto ? '1' : '0'); } catch (e) {}
@@ -1002,10 +1031,16 @@
   });
   board.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') { return; }
+    /* 全屏已开时，焦点还停在进来的那张卡上：这块必须让路，否则按空格停表会先
+       被这里当成「重新打开这张卡」→ 计时归零，停表永远停不下来（v2.1.7 修）。 */
+    if (!fsEl.hidden) { return; }
     if (e.target.closest && e.target.closest('[data-star]')) { return; }
     var card = e.target.closest ? e.target.closest('.c2-card') : null;
     if (!card) { return; }
     e.preventDefault();
+    /* 别让这次空格继续冒泡到 document 的起表逻辑：回车/空格只是「进全屏」，
+       和鼠标点卡片一致，进去后不该立刻开始计时。 */
+    e.stopPropagation();
     fsOpen(card.dataset.k);
   });
 
