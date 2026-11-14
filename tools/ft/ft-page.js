@@ -1456,6 +1456,18 @@ window.FTPage = (function () {
       if (pState === 'prep' || pState === 'green') { pResetTimer(); }
     });
     fsEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    /* v2.1.5：安卓长按菜单只能在 touchstart 阶段拦 —— 鸿蒙 / 部分国产内核里
+       pointerdown 的 preventDefault 不会取消 500ms 后的长按选择，用户会先看到
+       「复制 / 全选」再丢一次起表。touchstart 是这条默认行为真正的入口。
+       pointerdown 早于 touchstart 派发，所以起表手势不受影响；
+       按钮与确认卡要靠合成 click，必须放行。 */
+    fsEl.addEventListener('touchstart', function (e) {
+      var t = e.target;
+      if (t && t.closest && (t.closest('button') || t.closest('.c4-fs__sheet'))) { return; }
+      if (e.cancelable) { e.preventDefault(); }
+    }, { passive: false });
+    fsEl.addEventListener('selectstart', function (e) { e.preventDefault(); });
+    fsEl.addEventListener('dragstart', function (e) { e.preventDefault(); });
 
     /* ---------- 成绩导出 CSV ---------- */
     function csvCell(v) {

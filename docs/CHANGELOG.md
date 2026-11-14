@@ -85,10 +85,32 @@
 复测 360×740 / 375×667 / 390×844 / 414×896 / 768×1024 / 1366×768 共 6 视口 × 2 视图，
 `scrollHeight` 与视口高度全部精确相等；工具条收起时同样精确相等。
 
+### ⑦ 安卓长按弹「复制 / 全选」菜单：三层锁死
+
+真机反馈（华为浏览器 / 鸿蒙内核）：全屏计时里**每次长按都弹系统菜单**，
+起表手势被吃掉。桌面与 Chromium 内核测不出问题 —— `user-select:none` 在那边是生效的。
+
+原因：安卓的长按选择是 `touchstart` 之后 ~500ms 由内核发起的，`pointerdown` 里
+`preventDefault()` 拦不住它；而部分国产内核把子元素「继承来的 `user-select:none`」
+当作 `auto` 处理，只认长按命中的那个元素自己声明的值。
+
+三层兜底：
+
+1. `ft.css` 把选择锁下放到每个后代（`.c4-fs, .c4-fs *` 显式声明，不靠继承），
+   并给 `.c4-fs__code / __prog / __timer / __sub / __alg` 关掉 `pointer-events`，
+   长按一律命中 `.c4-fs` 本体；`.c4-fs__timer` 的 `touch-action` 由 `manipulation` 改 `none`。
+2. `ft-page.js` / `cube2.html` 在 `.c4-fs` 上补 `touchstart` 拦截（`passive:false`），
+   按钮与确认卡放行（它们要靠合成 click）；再补 `selectstart` / `dragstart`。
+3. `.c2-wrap, .c2-wrap *` 同样锁掉，卡片区长按也不再弹菜单。
+
+`pointerdown` 早于 `touchstart` 派发，所以起表手感不受影响；实测 390×844 真实 touch：
+长按 0.9s 起表、点任意处停表、`getSelection()` 始终为空、自动开关与关闭键的触屏 click 正常。
+
 ### 缓存与版本
 
 `tools/ft/*` 不在 `sw.js` 的 `APP_SHELL`，`CACHE` 保持 `fto-timer-v42`。
-`cube2.html` 仍引 `ft.css?v=2.1.3`（本版未改 `ft.css`）。
+本版改了 `ft.css` 与 `ft-page.js`，7 个页面的 `ft.css?v=` 与 6 个页面的 `ft-page.js?v=`
+一并由 `2.1.3` 递增到 `2.1.5`，避免命中 SWR 里的旧副本。
 
 ---
 

@@ -190,6 +190,20 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .c4-fs[hidden] { display: none; }
+/* v2.1.5：安卓（华为浏览器 / 鸿蒙 ArkWeb 内核）长按会弹系统「复制 / 分享 / 全选 / 搜索 / 翻译」
+   菜单，只在 .c4-fs 本体上写 user-select:none 拦不住 —— 它看的是「长按命中的那个元素」，
+   子元素继承来的 none 在部分国产内核里被当成 auto 处理。
+   两层兜底：① 选择锁下放到每一个后代（显式声明，不靠继承）；
+             ② 纯展示文本关掉 pointer-events，长按一律命中 .c4-fs 本体。
+   JS 侧还有 touchstart 兜底（见 ft-page.js / cube2.html），CSS 只是第一道。 */
+.c4-fs, .c4-fs * {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+.c4-fs__code, .c4-fs__prog, .c4-fs__timer, .c4-fs__sub, .c4-fs__alg {
+  pointer-events: none;
+}
 .c4-fs__bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; padding: 14px 20px; }
 .c4-fs__code { font-size: 28px; font-weight: 800; letter-spacing: 3px; color: var(--fg, #EEF2F8); }
 .c4-fs__prog { font-family: "Consolas","SF Mono",monospace; font-weight: 700; color: var(--brand, #5B8DEF); font-size: 14px; }
@@ -213,7 +227,7 @@ body {
 .c4-fs__timer {
   font-family: "Consolas","SF Mono",monospace; font-weight: 900; font-variant-numeric: tabular-nums;
   text-align: center; line-height: 1.1; letter-spacing: 3px; cursor: pointer;
-  user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  user-select: none; -webkit-user-select: none; touch-action: none;
   background: #1e293b; color: #f8fafc; border: 3px solid var(--line-2, rgba(255,255,255,.18));
   border-radius: 0; padding: 20px 52px; text-shadow: 0 2px 10px rgba(0,0,0,.45);
   /* 字号沿用 tools/timer 宽屏分级口径：1025–1279 用小档 */
