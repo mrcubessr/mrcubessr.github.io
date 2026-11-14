@@ -73,8 +73,8 @@
 
   .c2-card {
     position: relative; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 6px;
-    padding: 10px 8px; min-height: 0; overflow: hidden;
+    align-items: center; justify-content: center; gap: 4px;
+    padding: 12px 8px 10px; min-height: 0; overflow: hidden;
     cursor: pointer; text-align: center; border-radius: 0;
     background: var(--surface, #141826);
     border: 1px solid var(--line-2, rgba(255,255,255,.12));
@@ -86,28 +86,105 @@
   .c2-card:active { transform: scale(.985); }
   .c2-card:focus-visible { outline: 2px solid var(--brand, #60a5fa); outline-offset: -2px; }
 
-  /* 公式名 = 卡片主体（用户要求：卡片上就写这条公式是什么）。
-     参考公式按需求先空着，所以卡片里不留占位行 —— 空着就真的空着，
-     只在全屏计时页面里保留一行极淡的占位，提示这里以后会填公式。 */
+  /* 族色：与知识地图同一分类（G 族 / D 族），只用左缘 3px 色条，
+     不占卡片内部空间，也不与「快慢字色」抢颜色语义。 */
+  .c2-card[data-g="g"] { box-shadow: inset 3px 0 0 var(--c2-g, #f59e0b); }
+  .c2-card[data-g="d"] { box-shadow: inset 3px 0 0 var(--c2-d, #3b82f6); }
+
+  /* 公式名 = 卡片主体；成绩行与字母按快慢着色（--tone 由 JS 写成 --spd-tN） */
   .c2-card__k {
     font-family: "Consolas","SF Mono",monospace; font-weight: 900;
-    letter-spacing: 1px; line-height: 1; color: var(--fg, #EEF2F8);
-    font-size: clamp(30px, 3.4vw, 58px);
+    letter-spacing: 1px; line-height: 1; color: var(--tone, var(--fg, #EEF2F8));
+    font-size: clamp(24px, 3.4vw, 58px);
     max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .c2-board[data-view="combo"] .c2-card__k {
-    font-size: clamp(28px, 3.4vw, 60px); letter-spacing: 3px;
+    font-size: clamp(22px, 3.2vw, 56px); letter-spacing: 2px;
   }
-  .c2-card__tag {
-    font-size: 11px; letter-spacing: 1px; color: var(--fg-3, #7C8798);
+
+  /* 参考公式（来自知识地图的字母公式）：卡片上两行封顶，超出省略；
+     完整文本在 title 与全屏计时页里都有。 */
+  .c2-card__alg {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: clamp(9.5px, 1.05vw, 12px); line-height: 1.35;
+    color: var(--fg-3, #7C8798); max-width: 100%;
+    word-break: break-all;
   }
+  .c2-card.is-practiced .c2-card__alg { color: var(--fg-2, #AEB8CA); }
+
   .c2-card__stat {
-    font-family: "Consolas","SF Mono",monospace; font-size: 11.5px;
+    font-family: "Consolas","SF Mono",monospace; font-size: clamp(10px, 1.1vw, 12.5px);
     color: var(--fg-3, #7C8798); white-space: nowrap;
   }
-  .c2-card__stat b { color: var(--brand, #60a5fa); font-weight: 700; }
+  .c2-card__stat b { color: var(--tone, var(--brand, #60a5fa)); font-weight: 700; }
+  .c2-card__stat i { font-style: normal; opacity: .7; margin-left: 4px; }
   .c2-card.is-practiced { border-color: rgba(91,141,239,.45); }
-  .c2-card.is-practiced .c2-card__tag { color: var(--brand, #60a5fa); }
+
+  /* 星标：右上角小按钮，点它只切标记、不进计时（JS 里拦冒泡） */
+  .c2-card__star {
+    position: absolute; top: 2px; right: 3px;
+    width: 20px; height: 20px; line-height: 20px;
+    font-size: 12px; color: var(--fg-3, #7C8798); opacity: .38;
+    background: none; border: 0; padding: 0; cursor: pointer;
+  }
+  .c2-card:hover .c2-card__star, .c2-card__star.is-on { opacity: 1; }
+  .c2-card__star.s-gold   { color: #f5c518; }
+  .c2-card__star.s-red    { color: #f87171; }
+  .c2-card__star.s-blue   { color: #60a5fa; }
+  .c2-card__star.s-green  { color: #4ade80; }
+  .c2-card__star.s-purple { color: #c084fc; }
+
+  /* ---------- 工具条（口径与 ft 页一致：指标 / 搜索 / 筛选 / 排序 / 清空） ---------- */
+  .c2-bar { margin-bottom: 8px; }
+  .c2-bar .c2-bar__more > label { white-space: nowrap; }
+  .c2-bar select, .c2-bar input[type="search"] { min-height: 30px; }
+  .c2-bar__toggle { display: none; }
+
+  /* ---------- 训练总览（统计） ---------- */
+  .c2-dash {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px;
+    padding: 8px 12px; margin-bottom: 10px;
+    background: var(--surface, #141826);
+    border: 1px solid var(--line-2, rgba(255,255,255,.10));
+  }
+  .c2-dash .c4-kpi { padding: 2px 10px; }
+  .c2-dash .c4-kpi .k-label { font-size: 10.5px; }
+  .c2-dash .c4-kpi .k-label i { font-style: normal; font-size: 9.5px; opacity: .65; margin-left: 4px; }
+  .c2-dash .c4-kpi .k-value { font-size: 14px; }
+
+  /* 手机：工具条收成「筛选」按钮展开；仪表盘 KPI 一行滚动 */
+  @media (max-width: 640px) {
+    .c2-bar__toggle {
+      display: inline-flex; align-items: center; gap: 4px; width: 100%;
+      justify-content: center; min-height: 34px; font-size: 12.5px; font-weight: 700;
+      background: var(--surface-2, #1A2130); color: var(--fg-2, #AEB8CA);
+      border: 1px solid var(--line-2, rgba(255,255,255,.14)); border-radius: 0;
+    }
+    .c2-bar.is-more .c2-bar__toggle { color: var(--brand, #60a5fa); border-color: var(--brand, #60a5fa); }
+    .c2-bar__more { display: none; }
+    .c2-bar.is-more .c2-bar__more {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px;
+      margin-top: 6px; align-items: center;
+    }
+    .c2-bar__more > label { font-size: 11px; }
+    .c2-bar__more select, .c2-bar__more input { width: 100%; min-height: 32px; }
+    .c2-bar__more .c2-bar__full { grid-column: 1 / -1; }
+    .c2-bar { padding: 5px 8px; margin-bottom: 6px; }
+    .c2-bar__toggle { min-height: 30px; font-size: 12px; }
+    /* 仪表盘：手机上压成一行 6 列（基准/已练/总次数/不合格/需关注/最快），
+       渐变条与 TOP10 收起来，把高度全让给卡片 */
+    .c2-dash { flex-wrap: nowrap; gap: 0; padding: 3px 4px; }
+    .c2-dash .c4-kpis { flex: 1 1 auto; display: flex; flex-wrap: nowrap; gap: 0; }
+    .c2-dash .c4-kpi {
+      flex: 1 1 0; min-width: 0; padding: 0 2px; text-align: center;
+      background: none; border: 0;
+    }
+    .c2-dash .c4-kpi .k-label { font-size: 9px; line-height: 1.25; white-space: nowrap; overflow: hidden; }
+    .c2-dash .c4-kpi .k-label i { display: block; font-size: 8px; opacity: .65; font-style: normal; }
+    .c2-dash .c4-kpi .k-value { font-size: 12px; line-height: 1.3; }
+    .c2-dash .c4-gradbox, .c2-dash .c4-top { display: none; }
+  }
 
   /* 手机：头部压缩到两行（标题 + 返回同排、副标单行），把高度让给卡片 */
   @media (max-width: 640px) {
@@ -123,21 +200,25 @@
     .c2-tab span { display: none; }
     .c2-tip { font-size: 11.5px; margin-bottom: 8px; line-height: 1.5; }
     .c2-board { gap: 7px; }
-    .c2-card { padding: 8px 4px; gap: 5px; }
-    .c2-card__k { font-size: clamp(30px, 9vw, 44px); }
-    .c2-board[data-view="combo"] .c2-card__k { font-size: clamp(26px, 7.2vw, 38px); letter-spacing: 2px; }
-    .c2-card__tag { font-size: 10px; }
-    .c2-card__stat { font-size: 10.5px; }
+    /* 卡片里现在有「字母 / 公式 / 成绩」三行 + 星标，字号整体收一档才装得下 */
+    .c2-card { padding: 6px 4px 5px; gap: 2px; }
+    .c2-card__k { font-size: clamp(22px, 7.4vw, 34px); }
+    .c2-board[data-view="combo"] .c2-card__k { font-size: clamp(19px, 5.6vw, 28px); letter-spacing: 1px; }
+    .c2-card__alg { font-size: 9px; line-height: 1.28; }
+    .c2-card__stat { font-size: 9.5px; }
+    .c2-card__star { top: 0; right: 1px; width: 18px; height: 18px; line-height: 18px; font-size: 10px; }
   }
 
   /* ⚠️ 顺序有意义：必须排在 640 断点之后，同特异性才会盖住上面那档字号。
      360–380 这类最窄机型上，卡片内容会顶高行高、把最后一行推到屏外，
      这里再收一档内边距与字号，让 18 张 3×6 正好落在一屏里。 */
   @media (max-width: 380px) {
-    .c2-card { padding: 6px 4px; gap: 4px; }
-    .c2-card__k { font-size: clamp(26px, 8vw, 38px); }
-    .c2-card__tag { font-size: 9.5px; }
-    .c2-card__stat { font-size: 10px; }
+    .c2-card { padding: 4px 3px 3px; gap: 0; }
+    .c2-card__k { font-size: clamp(20px, 6.8vw, 30px); }
+    /* 最窄机型上公式只留一行：6 行卡片的总高要卡在视口内，
+       多一行文字就会把最后一行推出屏外（实测差 21px）。 */
+    .c2-card__alg { font-size: 8.5px; line-height: 1.25; -webkit-line-clamp: 1; }
+    .c2-card__stat { font-size: 9px; }
   }
 </style>
 <script>(function(){try{var d=document.documentElement,q=location.search;var off=/[?&]glass=off(?:&|$)/.test(q)||localStorage.getItem('mf_glass_on')==='0';d.setAttribute('data-glass',off?'off':'on');var w=localStorage.getItem('mf_glass_wall');d.setAttribute('data-g-wall',(w==='aurora'||w==='aurora-b'||w==='none'||w==='image')?w:'aurora');}catch(e){document.documentElement.setAttribute('data-glass','on');}})();</script>
@@ -172,7 +253,57 @@
     </button>
   </div>
 
-  <div class="c2-tip" id="c2-tip">点卡片开始计时：按住屏幕 0.3 秒变绿后松手起表，运行中点任意处停表。</div>
+  <div class="c2-tip" id="c2-tip">按住 0.3 秒变绿后松手起表，运行中点任意处停表。</div>
+
+  <div class="c4-bar c2-bar" id="c2-bar">
+    <button type="button" class="c2-bar__toggle" id="c2-more" aria-expanded="false"
+            aria-controls="c2-more-box">筛选 / 排序 / 指标</button>
+    <div class="c4-bar__more c2-bar__more" id="c2-more-box">
+      <label for="c2-metric">指标</label>
+      <select id="c2-metric" title="卡片上显示哪个成绩，也是快慢着色的依据">
+        <option value="session">最近一次</option>
+        <option value="allavg">全部平均</option>
+        <option value="best">最快单次</option>
+      </select>
+      <label for="c2-q">搜索</label>
+      <input type="search" id="c2-q" placeholder="字母 / 公式，如 A、背" autocomplete="off">
+      <label for="c2-filter">筛选</label>
+      <select id="c2-filter">
+        <option value="all">全部公式</option>
+        <option value="todo">只看未练</option>
+        <option value="weak">只看需关注+不合格</option>
+        <option value="starred">★ 只看已标记</option>
+        <option value="star-gold">★ 只看「母公式」标记</option>
+        <option value="star-red">★ 只看「重点练」标记</option>
+        <option value="star-blue">★ 只看「易错」标记</option>
+        <option value="star-green">★ 只看「已掌握」标记</option>
+        <option value="star-purple">★ 只看「自定义」标记</option>
+        <option value="done">只看已练</option>
+      </select>
+      <label for="c2-sort">排序</label>
+      <select id="c2-sort">
+        <option value="group">按组顺序</option>
+        <option value="slow">最慢优先</option>
+        <option value="practice">按练习次数</option>
+        <option value="star">★ 标记优先</option>
+      </select>
+      <button type="button" id="c2-clear" class="c4-navbtn c2-bar__full"
+              title="清空指标、搜索与筛选，全部复位">清空筛选</button>
+      <span class="c4-filter-hint c2-bar__full" id="c2-filter-hint"></span>
+    </div>
+  </div>
+
+  <section class="c4-dash c2-dash" id="c2-dash">
+    <div class="c4-kpis" id="c2-kpis"></div>
+    <span class="c4-gradbox">
+      <span class="c4-grad" aria-hidden="true"></span>
+      <span class="c4-grad-ticks" id="c2-ticks"></span>
+    </span>
+    <details class="c4-top" id="c2-top">
+      <summary>最慢 TOP 10</summary>
+      <div class="c4-top__list" id="c2-top-list"></div>
+    </details>
+  </section>
 
   <div class="c2-board" id="c2-board" data-view="single" role="tabpanel"></div>
 
@@ -212,8 +343,7 @@
 
   /* ================= 数据 =================
      二阶盲拧只用 18 个字母位：A–I + W + M–T（去掉 J K L X Y Z）。
-     组合公式 6 组，每组 4 个字母连做。
-     参考公式按需求先留空 —— 卡片与全屏内都只写「这条公式是什么」。 */
+     组合公式 6 组，每组 4 个字母连做。 */
   var SINGLES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
                  'W', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T'];
   var COMBOS = ['ABCB', 'EFDF', 'GHIH', 'WMNM', 'OPQP', 'STRT'];
@@ -221,15 +351,64 @@
   var TIMES_KEY = 'ft2x2_times_v1';
   var SESSIONS_KEY = 'ft2x2_sessions_v1';
   var FS_AUTO_KEY = 'ft_fs_auto';      /* 与六个矩阵页共用同一个手感偏好 */
+  var OPT_KEY = 'ft2x2_opt_v1';        /* 指标 / 筛选 / 排序 的偏好 */
   var SYNC_ID = 'ft-cube2';
+  var STARS_KEY = 'ft_stars_' + SYNC_ID;
 
-  /* 参考公式：按需求**先留空**。
-     以后要填的时候只改这张表 —— 键是公式名（'A' / 'ABCB'），值是公式文本，
-     卡片与全屏页会自动显示；表里没有的键继续显示「参考公式待补充」。
-     例：ALGS = { A: "R U R' U'", ABCB: "…" }; */
-  var ALGS = {};
-  function algOf(k) { return ALGS[k] || ''; }
-  var ALG_PLACEHOLDER = '参考公式待补充';
+  /* 族别：与「二阶魔方知识地图」同一分类（G 族 / D 族），只用于卡片左缘色条 */
+  var FAMILY = {
+    A: 'g', C: 'g', E: 'g', F: 'g', G: 'g', M: 'g', N: 'g', O: 'g', S: 'g',
+    B: 'd', D: 'd', H: 'd', I: 'd', P: 'd', Q: 'd', R: 'd', T: 'd', W: 'd'
+  };
+
+  /* 字母公式：取自 tools/kmap/index.html 的《全部 17 条公式 · 分类速查》。
+     二阶盲拧的公式是相对动作描述（上 / 下 / 背 / 弹 + G / D 两条基础互换），
+     知识地图里没有写出 R U F 的绝对转动序列，这里按原样照搬，不自行展开。 */
+  var ALGS = {
+    /* —— G 族 —— */
+    G: 'G 基础互换',
+    S: '弹 + G + 背',
+    E: '背 + G + 弹',
+    O: '背背 + G + 弹弹',
+    A: '上上 + 背背 + G + 弹弹 + 下下',
+    F: '上 + 背背 + G + 弹弹 + 下',
+    N: '下 + 背背 + G + 弹弹 + 上',
+    C: '上 + 背 + G + 弹 + 下',
+    M: '上上 + 背 + G + 弹 + 下下',
+    /* —— D 族 —— */
+    D: 'D 基础互换',
+    I: '弹 + D + 背',
+    Q: '背 + D + 弹',
+    R: '背背 + D + 弹弹',
+    W: '上上 + D + 下下',
+    B: '上 + D + 下',
+    P: '下 + D + 上',
+    T: '背下 + D + 上弹',
+    H: '背背下 + D + 上弹弹'
+  };
+
+  function algOf(k) {
+    if (ALGS[k]) { return ALGS[k]; }
+    /* 组合公式没有独立公式文本，按「连做哪几个字母」展示 */
+    if (k.length === 4) { return k.split('').join(' → '); }
+    return '';
+  }
+  var ALG_PLACEHOLDER = '';
+
+  /* 星标五档：与 ft-core.js 的 STAR_COLORS 同源同义（只是本页不引 ft-core.js） */
+  var STAR_COLORS = [
+    { k: 'gold',   name: '母公式', tip: '基础转换机 · 其他公式由它变化而来' },
+    { k: 'red',    name: '重点练', tip: '容易卡壳 · 需要反复练' },
+    { k: 'blue',   name: '易错',   tip: '方向容易做反或记混' },
+    { k: 'green',  name: '已掌握', tip: '已稳定 · 可以少练' },
+    { k: 'purple', name: '自定义', tip: '自己定义的一类' }
+  ];
+  function starName(c) {
+    for (var i = 0; i < STAR_COLORS.length; i++) {
+      if (STAR_COLORS[i].k === c) { return STAR_COLORS[i].name; }
+    }
+    return '已标记';
+  }
 
   var view = (location.hash === '#combo') ? 'combo' : 'single';
 
@@ -260,59 +439,272 @@
 
   var times = load(TIMES_KEY, {});
   var sessions = load(SESSIONS_KEY, {});
+  var stars = load(STARS_KEY, {});
+  var opt = load(OPT_KEY, {});
 
+  var metricMode = (opt.metric === 'best' || opt.metric === 'allavg') ? opt.metric : 'session';
+  var filterMode = typeof opt.filter === 'string' ? opt.filter : 'all';
+  var sortMode = typeof opt.sort === 'string' ? opt.sort : 'group';
+
+  function saveOpt() {
+    save(OPT_KEY, { metric: metricMode, filter: filterMode, sort: sortMode });
+  }
+
+  /* ---------- 统计（与三阶 ft 页同一套口径） ---------- */
+  function avg(a) {
+    if (!a || !a.length) { return NaN; }
+    return a.reduce(function (x, y) { return x + y; }, 0) / a.length;
+  }
+  function median(a) {
+    if (!a.length) { return NaN; }
+    var s = a.slice().sort(function (x, y) { return x - y; });
+    var m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  }
   function statsOf(k) {
-    var a = times[k] || [];
-    if (!a.length) { return null; }
-    var best = a[0], sum = 0;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] < best) { best = a[i]; }
-      sum += a[i];
+    var t = times[k] || [];
+    var s = sessions[k] || [];
+    var st = {
+      n: t.length,
+      best: t.length ? Math.min.apply(null, t) : NaN,
+      allavg: t.length ? avg(t) : NaN,
+      session: s.length ? s[s.length - 1] : NaN
+    };
+    st.metric = function () {
+      if (metricMode === 'allavg') { return st.allavg; }
+      if (metricMode === 'best') { return st.best; }
+      return st.session;
+    };
+    return st;
+  }
+  function tierOf(metric, bench) {
+    if (!isFinite(metric)) { return 't-none'; }
+    if (!isFinite(bench) || bench <= 0) { return 't-good'; }
+    var r = metric / bench;
+    if (r <= 0.85) { return 't-great'; }
+    if (r <= 1.00) { return 't-good'; }
+    if (r <= 1.15) { return 't-warn'; }
+    return 't-bad';
+  }
+  /* 快慢字色 7 阶：只算索引，颜色取 CSS 变量 --spd-t0..6
+     （train-matrix.css 由 ft.css @import 进来，深浅主题各自一套） */
+  var SPD_LEVELS = 7;
+  function colorByRatio(r, range) {
+    if (!isFinite(r)) {
+      return { text: 'var(--fg-3, #7C8798)', tier: 't-none' };
     }
-    return { n: a.length, best: best, avg: sum / a.length, last: a[a.length - 1] };
+    var lo = (range && isFinite(range.lo)) ? range.lo : 0.55;
+    var hi = (range && isFinite(range.hi)) ? range.hi : 1.45;
+    var t = Math.max(0, Math.min(1, (r - lo) / (hi - lo)));
+    var spdIdx = Math.max(0, Math.min(SPD_LEVELS - 1, Math.round(t * (SPD_LEVELS - 1))));
+    return { text: 'var(--spd-t' + spdIdx + ')', tier: tierOf(r, 1) };
+  }
+  function colorRange(practicedStats, benchRef) {
+    var rs = practicedStats
+      .map(function (st) {
+        var m = st.metric();
+        return (isFinite(m) && isFinite(benchRef) && benchRef > 0) ? m / benchRef : NaN;
+      })
+      .filter(isFinite)
+      .sort(function (a, b) { return a - b; });
+    if (rs.length < 3) { return { lo: 0.55, hi: 1.45 }; }
+    var lo = rs[Math.floor(rs.length * 0.05)];
+    var hi = rs[Math.floor(rs.length * 0.95)];
+    var span = Math.max(0.4, hi - lo);
+    var mid = (lo + hi) / 2;
+    return { lo: Math.max(0.3, mid - span / 2), hi: Math.min(2.0, mid + span / 2) };
+  }
+  function computeAll() {
+    var stats = {}, all = keysOf(view);
+    all.forEach(function (k) { stats[k] = statsOf(k); });
+    var practiced = all.filter(function (k) {
+      return stats[k].n > 0 && isFinite(stats[k].metric());
+    });
+    var bench = median(practiced.map(function (k) { return stats[k].metric(); }));
+    var pstats = all.map(function (k) { return stats[k]; }).filter(function (st) { return st.n > 0; });
+    return { stats: stats, practiced: practiced, bench: bench, range: colorRange(pstats, bench) };
   }
 
   function fmt(ms) { return (ms / 1000).toFixed(3); }
-
   function keysOf(v) { return v === 'combo' ? COMBOS : SINGLES; }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  /* ---------- 筛选 / 搜索 / 排序（判定口径与 ft 页一致） ---------- */
+  function passFilter(k, stats, bench) {
+    var st = stats[k];
+    if (filterMode === 'todo') { return st.n === 0; }
+    if (filterMode === 'done') { return st.n > 0; }
+    if (filterMode === 'weak') {
+      var t = tierOf(st.metric(), bench);
+      return st.n > 0 && (t === 't-bad' || t === 't-warn');
+    }
+    if (filterMode === 'starred') { return !!stars[k]; }
+    if (filterMode.indexOf('star-') === 0) {
+      return !!stars[k] && (stars[k].c || 'gold') === filterMode.slice(5);
+    }
+    if (filterMode === 'mother') { return !!stars[k] && (stars[k].c || 'gold') === 'gold'; }
+    return true;
+  }
+  function passQuery(k, q) {
+    if (!q) { return true; }
+    return k.indexOf(q) >= 0 || algOf(k).toUpperCase().indexOf(q) >= 0;
+  }
+  function queryText() {
+    var el = document.getElementById('c2-q');
+    return el ? (el.value || '').trim().toUpperCase() : '';
+  }
+  function hasAnyFilter() {
+    return filterMode !== 'all' || sortMode !== 'group' || !!queryText();
+  }
+  function visibleKeys(A) {
+    var q = queryText();
+    var list = keysOf(view).filter(function (k) {
+      return passFilter(k, A.stats, A.bench) && passQuery(k, q);
+    });
+    if (sortMode === 'slow') {
+      list.sort(function (a, b) {
+        var x = A.stats[b].metric(), y = A.stats[a].metric();
+        return (isFinite(x) ? x : -1) - (isFinite(y) ? y : -1);
+      });
+    } else if (sortMode === 'practice') {
+      list.sort(function (a, b) {
+        var na = A.stats[a].n, nb = A.stats[b].n;
+        if (na !== nb) { return nb - na; }
+        var ma = A.stats[a].metric(), mb = A.stats[b].metric();
+        if (isFinite(ma) && isFinite(mb)) { return mb - ma; }
+        return isFinite(ma) ? -1 : 1;
+      });
+    } else if (sortMode === 'star') {
+      var rank = function (k) {
+        var s = stars[k];
+        if (!s) { return 9; }
+        return (s.c === 'gold') ? 0 : 1;
+      };
+      list.sort(function (a, b) { return rank(a) - rank(b); });
+    }
+    return list;
+  }
+
+  /* ================= 训练总览（统计） ================= */
+  function renderDash(A) {
+    var list = keysOf(view);
+    var totalN = 0, weak = 0, warn = 0, practiced = 0, fastest = NaN;
+    list.forEach(function (k) {
+      var st = A.stats[k];
+      totalN += st.n;
+      if (!st.n) { return; }
+      practiced++;
+      if (!isFinite(fastest) || st.best < fastest) { fastest = st.best; }
+      var t = tierOf(st.metric(), A.bench);
+      if (t === 't-bad') { weak++; } else if (t === 't-warn') { warn++; }
+    });
+
+    var kpis = document.getElementById('c2-kpis');
+    if (kpis) {
+      var metricName = metricMode === 'session' ? '最近一次'
+        : (metricMode === 'best' ? '最快单次' : '全部平均');
+      kpis.innerHTML =
+        '<div class="c4-kpi"><div class="k-label">基准<i>' + metricName + '</i></div>' +
+          '<div class="k-value">' + (isFinite(A.bench) ? fmt(A.bench) : '--') + '</div></div>' +
+        '<div class="c4-kpi"><div class="k-label">已练</div><div class="k-value">' +
+          practiced + ' / ' + list.length + '</div></div>' +
+        '<div class="c4-kpi"><div class="k-label">总次数</div><div class="k-value">' + totalN + '</div></div>' +
+        '<div class="c4-kpi"><div class="k-label">不合格</div><div class="k-value" style="color:#ef4444">' + weak + '</div></div>' +
+        '<div class="c4-kpi"><div class="k-label">需关注</div><div class="k-value" style="color:#f59e0b">' + warn + '</div></div>' +
+        '<div class="c4-kpi"><div class="k-label">最快</div><div class="k-value">' +
+          (isFinite(fastest) ? fmt(fastest) : '--') + '</div></div>';
+    }
+    var ticks = document.getElementById('c2-ticks');
+    if (ticks) {
+      ticks.innerHTML =
+        '<span style="left:0%">' + A.range.lo.toFixed(2) + '×</span>' +
+        '<span style="left:50%">' + ((A.range.lo + A.range.hi) / 2).toFixed(2) + '× 基准</span>' +
+        '<span style="left:100%">' + A.range.hi.toFixed(2) + '×</span>';
+    }
+    var topBox = document.getElementById('c2-top');
+    if (topBox) {
+      var ranked = A.practiced.slice().sort(function (a, b) {
+        return A.stats[b].metric() - A.stats[a].metric();
+      }).slice(0, 10);
+      topBox.classList.toggle('is-empty', !ranked.length);
+      document.getElementById('c2-top-list').innerHTML = ranked.map(function (k, i) {
+        return '<button type="button" class="c4-top__item" data-k="' + k + '">' +
+          '<span class="c4-top__rank">#' + (i + 1) + '</span><b>' + k + '</b>' +
+          '<span class="c4-top__ms">' + fmt(A.stats[k].metric()) + '</span></button>';
+      }).join('');
+    }
+  }
+
+  function updateHint() {
+    var el = document.getElementById('c2-filter-hint');
+    if (!el) { return; }
+    if (!hasAnyFilter()) { el.textContent = ''; return; }
+    var n = document.querySelectorAll('#c2-board .c2-card').length;
+    el.textContent = '已筛选：' + n + ' 条';
+  }
 
   /* ================= 卡片渲染 ================= */
-  function cardHTML(k, v) {
-    var st = statsOf(k);
-    var stat = st
-      ? ('最佳 <b>' + fmt(st.best) + '</b> · ' + st.n + ' 次')
-      : '未练习';
-    return '<button type="button" class="c2-card' + (st ? ' is-practiced' : '') + '"'
-      + ' data-k="' + k + '" aria-label="练习公式 ' + k + '">'
+  function cardHTML(k, v, A) {
+    var st = A.stats[k];
+    var m = st.metric();
+    var r = (isFinite(m) && isFinite(A.bench) && A.bench > 0) ? m / A.bench : NaN;
+    var col = colorByRatio(r, A.range);
+    var sk = stars[k];
+    var alg = algOf(k);
+    var statHtml = st.n
+      ? ('<b>' + fmt(m) + '</b><i>' + st.n + ' 次</i>')
+      : '<span style="opacity:.65">未练习</span>';
+    var title = k + (alg ? ' · ' + alg : '') +
+      (st.n ? ' · ' + fmt(m) + ' · ' + st.n + ' 次' : ' · 未练习') +
+      (sk ? ' · ★ ' + starName(sk.c) : '');
+
+    return '<div class="c2-card' + (st.n ? ' is-practiced' : '') + '"'
+      + ' data-k="' + k + '" data-g="' + (v === 'combo' ? '' : (FAMILY[k] || 'g')) + '"'
+      + ' role="button" tabindex="0"'
+      + ' style="--tone:' + col.text + '"'
+      + ' title="' + esc(title) + '"'
+      + ' aria-label="练习公式 ' + esc(k) + '">'
+      + '<button type="button" class="c2-card__star' + (sk ? ' is-on s-' + (sk.c || 'gold') : '') + '"'
+      + '   data-star="' + k + '" aria-label="切换标记（当前：' + (sk ? starName(sk.c) : '无') + '）">★</button>'
       + '<span class="c2-card__k">' + k + '</span>'
-      + '<span class="c2-card__tag">' + (v === 'combo' ? '组合公式' : '单个公式') + '</span>'
-      + '<span class="c2-card__stat">' + stat + '</span>'
-      + '</button>';
+      + (alg ? '<span class="c2-card__alg">' + esc(alg) + '</span>' : '')
+      + '<span class="c2-card__stat">' + statHtml + '</span>'
+      + '</div>';
   }
 
   function renderBoard() {
+    var A = computeAll();
+    renderDash(A);
     board.dataset.view = view;
-    board.innerHTML = keysOf(view).map(function (k) { return cardHTML(k, view); }).join('');
+    var list = visibleKeys(A);
+    board.innerHTML = list.length
+      ? list.map(function (k) { return cardHTML(k, view, A); }).join('')
+      : '<div class="c4-empty">没有符合筛选条件的公式。</div>';
     board.setAttribute('aria-label', view === 'combo' ? '公式组合训练卡片' : '单个公式训练卡片');
+    updateHint();
+    layout();
   }
 
-  /* 只重画一张卡的成绩，避免整块 grid 重建导致焦点丢失 */
-  function refreshCard(k) {
-    var el = board.querySelector('.c2-card[data-k="' + k + '"]');
-    if (!el) { return; }
-    var st = statsOf(k);
-    el.classList.toggle('is-practiced', !!st);
-    var stat = el.querySelector('.c2-card__stat');
-    if (stat) {
-      stat.innerHTML = st ? ('最佳 <b>' + fmt(st.best) + '</b> · ' + st.n + ' 次') : '未练习';
-    }
-  }
+  /* 停一把之后：整块重画（只有 18 / 6 张，重建成本可忽略），
+     成绩、色阶、KPI、TOP10 一次到位。 */
+  function refreshCard(k) { renderBoard(); }
 
   /* ================= 单屏高度 =================
      卡片少（18 / 6），按需求铺满一屏：列数按视口宽定，行高均分剩余高度。 */
   function colsFor(v, w) {
     if (v === 'combo') { return w >= 640 ? 3 : 2; }
-    return w >= 900 ? 6 : 3;
+    if (w >= 900) { return 6; }
+    /* 平板竖屏（640–900）用 4 列：3 列会把卡片拉成瘦长条、18 张排 6 行还超屏 */
+    if (w >= 640) { return 4; }
+    /* 矮屏（≤700px 高，如 375×667）走 3 列会挤成 6 行、最后一行被推出屏外
+       （实测差 9px）→ 改 4 列 × 5 行，行高更充裕。 */
+    var h = window.innerHeight || 0;
+    if (h <= 700 && w >= 360) { return 4; }
+    return 3;
   }
 
   function layout() {
@@ -387,6 +779,7 @@
     clearInterval(pTick);
     clearTimeout(pPrep);
     pState = 'idle';
+    fsTimer.style.color = '';     /* 下一把回到默认字色，别带着上一把的快慢色 */
     setTimerState('idle', '0.000');
   }
 
@@ -431,16 +824,24 @@
     setTimerState('done', fmt(total));
 
     pushTime(curKey, total);
-    refreshCard(curKey);
+    refreshCard(curKey);       /* 卡片成绩 + 色阶 + 训练总览一起刷新 */
+
+    /* 本次成绩按「本次 / 基准」取同一套 7 档色阶，与卡片上的颜色语义一致 */
+    var A = computeAll();
+    var col = colorByRatio(isFinite(A.bench) && A.bench > 0 ? total / A.bench : NaN, A.range);
+    fsTimer.style.color = col.text;
 
     var st = statsOf(curKey);
-    var bestTxt = st ? ('最佳 ' + fmt(st.best)) : '';
+    var extra = [];
+    if (isFinite(st.best)) { extra.push('最佳 ' + fmt(st.best)); }
+    if (isFinite(st.allavg)) { extra.push('平均 ' + fmt(st.allavg)); }
+    var extraTxt = extra.length ? ' · ' + extra.join(' · ') : '';
+    var thisTxt = '本次 <b style="color:' + col.text + '">' + fmt(total) + '</b>';
     if (fsAuto) {
-      setSub('done', '已保存 · 本次 <b>' + fmt(total) + '</b>' +
-        (bestTxt ? ' · ' + bestTxt : '') + ' · 第 ' + st.n + ' 次 · 按住继续');
+      setSub('done', '已保存 · ' + thisTxt + extraTxt + ' · 第 ' + st.n + ' 次 · 按住继续');
     } else {
-      setSub('done', '已保存 · 本次 <b>' + fmt(total) + '</b>' + (bestTxt ? ' · ' + bestTxt : ''));
-      fsSheetT.innerHTML = '本次 <b>' + fmt(total) + '</b>' + (bestTxt ? ' · ' + bestTxt : '');
+      setSub('done', '已保存 · ' + thisTxt + extraTxt + ' · 第 ' + st.n + ' 次');
+      fsSheetT.innerHTML = thisTxt + extraTxt;
       fsSheet.hidden = false;
     }
   }
@@ -505,25 +906,117 @@
   });
   document.getElementById('c2-fs-back').addEventListener('click', fsClose);
 
+  /* ================= 星标（五档循环切换） =================
+     点星标 = 无标记 → 母公式 → 重点练 → 易错 → 已掌握 → 自定义 → 无标记。
+     二阶页没有详情浮层，所以把「改颜色」做成一键循环，省掉二次弹层。 */
+  function cycleStar(k) {
+    var cur = stars[k];
+    var idx = -1;
+    if (cur) {
+      for (var i = 0; i < STAR_COLORS.length; i++) {
+        if (STAR_COLORS[i].k === (cur.c || 'gold')) { idx = i; }
+      }
+    }
+    if (!cur) { stars[k] = { c: 'gold', n: '' }; }
+    else if (idx + 1 >= STAR_COLORS.length) { delete stars[k]; }
+    else { stars[k] = { c: STAR_COLORS[idx + 1].k, n: cur.n || '' }; }
+    save(STARS_KEY, stars);
+    renderBoard();
+  }
+
   /* ================= 卡片与切换 ================= */
   board.addEventListener('click', function (e) {
+    var starBtn = e.target.closest ? e.target.closest('[data-star]') : null;
+    if (starBtn) { cycleStar(starBtn.dataset.star); return; }
     var card = e.target.closest ? e.target.closest('.c2-card') : null;
     if (!card) { return; }
     fsOpen(card.dataset.k);
   });
+  board.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') { return; }
+    if (e.target.closest && e.target.closest('[data-star]')) { return; }
+    var card = e.target.closest ? e.target.closest('.c2-card') : null;
+    if (!card) { return; }
+    e.preventDefault();
+    fsOpen(card.dataset.k);
+  });
+
+  /* 最慢 TOP 10：点一项直接进全屏练它 */
+  var topList = document.getElementById('c2-top-list');
+  if (topList) {
+    topList.addEventListener('click', function (e) {
+      var it = e.target.closest ? e.target.closest('[data-k]') : null;
+      if (it) { fsOpen(it.dataset.k); }
+    });
+  }
+
+  /* ================= 工具条 ================= */
+  function syncBarValues() {
+    var m = document.getElementById('c2-metric');
+    var f = document.getElementById('c2-filter');
+    var s = document.getElementById('c2-sort');
+    if (m) { m.value = metricMode; }
+    if (f) { f.value = filterMode; }
+    if (s) { s.value = sortMode; }
+  }
+  function bindBar() {
+    var metric = document.getElementById('c2-metric');
+    var filter = document.getElementById('c2-filter');
+    var sort = document.getElementById('c2-sort');
+    var q = document.getElementById('c2-q');
+    syncBarValues();
+
+    if (metric) {
+      metric.addEventListener('change', function () {
+        metricMode = this.value; saveOpt(); renderBoard();
+      });
+    }
+    if (filter) {
+      filter.addEventListener('change', function () {
+        filterMode = this.value; saveOpt(); renderBoard();
+      });
+    }
+    if (sort) {
+      sort.addEventListener('change', function () {
+        sortMode = this.value; saveOpt(); renderBoard();
+      });
+    }
+    if (q) {
+      q.addEventListener('input', function () { renderBoard(); });
+    }
+    var clear = document.getElementById('c2-clear');
+    if (clear) {
+      clear.addEventListener('click', function () {
+        /* 与 ft 页一致：只复位筛选与搜索，指标和排序属于个人偏好，保留 */
+        filterMode = 'all';
+        if (filter) { filter.value = 'all'; }
+        if (q) { q.value = ''; }
+        saveOpt();
+        renderBoard();
+      });
+    }
+    var toggle = document.getElementById('c2-more');
+    var bar = document.getElementById('c2-bar');
+    if (toggle && bar) {
+      toggle.addEventListener('click', function () {
+        var on = bar.classList.toggle('is-more');
+        toggle.setAttribute('aria-expanded', on ? 'true' : 'false');
+        layout();
+      });
+    }
+  }
 
   function setView(v) {
     view = v;
     document.getElementById('c2-tab-single').setAttribute('aria-selected', v === 'single' ? 'true' : 'false');
     document.getElementById('c2-tab-combo').setAttribute('aria-selected', v === 'combo' ? 'true' : 'false');
     tipEl.textContent = v === 'combo'
-      ? '点卡片计时 · 每组 4 个字母连做 · 按住 0.3 秒变绿松手起表'
-      : '点卡片计时 · 按住 0.3 秒变绿松手起表 · 运行中点任意处停表';
+      ? '每组 4 个字母连做 · 按住 0.3 秒变绿松手起表，运行中点任意处停表'
+      : '按住 0.3 秒变绿后松手起表，运行中点任意处停表';
     if (history.replaceState) {
       history.replaceState(null, '', v === 'combo' ? '#combo' : location.pathname);
     }
     renderBoard();
-    layout();
   }
 
   document.getElementById('c2-tab-single').addEventListener('click', function () { setView('single'); });
@@ -531,6 +1024,7 @@
 
   /* ================= 启动 ================= */
   fsAutoSync();
+  bindBar();
   setView(view);          /* setView 内部已 renderBoard + layout，不要重复渲染 */
   window.addEventListener('resize', layout);
   window.addEventListener('orientationchange', function () { setTimeout(layout, 120); });
@@ -549,7 +1043,7 @@
         id: SYNC_ID,
         label: '公式训练器 · 二阶盲拧',
         path: SYNC_ID + '.json',
-        keys: [TIMES_KEY, SESSIONS_KEY, FS_AUTO_KEY],
+        keys: [TIMES_KEY, SESSIONS_KEY, FS_AUTO_KEY, STARS_KEY, OPT_KEY],
         isEmptySnap: function (snap) {
           if (!snap) { return true; }
           var n = 0;
@@ -561,6 +1055,11 @@
               Object.keys(o).forEach(function (c) { n += (o[c] || []).length; });
             } catch (err) {}
           });
+          /* 只有星标没有成绩时也算「有数据」，否则下载后标记会被判空跳过 */
+          try {
+            var st = JSON.parse(snap[STARS_KEY] || '{}') || {};
+            n += Object.keys(st).length;
+          } catch (err) {}
           return n === 0;
         }
       });
@@ -571,8 +1070,14 @@
           if (!st || !st.result || st.result.kind !== 'downloaded') { return; }
           times = load(TIMES_KEY, {});
           sessions = load(SESSIONS_KEY, {});
+          stars = load(STARS_KEY, {});
+          opt = load(OPT_KEY, {});
+          metricMode = (opt.metric === 'best' || opt.metric === 'allavg') ? opt.metric : 'session';
+          filterMode = typeof opt.filter === 'string' ? opt.filter : 'all';
+          sortMode = typeof opt.sort === 'string' ? opt.sort : 'group';
           try { fsAuto = localStorage.getItem(FS_AUTO_KEY) !== '0'; } catch (err) {}
           fsAutoSync();
+          syncBarValues();
           renderBoard();
         });
       }
