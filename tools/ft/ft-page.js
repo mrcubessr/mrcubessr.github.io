@@ -1110,9 +1110,30 @@ window.FTPage = (function () {
       if (pState === 'running') { pTimerEl.textContent = pFmt(performance.now() - pStart); }
       pSyncTimerEls();
     }
+    /* v2.1.6：全屏数字去掉外面的矩形方块后，字号按 vw 放大到接近满屏，
+       代价是位数一变多就顶出屏外（≥100 秒 = 7 位）。这里做等比兜底：
+       只在文本长度变化时量一次，超宽就按比例缩；短数字保持满屏大小。 */
+    var fsFitLen = -1;
+    function pFitFsTimer(el) {
+      var txt = el.textContent || '';
+      if (txt.length === fsFitLen) { return; }
+      fsFitLen = txt.length;
+      el.style.fontSize = '';                 /* 先回 CSS 基准再量 */
+      var host = el.parentNode;
+      var avail = host ? host.clientWidth : 0;
+      var w = el.getBoundingClientRect().width;
+      if (avail > 0 && w > avail) {
+        var base = parseFloat(getComputedStyle(el).fontSize) || 64;
+        el.style.fontSize = Math.max(18, Math.floor(base * avail / w)) + 'px';
+      }
+    }
     function pSyncTimerEls() {
       var fs = document.getElementById('c4-fs-timer');
-      if (fs) { fs.textContent = pTimerEl.textContent; fs.dataset.state = pTimerEl.dataset.state; }
+      if (fs) {
+        fs.textContent = pTimerEl.textContent;
+        fs.dataset.state = pTimerEl.dataset.state;
+        pFitFsTimer(fs);
+      }
     }
     function pStartTimer() {
       if (pState === 'running') return;
@@ -1409,6 +1430,8 @@ window.FTPage = (function () {
       fsSub(pState === 'running' ? 'running' : 'idle', '');
       fsEl.hidden = false;
       document.body.style.overflow = 'hidden';
+      fsFitLen = -1;              /* 刚显形才量得到 clientWidth，重算一次字号 */
+      pSyncTimerEls();
     }
     function fsClose() {
       fsSheetHide();

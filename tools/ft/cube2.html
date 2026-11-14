@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
 <link rel="stylesheet" href="/assets/css/components.css">
 <link rel="stylesheet" href="/assets/css/site-layout.css">
-<link rel="stylesheet" href="ft.css?v=2.1.5">
+<link rel="stylesheet" href="ft.css?v=2.1.6">
 <style>
   /* =========================================================
      二阶盲拧公式训练页（cube2.html）专属样式
@@ -434,6 +434,25 @@
   var fsSheetT = document.getElementById('c2-fs-sheet-t');
   var fsAutoBtn = document.getElementById('c2-fs-auto');
 
+  /* ================= 全屏数字自适应 =================
+     v2.1.6 去掉了计时数字外面的矩形卡片，字号按 vw 放大到接近满屏。
+     代价是位数一变多就会顶出屏外（>99.999 秒 = 7 位，390px 屏刚好差 1px）。
+     这里做等比兜底：只在**文本长度变化**时量一次，超宽就按比例缩字号；
+     短数字（0.000 / 9.999）保持满屏大小，跑表期间不再触发 layout。 */
+  var fitLen = -1;
+  function fitTimer() {
+    var txt = fsTimer.textContent || '';
+    if (txt.length === fitLen) { return; }
+    fitLen = txt.length;
+    fsTimer.style.fontSize = '';                    /* 先回 CSS 基准再量 */
+    var avail = fsEl.clientWidth;                   /* 已扣掉 .c4-fs 的左右 padding */
+    var w = fsTimer.getBoundingClientRect().width;
+    if (avail > 0 && w > avail) {
+      var base = parseFloat(getComputedStyle(fsTimer).fontSize) || 64;
+      fsTimer.style.fontSize = Math.max(18, Math.floor(base * avail / w)) + 'px';
+    }
+  }
+
   /* ================= 存取 ================= */
   function load(k, dft) {
     try {
@@ -728,6 +747,8 @@
     var vh = document.documentElement.clientHeight || window.innerHeight;
     var h = vh - docTop - padB;
     board.style.setProperty('--c2-h', Math.max(260, Math.round(h)) + 'px');
+    fitLen = -1;      /* 视口变了，全屏数字的字号基准要重算 */
+    fitTimer();
   }
 
   /* ================= 全屏计时 ================= */
@@ -749,6 +770,7 @@
   function setTimerState(st, txt) {
     fsTimer.dataset.state = st;
     if (txt != null) { fsTimer.textContent = txt; }
+    fitTimer();
   }
   function setSub(kind, txt) {
     fsSub.dataset.kind = kind || '';
@@ -773,6 +795,8 @@
     fsSheet.hidden = true;
     fsEl.hidden = false;
     document.body.style.overflow = 'hidden';
+    fitLen = -1;      /* 刚显形，clientWidth 才有效，重算一次字号 */
+    fitTimer();
   }
 
   function fsClose() {
@@ -794,7 +818,10 @@
   }
 
   function pRenderTimer() {
-    if (pState === 'running') { fsTimer.textContent = fmt(performance.now() - pStart); }
+    if (pState === 'running') {
+      fsTimer.textContent = fmt(performance.now() - pStart);
+      fitTimer();          /* 位数变化时才真正测量，见 fitTimer 注释 */
+    }
   }
 
   function pStartTimer() {

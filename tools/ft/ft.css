@@ -153,10 +153,13 @@ body {
   touch-action: manipulation;
   transition: background 150ms ease, color 150ms ease; border: 1px solid var(--line-2, rgba(255,255,255,.18));
 }
-.c4-pmodal__timer[data-state="prep"], .c4-fs__timer[data-state="prep"] { background: linear-gradient(135deg,#dc2626,#991b1b); color:#fff; text-shadow:0 2px 6px rgba(120,0,0,.55); border-color:#991b1b; animation: c4-prep-pulse 1s ease-in-out infinite; }
-.c4-pmodal__timer[data-state="green"], .c4-fs__timer[data-state="green"] { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; text-shadow:0 2px 6px rgba(0,60,20,.55); border-color:#15803d; }
-.c4-pmodal__timer[data-state="running"], .c4-fs__timer[data-state="running"] { background: linear-gradient(135deg,#f59e0b,#ea580c); color:#fff; text-shadow:0 2px 6px rgba(120,40,0,.55); border-color:#ea580c; }
-.c4-pmodal__timer[data-state="done"], .c4-fs__timer[data-state="done"] { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; text-shadow:0 2px 6px rgba(0,60,20,.55); border-color:#15803d; }
+/* ⚠️ v2.1.6 起这里只剩「练习浮层」的方块版计时器；
+   全屏计时（.c4-fs__timer）已改成无底色的纯数字，状态色见全屏段（约 230 行），
+   两处不要再合写，否则全屏又会被这块渐变底「糊」回一个方块。 */
+.c4-pmodal__timer[data-state="prep"] { background: linear-gradient(135deg,#dc2626,#991b1b); color:#fff; text-shadow:0 2px 6px rgba(120,0,0,.55); border-color:#991b1b; animation: c4-prep-pulse 1s ease-in-out infinite; }
+.c4-pmodal__timer[data-state="green"] { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; text-shadow:0 2px 6px rgba(0,60,20,.55); border-color:#15803d; }
+.c4-pmodal__timer[data-state="running"] { background: linear-gradient(135deg,#f59e0b,#ea580c); color:#fff; text-shadow:0 2px 6px rgba(120,40,0,.55); border-color:#ea580c; }
+.c4-pmodal__timer[data-state="done"] { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; text-shadow:0 2px 6px rgba(0,60,20,.55); border-color:#15803d; }
 @keyframes c4-prep-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.55); } 50%{ box-shadow:0 0 0 12px rgba(220,38,38,0); } }
 .c4-pmodal__summary { font-size: 13px; color: var(--fg-2, #AEB8CA); text-align: center; }
 .c4-pmodal__summary b { color: var(--fg, #EEF2F8); font-size: 16px; }
@@ -224,18 +227,35 @@ body {
 }
 .c4-fs__close { margin-left: auto; border: 1px solid transparent; background: transparent; color: var(--fg-2, #AEB8CA); font-size: 26px; line-height: 1; cursor: pointer; padding: 0 10px; border-radius: 0; }
 .c4-fs__close:hover { color: #fff; background: var(--red-soft, rgba(248,113,113,.18)); border-color: var(--red, #F87171); }
+/* v2.1.6：全屏计时**去掉中间那块矩形卡片**，整屏只剩数字。
+   原来数字套在 #1e293b 底 + 3px 边 + padding 的方框里，视觉上像「只有框内能点」；
+   实际手势一直由 .c4-fs 本体接管（timer 已 pointer-events:none），
+   但用户看到方框就会往框里点。现在去掉底色/边框/内边距，数字直接贴在屏上，
+   状态反馈也从「色块变色」改成「数字变色 + 光晕」，任意位置长按/点击都算。 */
 .c4-fs__timer {
   font-family: "Consolas","SF Mono",monospace; font-weight: 900; font-variant-numeric: tabular-nums;
-  text-align: center; line-height: 1.1; letter-spacing: 3px; cursor: pointer;
+  text-align: center; line-height: 1; letter-spacing: 2px; cursor: pointer;
   user-select: none; -webkit-user-select: none; touch-action: none;
-  background: #1e293b; color: #f8fafc; border: 3px solid var(--line-2, rgba(255,255,255,.18));
-  border-radius: 0; padding: 20px 52px; text-shadow: 0 2px 10px rgba(0,0,0,.45);
-  /* 字号沿用 tools/timer 宽屏分级口径：1025–1279 用小档 */
-  font-size: clamp(48px, 8vw, 110px);
+  background: none; border: 0; padding: 0; border-radius: 0;
+  color: var(--fg, #EEF2F8);
+  text-shadow: 0 0 42px rgba(148,163,184,.20);
+  /* 字号只在这一处定义：26vw 跟随视口宽连续变化，46vh 兜住手机横屏，
+     上限 260px 防止超大屏数字夸张。分档会在大屏/小屏断点处出现跳变，所以不再分档。 */
+  font-size: min(clamp(64px, 26vw, 320px), 46vh);
+  transition: color 120ms ease, text-shadow 120ms ease;
+  /* 位数多（如 ≥100 秒 → 7 位）时由 JS 等比缩回，见 fitTimer */
+  white-space: nowrap;
 }
-@media (min-width: 1280px) {
-  .c4-fs__timer { font-size: clamp(64px, 10vw, 168px); }
-}
+/* 状态色：深色底座用亮色，浅色底座（data-theme="light"）换成同色系深一档，
+   否则亮黄/亮绿在浅底上几乎看不见。 */
+.c4-fs__timer[data-state="prep"]    { color: #F87171; text-shadow: 0 0 52px rgba(248,113,113,.48); }
+.c4-fs__timer[data-state="green"]   { color: #4ADE80; text-shadow: 0 0 52px rgba(74,222,128,.46); }
+.c4-fs__timer[data-state="running"] { color: #FBBF24; text-shadow: 0 0 52px rgba(251,191,36,.42); }
+.c4-fs__timer[data-state="done"]    { color: #4ADE80; text-shadow: 0 0 52px rgba(74,222,128,.44); }
+[data-theme="light"] .c4-fs__timer[data-state="prep"]    { color: #B91C1C; text-shadow: 0 0 32px rgba(185,28,28,.30); }
+[data-theme="light"] .c4-fs__timer[data-state="green"]   { color: #15803D; text-shadow: 0 0 32px rgba(21,128,61,.30); }
+[data-theme="light"] .c4-fs__timer[data-state="running"] { color: #B45309; text-shadow: 0 0 32px rgba(180,83,9,.28); }
+[data-theme="light"] .c4-fs__timer[data-state="done"]    { color: #15803D; text-shadow: 0 0 32px rgba(21,128,61,.28); }
 /* 全屏副行：状态提示 / 停表后的成绩（v2.1.3 新增，手机上是唯一的手势说明位） */
 .c4-fs__sub {
   min-height: 21px; font-size: 14px; line-height: 1.5; letter-spacing: .3px;
@@ -272,7 +292,7 @@ body {
 .c4-fs__alg { max-width: 920px; text-align: center; font-family: "Consolas","SF Mono",monospace; font-size: clamp(16px, 2.2vw, 26px); line-height: 1.6; color: var(--fg-2, #AEB8CA); word-break: break-word; }
 @media (max-width: 640px) {
   .c4-fs__hint { display: none; }
-  .c4-fs__timer { padding: 14px 26px; border-radius: 0; }
+  .c4-fs__timer { padding: 0; border-radius: 0; }
   .c4-fs__sub { font-size: 13px; padding: 0 6px; }
   .c4-fs__auto { padding: 5px 9px; font-size: 11px; letter-spacing: 0; }
   .c4-fs__sheet { bottom: 14px; width: calc(100vw - 20px); padding: 12px; gap: 8px; }
@@ -744,7 +764,7 @@ body {
   .c4-fs__bar { padding: 10px 12px; gap: 8px; }
   .c4-fs__code { font-size: 18px; letter-spacing: 1px; }
   .c4-fs__prog { font-size: 12px; }
-  .c4-fs__timer { padding: 16px 22px; font-size: clamp(64px, 22vw, 132px); }
+  .c4-fs__timer { padding: 0; letter-spacing: 1px; }
   .c4-fs__alg { font-size: 17px; }
 
   /* ⑧ 详情浮层：标题栏压回一行、元信息改单列、底部按钮平分整宽
