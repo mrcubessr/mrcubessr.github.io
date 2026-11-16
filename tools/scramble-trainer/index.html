@@ -41,6 +41,11 @@
     overflow: hidden;
   }
 
+  /* 单屏工具页：隐藏站点页脚。
+     body 是 overflow:hidden 的全屏 flex 列，页脚会吃掉底部约 110px；
+     浏览器放大后内容被压缩，页脚还会盖在公式大字/控件上（大屏投影时可见）。 */
+  body > .site-footer { display: none !important; }
+
   /* ===== Header 精简版 ===== */
   .header {
     flex: 0 0 auto;
@@ -130,7 +135,8 @@
   /* 右栏：上=缩小展开图，下=公式区 */
   .right {
     display: grid;
-    grid-template-rows: auto 1fr;
+    /* minmax(0,1fr)：允许公式行被压缩到内容高度以下（否则会把控件顶出视口） */
+    grid-template-rows: auto minmax(0, 1fr);
     min-height: 0;
     background: var(--panel);
   }
@@ -162,8 +168,12 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    /* 固定高度（基于视口比例，与 canvas 内容无关）：破除「读取父高→设 canvas 高→父再被撑高」的正反馈环 */
-    height: clamp(300px, 40vh, 400px);
+    /* 固定高度（基于视口比例，与 canvas 内容无关）：破除「读取父高→设 canvas 高→父再被撑高」的正反馈环。
+       v2.1.6：改为纯视口比例 + 小 px 下限。原先 300px 下限在浏览器放大（CSS 视口变矮）时
+       会超过 38vh，把右栏顶爆；用 vh 让缩放前后物理尺寸基本不变。
+       flex:0 0 auto —— 缩放到 175% 时这块曾被 flex 压成 0 高（展开图整体消失）。 */
+    height: clamp(160px, 38vh, 460px);
+    flex: 0 0 auto;
     overflow: hidden;
   }
   .net-img-wrap canvas {
@@ -227,6 +237,10 @@
     font-size: 11px;
     font-weight: 400;
     margin-left: 4px;
+  }
+  .legend-zone .zone-label { flex-wrap: wrap; row-gap: 4px; }
+  @media (max-width: 1180px) {
+    .legend-zone .legend-caption { display: none; }   /* 窄栏时把宽度让给「全屏」按钮 */
   }
   .legend-fallback {
     color: var(--muted);
@@ -299,6 +313,11 @@
     align-items: center;     /* 垂直居中 */
     justify-content: center; /* 水平居中 */
   }
+  /* 公式两行以上时，溢出若被居中会「向上溢出被裁掉」（1080p 就已出现第 6 个字母切半）。
+     safe center：装不下时改为顶端对齐，配合 overflow:auto 可滚动读完。 */
+  @supports (align-items: safe center) {
+    .formula-display { align-items: safe center; }
+  }
   /* 公式文本：固定字号 + 居中 + 溢出滚动不裁切顶部 */
   .formula-inner {
     margin: auto;
@@ -308,7 +327,11 @@
     display: block;
     width: 100%;
     font-family: Consolas, "Courier New", "Microsoft YaHei", monospace;
-    font-size: 88px;          /* 教室投影级大字：统一固定，步数多换行不缩小 */
+    /* 教室投影级大字，但按视口高度/宽度双向封顶：
+       1080p→82px（≈原 88px），150% 缩放时 55px×1.5=82px 物理大小不变；
+       列宽变窄时（窄窗口/高缩放）按 4.4vw 收窄，6 步公式仍能单行显示。
+       仍装不下（12/20 步）时由 fitFormula() 继续等比缩小。 */
+    font-size: clamp(30px, min(7.6vh, 4.4vw), 88px);
     font-weight: 800;
     line-height: 1.3;
     letter-spacing: 2px;
@@ -559,18 +582,86 @@
   }
   .toast.show { opacity: 1; transform: translateY(0); }
 
-  /* ===== 响应式：小屏堆叠 ===== */
-  @media (max-width: 1100px) {
-    body { overflow-y: auto; }
-    .main {
-      grid-template-columns: 1fr;
-      grid-template-rows: 50vh auto;
+  /* =====================================================================
+     桌面端右栏「控件钉底」布局（v2.1.6）
+     ---------------------------------------------------------------------
+     问题：公式框与控件都挤在 .formula-zone 这个可滚动列里，浏览器放大后
+     右栏变矮 → 公式框按内容撑高 → 「换一题 / 长度」被推到可视区外，
+     body 又是 overflow:hidden，老师在大屏上点不到按钮。
+     做法：把 .formula-zone 打平成 .right 的 6 个网格行，公式框是唯一可压缩行
+     （minmax(0,1fr)，内部 overflow:auto 自己滚动），控件永远是最后两行、钉在栏底。
+     手机断点（≤768px）不用这套，它有自己的 display:contents + order 方案。
+     ===================================================================== */
+  @media (min-width: 769px) {
+    /* 7 行：展示图 / 公式标签 / 公式框(唯一可压缩) / 难度 / 自选字母 / 长度 / 换一题。
+       自选字母行未显示时它不占位（display:none），第 7 行自然为 0 高。 */
+    .right { grid-template-rows: auto auto minmax(0, 1fr) auto auto auto auto; }
+    .formula-zone { display: contents; }
+    .formula-zone > .zone-label { padding: 10px 16px 0; }
+    .formula-display { margin: 8px 16px; min-height: 0; }
+    .settings-row { margin: 6px 16px 0; }
+    .letters-row { margin: 6px 16px 0; }
+    .length-row { margin: 6px 16px 0; }
+    .action-row { margin: 8px 16px 14px; }
+  }
+
+  /* ===== 响应式 =====
+     v2.1.6：删除原 @media (max-width:1100px) 的「上下堆叠」分支。
+     该分支用 grid-template-rows:50vh auto + .net-zone{min-height:0} 把右栏压扁，
+     实测浏览器放大到 175%（CSS 视口 1097×617）时 .net-img-wrap 高度被压成 0
+     —— 展开图整块消失、公式只剩 41px、控件跑到视口外点不到（body overflow:hidden）。
+     桌面端现在任意宽度都保持左右两栏：两栏内部的展开图/对照图本来就是按容器等比绘制的，
+     放大缩小时只有整体变大变小，不会重新排版，也就不会出现「有的地方缩小有的地方放大」。 */
+  @media (max-width: 1100px) and (min-width: 769px) {
+    /* 窄窗口（≤1100 且非手机）：两栏保留，只压缩内边距与控件间距，避免换行挤爆 */
+    .net-img-wrap { height: clamp(140px, 32vh, 340px); }  /* 让出高度给公式，公式可两行大字显示 */
+    .left { padding: 10px 12px; }
+    .right .net-zone { padding: 8px 12px 10px; }
+    .right .formula-zone { padding: 8px 12px 10px; gap: 8px; }
+    .settings-row, .length-row { gap: 6px; }
+    .seg__btn { padding: 7px 10px; font-size: 13px; }
+    .length-row .seg__btn { padding: 7px 10px; min-width: 40px; }
+  }
+
+  /* ===== 矮视口自适应（浏览器放大、笔记本小屏、投影 720p）=====
+     浏览器放大 = CSS 视口变矮。这里按高度分档收窄展开图、缩小公式字号、压缩控件，
+     保证「展开图 + 公式 + 控件」始终同屏。仅桌面生效，手机断点自己有完整方案。 */
+  @media (max-height: 760px) and (min-width: 769px) {
+    .net-img-wrap { height: clamp(140px, 30vh, 320px); }
+    .net-zone { padding: 8px 14px 10px; gap: 6px; }
+    .formula-zone > .zone-label { padding: 8px 14px 0; }
+    .formula-display { margin: 6px 14px; padding: 10px 12px; }
+    .settings-row, .letters-row, .length-row { margin: 5px 14px 0; }
+    .action-row { margin: 6px 14px 10px; }
+    .formula-inner { font-size: clamp(28px, min(6.4vh, 4.4vw), 72px); }
+  }
+  @media (max-height: 620px) and (min-width: 769px) {
+    /* 只隐藏「展示图」这几个字，平面/3D 切换与全屏按钮必须保留 */
+    .net-zone .zone-label > span { display: none; }
+    .net-zone .zone-label { padding-top: 2px; }
+    .net-img-wrap { height: clamp(100px, 24vh, 190px); }
+    .formula-inner { font-size: clamp(26px, min(7vh, 4.4vw), 52px); }
+    .settings-row .lbl, .length-row .lbl, .letters-row .lbl { display: none; }  /* 按钮自带语义，极端压缩时省宽度 */
+    .letters-row .hint { display: none; }
+    .seg__btn { padding: 6px 9px; font-size: 12px; }
+    .length-row .seg__btn { padding: 6px 9px; font-size: 12px; min-width: 34px; }
+    .letter-chip { padding: 4px 9px; font-size: 13px; min-width: 34px; }
+    .action-row .btn { padding: 8px 10px; font-size: 13px; }
+    .formula-zone > .zone-label { padding-top: 6px; }
+  }
+  /* 高度再低（横屏笔记本/手机、桌面 ≥200% 缩放）时，右栏一屏放不下三块内容。
+     此时不再压缩公式（公式被压扁反而最不可读），改为整栏滚动：各块保持可读尺寸。 */
+  @media (max-height: 470px) and (min-width: 769px) {
+    /* 直接退出网格，改回块流：网格在受限高度下会把展开图那一行压成 19px 并与公式重叠。
+       块流按内容自然排列，右栏整体滚动，各块保持可读尺寸。 */
+    .right {
+      display: block;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
-    .left {
-      border-right: none;
-      border-bottom: 1px solid var(--line);
-    }
-    .right { grid-template-rows: auto auto; }
+    .net-zone { min-height: 0; }
+    .formula-display { min-height: 110px; }
+    .net-img-wrap { height: clamp(90px, 22vh, 160px); }
   }
 
   /* ===== 手机竖屏：展开图(顶) / 公式(中·粗大) / 符号示意图(底) 单屏竖排 ===== */
@@ -654,8 +745,20 @@
       min-height: 110px;      /* 防止公式区/控件把展开图挤到 0 */
       border-bottom: 1px solid var(--line);
       padding: 4px 8px 6px;
+      position: relative;                       /* 给小工具行做定位锚点 */
     }
-    .net-zone .zone-label { font-size: 12px; }
+    /* 手机端「平面/3D + 全屏」浮在右上角，不占垂直空间（否则展示图只剩 47px 高） */
+    .net-zone .zone-label {
+      position: absolute;
+      top: 2px;
+      right: 6px;
+      z-index: 2;
+      padding: 0;
+      gap: 4px;
+    }
+    .net-zone .zone-label > span,
+    .net-zone .zone-label::before { display: none; }
+    /* 按钮的紧凑尺寸写在文件后段（.mini-btn 基础样式之后），否则会被基础样式盖掉 */
     .net-img-wrap {
       flex: 1 1 auto;
       min-height: 0;
@@ -703,7 +806,7 @@
       font-family: "PingFang SC", "Microsoft YaHei", "黑体", "Heiti SC", "SimHei", sans-serif !important;
       font-weight: 900 !important;    /* 黑体加粗 */
       letter-spacing: 1px;
-      font-size: 48px !important;     /* 手机端固定大字（桌面 88px 等比） */
+      font-size: clamp(26px, 7.6vh, 48px);    /* 手机端大字：按视口高度封顶（去掉 !important，允许 fitFormula 在装不下时缩小） */
       line-height: 1.2;
       white-space: normal;             /* 步数多时换行 */
       overflow-wrap: normal;
@@ -743,19 +846,282 @@
     }
     .legend-zone .legend-caption { display: none; }  /* 手机下省空间 */
 
-    /* 控件：难度/长度/操作 放在最底部 */
-    .settings-row { order: 4; gap: 4px; flex-shrink: 0; }
+    /* 控件：难度/自选字母/长度/操作 放在最底部 */
+    .settings-row { order: 5; gap: 4px; flex-shrink: 0; }
     .settings-row .lbl { font-size: 12px; }
     .seg__btn { padding: 5px 8px; font-size: 12px; }
-    .length-row { order: 5; gap: 4px; flex-shrink: 0; }
+    .letters-row { order: 4; gap: 5px; flex-shrink: 0; }
+    .letters-row .lbl { font-size: 12px; }
+    .letters-row .hint { display: none; }
+    .letter-chip { padding: 4px 10px; font-size: 14px; min-width: 38px; }
+    .length-row { order: 6; gap: 4px; flex-shrink: 0; }
     .length-row .lbl { font-size: 12px; }
     .length-row .seg__btn { padding: 5px 8px; font-size: 12px; min-width: 32px; }
-    .action-row { order: 6; gap: 6px; flex-shrink: 0; }
+    .action-row { order: 7; gap: 6px; flex-shrink: 0; }
     .action-row .btn { padding: 8px 10px; font-size: 13px; }
     .btn.primary { font-size: 14px; padding: 10px 12px; }
   }
+
+  /* ===== 极矮视口（手机横屏 / 桌面超高缩放 ≥250%）=====
+     此时手机单屏方案（100dvh 硬撑）会把控件压到视口外，也不再值得坚持「一屏」：
+     改为整页滚动，保证每个控件都能看到、点到。 */
+  @media (max-width: 768px) and (max-height: 560px) {
+    /* 让文档本身滚动（而不是让 body 内部滚动）：body 高度改回 auto，高度随内容增长 */
+    html, body { overflow: auto; height: auto; }
+    /* 用 body .main 提高特异性：文件末尾还有一段导航适配样式用 !important 固定
+       .main 高度（calc(100dvh - ...)），同特异性下它会盖掉这里的高度复位。 */
+    body .main {
+      height: auto !important;
+      flex: 0 0 auto;
+      min-height: 0;
+      overflow: visible;
+    }
+    .right { flex: 0 0 auto; overflow: visible; }
+    .net-zone { flex: 0 0 auto; }
+    .net-img-wrap { height: clamp(120px, 30vh, 220px); }
+    .left { flex: 0 0 auto; min-height: 0; padding: 4px; }
+    .left .legend-img-wrap { height: 220px !important; }
+  }
 </style>
 <style>
+/* ===== 区域标题右侧小工具（全屏 / 平面·3D 切换） ===== */
+  .zone-tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mini-btn {
+    background: var(--on-brand);
+    border: 1.5px solid var(--line);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .mini-btn:hover { border-color: var(--brand); color: var(--brand); }
+  .mini-btn:active { transform: translateY(1px); }
+  .seg-toggle--xs .seg__btn { padding: 5px 10px; font-size: 13px; }
+  /* 区域标题里的工具条保持紧凑：整行只占 ~28px，不抢公式区的高度。
+     min-height:0 是必须的 —— components.css 给 .btn/.seg__btn 设了 30px 最小高度。 */
+  .zone-tools .seg__btn { padding: 4px 9px; font-size: 12px; min-height: 0; }
+  .zone-tools .mini-btn { padding: 4px 9px; font-size: 12px; min-height: 0; }
+  .net-img-wrap canvas[hidden] { display: none !important; }
+  /* 可点开放大：鼠标提示 + 触屏去掉高亮 */
+  .net-img-wrap, .legend-img-wrap { cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
+
+  /* ===== 自选字母（幼儿园两字母模式） ===== */
+  .letters-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .letters-row[hidden] { display: none; }
+  .letters-row .lbl { color: var(--muted); font-size: 14px; font-weight: 600; }
+  .letters-row .hint { color: var(--muted); font-size: 12px; }
+  .letter-chip {
+    background: var(--on-brand);
+    border: 2px solid var(--line);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    padding: 6px 14px;
+    min-width: 46px;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .letter-chip:hover { border-color: var(--brand); color: var(--brand); }
+  .letter-chip.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: var(--on-brand);
+  }
+  .letter-chip:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ===== 全屏展示层（上课投屏 / 小小朋友看大图） ===== */
+  .fs {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+  }
+  .fs.open { display: flex; }
+  .fs__bar {
+    flex: 0 0 auto;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .fs__title { font-size: 17px; font-weight: 800; color: var(--fg); white-space: nowrap; }
+  .fs__sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fs__tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .fs__back {
+    background: transparent;
+    border: 1.5px solid var(--line);
+    color: var(--fg);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 7px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .fs__back:hover { border-color: var(--brand); color: var(--brand); }
+  .fs__back[hidden] { display: none; }
+  .fs__close {
+    background: transparent;
+    border: 1.5px solid var(--line);
+    color: var(--fg);
+    font-family: inherit;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .fs__close:hover { border-color: var(--st-danger); color: var(--st-danger); }
+  .fs__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    display: flex;
+  }
+  .fs__stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .fs__stage[hidden] { display: none; }
+  .fs__canvas-wrap {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fs__canvas-wrap canvas { max-width: 100%; max-height: 100%; display: block; }
+  .fs__canvas-wrap canvas[hidden] { display: none !important; }
+  .fs__grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    grid-auto-rows: 1fr;
+  }
+  .fs__grid[hidden] { display: none; }
+  .fs__card {
+    position: relative;
+    padding: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    cursor: zoom-in;
+    overflow: hidden;
+    font-family: inherit;
+  }
+  .fs__card:hover, .fs__card:focus-visible {
+    border-color: var(--brand);
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(29,78,216,0.28);
+  }
+  .fs__card canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .fs__detail {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+  }
+  .fs__detail[hidden] { display: none; }
+  .fs__nav {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    font-size: 34px;
+    line-height: 1;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    color: var(--fg);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .fs__nav:hover { border-color: var(--brand); color: var(--brand); }
+  .fs__nav:disabled { opacity: 0.3; cursor: default; }
+  .fs__detail-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .fs__detail-card { flex: 1 1 auto; width: 100%; min-height: 0; position: relative; }
+  .fs__detail-card canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .fs__detail-desc {
+    flex: 0 0 auto;
+    font-size: clamp(16px, 2.6vh, 30px);
+    font-weight: 700;
+    color: var(--muted);
+    text-align: center;
+  }
+  .fs__foot {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--line);
+    background: var(--panel);
+    padding: 8px 16px 10px;
+  }
+  .fs__foot[hidden] { display: none; }
+  .fs__foot .formula-inner { font-size: clamp(20px, 4.4vh, 44px); letter-spacing: 1px; }
+  @media (max-width: 700px) {
+    .fs__grid { gap: 8px; padding: 10px; }
+    .fs__nav { width: 46px; height: 46px; font-size: 26px; }
+    .fs__title { font-size: 15px; }
+    .fs__sub { display: none; }
+    .fs__bar { height: 50px; padding: 0 10px; }
+  }
+
+  /* ===== 手机端小工具按钮紧凑化 =====
+     必须写在这里（.mini-btn 基础样式之后）：同特异性下后写的才生效。
+     site-layout.css 在手机端给 .btn/.seg__btn 加了 min-height:44px，
+     照搬到这两个小按钮上会把「展示图」标题行撑到 48px、把图挤到 97px 高。 */
+  @media (max-width: 768px) {
+    #netModeToggle .seg__btn,
+    .seg-toggle--xs .seg__btn,
+    .mini-btn {
+      min-height: 0;
+      height: auto;
+      padding: 4px 8px;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+  }
+
 /* 阶段二：导航接入适配 */
 [data-site-nav], body > .site-nav{ flex:0 0 auto; }
 /* 原 .main 高度按「100dvh - 44px」计算，接入 60px 导航后必须再扣除导航高度，
@@ -786,8 +1152,8 @@
   <!-- 左侧大区：12 种单层转动示意图（放大、深色底、高对比） -->
   <section class="left">
     <div class="legend-zone">
-      <div class="zone-label">对照图 · 12 种单层转动示意<span class="legend-caption">红=转动方向 · 黄=转动层</span></div>
-      <div class="legend-img-wrap">
+      <div class="zone-label"><span id="legendTitle">对照图 · 12 种单层转动示意</span><span class="legend-caption">红=转动方向 · 黄=转动层</span><div class="zone-tools"><button class="mini-btn" id="legendFsBtn" title="全屏展示（可逐个符号放大）">⛶ 全屏</button></div></div>
+      <div class="legend-img-wrap" id="legendWrap" title="点击可全屏放大">
         <canvas id="legendCanvas"></canvas>
       </div>
     </div>
@@ -795,11 +1161,12 @@
 
   <!-- 右侧栏：缩小展开图（上） + 公式区（下） -->
   <aside class="right">
-    <!-- 右上：缩小展开图（置于打乱公式上方） -->
+    <!-- 右上：缩小展示图（置于打乱公式上方）；平面展开图 / 3D 立体图可切换 -->
     <div class="net-zone">
-      <div class="zone-label">展开图</div>
-      <div class="net-img-wrap">
+      <div class="zone-label"><span>展示图</span><div class="zone-tools"><div class="seg-toggle seg-toggle--xs" id="netModeToggle"><button class="seg__btn active" data-nm="flat">平面</button><button class="seg__btn" data-nm="3d">3D</button></div><button class="mini-btn" id="netFsBtn" title="全屏放大（上课展示）">⛶ 全屏</button></div></div>
+      <div class="net-img-wrap" id="netWrap" title="点击可全屏放大">
         <canvas id="netCanvas"></canvas>
+        <canvas id="net3dCanvas" hidden></canvas>
       </div>
     </div>
 
@@ -819,12 +1186,26 @@
         <div class="seg-toggle" id="movesetToggle">
           <button class="seg__btn active" data-set="all">六面标准</button>
           <button class="seg__btn" data-set="ruf">RUF 入门</button>
+          <button class="seg__btn" data-set="custom">自选字母</button>
         </div>
+      </div>
+
+      <!-- 自选字母（只在该模式显示）：任选 2 个字母，题目只由它们组成 -->
+      <div class="letters-row" id="lettersRow" hidden>
+        <span class="lbl">字母：</span>
+        <button class="letter-chip" data-letter="R">R</button>
+        <button class="letter-chip" data-letter="U">U</button>
+        <button class="letter-chip" data-letter="F">F</button>
+        <button class="letter-chip" data-letter="L">L</button>
+        <button class="letter-chip" data-letter="D">D</button>
+        <button class="letter-chip" data-letter="B">B</button>
+        <span class="hint" id="lettersHint">选 2 个</span>
       </div>
 
       <!-- 长度 -->
       <div class="length-row">
         <span class="lbl">长度：</span>
+        <button class="seg__btn" data-len="4" style="display:none;">4</button>
         <button class="seg__btn active" data-len="6">6</button>
         <button class="seg__btn" data-len="8">8</button>
         <button class="seg__btn" data-len="10">10</button>
@@ -843,6 +1224,35 @@
 </div>
 
 <!-- 分步抽屉已移除 -->
+
+<!-- ===== 全屏展示层（上课投屏） ===== -->
+<div class="fs" id="fs" aria-hidden="true">
+  <div class="fs__bar">
+    <button class="fs__back" id="fsBack" hidden>← 返回</button>
+    <span class="fs__title" id="fsTitle">展示图</span>
+    <span class="fs__sub" id="fsSub"></span>
+    <div class="fs__tools" id="fsTools"></div>
+    <button class="fs__close" id="fsClose" title="关闭（Esc）">✕</button>
+  </div>
+  <div class="fs__body" id="fsBody">
+    <div class="fs__stage" id="fsStage" hidden>
+      <div class="fs__canvas-wrap" id="fsCanvasWrap">
+        <canvas id="fsNetCanvas" hidden></canvas>
+        <canvas id="fs3dCanvas" hidden></canvas>
+      </div>
+    </div>
+    <div class="fs__grid" id="fsGrid" hidden></div>
+    <div class="fs__detail" id="fsDetail" hidden>
+      <button class="fs__nav" id="fsPrev" aria-label="上一个">‹</button>
+      <div class="fs__detail-main">
+        <div class="fs__detail-card"><canvas id="fsDetailCanvas"></canvas></div>
+        <div class="fs__detail-desc" id="fsDetailDesc">—</div>
+      </div>
+      <button class="fs__nav" id="fsNext" aria-label="下一个">›</button>
+    </div>
+  </div>
+  <div class="fs__foot" id="fsFoot" hidden><div class="formula-inner" id="fsFormula"></div></div>
+</div>
 
 <div class="toast" id="toast">已复制到剪贴板</div>
 
@@ -1274,22 +1684,32 @@ function drawScrambleNet(alg, canvasId, size){
   const colors = NET_COLORS;   // 二阶/三阶统一使用标准六色：所有面（含 L/D/B）均有颜色
   const ctx = canvas.getContext('2d');
   const rect = canvas.parentElement.getBoundingClientRect();
-  const availW = Math.max(rect.width, 240);
-  const availH = Math.max(rect.height, 280);
-  const dpr = window.devicePixelRatio || 1;
+  /* v2.1.6：去掉 Math.max(rect.w,240)/Math.max(rect.h,280) 两个 px 下限。
+     放大到 175% 时容器只有 395×0，旧逻辑仍按 240×280 出图，画出来的位图比容器大，
+     被 .net-img-wrap 的 overflow:hidden 裁掉一半（看起来就是「图突然变小/缺块」）。
+     现在只用容器真实尺寸等比缩放，永远装得下。 */
+  const availW = Math.max(Math.floor(rect.width) - 2, 80);
+  const availH = Math.max(Math.floor(rect.height) - 2, 80);
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const s = cube.size;
-  const gap = 6, padding = 16;
   const baseSticker = 60;  // 大屏加大贴纸
+  const gap0 = 6, padding0 = 16;
   const faceSize0 = baseSticker * s;
-  const totalW0 = 4*faceSize0 + 3*gap + 2*padding;
-  const totalH0 = 3*faceSize0 + 2*gap + 2*padding;
-  const scale = Math.min(availW/totalW0, availH/totalH0, 1.4);
+  const totalW0 = 4*faceSize0 + 3*gap0 + 2*padding0;
+  const totalH0 = 3*faceSize0 + 2*gap0 + 2*padding0;
+  const scale = Math.min(availW/totalW0, availH/totalH0, 1.6);
+  /* 缝隙与内边距跟着贴纸一起缩放：小尺寸时不会显得格子被粗白边吃掉 */
+  const gap = gap0 * scale, padding = padding0 * scale;
   const stickerSize = baseSticker * scale;
   const faceSize = stickerSize * s;
   const totalW = 4*faceSize + 3*gap + 2*padding;
   const totalH = 3*faceSize + 2*gap + 2*padding;
-  canvas.width = totalW * dpr;
-  canvas.height = totalH * dpr;
+  /* 同一公式 + 同一尺寸 + 同一 dpr → 跳过重画（ResizeObserver 防抖用） */
+  const sig = Math.round(totalW) + 'x' + Math.round(totalH) + '@' + dpr + '#' + size + '|' + alg;
+  if (canvas._sig === sig) return;
+  canvas._sig = sig;
+  canvas.width = Math.round(totalW * dpr);
+  canvas.height = Math.round(totalH * dpr);
   canvas.style.width = totalW + 'px';
   canvas.style.height = totalH + 'px';
   ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -1309,6 +1729,217 @@ function drawScrambleNet(alg, canvasId, size){
   for(const [face,pos] of Object.entries(facePositions)){
     drawNetFace(ctx, cube, face, pos.x, pos.y, stickerSize, colors);
   }
+}
+
+/* ====================================================================
+ * 立方体统一视角（3D 展示图 + 对照图里的小立方体共用同一套投影）
+ *
+ * 姿态：yaw −40°（相机绕竖轴偏到右前方 40°：F 面在左、R 面在右，两面宽度接近）
+ *       俯仰角 30°（相机在立方体**斜上方**俯视——摆在桌上、略低头看的角度，
+ *       与用户提供的实拍参考照一致；核心是「俯视」而不是「仰视」）
+ * 投影：**透视**（不再是正交/等距）。正交投影近处远处一样大，魔方像一张贴片；
+ *       真实眼睛看立方体一定是近大远小、棱线向远处收敛，所以这里按针孔相机模型投影：
+ *   ① 相机空间（先绕 Y 轴转 yaw，再按俯仰角压扁）：
+ *        X  =  x·cosY + z·sinY
+ *        Z1 = −x·sinY + z·cosY       （水平方向的进深分量）
+ *        Yc =  Z1·sinP − y·cosP      （屏幕 y，**向下为正**，画布直接相加）
+ *        Zc =  y·sinP + Z1·cosP      （深度，越大越靠近观察者）
+ *   ⚠️ Yc 里 y 的系数必须是 **负**：画布 y 向下，+y（顶面）要往上跑。
+ *      写成 y·cosP − Z1·sinP 会让顶面跑到屏幕下方，整块魔方变成「仰视」。
+ *   ② 透视除法：k = D / (D − Zc)，D = 相机到立方体中心的距离（单位：半边长 1）
+ *
+ * 透视后外轮廓不再上下/左右对称，所以下面按 8 个角点实测包围盒，
+ * 把投影**平移居中 + 等比归一**（外轮廓半高恒为 3 个单位），
+ * 这样共用它的画布居中、卡片尺寸、签名判断全都不用改。
+ * ==================================================================== */
+const CUBE_YAW   = -40 * Math.PI / 180;      /* 相机绕竖轴 40°（左右两个侧面宽度接近，与实拍参考照一致） */
+const CUBE_COS_Y = Math.cos(CUBE_YAW);       /*  0.7660 */
+const CUBE_SIN_Y = Math.sin(CUBE_YAW);       /* −0.6428 */
+/* 俯仰角：相机在立方体**斜上方**俯视 30°（摆在桌上、人略微低头看的角度）。
+   原等距的 35.264°（sinP=1/√3）顶面翻得太开，像「从高处俯拍」；
+   再小到 20° 以下顶面又几乎看不见。30° + 下面的 D=12 与实拍参考照的比例最接近
+   （顶面纵向约占轮廓总高的 42%）。 */
+const CUBE_PITCH = 30 * Math.PI / 180;
+const CUBE_SIN_P = Math.sin(CUBE_PITCH);     /*  0.5000 */
+const CUBE_COS_P = Math.cos(CUBE_PITCH);     /*  0.8660 */
+/* 相机距离（单位立方体半边长 = 1）。越小透视越强：6→近处放大约 1.8 倍，
+   20→约 1.25 倍。12 大致等于「半米外看一个标准魔方」的收敛感，能明显看出透视，
+   顶面梯形又不会收得太急。 */
+const CUBE_CAM_D = 12;
+
+function cubeCam(x, y, z){
+  const X  =  x*CUBE_COS_Y + z*CUBE_SIN_Y;
+  const Z1 = -x*CUBE_SIN_Y + z*CUBE_COS_Y;
+  return [ X,
+           Z1*CUBE_SIN_P - y*CUBE_COS_P,     /* 屏幕 y，向下为正（顶面 → 屏幕上方） */
+           y*CUBE_SIN_P + Z1*CUBE_COS_P ];   /* 深度，越大越靠前 */
+}
+function cubeRawProj(x, y, z){
+  const c = cubeCam(x, y, z);
+  const k = CUBE_CAM_D / Math.max(CUBE_CAM_D - c[2], 0.25);   /* 透视除法（近大远小） */
+  return [ c[0]*k, c[1]*k ];
+}
+/* 凸多面体的投影极值必在顶点上 → 8 个角点即可定出真实包围盒。
+   注意用 **±1.5** 而不是 ±1：三阶 cubie 中心坐标 −1..1、半宽 0.5，真实外框是 ±1.5；
+   而且透视除法是非线性的，±1.5 的外框不等于 ±1 外框的 1.5 倍，必须按真实尺寸量。 */
+const CUBE_BOX = (function(){
+  const xs = [], ys = [];
+  for (const x of [-1.5,1.5]) for (const y of [-1.5,1.5]) for (const z of [-1.5,1.5]){
+    const p = cubeRawProj(x, y, z);
+    xs.push(p[0]); ys.push(p[1]);
+  }
+  const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  return { cx: (minX+maxX)/2, cy: (minY+maxY)/2, w: maxX-minX, h: maxY-minY };
+})();
+/* 归一化系数：把透视后的外轮廓高度拉回 6 个单位
+   —— 与改透视之前的三阶外框像素尺寸（136×162 @ S=27）完全一致，
+   于是对照图卡片、全屏大卡、3D 展示图的排版一个都不需要改。 */
+const CUBE_VIEW_K = 6 / CUBE_BOX.h;                 /* ≈1.263 */
+const CUBE_HALF_W = CUBE_BOX.w / 2 * CUBE_VIEW_K;   /* 归一后外轮廓半宽（≈2.85） */
+const CUBE_HALF_H = 3;                              /* 归一后外轮廓半高，恒为 3 */
+
+function cubeProj(x, y, z){
+  const p = cubeRawProj(x, y, z);
+  return [ (p[0] - CUBE_BOX.cx) * CUBE_VIEW_K,
+           (p[1] - CUBE_BOX.cy) * CUBE_VIEW_K ];
+}
+
+/* ====================================================================
+ * 3D 立体展示图（透视投影，yaw −40° / 俯视 30°）
+ * 只画 U（顶）/ F（前）/ R（右）三个面——小小朋友看不懂平面展开图，
+ * 立体图一眼就是「一个魔方」。贴纸的取色/行列方向与平面展开图完全一致：
+ *   U 行 0 = 后排、F 行 0 = 上排、R 列 0 = 前排（与 _ptoFaces 的对齐关系一致）
+ * ==================================================================== */
+function drawScramble3D(alg, canvasId, size){
+  size = size || 3;
+  const canvas = (typeof canvasId === 'string') ? document.getElementById(canvasId) : canvasId;
+  if(!canvas) return;
+  const cube = new Cube(size);
+  cube.applyAlg(alg || '');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const availW = Math.max(Math.floor(rect.width) - 2, 60);
+  const availH = Math.max(Math.floor(rect.height) - 2, 60);
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const pad = 8;
+  /* 画布按三阶外框（±1.5）定尺寸；二阶 cubie 边长翻倍（外框 ±2），
+     按 3/4 缩回，两阶魔方才同样大、且不会撑出画布被裁。 */
+  const baseS = Math.max(4, Math.min((availW - pad*2) / (2*CUBE_HALF_W), (availH - pad*2) / (2*CUBE_HALF_H)));
+  const s = baseS * (size === 2 ? 3/4 : 1);
+  const W = 2*CUBE_HALF_W*baseS, H = 2*CUBE_HALF_H*baseS;
+  /* 透明底 + 自适应骨架色：深色主题下用浅色棱线，避免「黑线黑底」看不见 */
+  const dk = (function(){
+    try {
+      const m = getComputedStyle(document.body).backgroundColor.match(/\d+/g);
+      if (!m) return false;
+      return (0.299*+m[0] + 0.587*+m[1] + 0.114*+m[2]) < 128;
+    } catch(e){ return false; }
+  })();
+  /* 与平面图共用同一元素时不互踩：3D 用独立的签名属性；主题 / 视角变化也重画 */
+  const sig = Math.round(W) + 'x' + Math.round(H) + '@' + dpr + '#' + size + (dk ? 'D' : 'L')
+              + CUBE_YAW.toFixed(3) + '/' + CUBE_CAM_D + '|' + (alg || '');
+  if (canvas._sig3d === sig) return;
+  canvas._sig3d = sig;
+  canvas.width = Math.round(W*dpr);
+  canvas.height = Math.round(H*dpr);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);   /* 透明底：白贴纸靠深色骨架线区分，四周不留灰方块 */
+
+  const cx = W/2, cy = H/2;
+  const FRAME = dk ? '#cbd5e1' : '#1f2937';   /* 贴纸缝隙 / 骨架 */
+  const EDGE3 = dk ? '#f1f5f9' : '#111827';   /* 外轮廓 */
+  const P = (x,y,z)=>{ const q = cubeProj(x,y,z); return [ cx + q[0]*s, cy + q[1]*s ]; };
+  const n = size;
+  /* cubie 中心坐标 −1..1、半宽 1/(n−1)：三阶每格 1 个单位（外框 ±1.5），二阶每格 2 个（外框 ±2）。
+     旧写法 step = 2/n 只覆盖 ±1，导致贴纸比轮廓小一圈、四周露出白色背景。 */
+  const step = 2 / (n - 1);
+  const B = 1 + step / 2;          /* 外框半边长：三阶 1.5 / 二阶 2 */
+  const base = -B;                 /* 首行 / 首列的外沿坐标 */
+
+  /* 每个贴纸的 4 个 3D 角点。注意贴纸必须画在**真实表面**（y=B / z=B / x=B）：
+     透视投影对深度敏感，画在内缩平面（旧版用 ±1）会让整面贴纸偏小、与轮廓脱开。 */
+  const quadOf = {
+    U: (r,c) => {
+      const x0 = base + c*step, z0 = base + r*step;
+      return [[x0,B,z0],[x0+step,B,z0],[x0+step,B,z0+step],[x0,B,z0+step]];
+    },
+    F: (r,c) => {
+      const x0 = base + c*step, y0 = B - r*step;
+      return [[x0,y0,B],[x0+step,y0,B],[x0+step,y0-step,B],[x0,y0-step,B]];
+    },
+    R: (r,c) => {
+      const z0 = B - c*step, y0 = B - r*step;
+      return [[B,y0,z0],[B,y0,z0-step],[B,y0-step,z0-step],[B,y0-step,z0]];
+    }
+  };
+  const outlineOf = {
+    U: [[-B,B,-B],[ B,B,-B],[ B,B, B],[-B,B, B]],
+    F: [[-B,B, B],[ B,B, B],[ B,-B,B],[-B,-B,B]],
+    R: [[ B,B, B],[ B,B,-B],[ B,-B,-B],[ B,-B, B]]
+  };
+  const faces = ['U','F','R'];
+
+  /* ① 深色底座 = 魔方骨架（贴纸收边后露出的深色缝隙） */
+  ctx.fillStyle = FRAME;
+  for(const f of faces){
+    const pts = outlineOf[f].map(p=>P(p[0],p[1],p[2]));
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath();
+    ctx.fill();
+  }
+  /* ② 逐张贴纸上色（向各自 3D 中心收 90%，形成均匀缝隙）。
+     必须在 **3D 空间**收缩再投影：透视下各格宽度不同，若先投影再按 2D 中心收，
+     缝隙宽度会随深度跳变，肉眼看起来像贴纸错位/阶梯。 */
+  const k = 0.9;
+  for(const f of faces){
+    const data = cube.getFace(f);
+    for(let r=0;r<n;r++){
+      for(let c=0;c<n;c++){
+        const q3 = quadOf[f](r,c);
+        const c3 = [
+          (q3[0][0]+q3[1][0]+q3[2][0]+q3[3][0])/4,
+          (q3[0][1]+q3[1][1]+q3[2][1]+q3[3][1])/4,
+          (q3[0][2]+q3[1][2]+q3[2][2]+q3[3][2])/4
+        ];
+        const pts = q3.map(p=>P(
+          c3[0] + (p[0]-c3[0])*k,
+          c3[1] + (p[1]-c3[1])*k,
+          c3[2] + (p[2]-c3[2])*k
+        ));
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for(let i=1;i<4;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.closePath();
+        const col = NET_COLORS[data[r][c]] || '#e5e7eb';
+        ctx.fillStyle = col;
+        ctx.fill();
+        if(col === '#FFFFFF'){          /* 白贴纸描边：浅底上不糊成一片 */
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#9ca3af';
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  /* ③ 外轮廓加重（立体的「棱」）—— 顶点用外框半边长 B（三阶 1.5 / 二阶 2），
+     与贴纸、深色底座严格对齐，否则轮廓外会露出一圈背景 */
+  ctx.strokeStyle = EDGE3;
+  ctx.lineWidth = Math.max(2, W*0.013);   /* 按画布宽度取，换视角缩放 s 变化也不会变粗/变细 */
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const sil = [[-B,B,-B],[B,B,-B],[B,-B,-B],[B,-B,B],[-B,-B,B],[-B,B,B]];
+  sil.forEach((p,i)=>{ const q = P(p[0],p[1],p[2]); i ? ctx.lineTo(q[0],q[1]) : ctx.moveTo(q[0],q[1]); });
+  ctx.stroke();
+  [[[-B,B,B],[B,B,B]],[[B,B,B],[B,-B,B]],[[B,B,B],[B,B,-B]]].forEach(seg=>{
+    const a = P(seg[0][0],seg[0][1],seg[0][2]);
+    const b = P(seg[1][0],seg[1][1],seg[1][2]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+  });
 }
 
 function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
@@ -1420,7 +2051,50 @@ function buildFaceSequence(length, allowedFaces) {
   return seq;
 }
 
+/* 自选两个字母（幼儿园）：题目只由选中的 2 个字母组成，
+ * 并且保证 X / X' / Y / Y' 四种符号都出现（4 步时正好各一次）。
+ * 两个字母严格交替（R U R' U' 这种），不会出现 R R' 自我抵消——
+ * 这也正是二阶/两字母打乱的标准形态。 */
+function buildCustomMoves(length, letters, allowDouble){
+  const A = letters[0], B = letters[1];
+  const seq = [];
+  for (let i = 0; i < length; i++) seq.push({ face: (i % 2 === 0) ? A : B, mod: '' });
+
+  /* 每种字母挑两格分别放「顺时针」「逆时针」→ 四种符号必然齐全 */
+  const slots = { [A]: [], [B]: [] };
+  seq.forEach((s, i) => slots[s.face].push(i));
+  const fixed = new Set();
+  for (const L of [A, B]) {
+    const list = slots[L];
+    if (!list.length) continue;
+    const useSecond = list.length > 1 && Math.random() < 0.5;
+    seq[list[0]].mod = useSecond ? "'" : '';
+    fixed.add(list[0]);
+    if (list.length > 1) {
+      seq[list[1]].mod = useSecond ? '' : "'";
+      fixed.add(list[1]);
+    }
+  }
+  /* 其余位置随机：180° 只占约 1/5，避免太小的小朋友被 X2 打乱节奏 */
+  const pool = allowDouble ? ['', "'", '', "'", '2'] : ['', "'"];
+  seq.forEach((s, i) => {
+    if (fixed.has(i)) return;
+    s.mod = pool[Math.floor(Math.random() * pool.length)];
+  });
+  /* 一半概率整体反向：同样的四种符号，起手不同，不会每题长得一样 */
+  if (Math.random() < 0.5) seq.reverse();
+  return seq.map(s => ({
+    face: s.face,
+    dir: s.mod === "'" ? -1 : (s.mod === '2' ? 2 : 1),
+    mod: s.mod
+  }));
+}
+
 function generateScramble(length) {
+  if (currentMoveSet === 'custom') {
+    const letters = customLetters.slice(0, 2);
+    return buildCustomMoves(length, letters, true);
+  }
   // 冻结契约：内部把 currentMoveSet 解析成 allowedFaces 透传给 buildFaceSequence
   const allowedFaces = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
   const faces = buildFaceSequence(length, allowedFaces);
@@ -1461,42 +2135,109 @@ function renderFormula(moves) {
 }
 
 /**
- * 公式字号固定（不再按步数二分缩小）：
- * 桌面 88px / 手机 48px（见 CSS .formula-inner，教室投影级大字）。步数多时由 white-space:normal
- * 自动换行，保证「统一字号、不缩小」。保留函数以兼容出题 / resize / load 的调用点。
+ * 公式字号：CSS 基准（clamp，按视口高度/宽度自适应，教室投影级大字），
+ * 只在「装不下」时往下缩，绝不放大——保证任何缩放倍率、任何步数下整条公式都能读完，
+ * 不会出现「公式被裁掉一半」或「控件被公式顶出屏幕」。
+ * v2.1.6：原实现是空函数（字号写死 88px），浏览器放大后必然溢出。
  */
 function fitFormula() {
   const inner = document.getElementById('formulaInner');
   if (!inner) return;
   inner.classList.remove('single');
-  inner.style.fontSize = '';   // 复用 CSS 固定字号
+  inner.style.fontSize = '';   // 先回到 CSS 基准字号
+  const box = inner.parentElement;
+  if (!box) return;
+  // 手机端有独立的单屏方案（公式框自身滚动），不参与缩放
+  if (window.matchMedia && !window.matchMedia('(min-width: 769px)').matches) return;
+
+  let size = parseFloat(getComputedStyle(inner).fontSize) || 0;
+  if (!size) return;
+  for (let i = 0; i < 16 && size > 20; i++) {
+    if (box.scrollHeight <= box.clientHeight + 2) break;
+    size = Math.max(20, Math.floor(size * 0.88));
+    inner.style.fontSize = size + 'px';
+  }
 }
 
 
 let count = 0;
 let currentLength = 6;
-let currentMoveSet = 'all';   // 'ruf' | 'all'（冻结契约：T5 复用）
+let currentMoveSet = 'all';   // 'all' | 'ruf' | 'custom'（'ruf' 为冻结契约，T5 复用）
 let currentCubeType = '3';    // '2' | '3'（冻结契约：二阶/三阶切换）
+let customLetters = ['R', 'U'];   // 自选字母模式：固定两个字母
+let netMode = 'flat';             // 'flat' 平面展开图 | '3d' 立体图
+
+/* 对照图该画哪些符号：自选模式只画选中的两个字母（4 张，最贴合课堂） */
+function legendItemsFor(size, moveSet){
+  const all = window.MOVES || [];
+  if (moveSet === 'custom') {
+    const letters = customLetters.slice(0, 2);
+    return all.filter(m => letters.includes(m.name.replace("'", '')));
+  }
+  if (size === 2) return all.filter(m => ['R','U','F'].includes(m.name.replace("'", '')));
+  return all;
+}
+
+/* 展示图：平面展开图 / 3D 立体图，共用「当前题目」 */
+function renderNetDisplay(){
+  const alg = window._currentText || '';
+  const size = window._currentCubeSize || 3;
+  const flat = document.getElementById('netCanvas');
+  const d3 = document.getElementById('net3dCanvas');
+  if (!flat || !d3) return;
+  flat.hidden = netMode !== 'flat';
+  d3.hidden = netMode !== '3d';
+  if (netMode === 'flat') drawScrambleNet(alg, flat, size);
+  else drawScramble3D(alg, d3, size);
+}
+
+function setNetMode(mode){
+  netMode = (mode === '3d') ? '3d' : 'flat';
+  document.querySelectorAll('#netModeToggle .seg__btn, #fsModeToggle .seg__btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.nm === netMode);
+  });
+  renderNetDisplay();
+  if (window.FSViewer) window.FSViewer.onNetModeChange();
+}
 
 function newQuestion() {
   const size = currentCubeType === '2' ? 2 : 3;
   // 2×2 强制 RUF（兜底，即使 UI 锁死也保证）
-  if (currentCubeType === '2') currentMoveSet = 'ruf';
+  if (currentCubeType === '2' && currentMoveSet !== 'custom') currentMoveSet = 'ruf';
   const moves = generateScramble(currentLength);
   const text = movesToText(moves);
   renderFormula(moves);
-  drawScrambleNet(text, 'netCanvas', size);
+
+  window._currentMoves = moves;
+  window._currentText = text;
+  window._currentCubeSize = size;   // 供 resize / 全屏时重绘
+  renderNetDisplay();
+
   count++;
   document.getElementById('countNum').textContent = count;
 
-  // 覆盖校验：针对当前字母集合（RUF 模式只校验 R/U/F）
-  const allowedFaces = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
-  const cov = coveredFaces(moves);
-  const miss = allowedFaces.filter(f => !cov.has(f));
+  /* 覆盖校验徽标 */
   const badge = document.getElementById('coverBadge');
   if (badge) {
+    let need, label;
+    if (currentMoveSet === 'custom') {
+      need = [];
+      customLetters.slice(0, 2).forEach(L => { need.push(L, L + "'"); });
+      label = '✓ ' + customLetters.slice(0, 2).join(' ') + ' 四种符号齐全';
+    } else {
+      need = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
+      label = currentMoveSet === 'ruf' ? '✓ R U F 齐全' : '✓ R U F L B D 齐全';
+    }
+    let miss;
+    if (currentMoveSet === 'custom') {
+      const have = new Set(moves.map(m => m.face + m.mod));
+      miss = need.filter(s => !have.has(s));
+    } else {
+      const cov = coveredFaces(moves);
+      miss = need.filter(f => !cov.has(f));
+    }
     if (miss.length === 0) {
-      badge.textContent = currentMoveSet === 'ruf' ? '✓ R U F 齐全' : '✓ R U F L B D 齐全';
+      badge.textContent = label;
       badge.classList.remove('warn');
     } else {
       badge.textContent = '⚠ 缺 ' + miss.join(' ');
@@ -1504,20 +2245,47 @@ function newQuestion() {
     }
   }
 
-  // 对照图随 cube-type 重绘：二阶保持 2×2 立方体（仅 R/U/F 示意），三阶 3×3（全 12 个）；
-  // 两者统一采用浅色底 + 红色箭头 + 魔方描边（按三阶视觉风格绘制，但各自保持真实阶数）
-  if (window.buildLegend) {
-    const legendMoves = currentCubeType === '2'
-      ? window.MOVES.filter(m => ['R','U','F'].includes(m.name.replace("'", "")))
-      : window.MOVES;
-    window.buildLegend(legendMoves, size);
-  }
+  // 对照图随 阶数 / 模式 重绘：自选模式只显示选中的两个字母
+  if (window.buildLegend) window.buildLegend(legendItemsFor(size, currentMoveSet), size);
 
-  window._currentMoves = moves;
-  window._currentText = text;
-  window._currentCubeSize = size;   // 供 resize 时重绘
   // 等布局稳定后再自适应字号（保证拿到真实的可用空间）
   requestAnimationFrame(fitFormula);
+}
+
+/* 长度档位随「阶数 + 模式」变化：自选字母最短 4 步（正好 R U R' U' 一轮） */
+function allowedLengths(){
+  if (currentMoveSet === 'custom') return [4, 6, 8, 10, 12];
+  return currentCubeType === '2' ? [6, 8, 10, 12, 15] : [6, 8, 10, 12, 20];
+}
+function syncLengthButtons(){
+  const allowed = allowedLengths();
+  if (!allowed.includes(currentLength)) currentLength = 12;   // 12 在所有档位里都有
+  document.querySelectorAll('.seg__btn[data-len]').forEach(btn => {
+    const len = parseInt(btn.dataset.len, 10);
+    btn.style.display = allowed.includes(len) ? '' : 'none';
+    btn.classList.toggle('active', len === currentLength);
+  });
+}
+
+/* 字母按钮：2 阶只允许 R/U/F（D/B/L 对 2 阶等于整体转，没教学意义） */
+function syncLetterChips(){
+  const allow = currentCubeType === '2' ? ['R','U','F'] : ['R','U','F','L','D','B'];
+  if (currentCubeType === '2') {
+    customLetters = customLetters.filter(L => allow.includes(L));
+    while (customLetters.length < 2) {
+      const cand = allow.find(L => !customLetters.includes(L));
+      customLetters.push(cand);
+    }
+  }
+  document.querySelectorAll('.letter-chip').forEach(chip => {
+    const L = chip.dataset.letter;
+    chip.disabled = !allow.includes(L);
+    chip.classList.toggle('active', customLetters.includes(L));
+  });
+  const hint = document.getElementById('lettersHint');
+  if (hint) hint.textContent = '已选 ' + customLetters.slice(0, 2).join(' + ');
+  const row = document.getElementById('lettersRow');
+  if (row) row.hidden = currentMoveSet !== 'custom';
 }
 
 function setLength(len) {
@@ -1550,14 +2318,70 @@ function init() {
     b.addEventListener('click', () => setLength(parseInt(b.dataset.len, 10)));
   });
 
-  // 难度切换（RUF 入门 / 六面标准）
+  // 难度切换（六面标准 / RUF 入门 / 自选字母）
   document.querySelectorAll('#movesetToggle .seg__btn').forEach(b => {
     b.addEventListener('click', () => {
       if (b.disabled) return;   // 2×2 下「六面标准」被禁用
       currentMoveSet = b.dataset.set;
       document.querySelectorAll('#movesetToggle .seg__btn').forEach(x => x.classList.toggle('active', x === b));
+      syncLetterChips();
+      syncLengthButtons();
       newQuestion();
     });
+  });
+
+  // 自选字母：始终保留 2 个；再点第三个就把先选的那个顶掉
+  document.querySelectorAll('.letter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (chip.disabled) return;
+      const L = chip.dataset.letter;
+      if (customLetters.includes(L)) {
+        showToast('已选 ' + customLetters.slice(0, 2).join(' + ') + '，点其它字母可替换');
+        return;
+      }
+      if (customLetters.length >= 2) {
+        const keep = customLetters[1];
+        if (keep === AXIS_OPPOSITE[L]) {
+          showToast(L + ' 和 ' + keep + ' 是相对的两面，换一个吧');
+          return;
+        }
+        customLetters = [keep, L];
+      } else {
+        if (customLetters.includes(AXIS_OPPOSITE[L])) {
+          showToast(L + ' 和 ' + AXIS_OPPOSITE[L] + ' 是相对的两面，换一个吧');
+          return;
+        }
+        customLetters.push(L);
+      }
+      syncLetterChips();
+      if (currentMoveSet === 'custom') newQuestion();
+    });
+  });
+
+  // 展示图：平面 / 3D 切换；点图直接全屏
+  document.querySelectorAll('#netModeToggle .seg__btn').forEach(b => {
+    b.addEventListener('click', () => setNetMode(b.dataset.nm));
+  });
+  const netWrap = document.getElementById('netWrap');
+  if (netWrap) {
+    netWrap.addEventListener('click', () => {
+      if (window.FSViewer) window.FSViewer.openNet();
+    });
+  }
+  const netFsBtn = document.getElementById('netFsBtn');
+  if (netFsBtn) netFsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.FSViewer) window.FSViewer.openNet();
+  });
+  const legendFsBtn = document.getElementById('legendFsBtn');
+  if (legendFsBtn) legendFsBtn.addEventListener('click', () => {
+    if (window.FSViewer) window.FSViewer.openLegend();   // 无参 = 先看 12 个符号总览
+  });
+  const legendWrap = document.getElementById('legendWrap');
+  if (legendWrap) legendWrap.addEventListener('click', (e) => {
+    if (!window.FSViewer) return;
+    const idx = legendIndexAt(e.clientX, e.clientY);
+    window.FSViewer.openLegend(idx < 0 ? 0 : idx);
   });
 
   // 魔方类型切换（二阶 / 三阶）
@@ -1565,45 +2389,62 @@ function init() {
     b.addEventListener('click', () => {
       currentCubeType = b.dataset.cube;
       document.querySelectorAll('#cubeTypeToggle .seg__btn').forEach(x => x.classList.toggle('active', x === b));
-      // 2×2 强制 RUF + 禁用「六面标准」；3×3 恢复可选
+      // 2×2 不支持「六面标准」（D/B/L 等于整体转）→ 自动落到 RUF
       const allBtn = document.querySelector('#movesetToggle .seg__btn[data-set="all"]');
-      const rufBtn = document.querySelector('#movesetToggle .seg__btn[data-set="ruf"]');
       if (currentCubeType === '2') {
-        currentMoveSet = 'ruf';
-        rufBtn.classList.add('active');
-        allBtn.classList.remove('active');
+        if (currentMoveSet === 'all') {
+          currentMoveSet = 'ruf';
+          document.querySelectorAll('#movesetToggle .seg__btn').forEach(x => x.classList.toggle('active', x.dataset.set === 'ruf'));
+        }
         allBtn.disabled = true;
       } else {
         allBtn.disabled = false;
       }
-      // 长度按钮可见性：二阶最多 15 步，三阶保持 6/8/10/12/20
-      const LEN_SET = { '3': [6, 8, 10, 12, 20], '2': [6, 8, 10, 12, 15] };
-      const allowed = LEN_SET[currentCubeType];
-      document.querySelectorAll('.seg__btn[data-len]').forEach(btn => {
-        const len = parseInt(btn.dataset.len, 10);
-        btn.style.display = allowed.includes(len) ? '' : 'none';
-      });
-      // 切换模式后若当前步数不在该模式允许范围内，回落到该模式最大步数
-      if (!allowed.includes(currentLength)) {
-        currentLength = Math.max(...allowed);
-        document.querySelectorAll('.seg__btn[data-len]').forEach(btn => {
-          btn.classList.toggle('active', parseInt(btn.dataset.len, 10) === currentLength);
-        });
-      }
+      syncLetterChips();     // 2 阶只保留 R/U/F
+      syncLengthButtons();   // 长度档位随模式/阶数变化
       newQuestion();
     });
   });
 
-  let resizeTimer = null;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      // resize 时按当前 cube size 重绘展开图
-      if (window._currentText) drawScrambleNet(window._currentText, 'netCanvas', window._currentCubeSize || 3);
-      fitFormula();   // 窗口变化时重新计算最大字号
-    }, 120);
-  });
+  /* —— 视觉重绘（v2.1.6）——
+     浏览器缩放会同时改变 CSS 视口尺寸与 devicePixelRatio。旧实现只在 window.resize 里
+     重画展开图，对照图永远停在首次绘制的那张位图上，被 CSS 拉伸 → 大屏变模糊、
+     object-fit 留白 → 看起来「有的地方放大、有的地方缩小」。
+     改为 ResizeObserver 驱动：容器尺寸 / dpr 变化都让两块画布按新尺寸重画。 */
+  let redrawRaf = 0;
+  function redrawVisuals() {
+    const size = window._currentCubeSize || 3;
+    if (window._currentText) renderNetDisplay();
+    if (window.buildLegend) window.buildLegend(legendItemsFor(size, currentMoveSet), size);
+    fitFormula();
+  }
+  function scheduleRedraw() {
+    if (redrawRaf) cancelAnimationFrame(redrawRaf);
+    redrawRaf = requestAnimationFrame(() => { redrawRaf = 0; redrawVisuals(); });
+  }
 
+  /* 容器尺寸变化（含浏览器缩放、窗口拖动、分屏） */
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(scheduleRedraw);
+    ['netCanvas', 'legendCanvas'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.parentElement) ro.observe(el.parentElement);
+    });
+  }
+  /* 已布局完成后再补一次：首帧字体/导航高度可能还在变 */
+  window.addEventListener('load', scheduleRedraw);
+
+  /* dpr 单独变化（跨屏拖动到另一块缩放比例的显示器）不一定触发 resize → 用 resolution 媒体查询兜住 */
+  (function watchDpr(){
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+    const handler = () => { scheduleRedraw(); watchDpr(); };
+    if (mq.addEventListener) mq.addEventListener('change', handler, { once: true });
+    else if (mq.addListener) mq.addListener(handler);
+  })();
+
+  syncLetterChips();
+  syncLengthButtons();
   newQuestion();
   // 首屏布局可能还在抖动，补一次字号自适应
   window.addEventListener('load', fitFormula);
@@ -1653,8 +2494,10 @@ const MOVES = [
 const AXIS_IDX = {x:0, y:1, z:2};
 
 function proj(cx, cy, x, y, z){
-  const a = Math.cos(Math.PI/6)*S, b = Math.sin(Math.PI/6)*S;
-  return [cx + (x - z)*a, cy + (x + z)*b - y*S];
+  /* 与 3D 展示图共用同一套透视投影（yaw −40° + 俯视 30° + 针孔透视）。
+     cubeProj 输出的单位已经被归一化（外轮廓半高 = 2 个「S」），所以这里只需乘 S。 */
+  const q = cubeProj(x, y, z);
+  return [ cx + q[0]*S, cy + q[1]*S ];
 }
 function poly(ctx, pts){
   ctx.beginPath();
@@ -1755,32 +2598,58 @@ function buildLegend(movesSubset, size){
   const CUBE = 150, LAB = 42, PAD = 6, GAP = 20;
   const CARD_W = CUBE + PAD*2;
   const CARD_H = CUBE + LAB + PAD*2;
-  /* 依据可用区域挑选列数：在候选布局中取整体放大倍率最大的一个。
-     桌面竖长面板自动摊成 2 列（示意图更舒展），手机矮宽面板自动回到 3 列。
-     三阶（12 项）保持原有 4 列不变。 */
-  let COLS = items.length <= 6 ? 3 : 4;
+
+  /* v2.1.6 重写尺寸逻辑：
+     旧实现把画布位图固定成 708×652（按首次布局的 clientWidth 选 4 列），
+     之后窗口/浏览器缩放变化时既不重算也不重画，位图被 CSS 拉伸到 1189×1110
+     → 大屏上模糊、object-fit 留白 → 看起来「有的地方变小」。 */
   const parentEl = canvas.parentElement;
-  if (parentEl) {
-    const cs = getComputedStyle(parentEl);
-    const availW = parentEl.clientWidth - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
-    const availH = parentEl.clientHeight - (parseFloat(cs.paddingTop)||0) - (parseFloat(cs.paddingBottom)||0);
-    if (availW > 0 && availH > 0) {
-      const cands = items.length <= 6 ? [2, 3] : [4];
-      let bestFit = -1;
-      for (const c of cands) {
-        const r = Math.ceil(items.length / c);
-        const w = c*CARD_W + (c-1)*GAP;
-        const h = r*CARD_H + (r-1)*GAP;
-        const fit = Math.min(availW / w, availH / h);
-        if (fit > bestFit) { bestFit = fit; COLS = c; }
-      }
-    }
+  const cs = parentEl ? getComputedStyle(parentEl) : null;
+  const padX = cs ? (parseFloat(cs.paddingLeft)||0) + (parseFloat(cs.paddingRight)||0) : 0;
+  const padY = cs ? (parseFloat(cs.paddingTop)||0) + (parseFloat(cs.paddingBottom)||0) : 0;
+  let availW = parentEl ? parentEl.clientWidth - padX : 0;
+  let availH = parentEl ? parentEl.clientHeight - padY : 0;
+  if (!(availW > 40 && availH > 40)) { availW = 700; availH = 520; }  // 首帧未完成布局时的兜底
+  availW = Math.max(Math.floor(availW), 40);
+  availH = Math.max(Math.floor(availH), 40);
+
+  /* 在候选列数中取「整组放大倍率最大」的布局：横屏摊宽、竖长面板收窄，永不留大片空白 */
+  const cands = items.length <= 6 ? [2, 3, 4] : [3, 4, 5, 6];
+  let COLS = items.length <= 6 ? 3 : 4, bestFit = -1;
+  for (const c of cands) {
+    const r = Math.ceil(items.length / c);
+    const w = c*CARD_W + (c-1)*GAP;
+    const h = r*CARD_H + (r-1)*GAP;
+    const fit = Math.min(availW / w, availH / h);
+    if (fit > bestFit) { bestFit = fit; COLS = c; }
   }
   const ROWS = Math.ceil(items.length / COLS);
   const W = COLS*CARD_W + (COLS-1)*GAP;
   const H = ROWS*CARD_H + (ROWS-1)*GAP;
-  canvas.width = W; canvas.height = H;
+
+  /* 位图 = 容器可用区 × dpr（不再按逻辑尺寸出图再由 CSS 拉伸）：
+     位图纵横比与显示框完全一致，object-fit 不会留白，任何缩放倍率下都是 1:1 像素。 */
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  /* 逻辑坐标 → 容器坐标：等比放大到刚好装下，并在容器内居中 */
+  const k = Math.min(availW / W, availH / H);
+  const offX = (availW - W*k) / 2, offY = (availH - H*k) / 2;
+  /* 命中测试用：点小对照图的哪一张卡，就全屏放大哪个符号 */
+  canvas._cards = { items, COLS, k, offX, offY, CARD_W, CARD_H, GAP };
+  /* 尺寸与内容都没变就不重画：ResizeObserver 会反复回调，靠这个签名避免自触发死循环 */
+  const sig = availW + 'x' + availH + '@' + dpr + '#' + cubeSize + '|' + items.map(m => m.name).join(',');
+  if (canvas._sig === sig) return;
+  canvas._sig = sig;
+  canvas.width = Math.round(availW * dpr);
+  canvas.height = Math.round(availH * dpr);
+  canvas.style.width = availW + 'px';
+  canvas.style.height = availH + 'px';
   const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.translate(offX, offY);
+  ctx.scale(k, k);
   // 背景透明：白色圆角卡片由本函数逐张绘制，外层 .legend-img-wrap 浅灰底（var(--surface-2)）衬托卡片
 
   items.forEach((mv, i)=>{
@@ -1796,8 +2665,17 @@ function buildLegend(movesSubset, size){
     // 魔方 + 黄色箭头
     const cx = ox + CARD_W/2;
     const cy = oy + PAD + CUBE/2 + 2;
-    drawCube(ctx, cx, cy, mv.axis, mv.layer, cubeSize);
-    drawArrow(ctx, cx, cy, mv.arr);
+    /* 透视后魔方外框（147×162 @ S=27）比卡片内容区（150×150）略高，
+       且透视后最高点更尖、容易顶到卡片圆角；按内容区等比收一档，四周留出均匀缝隙。 */
+    const fit = Math.min(1,
+      (CUBE * 0.88) / (2 * CUBE_HALF_W * BASE_S),
+      (CUBE * 0.88) / (2 * CUBE_HALF_H * BASE_S));
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (fit < 1) ctx.scale(fit, fit);
+    drawCube(ctx, 0, 0, mv.axis, mv.layer, cubeSize);
+    drawArrow(ctx, 0, 0, mv.arr);
+    ctx.restore();
     // 亮白粗体标签（卡片下方居中，字号放大）
     ctx.fillStyle = LABEL;
     ctx.font = '800 38px "Segoe UI", "Microsoft YaHei", Arial, sans-serif';
@@ -1805,12 +2683,67 @@ function buildLegend(movesSubset, size){
     ctx.textBaseline = 'middle';
     ctx.fillText(mv.name, cx, oy + PAD + CUBE + LAB/2 + 2);
   });
-  // 动态标题：二阶只显示 RUF 3 种，三阶显示 12 种
-  const lbl = document.querySelector('.legend-zone .zone-label');
+  ctx.setTransform(1,0,0,1,0,0);
+  // 动态标题：二阶只显示 RUF 3 种，三阶显示 12 种；自选字母模式只显示选中的字母
+  const lbl = document.getElementById('legendTitle');
   if(lbl){
-    lbl.innerHTML = '对照图 · ' + items.length + ' 种转动示意<span class="legend-caption">红=转动方向 · 黄=转动层</span>';
+    lbl.textContent = '对照图 · ' + items.length + ' 种转动示意';
   }
 }
+
+/* 单张符号大卡：画布多大就画多大（全屏网格 / 单符号大字共用）。
+   白色卡片铺满整块画布，魔方按内容区等比放大居中，标签字号随卡片高度走
+   —— 这样 12 张 / 4 张 / 单张大图都不留空边，投影时不出现「小图漂在白框里」。 */
+function paintMoveCard(canvas, mv, cubeSize){
+  if (!canvas || !mv) return;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!(w > 16 && h > 16)) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const sig = w + 'x' + h + '@' + dpr + '#' + cubeSize + '|' + mv.name;
+  if (canvas._sigCard === sig) return;
+  canvas._sigCard = sig;
+  canvas.width = Math.round(w*dpr);
+  canvas.height = Math.round(h*dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+
+  /* 卡片底：铺满整块画布 */
+  const r = Math.max(6, Math.min(16, w*0.035));
+  roundRect(ctx, 0, 0, w, h, r);
+  ctx.fillStyle = CARD_BG; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = CARD_LINE; ctx.stroke();
+
+  /* 内容区（去掉底部标签）*/
+  const labH = Math.max(22, Math.min(h*0.17, 78));
+  const boxW = w * 0.86;
+  const boxH = (h - labH) * 0.88;
+  /* 魔方投影尺寸：CUBE_HALF_W/H 是「透视 + 归一化」后的外轮廓半宽/半高（单位与 S 相同），
+     乘 BASE_S 就是 drawCube 默认画出来的像素尺寸（三阶 ≈147×162）。
+     旧写法在这里多乘了 1.5，实际把魔方画成内容区的 60%，卡片四周留一圈空。 */
+  const UNIT_W = 2 * CUBE_HALF_W * BASE_S;   /* ≈147 */
+  const UNIT_H = 2 * CUBE_HALF_H * BASE_S;   /* =162 */
+  const k = Math.min(boxW / UNIT_W, boxH / UNIT_H);
+  /* 魔方 + 标签作为一整块垂直居中：窄高卡片里标签不会掉到卡片最底部、离魔方很远 */
+  const cubeH = UNIT_H * k;
+  const top = (h - (cubeH + labH)) / 2;
+  const cx = w/2, cy = top + cubeH/2;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(k, k);
+  drawCube(ctx, 0, 0, mv.axis, mv.layer, cubeSize);
+  drawArrow(ctx, 0, 0, mv.arr);
+  ctx.restore();
+
+  ctx.fillStyle = LABEL;
+  ctx.font = '800 ' + Math.round(labH*0.78) + 'px "Segoe UI", "Microsoft YaHei", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(mv.name, w/2, top + cubeH + labH/2);
+}
+
+window.paintMoveCard = paintMoveCard;
 // 暴露给 newQuestion 调用（T5 联动重绘对照图：2×2 只画 R/U/F 示意）
 window.buildLegend = buildLegend;
 window.MOVES = MOVES;
@@ -1822,6 +2755,229 @@ if(document.readyState === 'loading'){
 })();
 
 
+/* ====================================================================
+ * 小对照图点击命中：点哪张卡就放大哪个符号（未命中返回 -1）
+ * ==================================================================== */
+function legendIndexAt(clientX, clientY){
+  const canvas = document.getElementById('legendCanvas');
+  if (!canvas || !canvas._cards) return -1;
+  const r = canvas.getBoundingClientRect();
+  const c = canvas._cards;
+  const lx = (clientX - r.left - c.offX) / c.k;
+  const ly = (clientY - r.top - c.offY) / c.k;
+  if (lx < 0 || ly < 0) return -1;
+  const col = Math.floor(lx / (c.CARD_W + c.GAP));
+  const row = Math.floor(ly / (c.CARD_H + c.GAP));
+  if (col < 0 || col >= c.COLS) return -1;
+  const idx = row * c.COLS + col;
+  if (idx >= c.items.length) return -1;
+  if (lx - col*(c.CARD_W+c.GAP) > c.CARD_W) return -1;
+  if (ly - row*(c.CARD_H+c.GAP) > c.CARD_H) return -1;
+  return idx;
+}
+
+/* ====================================================================
+ * 全屏展示层（上课投屏）
+ *  · 展示图：平面展开图 / 3D 立体图整块放大，底部保留打乱公式
+ *  · 对照图：所有符号铺满全屏，点任意一个 → 该符号专属大图，
+ *    ‹ › 逐个切换（也可用键盘 ← →），Esc 返回 / 关闭
+ * ==================================================================== */
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+let isOpen = false;
+let view = null;            /* 'net' | 'legend' */
+let items = [];
+let detailIdx = -1;
+
+const sizeNow = () => (window._currentCubeSize || 3);
+const itemsNow = () => (typeof legendItemsFor === 'function'
+  ? legendItemsFor(sizeNow(), currentMoveSet)
+  : (window.MOVES || []));
+
+function showOnly(which){
+  $('fsStage').hidden  = which !== 'stage';
+  $('fsGrid').hidden   = which !== 'grid';
+  $('fsDetail').hidden = which !== 'detail';
+  $('fsFoot').hidden   = which !== 'stage';
+  $('fsBack').hidden   = which !== 'detail';
+}
+
+function openShell(){
+  const fs = $('fs');
+  fs.classList.add('open');
+  fs.setAttribute('aria-hidden', 'false');
+  isOpen = true;
+}
+
+/* ---------- 展示图（平面 / 3D） ---------- */
+function renderNet(){
+  const alg = window._currentText || '';
+  const flat = $('fsNetCanvas'), d3 = $('fs3dCanvas');
+  flat.hidden = netMode !== 'flat';
+  d3.hidden = netMode !== '3d';
+  if (netMode === 'flat') drawScrambleNet(alg, flat, sizeNow());
+  else drawScramble3D(alg, d3, sizeNow());
+}
+
+function renderFoot(){
+  const box = $('fsFormula');
+  const moves = window._currentMoves || [];
+  box.innerHTML = moves.map(m => {
+    const cls = m.mod === "'" ? 'move prime' : (m.mod === '2' ? 'move dbl' : 'move');
+    return '<span class="' + cls + '">' + m.face + m.mod + '</span>';
+  }).join('<span class="move space"> </span>');
+}
+
+function openNet(){
+  view = 'net';
+  openShell();
+  $('fsTitle').textContent = '打乱状态图';
+  $('fsSub').textContent = window._currentText || '';
+  $('fsTools').innerHTML =
+    '<div class="seg-toggle seg-toggle--xs" id="fsModeToggle">' +
+      '<button class="seg__btn' + (netMode === 'flat' ? ' active' : '') + '" data-nm="flat">平面展开图</button>' +
+      '<button class="seg__btn' + (netMode === '3d'  ? ' active' : '') + '" data-nm="3d">3D 立体图</button>' +
+    '</div>';
+  $('fsTools').querySelectorAll('.seg__btn').forEach(b => {
+    b.addEventListener('click', () => setNetMode(b.dataset.nm));
+  });
+  showOnly('stage');
+  renderFoot();
+  requestAnimationFrame(() => { if (view === 'net') renderNet(); });
+}
+
+/* ---------- 对照图：网格 + 单符号大图 ---------- */
+function gridCols(n, gw, gh){
+  let best = 1, bestFit = 0;
+  for (let c = 1; c <= n; c++){
+    const r = Math.ceil(n / c);
+    const cw = (gw - (c - 1) * 12) / c;
+    const ch = (gh - (r - 1) * 12) / r;
+    const fit = Math.min(cw / 162, ch / 198);   /* 与单卡逻辑尺寸比较 → 取放大倍率最大的列数 */
+    if (fit > bestFit) { bestFit = fit; best = c; }
+  }
+  return best;
+}
+
+function buildGrid(){
+  const grid = $('fsGrid');
+  grid.innerHTML = '';
+  items = itemsNow();
+  const gw = grid.clientWidth || 1000, gh = grid.clientHeight || 600;
+  const cols = gridCols(items.length || 1, gw, gh);
+  grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+  items.forEach((mv, i) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'fs__card';
+    card.setAttribute('aria-label', mv.name + ' 转动示意');
+    card.appendChild(document.createElement('canvas'));
+    card.addEventListener('click', () => openDetail(i));
+    grid.appendChild(card);
+  });
+  paintCards();
+}
+
+function paintCards(){
+  const cards = $('fsGrid').children;
+  for (let i = 0; i < cards.length; i++){
+    const cv = cards[i].querySelector('canvas');
+    if (cv) window.paintMoveCard(cv, items[i], sizeNow());
+  }
+}
+
+function descOf(mv){
+  const base = mv.name.replace(/['2]/g, '');
+  const mod = mv.name.slice(base.length);
+  const fc = ({ R:'右面', L:'左面', U:'顶层', D:'底层', F:'前面', B:'后面' })[base] || base;
+  const dc = mod === "'" ? '逆时针 90°' : (mod === '2' ? '180°' : '顺时针 90°');
+  return fc + ' · ' + dc + '　（红色箭头 = 这一层转的方向）';
+}
+
+function paintDetail(){
+  if (detailIdx < 0 || !items[detailIdx]) return;
+  const cv = $('fsDetailCanvas');
+  cv._sigCard = '';                       /* 换符号必须重画 */
+  window.paintMoveCard(cv, items[detailIdx], sizeNow());
+}
+
+function openDetail(i){
+  if (!items.length) items = itemsNow();
+  if (!items.length) return;
+  detailIdx = ((i % items.length) + items.length) % items.length;
+  showOnly('detail');
+  $('fsDetailDesc').textContent = descOf(items[detailIdx]);
+  $('fsPrev').disabled = $('fsNext').disabled = items.length < 2;
+  requestAnimationFrame(paintDetail);
+}
+
+function stepDetail(d){
+  if (!$('fsDetail').hidden) openDetail(detailIdx + d);
+}
+
+function openLegend(index){
+  view = 'legend';
+  openShell();
+  $('fsTitle').textContent = '转动符号对照';
+  $('fsSub').textContent = '点任意符号 → 放大成课堂大图';
+  $('fsTools').innerHTML = '';
+  showOnly('grid');
+  buildGrid();                            /* 先让网格可见，才能量到真实尺寸 */
+  if (typeof index === 'number' && index >= 0 && index < items.length) openDetail(index);
+}
+
+function close(){
+  isOpen = false; view = null; detailIdx = -1;
+  const fs = $('fs');
+  fs.classList.remove('open');
+  fs.setAttribute('aria-hidden', 'true');
+}
+
+/* ---------- 事件 ---------- */
+$('fsClose').addEventListener('click', close);
+$('fsBack').addEventListener('click', () => { showOnly('grid'); detailIdx = -1; });
+$('fsPrev').addEventListener('click', () => stepDetail(-1));
+$('fsNext').addEventListener('click', () => stepDetail(1));
+
+document.addEventListener('keydown', (e) => {
+  if (!isOpen) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (view === 'legend' && !$('fsDetail').hidden) { showOnly('grid'); detailIdx = -1; }
+    else close();
+    return;
+  }
+  if (e.key === 'ArrowLeft'  && !$('fsDetail').hidden) { e.preventDefault(); stepDetail(-1); }
+  if (e.key === 'ArrowRight' && !$('fsDetail').hidden) { e.preventDefault(); stepDetail(1); }
+});
+
+let raf = 0;
+function onResize(){
+  if (!isOpen) return;
+  if (raf) cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => {
+    raf = 0;
+    if (view === 'net') renderNet();
+    else if (!$('fsDetail').hidden) paintDetail();
+    else paintCards();
+  });
+}
+window.addEventListener('resize', onResize);
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(onResize);
+  const body = $('fsBody');
+  if (body) ro.observe(body);
+}
+
+window.FSViewer = {
+  openNet,
+  openLegend,
+  close,
+  isOpenNet(){ return isOpen && view === 'net'; },
+  onNetModeChange(){ if (isOpen && view === 'net') { renderNet(); } }
+};
+})();
 
 </script>
 <script src="/assets/js/site-nav.js"></script>
