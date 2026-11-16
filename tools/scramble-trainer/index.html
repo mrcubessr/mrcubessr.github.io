@@ -11,22 +11,28 @@
 <link rel="stylesheet" href="/assets/css/site-nav.css">
     <link rel="stylesheet" href="/assets/css/components.css">
     <link rel="stylesheet" href="/assets/css/site-layout.css">
-<style>:root {
-  --st-ui-c0392b: #c0392b;
-  --st-ui-f2f4f7: #f2f4f7;
-  --st-ui-6b7280: #6b7280;
-  --st-ui-eef1f5: #eef1f5;
-}
+<style>/* v2.1.9：原来这里挂了一组硬编码的浅色别名（#f2f4f7 / #eef1f5 / #6b7280 / #c0392b），
+   被当成面板底与弱化字用；深色主题或换调色板后这些值不会跟着变，整页会出现「浅底浅字」。
+   已全部改走 tokens.css 的 --surface* / --fg-3 / --red，此块删除。 */
 
   :root {
-    /* ===== 浅色 / 白底主题（白天教室、大屏投屏优化）===== */
-    --panel: var(--on-brand);
-    --panel-2: var(--st-ui-eef1f5);
-    --muted: var(--st-ui-6b7280);        /* 深蓝 */
-    --st-danger: var(--st-ui-c0392b);      /* 深红 */
+    /* ===== 本页的表面色别名（面板 / 次级块 / 弱化字 / 展开图底）=====
+       ⚠️ v2.1.9 配色修复：原来这里用的是 --on-brand，语义搞错了 ——
+       --on-brand 是「品牌色实底上的**文字**色」（tokens.css 注释原文），它只保证在默认
+       主题下等于 --bg 的反相：默认浅色 #FFFFFF、默认深色 #0B0D14，所以看上去「黑白都对」。
+       但只要换了调色板就不成立——白天+投影 / 墨夜 / 纸质 / 经典 这几个 palette 把
+       --on-brand 定义成接近黑的深色（#00122E / #1A1206 / #102018 / #0A1226），
+       于是页头、整条右栏、公式框、分段按钮、迷你按钮全变黑，而文字仍是浅色主题的深色
+       → 「选了白天配色却大片黑色、公式字看不见」。
+       正确做法：表面一律走 --surface 系列（玻璃主题另配 *-solid 实色副本，见 tokens.css），
+       文字走 --fg / --fg-3，两者都由主题与调色板共同保证对比度。 */
+    --panel: var(--surface-solid, var(--surface));          /* 面板 / 卡片底 */
+    --panel-2: var(--surface-2-solid, var(--surface-2));    /* 次级块 / 悬停底 */
+    --muted: var(--fg-3);                                   /* 弱化文字（含深色主题）*/
+    --st-danger: var(--red);                                /* 语义红，随主题变亮变深 */
     --success: var(--green);
-    --formula-bg: var(--on-brand);
-    --net-bg: var(--st-ui-f2f4f7);        /* 展开图底色 */
+    --formula-bg: var(--surface-solid, var(--surface));     /* 公式框底 */
+    --net-bg: var(--surface-2-solid, var(--surface-2));     /* 展开图外围底色 */
     --st-net-frame: var(--fg-2);     /* 展开图每面外框 */
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -302,7 +308,7 @@
 
   /* 大字号公式显示（浅底黑字，课堂投影最清晰） */
   .formula-display {
-    background: var(--on-brand);
+    background: var(--formula-bg);
     border: 3px solid var(--fg);
     border-radius: 0;
     padding: 14px 12px;
@@ -352,7 +358,7 @@
     padding: 0 4px;
   }
   /* 修饰符用深色区分（白底上依然清晰，仍属深色系） */
-  .formula-inner .move.prime { color: var(--st-ui-c0392b); }   /* 带撇号 → 深红 */
+  .formula-inner .move.prime { color: var(--st-danger); }   /* 带撇号 → 红（随主题自适应） */
   .formula-inner .move.dbl   { color: var(--brand-strong); }   /* 带 2   → 深蓝 */
   .formula-inner .move.space {
     color: var(--muted);
@@ -374,7 +380,7 @@
     font-weight: 600;
   }
   .length-row .seg__btn {
-    background: var(--on-brand);
+    background: var(--panel);
     border: 2px solid var(--line);
     border-radius: 0;
     padding: 9px 16px;
@@ -472,7 +478,7 @@
     background: var(--st-danger);
   }
   .btn.ghost {
-    background: var(--on-brand);
+    background: var(--panel);
     color: var(--fg);
     border: 1.5px solid var(--line);
     box-shadow: none;
@@ -721,24 +727,36 @@
       object-fit: contain;
     }
 
-    /* 右栏（展开图 + 公式）：置顶，约 42% 高度 */
+    /* 右栏（展开图 + 公式 + 控件）：置顶，高度**按内容**，对照图拿剩下的。
+       ⚠️ v2.1.9 修：原来写死 flex:0 0 42%，844 高的手机上只有 309px，而右栏内容最低要
+       435px（展示图 110 + 公式标签 22 + 公式框 133 + 难度 48 + 长度 44 + 换一题 44 + 间隙 34），
+       超出的 130px 被裁掉、正好压在下方对照图区上，导致「长度 / 换一题」两行看不到也点不到。
+       右栏内都是不可压缩的控件（触屏 44px 触摸目标），压缩它必然坏事；对照图是可连续缩放的
+       画布，让它吃剩余空间才对。max-height 兜底：万一内容异常长（12 步公式 + 自选字母行），
+       右栏最多占到「容器高 − 150px」，对照图仍保留 150px，多的在右栏内部滚动。 */
     .right {
       order: 1;                /* 展开图+公式置顶 */
       display: flex;
       flex-direction: column;
-      flex: 0 0 42%;
+      flex: 0 0 auto;          /* 按内容高度，不压缩、不拉伸 */
+      max-height: calc(100% - 150px);
       gap: 6px;
       padding: 4px;
       grid-template-rows: none;
       min-height: 0;
-      overflow-y: auto;        /* 公式框/控件超出本区时自身滚动，不溢出到对照图区 */
+      overflow-y: auto;        /* 仅在触到 max-height 时本区内部滚动 */
       position: relative;
       z-index: 1;              /* 始终绘制在对照图(.left)之上，保证按钮可点 */
       background: var(--panel);
     }
     .left { z-index: 0; }
     .net-zone {
-      flex: 1 1 auto;
+      /* ⚠️ v2.1.9：必须给**固定带高**，不能用 flex:1 1 auto。
+         右栏改成按内容高度后，flex-grow 没有「剩余空间」可分配，展开图那一格的高度
+         反而被 canvas 的位图内在尺寸顶起来（实测 390×844 上撑到 289px、414×896 上 340px），
+         对照图被挤到下限。这里按视口高度给 110–200px 的固定带，与改造前的观感一致。 */
+      flex: 0 0 auto;
+      height: clamp(110px, 16vh, 200px);
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -862,10 +880,12 @@
     .btn.primary { font-size: 14px; padding: 10px 12px; }
   }
 
-  /* ===== 极矮视口（手机横屏 / 桌面超高缩放 ≥250%）=====
-     此时手机单屏方案（100dvh 硬撑）会把控件压到视口外，也不再值得坚持「一屏」：
-     改为整页滚动，保证每个控件都能看到、点到。 */
-  @media (max-width: 768px) and (max-height: 560px) {
+  /* ===== 偏矮视口（小屏手机 360×640 / 375×667 / 360×740，以及手机横屏）=====
+     门槛 v2.1.9 从 560 提到 760：右栏三行控件都是 44px 触屏目标，加上展示图带高与公式框，
+     内容实测 447–500px（公式两行时更高），再给对照图留 150px 可读高度，视口低于 760px
+     （可用 652px）就放不下。与其把按钮压到看不见、点不到，不如整页滚动：全部可见可点。
+     注：门槛取 ≤760 时，若内容恰好放得下（如 760 整），页面自然不出现滚动条，无副作用。 */
+  @media (max-width: 768px) and (max-height: 760px) {
     /* 让文档本身滚动（而不是让 body 内部滚动）：body 高度改回 auto，高度随内容增长 */
     html, body { overflow: auto; height: auto; }
     /* 用 body .main 提高特异性：文件末尾还有一段导航适配样式用 !important 固定
@@ -876,11 +896,11 @@
       min-height: 0;
       overflow: visible;
     }
-    .right { flex: 0 0 auto; overflow: visible; }
-    .net-zone { flex: 0 0 auto; }
-    .net-img-wrap { height: clamp(120px, 30vh, 220px); }
+    .right { flex: 0 0 auto; overflow: visible; max-height: none; }
+    .net-zone { flex: 0 0 auto; height: auto; min-height: 0; }
+    .net-img-wrap { height: clamp(110px, 22vh, 200px); }
     .left { flex: 0 0 auto; min-height: 0; padding: 4px; }
-    .left .legend-img-wrap { height: 220px !important; }
+    .left .legend-img-wrap { height: clamp(180px, 34vh, 240px) !important; }
   }
 </style>
 <style>
@@ -893,7 +913,7 @@
     flex-shrink: 0;
   }
   .mini-btn {
-    background: var(--on-brand);
+    background: var(--panel);
     border: 1.5px solid var(--line);
     color: var(--fg);
     font-family: inherit;
@@ -930,7 +950,7 @@
   .letters-row .lbl { color: var(--muted); font-size: 14px; font-weight: 600; }
   .letters-row .hint { color: var(--muted); font-size: 12px; }
   .letter-chip {
-    background: var(--on-brand);
+    background: var(--panel);
     border: 2px solid var(--line);
     color: var(--fg);
     font-family: inherit;
