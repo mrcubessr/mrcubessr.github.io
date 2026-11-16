@@ -489,6 +489,88 @@
     color: var(--brand);
   }
 
+  /* ===== 自定义打乱输入层 ===== */
+  .cdlg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    background: rgba(8, 12, 20, 0.55);
+    padding: 16px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cdlg.is-open { display: flex; }
+  .cdlg__card {
+    width: min(94vw, 620px);
+    max-height: 88vh;
+    overflow: auto;
+    background: var(--surface-solid, var(--surface));
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 16px 18px 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  }
+  .cdlg__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 17px;
+  }
+  .cdlg__x {
+    width: 34px; height: 34px;
+    min-height: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent;
+    color: var(--fg-3);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .cdlg__x:hover { color: var(--red); border-color: var(--red); }
+  #cdlgInput {
+    width: 100%;
+    display: block;
+    resize: vertical;
+    background: var(--panel);
+    color: var(--fg);
+    border: 1.5px solid var(--line);
+    border-radius: 0;
+    padding: 10px 12px;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, "Microsoft YaHei", monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+  #cdlgInput:focus { outline: none; border-color: var(--brand); }
+  .cdlg__hint {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--fg-3);
+  }
+  .cdlg__hint code {
+    font-family: ui-monospace, Consolas, monospace;
+    background: var(--panel-2);
+    padding: 1px 4px;
+  }
+  .cdlg__err {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--red);
+  }
+  .cdlg__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .cdlg__foot .btn { padding: 11px 18px; font-size: 15px; }
+
   /* ===== 分步抽屉 ===== */
   .steps-drawer {
     position: fixed;
@@ -1237,7 +1319,8 @@
 
       <!-- 按钮 -->
       <div class="action-row">
-        <button class="btn primary full" id="newBtn">🎲 换一题</button>
+        <button class="btn primary" id="newBtn">🎲 换一题</button>
+        <button class="btn ghost" id="customBtn" title="自己输入一条打乱，照它显示图">✎ 输入打乱</button>
       </div>
     </div>
   </aside>
@@ -1275,6 +1358,30 @@
 </div>
 
 <div class="toast" id="toast">已复制到剪贴板</div>
+
+<!-- ===== 自定义打乱输入层 =====
+     老师自己敲一条打乱（讲义上的、学生做错的、某个具体状态），按它显示图与公式。
+     用轻量自绘弹层而不是浏览器 prompt()：prompt 在手机上会锁死缩放、样式也不跟主题。 -->
+<div class="cdlg" id="cdlg" aria-hidden="true">
+  <div class="cdlg__card" role="dialog" aria-modal="true" aria-labelledby="cdlgTitle">
+    <div class="cdlg__head">
+      <strong id="cdlgTitle">自定义打乱</strong>
+      <button class="cdlg__x" id="cdlgClose" title="关闭（Esc）">✕</button>
+    </div>
+    <textarea id="cdlgInput" rows="2" spellcheck="false" autocomplete="off" autocapitalize="characters"
+      placeholder="例如：R U R' U' F2 D L' B"></textarea>
+    <p class="cdlg__hint">
+      支持 R U F D L B（带 <code>'</code> 逆时针、<code>2</code> 转两次），
+      宽转 <code>r u f d l b</code>、中层 <code>M E S</code>、整体转向 <code>x y z</code>；
+      大小写、空格都可以。
+    </p>
+    <p class="cdlg__err" id="cdlgErr" hidden></p>
+    <div class="cdlg__foot">
+      <button class="btn ghost" id="cdlgCancel">取消</button>
+      <button class="btn primary" id="cdlgApply">显示这个打乱</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ====================================================================
@@ -2222,6 +2329,10 @@ function setNetMode(mode){
 
 function newQuestion() {
   const size = currentCubeType === '2' ? 2 : 3;
+  /* 从「自定义打乱」回到随机出题：按钮文字复位 */
+  const _nb = document.getElementById('newBtn');
+  if (_nb) _nb.textContent = '🎲 换一题';
+  window._customMode = false;
   // 2×2 强制 RUF（兜底，即使 UI 锁死也保证）
   if (currentCubeType === '2' && currentMoveSet !== 'custom') currentMoveSet = 'ruf';
   const moves = generateScramble(currentLength);
@@ -2271,6 +2382,113 @@ function newQuestion() {
   // 等布局稳定后再自适应字号（保证拿到真实的可用空间）
   requestAnimationFrame(fitFormula);
 }
+
+/* ====================================================================
+ * 自定义打乱：老师自己敲一条（讲义上的、学生做错的、某个具体状态），
+ * 照它显示展示图 / 公式，不改随机出题的设置。
+ * ==================================================================== */
+const CUSTOM_TOKEN_RE = /^([RULDFBMESrludfbxyz])(2|')?(2)?$/;
+/* 把用户输入规范成 [{face, mod}]：
+   - 各种撇号（’ ′ ` ´）统一成 '，括号当空白，大小写都认
+   - 宽转 r u f d l b、中层 M E S、整体转向 x y z 一并放行
+     （Cube.applyAlg 本来就支持，显示图、3D 图都能画出来） */
+function parseCustomAlg(str){
+  const raw = String(str || '')
+    .replace(/[\u2018\u2019\u2032\u02BC\u00B4\u0060]/g, "'")
+    .replace(/[()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!raw) return { moves: [], bad: [], text: '' };
+  const moves = [], bad = [];
+  for (const tk of raw.split(' ')){
+    const m = tk.match(CUSTOM_TOKEN_RE);
+    if (!m){ bad.push(tk); continue; }
+    let mod = '';
+    if (m[2] === '2' || m[3] === '2') mod = '2';
+    else if (m[2] === "'") mod = "'";
+    moves.push({ face: m[1], mod });
+  }
+  return { moves, bad, text: moves.map(mv => mv.face + mv.mod).join(' ') };
+}
+
+/* 应用一条自定义打乱。返回 {ok, msg}，msg 用于弹层里的提示条。 */
+function applyCustomScramble(str){
+  const p = parseCustomAlg(str);
+  if (p.moves.length === 0){
+    return { ok: false, msg: p.bad.length ? ('没识别出打乱步骤：' + p.bad.slice(0, 5).join(' ')) : '请输入一条打乱' };
+  }
+  const size = currentCubeType === '2' ? 2 : 3;
+  window._currentMoves    = p.moves;
+  window._currentText     = p.text;
+  window._currentCubeSize = size;
+  window._customMode      = true;
+
+  renderFormula(p.moves);
+  renderNetDisplay();
+  if (window.buildLegend) window.buildLegend(legendItemsFor(size, currentMoveSet), size);
+
+  const badge = document.getElementById('coverBadge');
+  if (badge){
+    badge.textContent = '✎ 自定义 ' + p.moves.length + ' 步';
+    badge.classList.remove('warn');
+  }
+  const nb = document.getElementById('newBtn');
+  if (nb) nb.textContent = '🎲 随机出题';
+
+  requestAnimationFrame(fitFormula);
+  return { ok: true, msg: p.bad.length ? ('已忽略无法识别：' + p.bad.slice(0, 5).join(' ')) : '' };
+}
+
+/* ---------- 自定义打乱弹层 ---------- */
+(function initCustomDialog(){
+  const dlg    = document.getElementById('cdlg');
+  if (!dlg) return;
+  const input  = document.getElementById('cdlgInput');
+  const errEl  = document.getElementById('cdlgErr');
+
+  function setErr(msg){
+    if (!errEl) return;
+    errEl.textContent = msg || '';
+    errEl.hidden = !msg;
+  }
+  function open(){
+    if (input){
+      /* 已有题目时预填，方便在现有打乱上改几个字母；随机题也预填，删改都方便 */
+      input.value = window._currentText || '';
+    }
+    setErr('');
+    dlg.classList.add('is-open');
+    dlg.setAttribute('aria-hidden', 'false');
+    setTimeout(() => { if (input){ input.focus(); input.select(); } }, 30);
+  }
+  function close(){
+    dlg.classList.remove('is-open');
+    dlg.setAttribute('aria-hidden', 'true');
+  }
+  function apply(){
+    const r = applyCustomScramble(input ? input.value : '');
+    if (!r.ok){ setErr(r.msg); return; }
+    if (r.msg){ setErr(r.msg); }      /* 部分忽略：留在弹层里提示，让老师看见 */
+    else close();
+  }
+
+  const btn = document.getElementById('customBtn');
+  if (btn) btn.addEventListener('click', open);
+  const xBtn = document.getElementById('cdlgClose');
+  if (xBtn) xBtn.addEventListener('click', close);
+  const cBtn = document.getElementById('cdlgCancel');
+  if (cBtn) cBtn.addEventListener('click', close);
+  const aBtn = document.getElementById('cdlgApply');
+  if (aBtn) aBtn.addEventListener('click', apply);
+  /* 点遮罩关闭（点卡片内部不关） */
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) close(); });
+  /* Ctrl/⌘ + Enter 直接显示；Esc 关闭（这个监听要早于全屏层的同类监听，
+     但全屏层自己会判断 isOpen，两者不会互相干扰） */
+  dlg.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); close(); }
+    else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); apply(); }
+  });
+})();
 
 /* 长度档位随「阶数 + 模式」变化：自选字母最短 4 步（正好 R U R' U' 一轮） */
 function allowedLengths(){

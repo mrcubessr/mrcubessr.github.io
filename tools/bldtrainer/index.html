@@ -38,6 +38,20 @@ button:hover{background:var(--brand);}
    width:100% 不足以压住它（同一轮布局里父宽本身就由这个属性值反推），
    必须再补一条 max-width:100% 做硬性夹取。 */
 #player{width:100%;max-width:100%;height:340px;background:var(--bg);border-radius:0;display:block;cursor:grab;touch-action:none;}
+/* ⚠️ 同上一个坑：#player 也是 display:block(1,0,0)，会盖掉 UA 的 [hidden]{display:none}，
+   切到 3D 视图时平面图不会消失，两块画布上下叠着都显示。必须显式复位。 */
+#player[hidden]{display:none;}
+/* ===== 视图切换（平面展开图 / 3D 立体图）=====
+   两个 canvas 尺寸与 #player 完全一致，切换只改显隐，不重排布局。
+   ⚠️ #player3d[hidden] 必须显式写 display:none：这里给 #player3d 定了 display:block，
+   特异性(1,0,0) 会盖掉浏览器默认的 [hidden]{display:none}，不加这条画布会一直显示。 */
+.viewtabs{display:inline-flex;border:1px solid var(--surface-3);margin:0 0 0.55em;}
+.viewtabs button{background:var(--surface);color:var(--fg-2);border:0;border-radius:0;padding:0.32em 0.95em;font-size:0.9em;font-weight:700;cursor:pointer;line-height:1.5;}
+.viewtabs button+button{border-left:1px solid var(--surface-3);}
+.viewtabs button.is-on{background:var(--brand);color:var(--on-brand);}
+.viewtabs button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;}
+#player3d{width:100%;max-width:100%;height:340px;display:block;touch-action:none;}
+#player3d[hidden]{display:none;}
 .help{position:relative;cursor:help;}
 .help-content{display:none;position:absolute;background:var(--surface);border:1px solid var(--brand);border-radius:0;padding:0.5em 0.8em;z-index:10;font-size:0.85em;color:var(--fg-2);width:15em;font-weight:400;}
 .help:hover .help-content{display:block;}
@@ -48,6 +62,7 @@ button:hover{background:var(--brand);}
 @media screen and (max-width:800px){
   .flexitem{min-width:100%;}
   #player{height:280px;}
+  #player3d{height:280px;}
 }
 </style>
 <script>(function(){try{var d=document.documentElement,q=location.search;var off=/[?&]glass=off(?:&|$)/.test(q)||localStorage.getItem('mf_glass_on')==='0';d.setAttribute('data-glass',off?'off':'on');var w=localStorage.getItem('mf_glass_wall');d.setAttribute('data-g-wall',(w==='aurora'||w==='aurora-b'||w==='none'||w==='image')?w:'aurora');}catch(e){document.documentElement.setAttribute('data-glass','on');}})();</script>
@@ -167,7 +182,12 @@ button:hover{background:var(--brand);}
 
       <!-- 展开图列 -->
       <div class="flexitem">
+        <div class="viewtabs" role="tablist" aria-label="打乱图视图">
+          <button type="button" class="is-on" data-bldview="net" role="tab" aria-selected="true">平面展开图</button>
+          <button type="button" data-bldview="3d" role="tab" aria-selected="false">3D 立体图</button>
+        </div>
         <canvas id="player"></canvas>
+        <canvas id="player3d" hidden></canvas>
         <div class="btnrow">
           <button onclick="getNowScramble()" class="btn btn--primary">生成当前状态打乱</button>
           <button id="copyBtn" style="display:none;" onclick="copyScrs()" class="btn btn--primary">复制打乱</button>
@@ -3875,6 +3895,215 @@ function expandMoveNet(base, dir){
     return seq;
 }
 
+/* ====================================================================
+ * 3D 立体展示图（与 tools/scramble-trainer 同一套针孔透视投影）
+ *
+ * 姿态：相机绕竖轴 40°、俯视 30°，相机距离 D=12（单位 = 半边长）。
+ *   ① 相机空间：
+ *        X  =  x·cosY + z·sinY
+ *        Z1 = −x·sinY + z·cosY       （水平方向的进深分量）
+ *        Yc =  Z1·sinP − y·cosP      （屏幕 y，**向下为正**，画布直接相加）
+ *        Zc =  y·sinP + Z1·cosP      （深度，越大越靠近观察者）
+ *   ⚠️ Yc 里 y 的系数必须是 **负**：画布 y 向下，+y（顶面）要往上跑。
+ *      写成 y·cosP − Z1·sinP 会让顶面跑到屏幕下方，整块魔方变成「仰视」。
+ *   ② 透视除法：k = D / (D − Zc)
+ *
+ * 只画 U（顶）/ F（前）/ R（右）三个面。贴纸取色直接用 cube.getFace()，
+ * 与上面平面展开图同源（都是 _ptoFaces 输出），行列方向天然一致：
+ *   U 行 0 = 后排、F 行 0 = 上排、R 列 0 = 前排。
+ * ==================================================================== */
+const CUBE_YAW   = -40 * Math.PI / 180;
+const CUBE_COS_Y = Math.cos(CUBE_YAW);       /*  0.7660 */
+const CUBE_SIN_Y = Math.sin(CUBE_YAW);       /* −0.6428 */
+const CUBE_PITCH = 30 * Math.PI / 180;
+const CUBE_SIN_P = Math.sin(CUBE_PITCH);     /*  0.5000 */
+const CUBE_COS_P = Math.cos(CUBE_PITCH);     /*  0.8660 */
+const CUBE_CAM_D = 12;
+
+function cubeCam(x, y, z){
+  const X  =  x*CUBE_COS_Y + z*CUBE_SIN_Y;
+  const Z1 = -x*CUBE_SIN_Y + z*CUBE_COS_Y;
+  return [ X,
+           Z1*CUBE_SIN_P - y*CUBE_COS_P,     /* 屏幕 y，向下为正（顶面 → 屏幕上方） */
+           y*CUBE_SIN_P + Z1*CUBE_COS_P ];   /* 深度，越大越靠前 */
+}
+function cubeRawProj(x, y, z){
+  const c = cubeCam(x, y, z);
+  const k = CUBE_CAM_D / Math.max(CUBE_CAM_D - c[2], 0.25);   /* 透视除法（近大远小） */
+  return [ c[0]*k, c[1]*k ];
+}
+/* 凸多面体的投影极值必在顶点上 → 8 个角点即可定出真实包围盒。
+   必须用 ±1.5：三阶 cubie 中心坐标 −1..1、半宽 0.5，真实外框就是 ±1.5；
+   而透视除法是非线性的，不能用 ±1 的外框 ×1.5 近似。 */
+const CUBE_BOX = (function(){
+  const xs = [], ys = [];
+  for (const x of [-1.5,1.5]) for (const y of [-1.5,1.5]) for (const z of [-1.5,1.5]){
+    const p = cubeRawProj(x, y, z);
+    xs.push(p[0]); ys.push(p[1]);
+  }
+  const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  return { cx: (minX+maxX)/2, cy: (minY+maxY)/2, w: maxX-minX, h: maxY-minY };
+})();
+/* 把透视后的外轮廓高度归一为 6 个单位，于是所有画布只需按 2*CUBE_HALF_W/H 缩放 */
+const CUBE_VIEW_K = 6 / CUBE_BOX.h;
+const CUBE_HALF_W = CUBE_BOX.w / 2 * CUBE_VIEW_K;
+const CUBE_HALF_H = 3;
+
+function cubeProj(x, y, z){
+  const p = cubeRawProj(x, y, z);
+  return [ (p[0] - CUBE_BOX.cx) * CUBE_VIEW_K,
+           (p[1] - CUBE_BOX.cy) * CUBE_VIEW_K ];
+}
+
+/* 画到 #player3d。画布宽高由 CSS 决定（width:100% + 固定 height），
+   这里只按 CSS 尺寸 × dpr 设位图大小，绘图坐标一律用 CSS 像素。 */
+function drawScramble3D(alg){
+  const canvas = document.getElementById('player3d');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const availW = Math.floor(rect.width), availH = Math.floor(rect.height);
+  if (availW < 20 || availH < 20) return;        /* 还处于 hidden / 未布局 */
+  const cube = new Cube(3);
+  cube.applyAlg(alg || '');
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const pad = 10;
+  const size = 3;
+  const s = Math.max(4, Math.min((availW - pad*2) / (2*CUBE_HALF_W),
+                                 (availH - pad*2) / (2*CUBE_HALF_H)));
+  const W = availW, H = availH;
+  const light = (window.Theme && Theme.mode) ? (Theme.mode() === 'light') : false;
+  const dk = !light;
+  const sig = W + 'x' + H + '@' + dpr + (dk ? 'D' : 'L') + '|' + (alg || '');
+  if (canvas._sig3d === sig) return;             /* 幂等：尺寸/主题/算例没变就不重画 */
+  canvas._sig3d = sig;
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);                     /* 透明底：不额外铺灰方块 */
+
+  const cx = W/2, cy = H/2;
+  const FRAME = dk ? '#cbd5e1' : '#1f2937';      /* 贴纸缝隙 / 骨架 */
+  const EDGE3 = dk ? '#f1f5f9' : '#111827';      /* 外轮廓 */
+  const P = (x,y,z)=>{ const q = cubeProj(x,y,z); return [ cx + q[0]*s, cy + q[1]*s ]; };
+  const n = size;
+  const step = 2 / (n - 1);
+  const B = 1 + step / 2;                        /* 三阶外框半边长 1.5 */
+  const base = -B;
+
+  /* 贴纸 4 个 3D 角点。必须画在**真实表面**（y=B / z=B / x=B）：
+     透视对深度敏感，画在内缩平面会让整面贴纸偏小、与轮廓脱开露白边。 */
+  const quadOf = {
+    U: (r,c) => {
+      const x0 = base + c*step, z0 = base + r*step;
+      return [[x0,B,z0],[x0+step,B,z0],[x0+step,B,z0+step],[x0,B,z0+step]];
+    },
+    F: (r,c) => {
+      const x0 = base + c*step, y0 = B - r*step;
+      return [[x0,y0,B],[x0+step,y0,B],[x0+step,y0-step,B],[x0,y0-step,B]];
+    },
+    R: (r,c) => {
+      const z0 = B - c*step, y0 = B - r*step;
+      return [[B,y0,z0],[B,y0,z0-step],[B,y0-step,z0-step],[B,y0-step,z0]];
+    }
+  };
+  const outlineOf = {
+    U: [[-B,B,-B],[ B,B,-B],[ B,B, B],[-B,B, B]],
+    F: [[-B,B, B],[ B,B, B],[ B,-B,B],[-B,-B,B]],
+    R: [[ B,B, B],[ B,B,-B],[ B,-B,-B],[ B,-B, B]]
+  };
+  const faces = ['U','F','R'];
+
+  /* ① 深色底座 = 魔方骨架（贴纸收缩后露出的缝隙） */
+  ctx.fillStyle = FRAME;
+  for (const f of faces){
+    const pts = outlineOf[f].map(p=>P(p[0],p[1],p[2]));
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath();
+    ctx.fill();
+  }
+  /* ② 逐张贴纸上色。缝隙在 **3D 空间**向格心收 10% 再投影：
+     透视下各格宽度不同，若先投影再按 2D 中心收，缝隙会随深度跳变像错位。 */
+  const k = 0.9;
+  for (const f of faces){
+    const data = cube.getFace(f);
+    for (let r=0;r<n;r++){
+      for (let c=0;c<n;c++){
+        const q3 = quadOf[f](r,c);
+        const c3 = [
+          (q3[0][0]+q3[1][0]+q3[2][0]+q3[3][0])/4,
+          (q3[0][1]+q3[1][1]+q3[2][1]+q3[3][1])/4,
+          (q3[0][2]+q3[1][2]+q3[2][2]+q3[3][2])/4
+        ];
+        const pts = q3.map(p=>P(
+          c3[0] + (p[0]-c3[0])*k,
+          c3[1] + (p[1]-c3[1])*k,
+          c3[2] + (p[2]-c3[2])*k
+        ));
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let i=1;i<4;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.closePath();
+        const col = NET_COLORS[data[r][c]] || '#e5e7eb';
+        ctx.fillStyle = col;
+        ctx.fill();
+        if (col === '#FFFFFF'){                    /* 白贴纸描边：浅底上不糊成一片 */
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#9ca3af';
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  /* ③ 外轮廓加重（立体的「棱」） */
+  ctx.strokeStyle = EDGE3;
+  ctx.lineWidth = Math.max(2, W*0.013);
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const sil = [[-B,B,-B],[B,B,-B],[B,-B,-B],[B,-B,B],[-B,-B,B],[-B,B,B]];
+  sil.forEach((p,i)=>{ const q = P(p[0],p[1],p[2]); i ? ctx.lineTo(q[0],q[1]) : ctx.moveTo(q[0],q[1]); });
+  ctx.stroke();
+  /* 三条从最近顶点发出的棱（区分三个面的分界） */
+  [[[-B,B,B],[B,B,B]],[[B,B,B],[B,-B,B]],[[B,B,B],[B,B,-B]]].forEach(seg=>{
+    const a = P(seg[0][0],seg[0][1],seg[0][2]);
+    const b = P(seg[1][0],seg[1][1],seg[1][2]);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+  });
+}
+
+/* ===== 视图切换 ===== */
+var _bldView = 'net';
+function setBldView(v){
+  _bldView = (v === '3d') ? '3d' : 'net';
+  document.querySelectorAll('.viewtabs button').forEach(function(b){
+    var on = b.getAttribute('data-bldview') === _bldView;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  var net = document.getElementById('player');
+  var c3  = document.getElementById('player3d');
+  if (net) net.hidden = (_bldView !== 'net');
+  if (c3)  c3.hidden  = (_bldView !== '3d');
+  if (_bldView === '3d'){ drawScramble3D(_lastNetAlg); }
+  else { if (net) net._sigNet = ''; drawScrambleNet(_lastNetAlg); }
+}
+document.querySelectorAll('.viewtabs button').forEach(function(b){
+  b.addEventListener('click', function(){ setBldView(b.getAttribute('data-bldview')); });
+});
+/* 窗口尺寸变化：两个画布都是「CSS 100% 宽」，重排后必须重画，
+   否则位图还是旧宽度 → 画面被拉伸/留白。 */
+var _bldRzT = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_bldRzT);
+  _bldRzT = setTimeout(function(){
+    if (_bldView === '3d'){ var c=document.getElementById('player3d'); if(c) c._sig3d=''; drawScramble3D(_lastNetAlg); }
+    else { drawScrambleNet(_lastNetAlg); }
+  }, 160);
+});
+
 // 绘制标准十字展开图
 var _lastNetAlg = "";
 function drawScrambleNet(alg){
@@ -3927,6 +4156,12 @@ function drawScrambleNet(alg){
     };
     for(const [face,pos] of Object.entries(facePositions)){
         drawNetFace(ctx, cube, face, pos.x, pos.y, stickerSize, colors);
+    }
+    /* 所有调用点（生成打乱 / 还原编码 / 主题切换 / 手动输入）都走这里，
+       所以 3D 视图激活时在这里顺带重画 3D —— 切换与刷新只需要改一处。 */
+    if (_bldView === '3d'){
+        var c3 = document.getElementById('player3d');
+        if (c3){ c3._sig3d = ''; drawScramble3D(_lastNetAlg); }
     }
 }
 
