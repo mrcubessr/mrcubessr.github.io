@@ -86,8 +86,23 @@
     if (!nodes.length) return;
     var items = (data.items || []).filter(function (it) { return it.home !== false; });
     nodes.forEach(function (n) {
+      /* v2.1.11：items 清空时，把外面的「站点公告」区块整块隐藏 ——
+         否则首屏会留一个只有 h2 标题、下面空着的区块。
+         用 hidden 属性而不是 style.display：外层 section.group 只声明了 margin，
+         没有 display，UA 的 [hidden]{display:none} 能正常生效。
+         ⚠️ 不能加在 n 自己身上：n 会拿到 .ann-list 类（display:grid，(0,1,0)），
+         与 UA 的 [hidden] 同特异性且作者样式在后，hidden 会被盖掉。 */
+      var sec = n.parentNode;
+      while (sec && sec !== doc.body && sec.tagName !== 'SECTION') sec = sec.parentNode;
+      var hasSec = !!(sec && sec.tagName === 'SECTION');
+      if (!items.length) {
+        n.innerHTML = '';
+        n.className = n.className.replace(/\bann-list\b/g, '').trim();
+        if (hasSec) sec.hidden = true;
+        return;
+      }
+      if (hasSec) sec.hidden = false;
       n.className = (n.className ? n.className + ' ' : '') + 'ann-list';
-      if (!items.length) { n.innerHTML = ''; return; }
       n.innerHTML = items.map(function (it) { return itemHTML(it, { collapsible: true }); }).join('');
 
       /* 折叠 / 展开：默认压到 3 行（手机 2 行），点按钮看全文 */

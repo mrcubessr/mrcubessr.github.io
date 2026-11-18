@@ -34,7 +34,9 @@
     <p class="hero__sub">教程 · 训练 · 出题 · 教学，一个站点搞定</p>
   </header>
 
-  <!-- ② 站点公告（数据来自 assets/data/announcements.json，改那个文件即可更新） -->
+  <!-- ② 站点公告（数据来自 assets/data/announcements.json，改那个文件即可更新）
+       v2.1.11 起 items 为空：announce.js 会把这整块 section 隐藏（连标题一起），
+       恢复公告只需往 json 的 items 里加条目，不用动这里。 -->
   <section class="group" aria-labelledby="announce-title">
     <h2 class="section-title" id="announce-title">站点公告</h2>
     <div data-announce></div>
@@ -272,7 +274,7 @@
 </footer>
 
 <script src="/assets/js/vip-gate.js?v=2.1.0"></script>
-<script src="/assets/js/announce.js"></script>
+<script src="/assets/js/announce.js?v=2.1.11"></script>
 <script src="/assets/js/site-nav.js"></script>
 <script src="/assets/js/theme.js"></script>
 <script src="/assets/js/palette.js"></script>

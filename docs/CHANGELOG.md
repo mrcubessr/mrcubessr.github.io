@@ -9,6 +9,40 @@
 
 ---
 
+## [2.1.11] — 2026-11-18（下线站点公告：清空数据，机制保留）
+
+首页「站点公告」区块与全站顶部横幅不再出现。
+
+### 改动
+
+- `assets/data/announcements.json`：`items` 置空（原「服务器募捐」公告下线），
+  `version` 由 1 提到 2 —— 它参与「用户已关闭」的本地记忆（`localStorage` 存 `id→version`），
+  提版本号可保证将来新增的公告不会被旧的关闭记录吞掉。
+- `assets/js/announce.js`：`items` 为空时把**外层 `section` 整块隐藏**，否则首屏会留一个
+  只有「站点公告」标题、下面空着的区块。这里刻意用 `hidden` 属性而非 `style.display`：
+  外层 `section.group` 只声明了 `margin`、没有 `display`，UA 的 `[hidden]{display:none}`
+  能正常生效；**不能加在 `[data-announce]` 容器自己身上** —— 它会被加上 `.ann-list`
+  类（`display:grid`，(0,1,0)），与 UA 的 `[hidden]` 同特异性且作者样式在后，`hidden` 会被盖掉。
+- `index.html`：`announce.js` 引用加 `?v=2.1.11`。该文件不在 `APP_SHELL`，
+  但走 stale-while-revalidate，老访客第一次仍会拿到旧 JS；带版本号即换缓存键。
+- **不需要递增 `sw.js` 的 `CACHE`**：`/assets/data/announcements.json` 在 `NO_CACHE_PREFIX`
+  里，每次请求都走网络，清空后刷新即生效。功能代码与样式文件均未进入 `APP_SHELL`。
+
+### 恢复方式
+
+往 `announcements.json` 的 `items` 里加一条即可，首页区块、顶部横幅、折叠展开全部自动恢复，
+不需要改任何 HTML / JS。
+
+### 验证
+
+- `verify_announce.py`（新增）25 项：清空态在 1440 与 390 两个视口下断言
+  「section 带 `hidden`、计算样式 `display:none`、占位高度 0、无 `.ann-item` / `.ann-bar`、
+  页面上不出现『站点公告』字样、Hero 之后紧跟第一个内容区（间距 0px）、无 JS 报错」；
+  恢复态用请求拦截注入一条公告，断言区块与横幅重现、标题可见、「展开全文」可展开 —— 
+  证明机制未损。
+
+---
+
 ## [2.1.10] — 2026-11-16（三盲读码页加 3D 立体图；打乱训练器加「自定义打乱」输入）
 
 两个页面各加一个课堂用的小功能，都是内联单文件改动。
