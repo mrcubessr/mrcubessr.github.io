@@ -1147,6 +1147,15 @@
     showConfirm();
   }
 
+  /* DNF 一级直录（v2.2.0）：归因按钮点一下即按「DNF + 归因」落盘，不再二级展开。
+     旧链路（togglePenalty("DNF") → 行内选归因 → 再点记录）移除。 */
+  function confirmDnf(reason) {
+    if (state !== "confirm") return;
+    pendingPenalty = "DNF";
+    pendingDnfReason = reason || "other";
+    confirmOk();
+  }
+
   function showConfirm() {
     var eff = pendingPenalty === "DNF" ? Infinity
             : rawMs + (pendingPenalty === "+2" ? 2000 : 0);
@@ -1155,7 +1164,6 @@
     els.confirmTime.textContent = pendingPenalty === "DNF" ? "DNF"
       : S.fmt(eff) + (pendingPenalty === "+2" ? "（含 +2）" : "");
     els.btnPlus2.classList.toggle("is-on", pendingPenalty === "+2");
-    els.btnDnf.classList.toggle("is-on", pendingPenalty === "DNF");
     renderConfirmMetrics();
   }
 
@@ -1182,15 +1190,6 @@
            当成手速会误导，直接不显示。 */
         parts.push(metric("每公式秒数", m.secPerAlg.toFixed(3) + "s"));
         els.confirmMetrics.innerHTML = '<div class="tm-confirm__metrics">' + parts.join("") + "</div>";
-      }
-    }
-    if (els.dnfReason) {
-      els.dnfReason.hidden = pendingPenalty !== "DNF";
-      if (pendingPenalty === "DNF") {
-        var cur = pendingDnfReason || "other";
-        [["memo", els.dnfMemo], ["exec", els.dnfExec], ["other", els.dnfOther]].forEach(function (p) {
-          if (p[1]) p[1].classList.toggle("is-on", p[0] === cur);
-        });
       }
     }
   }
@@ -3331,7 +3330,7 @@
       manualInput: $("tm-manual-input"), manualApply: $("tm-manual-apply"),
       confirm: $("tm-confirm"), confirmTime: $("tm-confirm-time"),
       btnOk: $("tm-confirm-ok"), btnPlus2: $("tm-confirm-plus2"),
-      btnDnf: $("tm-confirm-dnf"), btnDrop: $("tm-confirm-drop"),
+      btnDrop: $("tm-confirm-drop"),
       strip: $("tm-strip"), kCount: $("k-count"), kBest: $("k-best"),
       kAo5: $("k-ao5"), kAo12: $("k-ao12"), kAo100: $("k-ao100"),
       ao: $("tm-ao"), aoCmp: $("tm-ao-cmp"), ao5: $("tm-ao-5"), ao12: $("tm-ao-12"),
@@ -3396,9 +3395,8 @@
       bldStepsWrap: $("tm-bld-steps"),
       /* 计时中：记忆/执行分段提示 */
       memo: $("tm-memo"),
-      /* 确认区：本次指标 + DNF 归因 */
+      /* 确认区：本次指标 + DNF 三归因一级直录按钮 */
       confirmMetrics: $("tm-confirm-metrics"),
-      dnfReason: $("tm-dnf-reason"),
       dnfMemo: $("tm-dnf-memo"), dnfExec: $("tm-dnf-exec"), dnfOther: $("tm-dnf-other"),
       /* 练习笔记（草稿，记录时附到本次成绩） */
       noteDraft: $("tm-note-draft"),
@@ -3489,7 +3487,6 @@
 
     els.btnOk.addEventListener("click", function () { confirmOk(); this.blur(); });
     els.btnPlus2.addEventListener("click", function () { togglePenalty("+2"); this.blur(); });
-    els.btnDnf.addEventListener("click", function () { togglePenalty("DNF"); this.blur(); });
     els.btnDrop.addEventListener("click", function () { discard(); this.blur(); });
 
     /* 分组控件 */
@@ -3746,10 +3743,10 @@
         b.blur();
       });
     }
-    /* 确认区：DNF 归因（记忆错 / 执行错 / 其他） */
-    if (els.dnfMemo) els.dnfMemo.addEventListener("click", function () { pendingDnfReason = "memo"; renderConfirmMetrics(); });
-    if (els.dnfExec) els.dnfExec.addEventListener("click", function () { pendingDnfReason = "exec"; renderConfirmMetrics(); });
-    if (els.dnfOther) els.dnfOther.addEventListener("click", function () { pendingDnfReason = "other"; renderConfirmMetrics(); });
+    /* 确认区：DNF 三种归因一级直录（v2.2.0）—— 点一下即按「DNF + 归因」落盘 */
+    if (els.dnfMemo) els.dnfMemo.addEventListener("click", function () { confirmDnf("memo"); });
+    if (els.dnfExec) els.dnfExec.addEventListener("click", function () { confirmDnf("exec"); });
+    if (els.dnfOther) els.dnfOther.addEventListener("click", function () { confirmDnf("other"); });
     /* 打乱题型：切换即出题（v2.2.0） */
     if (els.scrtypeSeg) els.scrtypeSeg.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-st]");

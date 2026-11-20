@@ -555,12 +555,10 @@ body { margin: 0; }
 .tm-metric__v { font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--fg); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tm-metric__note { font-size: 10px; font-style: normal; color: var(--amber); font-family: var(--font-sans); }
 
-/* ---------- 确认区：DNF 归因（与操作按钮同一行、一并靠右） ---------- */
-.tm-dnf-reason {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  margin-left: 10px; padding-left: 10px; border-left: 1px dashed var(--line-2);
-}
-.tm-dnf-reason__k { font-size: 12px; color: var(--fg-2); }
+/* ---------- 确认区：DNF 三归因一级直录（v2.2.0） ----------
+   归因按钮与「记录 / +2」同排平铺；DNF 类按钮用琥珀描边提示是罚时类操作。 */
+.tm-dnf-btn { color: var(--amber, #d9a03f); border-color: var(--line-2); }
+.tm-dnf-btn:hover { border-color: var(--amber, #d9a03f); }
 
 /* ---------- 参数面板：步数估算配置 ---------- */
 .tm-bld-steps { margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface-2); }
@@ -612,11 +610,6 @@ body { margin: 0; }
   .tm-list { max-height: 52vh; }
   .tm-list-bar__meta { margin-left: 0; flex: 1 1 100%; }
   .tm-confirm__btns { margin-left: 0; width: 100%; }
-  /* 窄屏按钮行独占两行：归因整行右对齐，仍与「DNF / 记录」同侧 */
-  .tm-dnf-reason {
-    flex: 1 1 100%; justify-content: flex-end; margin-left: 0; padding-left: 0;
-    border-left: 0; border-top: 1px dashed var(--line-2); padding-top: 6px;
-  }
   .tm-map__row { grid-template-columns: minmax(0, 1fr) auto 118px; gap: 8px; }
   .tm-map__n { display: none; }
 }
@@ -777,16 +770,12 @@ body { margin: 0; }
   }
   .tm-confirm__label { display: none; }
   .tm-confirm__time { font-size: 18px; }
-  /* 四个按钮平分一行，手机上点得准；归因展开后独占一行并夹回右侧，不再挤占按钮宽度 */
+  /* 六个按钮平分两行（记录/+2/作废一行，DNF 三归因一行），手机上点得准 */
   .tm-confirm__btns { gap: 4px; margin-left: 0; width: 100%; flex: 1 1 100%; flex-wrap: wrap; }
   .tm-confirm__btns .btn { padding: 9px 4px; font-size: 12px; flex: 1 1 auto; white-space: nowrap; }
   .tm-confirm__metrics { margin: 4px 0 2px; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 4px 10px; }
   .tm-confirm__metrics-wrap { gap: 4px 10px; }
   .tm-metric__v { font-size: 12px; }
-  .tm-confirm__btns > .tm-dnf-reason {
-    flex: 1 1 100%; justify-content: flex-end; padding: 4px 0 0; gap: 5px; margin: 2px 0 0;
-    border-top: 0;
-  }
 
   /* ---------- 统计条：压缩成一行小字 ---------- */
   .tm-strip { flex: 0 0 auto; grid-template-columns: repeat(4, 1fr); }

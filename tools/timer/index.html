@@ -291,24 +291,20 @@
       <span class="tm-ao__ao12" id="tm-ao-12"></span>
     </div>
 
-    <!-- ③ 成绩确认 -->
+    <!-- ③ 成绩确认（v2.2.0 一级平铺：DNF 三种归因直接摆出来，点一下即录完，
+         不再「点 DNF → 展开归因 → 选归因 → 再记录」四级往返；
+         「进入复盘」按钮由复盘模块注入） -->
     <div class="tm-confirm" id="tm-confirm" hidden>
       <span class="tm-confirm__label">确认本次成绩</span>
       <span class="tm-confirm__time" id="tm-confirm-time">--</span>
       <div class="tm-confirm__metrics" id="tm-confirm-metrics"></div>
-      <!-- 归因与操作按钮同处一行、一并靠右：鼠标从左划到右即可完成「选归因 → 记录」，
-           不必在左右两侧来回移动。 -->
       <div class="tm-confirm__btns">
         <button class="btn btn--sm btn--primary" id="tm-confirm-ok" type="button">✓ 记录</button>
         <button class="btn btn--sm btn--ghost" id="tm-confirm-plus2" type="button">+2</button>
-        <button class="btn btn--sm btn--ghost" id="tm-confirm-dnf" type="button">DNF</button>
+        <button class="btn btn--sm btn--ghost tm-dnf-btn" id="tm-dnf-memo" type="button">DNF·记忆错</button>
+        <button class="btn btn--sm btn--ghost tm-dnf-btn" id="tm-dnf-exec" type="button">DNF·执行错</button>
+        <button class="btn btn--sm btn--ghost tm-dnf-btn" id="tm-dnf-other" type="button">DNF·其他</button>
         <button class="btn btn--sm btn--ghost" id="tm-confirm-drop" type="button">✕ 作废</button>
-        <div class="tm-dnf-reason" id="tm-dnf-reason" hidden>
-          <span class="tm-dnf-reason__k">DNF 归因：</span>
-          <button type="button" class="btn btn--xs btn--ghost" id="tm-dnf-memo">记忆错</button>
-          <button type="button" class="btn btn--xs btn--ghost" id="tm-dnf-exec">执行错</button>
-          <button type="button" class="btn btn--xs btn--ghost" id="tm-dnf-other">其他</button>
-        </div>
       </div>
     </div>
 
