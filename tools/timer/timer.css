@@ -33,6 +33,12 @@
 
 .tm-wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 28px 16px 64px; }
 
+/* csTimer 式通栏（v2.2.0-B）：桌面横版（≥1025）取消限宽，左右不再留白；
+   窄屏 / 手机仍走原限宽与单列流，不受影响。 */
+@media (min-width: 1025px) {
+  .tm-wrap { max-width: none; }
+}
+
 /* 作者样式（.tm-confirm{display:flex} 等）优先级高于 UA 的 [hidden]{display:none}，
    必须显式兜底，否则带 hidden 的元素仍会显示。 */
 [hidden] { display: none !important; }
@@ -252,6 +258,17 @@ body { margin: 0; }
 /* ---------- 工具条 ---------- */
 .tm-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .tm-tools__hint { margin-left: auto; font-size: 12px; color: var(--fg-3); }
+/* 工具入口 / 面板（v2.2.0-B csTimer 式）：
+   基础态（手机 / 窄屏）：入口隐藏、面板就是原来的横条（旧样式原样迁移）；
+   桌面横版（≥1025 & 矮屏外）在下方媒体查询里换成「入口 + 右下角浮出面板」。 */
+.tm-tools__launch { display: none; }
+.tm-tools__panel {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  flex: 1 1 auto; min-width: 0;
+}
+#tm-list-toggle { display: none; }   /* 仅桌面横版显示（下方媒体查询开启） */
+/* csTimer 式：点击打乱公式文字可隐藏 / 显示（偏好持久化） */
+body.tm-scrtext-hidden .tm-scramble__text { display: none; }
 /* 设置按钮 / 主题按钮：桌面端主界面已含项目选择器与主题按钮，故默认隐藏；仅手机端出现 */
 .tm-settings-btn { display: none; }
 .tm-theme-toggle { display: none; }
@@ -951,27 +968,49 @@ body { margin: 0; }
   /* 页脚在桌面让位：109px 纯浪费，计时器也没有需要它的内容 */
   body > .site-footer { display: none !important; }
 
-  /* 两列分区。右列 30% 并夹在 300–400px：
-     1440 屏给 380、1920 屏给 400、1025 屏给 300，左列始终 ≥470。 */
+  /* 两列分区（v2.2.0-B csTimer 式）：成绩列表移到左侧竖排，可一键收起；
+     左列 26% 并夹在 300–380px，右列（计时主区）吃掉剩余全部宽度。 */
   .tm {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 30%, 400px);
+    grid-template-columns: clamp(300px, 26%, 380px) minmax(0, 1fr);
     gap: 12px;
   }
   .tm-main {
     display: flex; flex-direction: column; gap: 10px;
-    grid-column: 1; grid-row: 1;
+    grid-column: 2; grid-row: 1;
     min-height: 0; overflow: hidden;
   }
   .tm-list-wrap {
     display: flex; flex-direction: column;
-    grid-column: 2; grid-row: 1;
+    grid-column: 1; grid-row: 1;
     min-height: 0; overflow: hidden;
   }
+  /* 列表收起（点工具面板里的「☰ 成绩列表」）：主区占满整行 */
+  body.tm-list-hidden .tm-list-wrap { display: none; }
+  body.tm-list-hidden .tm { grid-template-columns: minmax(0, 1fr); }
+  body.tm-list-hidden .tm-main { grid-column: 1; }
+  #tm-list-toggle { display: inline-flex; }
 
-  /* 左列排布：工具带提到最上，计时舞台吃掉剩余高度 */
-  .tm-main > .tm-tools { order: -1; flex: 0 0 auto; }
-  .tm-main > .tm-bar { flex: 0 1 auto; min-height: 0; }
+  /* 左列排布：打乱区提到最上（csTimer 口径），工具条换成右下角浮出面板，
+     计时舞台吃掉剩余高度 */
+  .tm-main > .tm-bar { order: -2; flex: 0 1 auto; min-height: 0; }
+  .tm-main > .tm-review { flex: 0 0 auto; }
+  .tm-main > .tm-tools { order: 0; flex: 0 0 auto; display: block; position: relative; }
+  .tm-tools__launch { display: inline-flex; }
+  .tm-tools__panel {
+    display: none;
+    position: fixed; right: 16px; bottom: 16px; z-index: 80;
+    flex-direction: column; align-items: stretch; gap: 9px;
+    width: 300px; max-width: calc(100vw - 32px);
+    max-height: calc(100dvh - 120px); overflow-y: auto;
+    padding: 14px;
+    background: var(--surface-solid, var(--surface));
+    border: 1px solid var(--line-2);
+    box-shadow: var(--menu-shadow);
+  }
+  .tm-tools.is-open .tm-tools__panel { display: flex; }
+  .tm-tools__panel .tm-tools__hint { margin-left: 0; }
+  .tm-tools__panel .tm-menu { left: 0; right: 0; }   /* 导出菜单在面板内不越界 */
   .tm-main > .tm-stage { flex: 1 1 auto; min-height: 180px; }
   .tm-main > .tm-confirm { flex: 0 0 auto; }
   .tm-main > .tm-strip { flex: 0 0 auto; }

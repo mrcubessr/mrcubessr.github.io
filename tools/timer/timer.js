@@ -3438,6 +3438,9 @@
       ao: $("tm-ao"), aoCmp: $("tm-ao-cmp"), ao5: $("tm-ao-5"), ao12: $("tm-ao-12"),
       barStats: $("tm-bar-stats"), barSettings: $("tm-bar-settings"),
       barList: $("tm-bar-list"), barTheme: $("tm-bar-theme"),
+      /* csTimer 式工具面板与列表开关（v2.2.0-B） */
+      toolsWrap: $("tm-tools"), toolsLaunch: $("tm-tools-launch"),
+      listToggle: $("tm-list-toggle"),
       fsBtn: $("tm-fs-btn"),
       kCountK: $("k-count-k"), kBestK: $("k-best-k"),
       kAo5K: $("k-ao5-k"), kAo12K: $("k-ao12-k"), kAo100K: $("k-ao100-k"),
@@ -3538,22 +3541,35 @@
       try { loadData(); renderGroups(); renderStrip(); renderList(); } catch (err) {}
     });
 
-    /* 列表显示开关（csTimer 式）：默认隐藏，让计时区占满屏幕；点底部「列表」切换。
-       偏好存 localStorage，刷新后保持。 */
+    /* 列表显示开关（csTimer 式）：手机默认隐藏让计时区占满一屏；
+       v2.2.0-B 桌面横版列表在左侧、默认显示，两端的偏好分开存（互不干扰）。
+       点底部「列表」（手机）或工具面板「☰ 成绩列表」（桌面）切换。 */
+    function isDesktopTall() {
+      return window.matchMedia("(min-width: 1025px) and (min-height: 660px)").matches;
+    }
+    function listPrefKey() { return isDesktopTall() ? "timer_list_hidden_d" : "timer_list_hidden"; }
     function applyListHidden(hidden) {
       document.body.classList.toggle("tm-list-hidden", hidden);
       if (els.barList) {
         els.barList.classList.toggle("is-on", !hidden);
         els.barList.setAttribute("aria-pressed", String(!hidden));
       }
-      try { localStorage.setItem("timer_list_hidden", hidden ? "1" : "0"); } catch (e) {}
+      if (els.listToggle) {
+        els.listToggle.setAttribute("aria-pressed", String(!hidden));
+        els.listToggle.textContent = hidden ? "☰ 显示成绩列表" : "☰ 隐藏成绩列表";
+      }
+      try { localStorage.setItem(listPrefKey(), hidden ? "1" : "0"); } catch (e) {}
     }
-    var savedHidden = true;   /* 默认隐藏列表，计时区占满一屏 */
-    try {
-      var lv = localStorage.getItem("timer_list_hidden");
-      if (lv !== null) savedHidden = (lv === "1");
-    } catch (e) {}
-    applyListHidden(savedHidden);
+    function applyListPref() {
+      var dft = isDesktopTall() ? false : true;   /* 桌面默认显示，手机默认隐藏 */
+      var saved = null;
+      try { saved = localStorage.getItem(listPrefKey()); } catch (e) {}
+      applyListHidden(saved === null ? dft : saved === "1");
+    }
+    applyListPref();
+    window.addEventListener("resize", function () {
+      applyListPref();   /* 跨过桌面/手机断点时按各自偏好重放 */
+    });
 
     buildInspect();
     buildEvents();
@@ -3794,6 +3810,42 @@
       applyListHidden(!document.body.classList.contains("tm-list-hidden"));
       this.blur();
     });
+    /* 工具面板（桌面横版）：入口点击弹出右下角面板，点面板外收起（v2.2.0-B） */
+    if (els.toolsLaunch && els.toolsWrap) {
+      els.toolsLaunch.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var open = els.toolsWrap.classList.toggle("is-open");
+        els.toolsLaunch.setAttribute("aria-expanded", String(open));
+        els.toolsLaunch.textContent = open ? "工具 ▴" : "工具 ▾";
+        this.blur();
+      });
+      document.addEventListener("click", function (e) {
+        if (!els.toolsWrap.classList.contains("is-open")) return;
+        if (e.target.closest && e.target.closest("#tm-tools")) return;
+        els.toolsWrap.classList.remove("is-open");
+        els.toolsLaunch.setAttribute("aria-expanded", "false");
+        els.toolsLaunch.textContent = "工具 ▾";
+      });
+    }
+    /* 桌面：工具面板里的「☰ 成绩列表」开关（手机用底部栏的「列表」） */
+    if (els.listToggle) els.listToggle.addEventListener("click", function () {
+      applyListHidden(!document.body.classList.contains("tm-list-hidden"));
+      this.blur();
+    });
+    /* csTimer 式：点击打乱公式文字隐藏 / 显示（偏好持久化） */
+    if (els.scramble) {
+      els.scramble.title = "点击隐藏 / 显示打乱公式";
+      els.scramble.style.cursor = "pointer";
+      try {
+        if (localStorage.getItem("timer_scrtext_hidden") === "1") {
+          document.body.classList.add("tm-scrtext-hidden");
+        }
+      } catch (e) {}
+      els.scramble.addEventListener("click", function () {
+        var hidden = document.body.classList.toggle("tm-scrtext-hidden");
+        try { localStorage.setItem("timer_scrtext_hidden", hidden ? "1" : "0"); } catch (e) {}
+      });
+    }
     if (els.barTheme) els.barTheme.addEventListener("click", function () {
       Theme.toggle(); refreshThemeActive(); this.blur();
     });
