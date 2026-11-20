@@ -304,8 +304,23 @@
         <button class="btn btn--sm btn--ghost tm-dnf-btn" id="tm-dnf-memo" type="button">DNF·记忆错</button>
         <button class="btn btn--sm btn--ghost tm-dnf-btn" id="tm-dnf-exec" type="button">DNF·执行错</button>
         <button class="btn btn--sm btn--ghost tm-dnf-btn" id="tm-dnf-other" type="button">DNF·其他</button>
+        <button class="btn btn--sm btn--secondary" id="tm-confirm-review" type="button"
+                title="这把不要了，锁定当前打乱反复练（成绩只进临时区）">↺ 复盘</button>
         <button class="btn btn--sm btn--ghost" id="tm-confirm-drop" type="button">✕ 作废</button>
       </div>
+    </div>
+
+    <!-- ②-C 复盘模式（确认条「↺ 复盘」激活）：锁定当前打乱反复练。
+         成绩只进临时区（可回看多把、可手动清空），不写正式成绩与统计；
+         退出复盘即清空临时区回主舞台；三盲下可对最近一把生成海报分享。 -->
+    <div class="tm-review" id="tm-review" hidden>
+      <span class="tm-review__tag">复盘</span>
+      <span class="tm-review__txt">已锁定当前打乱，成绩只记入临时区</span>
+      <span class="tm-review__n" id="tm-review-n">0 把</span>
+      <button class="btn btn--sm btn--secondary" id="tm-review-share" type="button">海报分享</button>
+      <button class="btn btn--sm btn--ghost" id="tm-review-clear" type="button">清空</button>
+      <button class="btn btn--sm btn--ghost" id="tm-review-exit" type="button">退出复盘</button>
+      <div class="tm-review__list" id="tm-review-list"></div>
     </div>
 
     <!-- ④ 统计条 -->

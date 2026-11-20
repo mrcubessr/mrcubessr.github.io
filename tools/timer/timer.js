@@ -373,6 +373,7 @@
 
   /* ---------- 打乱 ---------- */
   function newScramble() {
+    if (review) return;   /* 复盘模式：打乱已锁定（换打乱按钮 / N 键 / 题型切换都不换题） */
     if (opt.manual && opt.event !== "bld") { liveScramble = curScramble; renderScramble(); return; }
     if (opt.event === "bld") {
       if (!opt.bld) opt.bld = defaultBld();
@@ -656,6 +657,7 @@
      v2.0.55：三盲沿用原逻辑（解法 + 预摆展开图）；速拧也能回放了 ——
      打乱公式 + 按当前项目阶数绘制的展开图，解法面板不涉及。 */
   function viewSolve(rec, num) {
+    if (review) return;   /* 复盘模式锁定打乱，不开历史回放（避免打乱区被历史覆盖） */
     if (!rec) return;
     var scr = (rec.bld && rec.bld.scramble) || rec.scramble || "";
     viewingSolve = true; viewingSolveNum = num;
@@ -745,6 +747,7 @@
   function applyEventUI() {
     var isBld = opt.event === "bld";
     exitSolveView();   /* 切换项目时退出“查看历史解法”状态 */
+    if (review) exitReview();   /* 切换项目时退出复盘（临时区一并清空） */
     if (els.bldParams) els.bldParams.hidden = !isBld;
     /* 打乱题型条：仅三盲显示；显示时按当前模式再同步子控件显隐 */
     if (els.scrtypes) els.scrtypes.hidden = !isBld;
@@ -870,7 +873,7 @@
   }
   /* 题型变更后重出一把（仅 idle；跑表 / 确认中不打断计时流程） */
   function scrTypeReapply() {
-    if (opt.event === "bld" && state === "idle" && !viewingSolve) newScramble();
+    if (opt.event === "bld" && state === "idle" && !viewingSolve && !review) newScramble();
   }
 
   function populateOrientation() {
@@ -1110,45 +1113,112 @@
         pending 的这一把属于 liveScramble（不能张冠李戴）。 */
     var myScramble = viewingSolve ? liveScramble : curScramble;
     if (myScramble) entry.scramble = myScramble;
-    /* 三盲：把当前打乱对应的解法 + 指标一并存入成绩（分析用）。
-       同样按「pending 的这一把」取打乱：回放历史时 curScramble 是那把历史的。 */
-    if (opt.event === "bld" && curBld && opt.bld) {
-      var b = opt.bld;
-      entry.bld = {
-        scramble: myScramble,
-        orientation: b.orientation,
-        orientationLabel: curBld.orientationLabel,
-        edgeBuffer: b.edgeBuffer, edgeOrder: b.edgeOrder,
-        edgeOrientFlag: !!b.edgeOrientFlag, edgeSkip: !!b.edgeSkip,
-        floatBuffer: !!b.floatBuffer,
-        cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
-        cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
-        edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
-        edgeRoles: curBld.edgeRoles || null, cornerRoles: curBld.cornerRoles || null,
-        parity: curBld.parity, complexity: curBld.complexity,
-        difficulty: curBld.difficulty,
-        scrType: SCRTYPE_LABELS[curScrType] || "常规",
-        dnfReason: pendingPenalty === "DNF" ? pendingDnfReason || "other" : ""
-      };
-      if (window.BLDEngine && window.BLDEngine.bldMetrics && curBld.difficulty) {
-        var m = window.BLDEngine.bldMetrics(curBld.difficulty, memoMs, rawMs, b.steps);
-        entry.bld.metrics = m;
-      }
+    /* 三盲：把当前打乱对应的解法 + 指标一并存入成绩（分析用）。 */
+    var bldPayload = buildBldEntry(myScramble);
+    if (bldPayload) entry.bld = bldPayload;
+    /* 复盘模式（v2.2.0-E）：成绩只进临时区，不写正式成绩与统计 */
+    if (review) {
+      review.solves.push(entry);
+      resetAfterConfirm();
+      state = "idle";
+      els.time.textContent = "0.00";
+      updateBldReveal();
+      renderReview();
+      paint();
+      return;
     }
     solves().unshift(entry);
     saveData();
+    resetAfterConfirm();
+    next(false);
+  }
+  /* 确认完成后共用的收尾（正式/复盘两条路径都要走） */
+  function resetAfterConfirm() {
     rawMs = 0;
     pendingPenalty = "";
     pendingDnfReason = "";
     if (els.confirm) els.confirm.hidden = true;
     if (els.noteDraft) els.noteDraft.value = "";   /* 备注已附到本次成绩，清空草稿 */
-    next(false);
+  }
+  /* 三盲解法载荷抽取（confirmOk 正式路径与复盘临时区共用） */
+  function buildBldEntry(myScramble) {
+    if (opt.event !== "bld" || !curBld || !opt.bld) return null;
+    var b = opt.bld;
+    var payload = {
+      scramble: myScramble,
+      orientation: b.orientation,
+      orientationLabel: curBld.orientationLabel,
+      edgeBuffer: b.edgeBuffer, edgeOrder: b.edgeOrder,
+      edgeOrientFlag: !!b.edgeOrientFlag, edgeSkip: !!b.edgeSkip,
+      floatBuffer: !!b.floatBuffer,
+      cornerBuffer: b.cornerBuffer, cornerOrder: b.cornerOrder,
+      cornerOrientFlag: !!b.cornerOrientFlag, cornerSkip: !!b.cornerSkip,
+      edge: curBld.edge, flip: curBld.flip, corner: curBld.corner, twist: curBld.twist,
+      edgeRoles: curBld.edgeRoles || null, cornerRoles: curBld.cornerRoles || null,
+      parity: curBld.parity, complexity: curBld.complexity,
+      difficulty: curBld.difficulty,
+      scrType: SCRTYPE_LABELS[curScrType] || "常规",
+      dnfReason: pendingPenalty === "DNF" ? pendingDnfReason || "other" : ""
+    };
+    if (window.BLDEngine && window.BLDEngine.bldMetrics && curBld.difficulty) {
+      payload.metrics = window.BLDEngine.bldMetrics(curBld.difficulty, memoMs, rawMs, b.steps);
+    }
+    return payload;
   }
 
   function togglePenalty(p) {
     if (state !== "confirm") return;
     pendingPenalty = pendingPenalty === p ? "" : p;
     showConfirm();
+  }
+
+  /* ---------- 复盘模式（v2.2.0-E） ----------
+     确认条「↺ 复盘」进入：锁定当前打乱反复练，成绩只进临时区（不写正式成绩/统计），
+     退出复盘即清空临时区回主舞台。复盘期间 N 键/「换打乱」不再换题。 */
+  var review = null;   /* { scramble: 锁定的打乱, solves: [entry…] } */
+  function enterReview() {
+    if (state !== "confirm" || review) return;
+    var scr = liveScramble || curScramble;
+    review = { scramble: scr, solves: [] };
+    resetAfterConfirm();
+    state = "idle";
+    els.time.textContent = "0.00";
+    updateBldReveal();
+    if (els.reviewShare) els.reviewShare.hidden = opt.event !== "bld";
+    showReview();
+    paint();
+  }
+  function exitReview() {
+    if (!review) return;
+    review = null;
+    if (els.review) els.review.hidden = true;
+    next(false);   /* 退出即回主舞台：换一把新打乱 */
+  }
+  function showReview() {
+    if (els.review) els.review.hidden = !review;
+    renderReview();
+  }
+  function renderReview() {
+    if (!review) return;
+    if (els.reviewN) els.reviewN.textContent = review.solves.length + " 把";
+    if (!els.reviewList) return;
+    var parts = review.solves.map(function (s, i) {
+      var pen = s.pen === "DNF" ? '<span class="tm-review__dnf">DNF</span>'
+              : s.pen === "+2" ? '<span class="tm-review__p2">+2</span>' : "";
+      var reason = (s.bld && s.bld.dnfReason && s.pen === "DNF")
+        ? "·" + (s.bld.dnfReason === "memo" ? "记忆" : s.bld.dnfReason === "exec" ? "执行" : "其他") : "";
+      return '<span class="tm-review__item">#' + (i + 1) + " " + S.fmt(s.ms) +
+        (s.pen === "+2" ? "+2s" : "") + pen + reason + "</span>";
+    });
+    els.reviewList.innerHTML = parts.join("") ||
+      '<span class="tm-review__empty">还没有临时成绩，开一把试试</span>';
+  }
+  /* 复盘区海报分享：把最近一把临时成绩按正式海报口径生成（仅三盲） */
+  function shareReviewLast() {
+    if (!review || !review.solves.length) return;
+    var s = review.solves[review.solves.length - 1];
+    var rec = normSolve(s);
+    if (rec) shareBldPoster(rec, review.solves.length);
   }
 
   /* DNF 一级直录（v2.2.0）：归因按钮点一下即按「DNF + 归因」落盘，不再二级展开。
@@ -1221,7 +1291,8 @@
     pendingPenalty = "";
     state = "idle";
     els.time.textContent = "0.00";
-    if (!opt.manual) newScramble();
+    /* 复盘模式：打乱已锁定，不重新出题（curScramble 保持不变） */
+    if (!review && !opt.manual) newScramble();
     paint();
     renderStrip();
     renderList();
@@ -1320,6 +1391,7 @@
       }
       /* M 键不再参与分段（用户要求全用空格）；旧键位彻底移除，避免误触 */
       if ((k === "n" || k === "N") && (state === "idle" || state === "confirm")) {
+        if (review) return;   /* 复盘模式打乱已锁定：N 不换题 */
         e.preventDefault();
         if (state === "confirm") discard(); else next(false);
       }
@@ -3430,6 +3502,10 @@
       /* 确认区：本次指标 + DNF 三归因一级直录按钮 */
       confirmMetrics: $("tm-confirm-metrics"),
       dnfMemo: $("tm-dnf-memo"), dnfExec: $("tm-dnf-exec"), dnfOther: $("tm-dnf-other"),
+      reviewBtn: $("tm-confirm-review"),
+      /* 复盘模式（v2.2.0-E） */
+      review: $("tm-review"), reviewN: $("tm-review-n"), reviewList: $("tm-review-list"),
+      reviewShare: $("tm-review-share"), reviewClear: $("tm-review-clear"), reviewExit: $("tm-review-exit"),
       /* 练习笔记（草稿，记录时附到本次成绩） */
       noteDraft: $("tm-note-draft"),
       /* 成绩详情 / 编辑弹窗 */
@@ -3812,6 +3888,16 @@
     if (els.dnfMemo) els.dnfMemo.addEventListener("click", function () { confirmDnf("memo"); });
     if (els.dnfExec) els.dnfExec.addEventListener("click", function () { confirmDnf("exec"); });
     if (els.dnfOther) els.dnfOther.addEventListener("click", function () { confirmDnf("other"); });
+    /* 复盘模式（v2.2.0-E）：确认条入口 + 复盘区三操作 */
+    if (els.reviewBtn) els.reviewBtn.addEventListener("click", function () { enterReview(); });
+    if (els.reviewShare) els.reviewShare.addEventListener("click", function () { shareReviewLast(); });
+    if (els.reviewClear) els.reviewClear.addEventListener("click", function () {
+      if (!review) return;
+      review.solves = [];
+      renderReview();
+      els.reviewClear.blur();
+    });
+    if (els.reviewExit) els.reviewExit.addEventListener("click", function () { exitReview(); });
     /* 打乱题型：切换即出题（v2.2.0） */
     if (els.scrtypeSeg) els.scrtypeSeg.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-st]");

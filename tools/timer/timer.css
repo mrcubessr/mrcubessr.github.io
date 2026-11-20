@@ -569,6 +569,33 @@ body { margin: 0; }
 .tm-dnf-btn { color: var(--amber, #d9a03f); border-color: var(--line-2); }
 .tm-dnf-btn:hover { border-color: var(--amber, #d9a03f); }
 
+/* ---------- 复盘模式条（v2.2.0-E） ----------
+   锁定打乱反复练：琥珀虚线框与确认区呼应；临时成绩 chips 单行滚动。 */
+.tm-review {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--gold-soft); border: 1px dashed var(--gold); border-radius: 0;
+}
+.tm-review__tag {
+  font-weight: 800; font-size: 12px; letter-spacing: 2px; white-space: nowrap;
+  color: var(--fg); border: 1px solid var(--gold); padding: 2px 8px;
+  background: var(--surface-2);
+}
+.tm-review__txt { flex: 1 1 auto; min-width: 0; font-size: 12px; color: var(--fg-2); }
+.tm-review__n { font-size: 12px; font-weight: 700; color: var(--fg-2); white-space: nowrap; }
+.tm-review__list {
+  flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px;
+  max-height: 96px; overflow: auto;
+  padding-top: 6px; border-top: 1px dashed var(--line-2);
+}
+.tm-review__item {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700; white-space: nowrap;
+  padding: 2px 8px; background: var(--surface-3); color: var(--fg);
+}
+.tm-review__dnf { color: var(--red); font-weight: 800; margin-left: 4px; }
+.tm-review__p2 { color: var(--amber); font-weight: 800; margin-left: 4px; }
+.tm-review__empty { font-size: 12px; color: var(--fg-3); }
+
 /* ---------- 参数面板：步数估算配置 ---------- */
 .tm-bld-steps { margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface-2); }
 .tm-bld-steps__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
