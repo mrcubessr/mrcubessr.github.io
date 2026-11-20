@@ -117,7 +117,9 @@ body { margin: 0; }
 .tm-scramble__text {
   flex: 1 1 300px; min-width: 0; max-width: 460px;
   font-family: var(--font-mono); font-size: calc(17px * var(--tm-scramble-scale)); font-weight: 600; letter-spacing: 1px;
-  line-height: 1.6; color: var(--gold);
+  line-height: 1.6;
+  /* v2.2.0-D：颜色可在设置里自选（--tm-scr-color），默认仍用金色 */
+  color: var(--tm-scr-color, var(--gold));
   display: flex; flex-wrap: wrap; gap: 3px 9px;
   user-select: all;
 }
@@ -125,17 +127,24 @@ body { margin: 0; }
 .tm-mv { white-space: nowrap; }
 .tm-scramble__btns { display: flex; gap: 8px; flex: 0 0 auto; align-self: flex-start; }
 
-/* 展开图：跟随打乱公式，固定在右侧（窄屏下移到底部并居中） */
+/* 展开图：跟随打乱公式，固定在右侧（窄屏下移到底部并居中）。
+   v2.2.0-D：宽度乘 --tm-net-zoom（设置里 0.7~2 倍滑块）；
+   皮肤用 data-net-skin 切换：非 default 皮肤下 canvas 去掉自身底色，
+   玻璃主题的底板直接透出来（融为一体），贴纸画法由 cube-net.js 的 opts.skin 控制。 */
 .tm-bld-net-side {
-  flex: 0 0 auto; width: 300px; max-width: 100%;
+  flex: 0 0 auto; width: calc(300px * var(--tm-net-zoom, 1)); max-width: 100%;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
 }
 .tm-bld-net-side canvas { display: block; max-width: 100%; height: auto; background: var(--surface); }
+.tm-bld-net-side[data-net-skin="glass"] canvas,
+.tm-bld-net-side[data-net-skin="rounded"] canvas,
+.tm-bld-net-side[data-net-skin="outline"] canvas,
+.tm-bld-net-side[data-net-skin="flat"] canvas { background: transparent; }
 .tm-bld__net-cap { font-size: 11px; color: var(--fg-3); }
 
 /* 四阶 / 五阶（v2.0.55）：每面 16 / 25 格贴纸，图区加宽一档。
    drawScrambleNet 是按容器宽等比缩放的，容器宽了单张贴纸才看得清。 */
-.tm-scramble-block.is-big .tm-bld-net-side { width: 360px; }
+.tm-scramble-block.is-big .tm-bld-net-side { width: calc(360px * var(--tm-net-zoom, 1)); }
 
 .tm-manual-box { display: flex; gap: 8px; }
 .tm-manual-box .input { flex: 1 1 auto; min-width: 0; font-family: var(--font-mono); }
@@ -972,7 +981,7 @@ body { margin: 0; }
 
   /* 宽列里公式放宽、展开图收窄，给打乱留出行宽 */
   .tm-scramble__text { max-width: none; }
-  .tm-bld-net-side { width: 250px; }
+  .tm-bld-net-side { width: calc(250px * var(--tm-net-zoom, 1)); }
 
   /* 计时数字的字号放大放在下面的「≥1280」独立媒体查询里。
      不能写在这里：本块里任何 .tm-time 规则（哪怕选择器不同）都会因为

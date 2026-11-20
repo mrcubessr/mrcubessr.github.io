@@ -73,7 +73,7 @@
 
   /* personal（v2.0.60）：个性化设置（配色 / 字体 / 密度 / 动效），由 tools/timer/personal.js
      读写；整存整取，具体字段的解释与默认值都在 personal.js 里。 */
-  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true, scrambleScale: 1, timeScale: 1, personal: null };
+  var opt = { event: "3x3", manual: false, inspect: 15, manualText: "", bld: null, bldCollapsed: true, scrambleScale: 1, timeScale: 1, personal: null, netZoom: 1, netSkin: "glass", scrColor: "" };
   /* 速拧的「观察」偏好：三盲会临时把 opt.inspect 压成 0，切回速拧时用它还原 */
   var speedInspect = 15;
 
@@ -314,6 +314,10 @@
       /* 字体缩放：打乱公式 / 计时数字，取值范围 0.8~2.5（默认 1） */
       if (typeof o.scrambleScale === "number" && isFinite(o.scrambleScale)) opt.scrambleScale = clamp(o.scrambleScale, 0.8, 2.5);
       if (typeof o.timeScale === "number" && isFinite(o.timeScale)) opt.timeScale = clamp(o.timeScale, 0.8, 2.5);
+      /* 展开图皮肤 / 大小 / 打乱颜色（v2.2.0-D） */
+      if (typeof o.netZoom === "number" && isFinite(o.netZoom)) opt.netZoom = clamp(o.netZoom, 0.7, 2);
+      if (["glass", "default", "rounded", "outline"].indexOf(o.netSkin) >= 0) opt.netSkin = o.netSkin;
+      if (typeof o.scrColor === "string") opt.scrColor = o.scrColor;
       /* 个性化：整存整取。**必须在这里回读** —— saveOpt() 是整对象覆盖，
          不回读的话定时器任意一次 saveOpt 都会把已存的个性化配置抹成 null。 */
       if (o.personal && typeof o.personal === "object") opt.personal = o.personal;
@@ -481,7 +485,7 @@
       return;
     }
     try {
-      window.drawScrambleNet(curBld.orientedScramble, els.bldNet, "white-green");
+      window.drawScrambleNet(curBld.orientedScramble, els.bldNet, "white-green", 3, netOpts());
       if (cap) cap.textContent = curBld.orientationLabel + " 展开图";
     } catch (e) {
       if (cap) cap.textContent = "展开图渲染失败";
@@ -510,7 +514,7 @@
     }
     if (!curScramble) { if (cap) cap.textContent = "展开图"; return; }
     try {
-      window.drawScrambleNet(curScramble, els.bldNet, "white-green", netSizeOf(opt.event));
+      window.drawScrambleNet(curScramble, els.bldNet, "white-green", netSizeOf(opt.event), netOpts());
       if (cap) cap.textContent = def.label + "打乱展开图";
     } catch (e) {
       if (cap) cap.textContent = "展开图渲染失败";
@@ -631,7 +635,7 @@
       return;
     }
     try {
-      window.drawScrambleNet(b.orientedScramble, els.bldNet, "white-green");
+      window.drawScrambleNet(b.orientedScramble, els.bldNet, "white-green", 3, netOpts());
       if (cap) cap.textContent = (b.orientationLabel || "") + " 展开图";
     } catch (e) {
       if (cap) cap.textContent = "展开图渲染失败";
@@ -2486,6 +2490,30 @@
     if (els.fontScrambleVal) els.fontScrambleVal.textContent = Math.round(opt.scrambleScale * 100) + "%";
     if (els.fontTimeVal) els.fontTimeVal.textContent = Math.round(opt.timeScale * 100) + "%";
   }
+
+  /* ---------- 展开图皮肤 / 大小 / 打乱颜色（v2.2.0-D） ----------
+     glass = 无底板玻璃融合（默认）；default = 经典主题底板；rounded / outline = 两种描边风格。
+     大小走 CSS 变量 --tm-net-zoom 缩放容器宽，canvas 自适应跟随（手机断点仍用固定宽不受影响）。 */
+  var NET_SKINS = ["glass", "default", "rounded", "outline"];
+  function netOpts() {
+    return { plate: opt.netSkin === "default" ? "solid" : "none", skin: opt.netSkin };
+  }
+  function applyNetStyle() {
+    var r = document.documentElement;
+    r.style.setProperty("--tm-net-zoom", String(opt.netZoom || 1));
+    r.style.setProperty("--tm-scr-color", opt.scrColor || "");
+    if (els.bldNetSide) els.bldNetSide.setAttribute("data-net-skin", opt.netSkin || "glass");
+  }
+  function syncNetSettingsUI() {
+    if (els.netZoom) els.netZoom.value = String(opt.netZoom);
+    if (els.netZoomVal) els.netZoomVal.textContent = Math.round(opt.netZoom * 100) + "%";
+    if (els.netSkinSeg) els.netSkinSeg.querySelectorAll("[data-skin]").forEach(function (b) {
+      b.classList.toggle("is-active", b.dataset.skin === opt.netSkin);
+    });
+    if (els.scrColorSeg) els.scrColorSeg.querySelectorAll("[data-color]").forEach(function (b) {
+      b.classList.toggle("is-active", (b.dataset.color || "") === (opt.scrColor || ""));
+    });
+  }
   function openSettings() {
     if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
     refreshThemeActive();
@@ -2493,6 +2521,8 @@
     if (els.fontScramble) els.fontScramble.value = String(opt.scrambleScale);
     if (els.fontTime) els.fontTime.value = String(opt.timeScale);
     applyFontScale();
+    applyNetStyle();
+    syncNetSettingsUI();
     /* 个性化面板：每次打开设置都把控件同步成当前配置（换设备同步下来后尤其重要） */
     if (window.TimerPersonal && window.TimerPersonal.sync) window.TimerPersonal.sync();
     els.settingsModal.hidden = false;
@@ -3363,6 +3393,8 @@
       settingsBldHost: $("tm-settings-bld-host"), settingsBldH: $("tm-settings-bld-h"),
       fontScramble: $("tm-font-scramble"), fontScrambleVal: $("tm-font-scramble-val"),
       fontTime: $("tm-font-time"), fontTimeVal: $("tm-font-time-val"),
+      netZoom: $("tm-net-zoom"), netZoomVal: $("tm-net-zoom-val"),
+      netSkinSeg: $("tm-net-skin"), scrColorSeg: $("tm-scr-color"),
       mapModal: $("tm-map"), mapRows: $("tm-map-rows"), mapSum: $("tm-map-sum"),
       mapOk: $("tm-map-ok"), mapCancel: $("tm-map-cancel"),
       bldParams: $("tm-bld-params"), bld: $("tm-bld"), bldMeta: $("tm-bld-meta"),
@@ -3411,7 +3443,7 @@
     };
     if (!els.stage) return;
 
-    loadData(); loadOpt(); applyFontScale();
+    loadData(); loadOpt(); applyFontScale(); applyNetStyle(); syncNetSettingsUI();
 
     /* 云端同步把数据写进 localStorage 后自动重读并重绘（下载/双向同步后无需手动刷新）。
        引擎在应用远端快照后会派发 sync:status，detail 里带 result.kind。 */
@@ -3618,6 +3650,39 @@
         els.fontTime.addEventListener("input", function () {
           opt.timeScale = parseFloat(this.value) || 1;
           applyFontScale(); saveOpt();
+        });
+      }
+      /* 展开图大小 / 皮肤 / 打乱颜色：实时预览 + 自动保存（v2.2.0-D） */
+      if (els.netZoom) {
+        els.netZoom.addEventListener("input", function () {
+          opt.netZoom = clamp(parseFloat(this.value) || 1, 0.7, 2);
+          applyNetStyle();
+          if (els.netZoomVal) els.netZoomVal.textContent = Math.round(opt.netZoom * 100) + "%";
+          saveOpt();
+          renderNet();     /* canvas 宽在绘制时按容器实测，容器变宽后必须重画才真的变大 */
+        });
+      }
+      if (els.netSkinSeg) {
+        els.netSkinSeg.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-skin]");
+          if (!btn) return;
+          opt.netSkin = btn.dataset.skin;
+          saveOpt();
+          syncNetSettingsUI();
+          applyNetStyle();                   /* 容器 data-net-skin 控制 canvas 透明底 */
+          renderNet();                       /* 皮肤改变画法，重画当前展开图 */
+          btn.blur();
+        });
+      }
+      if (els.scrColorSeg) {
+        els.scrColorSeg.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-color]");
+          if (!btn) return;
+          opt.scrColor = btn.dataset.color || "";
+          saveOpt();
+          syncNetSettingsUI();
+          applyNetStyle();                   /* 颜色走 CSS 变量，无需重画 */
+          btn.blur();
         });
       }
       /* 「设置 → 数据 → 导出 ▾」：展开/收起内联菜单 */

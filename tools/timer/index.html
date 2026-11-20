@@ -513,6 +513,32 @@
         </div>
       </div>
       <span class="tm-bld-params__hint">拖动滑块调整大小，实时预览，自动保存到本机。</span>
+      <h3 class="tm-h3">展开图与打乱颜色</h3>
+      <div class="tm-font-field">
+        <label class="tm-font-field__k" for="tm-net-zoom">展开图大小</label>
+        <input class="tm-font-field__range" type="range" id="tm-net-zoom" min="0.7" max="2" step="0.05" value="1">
+        <span class="tm-font-field__v" id="tm-net-zoom-val">100%</span>
+      </div>
+      <div class="tm-font-field">
+        <span class="tm-font-field__k">展开图皮肤</span>
+        <div class="seg" id="tm-net-skin" role="group" aria-label="展开图皮肤">
+          <button type="button" class="seg__btn" data-skin="glass">玻璃融合</button>
+          <button type="button" class="seg__btn" data-skin="default">经典底板</button>
+          <button type="button" class="seg__btn" data-skin="rounded">圆角贴纸</button>
+          <button type="button" class="seg__btn" data-skin="outline">深描边</button>
+        </div>
+      </div>
+      <div class="tm-font-field">
+        <span class="tm-font-field__k">打乱颜色</span>
+        <div class="seg" id="tm-scr-color" role="group" aria-label="打乱公式颜色">
+          <button type="button" class="seg__btn" data-color="">默认</button>
+          <button type="button" class="seg__btn" data-color="#dbe4f0">白</button>
+          <button type="button" class="seg__btn" data-color="#6ea8ff">蓝</button>
+          <button type="button" class="seg__btn" data-color="#e0a83f">琥珀</button>
+          <button type="button" class="seg__btn" data-color="#4ade80">绿</button>
+        </div>
+      </div>
+      <span class="tm-bld-params__hint">皮肤与颜色实时预览，自动保存到本机。玻璃融合 = 展开图不再单独垫底色。</span>
       <h3 class="tm-h3">个性化</h3>
       <!-- 个性化（配色 / 字体 / 密度 / 动效）由 tools/timer/personal.js 渲染到这里，
            配置存在与成绩同一个 localStorage 键里，随成绩一起云同步。 -->

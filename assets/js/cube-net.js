@@ -292,7 +292,12 @@ function expandMoveNet(base, dir){
 //   决定打乱前把魔方摆放成哪种拿法（语义 B：先预摆再执行，同公式不同拿法 → 不同实体状态）
 // size: 阶数，默认 3。二阶（2×2×2）传 2 —— 计时器「二阶」项目的展开图用，
 //   高层/中层转法在 2 阶上无意义，WCA 二阶打乱只用 R/U/F，故直接建 Cube(2) 即可。
-function drawScrambleNet(alg, canvasId, orientation, size) {
+// opts（可选，v2.2.0）：{
+//   plate: 'solid' | 'none' —— none 不画底板色块（玻璃质感融合，计时器用）；默认 solid 保持他页现状
+//   skin:  'default' | 'glass' | 'rounded' | 'outline' —— 贴纸描边风格，默认 default（现状）
+// }
+function drawScrambleNet(alg, canvasId, orientation, size, opts) {
+    opts = opts || {};
     const canvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : (canvasId || document.getElementById("player"));
     if(!canvas) return;
     const cube = new Cube(size || 3);
@@ -338,7 +343,7 @@ function drawScrambleNet(alg, canvasId, orientation, size) {
         R:{x:rX,y:rY}, B:{x:bX,y:bY}, D:{x:dX,y:dY}
     };
     for(const [face,pos] of Object.entries(facePositions)){
-        drawNetFace(ctx, cube, face, pos.x, pos.y, stickerSize, colors);
+        drawNetFace(ctx, cube, face, pos.x, pos.y, stickerSize, colors, opts);
     }
 }
 
@@ -363,12 +368,17 @@ function netStickerBorder(){
     return theme === 'light' ? 'rgba(16,24,40,0.30)' : 'rgba(0,0,0,0.45)';
 }
 
-function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
+function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors, opts){
+    opts = opts || {};
+    const skin = opts.skin || 'default';
+    const noPlate = opts.plate === 'none' || skin !== 'default';
     const s = cube.size;
     const faceData = cube.getFace(face);
     const faceSize = stickerSize * s;
-    ctx.fillStyle = netPlateColor();
-    ctx.fillRect(ox-2, oy-2, faceSize+4, faceSize+4);
+    if (!noPlate) {
+      ctx.fillStyle = netPlateColor();
+      ctx.fillRect(ox-2, oy-2, faceSize+4, faceSize+4);
+    }
     const border = netStickerBorder();
     for(let r=0;r<s;r++){
         for(let c=0;c<s;c++){
@@ -378,10 +388,32 @@ function drawNetFace(ctx, cube, face, ox, oy, stickerSize, colors){
             const y = oy + r*stickerSize + 1;
             const ss = stickerSize - 2;
             ctx.fillStyle = stickerColor;
-            ctx.fillRect(x, y, ss, ss);
-            ctx.strokeStyle = border;
-            ctx.lineWidth = 0.6;
-            ctx.strokeRect(x + 0.3, y + 0.3, ss - 0.6, ss - 0.6);
+            if (skin === 'rounded') {
+              /* 圆角贴纸：无描边，靠贴纸间底色缝隙区分 */
+              const rad = Math.max(2, ss * 0.18);
+              ctx.beginPath();
+              ctx.moveTo(x + rad, y);
+              ctx.arcTo(x + ss, y, x + ss, y + ss, rad);
+              ctx.arcTo(x + ss, y + ss, x, y + ss, rad);
+              ctx.arcTo(x, y + ss, x, y, rad);
+              ctx.arcTo(x, y, x + ss, y, rad);
+              ctx.closePath();
+              ctx.fill();
+            } else {
+              ctx.fillRect(x, y, ss, ss);
+              if (skin === 'outline') {
+                /* 深描边：1.6px，比 default 更硬朗 */
+                ctx.strokeStyle = border;
+                ctx.lineWidth = 1.6;
+                ctx.strokeRect(x + 0.8, y + 0.8, ss - 1.6, ss - 1.6);
+              } else if (skin !== 'flat') {
+                /* default / glass：细描边（glass = 无底板的 default） */
+                ctx.strokeStyle = border;
+                ctx.lineWidth = 0.6;
+                ctx.strokeRect(x + 0.3, y + 0.3, ss - 0.6, ss - 0.6);
+              }
+              /* flat：纯色块不描边 */
+            }
         }
     }
 }
