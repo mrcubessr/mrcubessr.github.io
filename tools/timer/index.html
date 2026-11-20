@@ -60,6 +60,38 @@
         </div>
       </div>
 
+      <!-- ①-A 三盲打乱题型（仅三盲项目显示）：常规 / 棱块 / 角块 / 组合 / 预设。
+           题型存在 opt.bld.scr 随设置云同步；组合模式手动输入棱/角长度与翻色区间，
+           预设内置「奇偶带翻 / 浮动缓冲多环 / 角块翻色专项」三套。
+           定向生成走 assets/js/bld-scramble-core.js 的 createTargeted（与打乱生成器页同一引擎）。 -->
+      <div class="tm-scrtypes" id="tm-scrtypes" hidden>
+        <span class="tm-label">题型</span>
+        <div class="seg" id="tm-scrtype-seg" role="group" aria-label="打乱题型">
+          <button type="button" class="seg__btn is-active" data-st="normal">常规</button>
+          <button type="button" class="seg__btn" data-st="edge">棱块专项</button>
+          <button type="button" class="seg__btn" data-st="corner">角块专项</button>
+          <button type="button" class="seg__btn" data-st="custom">组合</button>
+          <button type="button" class="seg__btn" data-st="preset">预设 ▾</button>
+        </div>
+        <select class="select tm-scrtypes__preset" id="tm-scrtype-preset" hidden aria-label="选择预设">
+          <option value="parity-flip">奇偶带翻训练</option>
+          <option value="float-multi">浮动缓冲 · 多环训练</option>
+          <option value="corner-twist">角块翻色专项（≥3 角）</option>
+        </select>
+      </div>
+      <div class="tm-scrtype-cfg" id="tm-scrtype-cfg" hidden>
+        <span class="tm-label">棱</span>
+        <input class="input tm-scrtype-cfg__num" id="tm-scr-elen" placeholder="长度 8-12" autocomplete="off" spellcheck="false">
+        <input class="input tm-scrtype-cfg__num" id="tm-scr-eflip" placeholder="翻色 0-1" autocomplete="off" spellcheck="false">
+        <span class="tm-label">角</span>
+        <input class="input tm-scrtype-cfg__num" id="tm-scr-clen" placeholder="长度 6-9" autocomplete="off" spellcheck="false">
+        <input class="input tm-scrtype-cfg__num" id="tm-scr-cflip" placeholder="翻色 0-2" autocomplete="off" spellcheck="false">
+        <label class="tm-check"><input type="checkbox" id="tm-scr-epar"><span>棱奇偶</span></label>
+        <label class="tm-check"><input type="checkbox" id="tm-scr-cpar"><span>角奇偶</span></label>
+        <button class="btn btn--sm btn--primary" id="tm-scr-apply" type="button">应用出题</button>
+        <span class="tm-scrtype-cfg__hint" id="tm-scr-cfg-hint">留空 = 不限 · 区间写法 10-12 / 10,12</span>
+      </div>
+
       <!-- 回放历史成绩时，整块打乱区（公式 + 展开图）切换为该把的打乱，顶部出现返回条 -->
       <div class="tm-replay-bar" id="tm-replay-bar" hidden>
         <span class="tm-replay-bar__txt" id="tm-replay-txt"></span>
@@ -515,6 +547,7 @@
 <script src="/assets/js/site-nav.js"></script>
 <script src="/tools/cfop/js/cfop-ui.js"></script>
 <script src="/assets/js/bld-engine.js"></script>
+<script src="/assets/js/bld-scramble-core.js"></script>
 <script src="/assets/js/cube-net.js"></script>
 <script src="/tools/timer/scramble.js"></script>
 <script src="/tools/timer/stats.js"></script>

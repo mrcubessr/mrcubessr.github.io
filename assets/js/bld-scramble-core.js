@@ -2615,6 +2615,17 @@ const CONJ_SET = [
   ['F2','U2','F2','U2','F2','U2']
 ];
 
+// 「棱全零」共轭基底（eLen=0 专用，v2.2.0 计时器角块专项接入）：
+// 这些公式只动角不动棱（实测 SPOON 棱编码 = 0）：
+//   [0] = 纯角三循环（A-perm 族）；[1]/[2] = 双角扭向（互为镜像）。
+// 与 CONJ_SET 同理经 X A X' 共轭搬运，共轭后棱仍全复原。
+// 新增基底必须先用 .workbuddy/outputs/t_conj.js 实测棱编码为 0 再入库。
+const EDGE_CONJ_SET = [
+  ['R','B\'','R','F2','R\'','B','R','F2','R2'],
+  ['R','U','R\'','U','R','U2','R\'','L\'','U\'','L','U\'','L\'','U2','L'],
+  ['L\'','U\'','L','U\'','L\'','U2','L','R','U','R\'','U','R','U2','R\'']
+];
+
 function invertMoves(moves) {
   const inv = { U:'U\'', D:'D\'', F:'F\'', B:'B\'', R:'R\'', L:'L\'', U2:'U2', D2:'D2', F2:'F2', B2:'B2', R2:'R2', L2:'L2', "U'":'U', "D'":'D', "F'":'F', "B'":'B', "R'":'R', "L'":'L' };
   const res = [];
@@ -2639,11 +2650,12 @@ function simplifyMoves(moves) {
   return out.map(([f, v]) => fmt(f, v));
 }
 
-function generateConjScramble(xLens) {
+function generateConjScramble(xLens, set) {
+  const base = set || CONJ_SET;
   const seq = [];
   for (const xLen of xLens) {
     const X = generateScramble(xLen);
-    const A = CONJ_SET[randInt(CONJ_SET.length)];
+    const A = base[randInt(base.length)];
     seq.push(...X, ...A, ...invertMoves(X));
   }
   return simplifyMoves(seq);
@@ -2937,6 +2949,9 @@ function randomConjPlan() {
 function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
   // 角编码要求恒为 0：角块必须完全复原，改用共轭/交换子构造，输出前统一压成最优六面解
   const cornerZeroMode = !!(cp.len && cp.len.min === 0 && cp.len.max === 0);
+  // 棱编码要求恒为 0（v2.2.0 计时器「角块专项」）：棱块必须完全复原，
+  // 随机打乱几乎不可达，同样改用共轭构造（EDGE_CONJ_SET 基底，只动角不动棱）
+  const edgeZeroMode = !!(ep.len && ep.len.min === 0 && ep.len.max === 0);
   const o = opts || {};
   const edgeBuf = SPOON.normEdgeBuf(o.edgeBuf || 'UF');
   const cornerBuf = SPOON.normCornerBuf(o.cornerBuf || 'UFR');
@@ -2960,6 +2975,8 @@ function tryGenerate(coord, ep, cp, wideTail, maxTries, pickers, opts) {
     let moves;
     if (cornerZeroMode) {
       moves = generateConjScramble(randomConjPlan());
+    } else if (edgeZeroMode) {
+      moves = generateConjScramble(randomConjPlan(), EDGE_CONJ_SET);
     } else {
       moves = generateScramble(pickScrambleLen(te, tc));
     }

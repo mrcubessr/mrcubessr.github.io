@@ -66,6 +66,7 @@
   var pendingDnfReason = "";              /* DNF 归因：memo 记忆错 / exec 执行错 / other 其他 */
   var rawMs = 0;                      /* 未加罚时的原始用时 */
   var curScramble = "";
+  var curScrType = "normal";        /* 当前这把的打乱题型（SCR_MODES / 预设键），随成绩存档 */
   var curBld = null;                  /* 当前打乱对应的三盲解法（readCodes 结果） */
   var lastBldView = null;             /* 最近一次渲染进解法面板的数据（当前或历史回放）；
                                          resize/缩放后重绘展开图要用（canvas 宽是画死的） */
@@ -106,6 +107,37 @@
       }
     }
     return out;
+  }
+
+  /* ---------- 打乱题型（v2.2.0） ----------
+     三盲下可选定向打乱题型：常规随机 / 棱块专项（角全零）/ 角块专项（棱全零）/
+     自定义组合（手输棱/角长度与翻色区间 + 奇偶）/ 预设三套。
+     定向生成走 bld-scramble-core.js 的 createTargeted（与 tools/bldscramble 同一引擎）。 */
+  var SCR_MODES = ["normal", "edge", "corner", "custom", "preset"];
+  var SCRTYPE_LABELS = {
+    normal: "常规", edge: "棱块专项", corner: "角块专项", custom: "自定义组合",
+    "parity-flip": "奇偶带翻", "float-multi": "浮动缓冲·多环", "corner-twist": "角块翻色专项"
+  };
+  function defaultScr() {
+    return {
+      mode: "normal", preset: "parity-flip",
+      custom: { eLen: "", eFlip: "", cLen: "", cFlip: "", ePar: false, cPar: false }
+    };
+  }
+  /* 题型配置归一化：未知模式回落常规；custom 逐字段类型校验 */
+  function normScr(s) {
+    var d = defaultScr();
+    if (!s || typeof s !== "object") return d;
+    if (SCR_MODES.indexOf(s.mode) >= 0) d.mode = s.mode;
+    if (typeof s.preset === "string" && SCRTYPE_LABELS[s.preset] && s.preset.indexOf("-") > 0) d.preset = s.preset;
+    if (s.custom && typeof s.custom === "object") {
+      ["eLen", "eFlip", "cLen", "cFlip"].forEach(function (k) {
+        if (typeof s.custom[k] === "string") d.custom[k] = s.custom[k].slice(0, 24);
+      });
+      d.custom.ePar = !!s.custom.ePar;
+      d.custom.cPar = !!s.custom.cPar;
+    }
+    return d;
   }
 
   /* ---------- 数据模型 ---------- */
@@ -194,6 +226,8 @@
         parity: typeof s.bld.parity === "number" ? s.bld.parity : 0,
         complexity: typeof s.bld.complexity === "number" ? s.bld.complexity : 0,
         difficulty: normDiff(s.bld.difficulty),
+        /* 打乱题型标记（v2.2.0 定向打乱起记录；旧成绩缺失按「常规」降级显示） */
+        scrType: typeof s.bld.scrType === "string" ? s.bld.scrType : "",
         /* 指标与 DNF 归因也要留存，否则刷新后回看历史会丢 TPS / DNF 标记 */
         metrics: (s.bld.metrics && typeof s.bld.metrics === "object") ? s.bld.metrics : undefined,
         dnfReason: typeof s.bld.dnfReason === "string" ? s.bld.dnfReason : ""
@@ -270,6 +304,7 @@
         merged.split = o.bld.split !== false;
         merged.steps = normSteps(o.bld.steps);
         merged.showAfter = o.bld.showAfter !== false;
+        merged.scr = normScr(o.bld.scr);
         opt.bld = merged;
       } else {
         opt.bld = defaultBld();
@@ -286,9 +321,50 @@
       opt.bld = defaultBld();
     }
     if (!opt.bld) opt.bld = defaultBld();
+    if (!opt.bld.scr) opt.bld.scr = normScr(null);
   }
   function saveOpt() {
     try { localStorage.setItem(LS_OPT, JSON.stringify(opt)); } catch (e) {}
+  }
+
+  /* 题型 → createTargeted 配置。返回 null = 走常规随机；type 供成绩存档标记。
+     预设口径：
+     - 奇偶带翻：棱编码长为奇（= 有奇偶）且带 1-2 条棱翻色，专练奇偶带翻写法；
+     - 浮动缓冲·多环：棱多小循环（读码会分段），配「浮动缓冲」参数正好练浮点收尾；
+     - 角块翻色专项：3-5 个角需要扭色（≥3 角才能组成一组扭色公式）。 */
+  function scrCfgOf() {
+    var scr = (opt.bld && opt.bld.scr) || defaultScr();
+    if (scr.mode === "edge") return { cLen: "0", type: "edge" };
+    if (scr.mode === "corner") return { eLen: "0", type: "corner" };
+    if (scr.mode === "custom") {
+      var c = scr.custom || {}, cfg = {};
+      if (c.eLen) cfg.eLen = c.eLen;
+      if (c.eFlip) cfg.eFlip = c.eFlip;
+      if (c.cLen) cfg.cLen = c.cLen;
+      if (c.cFlip) cfg.cFlip = c.cFlip;
+      if (c.ePar) cfg.eParity = "odd";
+      if (c.cPar) cfg.cParity = "odd";
+      cfg.type = "custom";
+      return cfg;
+    }
+    if (scr.mode === "preset") {
+      if (scr.preset === "parity-flip") return { eParity: "odd", eFlip: "1-2", type: "parity-flip" };
+      if (scr.preset === "float-multi") return { eSmall: "1-2", eLen: "10-16", type: "float-multi" };
+      if (scr.preset === "corner-twist") return { cFlip: "3-5", type: "corner-twist" };
+    }
+    return null;
+  }
+  /* 定向生成一条；引擎缺失 / 参数不合法 / 试尽未命中都返回 null（调用方回落常规随机） */
+  function genTargetedScramble() {
+    if (!window.BldCore || !window.BldCore.createTargeted) return null;
+    var spec = scrCfgOf();
+    if (!spec) return null;
+    var type = spec.type; delete spec.type;
+    try {
+      var it = window.BldCore.createTargeted(spec).next();
+      if (it && it.text && !it.dup) return { text: it.text, type: type };
+    } catch (e) { /* validateBldCfg 报错：回落常规 */ }
+    return null;
   }
 
   /* ---------- 打乱 ---------- */
@@ -296,14 +372,23 @@
     if (opt.manual && opt.event !== "bld") { liveScramble = curScramble; renderScramble(); return; }
     if (opt.event === "bld") {
       if (!opt.bld) opt.bld = defaultBld();
-      var len = clamp(parseInt(opt.bld.len, 10) || 20, 12, 30);
-      /* 三盲用三阶 WCA 风格打乱；解法按用户坐标系算出（不进 csTimer TXT 导出） */
-      curScramble = window.TimerScramble
-        ? window.TimerScramble.gen("3x3", len).join(" ")
-        : ["R", "U", "R'", "U'", "F2", "L", "D'"].join(" ");
+      /* 定向题型：命中即用；未命中（引擎缺失 / 参数过窄）回落常规随机 */
+      var tgt = (opt.bld.scr && opt.bld.scr.mode !== "normal") ? genTargetedScramble() : null;
+      if (tgt) {
+        curScramble = tgt.text;
+        curScrType = tgt.type;
+      } else {
+        var len = clamp(parseInt(opt.bld.len, 10) || 20, 12, 30);
+        /* 三盲用三阶 WCA 风格打乱；解法按用户坐标系算出（不进 csTimer TXT 导出） */
+        curScramble = window.TimerScramble
+          ? window.TimerScramble.gen("3x3", len).join(" ")
+          : ["R", "U", "R'", "U'", "F2", "L", "D'"].join(" ");
+        curScrType = "normal";
+      }
       liveScramble = curScramble;   /* 记下“当前这一把”，回放退出时用它还原 */
       computeBld();
       renderScramble();
+      renderBldSummary();
       return;
     }
     var def = eventDef(opt.event);
@@ -657,6 +742,10 @@
     var isBld = opt.event === "bld";
     exitSolveView();   /* 切换项目时退出“查看历史解法”状态 */
     if (els.bldParams) els.bldParams.hidden = !isBld;
+    /* 打乱题型条：仅三盲显示；显示时按当前模式再同步子控件显隐 */
+    if (els.scrtypes) els.scrtypes.hidden = !isBld;
+    if (!isBld && els.scrtypeCfg) els.scrtypeCfg.hidden = true;
+    else if (isBld) syncScrtypeUI();
     /* 桌面单屏：工具带上的「三盲参数」入口只在三盲项目下出现。
        按钮本身另有一层「只在桌面单屏可显示」的 CSS，窄屏继续隐藏。 */
     if (els.bldOpen) els.bldOpen.hidden = !isBld;
@@ -742,8 +831,42 @@
     var b = opt.bld;
     var orient = (window.BLDEngine && window.BLDEngine.CUBE_ORIENTATIONS[b.orientation])
       ? window.BLDEngine.CUBE_ORIENTATIONS[b.orientation].label : ("#" + b.orientation);
+    /* 定向题型生效时在摘要尾追加题型名，一眼看出这把是什么专项 */
+    var scr = b.scr || {};
+    var tail = (b.floatBuffer ? " · 浮动" : "") +
+      (scr.mode && scr.mode !== "normal" ? " · " + (SCRTYPE_LABELS[curScrType] || "常规") : "");
     els.bldSummary.textContent = orient + " · 棱 " + b.edgeBuffer + "/" + b.edgeOrder +
-      " · 角 " + b.cornerBuffer + "/" + b.cornerOrder + (b.floatBuffer ? " · 浮动" : "");
+      " · 角 " + b.cornerBuffer + "/" + b.cornerOrder + tail;
+  }
+
+  /* 打乱题型条 UI 同步：seg 选中态 + 预设下拉 / 自定义配置行的显隐 */
+  function syncScrtypeUI() {
+    var scr = (opt.bld && opt.bld.scr) || defaultScr();
+    if (els.scrtypeSeg) {
+      els.scrtypeSeg.querySelectorAll("[data-st]").forEach(function (btn) {
+        btn.classList.toggle("is-active", btn.dataset.st === scr.mode);
+      });
+    }
+    if (els.scrtypePreset) {
+      els.scrtypePreset.hidden = scr.mode !== "preset";
+      els.scrtypePreset.value = scr.preset;
+    }
+    if (els.scrtypeCfg) {
+      els.scrtypeCfg.hidden = scr.mode !== "custom";
+      if (scr.mode === "custom") {
+        var c = scr.custom;
+        if (els.scrELen) els.scrELen.value = c.eLen;
+        if (els.scrEFlip) els.scrEFlip.value = c.eFlip;
+        if (els.scrCLen) els.scrCLen.value = c.cLen;
+        if (els.scrCFlip) els.scrCFlip.value = c.cFlip;
+        if (els.scrEPar) els.scrEPar.checked = !!c.ePar;
+        if (els.scrCPar) els.scrCPar.checked = !!c.cPar;
+      }
+    }
+  }
+  /* 题型变更后重出一把（仅 idle；跑表 / 确认中不打断计时流程） */
+  function scrTypeReapply() {
+    if (opt.event === "bld" && state === "idle" && !viewingSolve) newScramble();
   }
 
   function populateOrientation() {
@@ -1000,6 +1123,7 @@
         edgeRoles: curBld.edgeRoles || null, cornerRoles: curBld.cornerRoles || null,
         parity: curBld.parity, complexity: curBld.complexity,
         difficulty: curBld.difficulty,
+        scrType: SCRTYPE_LABELS[curScrType] || "常规",
         dnfReason: pendingPenalty === "DNF" ? pendingDnfReason || "other" : ""
       };
       if (window.BLDEngine && window.BLDEngine.bldMetrics && curBld.difficulty) {
@@ -3254,6 +3378,13 @@
       cbuf: $("tm-bld-cbuf"), corder: $("tm-bld-corder"),
       cororient: $("tm-bld-cororient"), corskip: $("tm-bld-corskip"),
       fbuf: $("tm-bld-fbuf"),
+      /* 打乱题型（v2.2.0 定向打乱） */
+      scrtypes: $("tm-scrtypes"), scrtypeSeg: $("tm-scrtype-seg"),
+      scrtypePreset: $("tm-scrtype-preset"), scrtypeCfg: $("tm-scrtype-cfg"),
+      scrELen: $("tm-scr-elen"), scrEFlip: $("tm-scr-eflip"),
+      scrCLen: $("tm-scr-clen"), scrCFlip: $("tm-scr-cflip"),
+      scrEPar: $("tm-scr-epar"), scrCPar: $("tm-scr-cpar"),
+      scrApply: $("tm-scr-apply"), scrCfgHint: $("tm-scr-cfg-hint"),
       bldReset: $("tm-bld-reset"), bldWarn: $("tm-bld-warn"),
       bldAnalysis: $("tm-bld-analysis"),
       /* 分段计时与步数配置 */
@@ -3575,6 +3706,7 @@
     /* 三盲：参数面板 + 解法面板 */
     populateOrientation();
     syncBldParamsUI();
+    syncScrtypeUI();
     if (els.bldParamsToggle) els.bldParamsToggle.addEventListener("click", toggleBldCollapse);
     /* 桌面单屏：工具带「三盲参数」是唯一的开/关按钮——点开抽屉，再点即收起。
        面板标题栏里的折叠按钮在桌面隐藏（见 timer.css），两端共用同一份 collapsed 状态。 */
@@ -3618,6 +3750,49 @@
     if (els.dnfMemo) els.dnfMemo.addEventListener("click", function () { pendingDnfReason = "memo"; renderConfirmMetrics(); });
     if (els.dnfExec) els.dnfExec.addEventListener("click", function () { pendingDnfReason = "exec"; renderConfirmMetrics(); });
     if (els.dnfOther) els.dnfOther.addEventListener("click", function () { pendingDnfReason = "other"; renderConfirmMetrics(); });
+    /* 打乱题型：切换即出题（v2.2.0） */
+    if (els.scrtypeSeg) els.scrtypeSeg.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-st]");
+      if (!btn || !opt.bld) return;
+      opt.bld.scr.mode = btn.dataset.st;
+      saveOpt();
+      syncScrtypeUI();
+      scrTypeReapply();
+      btn.blur();
+    });
+    if (els.scrtypePreset) els.scrtypePreset.addEventListener("change", function () {
+      if (!opt.bld) return;
+      opt.bld.scr.preset = this.value;
+      saveOpt();
+      scrTypeReapply();
+    });
+    if (els.scrApply) els.scrApply.addEventListener("click", function () {
+      if (!opt.bld) return;
+      var c = opt.bld.scr.custom;
+      c.eLen = els.scrELen ? els.scrELen.value.trim() : "";
+      c.eFlip = els.scrEFlip ? els.scrEFlip.value.trim() : "";
+      c.cLen = els.scrCLen ? els.scrCLen.value.trim() : "";
+      c.cFlip = els.scrCFlip ? els.scrCFlip.value.trim() : "";
+      c.ePar = !!(els.scrEPar && els.scrEPar.checked);
+      c.cPar = !!(els.scrCPar && els.scrCPar.checked);
+      opt.bld.scr.mode = "custom";
+      /* 参数体检：写法识别不了就提示，不出题（避免静默回落常规造成误会） */
+      if (window.BldCore && window.BldCore.validateBldCfg && els.scrCfgHint) {
+        var bad = window.BldCore.validateBldCfg(scrCfgOf() || {})
+          .filter(function (i) { return i.level === "error"; });
+        if (bad.length) {
+          els.scrCfgHint.textContent = bad.map(function (i) { return i.message; }).join("；");
+          els.scrCfgHint.classList.add("is-warn");
+          return;
+        }
+        els.scrCfgHint.classList.remove("is-warn");
+        els.scrCfgHint.textContent = "留空 = 不限 · 区间写法 10-12 / 10,12";
+      }
+      saveOpt();
+      syncScrtypeUI();
+      scrTypeReapply();
+      els.scrApply.blur();
+    });
     applyEventUI();
     applyBldCollapse();
     renderBldSummary();
