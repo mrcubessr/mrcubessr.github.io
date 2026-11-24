@@ -981,6 +981,10 @@ body.tm-scrtext-hidden .tm-scramble__text { display: none; }
      且加载在本文件之后 —— 同值必须再高一级才能彻底归零。 */
   body .tm-wrap {
     height: 100dvh; min-height: 0; padding: 0 !important; gap: 0;
+    /* site-wide.css 给 .tm-wrap 加了 max-width:min(100%,1800px)+margin:0 auto：
+       宽屏(>1800)下容器居中留白，而左侧工具面板是 fixed left:0 —— 两者错开
+       整个留白宽度，工具栏与成绩列分离、中间露出壁纸。锁屏布局必须彻底铺满。 */
+    width: 100%; max-width: none !important; margin: 0 !important;
     display: block; overflow: hidden; overscroll-behavior-y: contain;
   }
   .tm-wrap > .tm { height: 100dvh; min-height: 0; }

@@ -421,3 +421,10 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 现在窄屏把模糊与玻璃底色搬到 `.nav-inner` 之前的 `.site-nav::before`，
 伪元素不是任何元素的祖先，不生成包含块，抽屉才能恢复满高。
 `tools/ft/*` 与 `tools/_shared/train-matrix/*` 不在 APP_SHELL，走运行时缓存。
+
+## v45（2026-11-24）
+
+随 v2.2.2 递增：APP_SHELL 成员 `tools/timer/timer.css` 修复宽屏锁屏布局——
+站点共享样式给 `.tm-wrap` 的 `max-width:min(100%,1800px)+margin:0 auto` 在宽屏
+下造成容器居中留白，与 fixed 的左侧工具面板错位；锁屏布局改为显式铺满。
+不递增版本号的话，已安装 PWA 首屏会先拿旧 CSS，宽屏错位依旧。
