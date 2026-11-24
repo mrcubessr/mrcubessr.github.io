@@ -2595,9 +2595,36 @@
       b.classList.toggle("is-active", (b.dataset.color || "") === (opt.scrColor || ""));
     });
   }
+  /* 显示偏好三处入口（设置面板 / 工具带 / 手机底栏）状态统一同步。
+     v2.2.4：打乱公式隐藏后曾点不回来（元素自身 display:none 失去点击热区），
+     现在「设置 → 显示」常驻开关 + 原位可点提示双保险。 */
+  function syncDisplaySettingsUI() {
+    var scrHidden = document.body.classList.contains("tm-scrtext-hidden");
+    if (els.setScrText) {
+      els.setScrText.textContent = scrHidden ? "打乱公式：已隐藏" : "打乱公式：显示中";
+      els.setScrText.classList.toggle("btn--secondary", !scrHidden);
+      els.setScrText.classList.toggle("btn--ghost", scrHidden);
+      els.setScrText.setAttribute("aria-pressed", String(!scrHidden));
+    }
+    var listHidden = document.body.classList.contains("tm-list-hidden");
+    if (els.setList) {
+      els.setList.textContent = listHidden ? "成绩列表：已隐藏" : "成绩列表：显示中";
+      els.setList.classList.toggle("btn--secondary", !listHidden);
+      els.setList.classList.toggle("btn--ghost", listHidden);
+      els.setList.setAttribute("aria-pressed", String(!listHidden));
+    }
+    var drawerOpen = document.body.classList.contains("tm-drawer-open");
+    if (els.setDrawer) {
+      els.setDrawer.textContent = drawerOpen ? "展开图：展开中" : "展开图：收起";
+      els.setDrawer.classList.toggle("btn--secondary", drawerOpen);
+      els.setDrawer.classList.toggle("btn--ghost", !drawerOpen);
+      els.setDrawer.setAttribute("aria-pressed", String(drawerOpen));
+    }
+  }
   function openSettings() {
     if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
     refreshThemeActive();
+    syncDisplaySettingsUI();
     /* 打开设置时把滑块与百分比标签同步成当前值（首次加载或换设备后保持一致） */
     if (els.fontScramble) els.fontScramble.value = String(opt.scrambleScale);
     if (els.fontTime) els.fontTime.value = String(opt.timeScale);
@@ -3478,6 +3505,8 @@
       settingsNext: $("tm-settings-next"),
       settingsImport: $("tm-settings-import"), settingsClear: $("tm-settings-clear"),
       settingsExport: $("tm-settings-export"), settingsExportMenu: $("tm-settings-export-menu"),
+      /* 显示偏好统一入口（v2.2.4） */
+      setScrText: $("tm-set-scrtext"), setList: $("tm-set-list"), setDrawer: $("tm-set-drawer"),
       themeToggle: $("tm-theme-toggle"),
       modal: $("tm-modal"), modalClose: $("tm-modal-close"), modalEvent: $("tm-modal-event"),
       statGrid: $("tm-stat-grid"), chartDaily: $("tm-chart-daily"),
@@ -3579,6 +3608,7 @@
         els.listToggle.textContent = hidden ? "☰ 显示列表" : "☰ 隐藏列表";
       }
       try { localStorage.setItem(listPrefKey(), hidden ? "1" : "0"); } catch (e) {}
+      syncDisplaySettingsUI();
     }
     function applyListPref() {
       var dft = isDesktopTall() ? false : true;   /* 桌面默认显示，手机默认隐藏 */
@@ -3846,6 +3876,7 @@
         els.drawerToggle.setAttribute("aria-expanded", String(open));
         els.drawerToggle.textContent = open ? "▦ 收起展开图" : "▦ 展开图";
       }
+      syncDisplaySettingsUI();
     }
     if (els.drawerToggle) els.drawerToggle.addEventListener("click", function () { toggleDrawer(); });
     if (els.drawerClose) els.drawerClose.addEventListener("click", function () { toggleDrawer(false); });
@@ -3879,11 +3910,24 @@
           document.body.classList.add("tm-scrtext-hidden");
         }
       } catch (e) {}
+      syncDisplaySettingsUI();
       els.scramble.addEventListener("click", function () {
         var hidden = document.body.classList.toggle("tm-scrtext-hidden");
         try { localStorage.setItem("timer_scrtext_hidden", hidden ? "1" : "0"); } catch (e) {}
+        syncDisplaySettingsUI();
       });
     }
+    /* 设置面板里的显示偏好：直接复用原有开关逻辑，避免两套状态漂移 */
+    if (els.setScrText) els.setScrText.addEventListener("click", function () {
+      if (els.scramble) els.scramble.click();
+      syncDisplaySettingsUI();
+    });
+    if (els.setList) els.setList.addEventListener("click", function () {
+      applyListHidden(!document.body.classList.contains("tm-list-hidden"));
+    });
+    if (els.setDrawer) els.setDrawer.addEventListener("click", function () {
+      toggleDrawer();
+    });
     if (els.barTheme) els.barTheme.addEventListener("click", function () {
       Theme.toggle(); refreshThemeActive(); this.blur();
     });

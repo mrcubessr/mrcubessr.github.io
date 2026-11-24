@@ -434,3 +434,10 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 随 v2.2.3 递增：APP_SHELL 成员 `tools/timer/timer.css` 把桌面锁屏左栏
 从 243px 加宽到 360px，并给成绩行 `white-space:nowrap`、时间列 120px 保底，
 解决成绩文字折行/截断。不递增会让已安装 PWA 首屏继续使用旧窄栏。
+
+## v47（2026-11-24）
+
+随 v2.2.4 递增：APP_SHELL 成员 `tools/timer/index.html`、`timer.js`、`timer.css`
+三项均改动——修复打乱公式隐藏后无法恢复（隐藏改字号归零+伪元素提示保留热区）、
+恢复桌面「⚙ 设置」入口、设置弹窗新增「显示」分组三个开关。
+不递增会让已安装 PWA 首屏继续使用旧文件，打乱公式仍点不回来。

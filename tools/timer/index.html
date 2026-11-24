@@ -346,7 +346,8 @@
         <button class="btn btn--sm btn--ghost" id="tm-list-toggle" type="button"
                 aria-pressed="true" title="显示 / 隐藏左侧成绩列表">☰ 成绩列表</button>
         <button class="btn btn--sm btn--secondary" id="tm-stats" type="button">统计</button>
-        <button class="btn btn--sm btn--ghost tm-settings-btn" id="tm-settings" type="button">设置</button>
+        <button class="btn btn--sm btn--secondary" id="tm-settings" type="button"
+                title="所有界面参数都在这里">⚙ 设置</button>
         <button class="btn btn--sm btn--ghost tm-theme-toggle" id="tm-theme-toggle" type="button">浅色</button>
         <div class="tm-menu-wrap">
           <button class="btn btn--sm btn--ghost" id="tm-export" type="button"
@@ -528,6 +529,15 @@
         <button class="btn btn--sm btn--secondary" id="tm-settings-next" type="button">换一条打乱</button>
       </div>
       <span class="tm-bld-params__hint">主界面不显示换打乱按钮：每次完成自动换题，需要跳过时点这里。手动输入后请在主界面输入框里填写并「应用」。</span>
+      <!-- 显示偏好（v2.2.4）：原来散落在「点公式本身 / 工具带 / 底栏」，统一在这里可切换。
+           快捷按钮仍保留，三处状态由 syncDisplaySettingsUI() 同步。 -->
+      <h3 class="tm-h3">显示</h3>
+      <div class="tm-settings-row">
+        <button class="btn btn--sm btn--secondary" id="tm-set-scrtext" type="button" aria-pressed="true">打乱公式：显示中</button>
+        <button class="btn btn--sm btn--secondary" id="tm-set-list" type="button" aria-pressed="true">成绩列表：显示中</button>
+        <button class="btn btn--sm btn--ghost" id="tm-set-drawer" type="button" aria-pressed="false">展开图：收起</button>
+      </div>
+      <span class="tm-bld-params__hint">打乱公式隐藏后，点原来的公式位置或这里的按钮都能恢复；成绩列表按桌面 / 手机分别记忆。</span>
       <h3 class="tm-h3">字体大小</h3>
       <div class="tm-font-row">
         <div class="tm-font-field">

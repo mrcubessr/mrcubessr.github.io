@@ -267,10 +267,25 @@ body { margin: 0; }
   flex: 1 1 auto; min-width: 0;
 }
 #tm-list-toggle { display: none; }   /* 仅桌面横版显示（下方媒体查询开启） */
-/* csTimer 式：点击打乱公式文字可隐藏 / 显示（偏好持久化） */
-body.tm-scrtext-hidden .tm-scramble__text { display: none; }
-/* 设置按钮 / 主题按钮：桌面端主界面已含项目选择器与主题按钮，故默认隐藏；仅手机端出现 */
-.tm-settings-btn { display: none; }
+/* csTimer 式：点击打乱公式文字可隐藏 / 显示（偏好持久化）
+   v2.2.4：不能把 #tm-scramble 自己 display:none —— 它同时是唯一的恢复入口，
+   隐藏后就没有点击热区，用户再也点不回来（2026-11-24 实踩）。
+   改成字号归零 + 伪元素提示：公式不可见，但保留可点区域与明确文案。 */
+body.tm-scrtext-hidden .tm-scramble__text {
+  font-size: 0;
+  line-height: 20px;
+  min-height: 20px;
+  white-space: nowrap;
+}
+body.tm-scrtext-hidden .tm-scramble__text::after {
+  content: "点击显示打乱公式";
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--fg-3);
+  opacity: .85;
+}
+/* v2.2.4：桌面「⚙ 设置」按钮已恢复显示（此前被本条规则永久 display:none，
+   桌面端没有任何打开设置弹窗的入口）；手机端仍走底栏 #tm-bar-settings。 */
 .tm-theme-toggle { display: none; }
 .tm-settings-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
