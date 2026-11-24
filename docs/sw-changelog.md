@@ -428,3 +428,9 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 站点共享样式给 `.tm-wrap` 的 `max-width:min(100%,1800px)+margin:0 auto` 在宽屏
 下造成容器居中留白，与 fixed 的左侧工具面板错位；锁屏布局改为显式铺满。
 不递增版本号的话，已安装 PWA 首屏会先拿旧 CSS，宽屏错位依旧。
+
+## v46（2026-11-24）
+
+随 v2.2.3 递增：APP_SHELL 成员 `tools/timer/timer.css` 把桌面锁屏左栏
+从 243px 加宽到 360px，并给成绩行 `white-space:nowrap`、时间列 120px 保底，
+解决成绩文字折行/截断。不递增会让已安装 PWA 首屏继续使用旧窄栏。

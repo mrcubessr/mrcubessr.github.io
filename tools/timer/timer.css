@@ -969,9 +969,14 @@ body.tm-scrtext-hidden .tm-scramble__text { display: none; }
 @media (min-width: 1025px) and (min-height: 660px) {
 
   /* ============ v2.2.1 桌面锁屏：整窗横版计时器（对齐 csTimer） ============
-     csTimer 实测：html/body position:fixed + overflow:hidden，左栏 243px
+     csTimer 实测：html/body position:fixed + overflow:hidden，左栏 360px
      工具宫格 + 成绩列表，顶部横贯打乱条，右侧大字计时区吃掉全部剩余空间。
+     v2.2.3：左栏由 243px 加宽到 360px —— 243px 下成绩行 6 列分到每列只剩
+     约 29px，时间/平均值/DNF 标记会被折行；三盲的「记 x · 复 y」副行更是
+     被挤成多行。统一走 --tm-side-w，避免工具宫格宽度、列表 padding-top
+     与主区 grid 列宽三者不同步。
      本块只在 ≥1025 且 ≥660 时生效，手机/矮屏仍走原来的滚动布局。 */
+  body { --tm-side-w: 360px; }
   html, body { height: 100%; overflow: hidden; }
   body [data-site-nav], .tm-nav-handle, body > .site-footer,
   #navExpandTab, .nav-expand-tab { display: none !important; }
@@ -990,7 +995,7 @@ body.tm-scrtext-hidden .tm-scramble__text { display: none; }
   .tm-wrap > .tm { height: 100dvh; min-height: 0; }
   .tm {
     display: grid;
-    grid-template-columns: 243px minmax(0, 1fr);
+    grid-template-columns: var(--tm-side-w) minmax(0, 1fr);
     gap: 0;
   }
   .tm-main {
@@ -1003,7 +1008,7 @@ body.tm-scrtext-hidden .tm-scramble__text { display: none; }
     display: flex; flex-direction: column;
     grid-column: 1; grid-row: 1;
     height: 100dvh; min-height: 0; overflow: hidden;
-    padding: 251px 8px 8px;
+    padding: calc(var(--tm-side-w) + 8px) 8px 8px;
     border: 0; border-right: 1px solid var(--line-2);
     background: var(--surface-solid, var(--surface));
   }
@@ -1018,7 +1023,7 @@ body.tm-scrtext-hidden .tm-scramble__text { display: none; }
     display: flex !important;
     position: fixed; left: 0; top: 0; z-index: 90;
     flex-flow: row wrap; align-content: flex-start; gap: 4px;
-    width: 243px; height: 243px; margin: 0; padding: 6px;
+    width: var(--tm-side-w); height: var(--tm-side-w); margin: 0; padding: 6px;
     overflow: hidden;
     background: var(--surface-solid, var(--surface));
     border: 0; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2);
@@ -1114,9 +1119,10 @@ body.tm-scrtext-hidden .tm-scramble__text { display: none; }
      ⚠️ 表头与数据行是两套独立的选择器，必须同时改，否则列对不齐。 */
   .tm-list-head,
   .tm-list__item {
-    grid-template-columns: 42px minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 26px;
+    grid-template-columns: 34px minmax(120px, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 26px;
     gap: 6px;
     padding: 8px 10px;
+    white-space: nowrap;   /* 成绩行不再折行；时间列保底 120px 容纳三盲分段副行 */
   }
   .tm-list {
     flex: 1 1 auto; min-height: 0;
