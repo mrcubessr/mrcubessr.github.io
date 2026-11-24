@@ -339,6 +339,10 @@
       <button class="btn btn--sm btn--secondary tm-tools__launch" id="tm-tools-launch" type="button"
               aria-haspopup="true" aria-expanded="false">工具 ▾</button>
       <div class="tm-tools__panel" id="tm-tools-panel">
+        <!-- 桌面锁屏（csTimer 式）：左栏工具宫格顶端就是回站入口，取代隐藏的站点顶栏 -->
+        <a class="tm-side-brand" href="/index.html" title="返回魔方训练站首页">魔方先生</a>
+        <button class="btn btn--sm btn--ghost" id="tm-drawer-toggle" type="button"
+                aria-expanded="false" title="展开 / 收起展开图与三盲读码">▦ 展开图</button>
         <button class="btn btn--sm btn--ghost" id="tm-list-toggle" type="button"
                 aria-pressed="true" title="显示 / 隐藏左侧成绩列表">☰ 成绩列表</button>
         <button class="btn btn--sm btn--secondary" id="tm-stats" type="button">统计</button>
@@ -355,14 +359,14 @@
         </div>
         <button class="btn btn--sm btn--ghost" id="tm-import" type="button">导入</button>
         <input type="file" id="tm-import-file" accept=".txt,.json,text/plain,application/json" hidden>
-        <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空本组</button>
-        <button class="btn btn--sm btn--ghost" id="tm-notes" type="button">笔记汇总</button>
+        <button class="btn btn--sm btn--ghost" id="tm-clear" type="button">清空</button>
+        <button class="btn btn--sm btn--ghost" id="tm-notes" type="button">笔记</button>
         <!-- 桌面横版：三盲参数从右侧抽屉滑出，这是唯一的打开入口（仅三盲项目显示、仅桌面显示） -->
         <button class="btn btn--sm btn--ghost tm-bld-open" id="tm-bld-open" type="button"
-                aria-expanded="false" aria-controls="tm-bld-params" hidden>三盲参数</button>
+                aria-expanded="false" aria-controls="tm-bld-params" hidden>盲拧参数</button>
         <!-- 蓝牙：计时器垫 / 智能魔方（不支持 Web 蓝牙的浏览器由 bt-timer.js 隐藏并给出提示） -->
-        <button class="btn btn--sm btn--ghost" id="tm-bt-timer" type="button" hidden>蓝牙计时器</button>
-        <button class="btn btn--sm btn--ghost" id="tm-bt-cube" type="button" hidden>智能魔方计时</button>
+        <button class="btn btn--sm btn--ghost" id="tm-bt-timer" type="button" hidden>蓝牙计时</button>
+        <button class="btn btn--sm btn--ghost" id="tm-bt-cube" type="button" hidden>智能魔方</button>
         <button class="btn btn--sm btn--ghost" id="tm-bt-arm" type="button" hidden>准备</button>
         <span class="tm-tools__hint" id="tm-bt-hint" hidden></span>
         <span class="tm-label" id="tm-inspect-label">观察</span>
@@ -370,6 +374,8 @@
         <span class="tm-tools__hint" id="tm-tools-hint">空格 = 开始 / 停止 · N = 换打乱 · Esc = 重置</span>
       </div>
     </div>
+    <!-- 右侧抽屉收起按钮（仅桌面锁屏 + 抽屉展开时出现） -->
+    <button class="tm-drawer-close" id="tm-drawer-close" type="button" aria-label="收起展开图与读码">✕</button>
 
     </div><!-- /tm-main（左列结束） -->
 

@@ -1,7 +1,8 @@
 /* =========================================================
    tools/timer/bld-stats.js — 三盲专项分析（无外部依赖）
 
-   暴露：window.TimerBldStats = { analyze(solves), renderReport(solves) }
+   暴露：window.TimerBldStats = { analyze(solves), renderReport(solves, opts) }
+   opts.level：只统计并逐条列出该难度等级的成绩（空 = 全部）
 
    分析维度（对应「完整版」需求）：
      ① 按坐标朝向分组 —— 哪些坐标下整体偏慢
@@ -298,14 +299,34 @@
     return s.totalMin === s.totalMax ? s.totalMin + " 条" : s.totalMin + "–" + s.totalMax + " 条";
   }
 
-  function renderReport(solves) {
+  function renderReport(solves, opts) {
+    /* opts.allSolves = 未筛选的全量成绩：等级按钮上的计数应始终显示全量。
+       solves 在 timer.js 侧已按选中等级过滤（直接调用本模块时这里兜底过滤）。 */
+    var full = (opts && opts.allSolves) ? opts.allSolves : solves;
+    var all = analyze(full);
+    var level = (opts && opts.level) ? opts.level : "";
+    if (level && !(opts && opts.allSolves)) {
+      solves = solves.filter(function (r) {
+        return r.bld && r.bld.difficulty && r.bld.difficulty.level === level;
+      });
+    }
     var a = analyze(solves);
-    if (a.total < 3) {
+    if (!level && a.total < 3) {
       return '<h3 class="tm-h3">三盲专项分析</h3>' +
         '<div class="tm-chart__empty">至少需要 3 次「三盲」成绩（且含解法）才能分析。继续练习、记录成绩后这里会自动给出针对性建议。</div>';
     }
 
-    var h = '<h3 class="tm-h3">三盲专项分析（本组 ' + a.total + " 次成绩）</h3>";
+    var h = '<h3 class="tm-h3">三盲专项分析' + (level ? " · " + esc(level) : "") +
+      "（" + a.total + " 次成绩）</h3>";
+    /* 难度筛选条：点某等级 → 所有指标按该等级重算，并在末尾列出逐把打乱 */
+    h += '<div class="tm-ba-levels"><span class="tm-ba-levels__k">难度筛选</span>' +
+      '<button type="button" class="tm-ba-level' + (level ? "" : " is-on") +
+      '" data-bld-level="">全部（' + all.total + "）</button>";
+    all.difficultyBuckets.forEach(function (s) {
+      h += '<button type="button" class="tm-ba-level' + (level === s.level ? " is-on" : "") +
+        '" data-bld-level="' + esc(s.level) + '">' + lvBadge(s.level) + "（" + s.count + "）</button>";
+    });
+    h += "</div>";
 
     /* 概览 */
     var slowPct = a.total ? Math.round(a.slowCount / a.total * 100) : 0;
@@ -491,6 +512,32 @@
       }
     }
 
+    /* ⑩ 选中难度后：把该等级的每一把打乱与成绩逐条调出来 */
+    if (level) {
+      var rows = solves.filter(function (r) {
+        return r.bld && r.bld.difficulty && r.bld.difficulty.level === level;
+      });
+      h += '<h3 class="tm-h3">⑩ 「' + esc(level) + '」逐把打乱与成绩（' + rows.length + " 把）</h3>";
+      if (!rows.length) {
+        h += '<div class="tm-ba-note">该难度等级暂无成绩。</div>';
+      } else {
+        h += '<div class="tm-ba-table tm-ba-detail"><table><thead><tr>' +
+          '<th>#</th><th>成绩</th><th>罚时</th><th>难度分</th><th>公式条数</th><th>打乱公式</th><th>日期</th>' +
+          "</tr></thead><tbody>";
+        rows.forEach(function (r, i) {
+          var d = r.bld.difficulty;
+          var scr = r.scramble || r.bld.scramble || "未记录打乱";
+          var dt = r.date ? new Date(r.date).toLocaleDateString("zh-CN") : "--";
+          h += "<tr><td>" + (i + 1) + "</td><td>" + (r.pen === "DNF" ? "DNF" : fmt(effectiveMs(r))) +
+            "</td><td>" + (r.pen || "—") + "</td><td>" + (isFinite(d.score) ? Math.round(d.score) : "—") +
+            "</td><td>" + (isFinite(d.total) ? d.total : "—") +
+            '</td><td class="tm-ba-detail__scr" title="' + esc(scr) + '">' + esc(scr) + "</td><td>" + dt + "</td></tr>";
+        });
+        h += "</tbody></table></div>";
+        h += '<p class="tm-ba-note">上表只含「' + esc(level) +
+          '」等级的打乱；弹窗里的概览、图表与专项分析各表均已按该等级重算。点「全部」恢复全量统计。</p>';
+      }
+    }
     h += '<p class="tm-ba-foot">说明：慢局定义为「用时超过同复杂度中位 1.4 倍」。占比越高的组合 / 片段，越值得针对性加练。</p>';
     return h;
   }

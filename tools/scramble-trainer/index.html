@@ -1200,6 +1200,70 @@
   }
   .fs__foot[hidden] { display: none; }
   .fs__foot .formula-inner { font-size: clamp(20px, 4.4vh, 44px); letter-spacing: 1px; }
+
+  /* ===== 演练视图：左右分屏，左静态大图+超大公式，右循环播放打乱过程 ===== */
+  .fs__drill {
+    flex: 1 1 auto; min-height: 0;
+    display: flex;
+  }
+  .fs__drill[hidden] { display: none; }
+  .fs__drill-left, .fs__drill-right {
+    flex: 1 1 50%; min-width: 0; min-height: 0;
+    display: flex; flex-direction: column;
+    padding: 10px 16px 14px;
+  }
+  .fs__drill-left { border-right: 1px solid var(--line); }
+  .fs__drill-caption {
+    flex: 0 0 auto; text-align: center;
+    font-size: clamp(14px, 1.8vh, 20px); font-weight: 700; color: var(--muted);
+    padding: 2px 0 8px;
+  }
+  .fs__drill-canvas {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fs__drill-canvas canvas { max-width: 100%; max-height: 100%; display: block; }
+  .fs__drill-formula {
+    flex: 0 0 auto; min-height: 108px;
+    display: flex; align-items: center; justify-content: center;
+    border-top: 1px solid var(--line);
+    padding: 10px 8px 2px;
+  }
+  /* 教室投影级超大公式：随视口高度放大，长公式由 fitDrillFormula 收窄 */
+  .fs__drill-formula .formula-inner {
+    font-size: clamp(30px, 6.6vh, 76px);
+    letter-spacing: 1px; line-height: 1.25;
+  }
+  /* 当前步高亮：右半动画执行到哪一步，左半公式对应span变色放大 */
+  .fs__drill-formula .move.is-current {
+    color: var(--brand);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 3px;
+  }
+  .fs__drill-ctrl {
+    flex: 0 0 auto; min-height: 108px;
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 8px;
+    border-top: 1px solid var(--line);
+    padding: 12px 8px 2px;
+  }
+  .fs__drill-btn {
+    font-family: inherit; font-size: clamp(13px, 1.6vh, 17px); font-weight: 700;
+    padding: 8px 14px; min-height: 40px;
+    background: var(--panel); color: var(--fg);
+    border: 1.5px solid var(--line); cursor: pointer;
+  }
+  .fs__drill-btn:hover { border-color: var(--brand); color: var(--brand); }
+  .fs__drill-btn.is-on { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+  .fs__drill-speed, .fs__drill-step {
+    font-size: clamp(12px, 1.5vh, 16px); color: var(--muted); font-weight: 600;
+  }
+  .fs__drill-step { min-width: 62px; text-align: center; }
+  /* 演练入口仅桌面/大屏显示（手机端保持原布局，不新增入口） */
+  @media (max-width: 900px) {
+    .drill-entry { display: none !important; }
+  }
   @media (max-width: 700px) {
     .fs__grid { gap: 8px; padding: 10px; }
     .fs__nav { width: 46px; height: 46px; font-size: 26px; }
@@ -1265,7 +1329,7 @@
   <aside class="right">
     <!-- 右上：缩小展示图（置于打乱公式上方）；平面展开图 / 3D 立体图可切换 -->
     <div class="net-zone">
-      <div class="zone-label"><span>展示图</span><div class="zone-tools"><div class="seg-toggle seg-toggle--xs" id="netModeToggle"><button class="seg__btn active" data-nm="flat">平面</button><button class="seg__btn" data-nm="3d">3D</button></div><button class="mini-btn" id="netFsBtn" title="全屏放大（上课展示）">⛶ 全屏</button></div></div>
+      <div class="zone-label"><span>展示图</span><div class="zone-tools"><div class="seg-toggle seg-toggle--xs" id="netModeToggle"><button class="seg__btn active" data-nm="flat">平面</button><button class="seg__btn" data-nm="3d">3D</button></div><button class="mini-btn drill-entry" id="netDrillBtn" title="全屏演练：左大图+大公式，右循环演示打乱过程">▶ 演示</button><button class="mini-btn" id="netFsBtn" title="全屏放大（上课展示）">⛶ 全屏</button></div></div>
       <div class="net-img-wrap" id="netWrap" title="点击可全屏放大">
         <canvas id="netCanvas"></canvas>
         <canvas id="net3dCanvas" hidden></canvas>
@@ -1292,7 +1356,7 @@
         </div>
       </div>
 
-      <!-- 自选字母（只在该模式显示）：任选 2 个字母，题目只由它们组成 -->
+      <!-- 自选字母（只在该模式显示）：任选 2–4 个字母，题目只由它们组成 -->
       <div class="letters-row" id="lettersRow" hidden>
         <span class="lbl">字母：</span>
         <button class="letter-chip" data-letter="R">R</button>
@@ -1301,7 +1365,7 @@
         <button class="letter-chip" data-letter="L">L</button>
         <button class="letter-chip" data-letter="D">D</button>
         <button class="letter-chip" data-letter="B">B</button>
-        <span class="hint" id="lettersHint">选 2 个</span>
+        <span class="hint" id="lettersHint">选 2–4 个</span>
       </div>
 
       <!-- 长度 -->
@@ -1352,6 +1416,28 @@
         <div class="fs__detail-desc" id="fsDetailDesc">—</div>
       </div>
       <button class="fs__nav" id="fsNext" aria-label="下一个">›</button>
+    </div>
+    <!-- 演练视图（桌面/大屏专用）：左静态大图+超大公式，右循环播放复原→打乱动画 -->
+    <div class="fs__drill" id="fsDrill" hidden>
+      <div class="fs__drill-left">
+        <div class="fs__drill-caption">打乱结果 · 照着还原</div>
+        <div class="fs__drill-canvas"><canvas id="drillStaticCanvas"></canvas></div>
+        <div class="fs__drill-formula"><div class="formula-inner" id="drillFormula"></div></div>
+      </div>
+      <div class="fs__drill-right">
+        <div class="fs__drill-caption">演示 · 从复原逐步打乱（循环）</div>
+        <div class="fs__drill-canvas"><canvas id="drillAnimCanvas"></canvas></div>
+        <div class="fs__drill-ctrl">
+          <button class="fs__drill-btn" id="drillPlay" title="播放/暂停">⏸ 暂停</button>
+          <button class="fs__drill-btn" id="drillReplay" title="从头重播">↺ 重播</button>
+          <span class="fs__drill-speed">速度</span>
+          <button class="fs__drill-btn" data-spd="0.5">0.5×</button>
+          <button class="fs__drill-btn is-on" data-spd="1">1×</button>
+          <button class="fs__drill-btn" data-spd="1.5">1.5×</button>
+          <button class="fs__drill-btn" data-spd="2">2×</button>
+          <span class="fs__drill-step" id="drillStepNum">1 / 1</span>
+        </div>
+      </div>
     </div>
   </div>
   <div class="fs__foot" id="fsFoot" hidden><div class="formula-inner" id="fsFormula"></div></div>
@@ -2178,49 +2264,75 @@ function buildFaceSequence(length, allowedFaces) {
   return seq;
 }
 
-/* 自选两个字母（幼儿园）：题目只由选中的 2 个字母组成，
- * 并且保证 X / X' / Y / Y' 四种符号都出现（4 步时正好各一次）。
- * 两个字母严格交替（R U R' U' 这种），不会出现 R R' 自我抵消——
- * 这也正是二阶/两字母打乱的标准形态。 */
+/* 自选字母（2–4 个）：题目只由选中的字母组成。
+ * · 2 字母：保留原「严格交替 + X/X'/Y/Y' 四种符号齐全」标准形态（幼儿园口径）
+ * · 3/4 字母：贪心生成，保证每个字母至少出现一次、相邻不同面/不同轴（复用 isValidNext），
+ *   且每个字母至少带一次撇号（正反都练到）。相对面允许共存但不相邻。 */
 function buildCustomMoves(length, letters, allowDouble){
-  const A = letters[0], B = letters[1];
-  const seq = [];
-  for (let i = 0; i < length; i++) seq.push({ face: (i % 2 === 0) ? A : B, mod: '' });
+  if (letters.length <= 2) {
+    const A = letters[0], B = letters[1];
+    const seq = [];
+    for (let i = 0; i < length; i++) seq.push({ face: (i % 2 === 0) ? A : B, mod: '' });
+    const slots = { [A]: [], [B]: [] };
+    seq.forEach((s, i) => slots[s.face].push(i));
+    const fixed = new Set();
+    for (const L of [A, B]) {
+      const list = slots[L];
+      if (!list.length) continue;
+      const useSecond = list.length > 1 && Math.random() < 0.5;
+      seq[list[0]].mod = useSecond ? "'" : '';
+      fixed.add(list[0]);
+      if (list.length > 1) {
+        seq[list[1]].mod = useSecond ? '' : "'";
+        fixed.add(list[1]);
+      }
+    }
+    const pool = allowDouble ? ['', "'", '', "'", '2'] : ['', "'"];
+    seq.forEach((s, i) => { if (!fixed.has(i)) s.mod = pool[Math.floor(Math.random() * pool.length)]; });
+    if (Math.random() < 0.5) seq.reverse();
+    return seq.map(s => ({ face: s.face, dir: s.mod === "'" ? -1 : (s.mod === '2' ? 2 : 1), mod: s.mod }));
+  }
 
-  /* 每种字母挑两格分别放「顺时针」「逆时针」→ 四种符号必然齐全 */
-  const slots = { [A]: [], [B]: [] };
-  seq.forEach((s, i) => slots[s.face].push(i));
-  const fixed = new Set();
-  for (const L of [A, B]) {
-    const list = slots[L];
-    if (!list.length) continue;
-    const useSecond = list.length > 1 && Math.random() < 0.5;
-    seq[list[0]].mod = useSecond ? "'" : '';
-    fixed.add(list[0]);
-    if (list.length > 1) {
-      seq[list[1]].mod = useSecond ? '' : "'";
-      fixed.add(list[1]);
+  /* 3/4 字母：与 buildFaceSequence 同款贪心，但字母集只用自选的 */
+  let faces = null;
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const seq = [];
+    const missing = new Set(letters);
+    let failed = false;
+    for (let i = 0; i < length; i++) {
+      const slotsLeft = length - i;
+      let pool;
+      if (slotsLeft <= missing.size) pool = shuffleArr([...missing]);
+      else if (missing.size > 0 && Math.random() < 0.55) pool = shuffleArr([...missing]).concat(shuffleArr(letters).filter(f => !missing.has(f)));
+      else pool = shuffleArr(letters);
+      let picked = null;
+      for (const f of pool) { if (isValidNext(seq, f)) { picked = f; break; } }
+      if (picked === null) { failed = true; break; }
+      seq.push(picked);
+      missing.delete(picked);
+    }
+    if (!failed && missing.size === 0) { faces = seq; break; }
+  }
+  if (!faces) {   /* 兜底：轮转铺满，覆盖仍有保证，只是可能相邻同面 */
+    faces = [];
+    for (let i = 0; i < length; i++) faces.push(letters[i % letters.length]);
+  }
+  const modPool = allowDouble ? MODIFIERS : ['', "'"];
+  const mods = faces.map(() => modPool[Math.floor(Math.random() * modPool.length)]);
+  /* 每个字母至少一次撇号：随机挑一个它的位置改写 */
+  for (const L of letters) {
+    const idxs = [];
+    faces.forEach((f, i) => { if (f === L) idxs.push(i); });
+    if (idxs.length && !idxs.some(i => mods[i] === "'")) {
+      mods[idxs[Math.floor(Math.random() * idxs.length)]] = "'";
     }
   }
-  /* 其余位置随机：180° 只占约 1/5，避免太小的小朋友被 X2 打乱节奏 */
-  const pool = allowDouble ? ['', "'", '', "'", '2'] : ['', "'"];
-  seq.forEach((s, i) => {
-    if (fixed.has(i)) return;
-    s.mod = pool[Math.floor(Math.random() * pool.length)];
-  });
-  /* 一半概率整体反向：同样的四种符号，起手不同，不会每题长得一样 */
-  if (Math.random() < 0.5) seq.reverse();
-  return seq.map(s => ({
-    face: s.face,
-    dir: s.mod === "'" ? -1 : (s.mod === '2' ? 2 : 1),
-    mod: s.mod
-  }));
+  return faces.map((f, i) => ({ face: f, dir: mods[i] === "'" ? -1 : (mods[i] === '2' ? 2 : 1), mod: mods[i] }));
 }
 
 function generateScramble(length) {
   if (currentMoveSet === 'custom') {
-    const letters = customLetters.slice(0, 2);
-    return buildCustomMoves(length, letters, true);
+    return buildCustomMoves(length, customLetters.slice(), true);
   }
   // 冻结契约：内部把 currentMoveSet 解析成 allowedFaces 透传给 buildFaceSequence
   const allowedFaces = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
@@ -2291,15 +2403,14 @@ let count = 0;
 let currentLength = 6;
 let currentMoveSet = 'all';   // 'all' | 'ruf' | 'custom'（'ruf' 为冻结契约，T5 复用）
 let currentCubeType = '3';    // '2' | '3'（冻结契约：二阶/三阶切换）
-let customLetters = ['R', 'U'];   // 自选字母模式：固定两个字母
+let customLetters = ['R', 'U'];   // 自选字母模式：2–4 个（三阶）/ 2–3 个（二阶）
 let netMode = 'flat';             // 'flat' 平面展开图 | '3d' 立体图
 
-/* 对照图该画哪些符号：自选模式只画选中的两个字母（4 张，最贴合课堂） */
+/* 对照图该画哪些符号：自选模式画选中的所有字母（2 字母 4 张，3/4 字母 6/8 张） */
 function legendItemsFor(size, moveSet){
   const all = window.MOVES || [];
   if (moveSet === 'custom') {
-    const letters = customLetters.slice(0, 2);
-    return all.filter(m => letters.includes(m.name.replace("'", '')));
+    return all.filter(m => customLetters.includes(m.name.replace("'", '')));
   }
   if (size === 2) return all.filter(m => ['R','U','F'].includes(m.name.replace("'", '')));
   return all;
@@ -2351,16 +2462,20 @@ function newQuestion() {
   const badge = document.getElementById('coverBadge');
   if (badge) {
     let need, label;
-    if (currentMoveSet === 'custom') {
+    const customMulti = currentMoveSet === 'custom' && customLetters.length > 2;
+    if (currentMoveSet === 'custom' && !customMulti) {
       need = [];
-      customLetters.slice(0, 2).forEach(L => { need.push(L, L + "'"); });
-      label = '✓ ' + customLetters.slice(0, 2).join(' ') + ' 四种符号齐全';
+      customLetters.forEach(L => { need.push(L, L + "'"); });
+      label = '✓ R U 四种符号齐全';
+    } else if (customMulti) {
+      need = customLetters.slice();
+      label = '✓ ' + customLetters.join(' ') + ' 各出现至少一次';
     } else {
       need = currentMoveSet === 'ruf' ? ['R','U','F'] : FACES;
       label = currentMoveSet === 'ruf' ? '✓ R U F 齐全' : '✓ R U F L B D 齐全';
     }
     let miss;
-    if (currentMoveSet === 'custom') {
+    if (currentMoveSet === 'custom' && !customMulti) {
       const have = new Set(moves.map(m => m.face + m.mod));
       miss = need.filter(s => !have.has(s));
     } else {
@@ -2505,23 +2620,25 @@ function syncLengthButtons(){
   });
 }
 
-/* 字母按钮：2 阶只允许 R/U/F（D/B/L 对 2 阶等于整体转，没教学意义） */
+/* 字母按钮：2 阶只允许 R/U/F（最多 3 个）；3 阶六个面可用，最多 4 个。
+   至少保留 2 个，最多 4 个（二阶 3 个）。相对面允许共存，但相邻的由生成算法隔开。 */
+function letterCap(){ return currentCubeType === '2' ? 3 : 4; }
 function syncLetterChips(){
   const allow = currentCubeType === '2' ? ['R','U','F'] : ['R','U','F','L','D','B'];
-  if (currentCubeType === '2') {
-    customLetters = customLetters.filter(L => allow.includes(L));
-    while (customLetters.length < 2) {
-      const cand = allow.find(L => !customLetters.includes(L));
-      customLetters.push(cand);
-    }
+  const cap = letterCap();
+  customLetters = customLetters.filter(L => allow.includes(L)).slice(0, cap);
+  while (customLetters.length < 2) {
+    const cand = allow.find(L => !customLetters.includes(L));
+    if (!cand) break;
+    customLetters.push(cand);
   }
   document.querySelectorAll('.letter-chip').forEach(chip => {
     const L = chip.dataset.letter;
-    chip.disabled = !allow.includes(L);
+    chip.disabled = !allow.includes(L) || (customLetters.length >= cap && !customLetters.includes(L));
     chip.classList.toggle('active', customLetters.includes(L));
   });
   const hint = document.getElementById('lettersHint');
-  if (hint) hint.textContent = '已选 ' + customLetters.slice(0, 2).join(' + ');
+  if (hint) hint.textContent = '已选 ' + customLetters.length + ' 个：' + customLetters.join(' + ');
   const row = document.getElementById('lettersRow');
   if (row) row.hidden = currentMoveSet !== 'custom';
 }
@@ -2568,25 +2685,20 @@ function init() {
     });
   });
 
-  // 自选字母：始终保留 2 个；再点第三个就把先选的那个顶掉
+  // 自选字母：点选切换，可多选 2–4 个（二阶最多 3 个），少于 2 个时不允许取消
   document.querySelectorAll('.letter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       if (chip.disabled) return;
       const L = chip.dataset.letter;
       if (customLetters.includes(L)) {
-        showToast('已选 ' + customLetters.slice(0, 2).join(' + ') + '，点其它字母可替换');
-        return;
-      }
-      if (customLetters.length >= 2) {
-        const keep = customLetters[1];
-        if (keep === AXIS_OPPOSITE[L]) {
-          showToast(L + ' 和 ' + keep + ' 是相对的两面，换一个吧');
+        if (customLetters.length <= 2) {
+          showToast('至少选 2 个字母');
           return;
         }
-        customLetters = [keep, L];
+        customLetters = customLetters.filter(x => x !== L);
       } else {
-        if (customLetters.includes(AXIS_OPPOSITE[L])) {
-          showToast(L + ' 和 ' + AXIS_OPPOSITE[L] + ' 是相对的两面，换一个吧');
+        if (customLetters.length >= letterCap()) {
+          showToast('最多选 ' + letterCap() + ' 个字母');
           return;
         }
         customLetters.push(L);
@@ -2603,13 +2715,21 @@ function init() {
   const netWrap = document.getElementById('netWrap');
   if (netWrap) {
     netWrap.addEventListener('click', () => {
-      if (window.FSViewer) window.FSViewer.openNet();
+      if (!window.FSViewer) return;
+      /* 桌面端 3D 模式点图 → 演练视图；平面模式 / 手机端仍进原静态全屏 */
+      if (netMode === '3d' && window.innerWidth > 900) window.FSViewer.openDrill();
+      else window.FSViewer.openNet();
     });
   }
   const netFsBtn = document.getElementById('netFsBtn');
   if (netFsBtn) netFsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (window.FSViewer) window.FSViewer.openNet();
+  });
+  const netDrillBtn = document.getElementById('netDrillBtn');
+  if (netDrillBtn) netDrillBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.FSViewer) window.FSViewer.openDrill();
   });
   const legendFsBtn = document.getElementById('legendFsBtn');
   if (legendFsBtn) legendFsBtn.addEventListener('click', () => {
@@ -3024,9 +3144,17 @@ function legendIndexAt(clientX, clientY){
 "use strict";
 const $ = id => document.getElementById(id);
 let isOpen = false;
-let view = null;            /* 'net' | 'legend' */
+let view = null;            /* 'net' | 'legend' | 'drill' */
 let items = [];
 let detailIdx = -1;
+
+/* 演练动画状态（桌面/大屏专用） */
+let drillMoves = [];        /* 当前题的着法快照 [{face,mod,dir}] */
+let drillStep = 0;          /* 当前播放到第几步（0 = 复原态，逐步递增） */
+let drillSpeed = 1;         /* 倍速 */
+let drillPlaying = false;
+let drillTimer = 0;
+let drillRaf = 0;
 
 const sizeNow = () => (window._currentCubeSize || 3);
 const itemsNow = () => (typeof legendItemsFor === 'function'
@@ -3037,6 +3165,7 @@ function showOnly(which){
   $('fsStage').hidden  = which !== 'stage';
   $('fsGrid').hidden   = which !== 'grid';
   $('fsDetail').hidden = which !== 'detail';
+  $('fsDrill').hidden  = which !== 'drill';
   $('fsFoot').hidden   = which !== 'stage';
   $('fsBack').hidden   = which !== 'detail';
 }
@@ -3083,6 +3212,106 @@ function openNet(){
   showOnly('stage');
   renderFoot();
   requestAnimationFrame(() => { if (view === 'net') renderNet(); });
+}
+
+/* ---------- 演练视图（桌面/大屏）：左静态大图+超大公式，右循环播放打乱 ---------- */
+function renderDrillFormula(){
+  const box = $('drillFormula');
+  box.innerHTML = drillMoves.map((m, i) => {
+    const cls = m.mod === "'" ? 'move prime' : (m.mod === '2' ? 'move dbl' : 'move');
+    return '<span class="' + cls + '" data-di="' + i + '">' + m.face + m.mod + '</span>';
+  }).join('<span class="move space"> </span>');
+  fitDrillFormula();
+}
+
+/* 长公式自适应字号：基准 clamp 已很大，装不下时逐级缩到 26px */
+function fitDrillFormula(){
+  const box = document.querySelector('.fs__drill-formula');
+  const inner = $('drillFormula');
+  if (!box || !inner) return;
+  inner.style.fontSize = '';
+  const size0 = parseFloat(getComputedStyle(inner).fontSize) || 60;
+  for (let s = size0, i = 0; i < 14 && s > 26; i++) {
+    if (inner.scrollWidth <= box.clientWidth - 16 && inner.scrollHeight <= box.clientHeight - 8) break;
+    s = Math.max(26, Math.floor(s * 0.9));
+    inner.style.fontSize = s + 'px';
+  }
+}
+
+function highlightDrillStep(){
+  const n = drillMoves.length;
+  document.querySelectorAll('#drillFormula [data-di]').forEach(sp => {
+    sp.classList.toggle('is-current', Number(sp.dataset.di) === drillStep - 1);
+  });
+  $('drillStepNum').textContent = Math.max(1, drillStep) + ' / ' + n;
+}
+
+/* 右半：画「从复原执行到第 drillStep 步」的状态；step 0 = 复原 */
+function paintDrillAnim(){
+  if (view !== 'drill') return;
+  const alg = drillMoves.slice(0, drillStep).map(m => m.face + m.mod).join(' ');
+  drawScramble3D(alg, $('drillAnimCanvas'), sizeNow());
+  highlightDrillStep();
+}
+
+/* 左半：最终打乱结果（静态大图），复用当前题 */
+function paintDrillStatic(){
+  if (view !== 'drill') return;
+  drawScramble3D(window._currentText || '', $('drillStaticCanvas'), sizeNow());
+}
+
+function drillTick(){
+  if (!drillPlaying || view !== 'drill') return;
+  const n = drillMoves.length;
+  drillStep++;
+  if (drillStep > n) drillStep = 1;          /* 循环：回到第一步（复原态一闪而过） */
+  paintDrillAnim();
+  const base = 900 / drillSpeed;
+  drillTimer = setTimeout(drillTick, base);
+}
+
+function stopDrill(){
+  drillPlaying = false;
+  if (drillTimer) { clearTimeout(drillTimer); drillTimer = 0; }
+}
+
+function startDrill(){
+  if (drillPlaying) return;
+  drillPlaying = true;
+  drillTick();
+}
+
+function openDrill(){
+  if (!window._currentMoves || !window._currentMoves.length) return;
+  drillMoves = window._currentMoves.map(m => ({ face: m.face, mod: m.mod, dir: m.dir }));
+  if (!drillMoves.length) return;
+  view = 'drill';
+  openShell();
+  $('fsTitle').textContent = '打乱演练';
+  $('fsSub').textContent = '左边照着还原 · 右边看复原到打乱的全过程';
+  $('fsTools').innerHTML = '';
+  showOnly('drill');
+  drillStep = 1; drillSpeed = 1;
+  renderDrillFormula();
+  /* 速度按钮复位 */
+  document.querySelectorAll('#fsDrill [data-spd]').forEach(b => {
+    b.classList.toggle('is-on', b.dataset.spd === '1');
+  });
+  $('drillPlay').textContent = '⏸ 暂停';
+  requestAnimationFrame(() => {
+    if (view !== 'drill') return;
+    paintDrillStatic();
+    paintDrillAnim();
+    startDrill();
+  });
+}
+
+function setDrillSpeed(sp){
+  drillSpeed = sp;
+  if (drillPlaying) {
+    clearTimeout(drillTimer);
+    drillTimer = setTimeout(drillTick, 900 / drillSpeed);
+  }
 }
 
 /* ---------- 对照图：网格 + 单符号大图 ---------- */
@@ -3166,6 +3395,7 @@ function openLegend(index){
 }
 
 function close(){
+  stopDrill();
   isOpen = false; view = null; detailIdx = -1;
   const fs = $('fs');
   fs.classList.remove('open');
@@ -3177,6 +3407,23 @@ $('fsClose').addEventListener('click', close);
 $('fsBack').addEventListener('click', () => { showOnly('grid'); detailIdx = -1; });
 $('fsPrev').addEventListener('click', () => stepDetail(-1));
 $('fsNext').addEventListener('click', () => stepDetail(1));
+/* 演练控制 */
+$('drillPlay').addEventListener('click', () => {
+  if (drillPlaying) { stopDrill(); $('drillPlay').textContent = '▶ 播放'; }
+  else { startDrill(); $('drillPlay').textContent = '⏸ 暂停'; }
+});
+$('drillReplay').addEventListener('click', () => {
+  clearTimeout(drillTimer);
+  drillStep = 1;                      /* 回到复原后第 1 步；保持当前播放/暂停状态 */
+  paintDrillAnim();
+  if (drillPlaying) drillTimer = setTimeout(drillTick, 900 / drillSpeed);
+});
+document.querySelectorAll('#fsDrill [data-spd]').forEach(b => {
+  b.addEventListener('click', () => {
+    setDrillSpeed(parseFloat(b.dataset.spd));
+    document.querySelectorAll('#fsDrill [data-spd]').forEach(x => x.classList.toggle('is-on', x === b));
+  });
+});
 
 document.addEventListener('keydown', (e) => {
   if (!isOpen) return;
@@ -3196,7 +3443,8 @@ function onResize(){
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(() => {
     raf = 0;
-    if (view === 'net') renderNet();
+    if (view === 'drill') { paintDrillStatic(); paintDrillAnim(); fitDrillFormula(); }
+    else if (view === 'net') renderNet();
     else if (!$('fsDetail').hidden) paintDetail();
     else paintCards();
   });
@@ -3211,6 +3459,7 @@ if (window.ResizeObserver) {
 window.FSViewer = {
   openNet,
   openLegend,
+  openDrill,
   close,
   isOpenNet(){ return isOpen && view === 'net'; },
   onNetModeChange(){ if (isOpen && view === 'net') { renderNet(); } }

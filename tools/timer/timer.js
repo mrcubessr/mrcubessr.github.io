@@ -749,6 +749,7 @@
     exitSolveView();   /* 切换项目时退出“查看历史解法”状态 */
     if (review) exitReview();   /* 切换项目时退出复盘（临时区一并清空） */
     if (els.bldParams) els.bldParams.hidden = !isBld;
+    syncDnfReasonButtons();   /* DNF 归因按钮随项目切换立即显隐 */
     /* 打乱题型条：仅三盲显示；显示时按当前模式再同步子控件显隐 */
     if (els.scrtypes) els.scrtypes.hidden = !isBld;
     if (!isBld && els.scrtypeCfg) els.scrtypeCfg.hidden = true;
@@ -823,7 +824,7 @@
     /* 工具带按钮自报状态：折叠时提示可展开，展开时提示可收起 */
     if (els.bldOpen) {
       els.bldOpen.setAttribute("aria-expanded", String(!collapsed));
-      els.bldOpen.textContent = collapsed ? "三盲参数 ▸" : "三盲参数 ▾ 收起";
+      els.bldOpen.textContent = collapsed ? "盲参数 ▸" : "盲参数 ▾";
     }
     renderBldSummary();
   }
@@ -1230,6 +1231,13 @@
     confirmOk();
   }
 
+  /* DNF 归因按钮只在三盲项目出现：其它项目保留「记录 / +2 / 复盘 / 作废」。
+     timer.css 已有 [hidden]{display:none!important}，能盖掉 .btn 的 inline-flex。 */
+  function syncDnfReasonButtons() {
+    var isBld = opt.event === "bld";
+    [els.dnfMemo, els.dnfExec, els.dnfOther].forEach(function (b) { if (b) b.hidden = !isBld; });
+  }
+
   function showConfirm() {
     var eff = pendingPenalty === "DNF" ? Infinity
             : rawMs + (pendingPenalty === "+2" ? 2000 : 0);
@@ -1238,6 +1246,7 @@
     els.confirmTime.textContent = pendingPenalty === "DNF" ? "DNF"
       : S.fmt(eff) + (pendingPenalty === "+2" ? "（含 +2）" : "");
     els.btnPlus2.classList.toggle("is-on", pendingPenalty === "+2");
+    syncDnfReasonButtons();
     renderConfirmMetrics();
   }
 
@@ -2680,6 +2689,7 @@
 
   /* ---------- 统计弹窗 ---------- */
   var statScope = "group";   /* 统计范围：group(本组) / event(全部分组) / all(全部项目) */
+  var bldStatLevel = "";     /* 三盲难度筛选：空 = 全部等级；否则只统计/列出该等级 */
   function getStatArr(scope) {
     if (scope === "event") return allSolves(opt.event);
     if (scope === "all") {
@@ -2689,10 +2699,19 @@
     return solves();
   }
   function openStats() {
-    var arr = getStatArr(statScope), s = S.sessionStats(arr), g = curGroup(opt.event);
+    var allArr = getStatArr(statScope);
+    /* 三盲难度筛选：选中等级后整份统计（概览/图表/专项）都只算该等级 */
+    var arr = allArr;
+    if (opt.event === "bld" && bldStatLevel) {
+      arr = allArr.filter(function (r) {
+        return r.bld && r.bld.difficulty && r.bld.difficulty.level === bldStatLevel;
+      });
+    }
+    var s = S.sessionStats(arr), g = curGroup(opt.event);
     if (statScope === "group") els.modalEvent.textContent = eventDef(opt.event).label + " · " + g.name;
     else if (statScope === "event") els.modalEvent.textContent = eventDef(opt.event).label + " · 全部分组（" + arr.length + " 次）";
     else els.modalEvent.textContent = (opt.event === "bld" ? "三盲" : "三阶 + 二阶") + " · 全部项目（" + arr.length + " 次）";
+    if (opt.event === "bld" && bldStatLevel) els.modalEvent.textContent += " · " + bldStatLevel;
     var cells;
     if (opt.event === "bld") {
       /* 盲拧：aoN 会被 DNF 整片作废 → 换成成功率 / mea 口径 */
@@ -2749,7 +2768,7 @@
     if (els.chartProgress) els.chartProgress.innerHTML = S.progressChart(arr, opt.event === "bld");
     if (opt.event === "bld" && els.bldAnalysis && window.TimerBldStats) {
       els.bldAnalysis.hidden = false;
-      els.bldAnalysis.innerHTML = window.TimerBldStats.renderReport(arr);
+      els.bldAnalysis.innerHTML = window.TimerBldStats.renderReport(arr, { level: bldStatLevel, allSolves: allArr });
     } else if (els.bldAnalysis) {
       els.bldAnalysis.hidden = true;
       els.bldAnalysis.innerHTML = "";
@@ -3441,6 +3460,7 @@
       /* csTimer 式工具面板与列表开关（v2.2.0-B） */
       toolsWrap: $("tm-tools"), toolsLaunch: $("tm-tools-launch"),
       listToggle: $("tm-list-toggle"),
+      drawerToggle: $("tm-drawer-toggle"), drawerClose: $("tm-drawer-close"),
       fsBtn: $("tm-fs-btn"),
       kCountK: $("k-count-k"), kBestK: $("k-best-k"),
       kAo5K: $("k-ao5-k"), kAo12K: $("k-ao12-k"), kAo100K: $("k-ao100-k"),
@@ -3556,7 +3576,7 @@
       }
       if (els.listToggle) {
         els.listToggle.setAttribute("aria-pressed", String(!hidden));
-        els.listToggle.textContent = hidden ? "☰ 显示成绩列表" : "☰ 隐藏成绩列表";
+        els.listToggle.textContent = hidden ? "☰ 显示列表" : "☰ 隐藏列表";
       }
       try { localStorage.setItem(listPrefKey(), hidden ? "1" : "0"); } catch (e) {}
     }
@@ -3647,6 +3667,13 @@
       b.classList.add("is-active");
       openStats();
       b.blur();
+    });
+    /* 三盲难度筛选：点等级徽章 → 报告全部指标按该等级重算，并列出该等级逐把打乱 */
+    if (els.bldAnalysis) els.bldAnalysis.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("[data-bld-level]");
+      if (!b) return;
+      bldStatLevel = b.getAttribute("data-bld-level") || "";
+      openStats();   /* 整份统计重算：概览、图表与专项分析同步按等级筛选 */
     });
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape" && e.code !== "Escape") return;
@@ -3811,6 +3838,17 @@
       this.blur();
     });
     /* 工具面板（桌面横版）：入口点击弹出右下角面板，点面板外收起（v2.2.0-B） */
+    /* 桌面锁屏：右侧展开图/读码抽屉的开关（手机端按钮由 CSS 隐藏，不参与） */
+    function toggleDrawer(on) {
+      var open = on == null ? !document.body.classList.contains("tm-drawer-open") : !!on;
+      document.body.classList.toggle("tm-drawer-open", open);
+      if (els.drawerToggle) {
+        els.drawerToggle.setAttribute("aria-expanded", String(open));
+        els.drawerToggle.textContent = open ? "▦ 收起展开图" : "▦ 展开图";
+      }
+    }
+    if (els.drawerToggle) els.drawerToggle.addEventListener("click", function () { toggleDrawer(); });
+    if (els.drawerClose) els.drawerClose.addEventListener("click", function () { toggleDrawer(false); });
     if (els.toolsLaunch && els.toolsWrap) {
       els.toolsLaunch.addEventListener("click", function (e) {
         e.stopPropagation();
