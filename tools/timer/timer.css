@@ -880,6 +880,21 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-bottom-bar__btn.is-on { color: var(--brand); }
   .tm-bottom-bar__ico { font-size: 16px; line-height: 1; }
   .tm-bottom-bar__lbl { font-size: 10px; white-space: nowrap; }
+  /* v2.2.5：7 格布局——6 个功能按钮 + 中间 logo（logo 稍宽，复刻 csTimer） */
+  .tm-bottom-bar__logo {
+    flex: 1.35 1 0; min-width: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--fg); text-decoration: none; font-weight: 800; font-size: 14px;
+    letter-spacing: 1px; border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    background: var(--surface-2); white-space: nowrap;
+  }
+  .tm-bottom-bar__logo:active { background: var(--line); }
+  /* 矮屏（如 667px）把标签字号再收一档，7 格也不挤 */
+  @media (max-height: 700px) {
+    .tm-bottom-bar { height: 46px; }
+    .tm-bottom-bar__ico { font-size: 14px; }
+    .tm-bottom-bar__lbl { font-size: 9px; }
+    .tm-bottom-bar__logo { font-size: 12px; }
+  }
 
   /* ---------- 成绩列表：给固定高度，内部滚动（不再把整页顶出去） ---------- */
   .tm-list-wrap { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column;
@@ -1317,3 +1332,86 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   padding: 10px 0 4px;
   background: linear-gradient(to top, rgba(4,6,12,.94) 62%, rgba(4,6,12,0)); }
 .tm-poster__hint { flex: 1; min-width: 140px; font-size: 13px; color: var(--fg-3); }
+
+/* =========================================================
+   v2.2.5 手机端 csTimer 工具栏配套：视图切换面板 + 捐赠面板 + 视图容器
+   桌面端（≥1025 横版）这些入口按钮本身 display:none，面板不会被打开；
+   这里做全局定义，hidden 属性统一由 CSS 兜底（避免 id 选择器盖掉 UA 的 hidden）。
+   ========================================================= */
+.tm-sheet[hidden] { display: none !important; }
+.tm-sheet {
+  position: fixed; inset: 0; z-index: 9200;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.tm-sheet__mask { position: absolute; inset: 0; background: rgba(4, 6, 12, .56); }
+.tm-sheet__panel {
+  position: relative; z-index: 1; width: 100%; max-height: 78dvh;
+  display: flex; flex-direction: column;
+  background: var(--surface-solid, var(--surface)); color: var(--fg);
+  border: 1px solid var(--line); border-bottom: 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, .38);
+}
+.tm-sheet__head {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; border-bottom: 1px solid var(--line);
+}
+.tm-sheet__head h2 { margin: 0; font-size: 16px; font-weight: 800; }
+.tm-sheet__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 0 14px; }
+/* 视图切换：整行单选，点中整行高亮，右侧圆点复刻 csTimer */
+.tm-view__item {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; border: 0; border-bottom: 1px solid var(--line);
+  background: transparent; color: var(--fg); text-align: left; cursor: pointer; font-size: 15px;
+}
+.tm-view__item:active { background: var(--surface-2); }
+.tm-view__name { font-weight: 600; }
+.tm-view__meta { flex: 1 1 auto; font-size: 12px; color: var(--fg-3); }
+.tm-view__radio { font-size: 18px; color: var(--fg-3); line-height: 1; }
+.tm-view__item.is-on { color: var(--brand); }
+.tm-view__item.is-on .tm-view__radio { color: var(--brand); }
+/* 捐赠面板 */
+.tm-donate { padding: 14px 18px 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.tm-donate__lead { margin: 0; font-size: 14px; color: var(--fg-2); line-height: 1.5; }
+.tm-donate__qr { display: block; width: 180px; height: 180px; object-fit: contain;
+  background: #fff; border: 1px solid var(--line); padding: 6px; }
+.tm-donate__hint { margin: 0; font-size: 12px; color: var(--fg-3); }
+.tm-donate__row { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 14px; color: var(--fg-2); }
+.tm-donate__row code { font-size: 14px; color: var(--brand); font-weight: 700; }
+.tm-donate__row a { color: var(--brand); }
+
+/* 视图内容容器：打乱区下方的展示位。桌面端不显示（视图切换仅手机端入口）。 */
+.tm-view-dock { display: none; }
+@media (max-width: 600px),
+       (max-width: 1024px) and (orientation: portrait) and (pointer: coarse) {
+  .tm-view-dock:not([hidden]) {
+    display: block; order: 10; position: fixed; left: 0; right: 0; bottom: 50px; z-index: 39;
+    max-height: 62dvh; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--surface-solid, var(--surface)); border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, .32);
+  }
+  .tm-view-dock__head {
+    position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; font-size: 13px; font-weight: 700; color: var(--brand);
+    background: var(--surface-solid, var(--surface)); border-bottom: 1px solid var(--line);
+  }
+  .tm-view-dock__close { width: 30px; height: 30px; border: 1px solid var(--line-2); background: transparent;
+    color: var(--fg-2); font-size: 15px; cursor: pointer; }
+  .tm-view-dock__body { padding: 10px 12px 14px; font-size: 13px; line-height: 1.6; }
+  /* 把现有统计弹窗内容复用到 dock：去掉弹窗壳的内边距 */
+  .tm-view-dock .tm-grid { grid-template-columns: repeat(2, 1fr); }
+  .tm-view-dock .tm-chart { width: 100%; }
+}
+
+/* 视图 dock 内容样式（v2.2.5） */
+.tm-view-dock__hint { margin: 0 0 10px; color: var(--fg-3); font-size: 12px; line-height: 1.6; }
+.tm-view-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tm-view-stats__cell { display: flex; flex-direction: column; gap: 3px; padding: 9px 10px;
+  background: var(--surface-2); border: 1px solid var(--line); }
+.tm-view-stats__cell .k { font-size: 10px; color: var(--fg-3); }
+.tm-view-stats__cell .v { font-size: 16px; font-weight: 700; font-family: var(--font-mono); color: var(--fg); }
+.tm-view-chart svg { max-width: 100%; height: auto; display: block; }
+.tm-view-review__row { display: flex; justify-content: space-between; padding: 7px 4px;
+  border-bottom: 1px solid var(--line); font-family: var(--font-mono); }
+.tm-view-dock .btn { margin-top: 10px; min-height: 36px; }
+.tm-view-bld .tm-bld__rows { grid-template-columns: 1fr; }

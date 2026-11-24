@@ -2620,6 +2620,11 @@
       els.setDrawer.classList.toggle("btn--ghost", !drawerOpen);
       els.setDrawer.setAttribute("aria-pressed", String(drawerOpen));
     }
+    /* v2.2.5 底栏第 7 格「公式」：显示时高亮，隐藏时关闭高亮 */
+    if (els.barScramble) {
+      els.barScramble.classList.toggle("is-on", !scrHidden);
+      els.barScramble.setAttribute("aria-pressed", String(!scrHidden));
+    }
   }
   function openSettings() {
     if (els.settingsEvents) buildEventsInto(els.settingsEvents, selectEvent);
@@ -2724,6 +2729,102 @@
       return allSolves("3x3").concat(allSolves("2x2"));   /* 速拧项目合并对比，盲拧单列 */
     }
     return solves();
+  }
+
+  /* ---------- 手机端视图 dock（v2.2.5，对应 csTimer 底栏第 3 格） ----------
+     打乱区下方的展示位，5 个视图共用同一容器；统计口径一律复用 TimerStats，
+     绝不另写一套，避免与本页弹窗统计出现两套数字。 */
+  var dockView = "net";
+  var VIEW_TITLES = {
+    net: "打乱图案", stats: "数据统计", daily: "逐日统计", review: "解法复盘", bld: "三盲读码"
+  };
+  function renderViewDock(view) {
+    if (!els.viewDock) return;
+    dockView = view;
+    var title = VIEW_TITLES[view] || "打乱图案";
+    if (els.viewDockTitle) els.viewDockTitle.textContent = title;
+    var body = els.viewDockBody;
+    if (!body) return;
+    if (view === "net") {
+      /* 展开图/3D 图本来就在页面顶部打乱区常驻，dock 里给一句指引即可，
+         避免把 canvas 搬来搬去破坏桌面布局与 ResizeObserver。 */
+      body.innerHTML = '<p class="tm-view-dock__hint">展开图显示在页面顶部的打乱区右侧；三阶可切换到 3D 图。选择其他视图可在这里看统计、复盘与读码。</p>';
+      return;
+    }
+    var arr = getStatArr(statScope);
+    if (opt.event === "bld" && bldStatLevel) {
+      arr = arr.filter(function (r) { return r.bld && r.bld.difficulty && r.bld.difficulty.level === bldStatLevel; });
+    }
+    if (view === "stats") {
+      var s = S.sessionStats(arr);
+      var rows = opt.event === "bld"
+        ? [["次数", s.count], ["有效", s.valid], ["DNF", s.dnf],
+           ["成功率", s.successRate == null ? "--" : Math.round(s.successRate * 100) + "%"],
+           ["单次最好", s.best == null ? "--" : S.fmt(s.best)],
+           ["平均", s.mean == null ? "--" : S.fmt(s.mean)],
+           ["mea12", s.mea12 == null ? "--" : S.fmt(s.mea12)]]
+        : [["次数", s.count], ["单次最好", s.best == null ? "--" : S.fmt(s.best)],
+           ["平均", s.mean == null ? "--" : S.fmt(s.mean)],
+           ["当前 ao5", S.avgText ? S.avgText(s.ao5) : (s.ao5 == null ? "--" : S.fmt(s.ao5))],
+           ["当前 ao12", S.avgText ? S.avgText(s.ao12) : (s.ao12 == null ? "--" : S.fmt(s.ao12))],
+           ["最好 ao12", s.bestAo12 == null ? "--" : S.fmt(s.bestAo12)]];
+      body.innerHTML = '<div class="tm-view-stats">' + rows.map(function (r) {
+        return '<div class="tm-view-stats__cell"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>';
+      }).join("") + '</div>';
+      return;
+    }
+    if (view === "daily") {
+      var dayHtml = S.dailyChart ? S.dailyChart(arr) : "";
+      var noData = !dayHtml || dayHtml.replace(/<[^>]*>/g, "").trim() === "暂无数据";
+      body.innerHTML = noData
+        ? '<p class="tm-view-dock__hint">还没有成绩记录。完成几把练习后，这里会显示逐日成绩趋势。</p>'
+        : '<div class="tm-view-chart">' + dayHtml + '</div>';
+      return;
+    }
+    if (view === "review") {
+      /* 复盘模式本体在 tm-review，dock 里给入口与最近成绩摘要 */
+      var recent = arr.slice(0, 8).map(function (r, i) {
+        return '<div class="tm-view-review__row"><span>#' + (i + 1) + '</span><span>' +
+               (r.pen === "DNF" ? "DNF" : S.fmt(S.val(r))) + '</span></div>';
+      }).join("");
+      body.innerHTML = '<p class="tm-view-dock__hint">点下方「进入复盘」可多把一起回看。</p>' +
+        '<div class="tm-view-review">' + (recent || '<p>暂无成绩</p>') + '</div>' +
+        '<button class="btn btn--sm btn--secondary" id="tm-view-review-go" type="button">进入复盘</button>';
+      var go = document.getElementById("tm-view-review-go");
+      if (go) go.addEventListener("click", function () {
+        if (els.reviewBtn) els.reviewBtn.click();
+        els.viewDock.hidden = true;
+      });
+      return;
+    }
+    if (view === "bld") {
+      if (opt.event !== "bld") {
+        body.innerHTML = '<p class="tm-view-dock__hint">当前不是三盲项目。「三盲读码」只在三盲下显示；切到三盲项目后可查看解法与缓冲块读码。</p>';
+        return;
+      }
+      var bldHtml = "";
+      if (els.bld && els.bld.innerHTML) bldHtml = els.bld.innerHTML;
+      body.innerHTML = bldHtml
+        ? '<div class="tm-view-bld">' + bldHtml + '</div>'
+        : '<p class="tm-view-dock__hint">计时后这里会显示三盲解法；也可在设置 → 三盲参数里改为「立即显示」。</p>';
+      return;
+    }
+  }
+  function openViewSheet() {
+    if (!els.viewSheet) return;
+    Array.prototype.forEach.call(els.viewList ? els.viewList.children : [], function (b) {
+      var on = b.dataset.view === dockView;
+      b.classList.toggle("is-on", on);
+      var r = b.querySelector(".tm-view__radio");
+      if (r) r.textContent = on ? "●" : "○";
+    });
+    els.viewSheet.hidden = false;
+    if (els.barView) els.barView.setAttribute("aria-expanded", "true");
+  }
+  function closeViewSheet() {
+    if (!els.viewSheet) return;
+    els.viewSheet.hidden = true;
+    if (els.barView) els.barView.setAttribute("aria-expanded", "false");
   }
   function openStats() {
     var allArr = getStatArr(statScope);
@@ -3484,6 +3585,14 @@
       ao: $("tm-ao"), aoCmp: $("tm-ao-cmp"), ao5: $("tm-ao-5"), ao12: $("tm-ao-12"),
       barStats: $("tm-bar-stats"), barSettings: $("tm-bar-settings"),
       barList: $("tm-bar-list"), barTheme: $("tm-bar-theme"),
+      /* v2.2.5 csTimer 手机工具栏新增项 */
+      barAccount: $("tm-bar-account"), barView: $("tm-bar-view"),
+      barDonate: $("tm-bar-donate"), barScramble: $("tm-bar-scramble"),
+      viewSheet: $("tm-view-sheet"), viewList: $("tm-view-list"), viewClose: $("tm-view-close"),
+      viewDock: $("tm-view-dock"), viewDockTitle: $("tm-view-dock-title"),
+      viewDockBody: $("tm-view-dock-body"), viewDockClose: $("tm-view-dock-close"),
+      donateSheet: $("tm-donate-sheet"), donateClose: $("tm-donate-close"),
+      donateCopy: $("tm-donate-copy"),
       /* csTimer 式工具面板与列表开关（v2.2.0-B） */
       toolsWrap: $("tm-tools"), toolsLaunch: $("tm-tools-launch"),
       listToggle: $("tm-list-toggle"),
@@ -3707,6 +3816,9 @@
     });
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Escape" && e.code !== "Escape") return;
+      if (els.viewSheet && !els.viewSheet.hidden) { e.stopPropagation(); closeViewSheet(); return; }
+      if (els.donateSheet && !els.donateSheet.hidden) { e.stopPropagation(); els.donateSheet.hidden = true; return; }
+      if (els.viewDock && !els.viewDock.hidden) { e.stopPropagation(); els.viewDock.hidden = true; return; }
       if (!els.solveModal.hidden) { e.stopPropagation(); closeSolveModal(); return; }
       if (els.notesModal && !els.notesModal.hidden) { e.stopPropagation(); closeNotesModal(); return; }
       if (!els.settingsModal.hidden) { e.stopPropagation(); closeSettings(); return; }
@@ -3860,12 +3972,57 @@
       });
     }
 
-    /* 手机端底部图标栏（csTimer 式）：统计 / 设置 / 列表 / 主题 */
-    if (els.barStats) els.barStats.addEventListener("click", function () { openStats(); this.blur(); });
+    /* 手机端底部图标栏（v2.2.5 csTimer 复刻，7 格）：
+       设置 / 账户 / 视图切换 / logo / 列表 / 捐赠 / 打乱公式显隐。
+       旧版 4 格（统计/设置/列表/主题）已并入：统计→视图切换或设置里的「数据」，
+       主题→设置弹窗第一项，列表与设置保留原逻辑。 */
     if (els.barSettings) els.barSettings.addEventListener("click", function () { openSettings(); this.blur(); });
     if (els.barList) els.barList.addEventListener("click", function () {
       applyListHidden(!document.body.classList.contains("tm-list-hidden"));
       this.blur();
+    });
+    /* 左2 账户：复用全站现成的账号面板（登录/注册/云同步/导入导出） */
+    if (els.barAccount) els.barAccount.addEventListener("click", function () {
+      if (window.AccountUI && AccountUI.open) AccountUI.open();
+      else if (els.settingsImport) { openSettings(); els.settingsImport.focus(); }
+      this.blur();
+    });
+    /* 左3 视图切换：弹出单选面板，选中后在打乱区下方渲染对应内容 */
+    if (els.barView) els.barView.addEventListener("click", function () { openViewSheet(); this.blur(); });
+    if (els.viewClose) els.viewClose.addEventListener("click", closeViewSheet);
+    if (els.viewSheet) els.viewSheet.addEventListener("click", function (e) {
+      if (e.target.dataset && e.target.dataset.close) closeViewSheet();
+    });
+    if (els.viewList) els.viewList.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-view]");
+      if (!b) return;
+      closeViewSheet();
+      renderViewDock(b.dataset.view);
+      if (els.viewDock) els.viewDock.hidden = false;
+      window.scrollTo(0, 0);
+    });
+    if (els.viewDockClose) els.viewDockClose.addEventListener("click", function () {
+      if (els.viewDock) els.viewDock.hidden = true;
+    });
+    /* 右2 捐赠：站点现成的微信二维码 + 联系方式（vip-gate.js 的同款素材） */
+    if (els.barDonate) els.barDonate.addEventListener("click", function () {
+      if (els.donateSheet) els.donateSheet.hidden = false;
+      this.blur();
+    });
+    if (els.donateClose) els.donateClose.addEventListener("click", function () {
+      if (els.donateSheet) els.donateSheet.hidden = true;
+    });
+    if (els.donateSheet) els.donateSheet.addEventListener("click", function (e) {
+      if (e.target.dataset && e.target.dataset.close) els.donateSheet.hidden = true;
+    });
+    if (els.donateCopy) els.donateCopy.addEventListener("click", function () {
+      var wx = "gamejia001";
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(wx).then(function () {
+          els.donateCopy.textContent = "已复制";
+          setTimeout(function () { els.donateCopy.textContent = "复制"; }, 1400);
+        }).catch(function () {});
+      }
     });
     /* 工具面板（桌面横版）：入口点击弹出右下角面板，点面板外收起（v2.2.0-B） */
     /* 桌面锁屏：右侧展开图/读码抽屉的开关（手机端按钮由 CSS 隐藏，不参与） */
@@ -3921,6 +4078,12 @@
     if (els.setScrText) els.setScrText.addEventListener("click", function () {
       if (els.scramble) els.scramble.click();
       syncDisplaySettingsUI();
+    });
+    /* 底栏第 7 格「公式」：与点打乱文字、设置面板三处共用同一个开关 */
+    if (els.barScramble) els.barScramble.addEventListener("click", function () {
+      if (els.scramble) els.scramble.click();
+      syncDisplaySettingsUI();
+      this.blur();
     });
     if (els.setList) els.setList.addEventListener("click", function () {
       applyListHidden(!document.body.classList.contains("tm-list-hidden"));

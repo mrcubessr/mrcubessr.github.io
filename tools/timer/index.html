@@ -405,19 +405,28 @@
       <p class="tm-empty" id="tm-empty">当前分组还没有成绩：长按计时区（或按空格）开始计时，也可导入已有的成绩文件。</p>
     </div>
 
-    <!-- ⑦ 底部 csTimer 式图标工具栏（仅手机端显示） -->
+    <!-- ⑦ 底部 csTimer 式图标工具栏（仅手机端显示）
+         v2.2.5：按 csTimer 手机版复刻为 7 格——
+         左1 设置 / 左2 账户 / 左3 视图切换 / 中 logo / 右1 列表 / 右2 捐赠 / 右3 打乱公式显隐 -->
     <div class="tm-bottom-bar" id="tm-bottom-bar" aria-label="快捷工具栏">
-      <button class="tm-bottom-bar__btn" id="tm-bar-stats" type="button" aria-label="统计">
-        <span class="tm-bottom-bar__ico" aria-hidden="true">▤</span><span class="tm-bottom-bar__lbl">统计</span>
-      </button>
       <button class="tm-bottom-bar__btn" id="tm-bar-settings" type="button" aria-label="设置">
         <span class="tm-bottom-bar__ico" aria-hidden="true">⚙</span><span class="tm-bottom-bar__lbl">设置</span>
       </button>
+      <button class="tm-bottom-bar__btn" id="tm-bar-account" type="button" aria-label="账户与数据同步">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">⇧</span><span class="tm-bottom-bar__lbl">账户</span>
+      </button>
+      <button class="tm-bottom-bar__btn" id="tm-bar-view" type="button" aria-label="切换打乱区视图" aria-haspopup="true" aria-expanded="false">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">▦</span><span class="tm-bottom-bar__lbl">视图</span>
+      </button>
+      <a class="tm-bottom-bar__logo" id="tm-bar-logo" href="/index.html" aria-label="返回魔方训练站首页">魔方先生</a>
       <button class="tm-bottom-bar__btn" id="tm-bar-list" type="button" aria-label="显示或隐藏成绩列表" aria-pressed="false">
         <span class="tm-bottom-bar__ico" aria-hidden="true">≡</span><span class="tm-bottom-bar__lbl">列表</span>
       </button>
-      <button class="tm-bottom-bar__btn" id="tm-bar-theme" type="button" aria-label="切换主题">
-        <span class="tm-bottom-bar__ico" aria-hidden="true">☀</span><span class="tm-bottom-bar__lbl">主题</span>
+      <button class="tm-bottom-bar__btn" id="tm-bar-donate" type="button" aria-label="支持本站">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">¥</span><span class="tm-bottom-bar__lbl">支持</span>
+      </button>
+      <button class="tm-bottom-bar__btn" id="tm-bar-scramble" type="button" aria-label="显示或隐藏打乱公式" aria-pressed="true">
+        <span class="tm-bottom-bar__ico" aria-hidden="true">⇄</span><span class="tm-bottom-bar__lbl">公式</span>
       </button>
     </div>
 
@@ -596,6 +605,57 @@
       <span class="tm-bld-params__hint">支持 csTimer 导出的 TXT 与本站导出的 JSON；清空前会二次确认。</span>
       <h3 class="tm-h3" id="tm-settings-bld-h" hidden>三盲参数</h3>
       <div id="tm-settings-bld-host" hidden></div>
+    </div>
+  </div>
+</div>
+
+<!-- 视图切换面板（v2.2.5）：对应 csTimer 底栏第 3 格，切换打乱区下方展示的内容 -->
+<div class="tm-sheet" id="tm-view-sheet" hidden>
+  <div class="tm-sheet__mask" data-close="1"></div>
+  <div class="tm-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="tm-view-title">
+    <div class="tm-sheet__head"><h2 id="tm-view-title">打乱区显示</h2>
+      <button class="btn btn--sm btn--ghost" id="tm-view-close" type="button">关闭</button></div>
+    <div class="tm-sheet__body" id="tm-view-list">
+      <button type="button" class="tm-view__item is-on" data-view="net">
+        <span class="tm-view__name">打乱图案</span><span class="tm-view__meta">展开图 / 3D 图</span><span class="tm-view__radio">●</span>
+      </button>
+      <button type="button" class="tm-view__item" data-view="stats">
+        <span class="tm-view__name">数据统计</span><span class="tm-view__meta">本次 / Ao5 / Ao12 / 成功率</span><span class="tm-view__radio">○</span>
+      </button>
+      <button type="button" class="tm-view__item" data-view="daily">
+        <span class="tm-view__name">逐日统计</span><span class="tm-view__meta">近期每天的成绩趋势</span><span class="tm-view__radio">○</span>
+      </button>
+      <button type="button" class="tm-view__item" data-view="review">
+        <span class="tm-view__name">解法复盘</span><span class="tm-view__meta">多把成绩一起回看</span><span class="tm-view__radio">○</span>
+      </button>
+      <button type="button" class="tm-view__item" data-view="bld">
+        <span class="tm-view__name">三盲读码</span><span class="tm-view__meta">三盲解法与缓冲块读码</span><span class="tm-view__radio">○</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 视图内容容器：打乱区下方的可切换展示位（仅手机端，桌面端隐藏由 CSS 控制） -->
+<div class="tm-view-dock" id="tm-view-dock" hidden>
+  <div class="tm-view-dock__head"><span id="tm-view-dock-title">打乱图案</span>
+    <button class="tm-view-dock__close" id="tm-view-dock-close" type="button" aria-label="关闭展示">✕</button></div>
+  <div class="tm-view-dock__body" id="tm-view-dock-body"></div>
+</div>
+
+<!-- 捐赠面板（v2.2.5）：复用站点现成的微信二维码与联系方式 -->
+<div class="tm-sheet" id="tm-donate-sheet" hidden>
+  <div class="tm-sheet__mask" data-close="1"></div>
+  <div class="tm-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="tm-donate-title">
+    <div class="tm-sheet__head"><h2 id="tm-donate-title">支持本站</h2>
+      <button class="btn btn--sm btn--ghost" id="tm-donate-close" type="button">关闭</button></div>
+    <div class="tm-sheet__body tm-donate">
+      <p class="tm-donate__lead">本站免费使用，若对你有帮助，欢迎支持服务器费用。</p>
+      <img class="tm-donate__qr" src="/assets/images/wechat-qrcode.png" alt="微信二维码：魔方先生Jack，扫码添加"
+           width="180" height="180" loading="lazy" decoding="async">
+      <p class="tm-donate__hint">微信扫码添加管理员</p>
+      <div class="tm-donate__row"><span>微信号</span><code id="tm-donate-wx">gamejia001</code>
+        <button type="button" class="btn btn--sm btn--ghost" id="tm-donate-copy">复制</button></div>
+      <div class="tm-donate__row"><span>邮箱</span><a href="mailto:380972743@qq.com">380972743@qq.com</a></div>
     </div>
   </div>
 </div>
