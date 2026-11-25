@@ -447,3 +447,8 @@ timer.js 暴露 window.TimerOpt、opt 增加 personal 字段，timer.css 新增�
 随 v2.2.5 递增：APP_SHELL 成员 `tools/timer/index.html`、`timer.js`、`timer.css`
 三项均改动——手机端 7 格工具栏、视图切换面板与 dock、捐赠面板，桌面布局不变。
 不递增会让已安装 PWA 首屏继续使用旧文件。
+
+## v49（2026-11-25）
+
+随 v2.2.6 递增：APP_SHELL 成员 `tools/timer/index.html`、`timer.js`、`timer.css`
+三项均改动——复盘模式解法可见、视图 dock 改常规流、底栏去 sticky。

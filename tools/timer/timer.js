@@ -648,7 +648,9 @@
   function updateBldReveal() {
     if (opt.event !== "bld" || !els.bld) { if (els.bld) els.bld.hidden = true; return; }
     var showAfter = !opt.bld || opt.bld.showAfter !== false;
-    var show = !showAfter || state === "confirm";
+    /* v2.2.6：复盘模式强制显示解法——复盘的目的就是对照解法重练，
+       之前 state=idle 时被藏掉，导致“看不到整把解法”（线上反馈） */
+    var show = !showAfter || state === "confirm" || !!review;
     if (!viewingSolve) els.bld.hidden = !show;   /* 查看历史时强制显示，不受显示时机限制 */
   }
 
@@ -2782,14 +2784,30 @@
       return;
     }
     if (view === "review") {
-      /* 复盘模式本体在 tm-review，dock 里给入口与最近成绩摘要 */
+      /* v2.2.6：复盘进行中优先展示复盘临时区（之前展示正式成绩，与复盘状态脱节）；
+         「进入复盘」只在确认条出现时可用，否则给提示，不再静默失败 */
+      if (review) {
+        var tmp = review.solves.map(function (s, i) {
+          return '<div class="tm-view-review__row"><span>#' + (i + 1) + '</span><span>' +
+                 (s.pen === "DNF" ? "DNF" : S.fmt(s.ms)) + '</span></div>';
+        }).join("");
+        body.innerHTML = '<p class="tm-view-dock__hint">复盘进行中：已锁定打乱，成绩记入临时区（' +
+          review.solves.length + ' 把）。点「退出复盘」回到正式练习。</p>' +
+          '<div class="tm-view-review">' + (tmp || '<p>还没有临时成绩</p>') + '</div>';
+        return;
+      }
       var recent = arr.slice(0, 8).map(function (r, i) {
         return '<div class="tm-view-review__row"><span>#' + (i + 1) + '</span><span>' +
                (r.pen === "DNF" ? "DNF" : S.fmt(S.val(r))) + '</span></div>';
       }).join("");
-      body.innerHTML = '<p class="tm-view-dock__hint">点下方「进入复盘」可多把一起回看。</p>' +
+      var canEnter = els.confirm && !els.confirm.hidden;
+      body.innerHTML =
+        (canEnter
+          ? '<p class="tm-view-dock__hint">打乱已锁定，点下方「进入复盘」可多把一起回看。</p>'
+          : '<p class="tm-view-dock__hint">完成一把并停在确认条时，「进入复盘」才会生效；现在先正常练一把。</p>') +
         '<div class="tm-view-review">' + (recent || '<p>暂无成绩</p>') + '</div>' +
-        '<button class="btn btn--sm btn--secondary" id="tm-view-review-go" type="button">进入复盘</button>';
+        '<button class="btn btn--sm btn--secondary" id="tm-view-review-go" type="button"' +
+        (canEnter ? '' : ' disabled') + '>进入复盘</button>';
       var go = document.getElementById("tm-view-review-go");
       if (go) go.addEventListener("click", function () {
         if (els.reviewBtn) els.reviewBtn.click();

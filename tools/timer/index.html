@@ -134,6 +134,14 @@
       </div>
     </div>
 
+    <!-- 视图内容容器（v2.2.6：从悬浮层改为常规流，排在打乱区下方、
+         不再盖住计时区——csTimer 的统计/复盘就是打乱下方的内嵌区） -->
+    <div class="tm-view-dock" id="tm-view-dock" hidden>
+      <div class="tm-view-dock__head"><span id="tm-view-dock-title">打乱图案</span>
+        <button class="tm-view-dock__close" id="tm-view-dock-close" type="button" aria-label="关闭展示">✕</button></div>
+      <div class="tm-view-dock__body" id="tm-view-dock-body"></div>
+    </div>
+
     <!-- ①-B 三盲参数面板（仅「三盲」项目显示） -->
     <div class="tm-bld-params" id="tm-bld-params" hidden>
       <div class="tm-bld-params__head">
@@ -633,13 +641,6 @@
       </button>
     </div>
   </div>
-</div>
-
-<!-- 视图内容容器：打乱区下方的可切换展示位（仅手机端，桌面端隐藏由 CSS 控制） -->
-<div class="tm-view-dock" id="tm-view-dock" hidden>
-  <div class="tm-view-dock__head"><span id="tm-view-dock-title">打乱图案</span>
-    <button class="tm-view-dock__close" id="tm-view-dock-close" type="button" aria-label="关闭展示">✕</button></div>
-  <div class="tm-view-dock__body" id="tm-view-dock-body"></div>
 </div>
 
 <!-- 捐赠面板（v2.2.5）：复用站点现成的微信二维码与联系方式 -->

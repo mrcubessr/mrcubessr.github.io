@@ -778,6 +778,9 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
     font-size: calc(15px * var(--tm-scramble-scale)); font-weight: 600; line-height: 1.4; gap: 2px 6px; max-width: none;
   }
   .tm-scramble__btns { display: none; }                    /* 主界面不再出现换打乱/复制 */
+  /* v2.2.6：三盲解法面板限高（复盘模式常驻显示，内容超高会把计时区
+     推到底栏底下，导致按计时区误触底栏/起不了表）。超出部分内部滚动。 */
+  .tm-bld { max-height: 30dvh; overflow-y: auto; }
   /* 展开图：固定小方块贴在右侧（有图时才有内容） */
   .tm-bld-net-side { flex: 0 0 auto; width: auto; max-width: 45vw; margin: 0; align-self: center; }
   .tm-bld-net-side canvas { width: min(30vw, 108px) !important; height: min(30vw, 108px) !important; }
@@ -865,10 +868,12 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-kpi__k { font-size: 9px; letter-spacing: 0; }
   .tm-kpi__v { font-size: 14px; }
 
-  /* ---------- 底部图标栏（csTimer 式）：等分、常驻底部 ---------- */
+  /* ---------- 底部图标栏（csTimer 式）：等分、常驻底部 ----------
+     v2.2.6：去掇 sticky——复盘/视图内容超高时 sticky 会悬浮盖住计时区，
+     按计时区下部会误触底栏（甚至 logo 跳页）。改常规流：单屏时视觉不变，
+     超高时随内容排布，绝不遮挡计时区。 */
   .tm-bottom-bar {
     display: flex; flex: 0 0 auto; align-items: stretch;
-    position: sticky; bottom: 0; z-index: 31;
     height: 50px; background: var(--surface); border-top: 1px solid var(--line);
   }
   .tm-bottom-bar__btn {
@@ -1384,11 +1389,13 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
 .tm-view-dock { display: none; }
 @media (max-width: 600px),
        (max-width: 1024px) and (orientation: portrait) and (pointer: coarse) {
+  /* v2.2.6：dock 改为常规流，插在打乱区（order:1）与计时区（order:2）之间，
+     不再悬浮遮挡计时区——csTimer 的统计/复盘就是打乱下方的内嵌区。
+     选中视图时计时区被压矮但仍可按；关闭 ✕ 后恢复全高。 */
   .tm-view-dock:not([hidden]) {
-    display: block; order: 10; position: fixed; left: 0; right: 0; bottom: 50px; z-index: 39;
-    max-height: 62dvh; overflow-y: auto; overscroll-behavior: contain;
-    background: var(--surface-solid, var(--surface)); border-top: 1px solid var(--line);
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, .32);
+    display: block; order: 1; flex: 0 0 auto;
+    max-height: 36dvh; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--surface-solid, var(--surface)); border-bottom: 1px solid var(--line);
   }
   .tm-view-dock__head {
     position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
