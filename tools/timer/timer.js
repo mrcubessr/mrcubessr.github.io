@@ -648,9 +648,13 @@
   function updateBldReveal() {
     if (opt.event !== "bld" || !els.bld) { if (els.bld) els.bld.hidden = true; return; }
     var showAfter = !opt.bld || opt.bld.showAfter !== false;
-    /* v2.2.6：复盘模式强制显示解法——复盘的目的就是对照解法重练，
-       之前 state=idle 时被藏掉，导致“看不到整把解法”（线上反馈） */
-    var show = !showAfter || state === "confirm" || !!review;
+    /* v2.2.7：复盘是「无条件显示解法」的最高优先级场景。
+       v2.2.6 只做了 `show = ... || !!review`，但仍被末尾的 `if (!viewingSolve)` 挡住：
+       只要用户之前点开过历史成绩回放（尤其速拧回放会把 bld 隐藏）而没点「返回当前」，
+       viewingSolve 残留为 true → 整个显隐赋值被跳过 → 复盘里依旧看不到整把解法（线上二次反馈）。
+       这里把 review 提到守卫之前直接处理，任何残留状态都强制露出。 */
+    if (review) { els.bld.hidden = false; return; }
+    var show = !showAfter || state === "confirm";
     if (!viewingSolve) els.bld.hidden = !show;   /* 查看历史时强制显示，不受显示时机限制 */
   }
 
@@ -659,7 +663,13 @@
      v2.0.55：三盲沿用原逻辑（解法 + 预摆展开图）；速拧也能回放了 ——
      打乱公式 + 按当前项目阶数绘制的展开图，解法面板不涉及。 */
   function viewSolve(rec, num) {
-    if (review) return;   /* 复盘模式锁定打乱，不开历史回放（避免打乱区被历史覆盖） */
+    /* v2.2.7：复盘模式下不再静默吞掉「在主舞台回放这把打乱」——之前直接 return，
+       用户点了没任何反应，以为“复盘里看不到解法”。现在给明确提示：先退出复盘。 */
+    if (review) {
+      var tip = document.querySelector("#tm-review .tm-review__txt");
+      if (tip) flashBtn(tip, "请先点「退出复盘」，再回看历史解法");
+      return;
+    }
     if (!rec) return;
     var scr = (rec.bld && rec.bld.scramble) || rec.scramble || "";
     viewingSolve = true; viewingSolveNum = num;
@@ -1199,6 +1209,9 @@
   }
   function showReview() {
     if (els.review) els.review.hidden = !review;
+    /* v2.2.7：进入/刷新复盘条时，同步强制解法面板可见。
+       不依赖 updateBldReveal 的调用时机，双保险避免复盘中看不到整把解法。 */
+    if (review && opt.event === "bld" && els.bld) els.bld.hidden = false;
     renderReview();
   }
   function renderReview() {
