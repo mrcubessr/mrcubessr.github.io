@@ -1639,8 +1639,9 @@
     });
     els.groupSel.value = cur.id;
     if (els.groupMeta) {
-      els.groupMeta.textContent = "当前 " + cur.name + " · " + cur.solves.length + " 次 · 共 " +
-        gs.length + " 个分组（项目：" + eventDef(opt.event).label + "）";
+      /* v2.3.0：手机上分组条只有一行高，长句会把下拉挤掉；只留「次数 · 分组数」，
+         分组名与项目在上面的下拉与底栏已经表达过了 */
+      els.groupMeta.textContent = cur.solves.length + " 次 · 共 " + gs.length + " 个分组";
     }
     var only = gs.length <= 1;
     if (els.groupDel) els.groupDel.disabled = only;
@@ -3649,6 +3650,7 @@
       /* csTimer 式工具面板与列表开关（v2.2.0-B） */
       toolsWrap: $("tm-tools"), toolsLaunch: $("tm-tools-launch"),
       listToggle: $("tm-list-toggle"),
+      listExpand: $("tm-list-expand"),
       drawerToggle: $("tm-drawer-toggle"), drawerClose: $("tm-drawer-close"),
       fsBtn: $("tm-fs-btn"),
       kCountK: $("k-count-k"), kBestK: $("k-best-k"),
@@ -3702,6 +3704,7 @@
       scrCLen: $("tm-scr-clen"), scrCFlip: $("tm-scr-cflip"),
       scrEPar: $("tm-scr-epar"), scrCPar: $("tm-scr-cpar"),
       scrApply: $("tm-scr-apply"), scrCfgHint: $("tm-scr-cfg-hint"),
+      scrCfgClose: $("tm-scr-cfg-close"),
       bldReset: $("tm-bld-reset"), bldWarn: $("tm-bld-warn"),
       bldAnalysis: $("tm-bld-analysis"),
       /* 分段计时与步数配置 */
@@ -3789,6 +3792,29 @@
         saved = localStorage.getItem(listPrefKey());
       } catch (e) {}
       applyListHidden(saved === null ? dft : saved === "1");
+    }
+
+    /* v2.3.0 手机端：列表常驻一张「迷你卡」（分组下拉 + 表头 + 约 2 行），
+       点底栏「列表」或卡片上的「展开」撑成抽屉看全部。csTimer 手机版主界面
+       同样只留一小块成绩区，完整列表单独打开——计时区才能占满一屏。 */
+    function isMobileLayout() {
+      return window.matchMedia(
+        "(max-width: 600px), (max-width: 1024px) and (orientation: portrait) and (pointer: coarse)"
+      ).matches;
+    }
+    function setListOpen(open) {
+      document.body.classList.toggle("tm-list-open", open);
+      if (els.barList) {
+        els.barList.classList.toggle("is-on", open);
+        els.barList.setAttribute("aria-pressed", String(open));
+      }
+      if (els.listExpand) {
+        els.listExpand.textContent = open ? "收起 ▴" : "展开 ▾";
+        els.listExpand.setAttribute("aria-expanded", String(open));
+      }
+    }
+    function toggleListOpen() {
+      setListOpen(!document.body.classList.contains("tm-list-open"));
     }
     applyListPref();
     window.addEventListener("resize", function () {
@@ -4045,7 +4071,14 @@
        主题→设置弹窗第一项，列表与设置保留原逻辑。 */
     if (els.barSettings) els.barSettings.addEventListener("click", function () { openSettings(); this.blur(); });
     if (els.barList) els.barList.addEventListener("click", function () {
-      applyListHidden(!document.body.classList.contains("tm-list-hidden"));
+      /* 手机端：整块隐藏会让计时区和底栏之间凭空少一截，改「迷你卡 ↔ 抽屉」；
+         桌面端列表独占右列，仍是显示 / 隐藏。 */
+      if (isMobileLayout()) toggleListOpen();
+      else applyListHidden(!document.body.classList.contains("tm-list-hidden"));
+      this.blur();
+    });
+    if (els.listExpand) els.listExpand.addEventListener("click", function () {
+      toggleListOpen();
       this.blur();
     });
     /* 左2 账户：复用全站现成的账号面板（登录/注册/云同步/导入导出） */
@@ -4304,6 +4337,16 @@
       syncScrtypeUI();
       scrTypeReapply();
       els.scrApply.blur();
+    });
+    /* v2.3.0：手机端组合配置是底部浮层，给一个显式的收起入口（等价于点「常规」题型，
+       配置本身仍留在 opt.bld.scr.custom 里，再点「组合」即恢复） */
+    if (els.scrCfgClose) els.scrCfgClose.addEventListener("click", function () {
+      if (!opt.bld) return;
+      opt.bld.scr.mode = "normal";
+      saveOpt();
+      syncScrtypeUI();
+      scrTypeReapply();
+      this.blur();
     });
     applyEventUI();
     applyBldCollapse();

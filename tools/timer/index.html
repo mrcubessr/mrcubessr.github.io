@@ -89,6 +89,8 @@
         <label class="tm-check"><input type="checkbox" id="tm-scr-epar"><span>棱奇偶</span></label>
         <label class="tm-check"><input type="checkbox" id="tm-scr-cpar"><span>角奇偶</span></label>
         <button class="btn btn--sm btn--primary" id="tm-scr-apply" type="button">应用出题</button>
+        <!-- v2.3.0：手机端本块是底部浮层，必须给出明确的关闭入口（此前只能点其它题型间接关掉） -->
+        <button class="tm-scrtype-cfg__close" id="tm-scr-cfg-close" type="button" aria-label="收起组合配置">✕</button>
         <span class="tm-scrtype-cfg__hint" id="tm-scr-cfg-hint">留空 = 不限 · 区间写法 10-12 / 10,12</span>
       </div>
 
@@ -398,6 +400,10 @@
         <button class="btn btn--sm btn--ghost" id="tm-group-ren" type="button">重命名</button>
         <button class="btn btn--sm btn--ghost" id="tm-group-del" type="button">删除</button>
         <span class="tm-list-bar__meta" id="tm-group-meta"></span>
+        <!-- v2.3.0：手机端成绩列表默认压成迷你卡（约 2 行），点这里展开为抽屉。
+             桌面端不显示（桌面列表独占右列，无需展开） -->
+        <button class="btn btn--sm btn--ghost tm-list-expand" id="tm-list-expand" type="button"
+                aria-expanded="false" aria-controls="tm-list">展开 ▾</button>
       </div>
       <div class="tm-list-head" id="tm-list-head">
         <span>#</span><span>时间</span>

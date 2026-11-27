@@ -314,6 +314,10 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
 
 /* ---------- 成绩列表 ---------- */
 .tm-list-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 0; }
+/* v2.3.0：迷你卡「展开 / 收起」按钮只服务手机端（桌面列表独占右列） */
+.tm-list-expand { display: none; }
+/* 组合配置浮层的关闭按钮同理（仅手机端浮层形态需要） */
+.tm-scrtype-cfg__close { display: none; }
 
 /* 分组工具条（分组 = csTimer 的会话） */
 .tm-list-bar {
@@ -1010,6 +1014,106 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-modal__head { padding: 10px 12px; }
   .tm-modal__body { padding: 10px 12px 14px; }
   .tm-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* =========================================================
+     v2.3.0 · 手机端主界面平面化（按 csTimer 手机版）
+     ─ csTimer 主界面只有 6 段：细打乱条 → 打乱文本 + 小图
+       → 大计时（吃满剩余高度）→ 一行数据小字 → 迷你成绩卡 → 图标底栏。
+       分组管理、笔记、完整列表、题型配置全部收进浮层 / 抽屉。
+     ─ 本段声明在同媒体查询末尾，用于覆盖上面各段的卡片化样式
+       （同特异性，靠声明顺序生效）。
+     ========================================================= */
+
+  /* 1) 打乱条：去掉白色卡片底，只留一条分隔线 */
+  .tm-bar { background: transparent; padding: 1px 8px 3px; }
+
+  /* 题型条压到 30px：胶囊容器去底色，只保留选中项的实心块（csTimer 顶栏观感） */
+  .tm-scrtypes:not([hidden]) { padding: 0 0 3px; border-bottom: 0; gap: 4px; }
+  .tm-scrtypes .seg { padding: 0; background: transparent; border: 0; gap: 2px; }
+  .tm-scrtypes .seg__btn { min-height: 26px; padding: 3px 8px; font-size: 12px; border-radius: 0; }
+  .tm-scrtypes__preset { min-height: 26px; padding: 1px 6px; border-radius: 0; }
+
+  /* 2) 打乱文本：与页面同底，最多三行；滚动条隐藏（长打乱可滑，但不画出滚动条） */
+  .tm-scramble__text {
+    font-size: calc(13.5px * min(var(--tm-scramble-scale), 1.2));
+    line-height: 1.5; letter-spacing: .3px; max-height: 4.5em;
+    scrollbar-width: none;
+  }
+  .tm-scramble__text::-webkit-scrollbar { display: none; }
+  .tm-bld-net-side canvas { background: transparent; }
+
+  /* 3) 计时区：吃满剩余高度，数字垂直居中 */
+  .tm-stage { padding: 0 8px; }
+  /* 停机态不再常驻「长按计时区预备·松开开始」：csTimer 主界面没有这行常驻文案，
+     只在观察倒计时 / 就绪 / 运行等真有状态时出现。 */
+  .tm-stage .tm-state { display: none; }
+  .tm-stage.is-ready .tm-state,
+  .tm-stage.is-inspect .tm-state,
+  .tm-stage.is-running .tm-state { display: block; }
+
+  /* 4) 数据小字行：贴紧计时区下沿 */
+  .tm-ao { padding: 4px 8px; font-size: 11.5px; gap: 12px; }
+
+  /* 5) 成绩列表 = 迷你卡：默认约 2 行；点「展开」或底栏「列表」变抽屉 */
+  .tm-list-wrap {
+    flex: 0 0 auto; max-height: 128px; overflow: hidden;
+    /* 展开时改为吃满剩余高度，靠父级 100dvh 约束，永不越过底部工具栏 */
+    transition: max-height .18s ease, flex-grow .18s ease;
+  }
+  body.tm-list-open .tm-list-wrap {
+    flex: 1 1 auto; min-height: 0; max-height: none;
+  }
+  /* 展开抽屉时才允许 .tm 被压缩（默认 flex-shrink:0 时 .tm 高度跟着内容走，
+     列表 flex-grow 会被算成「还有无限空间」而撑破一屏）。其它状态保持原行为：
+     内容真超高时整页可滚，不做压缩。 */
+  body.tm-list-open .tm { flex: 1 1 auto; min-height: 0; }
+  /* 展开时计时区压到最小可用高度，把屏留给列表 */
+  body.tm-list-open .tm-stage { flex: 0 0 168px; min-height: 168px; }
+  /* 分组条改 2 列 grid：第 1 行「下拉 + 展开/收起」，第 2 行放建组与分组说明。
+     原来的 flex-wrap 在长分组名 + 展开按钮并存时会把两者挤成两行错位。 */
+  .tm-list-bar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; gap: 3px 6px; padding: 3px 6px;
+  }
+  .tm-group__sel { grid-column: 1; grid-row: 1; min-width: 0; max-width: none; }
+  .tm-list-expand { grid-column: 2; grid-row: 1; justify-self: end; margin-left: 0; }
+  #tm-group-new { grid-column: 1; grid-row: 2; justify-self: start; }
+  .tm-list-bar__meta {
+    grid-column: 2; grid-row: 2; justify-self: end; text-align: right;
+    margin-left: 0; font-size: 10px;
+  }
+  /* 收起态：只留分组下拉 + 表头 + 最新几行；建组 / 分组说明 / 笔记进抽屉 */
+  body:not(.tm-list-open) #tm-group-new,
+  body:not(.tm-list-open) #tm-group-ren,
+  body:not(.tm-list-open) #tm-group-del,
+  body:not(.tm-list-open) .tm-list-bar__meta,
+  body:not(.tm-list-open) .tm-note-box { display: none !important; }
+  .tm-list-head, .tm-list__item { padding: 4px 6px; }
+  .tm-list-expand {
+    display: inline-flex; align-items: center;
+    min-height: 24px; padding: 2px 7px; font-size: 11px;
+  }
+
+  /* 6) 组合配置浮层：给出显式关闭入口（此前只能点其它题型间接关掉） */
+  .tm-scrtype-cfg:not([hidden]) { padding-right: 46px; }
+  .tm-scrtype-cfg__close {
+    display: block; position: absolute; top: 8px; right: 10px;
+    width: 30px; height: 30px; padding: 0;
+    border: 1px solid var(--line-2); background: transparent;
+    color: var(--fg-2); font-size: 14px; line-height: 1; cursor: pointer;
+  }
+
+  /* 7) 分组下拉让步给「展开」按钮：basis 归 0，长分组名不再把按钮挤到第二行 */
+  .tm-group__sel { flex: 1 1 0; }
+
+  /* 8) 撤掉玻璃质感：csTimer 主界面是纯平面，三块各自带圆角阴影会显得碎。
+     glass.css 用 :where() 把特异性压到 0，这里的 (0,1,1) 稳定覆盖它。 */
+  html[data-glass="on"] .tm-bar,
+  html[data-glass="on"] .tm-stage,
+  html[data-glass="on"] .tm-list-wrap {
+    background-image: none; border-radius: 0; box-shadow: none;
+    border-color: var(--line);
+  }
 }
 
 /* =========================================================
