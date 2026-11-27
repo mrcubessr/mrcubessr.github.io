@@ -2556,14 +2556,36 @@
   function buildEvents() { buildEventsInto(els.events, selectEvent); }
 
   /* ---------- 设置弹窗（手机端：主题 + 项目 + 打乱 + 数据） ---------- */
+  /* 主题 API 兜底（v2.2.8）：theme.js 若因网络/加载顺序未就绪，计时器不能因此整体瘫痪。
+     此前 refreshThemeActive() 与 init 里直接调 Theme.get()/mode()/onChange()，
+     一旦 Theme 未定义，init 抛错中断 → 后续所有事件绑定都不执行 → 表现为
+     「所有按钮点了没反应」（线上偶发复现）。这里统一走安全包装。 */
+  function themeApi() { return (typeof window.Theme === "object" && window.Theme) ? window.Theme : null; }
+  function themeGet() {
+    var t = themeApi();
+    if (t && t.get) { try { return t.get(); } catch (e) {} }
+    return document.documentElement.getAttribute("data-theme") || "auto";
+  }
+  function themeMode() {
+    var t = themeApi();
+    if (t && t.mode) { try { return t.mode(); } catch (e) {} }
+    var m = document.documentElement.getAttribute("data-theme");
+    if (m === "light" || m === "dark") return m;
+    try { return matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"; } catch (e) { return "dark"; }
+  }
+  function themeCall(fn, arg) {
+    var t = themeApi();
+    if (t && typeof t[fn] === "function") { try { return t[fn](arg); } catch (e) {} }
+    return null;
+  }
   function refreshThemeActive() {
     if (els.settingsTheme) {
       Array.prototype.forEach.call(els.settingsTheme.children, function (ch) {
-        ch.classList.toggle("is-active", ch.dataset.themePref === Theme.get());
+        ch.classList.toggle("is-active", ch.dataset.themePref === themeGet());
       });
     }
     /* 工具栏里的主题按钮：文案写「点一下会切到哪个模式」 */
-    var light = Theme.mode() === "light";
+    var light = themeMode() === "light";
     if (els.themeToggle) {
       els.themeToggle.textContent = light ? "🌙 深色" : "☀ 浅色";
       els.themeToggle.setAttribute("aria-label", light ? "切换到深色主题" : "切换到浅色主题");
@@ -3923,7 +3945,7 @@
         els.settingsTheme.addEventListener("click", function (e) {
           var b = e.target.closest("[data-theme-pref]");
           if (!b) return;
-          Theme.set(b.dataset.themePref);
+          themeCall("set", b.dataset.themePref);
           refreshThemeActive();
           b.blur();
         });
@@ -4001,15 +4023,17 @@
     }
     /* 主题变化：同步设置弹窗的选中态 + 工具栏按钮文案，
        并重绘三盲展开图（它的底板取的是当前主题的卡片底色，不重绘会留着旧底色） */
-    Theme.onChange(function () {
-      refreshThemeActive();
-      renderNet();
-    });
+    if (themeApi() && typeof themeApi().onChange === "function") {
+      themeApi().onChange(function () {
+        refreshThemeActive();
+        renderNet();
+      });
+    }
     refreshThemeActive();
     /* 手机端工具栏的主题开关：一键浅色 ↔ 深色（导航被收起时也能切） */
     if (els.themeToggle) {
       els.themeToggle.addEventListener("click", function () {
-        Theme.toggle();
+        themeCall("toggle");
         refreshThemeActive();
         this.blur();
       });
@@ -4135,7 +4159,7 @@
       toggleDrawer();
     });
     if (els.barTheme) els.barTheme.addEventListener("click", function () {
-      Theme.toggle(); refreshThemeActive(); this.blur();
+      themeCall("toggle"); refreshThemeActive(); this.blur();
     });
 
     /* 全屏计时按钮（位于计时区内右上角）：点击切换 body.tm-fullscreen。

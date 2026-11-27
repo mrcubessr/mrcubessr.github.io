@@ -9,6 +9,18 @@
 
 ---
 
+## [2.2.9] — 2026-11-28（修复 Theme 未定义导致「手机端按钮全部失灵」）
+
+- **根因**：`tools/timer/timer.js`（第 677 行加载）在 `init` 里直接调用 `Theme.onChange()` /
+  `refreshThemeActive()`，而定义 `window.Theme` 的 `assets/js/theme.js` 在页面**更后面**（第 692 行）加载。
+  一旦 theme.js 因网络抖动或部署边缘未同步而未就绪，`Theme is not defined` 会让 `init` 抛错中断，
+  后续**所有事件绑定都不执行** → 表现为「手机端所有按钮点了没反应」（线上偶发复现）。
+- **修复**：新增 `themeApi()/themeGet()/themeMode()/themeCall()` 安全包装，所有主题调用走兜底：
+  Theme 缺失时按 `<html data-theme>` / `prefers-color-scheme` 推断，切换类操作静默跳过，
+  **计时器主流程不再因主题模块异常而瘫痪**。
+- 验证：拦截 `theme.js` 返回 404 后，起表 / 停表 / 确认条 / 列表 / 设置全部正常，无 JS 错误（4/4）；
+  正常场景手机端回归通过、交互扫描 0 问题。sw CACHE v51 → v52。
+
 ## [2.2.8] — 2026-11-28（手机端计时器布局按 csTimer 重排，去掉「混动」）
 
 手机端主界面此前是 打乱 → 计时 → 对比行 → 确认 → **4 格统计条** → 列表 → 底栏，

@@ -4,6 +4,12 @@
 > 规则：**凡是改动 `APP_SHELL` 清单里的文件，都要递增 `sw.js` 的 `CACHE` 常量**，
 > 否则已安装的 PWA 用户会一直拿到旧缓存。新版本请追加到本文件顶部（按版本倒序不必强制，但请注明日期）。
 
+## v52（2026-11-28）
+
+v2.2.9 Theme 兜底修复：`tools/timer/timer.js` 改动（主题 API 全部走安全包装，theme.js
+未就绪也不再让 init 抛错、按钮失灵）。timer.js 在 APP_SHELL 内 → CACHE v51 → v52。
+无清单结构变化。
+
 ## v51（2026-11-28）
 
 v2.2.8 手机端计时器布局按 csTimer 重排：`tools/timer/timer.css` 与 `tools/timer/timer.js`
