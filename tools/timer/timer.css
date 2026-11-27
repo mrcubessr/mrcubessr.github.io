@@ -751,17 +751,19 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm { flex: 1 0 auto; min-height: 0; display: flex; flex-direction: column;
     gap: 0; padding: 0; background: var(--bg); }
 
-  /* 顺序（自上而下，复刻 csTimer）：打乱 → 计时 → 对比 → 确认 →
-     统计 → 成绩 → 底部图标栏 →（工具条已并入图标栏/设置）→ 三盲参数 */
+  /* 顺序（自上而下，完整复刻 csTimer 手机版主界面）：
+     打乱 → 视图内容 → 计时 → 本次/平均数据行 → 成绩确认 → 成绩列表 → 底部图标栏。
+     v2.2.8：统计条（4 格）与题型「组合」配置移出主流程（统计进「视图」，配置改底部浮层），
+     主界面只保留 csTimer 这几段，避免多块信息挤在一屏显得混动。 */
   .tm-bar { order: 1; }
-  .tm-stage { order: 2; }
-  .tm-ao { order: 3; }
-  .tm-confirm { order: 4; }
-  .tm-strip { order: 5; }
+  .tm-view-dock:not([hidden]) { order: 2; }
+  .tm-stage { order: 3; }
+  .tm-ao { order: 4; }
+  .tm-confirm { order: 5; }
   .tm-list-wrap { order: 6; }
   .tm-bottom-bar { order: 7; }
-  .tm-tools { order: 8; display: none; }   /* 手机端入口全部并入底部图标栏与设置弹窗 */
-  .tm-bld-params { order: 9; }
+  .tm-bld-params { order: 8; }
+  .tm-tools { order: 9; display: none; }   /* 手机端入口全部并入底部图标栏与设置弹窗 */
 
   /* ---------- 顶部打乱区：公式靠左小字 + 展开图靠右 ---------- */
   .tm-bar { flex: 0 0 auto; padding: 6px 9px 5px; gap: 4px;
@@ -775,9 +777,36 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
     justify-content: flex-start; flex-wrap: nowrap; }
   .tm-scramble__text {
     flex: 1 1 auto; min-width: 0; text-align: left; justify-content: flex-start;
-    font-size: calc(15px * var(--tm-scramble-scale)); font-weight: 600; line-height: 1.4; gap: 2px 6px; max-width: none;
+    /* v2.2.8：手机端字号封顶——用户把公式字号调到 200% 时，长打乱会占掉半屏，
+       导致计时区被压扁、整页滚动，看起来「混动」。max 1.25 倍，并限高内滚。 */
+    font-size: calc(14px * min(var(--tm-scramble-scale), 1.25));
+    font-weight: 600; line-height: 1.45; gap: 2px 6px; max-width: none;
+    max-height: 4.4em; overflow-y: auto; overscroll-behavior: contain;
   }
   .tm-scramble__btns { display: none; }                    /* 主界面不再出现换打乱/复制 */
+
+  /* 题型条（仅三盲）：压成横向可滑的一行，不再换行堆高 */
+  .tm-scrtypes:not([hidden]) {
+    display: flex; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+    gap: 6px; padding: 5px 8px 6px; margin: 0;
+    border-bottom: 1px solid var(--line); scrollbar-width: none;
+  }
+  .tm-scrtypes:not([hidden])::-webkit-scrollbar { display: none; }
+  .tm-scrtypes > .tm-label { display: none; }              /* 去掉「题型」二字省宽 */
+  .tm-scrtypes .seg { flex: 0 0 auto; }
+  .tm-scrtypes .seg__btn { padding: 5px 9px; font-size: 12px; white-space: nowrap; }
+  .tm-scrtypes__preset { flex: 0 0 auto; max-width: none; font-size: 12px; }
+  /* 题型「组合」配置：改成底部浮层，点「组合」才升起，不再挤占主界面 */
+  .tm-scrtype-cfg:not([hidden]) {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9100;
+    flex-wrap: wrap; gap: 8px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface-solid, var(--surface));
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, .32);
+    max-height: 70dvh; overflow-y: auto;
+  }
+  .tm-scrtype-cfg:not([hidden]) .tm-scrtype-cfg__hint { flex: 1 1 100%; }
   /* v2.2.6：三盲解法面板限高（复盘模式常驻显示，内容超高会把计时区
      推到底栏底下，导致按计时区误触底栏/起不了表）。超出部分内部滚动。 */
   .tm-bld { max-height: 30dvh; overflow-y: auto; }
@@ -816,7 +845,7 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-bld-params:not(.is-collapsed) .tm-bld-params__body { max-height: none; }
 
   /* ---------- 计时舞台：占据屏幕主体，大字（csTimer 式大计时区） ---------- */
-  .tm-stage { flex: 1 1 auto; min-height: 132px; padding: 4px 8px; gap: 2px;
+  .tm-stage { flex: 1 1 auto; min-height: 180px; padding: 4px 8px; gap: 2px;
     border-width: 0; border-bottom: 1px solid var(--line); background: transparent; }
   .tm-time { font-size: calc(clamp(74px, 30vw, 148px) * var(--tm-time-scale)); letter-spacing: 1px; }
   .tm-state { font-size: 10px; }
@@ -860,13 +889,11 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-confirm__metrics-wrap { gap: 4px 10px; }
   .tm-metric__v { font-size: 12px; }
 
-  /* ---------- 统计条：压缩成一行小字 ---------- */
-  .tm-strip { flex: 0 0 auto; grid-template-columns: repeat(4, 1fr); }
-  .tm-strip .tm-kpi:nth-child(5) { display: none; }        /* 隐藏 ao100，手机上看 ao5/ao12 足够 */
-  .tm-kpi { padding: 5px 4px; gap: 1px; border-right: 1px solid var(--line); border-bottom: 0; }
-  .tm-kpi:nth-child(4n) { border-right: 0; }
-  .tm-kpi__k { font-size: 9px; letter-spacing: 0; }
-  .tm-kpi__v { font-size: 14px; }
+  /* ---------- 统计条：主界面隐藏（v2.2.8）----------
+     csTimer 手机版主界面只有计时下方那一行 ao5/ao12（.tm-ao），没有 4 格统计块。
+     原来的 4 格与 .tm-ao 的「成功率/平均」重复，挤在一起就是「信息混乱」。
+     统计详情统一走「视图 → 统计」。 */
+  .tm-strip { display: none !important; }
 
   /* ---------- 底部图标栏（csTimer 式）：等分、常驻底部 ----------
      v2.2.6：去掇 sticky——复盘/视图内容超高时 sticky 会悬浮盖住计时区，
@@ -902,7 +929,9 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   }
 
   /* ---------- 成绩列表：给固定高度，内部滚动（不再把整页顶出去） ---------- */
-  .tm-list-wrap { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column;
+  /* v2.2.8：列表与计时区按 36dvh 上限分享剩余高度，列表内部滚动，
+     避免「列表一长整页就滚」的混动感。 */
+  .tm-list-wrap { flex: 1 1 auto; min-height: 0; max-height: 36dvh; display: flex; flex-direction: column;
     border: 0; border-bottom: 1px solid var(--line); background: var(--surface); }
   .tm-list-bar { padding: 4px 6px; gap: 4px; background: var(--surface-2); }
   .tm-list-bar > .tm-label { display: none; }
@@ -921,7 +950,11 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-list-head span:nth-child(6), .tm-list__item > *:nth-child(6) { display: block; }
   .tm-list-head span:nth-child(5), .tm-list__item > *:nth-child(5) { display: none; }
   .tm-list-head { padding: 4px 6px; }
-  .tm-list { flex: 1 1 auto; min-height: 0; max-height: 30vh; overflow-y: auto; overscroll-behavior-y: contain; }
+  .tm-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; }
+  /* v2.2.8：练习笔记框压成紧凑一行，去掉「练习笔记」标签省宽，别在列表上方抢高度 */
+  .tm-note-box { padding: 4px 8px; gap: 6px; }
+  .tm-note-box .tm-label { display: none; }
+  .tm-note-box .input { height: 26px; font-size: 12px; }
   .tm-list__idx { font-size: 10px; }
   .tm-list__t { font-size: 15px; }
   .tm-list__a { font-size: 10px; }

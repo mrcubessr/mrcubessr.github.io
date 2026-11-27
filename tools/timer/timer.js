@@ -3751,9 +3751,21 @@
       syncDisplaySettingsUI();
     }
     function applyListPref() {
-      var dft = isDesktopTall() ? false : true;   /* 桌面默认显示，手机默认隐藏 */
+      /* v2.2.8：手机端也默认「显示」成绩列表——csTimer 手机版主界面就是
+         打乱 → 计时 → 数据行 → 成绩列表 → 工具栏，列表常驻。旧版手机默认隐藏，
+         中间会空出一大片，看起来既不像 csTimer 又浪费屏。 */
+      var dft = false;
       var saved = null;
-      try { saved = localStorage.getItem(listPrefKey()); } catch (e) {}
+      try {
+        /* 一次性迁移：旧版手机默认隐藏，用户哪怕没主动点过也会被存成 "1"，
+           升级后会继续看不到列表。清一次旧偏好，让新的「默认显示」生效；
+           之后用户再点「列表」按钮照常保存自己的选择。 */
+        if (!localStorage.getItem("timer_list_default_v228")) {
+          localStorage.removeItem("timer_list_hidden");
+          localStorage.setItem("timer_list_default_v228", "1");
+        }
+        saved = localStorage.getItem(listPrefKey());
+      } catch (e) {}
       applyListHidden(saved === null ? dft : saved === "1");
     }
     applyListPref();
