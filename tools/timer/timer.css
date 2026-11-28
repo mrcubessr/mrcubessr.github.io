@@ -166,6 +166,8 @@ body { margin: 0; }
   font-family: var(--font-mono); font-size: 12px; padding: 5px 7px;
 }
 .tm-scrtype-cfg .tm-check { font-size: 12.5px; white-space: nowrap; }
+/* 奇偶勾选 + 应用 + ✕ 收在一组，手机端才能整行排版（否则 ✕ 会被挤到单独一行） */
+.tm-scrtype-cfg__actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .tm-scrtype-cfg__hint { font-size: 11.5px; color: var(--fg-3, #7C8798); }
 .tm-scrtype-cfg__hint.is-warn { color: var(--red, #e05252); font-weight: 600; }
 /* 手机端：输入框缩窄，保住一屏不横向溢出 */
@@ -800,17 +802,24 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-scrtypes .seg { flex: 0 0 auto; }
   .tm-scrtypes .seg__btn { padding: 5px 9px; font-size: 12px; white-space: nowrap; }
   .tm-scrtypes__preset { flex: 0 0 auto; max-width: none; font-size: 12px; }
-  /* 题型「组合」配置：改成底部浮层，点「组合」才升起，不再挤占主界面 */
+  /* 题型「预设」下拉：点开时独占一行，出现在题型按钮下方（不再挤在横向滚动条里） */
+  .tm-scrtypes:not([hidden]) { flex-wrap: wrap; }
+  .tm-scrtypes__preset { flex: 1 1 100%; width: 100%; min-height: 30px; }
+  /* 题型「组合」参数：就地展开在题型条下方，应用出题后自动收起（v2.3.1 由底部浮层改内联）
+     grid = 「棱 / 角」各占一行（标签 + 长度 + 翻色），第三行勾选与按钮，末行提示 */
   .tm-scrtype-cfg:not([hidden]) {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9100;
-    flex-wrap: wrap; gap: 8px;
-    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+    display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center; gap: 6px 8px;
+    padding: 8px 10px 9px; margin: 0;
     background: var(--surface-solid, var(--surface));
     border-top: 1px solid var(--line);
-    box-shadow: 0 -8px 28px rgba(0, 0, 0, .32);
-    max-height: 70dvh; overflow-y: auto;
+    border-bottom: 1px solid var(--line);
+    max-height: 44dvh; overflow-y: auto; overscroll-behavior: contain;
   }
-  .tm-scrtype-cfg:not([hidden]) .tm-scrtype-cfg__hint { flex: 1 1 100%; }
+  .tm-scrtype-cfg:not([hidden]) .tm-scrtype-cfg__num { width: auto; min-width: 0; }
+  .tm-scrtype-cfg:not([hidden]) .tm-scrtype-cfg__actions { grid-column: 1 / -1; gap: 10px; }
+  .tm-scrtype-cfg:not([hidden]) #tm-scr-apply { margin-left: auto; }
+  .tm-scrtype-cfg:not([hidden]) .tm-scrtype-cfg__hint { grid-column: 1 / -1; }
   /* v2.2.6：三盲解法面板限高（复盘模式常驻显示，内容超高会把计时区
      推到底栏底下，导致按计时区误触底栏/起不了表）。超出部分内部滚动。 */
   .tm-bld { max-height: 30dvh; overflow-y: auto; }
@@ -1031,7 +1040,8 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
   .tm-scrtypes:not([hidden]) { padding: 0 0 3px; border-bottom: 0; gap: 4px; }
   .tm-scrtypes .seg { padding: 0; background: transparent; border: 0; gap: 2px; }
   .tm-scrtypes .seg__btn { min-height: 26px; padding: 3px 8px; font-size: 12px; border-radius: 0; }
-  .tm-scrtypes__preset { min-height: 26px; padding: 1px 6px; border-radius: 0; }
+  /* 预设下拉只在「点预设」后就地展开一行（v2.3.1），高度按触屏目标给足 */
+  .tm-scrtypes__preset { min-height: 34px; padding: 4px 8px; border-radius: 0; }
 
   /* 2) 打乱文本：与页面同底，最多三行；滚动条隐藏（长打乱可滑，但不画出滚动条） */
   .tm-scramble__text {
@@ -1094,11 +1104,10 @@ body.tm-scrtext-hidden .tm-scramble__text::after {
     min-height: 24px; padding: 2px 7px; font-size: 11px;
   }
 
-  /* 6) 组合配置浮层：给出显式关闭入口（此前只能点其它题型间接关掉） */
-  .tm-scrtype-cfg:not([hidden]) { padding-right: 46px; }
+  /* 6) 组合配置面板的 ✕：内联小方块，跟在「应用出题」之后 */
   .tm-scrtype-cfg__close {
-    display: block; position: absolute; top: 8px; right: 10px;
-    width: 30px; height: 30px; padding: 0;
+    display: block; position: static;
+    flex: 0 0 auto; width: 30px; height: 30px; padding: 0;
     border: 1px solid var(--line-2); background: transparent;
     color: var(--fg-2); font-size: 14px; line-height: 1; cursor: pointer;
   }

@@ -4,6 +4,14 @@
 > 规则：**凡是改动 `APP_SHELL` 清单里的文件，都要递增 `sw.js` 的 `CACHE` 常量**，
 > 否则已安装的 PWA 用户会一直拿到旧缓存。新版本请追加到本文件顶部（按版本倒序不必强制，但请注明日期）。
 
+## v54（2026-11-28）
+
+v2.3.1 三盲题型参数面板改就地展开：`tools/timer/timer.js`（新增纯 UI 态 `scrPanelOpen`、
+面板显隐脱离 `mode === custom/preset`、应用/选预设/✕ 后自动收起）、`tools/timer/timer.css`
+（组合面板由底部 fixed 浮层改题型条下方 grid 内联、预设下拉通栏一行）、
+`tools/timer/index.html`（勾选与按钮收进 `tm-scrtype-cfg__actions`）。
+三文件均在 APP_SHELL 内 → CACHE v53 → v54。无清单结构变化。
+
 ## v53（2026-11-28）
 
 v2.3.0 手机端计时器按 csTimer 真正复刻：`tools/timer/timer.css`、`tools/timer/timer.js`、

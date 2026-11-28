@@ -57,6 +57,9 @@
   var ARM_MS = 350;               /* 长按启动阈值：低于此时间的点按/误触不触发计时 */
   var pressX = 0, pressY = 0;     /* 记录按下坐标，滑动（滚动）则取消，避免误触 */
   var viewingSolve = false, viewingSolveNum = 0;  /* 正在查看某把历史解法 */
+  /* 题型参数面板（组合 / 预设）是否就地展开：纯 UI 态，不写 localStorage。
+     点「组合 / 预设」= 展开，应用出题或选完预设后自动收起 —— 主界面保持干净。 */
+  var scrPanelOpen = false;
   var viewingScramble = "";           /* 回放中：该把成绩的打乱公式 */
   var liveScramble = "";              /* 当前（非回放）这一把的打乱，退出回放时还原用 */
   var inspectStart = 0, runStart = 0;
@@ -764,7 +767,7 @@
     syncDnfReasonButtons();   /* DNF 归因按钮随项目切换立即显隐 */
     /* 打乱题型条：仅三盲显示；显示时按当前模式再同步子控件显隐 */
     if (els.scrtypes) els.scrtypes.hidden = !isBld;
-    if (!isBld && els.scrtypeCfg) els.scrtypeCfg.hidden = true;
+    if (!isBld && els.scrtypeCfg) { els.scrtypeCfg.hidden = true; scrPanelOpen = false; }
     else if (isBld) syncScrtypeUI();
     /* 桌面单屏：工具带上的「三盲参数」入口只在三盲项目下出现。
        按钮本身另有一层「只在桌面单屏可显示」的 CSS，窄屏继续隐藏。 */
@@ -868,11 +871,14 @@
       });
     }
     if (els.scrtypePreset) {
-      els.scrtypePreset.hidden = scr.mode !== "preset";
+      /* v2.3.1：预设下拉不再常驻——点「预设」才就地展开，选完自动收起 */
+      els.scrtypePreset.hidden = !(scr.mode === "preset" && scrPanelOpen);
       els.scrtypePreset.value = scr.preset;
     }
     if (els.scrtypeCfg) {
-      els.scrtypeCfg.hidden = scr.mode !== "custom";
+      /* v2.3.1：组合配置同样按「展开态」控制，而不是 mode === custom；
+         否则应用出题后仍会一直挂在界面上挡住打乱与计时区 */
+      els.scrtypeCfg.hidden = !(scr.mode === "custom" && scrPanelOpen);
       if (scr.mode === "custom") {
         var c = scr.custom;
         if (els.scrELen) els.scrELen.value = c.eLen;
@@ -4295,11 +4301,21 @@
       els.reviewClear.blur();
     });
     if (els.reviewExit) els.reviewExit.addEventListener("click", function () { exitReview(); });
-    /* 打乱题型：切换即出题（v2.2.0） */
+    /* 打乱题型：切换即出题（v2.2.0）；组合 / 预设的参数就地展开，再点一次收起 */
     if (els.scrtypeSeg) els.scrtypeSeg.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-st]");
       if (!btn || !opt.bld) return;
-      opt.bld.scr.mode = btn.dataset.st;
+      var mode = btn.dataset.st;
+      var hasPanel = (mode === "custom" || mode === "preset");
+      /* 已是该模式且面板开着 → 收起面板，模式保持不变（成绩分组/打乱口径不动） */
+      if (hasPanel && opt.bld.scr.mode === mode && scrPanelOpen) {
+        scrPanelOpen = false;
+        syncScrtypeUI();
+        btn.blur();
+        return;
+      }
+      opt.bld.scr.mode = mode;
+      scrPanelOpen = hasPanel;
       saveOpt();
       syncScrtypeUI();
       scrTypeReapply();
@@ -4308,8 +4324,11 @@
     if (els.scrtypePreset) els.scrtypePreset.addEventListener("change", function () {
       if (!opt.bld) return;
       opt.bld.scr.preset = this.value;
+      scrPanelOpen = false;      /* 选完即收起，回到练习界面 */
       saveOpt();
+      syncScrtypeUI();
       scrTypeReapply();
+      this.blur();
     });
     if (els.scrApply) els.scrApply.addEventListener("click", function () {
       if (!opt.bld) return;
@@ -4333,19 +4352,17 @@
         els.scrCfgHint.classList.remove("is-warn");
         els.scrCfgHint.textContent = "留空 = 不限 · 区间写法 10-12 / 10,12";
       }
+      scrPanelOpen = false;    /* 应用成功即收起面板，界面回到只剩题型条 */
       saveOpt();
       syncScrtypeUI();
       scrTypeReapply();
       els.scrApply.blur();
     });
-    /* v2.3.0：手机端组合配置是底部浮层，给一个显式的收起入口（等价于点「常规」题型，
-       配置本身仍留在 opt.bld.scr.custom 里，再点「组合」即恢复） */
+    /* v2.3.1：面板 ✕ = 仅收起面板，保留已选中的题型与参数（再点「组合」即恢复） */
     if (els.scrCfgClose) els.scrCfgClose.addEventListener("click", function () {
       if (!opt.bld) return;
-      opt.bld.scr.mode = "normal";
-      saveOpt();
+      scrPanelOpen = false;
       syncScrtypeUI();
-      scrTypeReapply();
       this.blur();
     });
     applyEventUI();

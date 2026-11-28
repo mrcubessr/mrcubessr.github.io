@@ -86,11 +86,13 @@
         <span class="tm-label">角</span>
         <input class="input tm-scrtype-cfg__num" id="tm-scr-clen" placeholder="长度 6-9" autocomplete="off" spellcheck="false">
         <input class="input tm-scrtype-cfg__num" id="tm-scr-cflip" placeholder="翻色 0-2" autocomplete="off" spellcheck="false">
-        <label class="tm-check"><input type="checkbox" id="tm-scr-epar"><span>棱奇偶</span></label>
-        <label class="tm-check"><input type="checkbox" id="tm-scr-cpar"><span>角奇偶</span></label>
-        <button class="btn btn--sm btn--primary" id="tm-scr-apply" type="button">应用出题</button>
-        <!-- v2.3.0：手机端本块是底部浮层，必须给出明确的关闭入口（此前只能点其它题型间接关掉） -->
-        <button class="tm-scrtype-cfg__close" id="tm-scr-cfg-close" type="button" aria-label="收起组合配置">✕</button>
+        <div class="tm-scrtype-cfg__actions">
+          <label class="tm-check"><input type="checkbox" id="tm-scr-epar"><span>棱奇偶</span></label>
+          <label class="tm-check"><input type="checkbox" id="tm-scr-cpar"><span>角奇偶</span></label>
+          <button class="btn btn--sm btn--primary" id="tm-scr-apply" type="button">应用出题</button>
+          <!-- v2.3.1：面板就地展开于题型条下方，✕ = 只收起面板，已选参数保留 -->
+          <button class="tm-scrtype-cfg__close" id="tm-scr-cfg-close" type="button" aria-label="收起组合参数">✕</button>
+        </div>
         <span class="tm-scrtype-cfg__hint" id="tm-scr-cfg-hint">留空 = 不限 · 区间写法 10-12 / 10,12</span>
       </div>
 
